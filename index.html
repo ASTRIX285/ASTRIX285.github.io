@@ -73,35 +73,48 @@
 <div class="gold-line"></div>
 
 <!-- ── STREAM SECTION ── -->
-<section class="stream-section">
-  <div class="stream-bg">
-    <div class="stream-bg-glow"></div>
-  </div>
-  <div class="stream-content">
-    <div class="stream-header reveal">
+<section class="stream-section" id="streamSection">
+
+  <!-- OFFLINE STATE -->
+  <div class="stream-offline-full" id="streamOffline">
+    <div class="stream-offline-scanlines"></div>
+    <div class="stream-offline-glow"></div>
+    <div class="stream-offline-content">
       <div class="section-eyebrow">Live Transmission</div>
       <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
-      <p style="color:var(--grey);font-size:14px;letter-spacing:1px;">Streaming live from inside the Paradox</p>
-    </div>
-
-    <div class="stream-player-wrap reveal reveal-delay-2" id="streamOffline">
-      <div class="stream-offline">
-        <div class="stream-offline-logo">ASTRIX<span>285</span></div>
-        <div class="stream-offline-divider"></div>
-        <div class="stream-offline-tag">Transmission Offline</div>
-        <div class="stream-offline-url">twitch.tv/astrix285x</div>
+      <p class="stream-sub">Streaming live from inside the Paradox</p>
+      <div class="stream-offline-badge">● TRANSMISSION OFFLINE</div>
+      <div class="stream-actions">
+        <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch on Twitch</a>
+        <a href="https://www.twitch.tv/videos/2777252499" target="_blank" class="btn-secondary">Latest VOD ↗</a>
       </div>
     </div>
+  </div>
 
-    <div class="stream-player-wrap reveal reveal-delay-2" id="streamLive" style="display:none;">
-      <div id="twitch-embed-target" style="width:100%;aspect-ratio:16/9;"></div>
+  <!-- LIVE STATE -->
+  <div class="stream-live-full" id="streamLive" style="display:none;">
+    <div class="stream-live-header">
+      <div class="stream-live-badge">🔴 LIVE NOW</div>
+      <div class="section-eyebrow">Live Transmission</div>
+      <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
+      <p class="stream-sub">Streaming live from inside the Paradox</p>
     </div>
-
-    <div class="stream-actions reveal reveal-delay-3">
+    <div class="stream-live-embed">
+      <iframe
+        id="twitchIframe"
+        src=""
+        allowfullscreen
+        frameborder="0"
+        scrolling="no"
+        allow="autoplay; fullscreen"
+      ></iframe>
+    </div>
+    <div class="stream-actions stream-actions-live">
       <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch on Twitch</a>
       <a href="https://www.twitch.tv/videos/2777252499" target="_blank" class="btn-secondary">Latest VOD ↗</a>
     </div>
   </div>
+
 </section>
 
 <div class="gold-line"></div>
