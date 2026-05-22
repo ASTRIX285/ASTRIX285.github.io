@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join the Paradox | ASTRIX285</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .join-hero {
+      padding: calc(var(--nav-height) + 80px) 40px 80px;
+      position: relative; overflow: hidden;
+      background: var(--dark-2);
+      border-bottom: 1px solid rgba(139,0,0,0.2);
+    }
+    .join-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 100%, rgba(139,0,0,0.2) 0%, transparent 60%);
+    }
+    .join-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-bottom: 2px; }
+    .join-card {
+      background: var(--dark-2); border: 1px solid rgba(139,0,0,0.2);
+      padding: 40px; position: relative; overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .join-card:hover { border-color: rgba(201,168,76,0.3); }
+    .join-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(to right, var(--crimson), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .join-card:hover::before { opacity: 1; }
+    .join-card-icon { font-size: 28px; margin-bottom: 16px; }
+    .join-card-title {
+      font-family: 'Orbitron', monospace; font-size: 15px; font-weight: 700;
+      color: var(--white); margin-bottom: 10px; letter-spacing: 1px;
+    }
+    .join-card-text { color: var(--grey); line-height: 1.8; font-size: 14px; margin-bottom: 24px; }
+    .universe-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 32px 0;
+    }
+    .universe-pill {
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+      color: var(--grey); border: 1px solid var(--dark-4);
+      padding: 10px 14px; text-transform: uppercase; text-align: center;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .universe-pill:hover { border-color: var(--crimson); color: var(--white); }
+    .form-group { margin-bottom: 24px; }
+    .form-label {
+      display: block; font-family: 'Orbitron', monospace; font-size: 9px;
+      letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; background: var(--dark-3); border: 1px solid rgba(139,0,0,0.3);
+      color: var(--white); padding: 14px 16px; font-family: 'Rajdhani', sans-serif;
+      font-size: 15px; transition: border-color 0.2s; outline: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--crimson-mid); }
+    .form-select { cursor: pointer; }
+    .form-select option { background: var(--dark-3); }
+    .form-textarea { min-height: 120px; resize: vertical; }
+    .form-checkbox { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .form-checkbox input { accent-color: var(--crimson); width: 16px; height: 16px; }
+    .form-checkbox span { font-size: 14px; color: var(--grey); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-submit {
+      width: 100%; padding: 16px; margin-top: 8px;
+      font-family: 'Orbitron', monospace; font-size: 12px; letter-spacing: 4px;
+      color: var(--white); background: var(--crimson); border: 1px solid var(--crimson-mid);
+      cursor: pointer; text-transform: uppercase; transition: background 0.2s, box-shadow 0.2s;
+    }
+    .form-submit:hover { background: var(--crimson-mid); box-shadow: 0 0 30px rgba(139,0,0,0.4); }
+    @media (max-width: 768px) {
+      .join-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .universe-grid { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="../img/logo.png" alt="ASTRIX285">
+    <span>ASTRIX<span class="accent">285</span></span>
+  </div>
+  <div class="nav-links">
+    <a href="../index.html">Home</a>
+    <a href="reviews.html">Reviews</a>
+    <a href="news.html">News</a>
+    <a href="games.html">Universes</a>
+    <a href="join.html" class="active">Join Us</a>
+  </div>
+  <div class="nav-live">
+    <div class="nav-live-dot" id="navDot"></div>
+    <span class="nav-live-text" id="navText">OFFLINE</span>
+  </div>
+</nav>
+
+<div class="join-hero">
+  <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1;text-align:center;">
+    <div class="section-eyebrow" style="animation:fadeUp 0.8s ease 0.2s both;">ASTRIX PARADOX</div>
+    <h1 class="section-title" style="animation:fadeUp 0.8s ease 0.4s both;font-size:clamp(32px,5vw,64px);">
+      Enter the <span class="accent">Paradox</span>
+    </h1>
+    <p style="color:var(--grey);max-width:600px;margin:16px auto 0;font-size:16px;line-height:1.8;animation:fadeUp 0.8s ease 0.6s both;">
+      Welcome, Traveller. ASTRIX PARADOX is a multi-game operations hub. Choose the universes you follow and only the relevant channels will appear.
+    </p>
+    <p style="color:var(--grey-dark);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;margin-top:16px;animation:fadeUp 0.8s ease 0.8s both;">
+      Streams · Events · Major Updates &nbsp;·&nbsp; No pings · No pressure · Just vibes
+    </p>
+  </div>
+</div>
+
+<div class="gold-line"></div>
+
+<section class="section" style="background:var(--dark);">
+  <div style="max-width:1100px;margin:0 auto;">
+
+    <!-- Universe selection -->
+    <div style="text-align:center;margin-bottom:48px;" class="reveal">
+      <div class="section-eyebrow" style="margin-bottom:8px;">Choose Your Universe</div>
+      <h2 class="section-title" style="margin-bottom:16px;">If you play it, <span class="accent">we can build it</span></h2>
+      <p style="color:var(--grey);max-width:500px;margin:0 auto 24px;font-size:14px;line-height:1.8;">React to select your games in Discord and only those channels will appear. Change roles anytime. Channels update instantly.</p>
+      <div class="universe-grid" style="max-width:700px;margin:0 auto;">
+        <div class="universe-pill">Destiny 2</div>
+        <div class="universe-pill">Warframe</div>
+        <div class="universe-pill">Borderlands</div>
+        <div class="universe-pill">ARK Ascended</div>
+        <div class="universe-pill">Warhammer 40K</div>
+        <div class="universe-pill">Arc Raiders</div>
+        <div class="universe-pill">Total War</div>
+        <div class="universe-pill">Conan Exiles</div>
+        <div class="universe-pill">Elder Scrolls</div>
+        <div class="universe-pill">New World</div>
+        <div class="universe-pill">Space Engineers</div>
+        <div class="universe-pill">Valheim</div>
+      </div>
+    </div>
+
+    <!-- Social links -->
+    <div class="join-grid" style="margin-bottom:2px;">
+      <div class="join-card reveal">
+        <div class="join-card-icon">🎮</div>
+        <div class="join-card-title">ASTRIX PARADOX Discord</div>
+        <p class="join-card-text">The main hub. Game nights, stream alerts, community chat, and exclusive content drops. Mods are here to help. This is where the crew lives.</p>
+        <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank" class="btn-primary">Join the Paradox ↗</a>
+      </div>
+      <div class="join-card reveal reveal-delay-1">
+        <div class="join-card-icon">📺</div>
+        <div class="join-card-title">Follow on Twitch</div>
+        <p class="join-card-text">Get notified the moment ASTRIX285 goes live. Drop in, join the chat, and be part of the action in real time from inside the Paradox.</p>
+        <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">Follow on Twitch ↗</a>
+      </div>
+    </div>
+
+    <div class="join-grid" style="margin-bottom:40px;">
+      <div class="join-card reveal">
+        <div class="join-card-icon">▶️</div>
+        <div class="join-card-title">Subscribe on YouTube</div>
+        <p class="join-card-text">Highlights, VODs, and exclusive content. Never miss a moment from the ASTRIX285 Gaming channel.</p>
+        <a href="https://youtube.com/c/ASTRIX285Gaming" target="_blank" class="btn-secondary">Subscribe ↗</a>
+      </div>
+      <div class="join-card reveal reveal-delay-1">
+        <div class="join-card-icon">🐦</div>
+        <div class="join-card-title">Follow on X</div>
+        <p class="join-card-text">Stream announcements, gaming takes, and mission updates. Stay in the loop between transmissions.</p>
+        <a href="https://x.com/ASTRIX285" target="_blank" class="btn-secondary">Follow ↗</a>
+      </div>
+    </div>
+
+    <!-- Contact form -->
+    <div style="background:var(--dark-2);border:1px solid rgba(139,0,0,0.2);padding:60px 40px;" class="reveal">
+      <div style="max-width:700px;margin:0 auto;">
+        <div class="section-eyebrow" style="margin-bottom:8px;">Open Transmission</div>
+        <h2 class="section-title" style="margin-bottom:8px;">Send a <span class="accent">Message</span></h2>
+        <p style="color:var(--grey);font-size:14px;margin-bottom:32px;">Got a question, a universe request, or just want to say hello? Open a transmission.</p>
+
+        <form id="joinForm" onsubmit="handleSubmit(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="name">Callsign *</label>
+              <input class="form-input" type="text" id="name" placeholder="Your name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="email">Comms Channel *</label>
+              <input class="form-input" type="email" id="email" placeholder="your@email.com" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="subject">Mission Type</label>
+            <input class="form-input" type="text" id="subject" placeholder="Question, universe request, feedback...">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="platform">Primary Platform</label>
+            <select class="form-select" id="platform">
+              <option value="">Select your platform</option>
+              <option value="pc">PC</option>
+              <option value="ps5">PlayStation 5</option>
+              <option value="xbox">Xbox Series X/S</option>
+              <option value="multiple">Multiple Platforms</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="message">Transmission</label>
+            <textarea class="form-textarea" id="message" placeholder="Your message..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-checkbox">
+              <input type="checkbox" id="newsletter">
+              <span>Subscribe to mission updates — stream alerts and gaming news.</span>
+            </label>
+          </div>
+          <button type="submit" class="form-submit">Send Transmission</button>
+        </form>
+
+        <div id="formSuccess" style="display:none;text-align:center;padding:40px;">
+          <div style="font-family:'Orbitron',monospace;font-size:14px;color:var(--gold);letter-spacing:3px;margin-bottom:12px;">TRANSMISSION RECEIVED</div>
+          <p style="color:var(--grey);">Welcome to the Paradox, Traveller.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-social">
+    <a href="https://x.com/ASTRIX285" target="_blank">X / Twitter</a>
+    <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank">Discord</a>
+    <a href="https://www.twitch.tv/astrix285x" target="_blank">Twitch</a>
+    <a href="https://www.facebook.com/xASTRIX285x" target="_blank">Facebook</a>
+    <a href="https://www.youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>
+  </div>
+  <div class="gold-line" style="margin-bottom:20px;"></div>
+  <div class="footer-copy">© 2025 Astrix285 — Built for the community, powered by gaming passion and history.</div>
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+function handleSubmit(e) {
+  e.preventDefault();
+  document.getElementById('joinForm').style.display = 'none';
+  document.getElementById('formSuccess').style.display = 'block';
+}
+</script>
+</body>
+</html>
