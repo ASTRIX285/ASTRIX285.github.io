@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASTRIX PARADOX — Multi-Game Operations Hub</title>
+  <meta name="description" content="ASTRIX PARADOX is a multi-game operations hub. Choose your universe. Join the community. No pings. No pressure. Just vibes.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="img/logo.png" alt="ASTRIX285">
+    <span>ASTRIX<span class="accent">285</span></span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html" class="active">Home</a>
+    <a href="pages/reviews.html">Reviews</a>
+    <a href="pages/news.html">News</a>
+    <a href="pages/games.html">Universes</a>
+    <a href="pages/join.html">Join Us</a>
+  </div>
+  <div class="nav-live">
+    <div class="nav-live-dot" id="navDot"></div>
+    <span class="nav-live-text" id="navText">OFFLINE</span>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-bg-img"></div>
+    <div class="hero-bg-gradient"></div>
+    <div class="hero-grid"></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Multi-Game Operations Hub</div>
+    <h1 class="hero-title">
+      Welcome to the<br><span class="accent">Paradox</span>
+    </h1>
+    <p class="hero-body">
+      If you are here, you are already part of something bigger than just a website.
+      I am ASTRIX285 — a gamer, streamer, and community builder who has spent years
+      grinding through digital worlds. Right now, there is only one world that matters.
+      <br><br>
+      <strong style="color:var(--crimson-mid)">Crimson Desert</strong> has taken over.
+      Drop in on <a href="https://twitch.tv/astrix285x" target="_blank">Twitch</a> to watch it live,
+      catch highlights on <a href="https://youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>,
+      or join the crew on <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank">Discord</a>.
+      <br><br>
+      <em style="color:var(--grey);font-style:normal;letter-spacing:1px;">Welcome to the Paradox. Welcome to ASTRIX285.</em>
+    </p>
+    <div class="hero-tags">
+      <span class="hero-tag">Crimson Desert</span>
+      <span class="hero-tag">Destiny 2</span>
+      <span class="hero-tag">Borderlands</span>
+      <span class="hero-tag">Warframe</span>
+      <span class="hero-tag">Warhammer 40K</span>
+      <span class="hero-tag">ARK</span>
+      <span class="hero-tag">+ More</span>
+    </div>
+    <div class="hero-cta">
+      <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch Live</a>
+      <a href="pages/join.html" class="btn-secondary">Enter the Paradox</a>
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ── STREAM SECTION ── -->
+<section class="stream-section">
+  <div class="stream-bg">
+    <div class="stream-bg-glow"></div>
+  </div>
+  <div class="stream-content">
+    <div class="stream-header reveal">
+      <div class="section-eyebrow">Live Transmission</div>
+      <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
+      <p style="color:var(--grey);font-size:14px;letter-spacing:1px;">Streaming live from inside the Paradox</p>
+    </div>
+
+    <div class="stream-player-wrap reveal reveal-delay-2" id="streamOffline">
+      <div class="stream-offline">
+        <div class="stream-offline-logo">ASTRIX<span>285</span></div>
+        <div class="stream-offline-divider"></div>
+        <div class="stream-offline-tag">Transmission Offline</div>
+        <div class="stream-offline-url">twitch.tv/astrix285x</div>
+      </div>
+    </div>
+
+    <div class="stream-player-wrap reveal reveal-delay-2" id="streamLive" style="display:none;">
+      <div id="twitch-embed-target" style="width:100%;aspect-ratio:16/9;"></div>
+    </div>
+
+    <div class="stream-actions reveal reveal-delay-3">
+      <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch on Twitch</a>
+      <a href="https://www.twitch.tv/videos/2777252499" target="_blank" class="btn-secondary">Latest VOD ↗</a>
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ── STATS ── -->
+<section style="padding:40px;background:var(--dark-2);border-top:1px solid rgba(139,0,0,0.2);">
+  <div style="max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center;">
+    <div class="reveal">
+      <div style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:var(--crimson-mid);">11+</div>
+      <div style="font-size:11px;letter-spacing:3px;color:var(--grey);margin-top:6px;text-transform:uppercase;">Years in the Field</div>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:var(--crimson-mid);">15+</div>
+      <div style="font-size:11px;letter-spacing:3px;color:var(--grey);margin-top:6px;text-transform:uppercase;">Universes Explored</div>
+    </div>
+    <div class="reveal reveal-delay-2">
+      <div style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:var(--crimson-mid);">1</div>
+      <div style="font-size:11px;letter-spacing:3px;color:var(--grey);margin-top:6px;text-transform:uppercase;">Paradox Hub</div>
+    </div>
+    <div class="reveal reveal-delay-3">
+      <div style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:var(--crimson-mid);">∞</div>
+      <div style="font-size:11px;letter-spacing:3px;color:var(--grey);margin-top:6px;text-transform:uppercase;">Hours Logged</div>
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ── CURRENTLY PLAYING ── -->
+<section class="section">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-eyebrow reveal">Active Universe</div>
+    <h2 class="section-title reveal reveal-delay-1">Crimson <span class="accent">Desert</span></h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:40px;">
+      <div>
+        <p class="reveal reveal-delay-2" style="color:var(--grey);line-height:1.9;font-size:16px;">
+          Pearl Abyss's brutal open-world action RPG is everything I live for. Savage combat, deep lore,
+          a world that punishes the weak and rewards the relentless. I am all in, and I am bringing you with me.
+        </p>
+        <p class="reveal reveal-delay-3" style="color:var(--grey);line-height:1.9;font-size:16px;margin-top:16px;">
+          Whether I am exploring every corner of the map, breaking down builds, or going live and taking on
+          the hardest content the game throws at me — this is where you get the real experience. No fluff. Just gameplay, honest reactions, and community.
+        </p>
+        <div style="margin-top:28px;display:flex;gap:12px;flex-wrap:wrap;" class="reveal reveal-delay-3">
+          <a href="pages/reviews.html" class="btn-primary">Read the Review</a>
+          <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-secondary">Watch Live</a>
+        </div>
+      </div>
+      <div class="reveal reveal-delay-2" style="position:relative;">
+        <div style="border:1px solid rgba(139,0,0,0.4);padding:2px;position:relative;">
+          <div style="position:absolute;top:-1px;left:-1px;width:20px;height:20px;border-top:2px solid var(--gold);border-left:2px solid var(--gold);z-index:1;"></div>
+          <div style="position:absolute;bottom:-1px;right:-1px;width:20px;height:20px;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold);z-index:1;"></div>
+          <div style="background:var(--dark-3);aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+            <div style="text-align:center;position:relative;z-index:1;">
+              <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);margin-bottom:16px;">ACTIVE UNIVERSE</div>
+              <div style="font-family:'Orbitron',monospace;font-size:clamp(18px,2.5vw,32px);font-weight:900;color:var(--white);letter-spacing:2px;text-shadow:0 0 40px rgba(139,0,0,0.8);">CRIMSON<br>DESERT</div>
+              <div style="margin-top:16px;font-size:11px;letter-spacing:3px;color:var(--grey);">PEARL ABYSS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<!-- ── DISCORD CTA ── -->
+<section style="padding:80px 40px;background:var(--dark-2);text-align:center;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(139,0,0,0.15) 0%,transparent 60%);"></div>
+  <div style="position:relative;z-index:1;max-width:700px;margin:0 auto;">
+    <div class="section-eyebrow reveal" style="text-align:center;">ASTRIX PARADOX</div>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;font-size:clamp(24px,4vw,48px);">
+      Choose Your <span class="accent">Universe</span>
+    </h2>
+    <p class="reveal reveal-delay-2" style="color:var(--grey);line-height:1.9;font-size:16px;margin:20px 0 12px;">
+      ASTRIX PARADOX is a multi-game operations hub. Choose the universes you follow and only the relevant channels will appear.
+    </p>
+    <p class="reveal reveal-delay-2" style="color:var(--grey-dark);font-size:13px;letter-spacing:2px;margin-bottom:32px;">
+      Streams · Events · Major Updates &nbsp;·&nbsp; No pings · No pressure · Just vibes
+    </p>
+    <div class="reveal reveal-delay-3" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;">
+      <span style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--grey);border:1px solid var(--dark-4);padding:6px 14px;">Destiny 2</span>
+      <span style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--grey);border:1px solid var(--dark-4);padding:6px 14px;">Warframe</span>
+      <span style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--grey);border:1px solid var(--dark-4);padding:6px 14px;">Borderlands</span>
+      <span style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--grey);border:1px solid var(--dark-4);padding:6px 14px;">ARK</span>
+      <span style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--grey);border:1px solid var(--dark-4);padding:6px 14px;">Warhammer 40K</span>
+      <span style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--grey);border:1px solid var(--dark-4);padding:6px 14px;">Conan Exiles</span>
+      <span style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--grey);border:1px solid var(--dark-4);padding:6px 14px;">+ More</span>
+    </div>
+    <div class="reveal reveal-delay-3" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+      <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank" class="btn-primary">Join the Paradox ↗</a>
+      <a href="pages/join.html" class="btn-secondary">Learn More</a>
+    </div>
+    <p class="reveal reveal-delay-3" style="margin-top:20px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:var(--grey-dark);">
+      If you play it, we can build it.
+    </p>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="footer-social">
+    <a href="https://x.com/ASTRIX285" target="_blank">X / Twitter</a>
+    <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank">Discord</a>
+    <a href="https://www.twitch.tv/astrix285x" target="_blank">Twitch</a>
+    <a href="https://www.facebook.com/xASTRIX285x" target="_blank">Facebook</a>
+    <a href="https://www.youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>
+  </div>
+  <div class="gold-line" style="margin-bottom:20px;"></div>
+  <div class="footer-copy">© 2025 Astrix285 — Built for the community, powered by gaming passion and history.</div>
+  <div class="footer-disclaimer">All images featured on this site are official wallpapers sourced from the respective publishers and developers' websites. They remain the property of their rightful owners and are used here for fan and review purposes only.</div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
