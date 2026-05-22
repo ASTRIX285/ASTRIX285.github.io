@@ -354,3 +354,17 @@ a { color: inherit; text-decoration: none; }
   .stream-actions-live { padding: 24px 20px; }
   .stream-live-embed { transform: scaleX(1) !important; }
 }
+
+/* ── FACEBOOK BUTTON ── */
+.btn-facebook {
+  font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 3px;
+  color: var(--white); background: #1877f2;
+  border: 1px solid #1877f2; padding: 14px 32px;
+  cursor: pointer; text-transform: uppercase; display: inline-flex;
+  align-items: center;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.btn-facebook:hover {
+  background: #1464d8;
+  box-shadow: 0 0 20px rgba(24,119,242,0.4);
+}
