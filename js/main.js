@@ -3,7 +3,7 @@
 // ============================================================
 
 const TWITCH_CHANNEL = 'astrix285x';
-const TWITCH_FUNCTION = 'https://astrix-paradox.netlify.app/.netlify/functions/twitch-status';
+const TWITCH_FUNCTION = 'https://twitch-status.astrix285.workers.dev';
 
 // ── NAV ACTIVE STATE ────────────────────────────────────────
 function setActiveNav() {
@@ -36,7 +36,7 @@ async function checkTwitchLive() {
   const liveEl    = document.getElementById('streamLive');
 
   try {
-    const TWITCH_FUNCTION = 'https://twitch-status.astrix285.workers.dev';
+    const res  = await fetch(TWITCH_FUNCTION);
     const data = await res.json();
 
     if (data.live) {
