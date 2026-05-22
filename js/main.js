@@ -36,7 +36,7 @@ async function checkTwitchLive() {
   const liveEl    = document.getElementById('streamLive');
 
   try {
-    const res  = await fetch(TWITCH_FUNCTION);
+    const TWITCH_FUNCTION = 'https://twitch-status.astrix285.workers.dev';
     const data = await res.json();
 
     if (data.live) {
