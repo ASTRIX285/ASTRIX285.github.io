@@ -98,18 +98,52 @@
 <!-- 3. STREAM SECTION ── -->
 <section class="stream-section" id="streamSection">
 
-  <!-- OFFLINE STATE -->
+  <!-- OFFLINE STATE — shows latest VOD on loop -->
   <div class="stream-offline-full" id="streamOffline">
     <div class="stream-offline-scanlines"></div>
     <div class="stream-offline-glow"></div>
-    <div class="stream-offline-content">
+
+    <!-- VOD PLAYER -->
+    <div id="vodSection" style="display:none;width:100%;position:relative;">
+      <div class="stream-live-header">
+        <div class="stream-offline-badge">● TRANSMISSION OFFLINE — LAST BROADCAST</div>
+        <div class="section-eyebrow">Live Transmission</div>
+        <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
+        <p class="stream-sub" id="vodTitle">Latest Stream</p>
+      </div>
+      <div class="stream-live-embed">
+        <iframe
+          id="vodEmbed"
+          src=""
+          allowfullscreen="true"
+          frameborder="0"
+          scrolling="no"
+          allow="autoplay; fullscreen"
+        ></iframe>
+      </div>
+      <div class="stream-actions stream-actions-live">
+        <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch on Twitch</a>
+        <a id="vodTwLink" href="https://twitch.tv/astrix285x" target="_blank" class="btn-secondary">Full VOD ↗</a>
+        <a id="vodFbLink" href="#" target="_blank" class="btn-facebook">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:6px;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Share on Facebook
+        </a>
+      </div>
+    </div>
+
+    <!-- FALLBACK if no VOD -->
+    <div class="stream-offline-content" id="vodFallback">
       <div class="section-eyebrow">Live Transmission</div>
       <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
       <p class="stream-sub">Streaming live from inside the Paradox</p>
       <div class="stream-offline-badge">● TRANSMISSION OFFLINE</div>
       <div class="stream-actions">
         <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch on Twitch</a>
-        <a href="https://www.twitch.tv/videos/2777252499" target="_blank" class="btn-secondary">Latest VOD ↗</a>
+        <a href="https://www.twitch.tv/astrix285x/videos" target="_blank" class="btn-secondary">Past Broadcasts ↗</a>
+        <a href="https://www.facebook.com/xASTRIX285x" target="_blank" class="btn-facebook">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:6px;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook Page
+        </a>
       </div>
     </div>
   </div>
@@ -134,7 +168,11 @@
     </div>
     <div class="stream-actions stream-actions-live">
       <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch on Twitch</a>
-      <a href="https://www.twitch.tv/videos/2777252499" target="_blank" class="btn-secondary">Latest VOD ↗</a>
+      <a href="https://www.twitch.tv/astrix285x/videos" target="_blank" class="btn-secondary">Past Broadcasts ↗</a>
+      <a href="https://www.facebook.com/xASTRIX285x" target="_blank" class="btn-facebook">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:6px;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        Share on Facebook
+      </a>
     </div>
   </div>
 
