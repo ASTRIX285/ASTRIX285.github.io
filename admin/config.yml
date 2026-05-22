@@ -18,7 +18,7 @@ collections:
 
   - name: "news"
     label: "News"
-    folder: "_news"
+    folder: "news"
     create: true
     fields:
       - { label: "Title", name: "title", widget: "string" }
