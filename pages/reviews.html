@@ -27,9 +27,7 @@
     }
     .review-card:hover { border-color: rgba(139,0,0,0.5); }
     .review-card:hover::before { opacity: 1; }
-    .review-card-header {
-      display: grid; grid-template-columns: 280px 1fr;
-    }
+    .review-card-header { display: grid; grid-template-columns: 280px 1fr; }
     .review-img {
       background: var(--dark-3); min-height: 200px;
       display: flex; align-items: center; justify-content: center;
@@ -61,7 +59,6 @@
     }
     .review-intro { color: var(--grey); line-height: 1.8; font-size: 15px; }
     .review-body { padding: 0 32px 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .review-section { }
     .review-section-title {
       font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 3px;
       text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px;
@@ -73,6 +70,13 @@
     .review-section-text { color: var(--grey); line-height: 1.8; font-size: 14px; }
     .review-final { padding: 0 32px 24px; }
     .review-actions { padding: 0 32px 32px; display: flex; gap: 12px; }
+    .featured-banner {
+      background: linear-gradient(to right, var(--crimson-dark), transparent);
+      border-left: 3px solid var(--crimson-glow);
+      padding: 6px 16px; margin-bottom: 16px; display: inline-block;
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 3px;
+      color: var(--crimson-glow); text-transform: uppercase;
+    }
     @media (max-width: 900px) {
       .review-card-header { grid-template-columns: 1fr; }
       .review-img { min-height: 120px; }
@@ -83,12 +87,15 @@
 <body>
 
 <nav class="nav">
-  <div class="nav-logo"><span>ASTRIX<span class="accent">285</span></span></div>
+  <div class="nav-logo">
+    <img src="../img/logo.png" alt="ASTRIX285">
+    <span>ASTRIX<span class="accent">285</span></span>
+  </div>
   <div class="nav-links">
     <a href="../index.html">Home</a>
     <a href="reviews.html" class="active">Reviews</a>
     <a href="news.html">News</a>
-    <a href="games.html">Games</a>
+    <a href="games.html">Universes</a>
     <a href="join.html">Join Us</a>
   </div>
   <div class="nav-live">
@@ -111,6 +118,63 @@
 
 <section class="section" style="background:var(--dark);">
   <div style="max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:3px;">
+
+    <!-- CRIMSON DESERT — 9.0 — FEATURED -->
+    <div class="review-card reveal" style="border-color:rgba(139,0,0,0.5);">
+      <div class="review-card-header">
+        <div class="review-img" style="background:#0a0a0a;">
+          <img src="../img/games/crimsondesert.jpg" alt="Crimson Desert" style="width:100%;height:100%;object-fit:cover;opacity:0.85;">
+        </div>
+        <div class="review-header-body">
+          <div class="featured-banner">★ Currently Playing</div>
+          <div class="review-meta">
+            <div class="review-score gold">9.0</div>
+            <div class="review-title-wrap">
+              <div class="review-title">Crimson Desert</div>
+              <div class="review-tags">
+                <span class="review-tag">Open World</span>
+                <span class="review-tag">Action RPG</span>
+                <span class="review-tag">Pearl Abyss</span>
+                <span class="review-tag">2025</span>
+              </div>
+            </div>
+          </div>
+          <p class="review-intro">Pearl Abyss promised a brutal, beautiful open world, and Crimson Desert delivers on almost every front. As someone who has been watching this game since its first reveal, finally getting my hands on it felt like stepping into something genuinely special. This is not just another action RPG — it is a statement from a studio that knows exactly what it is building.</p>
+        </div>
+      </div>
+      <div class="review-body">
+        <div class="review-section">
+          <div class="review-section-title highs">The Highs</div>
+          <div class="review-section-text">
+            <strong style="color:var(--white);">Combat That Demands Respect</strong><br>
+            Every fight in Crimson Desert feels earned. The weight behind each strike, the fluidity of the dodge system, and the sheer variety of enemy types means you cannot just mash your way through. Kliff moves like a weapon and fights like one too. This is some of the most satisfying melee combat I have experienced in an open world game.<br><br>
+            <strong style="color:var(--white);">A World Worth Getting Lost In</strong><br>
+            Pywel is enormous and gorgeous. From sweeping highlands to dense forests and crumbling ruins, every corner of the map feels handcrafted. Exploration is rewarded constantly — stumble off the main path and you will find camps, secrets, and encounters that make the world feel genuinely alive.<br><br>
+            <strong style="color:var(--white);">Kliff Is a Proper Protagonist</strong><br>
+            After years of silent or hollow protagonists in the genre, Kliff is a breath of fresh air. He has weight, history, and motivations that actually make sense. The story builds slowly but pays off in ways that had me genuinely invested in where things were heading.
+          </div>
+        </div>
+        <div class="review-section">
+          <div class="review-section-title lows">The Lows</div>
+          <div class="review-section-text">
+            <strong style="color:var(--white);">Performance at Launch</strong><br>
+            Even on high-end hardware, Crimson Desert can stutter during large-scale encounters or in densely populated areas. Pearl Abyss has been patching consistently but it is worth noting that launch was rough in places and optimisation is still ongoing.<br><br>
+            <strong style="color:var(--white);">Pacing Dips in the Mid-Game</strong><br>
+            The opening hours are relentless and gripping, but the middle section of the story loses some momentum. Side content is abundant, which is not a complaint in itself, but the main narrative can feel like it stalls while the world expands around it.<br><br>
+            <strong style="color:var(--white);">Camera in Tight Spaces</strong><br>
+            In dungeon encounters or narrow corridors the camera occasionally becomes your biggest enemy. It is a minor gripe in the context of how good the rest of the game feels, but it does surface often enough to mention.
+          </div>
+        </div>
+      </div>
+      <div class="review-final">
+        <div class="review-section-title final">Final Thoughts</div>
+        <p class="review-section-text">Crimson Desert is the game Pearl Abyss has been building toward for years and it shows. The combat is exceptional, the world is stunning, and Kliff is a protagonist worth following. A few rough edges at launch and some mid-game pacing issues keep it from perfect, but this is absolutely one of the best action RPGs to release in years. I am still playing it every day and I do not see that changing anytime soon. If you have been on the fence — get in the Paradox.</p>
+      </div>
+      <div class="review-actions">
+        <a href="https://www.twitch.tv/astrix285x" target="_blank" class="btn-primary" style="padding:10px 24px;font-size:10px;">▶ Watch Live</a>
+        <a href="https://crimsondesert.pearlabyss.com" target="_blank" class="btn-secondary" style="padding:10px 24px;font-size:10px;">Visit Game ↗</a>
+      </div>
+    </div>
 
     <!-- WARFRAME — 9.2 -->
     <div class="review-card reveal">
@@ -139,28 +203,24 @@
           <div class="review-section-title highs">The Highs</div>
           <div class="review-section-text">
             <strong style="color:var(--white);">Fluid Movement That Still Feels Fresh</strong><br>
-            The parkour system is still the heart of Warframe. Sliding, bullet jumping, and chaining moves together make the combat flow in a way no other game has matched for me. Even after thousands of hours, the movement never feels old.<br><br>
-            <strong style="color:var(--white);">A Growing Arsenal</strong><br>
-            The sheer variety of Warframes and weapons keeps the game interesting. Experimenting with new builds and exploring different approaches to missions has kept me engaged year after year.<br><br>
-            <strong style="color:var(--white);">Cinematic Quests</strong><br>
-            The game's story quests are some of the most memorable moments in gaming for me — ambitious, emotional, and unlike anything else in the genre.
+            The parkour system is still the heart of Warframe. Sliding, bullet jumping, and chaining moves together make combat flow in a way no other game has matched. Even after thousands of hours it never feels old.<br><br>
+            <strong style="color:var(--white);">Cinematic Quests Worth Playing</strong><br>
+            The Second Dream, The War Within, and The New War are still some of the most memorable experiences I have had in gaming. They gave real weight to the story and made my Tenno feel connected to the universe.
           </div>
         </div>
         <div class="review-section">
           <div class="review-section-title lows">The Lows</div>
           <div class="review-section-text">
             <strong style="color:var(--white);">The Grind Can Be Overwhelming</strong><br>
-            Farming for rare parts, frames, or mods has always been part of Warframe, but it can wear players down. Some drop-offs in my own playtime came directly from burnout.<br><br>
-            <strong style="color:var(--white);">Balance and Tuning Issues</strong><br>
-            With so many mechanics layered on over the years, not everything fits together smoothly. Some activities feel clunky before they are eventually refined.<br><br>
-            <strong style="color:var(--white);">Steep Learning Curve for New Players</strong><br>
-            For veterans, the complexity is part of the charm — but newcomers can find it almost impenetrable without guides.
+            Farming for rare parts, frames, or mods has always been part of Warframe, but it can wear players down. Some of my own breaks from the game came directly from burnout.<br><br>
+            <strong style="color:var(--white);">Accessibility for New Players</strong><br>
+            For veterans the complexity is part of the charm, but newcomers often feel lost. After eleven years of updates, the learning curve is higher than ever.
           </div>
         </div>
       </div>
       <div class="review-final">
         <div class="review-section-title final">Final Thoughts</div>
-        <p class="review-section-text">As someone who has played Warframe for over a decade, I still see it as one of the most ambitious and rewarding games out there. It isn't perfect — the grind is real, and new systems can take time to settle — but it offers experiences I haven't found anywhere else. For me, Warframe isn't just a game, it's been a journey. After eleven years, I'm still proud to call myself a Tenno, and I don't see that changing anytime soon.</p>
+        <p class="review-section-text">As someone who has played Warframe for over a decade, I still see it as one of the most ambitious and rewarding games out there. It is not perfect — the grind is real and new systems can take time to settle — but it offers experiences I have not found anywhere else. After eleven years I am still proud to call myself a Tenno, and I do not see that changing anytime soon.</p>
       </div>
       <div class="review-actions">
         <a href="https://www.twitch.tv/astrix285x" target="_blank" class="btn-primary" style="padding:10px 24px;font-size:10px;">▶ Watch Live</a>
@@ -181,12 +241,12 @@
               <div class="review-title">Borderlands 4</div>
               <div class="review-tags">
                 <span class="review-tag">Looter Shooter</span>
-                <span class="review-tag">Co-op</span>
                 <span class="review-tag">Gearbox</span>
+                <span class="review-tag">Co-op</span>
               </div>
             </div>
           </div>
-          <p class="review-intro">I have been looting, shooting, and laughing my way through the Borderlands since Borderlands 2 first hooked me with Handsome Jack's over-the-top villainy. Borderlands 3 cranked the chaos to new heights with bigger worlds and more ridiculous guns than ever before. Now with Borderlands 4, Gearbox is aiming to evolve the formula once again, and as someone who has spent hundreds of hours farming legendaries, I can say this entry keeps the spirit alive.</p>
+          <p class="review-intro">I have been looting, shooting, and laughing my way through the Borderlands since Borderlands 2 first hooked me with Handsome Jack's over-the-top villainy. Now with Borderlands 4, Gearbox is aiming to evolve the formula once again, and as someone who has spent hundreds of hours farming legendaries, I can say this entry feels both familiar and refreshingly new.</p>
         </div>
       </div>
       <div class="review-body">
@@ -194,18 +254,18 @@
           <div class="review-section-title highs">The Highs</div>
           <div class="review-section-text">
             <strong style="color:var(--white);">Movement Evolves the Mayhem</strong><br>
-            Double jumping, grappling, dodging, and gliding across the battlefield adds a new layer of energy. Fights feel faster, more vertical, and more unpredictable than ever — perfectly matching a game built on over-the-top action.<br><br>
-            <strong style="color:var(--white);">Action Skills That Matter</strong><br>
-            The action skill system feels more impactful than ever. Every class has something that genuinely changes how you approach fights, and the build variety is exceptional.
+            Double jumping, grappling, dodging, and gliding adds a new layer of energy. Fights feel faster, more vertical, and more unpredictable than ever — which perfectly matches a game built on over-the-top action.<br><br>
+            <strong style="color:var(--white);">Loot Still Rules</strong><br>
+            Wild weapon designs, powerful gear, and the thrill of the chase keep you hooked. Farming never feels like a chore when every drop could be something game-changing.
           </div>
         </div>
         <div class="review-section">
           <div class="review-section-title lows">The Lows</div>
           <div class="review-section-text">
             <strong style="color:var(--white);">Story Still Secondary</strong><br>
-            After the highs of Borderlands 2 and its unforgettable villain, Gearbox still struggles to recapture that magic. The humor is present but the narrative doesn't always land with the same impact.<br><br>
-            <strong style="color:var(--white);">Can Be Overwhelming</strong><br>
-            New movement systems, loot floods, and branching build trees can overwhelm new players. The game throws a lot at you quickly.
+            After the highs of Borderlands 2 and its unforgettable villain, Gearbox still struggles to recapture that magic. The humor is present but the narrative does not always land.<br><br>
+            <strong style="color:var(--white);">New movement systems, loot floods, and branching build trees can overwhelm new players.</strong><br>
+            The game throws a lot at you quickly.
           </div>
         </div>
       </div>
@@ -237,7 +297,7 @@
               </div>
             </div>
           </div>
-          <p class="review-intro">Having been a Guardian since the Tower first opened in 2014, I've lived through every chapter of Bungie's saga — the thrilling raids, the crushing content droughts, the unforgettable story beats, and the missteps that tested our patience. With Edge of Fate, the start of the new Fate Saga, I can honestly say it feels both like a reset and a reminder of what this franchise can still deliver.</p>
+          <p class="review-intro">Having been a Guardian since the Tower first opened in 2014, I've lived through every chapter of Bungie's saga — the thrilling raids, the crushing content droughts, the unforgettable story beats, and the missteps that tested our patience. With Edge of Fate, the start of the new Fate Saga, it feels both like a reset and a reminder of what this franchise can still deliver.</p>
         </div>
       </div>
       <div class="review-body">
@@ -245,7 +305,7 @@
           <div class="review-section-title highs">The Highs</div>
           <div class="review-section-text">
             <strong style="color:var(--white);">A Story Worth Caring About</strong><br>
-            Bungie has always struggled with consistent storytelling, but Edge of Fate finally gives us a narrative hook that feels worthy of the universe. The introduction of the Nine's deeper role and the sense that we're stepping into uncharted territory make the campaign engaging.<br><br>
+            Edge of Fate finally gives us a narrative hook that feels worthy of the universe. The introduction of the Nine's deeper role and the sense that we're stepping into uncharted territory make the campaign engaging.<br><br>
             <strong style="color:var(--white);">New Powers</strong><br>
             The new ability systems add genuine freshness to a game that has needed it. When the new mechanics click, they feel great.
           </div>
@@ -262,7 +322,7 @@
       </div>
       <div class="review-final">
         <div class="review-section-title final">Final Thoughts</div>
-        <p class="review-section-text">As a veteran Guardian, I see Edge of Fate as a solid step, not a triumphant leap. The lore is richer, the systems are smarter, and the foundation feels stronger than it has in years. But the execution doesn't always match the ambition. If you've stood by Destiny through every expansion like I have, you'll find plenty here to appreciate and plenty to critique. It's not the franchise's best moment, but it's far from its worst.</p>
+        <p class="review-section-text">As a veteran Guardian, I see Edge of Fate as a solid step, not a triumphant leap. The lore is richer, the systems are smarter, and the foundation feels stronger than it has in years. But the execution doesn't always match the ambition. If you've stood by Destiny through every expansion like I have, you'll find plenty here to appreciate and plenty to critique.</p>
       </div>
       <div class="review-actions">
         <a href="https://www.twitch.tv/astrix285x" target="_blank" class="btn-primary" style="padding:10px 24px;font-size:10px;">▶ Watch Live</a>
@@ -288,7 +348,7 @@
               </div>
             </div>
           </div>
-          <p class="review-intro">As a new exile stepping into Wraeclast, Path of Exile felt overwhelming at first. The world is dark, brutal, and complex, and the game doesn't hold your hand. It took me time to understand what was happening, how the systems fit together, and how to survive the chaos. But the more I played, the more I began to see why so many people have been hooked for years.</p>
+          <p class="review-intro">As a new exile stepping into Wraeclast, Path of Exile felt overwhelming at first. The world is dark, brutal, and complex, and the game doesn't hold your hand. But the more I played, the more I began to see why so many people have been hooked for years.</p>
         </div>
       </div>
       <div class="review-body">
@@ -296,16 +356,16 @@
           <div class="review-section-title highs">The Highs</div>
           <div class="review-section-text">
             <strong style="color:var(--white);">Endless Build Possibilities</strong><br>
-            Even early on, the skill tree makes it clear that no two characters are ever the same. Once I understood how to connect nodes and plan my path, it became addictive. Each level felt like progress toward something uniquely mine.<br><br>
+            No two characters are ever the same. Once I understood how to connect nodes and plan my path, it became addictive. Each level felt like progress toward something uniquely mine.<br><br>
             <strong style="color:var(--white);">Loot and Crafting That Feels Meaningful</strong><br>
-            Every drop matters. Even common items have potential. The crafting system rewards knowledge and patience in a way few ARPGs manage.
+            Every drop matters. The crafting system rewards knowledge and patience in a way few ARPGs manage.
           </div>
         </div>
         <div class="review-section">
           <div class="review-section-title lows">The Lows</div>
           <div class="review-section-text">
             <strong style="color:var(--white);">An Intimidating Learning Curve</strong><br>
-            There's no gentle introduction. Systems pile on quickly, and it's easy to feel lost. The passive tree, crafting, Atlas, and leagues can be overwhelming without outside guides.<br><br>
+            There's no gentle introduction. Systems pile on quickly and it's easy to feel lost without outside guides.<br><br>
             <strong style="color:var(--white);">Performance Hiccups</strong><br>
             Even on decent hardware, performance dips happen during heavy fights. The UI also takes time to get used to.
           </div>
@@ -313,7 +373,7 @@
       </div>
       <div class="review-final">
         <div class="review-section-title final">Final Thoughts</div>
-        <p class="review-section-text">As a newcomer, Path of Exile was a challenge, but one that grew on me with every hour. It's not a game that explains itself, but that's part of what makes it rewarding. Every small breakthrough feels earned. Even as a novice, I can see why players dedicate years to mastering it. The complexity, the thrill of the loot hunt, and the satisfaction of building something powerful make it stand out. It's rough around the edges, but beneath that is a masterpiece waiting to be discovered.</p>
+        <p class="review-section-text">As a newcomer, Path of Exile was a challenge, but one that grew on me with every hour. Every small breakthrough feels earned. The complexity, the thrill of the loot hunt, and the satisfaction of building something powerful make it stand out. It's rough around the edges, but beneath that is a masterpiece waiting to be discovered.</p>
       </div>
       <div class="review-actions">
         <a href="https://www.twitch.tv/astrix285x" target="_blank" class="btn-primary" style="padding:10px 24px;font-size:10px;">▶ Watch Live</a>
