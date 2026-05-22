@@ -4,6 +4,7 @@
 
 const TWITCH_CHANNEL = 'astrix285x';
 const TWITCH_FUNCTION = 'https://twitch-status.astrix285.workers.dev';
+const FB_PAGE = 'https://www.facebook.com/xASTRIX285x';
 
 // ── NAV ACTIVE STATE ────────────────────────────────────────
 function setActiveNav() {
@@ -36,27 +37,47 @@ function setupStreamExpansion() {
   function onScroll() {
     const rect = embed.getBoundingClientRect();
     const winH  = window.innerHeight;
-
-    // How far the embed centre is from the screen centre (0 = centred)
     const distFromCenter = Math.abs((rect.top + rect.height / 2) - winH / 2);
     const maxDist = winH / 2 + rect.height / 2;
-
-    // Scale from 0.6 (far away) to 1 (centred)
     const progress = Math.max(0, 1 - distFromCenter / (maxDist * 0.6));
     const scale = 0.6 + (0.4 * progress);
-
-    embed.style.setProperty('--embed-scale', scale);
     embed.style.transform = `scaleX(${scale})`;
-
-    if (scale >= 0.99) {
-      embed.classList.add('expanded');
-    } else {
-      embed.classList.remove('expanded');
-    }
+    if (scale >= 0.99) embed.classList.add('expanded');
+    else embed.classList.remove('expanded');
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll(); // run once on load
+  onScroll();
+}
+
+// ── SET OFFLINE VOD STATE ────────────────────────────────────
+function setOfflineVod(vod) {
+  const offlineEl  = document.getElementById('streamOffline');
+  const vodEmbed   = document.getElementById('vodEmbed');
+  const vodTitle   = document.getElementById('vodTitle');
+  const vodFbLink  = document.getElementById('vodFbLink');
+  const vodTwLink  = document.getElementById('vodTwLink');
+
+  if (vod && vodEmbed) {
+    // Show VOD player
+    vodEmbed.src = `https://player.twitch.tv/?video=${vod.id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=true&muted=true&loop=true`;
+
+    // Update title
+    if (vodTitle) vodTitle.textContent = vod.title || 'Latest Stream';
+
+    // Facebook share link
+    if (vodFbLink) {
+      const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(vod.url)}`;
+      vodFbLink.href = fbShareUrl;
+    }
+
+    // Twitch VOD link
+    if (vodTwLink) vodTwLink.href = vod.url;
+
+    // Show the VOD section
+    const vodSection = document.getElementById('vodSection');
+    if (vodSection) vodSection.style.display = 'block';
+  }
 }
 
 // ── TWITCH LIVE CHECK ───────────────────────────────────────
@@ -76,13 +97,14 @@ async function checkTwitchLive() {
       if (liveEl)    liveEl.style.display    = 'block';
       if (offlineEl) offlineEl.style.display = 'none';
       document.title = `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX285`;
-      // Start scroll expansion after live section is shown
       setupStreamExpansion();
     } else {
       if (navDot)    navDot.classList.remove('live');
       if (navText)   navText.textContent = 'OFFLINE';
       if (offlineEl) offlineEl.style.display = 'flex';
       if (liveEl)    liveEl.style.display    = 'none';
+      // Load latest VOD
+      if (data.vod) setOfflineVod(data.vod);
     }
   } catch (e) {
     if (navDot)    navDot.classList.remove('live');
