@@ -214,4 +214,220 @@ function filterNews(source, btn) {
 }
 </script>
 </body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gaming News | ASTRIX285</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .news-hero {
+      padding: calc(var(--nav-height) + 60px) 40px 60px;
+      background: var(--dark-2); border-bottom: 1px solid rgba(139,0,0,0.2);
+      position: relative; overflow: hidden;
+    }
+    .news-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 100% 50%, rgba(139,0,0,0.12) 0%, transparent 60%);
+    }
+    .news-filters {
+      display: flex; gap: 8px; margin-bottom: 40px; flex-wrap: wrap;
+    }
+    .news-filter {
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+      padding: 8px 20px; border: 1px solid var(--dark-4);
+      color: var(--grey); cursor: pointer; text-transform: uppercase;
+      transition: all 0.2s; background: transparent;
+    }
+    .news-filter.active, .news-filter:hover {
+      border-color: var(--crimson); color: var(--white); background: rgba(139,0,0,0.1);
+    }
+    .news-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2px;
+    }
+    .news-card {
+      background: var(--dark-2); border: 1px solid rgba(139,0,0,0.15);
+      overflow: hidden; transition: border-color 0.3s; position: relative;
+    }
+    .news-card:hover { border-color: rgba(139,0,0,0.4); }
+    .news-card-img {
+      aspect-ratio: 16/9; background: var(--dark-3);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      position: relative;
+    }
+    .news-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+    .news-card:hover .news-card-img img { transform: scale(1.05); }
+    .news-card-source {
+      position: absolute; top: 12px; left: 12px;
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+      color: var(--white); background: var(--crimson); padding: 4px 10px;
+      text-transform: uppercase;
+    }
+    .news-card-body { padding: 24px; }
+    .news-card-date { font-size: 11px; color: var(--grey-dark); letter-spacing: 1px; margin-bottom: 8px; }
+    .news-card-title {
+      font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 600;
+      color: var(--white); line-height: 1.4; margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+    .news-card-text { font-size: 13px; color: var(--grey); line-height: 1.7; margin-bottom: 16px; }
+    .news-card-link {
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+      color: var(--gold); text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .news-card-link:hover { color: var(--gold-light); }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo"><span>ASTRIX<span class="accent">285</span></span></div>
+  <div class="nav-links">
+    <a href="../index.html">Home</a>
+    <a href="reviews.html">Reviews</a>
+    <a href="news.html" class="active">News</a>
+    <a href="games.html">Games</a>
+    <a href="join.html">Join Us</a>
+  </div>
+  <div class="nav-live">
+    <div class="nav-live-dot" id="navDot"></div>
+    <span class="nav-live-text" id="navText">OFFLINE</span>
+  </div>
+</nav>
+
+<div class="news-hero">
+  <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1;">
+    <div class="section-eyebrow" style="animation:fadeUp 0.8s ease 0.2s both;">Gaming News Hub</div>
+    <h1 class="section-title" style="animation:fadeUp 0.8s ease 0.4s both;">Stay in the <span class="accent">Loop</span></h1>
+    <p style="color:var(--grey);max-width:500px;margin-top:16px;animation:fadeUp 0.8s ease 0.6s both;">
+      Latest gaming news from IGN, Gamespot, PC Gamer and more — curated for the ASTRIX285 community.
+    </p>
+  </div>
+</div>
+
+<div class="gold-line"></div>
+
+<section class="section">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="news-filters">
+      <button class="news-filter active" onclick="filterNews('all', this)">All</button>
+      <button class="news-filter" onclick="filterNews('ign', this)">IGN</button>
+      <button class="news-filter" onclick="filterNews('gamespot', this)">Gamespot</button>
+      <button class="news-filter" onclick="filterNews('pcgamer', this)">PC Gamer</button>
+      <button class="news-filter" onclick="filterNews('polygon', this)">Polygon</button>
+    </div>
+
+    <div class="news-grid" id="newsGrid">
+      <!-- News cards loaded here -->
+      <div class="news-card reveal" data-source="ign">
+        <div class="news-card-img">
+          <img src="../img/news/ign-placeholder.jpg" alt="IGN News">
+          <div class="news-card-source">IGN</div>
+        </div>
+        <div class="news-card-body">
+          <div class="news-card-date">May 21, 2026</div>
+          <div class="news-card-title">The Expanse: Osiris Reborn Is Recasting its Protagonist</div>
+          <p class="news-card-text">The Expanse: Osiris Reborn will be recasting its male protagonist and his twin brother, according to reports.</p>
+          <a href="https://ign.com" target="_blank" class="news-card-link">Read More ↗</a>
+        </div>
+      </div>
+
+      <div class="news-card reveal reveal-delay-1" data-source="ign">
+        <div class="news-card-img">
+          <img src="../img/news/ign-placeholder.jpg" alt="IGN News">
+          <div class="news-card-source">IGN</div>
+        </div>
+        <div class="news-card-body">
+          <div class="news-card-date">May 21, 2026</div>
+          <div class="news-card-title">Forza Horizon 6 Players Are Using Exploits to Farm Easy Credits</div>
+          <p class="news-card-text">Players are exploiting certain parts of the game so that they can quickly and easily farm credits without much effort.</p>
+          <a href="https://ign.com" target="_blank" class="news-card-link">Read More ↗</a>
+        </div>
+      </div>
+
+      <div class="news-card reveal reveal-delay-2" data-source="gamespot">
+        <div class="news-card-img">
+          <img src="../img/news/gamespot-placeholder.jpg" alt="GAMESPOT News">
+          <div class="news-card-source">GAMESPOT</div>
+        </div>
+        <div class="news-card-body">
+          <div class="news-card-date">May 20, 2026</div>
+          <div class="news-card-title">Crimson Desert Gets Massive New Update — What's Changed</div>
+          <p class="news-card-text">Pearl Abyss drops a major content patch for Crimson Desert, adding new regions, quests, and combat mechanics.</p>
+          <a href="https://gamespot.com" target="_blank" class="news-card-link">Read More ↗</a>
+        </div>
+      </div>
+
+      <div class="news-card reveal" data-source="pcgamer">
+        <div class="news-card-img">
+          <img src="../img/news/pcgamer-placeholder.jpg" alt="PC GAMER News">
+          <div class="news-card-source">PC GAMER</div>
+        </div>
+        <div class="news-card-body">
+          <div class="news-card-date">May 19, 2026</div>
+          <div class="news-card-title">Warframe's Next Big Update Teased at TennoCon</div>
+          <p class="news-card-text">Digital Extremes has given players a first look at what's coming next for the space ninja looter shooter.</p>
+          <a href="https://pcgamer.com" target="_blank" class="news-card-link">Read More ↗</a>
+        </div>
+      </div>
+
+      <div class="news-card reveal reveal-delay-1" data-source="polygon">
+        <div class="news-card-img">
+          <img src="../img/news/polygon-placeholder.jpg" alt="POLYGON News">
+          <div class="news-card-source">POLYGON</div>
+        </div>
+        <div class="news-card-body">
+          <div class="news-card-date">May 18, 2026</div>
+          <div class="news-card-title">Borderlands 4 Season Pass Details Revealed</div>
+          <p class="news-card-text">Gearbox reveals what's coming in the first year of post-launch content for Borderlands 4, including new vaults and characters.</p>
+          <a href="https://polygon.com" target="_blank" class="news-card-link">Read More ↗</a>
+        </div>
+      </div>
+
+      <div class="news-card reveal reveal-delay-2" data-source="gamespot">
+        <div class="news-card-img">
+          <img src="../img/news/gamespot-placeholder.jpg" alt="GAMESPOT News">
+          <div class="news-card-source">GAMESPOT</div>
+        </div>
+        <div class="news-card-body">
+          <div class="news-card-date">May 17, 2026</div>
+          <div class="news-card-title">Destiny 2's Final Shape: One Year On — Where Are We Now?</div>
+          <p class="news-card-text">A look back at how The Final Shape changed Destiny 2 and what the community thinks a year after its release.</p>
+          <a href="https://gamespot.com" target="_blank" class="news-card-link">Read More ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-social">
+    <a href="https://x.com/ASTRIX285" target="_blank">X / Twitter</a>
+    <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank">Discord</a>
+    <a href="https://www.twitch.tv/astrix285x" target="_blank">Twitch</a>
+    <a href="https://www.facebook.com/xASTRIX285x" target="_blank">Facebook</a>
+    <a href="https://www.youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>
+  </div>
+  <div class="gold-line" style="margin-bottom:20px;"></div>
+  <div class="footer-copy">© 2025 Astrix285 — Built for the community, powered by gaming passion and history.</div>
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+function filterNews(source, btn) {
+  document.querySelectorAll('.news-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.news-card').forEach(card => {
+    if (source === 'all' || card.dataset.source === source) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+</script>
+</body>
 </html>
