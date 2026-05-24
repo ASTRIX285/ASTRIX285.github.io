@@ -82,6 +82,27 @@
       .review-img { min-height: 120px; }
       .review-body { grid-template-columns: 1fr; }
     }
+
+    /* Trailer Modal */
+    .trailer-modal {
+      display:none; position:fixed; inset:0; z-index:9999;
+      background:rgba(0,0,0,0.93);
+      align-items:center; justify-content:center;
+    }
+    .trailer-modal.open { display:flex; }
+    .trailer-modal-inner { position:relative; width:90vw; max-width:1000px; }
+    .trailer-modal-close {
+      position:absolute; top:-40px; right:0;
+      font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px;
+      color:var(--grey); background:none; border:none; cursor:pointer; text-transform:uppercase;
+    }
+    .trailer-modal-close:hover { color:var(--white); }
+    .trailer-frame { position:relative; padding-top:56.25%; background:#000; }
+    .trailer-frame iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+    .trailer-modal-label {
+      font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px;
+      color:var(--grey); text-align:center; margin-top:14px; text-transform:uppercase;
+    }
   </style>
 </head>
 <body>
@@ -171,7 +192,7 @@
         <p class="review-section-text">Crimson Desert is the game Pearl Abyss has been building toward for years and it shows. The combat is exceptional, the world is stunning, and Kliff is a protagonist worth following. A few rough edges at launch and some mid-game pacing issues keep it from perfect, but this is absolutely one of the best action RPGs to release in years. I am still playing it every day and I do not see that changing anytime soon. If you have been on the fence — get in the Paradox.</p>
       </div>
       <div class="review-actions">
-        <a href="https://www.twitch.tv/astrix285x" target="_blank" class="btn-primary" style="padding:10px 24px;font-size:10px;">▶ Watch Live</a>
+        <button class="btn-primary" style="padding:10px 24px;font-size:10px;" onclick="openTrailer('9GhJgqg4oW8','Crimson Desert — Official Trailer')">▶ Watch Trailer</button>
         <a href="https://crimsondesert.pearlabyss.com" target="_blank" class="btn-secondary" style="padding:10px 24px;font-size:10px;">Visit Game ↗</a>
       </div>
     </div>
@@ -223,7 +244,7 @@
         <p class="review-section-text">As someone who has played Warframe for over a decade, I still see it as one of the most ambitious and rewarding games out there. It is not perfect — the grind is real and new systems can take time to settle — but it offers experiences I have not found anywhere else. After eleven years I am still proud to call myself a Tenno, and I do not see that changing anytime soon.</p>
       </div>
       <div class="review-actions">
-        <a href="https://www.twitch.tv/astrix285x" target="_blank" class="btn-primary" style="padding:10px 24px;font-size:10px;">▶ Watch Live</a>
+        <button class="btn-primary" style="padding:10px 24px;font-size:10px;" onclick="openTrailer('CdQU5fzkXwA','Warframe — Official Trailer')">▶ Watch Trailer</button>
         <a href="https://www.warframe.com" target="_blank" class="btn-secondary" style="padding:10px 24px;font-size:10px;">Visit Game ↗</a>
       </div>
     </div>
@@ -274,7 +295,7 @@
         <p class="review-section-text">As someone who has played since Borderlands 2 and sunk countless hours into 3, Borderlands 4 delivers what I wanted. It is louder, faster, and more chaotic than ever. The new movement and build variety breathe life into the series, even if the story still lags behind. It may not reinvent the wheel, but it keeps the Borderlands spirit alive — loot chasing madness with friends. For a veteran Vault Hunter, that is more than enough.</p>
       </div>
       <div class="review-actions">
-        <a href="https://www.twitch.tv/astrix285x" target="_blank" class="btn-primary" style="padding:10px 24px;font-size:10px;">▶ Watch Live</a>
+        <button class="btn-primary" style="padding:10px 24px;font-size:10px;" onclick="openTrailer('zlEZzjpEbko','Borderlands 4 — Official Trailer')">▶ Watch Trailer</button>
         <a href="https://borderlands.com" target="_blank" class="btn-secondary" style="padding:10px 24px;font-size:10px;">Visit Game ↗</a>
       </div>
     </div>
@@ -325,7 +346,7 @@
         <p class="review-section-text">As a veteran Guardian, I see Edge of Fate as a solid step, not a triumphant leap. The lore is richer, the systems are smarter, and the foundation feels stronger than it has in years. But the execution doesn't always match the ambition. If you've stood by Destiny through every expansion like I have, you'll find plenty here to appreciate and plenty to critique.</p>
       </div>
       <div class="review-actions">
-        <a href="https://www.twitch.tv/astrix285x" target="_blank" class="btn-primary" style="padding:10px 24px;font-size:10px;">▶ Watch Live</a>
+        <button class="btn-primary" style="padding:10px 24px;font-size:10px;" onclick="openTrailer('ZSWN-VP0lD8','Destiny 2 — Official Trailer')">▶ Watch Trailer</button>
         <a href="https://www.bungie.net" target="_blank" class="btn-secondary" style="padding:10px 24px;font-size:10px;">Visit Game ↗</a>
       </div>
     </div>
@@ -376,7 +397,7 @@
         <p class="review-section-text">As a newcomer, Path of Exile was a challenge, but one that grew on me with every hour. Every small breakthrough feels earned. The complexity, the thrill of the loot hunt, and the satisfaction of building something powerful make it stand out. It's rough around the edges, but beneath that is a masterpiece waiting to be discovered.</p>
       </div>
       <div class="review-actions">
-        <a href="https://www.twitch.tv/astrix285x" target="_blank" class="btn-primary" style="padding:10px 24px;font-size:10px;">▶ Watch Live</a>
+        <button class="btn-primary" style="padding:10px 24px;font-size:10px;" onclick="openTrailer('tfxxuVVGjPM','Path of Exile — Official Trailer')">▶ Watch Trailer</button>
         <a href="https://www.pathofexile.com" target="_blank" class="btn-secondary" style="padding:10px 24px;font-size:10px;">Visit Game ↗</a>
       </div>
     </div>
@@ -398,5 +419,34 @@
 </footer>
 
 <script src="../js/main.js"></script>
+
+<!-- Trailer Modal -->
+<div class="trailer-modal" id="trailerModal">
+  <div class="trailer-modal-inner">
+    <button class="trailer-modal-close" onclick="closeTrailer()">✕ Close</button>
+    <div class="trailer-frame">
+      <iframe id="trailerFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+    <div class="trailer-modal-label" id="trailerLabel"></div>
+  </div>
+</div>
+<script>
+function openTrailer(id, title) {
+  document.getElementById('trailerFrame').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
+  document.getElementById('trailerLabel').textContent = title;
+  document.getElementById('trailerModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTrailer() {
+  document.getElementById('trailerFrame').src = '';
+  document.getElementById('trailerModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('trailerModal').addEventListener('click', function(e) {
+  if (e.target === this) closeTrailer();
+});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeTrailer(); });
+</script>
+
 </body>
 </html>
