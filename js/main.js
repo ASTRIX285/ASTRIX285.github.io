@@ -124,10 +124,19 @@ function setupMobileNav() {
   toggle.addEventListener('click', () => links.classList.toggle('open'));
 }
 
+// ── HERO VIDEO SPEED ─────────────────────────────────────────
+function setupHeroVideo() {
+  const video = document.getElementById('heroBg');
+  if (!video) return;
+  video.addEventListener('loadedmetadata', () => { video.playbackRate = 0.5; });
+  if (video.readyState >= 1) video.playbackRate = 0.5;
+}
+
 // ── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   setActiveNav();
   setupReveal();
   setupMobileNav();
+  setupHeroVideo();
   checkTwitchLive();
 });
