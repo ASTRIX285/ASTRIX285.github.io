@@ -91,7 +91,7 @@ a { color: inherit; text-decoration: none; }
   50%{ box-shadow: 0 0 16px var(--crimson-glow); }
 }
 
-/* ── HERO — full viewport, content spread ── */
+/* ── HERO ── */
 .hero {
   position: relative;
   width: 100%;
@@ -216,7 +216,7 @@ a { color: inherit; text-decoration: none; }
 .section-title .accent { color: var(--crimson-mid); }
 
 /* ══════════════════════════════════════════════
-   STREAM SECTION — Cinematic scroll expansion
+   STREAM SECTION
    ══════════════════════════════════════════════ */
 .stream-section {
   position: relative;
@@ -276,7 +276,7 @@ a { color: inherit; text-decoration: none; }
   animation: navPulse 1.5s infinite;
 }
 
-/* Scroll-expand embed */
+/* Scroll-expand embed — NO borders */
 .stream-live-embed {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -284,8 +284,6 @@ a { color: inherit; text-decoration: none; }
   position: relative;
   transform: scaleX(0.6);
   transform-origin: center center;
-  border-top: 1px solid rgba(139,0,0,0.3);
-  border-bottom: 1px solid rgba(139,0,0,0.3);
 }
 .stream-live-embed.expanded { transform: scaleX(1); }
 .stream-live-embed iframe {
