@@ -2,8 +2,8 @@ name: Update Twitch Status
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # runs every 5 minutes
-  workflow_dispatch:          # allows manual trigger
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 jobs:
   check-twitch:
@@ -12,64 +12,77 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Check Twitch live status and fetch latest VOD
+      - name: Check Twitch status and fetch VOD
         env:
           TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
         run: |
-          # Step 1 — Get access token
-          TOKEN=$(curl -s -X POST "https://id.twitch.tv/oauth2/token" \
-            -d "client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+          python3 - << 'PYEOF'
+          import json, urllib.request, urllib.parse, os, sys
 
-          # Step 2 — Get numeric user_id for astrix285x (required for VOD lookup)
-          USER_RESPONSE=$(curl -s \
-            -H "Client-ID: ${TWITCH_CLIENT_ID}" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            "https://api.twitch.tv/helix/users?login=astrix285x")
+          CLIENT_ID     = os.environ['TWITCH_CLIENT_ID']
+          CLIENT_SECRET = os.environ['TWITCH_CLIENT_SECRET']
 
-          USER_ID=$(echo "$USER_RESPONSE" | python3 -c \
-            "import sys,json; d=json.load(sys.stdin)['data']; print(d[0]['id'] if d else '')")
+          def api(url, token=None):
+              req = urllib.request.Request(url)
+              if token:
+                  req.add_header('Client-ID', CLIENT_ID)
+                  req.add_header('Authorization', f'Bearer {token}')
+              with urllib.request.urlopen(req) as r:
+                  return json.loads(r.read())
+
+          def post(url, data):
+              encoded = urllib.parse.urlencode(data).encode()
+              req = urllib.request.Request(url, data=encoded, method='POST')
+              with urllib.request.urlopen(req) as r:
+                  return json.loads(r.read())
+
+          # Step 1 — Get token
+          try:
+              tok = post('https://id.twitch.tv/oauth2/token', {
+                  'client_id': CLIENT_ID,
+                  'client_secret': CLIENT_SECRET,
+                  'grant_type': 'client_credentials'
+              })
+              token = tok['access_token']
+              print('Token OK')
+          except Exception as e:
+              print(f'Auth failed: {e}', file=sys.stderr)
+              sys.exit(1)
+
+          # Step 2 — Get user_id
+          users = api('https://api.twitch.tv/helix/users?login=astrix285x', token)
+          user_id = users['data'][0]['id'] if users.get('data') else ''
+          print(f'User ID: {user_id}')
 
           # Step 3 — Check if live
-          STREAM_RESPONSE=$(curl -s \
-            -H "Client-ID: ${TWITCH_CLIENT_ID}" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            "https://api.twitch.tv/helix/streams?user_login=astrix285x")
+          streams = api('https://api.twitch.tv/helix/streams?user_login=astrix285x', token)
+          is_live = len(streams.get('data', [])) > 0
 
-          # Step 4 — Fetch latest VOD using numeric user_id
-          VOD_RESPONSE=$(curl -s \
-            -H "Client-ID: ${TWITCH_CLIENT_ID}" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            "https://api.twitch.tv/helix/videos?user_id=${USER_ID}&type=archive&first=1")
-
-          # Step 5 — Write twitch-status.json (no secrets ever included)
-          python3 -c "
-          import json
-
-          stream = json.loads('''${STREAM_RESPONSE}''')
-          vod    = json.loads('''${VOD_RESPONSE}''')
-
-          is_live = len(stream.get('data', [])) > 0
-          result  = {'live': is_live}
+          result = {'live': is_live}
 
           if is_live:
-              s = stream['data'][0]
+              s = streams['data'][0]
               result['title']   = s.get('title', '')
               result['game']    = s.get('game_name', '')
               result['viewers'] = s.get('viewer_count', 0)
+              print(f'LIVE: {result["title"]}')
           else:
-              vods = vod.get('data', [])
-              if vods:
-                  v = vods[0]
+              # Step 4 — Fetch latest VOD
+              vods = api(f'https://api.twitch.tv/helix/videos?user_id={user_id}&type=archive&first=1', token)
+              if vods.get('data'):
+                  v = vods['data'][0]
                   result['vod_id']    = v.get('id', '')
                   result['vod_title'] = v.get('title', '')
                   result['vod_url']   = v.get('url', '')
+                  print(f'VOD: {result["vod_title"]}')
+              else:
+                  print('No VODs found')
 
           with open('twitch-status.json', 'w') as f:
               json.dump(result, f)
-          print('Status written — live:', is_live)
-          "
+          print('Done:', result)
+          PYEOF
 
       - name: Commit status file
         run: |
