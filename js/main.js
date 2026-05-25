@@ -29,45 +29,48 @@ function setupReveal() {
 }
 
 // ── STREAM SCROLL EXPANSION ──────────────────────────────────
-// The scroll-track div is 400vh tall. The embed wrapper is sticky
-// so it stays fixed in the viewport while the user scrolls through
-// the track. Scroll progress (0→1) drives clip-path from a narrow
-// centred strip to full viewport on both axes.
 function setupStreamExpansion() {
   const track  = document.getElementById('streamScrollTrack');
-  const sticky = document.getElementById('streamStickyWrap');
   const clip   = document.getElementById('streamEmbedClipper');
   const header = document.getElementById('streamLiveHeader');
-  if (!track || !sticky || !clip) return;
+  const nav    = document.querySelector('.nav');
+  if (!track || !clip) return;
 
   function onScroll() {
     const rect     = track.getBoundingClientRect();
     const trackH   = track.offsetHeight;
     const winH     = window.innerHeight;
 
-    // progress: 0 = track top just entered viewport
-    //           1 = track bottom just leaving viewport
     const scrolled  = -rect.top;
     const scrollMax = trackH - winH;
     const progress  = Math.min(1, Math.max(0, scrolled / scrollMax));
 
-    // Clip: width  35% → 0%  (both sides)
-    //       height 30% → 0%  (top and bottom)
-    const clipX = Math.round(35 * (1 - progress));
-    const clipY = Math.round(30 * (1 - progress));
+    // clip-path: starts inset(30% 35% 30% 35%), opens to inset(0 0 0 0)
+    const clipX = (35 * (1 - progress)).toFixed(2);
+    const clipY = (30 * (1 - progress)).toFixed(2);
     clip.style.clipPath = `inset(${clipY}% ${clipX}% ${clipY}% ${clipX}%)`;
 
-    // Fade the header out as embed expands over it (progress 0→0.4)
+    // Fade header out quickly in first 40% of scroll
     if (header) {
-      const headerOpacity = Math.max(0, 1 - progress * 3);
-      header.style.opacity = headerOpacity;
+      header.style.opacity = Math.max(0, 1 - progress * 2.5).toFixed(2);
     }
 
-    // Edge fades gone when fully open
-    if (progress >= 0.98) {
+    // Nav: fade background to transparent as embed expands
+    // Fully transparent at progress >= 0.7
+    if (nav) {
+      const navAlpha = Math.max(0, 1 - progress * 1.4).toFixed(2);
+      nav.style.background = `rgba(6,6,6,${navAlpha})`;
+      nav.style.borderBottomColor = `rgba(139,0,0,${Math.max(0, 0.3 - progress * 0.4)})`;
+      nav.style.backdropFilter = progress > 0.7 ? 'none' : 'blur(10px)';
+    }
+
+    // At full expansion lock scroll — prevent scrolling past
+    if (progress >= 0.999) {
       clip.classList.add('fully-open');
+      document.body.classList.add('stream-locked');
     } else {
       clip.classList.remove('fully-open');
+      document.body.classList.remove('stream-locked');
     }
   }
 
@@ -88,7 +91,6 @@ function setOfflineVod(data) {
     vodEmbed.src = `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
     const offlineFull = document.getElementById('streamOffline');
     if (offlineFull) offlineFull.classList.add('has-vod');
-
     if (vodTitle)  vodTitle.textContent = data.vod_title || 'Latest Stream';
     if (vodTwLink) vodTwLink.href       = data.vod_url   || `https://twitch.tv/${TWITCH_CHANNEL}`;
     if (vodFbLink) {
