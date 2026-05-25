@@ -28,35 +28,46 @@ function setupReveal() {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-// ── STREAM EMBED CLIP-REVEAL ─────────────────────────────────
-// The iframe is always full width — never scaled or stretched.
-// The clipper wrapper opens via clip-path as you scroll.
-// The header beneath the embed gets covered as the reveal widens.
+// ── STREAM SCROLL EXPANSION ──────────────────────────────────
+// The scroll-track div is 400vh tall. The embed wrapper is sticky
+// so it stays fixed in the viewport while the user scrolls through
+// the track. Scroll progress (0→1) drives clip-path from a narrow
+// centred strip to full viewport on both axes.
 function setupStreamExpansion() {
-  const clipper = document.getElementById('streamEmbedClipper');
-  if (!clipper) return;
+  const track  = document.getElementById('streamScrollTrack');
+  const sticky = document.getElementById('streamStickyWrap');
+  const clip   = document.getElementById('streamEmbedClipper');
+  const header = document.getElementById('streamLiveHeader');
+  if (!track || !sticky || !clip) return;
 
   function onScroll() {
-    const rect   = clipper.getBoundingClientRect();
-    const winH   = window.innerHeight;
+    const rect     = track.getBoundingClientRect();
+    const trackH   = track.offsetHeight;
+    const winH     = window.innerHeight;
 
-    // Start opening when the top edge of the embed hits 85% down the viewport.
-    // Fully open when the centre of the embed reaches the centre of the viewport.
-    const startTrigger  = winH * 0.85;
-    const endTrigger    = winH * 0.5;
-    const currentTop    = rect.top;
+    // progress: 0 = track top just entered viewport
+    //           1 = track bottom just leaving viewport
+    const scrolled  = -rect.top;
+    const scrollMax = trackH - winH;
+    const progress  = Math.min(1, Math.max(0, scrolled / scrollMax));
 
-    const raw      = (startTrigger - currentTop) / (startTrigger - endTrigger);
-    const progress = Math.min(1, Math.max(0, raw));
+    // Clip: width  35% → 0%  (both sides)
+    //       height 30% → 0%  (top and bottom)
+    const clipX = Math.round(35 * (1 - progress));
+    const clipY = Math.round(30 * (1 - progress));
+    clip.style.clipPath = `inset(${clipY}% ${clipX}% ${clipY}% ${clipX}%)`;
 
-    // Clip sides from 35% → 0%
-    const clip = Math.round(35 * (1 - progress));
-    clipper.style.clipPath = `inset(0 ${clip}% 0 ${clip}%)`;
+    // Fade the header out as embed expands over it (progress 0→0.4)
+    if (header) {
+      const headerOpacity = Math.max(0, 1 - progress * 3);
+      header.style.opacity = headerOpacity;
+    }
 
-    if (progress >= 0.99) {
-      clipper.classList.add('fully-open');
+    // Edge fades gone when fully open
+    if (progress >= 0.98) {
+      clip.classList.add('fully-open');
     } else {
-      clipper.classList.remove('fully-open');
+      clip.classList.remove('fully-open');
     }
   }
 
@@ -80,11 +91,9 @@ function setOfflineVod(data) {
 
     if (vodTitle)  vodTitle.textContent = data.vod_title || 'Latest Stream';
     if (vodTwLink) vodTwLink.href       = data.vod_url   || `https://twitch.tv/${TWITCH_CHANNEL}`;
-
     if (vodFbLink) {
       vodFbLink.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
     }
-
     if (vodSection)  vodSection.style.display  = 'block';
     if (vodFallback) vodFallback.style.display = 'none';
   } else {
@@ -104,7 +113,6 @@ async function checkTwitchLive() {
     const res  = await fetch('/twitch-status.json?t=' + Date.now());
     if (!res.ok) throw new Error('Status file not found');
     const data = await res.json();
-
     console.log('[ASTRIX] twitch-status.json:', JSON.stringify(data));
 
     if (data.live) {
@@ -121,7 +129,6 @@ async function checkTwitchLive() {
       if (liveEl)    liveEl.style.display    = 'none';
       setOfflineVod(data);
     }
-
   } catch (e) {
     console.error('[ASTRIX] checkTwitchLive error:', e);
     if (navDot)    navDot.classList.remove('live');
