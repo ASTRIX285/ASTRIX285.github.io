@@ -29,9 +29,9 @@ function setupReveal() {
 }
 
 // ── STREAM EMBED CLIP-REVEAL ─────────────────────────────────
-// The iframe is always full size. The clipper wrapper uses clip-path
-// inset() to reveal it as the element scrolls into the viewport.
-// Start: clipped to centre 30% of width. End: fully open (0%).
+// The iframe is always full width — never scaled or stretched.
+// The clipper wrapper opens via clip-path as you scroll.
+// The header beneath the embed gets covered as the reveal widens.
 function setupStreamExpansion() {
   const clipper = document.getElementById('streamEmbedClipper');
   if (!clipper) return;
@@ -40,20 +40,16 @@ function setupStreamExpansion() {
     const rect   = clipper.getBoundingClientRect();
     const winH   = window.innerHeight;
 
-    // progress: 0 = element just entering viewport bottom
-    //           1 = element centre is at viewport centre
-    const elementCentre = rect.top + rect.height / 2;
-    const viewportCentre = winH / 2;
+    // Start opening when the top edge of the embed hits 85% down the viewport.
+    // Fully open when the centre of the embed reaches the centre of the viewport.
+    const startTrigger  = winH * 0.85;
+    const endTrigger    = winH * 0.5;
+    const currentTop    = rect.top;
 
-    // Start opening when top edge hits 90% down the screen
-    // Fully open when centre of embed reaches centre of screen
-    const startY = winH * 0.9;
-    const endY   = viewportCentre;
-
-    const raw      = (startY - elementCentre) / (startY - endY);
+    const raw      = (startTrigger - currentTop) / (startTrigger - endTrigger);
     const progress = Math.min(1, Math.max(0, raw));
 
-    // Clip goes from 35% each side → 0% each side
+    // Clip sides from 35% → 0%
     const clip = Math.round(35 * (1 - progress));
     clipper.style.clipPath = `inset(0 ${clip}% 0 ${clip}%)`;
 
@@ -86,8 +82,7 @@ function setOfflineVod(data) {
     if (vodTwLink) vodTwLink.href       = data.vod_url   || `https://twitch.tv/${TWITCH_CHANNEL}`;
 
     if (vodFbLink) {
-      const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
-      vodFbLink.href = fbShareUrl;
+      vodFbLink.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
     }
 
     if (vodSection)  vodSection.style.display  = 'block';
