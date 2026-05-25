@@ -188,29 +188,38 @@
     </div>
   </div>
 
-  <!-- LIVE STATE -->
+  <!-- LIVE STATE — scroll track is 400vh, embed sticks inside it -->
   <div class="stream-live-full" id="streamLive" style="display:none;">
 
-    <!-- LIVE badge — always above embed, high z-index -->
-    <div class="stream-live-badge-wrap">
-      <div class="stream-live-badge">🔴 LIVE NOW</div>
-    </div>
+    <!-- Scroll track — provides the scroll distance -->
+    <div class="stream-scroll-track" id="streamScrollTrack">
 
-    <!-- Header — sits BEHIND the expanding embed -->
-    <div class="stream-live-header" id="streamLiveHeader">
-      <div class="section-eyebrow">Live Transmission</div>
-      <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
-      <p class="stream-sub">Streaming live from inside the Paradox</p>
-    </div>
+      <!-- Sticky wrapper — pins to viewport while scrolling through track -->
+      <div class="stream-sticky-wrap" id="streamStickyWrap">
 
-    <!-- Clip-reveal embed — expands over the header on scroll -->
-    <div class="stream-embed-clipper" id="streamEmbedClipper">
-      <iframe id="twitchIframe"
-        src="https://player.twitch.tv/?channel=astrix285x&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=true&muted=false"
-        allowfullscreen="true" frameborder="0" scrolling="no" allow="autoplay; fullscreen"></iframe>
-    </div>
+        <!-- LIVE NOW badge — always on top -->
+        <div class="stream-live-badge-wrap">
+          <div class="stream-live-badge">🔴 LIVE NOW</div>
+        </div>
 
-    <!-- Buttons — always visible below embed -->
+        <!-- Header text — fades out as embed expands over it -->
+        <div class="stream-live-header" id="streamLiveHeader">
+          <div class="section-eyebrow">Live Transmission</div>
+          <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
+          <p class="stream-sub">Streaming live from inside the Paradox</p>
+        </div>
+
+        <!-- Clip-reveal embed — expands to fill viewport on scroll -->
+        <div class="stream-embed-clipper" id="streamEmbedClipper">
+          <iframe id="twitchIframe"
+            src="https://player.twitch.tv/?channel=astrix285x&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=true&muted=false"
+            allowfullscreen="true" frameborder="0" scrolling="no" allow="autoplay; fullscreen"></iframe>
+        </div>
+
+      </div><!-- end sticky -->
+    </div><!-- end scroll track -->
+
+    <!-- Buttons — appear below the scroll track, after full expansion -->
     <div class="stream-actions stream-actions-live">
       <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch on Twitch</a>
       <a href="https://www.twitch.tv/astrix285x/videos" target="_blank" class="btn-secondary">Past Broadcasts ↗</a>
@@ -220,7 +229,8 @@
         Share on Facebook
       </a>
     </div>
-  </div>
+
+  </div><!-- end stream-live-full -->
 
 </section>
 
