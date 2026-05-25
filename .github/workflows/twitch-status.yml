@@ -29,7 +29,9 @@ jobs:
                   req.add_header('Client-ID', CLIENT_ID)
                   req.add_header('Authorization', f'Bearer {token}')
               with urllib.request.urlopen(req) as r:
-                  return json.loads(r.read())
+                  raw = r.read()
+                  print(f'API response for {url}:\n{raw.decode()}\n')
+                  return json.loads(raw)
 
           def post(url, data):
               encoded = urllib.parse.urlencode(data).encode()
@@ -58,6 +60,7 @@ jobs:
           # Step 3 — Check if live
           streams = api('https://api.twitch.tv/helix/streams?user_login=astrix285x', token)
           is_live = len(streams.get('data', [])) > 0
+          print(f'is_live = {is_live}')
 
           result = {'live': is_live}
 
@@ -66,7 +69,7 @@ jobs:
               result['title']   = s.get('title', '')
               result['game']    = s.get('game_name', '')
               result['viewers'] = s.get('viewer_count', 0)
-              print(f'LIVE: {result["title"]}')
+              print(f'LIVE: {result["title"]} | Game: {result["game"]} | Viewers: {result["viewers"]}')
           else:
               # Step 4 — Fetch latest VOD
               vods = api(f'https://api.twitch.tv/helix/videos?user_id={user_id}&type=archive&first=1', token)
@@ -81,13 +84,17 @@ jobs:
 
           with open('twitch-status.json', 'w') as f:
               json.dump(result, f)
-          print('Done:', result)
+
+          print(f'\n=== FINAL JSON WRITTEN ===\n{json.dumps(result, indent=2)}\n==========================')
           PYEOF
+
+      - name: Show written file
+        run: cat twitch-status.json
 
       - name: Commit status file
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add twitch-status.json
-          git diff --cached --quiet || git commit -m "Update Twitch status"
+          git diff --cached --quiet || git commit -m "Update Twitch status [$(date -u '+%H:%M:%S UTC')]"
           git push
