@@ -28,21 +28,40 @@ function setupReveal() {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-// ── STREAM EMBED SCROLL EXPANSION ───────────────────────────
+// ── STREAM EMBED CLIP-REVEAL ─────────────────────────────────
+// The iframe is always full size. The clipper wrapper uses clip-path
+// inset() to reveal it as the element scrolls into the viewport.
+// Start: clipped to centre 30% of width. End: fully open (0%).
 function setupStreamExpansion() {
-  const embed = document.querySelector('.stream-live-embed');
-  if (!embed) return;
+  const clipper = document.getElementById('streamEmbedClipper');
+  if (!clipper) return;
 
   function onScroll() {
-    const rect = embed.getBoundingClientRect();
-    const winH  = window.innerHeight;
-    const distFromCenter = Math.abs((rect.top + rect.height / 2) - winH / 2);
-    const maxDist = winH / 2 + rect.height / 2;
-    const progress = Math.max(0, 1 - distFromCenter / (maxDist * 0.6));
-    const scale = 0.6 + (0.4 * progress);
-    embed.style.transform = `scaleX(${scale})`;
-    if (scale >= 0.99) embed.classList.add('expanded');
-    else embed.classList.remove('expanded');
+    const rect   = clipper.getBoundingClientRect();
+    const winH   = window.innerHeight;
+
+    // progress: 0 = element just entering viewport bottom
+    //           1 = element centre is at viewport centre
+    const elementCentre = rect.top + rect.height / 2;
+    const viewportCentre = winH / 2;
+
+    // Start opening when top edge hits 90% down the screen
+    // Fully open when centre of embed reaches centre of screen
+    const startY = winH * 0.9;
+    const endY   = viewportCentre;
+
+    const raw      = (startY - elementCentre) / (startY - endY);
+    const progress = Math.min(1, Math.max(0, raw));
+
+    // Clip goes from 35% each side → 0% each side
+    const clip = Math.round(35 * (1 - progress));
+    clipper.style.clipPath = `inset(0 ${clip}% 0 ${clip}%)`;
+
+    if (progress >= 0.99) {
+      clipper.classList.add('fully-open');
+    } else {
+      clipper.classList.remove('fully-open');
+    }
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -60,7 +79,6 @@ function setOfflineVod(data) {
 
   if (data.vod_id && vodEmbed) {
     vodEmbed.src = `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
-    // Hide crimson glow/scanlines when VOD is active
     const offlineFull = document.getElementById('streamOffline');
     if (offlineFull) offlineFull.classList.add('has-vod');
 
