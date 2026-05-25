@@ -188,49 +188,33 @@
     </div>
   </div>
 
-  <!-- LIVE STATE — scroll track is 400vh, embed sticks inside it -->
+  <!-- LIVE STATE — no buttons, only the scroll-expand embed -->
   <div class="stream-live-full" id="streamLive" style="display:none;">
-
-    <!-- Scroll track — provides the scroll distance -->
     <div class="stream-scroll-track" id="streamScrollTrack">
-
-      <!-- Sticky wrapper — pins to viewport while scrolling through track -->
       <div class="stream-sticky-wrap" id="streamStickyWrap">
 
-        <!-- LIVE NOW badge — always on top -->
+        <!-- LIVE NOW — always above video, never scrolls away -->
         <div class="stream-live-badge-wrap">
           <div class="stream-live-badge">🔴 LIVE NOW</div>
         </div>
 
-        <!-- Header text — fades out as embed expands over it -->
+        <!-- Header — fades out as embed expands -->
         <div class="stream-live-header" id="streamLiveHeader">
           <div class="section-eyebrow">Live Transmission</div>
           <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
           <p class="stream-sub">Streaming live from inside the Paradox</p>
         </div>
 
-        <!-- Clip-reveal embed — expands to fill viewport on scroll -->
+        <!-- Full-bleed clip-reveal embed -->
         <div class="stream-embed-clipper" id="streamEmbedClipper">
           <iframe id="twitchIframe"
             src="https://player.twitch.tv/?channel=astrix285x&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=true&muted=false"
             allowfullscreen="true" frameborder="0" scrolling="no" allow="autoplay; fullscreen"></iframe>
         </div>
 
-      </div><!-- end sticky -->
-    </div><!-- end scroll track -->
-
-    <!-- Buttons — appear below the scroll track, after full expansion -->
-    <div class="stream-actions stream-actions-live">
-      <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch on Twitch</a>
-      <a href="https://www.twitch.tv/astrix285x/videos" target="_blank" class="btn-secondary">Past Broadcasts ↗</a>
-      <a href="pages/join.html" class="btn-join">Join Me ↗</a>
-      <a href="https://www.facebook.com/xASTRIX285x" target="_blank" class="btn-facebook">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:6px;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-        Share on Facebook
-      </a>
+      </div>
     </div>
-
-  </div><!-- end stream-live-full -->
+  </div>
 
 </section>
 
