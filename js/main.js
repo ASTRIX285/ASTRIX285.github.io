@@ -64,13 +64,16 @@ function setupStreamExpansion() {
       nav.style.backdropFilter = progress > 0.7 ? 'none' : 'blur(10px)';
     }
 
-    // At full expansion lock scroll — prevent scrolling past
+    // At full expansion lock scroll and hide footer
+    const footer = document.querySelector('.footer');
     if (progress >= 0.999) {
       clip.classList.add('fully-open');
       document.body.classList.add('stream-locked');
+      if (footer) footer.style.visibility = 'hidden';
     } else {
       clip.classList.remove('fully-open');
       document.body.classList.remove('stream-locked');
+      if (footer) footer.style.visibility = 'visible';
     }
   }
 
