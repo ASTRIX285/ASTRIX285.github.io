@@ -60,6 +60,9 @@ function setOfflineVod(data) {
 
   if (data.vod_id && vodEmbed) {
     vodEmbed.src = `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
+    // Hide crimson glow/scanlines when VOD is active
+    const offlineFull = document.getElementById('streamOffline');
+    if (offlineFull) offlineFull.classList.add('has-vod');
 
     if (vodTitle)  vodTitle.textContent = data.vod_title || 'Latest Stream';
     if (vodTwLink) vodTwLink.href       = data.vod_url   || `https://twitch.tv/${TWITCH_CHANNEL}`;
