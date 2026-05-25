@@ -34,6 +34,11 @@ body {
   overflow-x: hidden;
 }
 
+/* Lock scroll at full expansion */
+body.stream-locked {
+  overflow: hidden;
+}
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--dark); }
@@ -53,6 +58,7 @@ a { color: inherit; text-decoration: none; }
   z-index: 1000;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 40px;
+  transition: background 0.1s linear, border-color 0.1s linear;
 }
 .nav-logo {
   display: flex; align-items: center; gap: 12px;
@@ -252,96 +258,7 @@ a { color: inherit; text-decoration: none; }
 }
 .stream-sub { color: var(--grey); font-size: 14px; letter-spacing: 1px; margin-top: 12px; }
 
-/* ── LIVE STATE ── */
-.stream-live-full { width: 100%; background: #000; position: relative; }
-
-/* Scroll track — 400vh gives enough scroll distance for the expansion */
-.stream-scroll-track {
-  position: relative;
-  height: 400vh;
-  background: #000;
-}
-
-/* Sticky wrapper — pins to viewport top while scrolling through track */
-.stream-sticky-wrap {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  width: 100%;
-  background: #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* LIVE NOW badge — always on top of everything */
-.stream-live-badge-wrap {
-  position: absolute;
-  top: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-  text-align: center;
-  white-space: nowrap;
-}
-.stream-live-badge {
-  display: inline-block;
-  font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 4px;
-  color: var(--crimson-glow);
-  animation: navPulse 1.5s infinite;
-}
-
-/* Header — centred in sticky area, fades out as embed grows over it */
-.stream-live-header {
-  position: absolute;
-  z-index: 2;
-  text-align: center;
-  padding: 0 40px;
-  pointer-events: none;
-  transition: opacity 0.1s linear;
-}
-
-/* ── CLIP-REVEAL EMBED ──
-   Always 100vw × 100vh in size.
-   clip-path shrinks it to a strip at start, opens to full screen.
-   The iframe inside is never scaled — only the clip window changes. */
-.stream-embed-clipper {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 5;
-  background: #000;
-  clip-path: inset(30% 35% 30% 35%);
-  will-change: clip-path;
-  overflow: hidden;
-}
-.stream-embed-clipper.fully-open {
-  clip-path: inset(0% 0% 0% 0%);
-}
-
-/* Edge fades — vanish when fully open */
-.stream-embed-clipper::before,
-.stream-embed-clipper::after {
-  content: ''; position: absolute;
-  top: 0; bottom: 0; width: 12%;
-  z-index: 6; pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-.stream-embed-clipper::before { left: 0; background: linear-gradient(to right, #000, transparent); }
-.stream-embed-clipper::after  { right: 0; background: linear-gradient(to left, #000, transparent); }
-.stream-embed-clipper.fully-open::before,
-.stream-embed-clipper.fully-open::after { opacity: 0; }
-
-.stream-embed-clipper iframe {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  border: none; display: block;
-}
-
-/* Buttons — sit below the scroll track, always reachable */
+/* VOD offline buttons */
 .stream-actions {
   display: flex; gap: 16px; flex-wrap: wrap;
   justify-content: center; padding: 40px 40px 48px;
@@ -351,18 +268,117 @@ a { color: inherit; text-decoration: none; }
   border-top: 1px solid rgba(139,0,0,0.2);
 }
 
+/* ── LIVE STATE ── */
+.stream-live-full { width: 100%; background: #000; position: relative; }
+
+/* 400vh track — scroll distance for expansion */
+.stream-scroll-track {
+  position: relative;
+  height: 400vh;
+  background: #000;
+}
+
+/* Sticky wrap — pins to top of viewport, full screen */
+.stream-sticky-wrap {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+/* LIVE NOW badge — fixed centre-top, always above video */
+.stream-live-badge-wrap {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.stream-live-badge {
+  display: inline-block;
+  font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 4px;
+  color: var(--crimson-glow);
+  animation: navPulse 1.5s infinite;
+}
+
+/* Header text — centred, fades out during expansion */
+.stream-live-header {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  text-align: center;
+  width: 100%;
+  padding: 0 40px;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* ── FULL-BLEED CLIP-REVEAL EMBED ──
+   Positioned to cover the ENTIRE sticky wrap including behind nav.
+   Starts as a centred strip, expands to 100vw × 100vh. */
+.stream-embed-clipper {
+  position: absolute;
+  /* Start from top:0 so at full expansion it goes behind the nav */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  background: #000;
+  /* Initial clip — centred strip */
+  clip-path: inset(30% 35% 30% 35%);
+  will-change: clip-path;
+}
+.stream-embed-clipper.fully-open {
+  clip-path: inset(0% 0% 0% 0%);
+}
+
+/* Edge fades */
+.stream-embed-clipper::before,
+.stream-embed-clipper::after {
+  content: ''; position: absolute;
+  top: 0; bottom: 0; width: 10%;
+  z-index: 6; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.stream-embed-clipper::before { left: 0; background: linear-gradient(to right, #000, transparent); }
+.stream-embed-clipper::after  { right: 0; background: linear-gradient(to left, #000, transparent); }
+.stream-embed-clipper.fully-open::before,
+.stream-embed-clipper.fully-open::after { opacity: 0; }
+
+.stream-embed-clipper iframe {
+  position: absolute;
+  /* Extend above the sticky container top to fill behind nav */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none; display: block;
+}
+
 /* ── VOD SECTION ── */
 #vodSection {
   width: 100%; padding: 40px 40px 20px;
   background: #000; position: relative; z-index: 2;
 }
 #vodSection .stream-live-header {
-  position: relative; padding: 0 0 24px;
-  background: none; pointer-events: all;
+  position: relative;
+  top: auto; left: auto;
+  transform: none;
+  padding: 0 0 24px;
+  background: none;
+  pointer-events: all;
   text-align: center;
+  width: 100%;
 }
 #vodSection .stream-live-embed {
-  width: 100%; max-width: 889px; max-height: 500px;
+  width: 100%; max-width: 889px;
   margin: 0 auto; aspect-ratio: 16 / 9;
   background: #000; position: relative;
 }
@@ -417,10 +433,11 @@ a { color: inherit; text-decoration: none; }
   .section { padding: 60px 20px; }
   .stream-offline-content { padding: 40px 20px; }
   .stream-scroll-track { height: auto; }
-  .stream-sticky-wrap { position: relative; height: auto; min-height: 60vw; }
+  .stream-sticky-wrap { position: relative; height: 56vw; }
   .stream-embed-clipper { clip-path: inset(0% 0% 0% 0%) !important; }
   .stream-embed-clipper::before,
   .stream-embed-clipper::after { display: none; }
-  .stream-live-header { position: relative; padding: 60px 20px 24px; }
+  .stream-live-header { position: relative; top: auto; left: auto; transform: none; padding: 40px 20px 24px; }
   .stream-actions { padding: 24px 20px 32px; }
+  body.stream-locked { overflow: auto; }
 }
