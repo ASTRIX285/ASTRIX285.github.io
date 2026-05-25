@@ -38,6 +38,12 @@ body {
 body.stream-locked {
   overflow: hidden;
 }
+body.stream-locked .stream-scroll-track {
+  overflow: hidden;
+}
+body.stream-locked .footer {
+  display: none !important;
+}
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
