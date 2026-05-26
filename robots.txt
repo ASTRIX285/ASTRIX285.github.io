@@ -1,0 +1,13 @@
+# ASTRIX PARADOX — robots.txt
+# astrixparadox.com
+
+User-agent: *
+Allow: /
+
+# Block workflow and config files from indexing
+Disallow: /.github/
+Disallow: /admin/
+Disallow: /twitch-status.json
+
+# Sitemap location
+Sitemap: https://astrixparadox.com/sitemap.xml
