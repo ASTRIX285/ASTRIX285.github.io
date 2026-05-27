@@ -16,6 +16,10 @@
     <img src="img/logo.png" alt="ASTRIX285">
     <span>ASTRIX<span class="accent">285</span></span>
   </div>
+  <!-- Hamburger toggle — mobile only -->
+  <button class="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
   <div class="nav-links">
     <a href="index.html" class="active">Home</a>
     <a href="pages/reviews.html">Reviews</a>
@@ -188,30 +192,23 @@
     </div>
   </div>
 
-  <!-- LIVE STATE — no buttons, only the scroll-expand embed -->
+  <!-- LIVE STATE -->
   <div class="stream-live-full" id="streamLive" style="display:none;">
     <div class="stream-scroll-track" id="streamScrollTrack">
       <div class="stream-sticky-wrap" id="streamStickyWrap">
-
-        <!-- LIVE NOW — always above video, never scrolls away -->
         <div class="stream-live-badge-wrap">
           <div class="stream-live-badge">🔴 LIVE NOW</div>
         </div>
-
-        <!-- Header — fades out as embed expands -->
         <div class="stream-live-header" id="streamLiveHeader">
           <div class="section-eyebrow">Live Transmission</div>
           <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
           <p class="stream-sub">Streaming live from inside the Paradox</p>
         </div>
-
-        <!-- Full-bleed clip-reveal embed -->
         <div class="stream-embed-clipper" id="streamEmbedClipper">
           <iframe id="twitchIframe"
             src="https://player.twitch.tv/?channel=astrix285x&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=true&muted=false"
             allowfullscreen="true" frameborder="0" scrolling="no" allow="autoplay; fullscreen"></iframe>
         </div>
-
       </div>
     </div>
   </div>
