@@ -32,7 +32,6 @@
       transition: transform 0.5s;
     }
     .game-card:hover .game-card-bg { transform: scale(1.05); }
-
     .game-card-overlay {
       position: absolute; inset: 0;
       background: linear-gradient(to top, rgba(0,0,0,0.95) 30%, rgba(0,0,0,0.2) 100%);
@@ -60,12 +59,8 @@
       font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
       padding: 4px 12px; text-transform: uppercase;
     }
-    .game-card-status.playing {
-      background: var(--crimson); color: var(--white);
-    }
-    .game-card-status.reviewed {
-      border: 1px solid var(--gold-dim); color: var(--gold);
-    }
+    .game-card-status.playing { background: var(--crimson); color: var(--white); }
+    .game-card-status.reviewed { border: 1px solid var(--gold-dim); color: var(--gold); }
     .game-card-corner-tl {
       position: absolute; top: 12px; left: 12px;
       width: 16px; height: 16px;
@@ -80,12 +75,25 @@
     }
     .game-card:hover .game-card-corner-tl,
     .game-card:hover .game-card-corner-br { opacity: 1; }
+    @media (max-width: 768px) {
+      .games-hero { padding: calc(var(--nav-height) + 40px) 20px 40px; }
+      .games-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .games-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
 <nav class="nav">
-  <div class="nav-logo"><span>ASTRIX<span class="accent">285</span></span></div>
+  <div class="nav-logo">
+    <img src="../img/logo.png" alt="ASTRIX285">
+    <span>ASTRIX<span class="accent">285</span></span>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
   <div class="nav-links">
     <a href="../index.html">Home</a>
     <a href="reviews.html">Reviews</a>
@@ -114,10 +122,8 @@
 <section class="section" style="background:var(--dark);padding-top:40px;">
   <div style="max-width:1100px;margin:0 auto;">
     <div class="games-grid">
-
       <div class="game-card reveal">
-        <div class="game-card-bg" style="background:url('../img/games/crimsondesert.jpg') center/cover no-repeat;">
-        </div>
+        <div class="game-card-bg" style="background:url('../img/games/crimsondesert.jpg') center/cover no-repeat;"></div>
         <div class="game-card-overlay"></div>
         <div class="game-card-corner-tl"></div>
         <div class="game-card-corner-br"></div>
@@ -128,10 +134,8 @@
           <span class="game-card-status playing">Active</span>
         </div>
       </div>
-
       <div class="game-card reveal reveal-delay-1">
-        <div class="game-card-bg" style="background:url('../img/games/warframe.jpg') center/cover no-repeat;">
-        </div>
+        <div class="game-card-bg" style="background:url('../img/games/warframe.jpg') center/cover no-repeat;"></div>
         <div class="game-card-overlay"></div>
         <div class="game-card-corner-tl"></div>
         <div class="game-card-corner-br"></div>
@@ -142,10 +146,8 @@
           <span class="game-card-status reviewed">Reviewed — 9.2</span>
         </div>
       </div>
-
       <div class="game-card reveal reveal-delay-2">
-        <div class="game-card-bg" style="background:url('../img/games/borderlands4.jpg') center/cover no-repeat;">
-        </div>
+        <div class="game-card-bg" style="background:url('../img/games/borderlands4.jpg') center/cover no-repeat;"></div>
         <div class="game-card-overlay"></div>
         <div class="game-card-corner-tl"></div>
         <div class="game-card-corner-br"></div>
@@ -156,10 +158,8 @@
           <span class="game-card-status reviewed">Reviewed — 8.7</span>
         </div>
       </div>
-
       <div class="game-card reveal">
-        <div class="game-card-bg" style="background:url('../img/games/destiny2.jpg') center/cover no-repeat;">
-        </div>
+        <div class="game-card-bg" style="background:url('../img/games/destiny2.jpg') center/cover no-repeat;"></div>
         <div class="game-card-overlay"></div>
         <div class="game-card-corner-tl"></div>
         <div class="game-card-corner-br"></div>
@@ -170,10 +170,8 @@
           <span class="game-card-status reviewed">In Rotation</span>
         </div>
       </div>
-
       <div class="game-card reveal reveal-delay-1">
-        <div class="game-card-bg" style="background:url('../img/games/battlefield.jpg') center/cover no-repeat;">
-        </div>
+        <div class="game-card-bg" style="background:url('../img/games/battlefield.jpg') center/cover no-repeat;"></div>
         <div class="game-card-overlay"></div>
         <div class="game-card-corner-tl"></div>
         <div class="game-card-corner-br"></div>
@@ -184,10 +182,8 @@
           <span class="game-card-status reviewed">In Rotation</span>
         </div>
       </div>
-
       <div class="game-card reveal reveal-delay-2">
-        <div class="game-card-bg" style="background:url('../img/games/warhammer.jpg') center/cover no-repeat;">
-        </div>
+        <div class="game-card-bg" style="background:url('../img/games/warhammer.jpg') center/cover no-repeat;"></div>
         <div class="game-card-overlay"></div>
         <div class="game-card-corner-tl"></div>
         <div class="game-card-corner-br"></div>
@@ -198,7 +194,6 @@
           <span class="game-card-status reviewed">In Rotation</span>
         </div>
       </div>
-
     </div>
   </div>
 </section>
