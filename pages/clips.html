@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clips & Highlights | ASTRIX285</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .clips-hero {
+      padding: calc(var(--nav-height) + 60px) 40px 60px;
+      background: var(--dark-2);
+      border-bottom: 1px solid rgba(139,0,0,0.2);
+      position: relative; overflow: hidden;
+    }
+    .clips-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 80% 50%, rgba(139,0,0,0.15) 0%, transparent 60%);
+    }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      display: flex; gap: 0; flex-wrap: wrap;
+      border-bottom: 1px solid rgba(139,0,0,0.2);
+      margin-bottom: 0;
+    }
+    .filter-section {
+      display: flex; gap: 0; flex-wrap: wrap;
+      padding: 16px 0;
+    }
+    .filter-section + .filter-section {
+      border-left: 1px solid rgba(139,0,0,0.2);
+      padding-left: 16px; margin-left: 16px;
+    }
+    .filter-label {
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 3px;
+      color: var(--grey-dark); text-transform: uppercase;
+      display: flex; align-items: center; padding-right: 12px;
+    }
+    .filter-btn {
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+      padding: 6px 16px; border: 1px solid transparent;
+      color: var(--grey); cursor: pointer; text-transform: uppercase;
+      transition: all 0.2s; background: transparent;
+    }
+    .filter-btn:hover { color: var(--white); border-color: rgba(139,0,0,0.4); }
+    .filter-btn.active {
+      color: var(--white); background: rgba(139,0,0,0.15);
+      border-color: var(--crimson);
+    }
+    .filter-btn.type-btn.active {
+      color: var(--gold); border-color: var(--gold);
+      background: rgba(201,168,76,0.08);
+    }
+
+    /* ── CLIPS GRID ── */
+    .clips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 2px;
+    }
+
+    /* ── CLIP CARD ── */
+    .clip-card {
+      background: var(--dark-2);
+      border: 1px solid rgba(139,0,0,0.15);
+      overflow: hidden;
+      transition: border-color 0.3s;
+      position: relative;
+    }
+    .clip-card:hover { border-color: rgba(139,0,0,0.4); }
+    .clip-card.hidden { display: none; }
+
+    /* Thumbnail / embed area */
+    .clip-thumb {
+      aspect-ratio: 16/9;
+      position: relative;
+      background: #000;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .clip-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s, opacity 0.3s;
+    }
+    .clip-card:hover .clip-thumb img { transform: scale(1.04); }
+    .clip-thumb-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.3s;
+    }
+    .clip-card:hover .clip-thumb-overlay {
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%);
+    }
+    .clip-play-btn {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(139,0,0,0.9);
+      border: 2px solid rgba(255,255,255,0.3);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .clip-card:hover .clip-play-btn {
+      transform: scale(1.12);
+      background: var(--crimson-mid);
+    }
+    .clip-play-btn svg { margin-left: 4px; }
+
+    /* Badges */
+    .clip-game-badge {
+      position: absolute; top: 10px; left: 10px;
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+      color: var(--white); background: var(--crimson);
+      padding: 3px 10px; text-transform: uppercase;
+    }
+    .clip-type-badge {
+      position: absolute; top: 10px; right: 10px;
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+      color: var(--dark); background: var(--gold);
+      padding: 3px 10px; text-transform: uppercase;
+    }
+    .clip-duration {
+      position: absolute; bottom: 10px; right: 10px;
+      font-family: 'Orbitron', monospace; font-size: 9px;
+      color: var(--white); background: rgba(0,0,0,0.8);
+      padding: 2px 8px; letter-spacing: 1px;
+    }
+
+    /* Eklipse source tag */
+    .clip-source {
+      position: absolute; bottom: 10px; left: 10px;
+      font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 2px;
+      color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 4px;
+    }
+    .clip-source::before {
+      content: '⚡'; font-size: 10px; color: var(--gold);
+    }
+
+    /* Card body */
+    .clip-body { padding: 16px 20px; }
+    .clip-title {
+      font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 600;
+      color: var(--white); line-height: 1.4; margin-bottom: 8px; letter-spacing: 0.5px;
+    }
+    .clip-meta {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .clip-date { font-size: 11px; color: var(--grey-dark); letter-spacing: 1px; }
+    .clip-links { display: flex; gap: 10px; }
+    .clip-link {
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+      color: var(--gold); text-transform: uppercase; text-decoration: none;
+      transition: color 0.2s;
+    }
+    .clip-link:hover { color: var(--gold-light); }
+    .clip-link.eklipse { color: var(--grey-dark); }
+    .clip-link.eklipse:hover { color: var(--grey); }
+
+    /* Modal */
+    .clip-modal {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.95);
+      align-items: center; justify-content: center;
+    }
+    .clip-modal.open { display: flex; }
+    .clip-modal-inner { position: relative; width: 92vw; max-width: 1100px; }
+    .clip-modal-close {
+      position: absolute; top: -44px; right: 0;
+      font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
+      color: var(--grey); background: none; border: none; cursor: pointer; text-transform: uppercase;
+    }
+    .clip-modal-close:hover { color: var(--white); }
+    .clip-modal-frame { position: relative; padding-top: 56.25%; background: #000; }
+    .clip-modal-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+    .clip-modal-label {
+      font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
+      color: var(--grey); text-align: center; margin-top: 16px; text-transform: uppercase;
+    }
+    .clip-modal-source {
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+      color: var(--gold); text-align: center; margin-top: 6px;
+    }
+
+    /* Empty state */
+    .clips-empty {
+      text-align: center; padding: 80px 40px;
+      grid-column: 1 / -1;
+    }
+    .clips-empty-icon { font-size: 48px; margin-bottom: 20px; opacity: 0.3; }
+    .clips-empty-text {
+      font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 3px;
+      color: var(--grey-dark); text-transform: uppercase;
+    }
+
+    /* Stats bar */
+    .clips-stats {
+      display: flex; gap: 24px; align-items: center;
+      padding: 12px 0;
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+      color: var(--grey-dark); border-bottom: 1px solid rgba(139,0,0,0.1);
+      margin-bottom: 24px;
+    }
+    .clips-stats span { color: var(--crimson-mid); }
+
+    @media (max-width: 768px) {
+      .clips-hero { padding: calc(var(--nav-height) + 40px) 20px 40px; }
+      .clips-grid { grid-template-columns: 1fr; }
+      .filter-section + .filter-section { border-left: none; border-top: 1px solid rgba(139,0,0,0.2); padding-left: 0; margin-left: 0; padding-top: 12px; }
+      .filter-bar { flex-direction: column; }
+      .clips-stats { flex-wrap: wrap; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="../img/logo.png" alt="ASTRIX285">
+    <span>ASTRIX<span class="accent">285</span></span>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links">
+    <a href="../index.html">Home</a>
+    <a href="reviews.html">Reviews</a>
+    <a href="news.html">News</a>
+    <a href="clips.html" class="active">Clips</a>
+    <a href="games.html">Universes</a>
+    <a href="join.html">Join Us</a>
+  </div>
+  <div class="nav-live">
+    <div class="nav-live-dot" id="navDot"></div>
+    <span class="nav-live-text" id="navText">OFFLINE</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="clips-hero">
+  <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1;">
+    <div class="section-eyebrow" style="animation:fadeUp 0.8s ease 0.2s both;">
+      ⚡ Powered by Eklipse.gg
+    </div>
+    <h1 class="section-title" style="animation:fadeUp 0.8s ease 0.4s both;">
+      Clips &amp; <span class="accent">Highlights</span>
+    </h1>
+    <p style="color:var(--grey);max-width:500px;margin-top:16px;animation:fadeUp 0.8s ease 0.6s both;">
+      The best moments from every stream — auto-captured, curated, and dropped here. Boss kills, clutch plays, and everything in between.
+    </p>
+    <div style="display:flex;gap:16px;margin-top:24px;animation:fadeUp 0.8s ease 0.8s both;flex-wrap:wrap;">
+      <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" class="btn-primary" style="font-size:10px;padding:10px 24px;">▶ &nbsp; YouTube Channel ↗</a>
+      <a href="https://eklipse.gg" target="_blank" class="btn-secondary" style="font-size:10px;padding:10px 24px;">⚡ Eklipse.gg ↗</a>
+    </div>
+  </div>
+</div>
+
+<div class="gold-line"></div>
+
+<!-- FILTERS -->
+<section style="background:var(--dark-2);padding:0 40px;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="filter-bar">
+      <div class="filter-section">
+        <span class="filter-label">Game</span>
+        <button class="filter-btn active" data-game="all" onclick="filterClips(this,'game')">All</button>
+        <button class="filter-btn" data-game="crimson-desert" onclick="filterClips(this,'game')">Crimson Desert</button>
+        <button class="filter-btn" data-game="warframe" onclick="filterClips(this,'game')">Warframe</button>
+        <button class="filter-btn" data-game="borderlands" onclick="filterClips(this,'game')">Borderlands</button>
+        <button class="filter-btn" data-game="destiny" onclick="filterClips(this,'game')">Destiny 2</button>
+      </div>
+      <div class="filter-section">
+        <span class="filter-label">Type</span>
+        <button class="filter-btn type-btn active" data-type="all" onclick="filterClips(this,'type')">All</button>
+        <button class="filter-btn type-btn" data-type="highlight" onclick="filterClips(this,'type')">Highlight</button>
+        <button class="filter-btn type-btn" data-type="boss-kill" onclick="filterClips(this,'type')">Boss Kill</button>
+        <button class="filter-btn type-btn" data-type="funny" onclick="filterClips(this,'type')">Funny</button>
+        <button class="filter-btn type-btn" data-type="pvp" onclick="filterClips(this,'type')">PvP</button>
+        <button class="filter-btn type-btn" data-type="build" onclick="filterClips(this,'type')">Build</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLIPS GRID -->
+<section class="section" style="background:var(--dark);padding-top:32px;">
+  <div style="max-width:1100px;margin:0 auto;">
+
+    <div class="clips-stats">
+      SHOWING <span id="clipCount">0</span> CLIPS
+      &nbsp;·&nbsp; ⚡ AI-GENERATED BY EKLIPSE.GG
+      &nbsp;·&nbsp; <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" style="color:var(--crimson-mid);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;">SUBSCRIBE ON YOUTUBE ↗</a>
+    </div>
+
+    <div class="clips-grid" id="clipsGrid">
+
+      <!-- ═══════════════════════════════════════
+           CLIP CARDS
+           To add a new clip:
+           1. Copy a clip-card block below
+           2. Set data-game and data-type attributes
+           3. Replace VIDEO_ID with YouTube video ID
+           4. Update title, date, duration
+           5. Add Eklipse clip URL if available
+           ═══════════════════════════════════════ -->
+
+      <div class="clip-card reveal" data-game="crimson-desert" data-type="highlight">
+        <div class="clip-thumb" onclick="openClip('YOUTUBE_ID_HERE','Crimson Desert — Opening Hunt Highlights','Crimson Desert · Highlight · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/YOUTUBE_ID_HERE/maxresdefault.jpg" alt="Clip thumbnail" onerror="this.src='../img/games/crimsondesert.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div class="clip-game-badge">Crimson Desert</div>
+          <div class="clip-type-badge">Highlight</div>
+          <div class="clip-duration">2:34</div>
+          <div class="clip-source">EKLIPSE.GG</div>
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Opening Hunt — First Boss Down</div>
+          <div class="clip-meta">
+            <span class="clip-date">Add date</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" class="clip-link">YouTube ↗</a>
+              <a href="https://eklipse.gg" target="_blank" class="clip-link eklipse">⚡ Eklipse</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-1" data-game="crimson-desert" data-type="boss-kill">
+        <div class="clip-thumb" onclick="openClip('YOUTUBE_ID_HERE','Crimson Desert — Boss Kill','Crimson Desert · Boss Kill · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/YOUTUBE_ID_HERE/maxresdefault.jpg" alt="Clip thumbnail" onerror="this.src='../img/games/crimsondesert.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div class="clip-game-badge">Crimson Desert</div>
+          <div class="clip-type-badge">Boss Kill</div>
+          <div class="clip-duration">1:12</div>
+          <div class="clip-source">EKLIPSE.GG</div>
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Pailune Field Boss — Solo Clear</div>
+          <div class="clip-meta">
+            <span class="clip-date">Add date</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" class="clip-link">YouTube ↗</a>
+              <a href="https://eklipse.gg" target="_blank" class="clip-link eklipse">⚡ Eklipse</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-2" data-game="crimson-desert" data-type="funny">
+        <div class="clip-thumb" onclick="openClip('YOUTUBE_ID_HERE','Crimson Desert — Funny Moment','Crimson Desert · Funny · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/YOUTUBE_ID_HERE/maxresdefault.jpg" alt="Clip thumbnail" onerror="this.src='../img/games/crimsondesert.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div class="clip-game-badge">Crimson Desert</div>
+          <div class="clip-type-badge">Funny</div>
+          <div class="clip-duration">0:45</div>
+          <div class="clip-source">EKLIPSE.GG</div>
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">NPC Does the Unexpected</div>
+          <div class="clip-meta">
+            <span class="clip-date">Add date</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" class="clip-link">YouTube ↗</a>
+              <a href="https://eklipse.gg" target="_blank" class="clip-link eklipse">⚡ Eklipse</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal" data-game="warframe" data-type="highlight">
+        <div class="clip-thumb" onclick="openClip('YOUTUBE_ID_HERE','Warframe Highlight','Warframe · Highlight · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/YOUTUBE_ID_HERE/maxresdefault.jpg" alt="Clip thumbnail" onerror="this.src='../img/games/warframe.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div class="clip-game-badge">Warframe</div>
+          <div class="clip-type-badge">Highlight</div>
+          <div class="clip-duration">3:10</div>
+          <div class="clip-source">EKLIPSE.GG</div>
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Steel Path Run — Full Clear</div>
+          <div class="clip-meta">
+            <span class="clip-date">Add date</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" class="clip-link">YouTube ↗</a>
+              <a href="https://eklipse.gg" target="_blank" class="clip-link eklipse">⚡ Eklipse</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-1" data-game="warframe" data-type="build">
+        <div class="clip-thumb" onclick="openClip('YOUTUBE_ID_HERE','Warframe Build Guide','Warframe · Build · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/YOUTUBE_ID_HERE/maxresdefault.jpg" alt="Clip thumbnail" onerror="this.src='../img/games/warframe.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div class="clip-game-badge">Warframe</div>
+          <div class="clip-type-badge">Build</div>
+          <div class="clip-duration">4:22</div>
+          <div class="clip-source">EKLIPSE.GG</div>
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Best Starter Build — Beginners Guide</div>
+          <div class="clip-meta">
+            <span class="clip-date">Add date</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" class="clip-link">YouTube ↗</a>
+              <a href="https://eklipse.gg" target="_blank" class="clip-link eklipse">⚡ Eklipse</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-2" data-game="borderlands" data-type="funny">
+        <div class="clip-thumb" onclick="openClip('YOUTUBE_ID_HERE','Borderlands Funny Moment','Borderlands · Funny · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/YOUTUBE_ID_HERE/maxresdefault.jpg" alt="Clip thumbnail" onerror="this.src='../img/games/borderlands4.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div class="clip-game-badge">Borderlands</div>
+          <div class="clip-type-badge">Funny</div>
+          <div class="clip-duration">0:58</div>
+          <div class="clip-source">EKLIPSE.GG</div>
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Only in Borderlands</div>
+          <div class="clip-meta">
+            <span class="clip-date">Add date</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" class="clip-link">YouTube ↗</a>
+              <a href="https://eklipse.gg" target="_blank" class="clip-link eklipse">⚡ Eklipse</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end clips-grid -->
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-social">
+    <a href="https://x.com/ASTRIX285" target="_blank">X / Twitter</a>
+    <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank">Discord</a>
+    <a href="https://www.twitch.tv/astrix285x" target="_blank">Twitch</a>
+    <a href="https://www.facebook.com/xASTRIX285x" target="_blank">Facebook</a>
+    <a href="https://www.youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>
+  </div>
+  <div class="gold-line" style="margin-bottom:20px;"></div>
+  <div class="footer-copy">© 2025 Astrix285 — Built for the community, powered by gaming passion and history.</div>
+  <div class="footer-disclaimer">Clips generated with Eklipse.gg AI highlight technology. All gameplay footage is original content streamed live on Twitch by ASTRIX285X.</div>
+</footer>
+
+<!-- CLIP MODAL -->
+<div class="clip-modal" id="clipModal">
+  <div class="clip-modal-inner">
+    <button class="clip-modal-close" onclick="closeClip()">✕ Close</button>
+    <div class="clip-modal-frame">
+      <iframe id="clipFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+    <div class="clip-modal-label" id="clipLabel"></div>
+    <div class="clip-modal-source" id="clipSource"></div>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+  // ── FILTER STATE ──
+  let activeGame = 'all';
+  let activeType = 'all';
+
+  function filterClips(btn, dimension) {
+    // Update active button
+    document.querySelectorAll(dimension === 'game' ? '[data-game]' : '[data-type]').forEach(b => {
+      if (b.classList.contains('filter-btn')) b.classList.remove('active');
+    });
+    btn.classList.add('active');
+
+    if (dimension === 'game') activeGame = btn.dataset.game;
+    if (dimension === 'type') activeType = btn.dataset.type;
+
+    // Show/hide cards
+    let count = 0;
+    document.querySelectorAll('.clip-card').forEach(card => {
+      const gameMatch = activeGame === 'all' || card.dataset.game === activeGame;
+      const typeMatch = activeType === 'all' || card.dataset.type === activeType;
+      if (gameMatch && typeMatch) {
+        card.classList.remove('hidden');
+        count++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+    document.getElementById('clipCount').textContent = count;
+  }
+
+  // ── MODAL ──
+  function openClip(id, label, source) {
+    if (id === 'YOUTUBE_ID_HERE') {
+      alert('Replace YOUTUBE_ID_HERE with your actual YouTube video ID in the HTML.');
+      return;
+    }
+    document.getElementById('clipFrame').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
+    document.getElementById('clipLabel').textContent = label;
+    document.getElementById('clipSource').textContent = source;
+    document.getElementById('clipModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeClip() {
+    document.getElementById('clipFrame').src = '';
+    document.getElementById('clipModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('clipModal').addEventListener('click', function(e) {
+    if (e.target === this) closeClip();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeClip();
+  });
+
+  // Count on load
+  document.addEventListener('DOMContentLoaded', () => {
+    const count = document.querySelectorAll('.clip-card').length;
+    document.getElementById('clipCount').textContent = count;
+  });
+</script>
+</body>
+</html>
