@@ -1,161 +1,189 @@
-import json, urllib.request, urllib.parse, os, sys, re
+#!/usr/bin/env python3
+"""
+ASTRIX PARADOX — Auto Clips Builder
+Fetches YouTube playlists via YouTube Data API v3
+Rewrites pages/clips.html automatically
+"""
+
+import os, json, re, urllib.request, urllib.parse
 from datetime import datetime
 
-API_KEY    = os.environ['YOUTUBE_API_KEY']
-BASE       = 'https://www.googleapis.com/youtube/v3'
-CHANNEL_ID = 'UCrKaDvstd-YzsD0ZQ6ldFrw'
+# ── CONFIG ──────────────────────────────────────────────────
+API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
 
 PLAYLISTS = [
     {'game': 'crimson-desert', 'label': 'Crimson Desert', 'id': 'PLYwP61l5jB7RKcMiDhH34xc1JpZg3xrGi'},
-    # Add more here as you create them:
-    # {'game': 'warframe',       'label': 'Warframe',       'id': 'PLxxxxxxx'},
-    # {'game': 'borderlands',    'label': 'Borderlands',    'id': 'PLxxxxxxx'},
-    # {'game': 'destiny',        'label': 'Destiny 2',      'id': 'PLxxxxxxx'},
+    # Add more as content grows:
+    # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
+    # {'game': 'borderlands',     'label': 'Borderlands',     'id': 'PLxxxxxxx'},
+    # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
 ]
 
-def api_get(endpoint, params):
-    params['key'] = API_KEY
-    url = BASE + '/' + endpoint + '?' + urllib.parse.urlencode(params)
-    try:
-        with urllib.request.urlopen(url) as r:
-            return json.loads(r.read())
-    except Exception as e:
-        print(f'API error: {e}', file=sys.stderr)
-        return None
+# ── TYPE DETECTION ───────────────────────────────────────────
+# Order matters — first match wins
+TYPE_RULES = [
+    ('boss',      ['boss', 'tenebrum', 'boss kill', 'killed', 'defeated', 'slain', 'fight']),
+    ('guide',     ['guide', 'how to', 'how-to', 'tutorial', 'tips', 'explained']),
+    ('build',     ['build', 'setup', 'loadout', 'gear', 'equipment', 'spec', 'patch']),
+    ('pve',       ['pve', 'dungeon', 'raid', 'camp', 'expansion', 'quest', 'mission', 'request']),
+    ('funny',     ['funny', 'fail', 'lol', 'oops', 'gone wrong', 'cursed', 'chaos']),
+    ('highlight', []),  # catch-all default
+]
 
-def parse_duration(iso):
-    m = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', iso or 'PT0S')
-    if not m:
-        return '0:00'
-    h = int(m.group(1) or 0)
-    mn = int(m.group(2) or 0)
-    s = int(m.group(3) or 0)
-    total = h * 3600 + mn * 60 + s
-    mn2, s2 = divmod(total, 60)
-    h2, mn2 = divmod(mn2, 60)
-    if h2:
-        return f'{h2}:{mn2:02d}:{s2:02d}'
-    return f'{mn2}:{s2:02d}'
+BADGE_LABELS = {
+    'boss':      'Boss',
+    'guide':     'Guide',
+    'build':     'Build',
+    'pve':       'PvE',
+    'funny':     'Funny',
+    'highlight': 'Highlight',
+}
 
-def detect_type(title, desc):
-    c = (title + ' ' + desc).lower()
-    if any(w in c for w in ['boss', 'kill', 'fight', 'defeated', 'strategy']):
-        return 'boss-kill'
-    if any(w in c for w in ['funny', 'lol', 'fail', 'oops', 'unexpected', 'wtf']):
-        return 'funny'
-    if any(w in c for w in ['pvp', ' vs ', 'versus', 'duel', 'pk']):
-        return 'pvp'
-    if any(w in c for w in ['build', 'guide', 'how to', 'tutorial', 'tips', 'setup']):
-        return 'build'
+def detect_type(title):
+    # First: check for explicit |Tag| bracket in title — this always wins
+    bracket = re.search(r'\|([^\|]+)\|', title)
+    if bracket:
+        tag = bracket.group(1).strip().lower()
+        tag_map = {
+            'boss':      'boss',
+            'boss kill': 'boss',
+            'guide':     'guide',
+            'build':     'build',
+            'pve':       'pve',
+            'pvp':       'pvp',
+            'funny':     'funny',
+            'highlight': 'highlight',
+            'clip':      'highlight',
+        }
+        if tag in tag_map:
+            return tag_map[tag]
+
+    # Fallback: keyword detection from title
+    title_lower = title.lower()
+    for type_key, keywords in TYPE_RULES:
+        if not keywords:  # catch-all
+            return type_key
+        if any(kw in title_lower for kw in keywords):
+            return type_key
     return 'highlight'
 
-# Fetch all clips
-all_clips = []
-for pl in PLAYLISTS:
-    print(f'Fetching: {pl["label"]} ({pl["id"]})')
-    data = api_get('playlistItems', {
-        'part': 'snippet,contentDetails',
-        'playlistId': pl['id'],
-        'maxResults': 50,
-    })
-    if not data or 'items' not in data:
-        print(f'  No items found')
-        continue
+def format_duration(iso):
+    """Convert PT4M15S → 4:15"""
+    m = re.search(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', iso or '')
+    if not m:
+        return '0:00'
+    h, mn, s = (int(x or 0) for x in m.groups())
+    if h:
+        return f'{h}:{mn:02d}:{s:02d}'
+    return f'{mn}:{s:02d}'
 
-    video_ids = [
-        item['contentDetails']['videoId']
-        for item in data['items']
-        if item.get('contentDetails', {}).get('videoId')
-    ]
-    if not video_ids:
-        continue
+def format_date(iso):
+    """Convert 2026-04-04T... → Apr 04, 2026"""
+    try:
+        dt = datetime.strptime(iso[:10], '%Y-%m-%d')
+        return dt.strftime('%b %d, %Y')
+    except:
+        return iso[:10]
 
-    details = api_get('videos', {
-        'part': 'contentDetails,snippet,statistics',
-        'id': ','.join(video_ids),
-    })
-    detail_map = {}
-    if details and 'items' in details:
-        for v in details['items']:
-            detail_map[v['id']] = v
+def api_get(url):
+    with urllib.request.urlopen(url, timeout=15) as r:
+        return json.loads(r.read())
 
-    for item in data['items']:
-        vid = item.get('contentDetails', {}).get('videoId')
-        if not vid:
-            continue
-        snippet = item.get('snippet', {})
-        title = snippet.get('title', 'Untitled')
-        desc = snippet.get('description', '')
-        if title in ('Deleted video', 'Private video'):
-            continue
-        pub_raw = snippet.get('publishedAt', '')
-        try:
-            pub_str = datetime.strptime(pub_raw[:10], '%Y-%m-%d').strftime('%b %d, %Y')
-        except:
-            pub_str = ''
-        detail = detail_map.get(vid, {})
-        iso_dur = detail.get('contentDetails', {}).get('duration', 'PT0S')
-        duration = parse_duration(iso_dur)
-        clip_type = detect_type(title, desc)
-        all_clips.append({
-            'id': vid, 'title': title, 'game': pl['game'],
-            'label': pl['label'], 'type': clip_type,
-            'date': pub_str, 'duration': duration,
-        })
-        print(f'  OK: {title} [{clip_type}] {duration}')
+def fetch_playlist(playlist_id):
+    """Fetch all videos from a playlist."""
+    videos, page_token = [], None
+    while True:
+        params = {
+            'part': 'snippet',
+            'playlistId': playlist_id,
+            'maxResults': 50,
+            'key': API_KEY,
+        }
+        if page_token:
+            params['pageToken'] = page_token
+        url = 'https://www.googleapis.com/youtube/v3/playlistItems?' + urllib.parse.urlencode(params)
+        data = api_get(url)
+        for item in data.get('items', []):
+            sn = item['snippet']
+            vid_id = sn['resourceId']['videoId']
+            videos.append({
+                'id':        vid_id,
+                'title':     sn['title'],
+                'published': sn['publishedAt'],
+            })
+        page_token = data.get('nextPageToken')
+        if not page_token:
+            break
+    return videos
 
-print(f'\nTotal clips: {len(all_clips)}')
+def fetch_durations(video_ids):
+    """Fetch durations for a list of video IDs."""
+    durations = {}
+    for i in range(0, len(video_ids), 50):
+        chunk = video_ids[i:i+50]
+        params = {
+            'part': 'contentDetails',
+            'id':   ','.join(chunk),
+            'key':  API_KEY,
+        }
+        url = 'https://www.googleapis.com/youtube/v3/videos?' + urllib.parse.urlencode(params)
+        data = api_get(url)
+        for item in data.get('items', []):
+            durations[item['id']] = item['contentDetails']['duration']
+    return durations
 
-# Build game filter buttons
-game_btns = '        <button class="filter-btn active" data-game="all" onclick="filterClips(this,\'game\')">All</button>\n'
-for pl in PLAYLISTS:
-    game_btns += f'        <button class="filter-btn" data-game="{pl["game"]}" onclick="filterClips(this,\'game\')">{pl["label"]}</button>\n'
+def build_card(video, game_key, game_label, delay_class=''):
+    vid_id    = video['id']
+    title     = video['title']
+    date      = format_date(video['published'])
+    duration  = video['duration']
+    type_key  = detect_type(title)
+    type_label = BADGE_LABELS.get(type_key, 'Highlight')
+    thumb     = f'https://img.youtube.com/vi/{vid_id}/maxresdefault.jpg'
+    fallback  = f'../img/games/{game_key}.jpg'
+    yt_url    = f'https://www.youtube.com/watch?v={vid_id}'
+    modal_label = f'{game_label} — {title}'
+    modal_src   = f'{game_label} · {type_label} · via Eklipse.gg'
 
-# Build clip cards
-def clip_card(clip, idx):
-    delay = '' if idx % 3 == 0 else f' reveal-delay-{idx % 3}'
-    thumb = f'https://img.youtube.com/vi/{clip["id"]}/maxresdefault.jpg'
-    fallback = f'../img/games/{clip["game"].replace("-","")}.jpg'
-    modal_title = f'{clip["label"]} \u2014 {clip["title"]}'
-    modal_source = f'{clip["label"]} \u00b7 {clip["type"].replace("-"," ").title()} \u00b7 via Eklipse.gg'
-    type_label = clip['type'].replace('-', ' ').title()
+    # Escape single quotes for onclick
+    ml = modal_label.replace("'", "\\'")
+    ms = modal_src.replace("'", "\\'")
+
     return f'''
-      <div class="clip-card reveal{delay}" data-game="{clip["game"]}" data-type="{clip["type"]}">
-        <div class="clip-thumb" onclick="openClip('{clip["id"]}','{modal_title}','{modal_source}')">
-          <img src="{thumb}" alt="{clip["title"]}" onerror="this.src='{fallback}'">
+      <div class="clip-card reveal{delay_class}" data-game="{game_key}" data-type="{type_key}">
+        <div class="clip-thumb" onclick="openClip('{vid_id}','{ml}','{ms}')">
+          <img src="{thumb}" alt="{title}" onerror="this.src='{fallback}'">
           <div class="clip-thumb-overlay">
-            <div class="clip-play-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
-          <div class="clip-game-badge">{clip["label"]}</div>
+          <div class="clip-game-badge">{game_label}</div>
           <div class="clip-type-badge">{type_label}</div>
-          <div class="clip-duration">{clip["duration"]}</div>
+          <div class="clip-duration">{duration}</div>
           <div class="clip-source">EKLIPSE.GG</div>
         </div>
         <div class="clip-body">
-          <div class="clip-title">{clip["title"]}</div>
+          <div class="clip-title">{title}</div>
           <div class="clip-meta">
-            <span class="clip-date">{clip["date"]}</span>
+            <span class="clip-date">{date}</span>
             <div class="clip-links">
-              <a href="https://www.youtube.com/watch?v={clip["id"]}" target="_blank" class="clip-link">YouTube &#8599;</a>
+              <a href="{yt_url}" target="_blank" class="clip-link">YouTube &#8599;</a>
               <a href="https://eklipse.gg" target="_blank" class="clip-link eklipse">&#9889; Eklipse</a>
             </div>
           </div>
         </div>
       </div>'''
 
-cards_html = '\n'.join(clip_card(c, i) for i, c in enumerate(all_clips))
-if not cards_html:
-    cards_html = '''
-      <div class="clips-empty">
-        <div class="clips-empty-icon">&#127918;</div>
-        <div class="clips-empty-text">No clips yet &mdash; check back after the next stream</div>
-      </div>'''
+def build_game_buttons():
+    btns = ['<button class="filter-btn game-btn active" data-game="all" onclick="filterClips(this,\'game\')">All</button>']
+    for pl in PLAYLISTS:
+        btns.append(f'<button class="filter-btn game-btn" data-game="{pl["game"]}" onclick="filterClips(this,\'game\')">{pl["label"]}</button>')
+    return '\n        '.join(btns)
 
-clip_count = len(all_clips)
+def build_html(all_cards, total):
+    game_buttons = build_game_buttons()
+    cards_html = '\n'.join(all_cards)
 
-html = '''<!DOCTYPE html>
+    return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -163,56 +191,55 @@ html = '''<!DOCTYPE html>
   <title>Clips &amp; Highlights | ASTRIX285</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .clips-hero{padding:calc(var(--nav-height) + 60px) 40px 60px;background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.2);position:relative;overflow:hidden}
-    .clips-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(139,0,0,0.15) 0%,transparent 60%)}
-    .filter-bar{display:flex;gap:0;flex-wrap:wrap;border-bottom:1px solid rgba(139,0,0,0.2)}
-    .filter-section{display:flex;gap:0;flex-wrap:wrap;padding:16px 0}
-    .filter-section+.filter-section{border-left:1px solid rgba(139,0,0,0.2);padding-left:16px;margin-left:16px}
-    .filter-label{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:3px;color:var(--grey-dark);text-transform:uppercase;display:flex;align-items:center;padding-right:12px}
-    .filter-btn{font-family:"Orbitron",monospace;font-size:9px;letter-spacing:2px;padding:6px 16px;border:1px solid transparent;color:var(--grey);cursor:pointer;text-transform:uppercase;transition:all 0.2s;background:transparent}
-    .filter-btn:hover{color:var(--white);border-color:rgba(139,0,0,0.4)}
-    .filter-btn.active{color:var(--white);background:rgba(139,0,0,0.15);border-color:var(--crimson)}
-    .filter-btn.type-btn.active{color:var(--gold);border-color:var(--gold);background:rgba(201,168,76,0.08)}
-    .clips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:2px}
-    .clip-card{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}
-    .clip-card:hover{border-color:rgba(139,0,0,0.4)}
-    .clip-card.hidden{display:none}
-    .clip-thumb{aspect-ratio:16/9;position:relative;background:#000;cursor:pointer;overflow:hidden}
-    .clip-thumb img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}
-    .clip-card:hover .clip-thumb img{transform:scale(1.04)}
-    .clip-thumb-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);display:flex;align-items:center;justify-content:center}
-    .clip-play-btn{width:56px;height:56px;border-radius:50%;background:rgba(139,0,0,0.9);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;transition:transform 0.2s,background 0.2s}
-    .clip-card:hover .clip-play-btn{transform:scale(1.12);background:var(--crimson-mid)}
-    .clip-play-btn svg{margin-left:4px}
-    .clip-game-badge{position:absolute;top:10px;left:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--white);background:var(--crimson);padding:3px 10px;text-transform:uppercase}
-    .clip-type-badge{position:absolute;top:10px;right:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--dark);background:var(--gold);padding:3px 10px;text-transform:uppercase}
-    .clip-duration{position:absolute;bottom:10px;right:10px;font-family:"Orbitron",monospace;font-size:9px;color:var(--white);background:rgba(0,0,0,0.8);padding:2px 8px;letter-spacing:1px}
-    .clip-source{position:absolute;bottom:10px;left:10px;font-family:"Orbitron",monospace;font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.6)}
-    .clip-source::before{content:"⚡";font-size:10px;color:var(--gold);margin-right:4px}
-    .clip-body{padding:16px 20px}
-    .clip-title{font-family:"Orbitron",monospace;font-size:12px;font-weight:600;color:var(--white);line-height:1.4;margin-bottom:8px;letter-spacing:0.5px}
-    .clip-meta{display:flex;justify-content:space-between;align-items:center}
-    .clip-date{font-size:11px;color:var(--grey-dark);letter-spacing:1px}
-    .clip-links{display:flex;gap:10px}
-    .clip-link{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;text-decoration:none;transition:color 0.2s}
-    .clip-link:hover{color:var(--gold-light)}
-    .clip-link.eklipse{color:var(--grey-dark)}
-    .clip-link.eklipse:hover{color:var(--grey)}
-    .clip-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);align-items:center;justify-content:center}
-    .clip-modal.open{display:flex}
-    .clip-modal-inner{position:relative;width:92vw;max-width:1100px}
-    .clip-modal-close{position:absolute;top:-44px;right:0;font-family:"Orbitron",monospace;font-size:10px;letter-spacing:2px;color:var(--grey);background:none;border:none;cursor:pointer;text-transform:uppercase}
-    .clip-modal-close:hover{color:var(--white)}
-    .clip-modal-frame{position:relative;padding-top:56.25%;background:#000}
-    .clip-modal-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
-    .clip-modal-label{font-family:"Orbitron",monospace;font-size:10px;letter-spacing:2px;color:var(--grey);text-align:center;margin-top:16px;text-transform:uppercase}
-    .clip-modal-source{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-align:center;margin-top:6px}
-    .clips-empty{text-align:center;padding:80px 40px;grid-column:1 / -1}
-    .clips-empty-icon{font-size:48px;margin-bottom:20px;opacity:0.3}
-    .clips-empty-text{font-family:"Orbitron",monospace;font-size:11px;letter-spacing:3px;color:var(--grey-dark);text-transform:uppercase}
-    .clips-stats{display:flex;gap:24px;align-items:center;padding:12px 0;font-family:"Orbitron",monospace;font-size:9px;letter-spacing:2px;color:var(--grey-dark);border-bottom:1px solid rgba(139,0,0,0.1);margin-bottom:24px;flex-wrap:wrap}
-    .clips-stats span{color:var(--crimson-mid)}
-    @media(max-width:768px){.clips-hero{padding:calc(var(--nav-height) + 40px) 20px 40px}.clips-grid{grid-template-columns:1fr}.filter-section+.filter-section{border-left:none;border-top:1px solid rgba(139,0,0,0.2);padding-left:0;margin-left:0}.filter-bar{flex-direction:column}}
+    .clips-hero{{padding:calc(var(--nav-height) + 60px) 40px 60px;background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.2);position:relative;overflow:hidden}}
+    .clips-hero::before{{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(139,0,0,0.15) 0%,transparent 60%)}}
+    .filter-wrap{{background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.25);padding:0 40px}}
+    .filter-inner{{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:0}}
+    .filter-row{{display:flex;align-items:center;gap:0;min-height:52px;border-bottom:1px solid rgba(139,0,0,0.1)}}
+    .filter-row:last-child{{border-bottom:none}}
+    .filter-label{{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:4px;color:var(--grey-dark);text-transform:uppercase;min-width:60px;padding-right:16px;border-right:1px solid rgba(139,0,0,0.2);margin-right:4px;flex-shrink:0}}
+    .filter-pills{{display:flex;flex-wrap:wrap;gap:2px;padding:8px 0 8px 8px}}
+    .filter-btn{{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:7px 18px;border:1px solid transparent;color:var(--grey);cursor:pointer;text-transform:uppercase;transition:all 0.2s;background:transparent;white-space:nowrap}}
+    .filter-btn:hover{{color:var(--white);border-color:rgba(139,0,0,0.5);background:rgba(139,0,0,0.06)}}
+    .filter-btn.game-btn.active{{color:var(--white);background:rgba(139,0,0,0.2);border-color:var(--crimson-mid)}}
+    .filter-btn.type-btn.active{{color:var(--dark);background:var(--gold);border-color:var(--gold)}}
+    .clips-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:2px}}
+    .clip-card{{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}}
+    .clip-card:hover{{border-color:rgba(139,0,0,0.4)}}
+    .clip-card.hidden{{display:none}}
+    .clip-thumb{{aspect-ratio:16/9;position:relative;background:#000;cursor:pointer;overflow:hidden}}
+    .clip-thumb img{{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}}
+    .clip-card:hover .clip-thumb img{{transform:scale(1.04)}}
+    .clip-thumb-overlay{{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);display:flex;align-items:center;justify-content:center}}
+    .clip-play-btn{{width:56px;height:56px;border-radius:50%;background:rgba(139,0,0,0.9);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;transition:transform 0.2s,background 0.2s}}
+    .clip-card:hover .clip-play-btn{{transform:scale(1.12);background:var(--crimson-mid)}}
+    .clip-play-btn svg{{margin-left:4px}}
+    .clip-game-badge{{position:absolute;top:10px;left:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--white);background:var(--crimson);padding:3px 10px;text-transform:uppercase}}
+    .clip-type-badge{{position:absolute;top:10px;right:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--dark);background:var(--gold);padding:3px 10px;text-transform:uppercase}}
+    .clip-duration{{position:absolute;bottom:10px;right:10px;font-family:"Orbitron",monospace;font-size:9px;color:var(--white);background:rgba(0,0,0,0.8);padding:2px 8px;letter-spacing:1px}}
+    .clip-source{{position:absolute;bottom:10px;left:10px;font-family:"Orbitron",monospace;font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.6)}}
+    .clip-source::before{{content:"⚡";font-size:10px;color:var(--gold);margin-right:4px}}
+    .clip-body{{padding:16px 20px}}
+    .clip-title{{font-family:"Orbitron",monospace;font-size:12px;font-weight:600;color:var(--white);line-height:1.4;margin-bottom:8px;letter-spacing:0.5px}}
+    .clip-meta{{display:flex;justify-content:space-between;align-items:center}}
+    .clip-date{{font-size:11px;color:var(--grey-dark);letter-spacing:1px}}
+    .clip-links{{display:flex;gap:10px}}
+    .clip-link{{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;text-decoration:none;transition:color 0.2s}}
+    .clip-link:hover{{color:var(--gold-light)}}
+    .clip-link.eklipse{{color:var(--grey-dark)}}
+    .clip-link.eklipse:hover{{color:var(--grey)}}
+    .clip-modal{{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);align-items:center;justify-content:center}}
+    .clip-modal.open{{display:flex}}
+    .clip-modal-inner{{position:relative;width:92vw;max-width:1100px}}
+    .clip-modal-close{{position:absolute;top:-44px;right:0;font-family:"Orbitron",monospace;font-size:10px;letter-spacing:2px;color:var(--grey);background:none;border:none;cursor:pointer;text-transform:uppercase}}
+    .clip-modal-close:hover{{color:var(--white)}}
+    .clip-modal-frame{{position:relative;padding-top:56.25%;background:#000}}
+    .clip-modal-frame iframe{{position:absolute;inset:0;width:100%;height:100%;border:none}}
+    .clip-modal-label{{font-family:"Orbitron",monospace;font-size:10px;letter-spacing:2px;color:var(--grey);text-align:center;margin-top:16px;text-transform:uppercase}}
+    .clip-modal-source{{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-align:center;margin-top:6px}}
+    .clips-stats{{display:flex;gap:24px;align-items:center;padding:12px 0;font-family:"Orbitron",monospace;font-size:9px;letter-spacing:2px;color:var(--grey-dark);border-bottom:1px solid rgba(139,0,0,0.1);margin-bottom:24px;flex-wrap:wrap}}
+    .clips-stats span{{color:var(--crimson-mid)}}
+    @media(max-width:768px){{.clips-hero{{padding:calc(var(--nav-height) + 40px) 20px 40px}}.clips-grid{{grid-template-columns:1fr}}.filter-wrap{{padding:0 20px}}.filter-label{{min-width:48px;font-size:7px;letter-spacing:2px}}.filter-btn{{font-size:8px;padding:6px 12px}}}}
   </style>
 </head>
 <body>
@@ -250,34 +277,38 @@ html = '''<!DOCTYPE html>
 
 <div class="gold-line"></div>
 
-<section style="background:var(--dark-2);padding:0 40px;">
-  <div style="max-width:1100px;margin:0 auto;">
-    <div class="filter-bar">
-      <div class="filter-section">
-        <span class="filter-label">Game</span>
-''' + game_btns + '''      </div>
-      <div class="filter-section">
-        <span class="filter-label">Type</span>
+<div class="filter-wrap">
+  <div class="filter-inner">
+    <div class="filter-row">
+      <span class="filter-label">Game</span>
+      <div class="filter-pills">
+        {game_buttons}
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Type</span>
+      <div class="filter-pills">
         <button class="filter-btn type-btn active" data-type="all" onclick="filterClips(this,'type')">All</button>
         <button class="filter-btn type-btn" data-type="highlight" onclick="filterClips(this,'type')">Highlight</button>
-        <button class="filter-btn type-btn" data-type="boss-kill" onclick="filterClips(this,'type')">Boss Kill</button>
-        <button class="filter-btn type-btn" data-type="funny" onclick="filterClips(this,'type')">Funny</button>
-        <button class="filter-btn type-btn" data-type="pvp" onclick="filterClips(this,'type')">PvP</button>
+        <button class="filter-btn type-btn" data-type="boss" onclick="filterClips(this,'type')">Boss</button>
+        <button class="filter-btn type-btn" data-type="guide" onclick="filterClips(this,'type')">Guide</button>
         <button class="filter-btn type-btn" data-type="build" onclick="filterClips(this,'type')">Build</button>
+        <button class="filter-btn type-btn" data-type="pve" onclick="filterClips(this,'type')">PvE</button>
+        <button class="filter-btn type-btn" data-type="funny" onclick="filterClips(this,'type')">Funny</button>
       </div>
     </div>
   </div>
-</section>
+</div>
 
 <section class="section" style="background:var(--dark);padding-top:32px;">
   <div style="max-width:1100px;margin:0 auto;">
     <div class="clips-stats">
-      SHOWING <span id="clipCount">''' + str(clip_count) + '''</span> CLIPS
+      SHOWING <span id="clipCount">{total}</span> CLIPS
       &nbsp;&middot;&nbsp; &#9889; AUTO-GENERATED BY EKLIPSE.GG
       &nbsp;&middot;&nbsp; <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" style="color:var(--crimson-mid);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;">SUBSCRIBE ON YOUTUBE &#8599;</a>
     </div>
     <div class="clips-grid" id="clipsGrid">
-''' + cards_html + '''
+{cards_html}
     </div>
   </div>
 </section>
@@ -308,38 +339,64 @@ html = '''<!DOCTYPE html>
 
 <script src="../js/main.js"></script>
 <script>
-  var activeGame='all',activeType='all';
-  function filterClips(btn,dim){
-    document.querySelectorAll(dim==='game'?'[data-game].filter-btn':'[data-type].filter-btn').forEach(function(b){b.classList.remove('active')});
+  var activeGame='all', activeType='all';
+  function filterClips(btn, dim) {{
+    var selector = dim === 'game' ? '.game-btn' : '.type-btn';
+    document.querySelectorAll(selector).forEach(function(b){{ b.classList.remove('active'); }});
     btn.classList.add('active');
-    if(dim==='game')activeGame=btn.dataset.game;
-    if(dim==='type')activeType=btn.dataset.type;
-    var count=0;
-    document.querySelectorAll('.clip-card').forEach(function(card){
-      var show=(activeGame==='all'||card.dataset.game===activeGame)&&(activeType==='all'||card.dataset.type===activeType);
-      card.classList.toggle('hidden',!show);
-      if(show)count++;
-    });
-    document.getElementById('clipCount').textContent=count;
-  }
-  function openClip(id,label,source){
-    document.getElementById('clipFrame').src='https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0';
-    document.getElementById('clipLabel').textContent=label;
-    document.getElementById('clipSource').textContent=source;
+    if (dim === 'game') activeGame = btn.dataset.game;
+    if (dim === 'type') activeType = btn.dataset.type;
+    var count = 0;
+    document.querySelectorAll('.clip-card').forEach(function(card) {{
+      var show = (activeGame === 'all' || card.dataset.game === activeGame) &&
+                 (activeType === 'all' || card.dataset.type === activeType);
+      card.classList.toggle('hidden', !show);
+      if (show) count++;
+    }});
+    document.getElementById('clipCount').textContent = count;
+  }}
+  function openClip(id, label, source) {{
+    document.getElementById('clipFrame').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
+    document.getElementById('clipLabel').textContent = label;
+    document.getElementById('clipSource').textContent = source;
     document.getElementById('clipModal').classList.add('open');
-    document.body.style.overflow='hidden';
-  }
-  function closeClip(){
-    document.getElementById('clipFrame').src='';
+    document.body.style.overflow = 'hidden';
+  }}
+  function closeClip() {{
+    document.getElementById('clipFrame').src = '';
     document.getElementById('clipModal').classList.remove('open');
-    document.body.style.overflow='';
-  }
-  document.getElementById('clipModal').addEventListener('click',function(e){if(e.target===this)closeClip()});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeClip()});
+    document.body.style.overflow = '';
+  }}
+  document.getElementById('clipModal').addEventListener('click', function(e){{ if(e.target===this) closeClip(); }});
+  document.addEventListener('keydown', function(e){{ if(e.key==='Escape') closeClip(); }});
 </script>
 </body>
 </html>'''
 
-with open('pages/clips.html', 'w', encoding='utf-8') as f:
-    f.write(html)
-print(f'clips.html written with {clip_count} clips')
+def main():
+    print('Fetching playlists...')
+    all_cards = []
+    total = 0
+    delays = ['', ' reveal-delay-1', ' reveal-delay-2']
+
+    for pl in PLAYLISTS:
+        print(f'  → {pl["label"]}')
+        videos = fetch_playlist(pl['id'])
+        if not videos:
+            continue
+        video_ids = [v['id'] for v in videos]
+        durations = fetch_durations(video_ids)
+        for i, v in enumerate(videos):
+            v['duration'] = format_duration(durations.get(v['id'], ''))
+            card = build_card(v, pl['game'], pl['label'], delays[i % 3])
+            all_cards.append(card)
+            total += 1
+
+    html = build_html(all_cards, total)
+    out = os.path.join(os.path.dirname(__file__), '..', 'pages', 'clips.html')
+    with open(out, 'w', encoding='utf-8') as f:
+        f.write(html)
+    print(f'Done — {total} clips written to clips.html')
+
+if __name__ == '__main__':
+    main()
