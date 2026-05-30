@@ -41,7 +41,7 @@ BADGE_LABELS = {
     'puzzle':    'Puzzle',
     'challenge': 'Challenge',
     'funny':     'Funny',
-    'highlight': 'Highlight',
+    'missions': 'Missions',
 }
 
 def detect_type(title):
