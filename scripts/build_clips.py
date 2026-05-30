@@ -16,10 +16,7 @@ PLAYLISTS = [
     # Add more as content grows:
     # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
     # {'game': 'borderlands',     'label': 'Borderlands',     'id': 'PLxxxxxxx'},
-    {'game': 'black myth: wukong',       'label': 'Black Myth: Wukong',       'id': 'PLYwP61l5jB7RlDQMOa7ibloAxJMT4gbkV'},
-     # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
-     # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
-     # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
+    # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
 ]
 
 # ── TYPE DETECTION ───────────────────────────────────────────
@@ -188,9 +185,30 @@ def build_game_buttons():
         btns.append(f'<button class="filter-btn game-btn" data-game="{pl["game"]}" onclick="filterClips(this,\'game\')">{pl["label"]}</button>')
     return '\n        '.join(btns)
 
-def build_html(all_cards, total):
+
+def build_sections_html(sections):
+    html = []
+    for sec in sections:
+        game = sec['game']
+        label = sec['label']
+        cards = sec['cards']
+        section_cards = '\n'.join(cards)
+        html.append(f'''
+      <div class="game-section" data-section="{game}">
+        <div class="game-section-header">
+          <div class="game-section-line"></div>
+          <span class="game-section-label">{label}</span>
+          <div class="game-section-line"></div>
+        </div>
+        <div class="clips-grid">
+{section_cards}
+        </div>
+      </div>''')
+    return '\n'.join(html)
+
+def build_html(sections, total):
     game_buttons = build_game_buttons()
-    cards_html = '\n'.join(all_cards)
+    cards_html = build_sections_html(sections)
 
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -212,6 +230,12 @@ def build_html(all_cards, total):
     .filter-btn:hover{{color:var(--white);border-color:rgba(139,0,0,0.5);background:rgba(139,0,0,0.06)}}
     .filter-btn.game-btn.active{{color:var(--white);background:rgba(139,0,0,0.2);border-color:var(--crimson-mid)}}
     .filter-btn.type-btn.active{{color:var(--dark);background:var(--gold);border-color:var(--gold)}}
+    .game-section{{margin-bottom:48px}}
+    .game-section.hidden{{display:none}}
+    .game-section-header{{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-top:8px}}
+    .game-section-label{{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;white-space:nowrap;flex-shrink:0}}
+    .game-section-line{{flex:1;height:1px;background:linear-gradient(to right,rgba(201,168,76,0.4),transparent)}}
+    .game-section-header .game-section-line:first-child{{background:linear-gradient(to left,rgba(201,168,76,0.4),transparent)}}
     .clips-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:2px}}
     .clip-card{{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}}
     .clip-card:hover{{border-color:rgba(139,0,0,0.4)}}
@@ -358,11 +382,23 @@ def build_html(all_cards, total):
     if (dim === 'game') activeGame = btn.dataset.game;
     if (dim === 'type') activeType = btn.dataset.type;
     var count = 0;
+    // Show/hide sections based on game filter
+    document.querySelectorAll('.game-section').forEach(function(sec) {{
+      var gameMatch = activeGame === 'all' || sec.dataset.section === activeGame;
+      sec.classList.toggle('hidden', !gameMatch);
+    }});
+    // Show/hide cards based on type filter
     document.querySelectorAll('.clip-card').forEach(function(card) {{
-      var show = (activeGame === 'all' || card.dataset.game === activeGame) &&
-                 (activeType === 'all' || card.dataset.type === activeType);
-      card.classList.toggle('hidden', !show);
-      if (show) count++;
+      var gameMatch = activeGame === 'all' || card.dataset.game === activeGame;
+      var typeMatch = activeType === 'all' || card.dataset.type === activeType;
+      card.classList.toggle('hidden', !gameMatch || !typeMatch);
+      if (gameMatch && typeMatch) count++;
+    }});
+    // Hide sections where all cards are hidden
+    document.querySelectorAll('.game-section').forEach(function(sec) {{
+      if (activeGame !== 'all') return;
+      var visible = sec.querySelectorAll('.clip-card:not(.hidden)').length;
+      sec.classList.toggle('hidden', visible === 0);
     }});
     document.getElementById('clipCount').textContent = count;
   }}
@@ -386,7 +422,7 @@ def build_html(all_cards, total):
 
 def main():
     print('Fetching playlists...')
-    all_cards = []
+    sections = []
     total = 0
     delays = ['', ' reveal-delay-1', ' reveal-delay-2']
 
@@ -399,14 +435,15 @@ def main():
         durations = fetch_durations(video_ids)
         for v in videos:
             v['duration'] = format_duration(durations.get(v['id'], ''))
-        # Sort newest first by published date
         videos.sort(key=lambda v: v['published'], reverse=True)
+        cards = []
         for i, v in enumerate(videos):
             card = build_card(v, pl['game'], pl['label'], delays[i % 3])
-            all_cards.append(card)
+            cards.append(card)
             total += 1
+        sections.append({'game': pl['game'], 'label': pl['label'], 'cards': cards})
 
-    html = build_html(all_cards, total)
+    html = build_html(sections, total)
     out = os.path.join(os.path.dirname(__file__), '..', 'pages', 'clips.html')
     with open(out, 'w', encoding='utf-8') as f:
         f.write(html)
