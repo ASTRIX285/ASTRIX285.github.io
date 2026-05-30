@@ -232,10 +232,9 @@ def build_html(sections, total):
     .game-section-label{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;white-space:nowrap;flex-shrink:0}
     .game-section-line{flex:1;height:1px;background:linear-gradient(to right,rgba(201,168,76,0.4),transparent)}
     .game-section-header .game-section-line:first-child{background:linear-gradient(to left,rgba(201,168,76,0.4),transparent)}
-    #clipsGrid{display:flex;gap:32px;align-items:flex-start}
-    .game-section{flex:1;min-width:0}
-    .clips-grid{display:grid;grid-template-columns:1fr;gap:2px}
-    @media(max-width:900px){#clipsGrid{flex-direction:column}}
+    #clipsGrid{display:block}
+    .game-section{margin-bottom:60px}
+    .clips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:2px}
     .clip-card{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}
     .clip-card:hover{border-color:rgba(139,0,0,0.4)}
     .clip-card.hidden{display:none}
