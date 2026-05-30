@@ -12,20 +12,6 @@
   --gold-light:   #f0c060;
   --gold-dim:     rgba(201,168,76,0.3);
   --black:        #000000;
-  --dark:         #060606;/* ============================================================
-   ASTRIX285 — Global Styles
-   ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
-
-:root {
-  --crimson:      #8b0000;
-  --crimson-mid:  #b22222;
-  --crimson-glow: #ff1a1a;
-  --crimson-dark: #3d0000;
-  --gold:         #c9a84c;
-  --gold-light:   #f0c060;
-  --gold-dim:     rgba(201,168,76,0.3);
-  --black:        #000000;
   --dark:         #060606;
   --dark-1:       #060606;
   --dark-2:       #0a0a0a;
@@ -48,6 +34,17 @@ body {
   overflow-x: hidden;
 }
 
+/* Lock scroll at full expansion */
+body.stream-locked {
+  overflow: hidden;
+}
+body.stream-locked .stream-scroll-track {
+  overflow: hidden;
+}
+body.stream-locked .footer {
+  display: none !important;
+}
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--dark); }
@@ -67,6 +64,7 @@ a { color: inherit; text-decoration: none; }
   z-index: 1000;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 40px;
+  transition: background 0.1s linear, border-color 0.1s linear;
 }
 .nav-logo {
   display: flex; align-items: center; gap: 12px;
@@ -107,29 +105,21 @@ a { color: inherit; text-decoration: none; }
 
 /* ── HERO ── */
 .hero {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  position: relative; width: 100%; min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
   align-items: center;
   padding: calc(var(--nav-height) + 60px) 0 80px;
   overflow: hidden;
 }
 .hero-bg { position: absolute; inset: 0; z-index: 0; background: var(--dark); }
 .hero-bg-video {
-  position: absolute; inset: 0;
-  overflow: hidden;
+  position: absolute; inset: 0; overflow: hidden;
   background-image: url('../img/hero-bg.png');
-  background-size: cover;
-  background-position: center right;
+  background-size: cover; background-position: center right;
 }
 .hero-bg-video video {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center right;
-  opacity: 0.55;
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center right; opacity: 0.55;
 }
 .hero-bg-gradient {
   position: absolute; inset: 0;
@@ -146,8 +136,7 @@ a { color: inherit; text-decoration: none; }
 }
 .hero-content {
   position: relative; z-index: 2;
-  padding: 0 6vw;
-  display: flex; flex-direction: column; gap: 0;
+  padding: 0 6vw; display: flex; flex-direction: column; gap: 0;
   grid-column: 1 / 2;
 }
 .hero-eyebrow {
@@ -219,8 +208,7 @@ a { color: inherit; text-decoration: none; }
   font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 3px;
   color: var(--white); background: #1877f2;
   border: 1px solid #1877f2; padding: 14px 32px;
-  cursor: pointer; text-transform: uppercase; display: inline-flex;
-  align-items: center;
+  cursor: pointer; text-transform: uppercase; display: inline-flex; align-items: center;
   transition: background 0.2s, box-shadow 0.2s;
 }
 .btn-facebook:hover { background: #1464d8; box-shadow: 0 0 20px rgba(24,119,242,0.4); }
@@ -248,22 +236,14 @@ a { color: inherit; text-decoration: none; }
    STREAM SECTION
    ══════════════════════════════════════════════ */
 .stream-section {
-  position: relative;
-  width: 100%;
-  background: #000;
-  overflow: hidden;
+  position: relative; width: 100%; background: #000;
 }
 
 /* ── OFFLINE STATE ── */
 .stream-offline-full {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--dark-2);
-  overflow: hidden;
+  position: relative; width: 100%; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--dark-2); overflow: hidden;
 }
 .stream-offline-scanlines {
   position: absolute; inset: 0; pointer-events: none; z-index: 1;
@@ -282,24 +262,47 @@ a { color: inherit; text-decoration: none; }
   color: var(--grey); border: 1px solid rgba(139,0,0,0.4);
   padding: 8px 24px; margin: 24px 0 36px;
 }
-.stream-sub {
-  color: var(--grey); font-size: 14px; letter-spacing: 1px; margin-top: 12px;
+.stream-sub { color: var(--grey); font-size: 14px; letter-spacing: 1px; margin-top: 12px; }
+
+/* VOD offline buttons */
+.stream-actions {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  justify-content: center; padding: 40px 40px 48px;
+}
+.stream-actions-live {
+  background: var(--dark-2);
+  border-top: 1px solid rgba(139,0,0,0.2);
 }
 
 /* ── LIVE STATE ── */
-.stream-live-full {
-  width: 100%;
-  background: #000;
+.stream-live-full { width: 100%; background: #000; position: relative; }
+
+/* 400vh track — scroll distance for expansion */
+.stream-scroll-track {
   position: relative;
+  height: 400vh;
+  background: #000;
 }
 
-/* LIVE NOW badge — floats above everything, always visible */
+/* Sticky wrap — pins to top of viewport, full screen */
+.stream-sticky-wrap {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+/* LIVE NOW badge — fixed centre-top, always above video */
 .stream-live-badge-wrap {
-  position: relative;
-  z-index: 10;
-  text-align: center;
-  padding: 32px 40px 0;
-  background: linear-gradient(to bottom, rgba(6,6,6,1), rgba(6,6,6,0));
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .stream-live-badge {
   display: inline-block;
@@ -308,103 +311,78 @@ a { color: inherit; text-decoration: none; }
   animation: navPulse 1.5s infinite;
 }
 
-/* Header — sits behind the expanding embed via z-index */
+/* Header text — centred, fades out during expansion */
 .stream-live-header {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
   text-align: center;
-  padding: 24px 40px 48px;
-  background: transparent;
-  /* Negative margin so embed overlaps it as it expands */
-  margin-bottom: -20px;
+  width: 100%;
+  padding: 0 40px;
+  pointer-events: none;
+  will-change: opacity;
 }
 
-/* ── CLIP-REVEAL EMBED ── */
-/* iframe is always full width/height — never scaled or stretched.
-   clip-path on the wrapper reveals it symmetrically from the centre. */
+/* ── FULL-BLEED CLIP-REVEAL EMBED ── */
 .stream-embed-clipper {
-  position: relative;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   z-index: 5;
-  width: 100%;
-  aspect-ratio: 16 / 9;
   background: #000;
-  clip-path: inset(0 35% 0 35%);
+  clip-path: inset(30% 35% 30% 35%);
   will-change: clip-path;
 }
 .stream-embed-clipper.fully-open {
-  clip-path: inset(0 0% 0 0%);
+  clip-path: inset(0% 0% 0% 0%);
 }
-
-/* Edge fade — disappears as embed opens */
 .stream-embed-clipper::before,
 .stream-embed-clipper::after {
   content: ''; position: absolute;
-  top: 0; bottom: 0; width: 15%;
+  top: 0; bottom: 0; width: 10%;
   z-index: 6; pointer-events: none;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.3s ease;
 }
 .stream-embed-clipper::before { left: 0; background: linear-gradient(to right, #000, transparent); }
-.stream-embed-clipper::after  { right: 0; background: linear-gradient(to left,  #000, transparent); }
+.stream-embed-clipper::after  { right: 0; background: linear-gradient(to left, #000, transparent); }
 .stream-embed-clipper.fully-open::before,
 .stream-embed-clipper.fully-open::after { opacity: 0; }
-
 .stream-embed-clipper iframe {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; left: 0;
   width: 100%; height: 100%;
   border: none; display: block;
-}
-
-/* Buttons — always below embed, always in view */
-.stream-actions {
-  display: flex; gap: 16px; flex-wrap: wrap;
-  justify-content: center; margin-top: 0; padding: 32px 40px 48px;
-}
-.stream-actions-live {
-  background: linear-gradient(to bottom, rgba(6,6,6,0.6), rgba(6,6,6,0.98));
 }
 
 /* ── VOD SECTION ── */
 #vodSection {
-  width: 100%;
-  padding: 40px 40px 20px;
-  background: #000;
-  position: relative;
-  z-index: 2;
+  width: 100%; padding: 40px 40px 20px;
+  background: #000; position: relative; z-index: 2;
 }
 #vodSection .stream-live-header {
-  padding: 0 0 24px;
-  background: none;
-  margin-bottom: 0;
+  position: relative; top: auto; left: auto; transform: none;
+  padding: 0 0 24px; background: none; pointer-events: all;
+  text-align: center; width: 100%;
 }
 #vodSection .stream-live-embed {
-  width: 100%;
-  max-width: 889px;
-  max-height: 500px;
-  margin: 0 auto;
-  aspect-ratio: 16 / 9;
-  background: #000;
-  position: relative;
+  width: 100%; max-width: 889px;
+  margin: 0 auto; aspect-ratio: 16 / 9;
+  background: #000; position: relative;
 }
 #vodSection .stream-live-embed iframe {
   position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  border: none; display: block;
+  width: 100%; height: 100%; border: none; display: block;
 }
 #vodSection .stream-actions { padding-bottom: 0; }
 
-/* When VOD is active — collapse the full-viewport offline container */
 .stream-offline-full.has-vod {
-  min-height: auto !important;
-  background: #000 !important;
-  display: block !important;
+  min-height: auto !important; background: #000 !important; display: block !important;
 }
 .stream-offline-full.has-vod .stream-offline-scanlines { display: none !important; }
 
 /* ── SCROLL REVEAL ── */
-.reveal {
-  opacity: 0; transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
-}
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease, transform 0.8s ease; }
 .reveal.visible { opacity: 1; transform: translateY(0); }
 .reveal-delay-1 { transition-delay: 0.1s; }
 .reveal-delay-2 { transition-delay: 0.2s; }
@@ -434,8 +412,6 @@ a { color: inherit; text-decoration: none; }
 /* ── ANIMATIONS ── */
 @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-
-
 /* ── HAMBURGER BUTTON ── */
 .nav-toggle {
   display: none;
@@ -447,6 +423,7 @@ a { color: inherit; text-decoration: none; }
   cursor: pointer;
   padding: 4px;
   z-index: 1001;
+  flex-shrink: 0;
 }
 .nav-toggle span {
   display: block;
@@ -459,18 +436,18 @@ a { color: inherit; text-decoration: none; }
 .nav-toggle.open span:nth-child(2) { opacity: 0; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-/* ── MOBILE NAV OVERRIDES ── */
+/* ── MOBILE ── */
 @media (max-width: 768px) {
   .nav {
     padding: 0 20px;
     flex-wrap: wrap;
     height: auto;
     min-height: var(--nav-height);
+    align-items: center;
   }
   .nav-toggle { display: flex; }
   .nav-live { margin-left: auto; }
 
-  /* Hide links by default on mobile */
   .nav-links {
     display: none;
     flex-direction: column;
@@ -481,7 +458,6 @@ a { color: inherit; text-decoration: none; }
     gap: 0;
   }
   .nav-links.open { display: flex; }
-
   .nav-links a {
     padding: 14px 20px;
     font-size: 11px;
@@ -501,18 +477,13 @@ a { color: inherit; text-decoration: none; }
     padding-left: 26px;
   }
 
-  /* Hero single column */
-  .hero {
-    grid-template-columns: 1fr;
-    padding: calc(var(--nav-height) + 40px) 0 60px;
-  }
+  .hero { grid-template-columns: 1fr; padding: calc(var(--nav-height) + 40px) 0 60px; }
   .hero-content { grid-column: 1; padding: 0 24px; text-align: center; }
   .hero-cta { justify-content: center; }
   .hero-tags { justify-content: center; }
 
   .section { padding: 60px 20px; }
 
-  /* Active universe — stack on mobile */
   .section > div > div[style*="grid-template-columns:1fr 1fr"] {
     grid-template-columns: 1fr !important;
     gap: 32px !important;
@@ -529,7 +500,6 @@ a { color: inherit; text-decoration: none; }
   .stream-actions a { text-align: center; }
   body.stream-locked { overflow: auto; }
 
-  /* Stats 2 cols on mobile */
   .section + .gold-line + section > div {
     grid-template-columns: repeat(2,1fr) !important;
   }
