@@ -8,14 +8,78 @@
   <style>
     .clips-hero{padding:calc(var(--nav-height) + 60px) 40px 60px;background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.2);position:relative;overflow:hidden}
     .clips-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(139,0,0,0.15) 0%,transparent 60%)}
-    .filter-bar{display:flex;gap:0;flex-wrap:wrap;border-bottom:1px solid rgba(139,0,0,0.2)}
-    .filter-section{display:flex;gap:0;flex-wrap:wrap;padding:16px 0}
-    .filter-section+.filter-section{border-left:1px solid rgba(139,0,0,0.2);padding-left:16px;margin-left:16px}
-    .filter-label{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:3px;color:var(--grey-dark);text-transform:uppercase;display:flex;align-items:center;padding-right:12px}
-    .filter-btn{font-family:"Orbitron",monospace;font-size:9px;letter-spacing:2px;padding:6px 16px;border:1px solid transparent;color:var(--grey);cursor:pointer;text-transform:uppercase;transition:all 0.2s;background:transparent}
-    .filter-btn:hover{color:var(--white);border-color:rgba(139,0,0,0.4)}
-    .filter-btn.active{color:var(--white);background:rgba(139,0,0,0.15);border-color:var(--crimson)}
-    .filter-btn.type-btn.active{color:var(--gold);border-color:var(--gold);background:rgba(201,168,76,0.08)}
+
+    /* ── FILTER BAR REDESIGN ── */
+    .filter-wrap {
+      background: var(--dark-2);
+      border-bottom: 1px solid rgba(139,0,0,0.25);
+      padding: 0 40px;
+    }
+    .filter-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      min-height: 52px;
+      border-bottom: 1px solid rgba(139,0,0,0.1);
+    }
+    .filter-row:last-child { border-bottom: none; }
+    .filter-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 8px;
+      letter-spacing: 4px;
+      color: var(--grey-dark);
+      text-transform: uppercase;
+      min-width: 60px;
+      padding-right: 16px;
+      border-right: 1px solid rgba(139,0,0,0.2);
+      margin-right: 4px;
+      flex-shrink: 0;
+    }
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      padding: 8px 0 8px 8px;
+    }
+    .filter-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      padding: 7px 18px;
+      border: 1px solid transparent;
+      color: var(--grey);
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      background: transparent;
+      white-space: nowrap;
+    }
+    .filter-btn:hover {
+      color: var(--white);
+      border-color: rgba(139,0,0,0.5);
+      background: rgba(139,0,0,0.06);
+    }
+    /* Game row active — crimson */
+    .filter-btn.game-btn.active {
+      color: var(--white);
+      background: rgba(139,0,0,0.2);
+      border-color: var(--crimson-mid);
+    }
+    /* Type row active — gold */
+    .filter-btn.type-btn.active {
+      color: var(--dark);
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    /* ── CLIPS GRID ── */
     .clips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:2px}
     .clip-card{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}
     .clip-card:hover{border-color:rgba(139,0,0,0.4)}
@@ -55,7 +119,14 @@
     .clips-empty-text{font-family:"Orbitron",monospace;font-size:11px;letter-spacing:3px;color:var(--grey-dark);text-transform:uppercase}
     .clips-stats{display:flex;gap:24px;align-items:center;padding:12px 0;font-family:"Orbitron",monospace;font-size:9px;letter-spacing:2px;color:var(--grey-dark);border-bottom:1px solid rgba(139,0,0,0.1);margin-bottom:24px;flex-wrap:wrap}
     .clips-stats span{color:var(--crimson-mid)}
-    @media(max-width:768px){.clips-hero{padding:calc(var(--nav-height) + 40px) 20px 40px}.clips-grid{grid-template-columns:1fr}.filter-section+.filter-section{border-left:none;border-top:1px solid rgba(139,0,0,0.2);padding-left:0;margin-left:0}.filter-bar{flex-direction:column}}
+
+    @media(max-width:768px){
+      .clips-hero{padding:calc(var(--nav-height) + 40px) 20px 40px}
+      .clips-grid{grid-template-columns:1fr}
+      .filter-wrap{padding:0 20px}
+      .filter-label{min-width:48px;font-size:7px;letter-spacing:2px}
+      .filter-btn{font-size:8px;padding:6px 12px}
+    }
   </style>
 </head>
 <body>
@@ -93,51 +164,62 @@
 
 <div class="gold-line"></div>
 
-<section style="background:var(--dark-2);padding:0 40px;">
-  <div style="max-width:1100px;margin:0 auto;">
-    <div class="filter-bar">
-      <div class="filter-section">
-        <span class="filter-label">Game</span>
-        <button class="filter-btn active" data-game="all" onclick="filterClips(this,'game')">All</button>
-        <button class="filter-btn" data-game="crimson-desert" onclick="filterClips(this,'game')">Crimson Desert</button>
-      </div>
-      <div class="filter-section">
-        <span class="filter-label">Type</span>
-        <button class="filter-btn type-btn active" data-type="all" onclick="filterClips(this,'type')">All</button>
-        <button class="filter-btn type-btn" data-type="highlight" onclick="filterClips(this,'type')">Highlight</button>
-        <button class="filter-btn type-btn" data-type="boss-kill" onclick="filterClips(this,'type')">Boss Kill</button>
-        <button class="filter-btn type-btn" data-type="funny" onclick="filterClips(this,'type')">Funny</button>
-        <button class="filter-btn type-btn" data-type="pvp" onclick="filterClips(this,'type')">PvP</button>
-        <button class="filter-btn type-btn" data-type="build" onclick="filterClips(this,'type')">Build</button>
+<!-- ── REDESIGNED FILTER BAR ── -->
+<div class="filter-wrap">
+  <div class="filter-inner">
+
+    <!-- Game row -->
+    <div class="filter-row">
+      <span class="filter-label">Game</span>
+      <div class="filter-pills">
+        <button class="filter-btn game-btn active" data-game="all" onclick="filterClips(this,'game')">All</button>
+        <button class="filter-btn game-btn" data-game="crimson-desert" onclick="filterClips(this,'game')">Crimson Desert</button>
+        <button class="filter-btn game-btn" data-game="warframe" onclick="filterClips(this,'game')">Warframe</button>
+        <button class="filter-btn game-btn" data-game="borderlands" onclick="filterClips(this,'game')">Borderlands</button>
+        <button class="filter-btn game-btn" data-game="destiny-2" onclick="filterClips(this,'game')">Destiny 2</button>
       </div>
     </div>
+
+    <!-- Type row -->
+    <div class="filter-row">
+      <span class="filter-label">Type</span>
+      <div class="filter-pills">
+        <button class="filter-btn type-btn active" data-type="all" onclick="filterClips(this,'type')">All</button>
+        <button class="filter-btn type-btn" data-type="highlight" onclick="filterClips(this,'type')">Highlight</button>
+        <button class="filter-btn type-btn" data-type="boss" onclick="filterClips(this,'type')">Boss</button>
+        <button class="filter-btn type-btn" data-type="funny" onclick="filterClips(this,'type')">Funny</button>
+        <button class="filter-btn type-btn" data-type="pve" onclick="filterClips(this,'type')">PvE</button>
+        <button class="filter-btn type-btn" data-type="build" onclick="filterClips(this,'type')">Build</button>
+        <button class="filter-btn type-btn" data-type="puzzle" onclick="filterClips(this,'type')">Puzzle</button>
+        <button class="filter-btn type-btn" data-type="guide" onclick="filterClips(this,'type')">Guide</button>
+      </div>
+    </div>
+
   </div>
-</section>
+</div>
 
 <section class="section" style="background:var(--dark);padding-top:32px;">
   <div style="max-width:1100px;margin:0 auto;">
     <div class="clips-stats">
-      SHOWING <span id="clipCount">7</span> CLIPS
+      SHOWING <span id="clipCount">6</span> CLIPS
       &nbsp;&middot;&nbsp; &#9889; AUTO-GENERATED BY EKLIPSE.GG
       &nbsp;&middot;&nbsp; <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" style="color:var(--crimson-mid);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;">SUBSCRIBE ON YOUTUBE &#8599;</a>
     </div>
     <div class="clips-grid" id="clipsGrid">
 
-      <div class="clip-card reveal" data-game="crimson-desert" data-type="boss-kill">
-        <div class="clip-thumb" onclick="openClip('hl6E_F7boRk','Crimson Desert — Crimson Desert: |Boss| Tenebrum Easy Strategy','Crimson Desert · Boss Kill · via Eklipse.gg')">
-          <img src="https://img.youtube.com/vi/hl6E_F7boRk/maxresdefault.jpg" alt="Crimson Desert: |Boss| Tenebrum Easy Strategy" onerror="this.src='../img/games/crimsondesert.jpg'">
+      <div class="clip-card reveal" data-game="crimson-desert" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('hl6E_F7boRk','Crimson Desert — Crimson Desert: Tenebrum Boss Strategy','Crimson Desert · Boss Kill · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/hl6E_F7boRk/maxresdefault.jpg" alt="Crimson Desert: Tenebrum Boss Strategy" onerror="this.src='../img/games/crimsondesert.jpg'">
           <div class="clip-thumb-overlay">
-            <div class="clip-play-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
           <div class="clip-game-badge">Crimson Desert</div>
-          <div class="clip-type-badge">Boss Kill</div>
+          <div class="clip-type-badge">Boss</div>
           <div class="clip-duration">5:29</div>
           <div class="clip-source">EKLIPSE.GG</div>
         </div>
         <div class="clip-body">
-          <div class="clip-title">Crimson Desert: |Boss| Tenebrum Easy Strategy</div>
+          <div class="clip-title">Crimson Desert: Tenebrum Boss Strategy</div>
           <div class="clip-meta">
             <span class="clip-date">Apr 04, 2026</span>
             <div class="clip-links">
@@ -148,16 +230,14 @@
         </div>
       </div>
 
-      <div class="clip-card reveal reveal-delay-1" data-game="crimson-desert" data-type="boss-kill">
+      <div class="clip-card reveal reveal-delay-1" data-game="crimson-desert" data-type="boss">
         <div class="clip-thumb" onclick="openClip('jPf89vU9tXI','Crimson Desert — Crimson Desert - Howling Hill Camp Expansion','Crimson Desert · Boss Kill · via Eklipse.gg')">
           <img src="https://img.youtube.com/vi/jPf89vU9tXI/maxresdefault.jpg" alt="Crimson Desert - Howling Hill Camp Expansion" onerror="this.src='../img/games/crimsondesert.jpg'">
           <div class="clip-thumb-overlay">
-            <div class="clip-play-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
           <div class="clip-game-badge">Crimson Desert</div>
-          <div class="clip-type-badge">Boss Kill</div>
+          <div class="clip-type-badge">Boss</div>
           <div class="clip-duration">0:42</div>
           <div class="clip-source">EKLIPSE.GG</div>
         </div>
@@ -174,12 +254,10 @@
       </div>
 
       <div class="clip-card reveal reveal-delay-2" data-game="crimson-desert" data-type="build">
-        <div class="clip-thumb" onclick="openClip('o9V8_S8kmx8','Crimson Desert — Crimson Desert |Guide| Wyvern Dragon - Shackles of Fate','Crimson Desert · Build · via Eklipse.gg')">
-          <img src="https://img.youtube.com/vi/o9V8_S8kmx8/maxresdefault.jpg" alt="Crimson Desert |Guide| Wyvern Dragon - Shackles of Fate" onerror="this.src='../img/games/crimsondesert.jpg'">
+        <div class="clip-thumb" onclick="openClip('o9V8_S8kmx8','Crimson Desert — Crimson Desert | Mount the Dragon | Shackles of Fate Guide','Crimson Desert · Build · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/o9V8_S8kmx8/maxresdefault.jpg" alt="Crimson Desert | Mount the Dragon | Shackles of Fate Guide" onerror="this.src='../img/games/crimsondesert.jpg'">
           <div class="clip-thumb-overlay">
-            <div class="clip-play-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
           <div class="clip-game-badge">Crimson Desert</div>
           <div class="clip-type-badge">Build</div>
@@ -187,7 +265,7 @@
           <div class="clip-source">EKLIPSE.GG</div>
         </div>
         <div class="clip-body">
-          <div class="clip-title">Crimson Desert |Guide| Wyvern Dragon - Shackles of Fate</div>
+          <div class="clip-title">Crimson Desert | Mount the Dragon | Shackles of Fate Guide</div>
           <div class="clip-meta">
             <span class="clip-date">Apr 26, 2026</span>
             <div class="clip-links">
@@ -198,21 +276,19 @@
         </div>
       </div>
 
-      <div class="clip-card reveal" data-game="crimson-desert" data-type="boss-kill">
-        <div class="clip-thumb" onclick="openClip('OqNmvv8QSsA','Crimson Desert — Crimson Desert – |Guide| - How to get the Ring of Lightning','Crimson Desert · Boss Kill · via Eklipse.gg')">
-          <img src="https://img.youtube.com/vi/OqNmvv8QSsA/maxresdefault.jpg" alt="Crimson Desert – |Guide| - How to get the Ring of Lightning" onerror="this.src='../img/games/crimsondesert.jpg'">
+      <div class="clip-card reveal" data-game="crimson-desert" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('OqNmvv8QSsA','Crimson Desert — Crimson Desert – Ring of Lightning Guide | How to get it','Crimson Desert · Boss Kill · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/OqNmvv8QSsA/maxresdefault.jpg" alt="Crimson Desert – Ring of Lightning Guide | How to get it" onerror="this.src='../img/games/crimsondesert.jpg'">
           <div class="clip-thumb-overlay">
-            <div class="clip-play-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
           <div class="clip-game-badge">Crimson Desert</div>
-          <div class="clip-type-badge">Boss Kill</div>
+          <div class="clip-type-badge">Boss</div>
           <div class="clip-duration">2:52</div>
           <div class="clip-source">EKLIPSE.GG</div>
         </div>
         <div class="clip-body">
-          <div class="clip-title">Crimson Desert – |Guide| - How to get the Ring of Lightning</div>
+          <div class="clip-title">Crimson Desert – Ring of Lightning Guide | How to get it</div>
           <div class="clip-meta">
             <span class="clip-date">Apr 27, 2026</span>
             <div class="clip-links">
@@ -224,12 +300,10 @@
       </div>
 
       <div class="clip-card reveal reveal-delay-1" data-game="crimson-desert" data-type="build">
-        <div class="clip-thumb" onclick="openClip('G7VDv-BXN1w','Crimson Desert — Crimson Desert - |Guide| - How To Get Baby Wyvern Legendary Pet New Patch 1.08.00','Crimson Desert · Build · via Eklipse.gg')">
-          <img src="https://img.youtube.com/vi/G7VDv-BXN1w/maxresdefault.jpg" alt="Crimson Desert - |Guide| - How To Get Baby Wyvern Legendary Pet New Patch 1.08.00" onerror="this.src='../img/games/crimsondesert.jpg'">
+        <div class="clip-thumb" onclick="openClip('G7VDv-BXN1w','Crimson Desert — Crimson Desert - How To Get Baby Wyvern Legendary Pet Guide New Patch 1.08.00','Crimson Desert · Build · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/G7VDv-BXN1w/maxresdefault.jpg" alt="Crimson Desert - How To Get Baby Wyvern Legendary Pet Guide New Patch 1.08.00" onerror="this.src='../img/games/crimsondesert.jpg'">
           <div class="clip-thumb-overlay">
-            <div class="clip-play-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
           <div class="clip-game-badge">Crimson Desert</div>
           <div class="clip-type-badge">Build</div>
@@ -237,7 +311,7 @@
           <div class="clip-source">EKLIPSE.GG</div>
         </div>
         <div class="clip-body">
-          <div class="clip-title">Crimson Desert - |Guide| - How To Get Baby Wyvern Legendary Pet New Patch 1.08.00</div>
+          <div class="clip-title">Crimson Desert - How To Get Baby Wyvern Legendary Pet Guide New Patch 1.08.00</div>
           <div class="clip-meta">
             <span class="clip-date">May 22, 2026</span>
             <div class="clip-links">
@@ -249,12 +323,10 @@
       </div>
 
       <div class="clip-card reveal reveal-delay-2" data-game="crimson-desert" data-type="highlight">
-        <div class="clip-thumb" onclick="openClip('w5gwx0WqSdg','Crimson Desert — Crimson Desert - |Highlight| - Marrow's Request','Crimson Desert · Highlight · via Eklipse.gg')">
-          <img src="https://img.youtube.com/vi/w5gwx0WqSdg/maxresdefault.jpg" alt="Crimson Desert - |Highlight| - Marrow's Request" onerror="this.src='../img/games/crimsondesert.jpg'">
+        <div class="clip-thumb" onclick="openClip('w5gwx0WqSdg','Crimson Desert — Crimson Desert - Marrow\'s Request','Crimson Desert · Highlight · via Eklipse.gg')">
+          <img src="https://img.youtube.com/vi/w5gwx0WqSdg/maxresdefault.jpg" alt="Crimson Desert - Marrow's Request" onerror="this.src='../img/games/crimsondesert.jpg'">
           <div class="clip-thumb-overlay">
-            <div class="clip-play-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
           <div class="clip-game-badge">Crimson Desert</div>
           <div class="clip-type-badge">Highlight</div>
@@ -262,7 +334,7 @@
           <div class="clip-source">EKLIPSE.GG</div>
         </div>
         <div class="clip-body">
-          <div class="clip-title">Crimson Desert - |Highlight| - Marrow's Request</div>
+          <div class="clip-title">Crimson Desert - Marrow's Request</div>
           <div class="clip-meta">
             <span class="clip-date">May 29, 2026</span>
             <div class="clip-links">
@@ -273,30 +345,6 @@
         </div>
       </div>
 
-      <div class="clip-card reveal" data-game="crimson-desert" data-type="build">
-        <div class="clip-thumb" onclick="openClip('BWljpIJpFXA','Crimson Desert — Crimson Desert  |Guide| -  Golden Apple Farming','Crimson Desert · Build · via Eklipse.gg')">
-          <img src="https://img.youtube.com/vi/BWljpIJpFXA/maxresdefault.jpg" alt="Crimson Desert  |Guide| -  Golden Apple Farming" onerror="this.src='../img/games/crimsondesert.jpg'">
-          <div class="clip-thumb-overlay">
-            <div class="clip-play-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
-          </div>
-          <div class="clip-game-badge">Crimson Desert</div>
-          <div class="clip-type-badge">Build</div>
-          <div class="clip-duration">1:15</div>
-          <div class="clip-source">EKLIPSE.GG</div>
-        </div>
-        <div class="clip-body">
-          <div class="clip-title">Crimson Desert  |Guide| -  Golden Apple Farming</div>
-          <div class="clip-meta">
-            <span class="clip-date">May 30, 2026</span>
-            <div class="clip-links">
-              <a href="https://www.youtube.com/watch?v=BWljpIJpFXA" target="_blank" class="clip-link">YouTube &#8599;</a>
-              <a href="https://eklipse.gg" target="_blank" class="clip-link eklipse">&#9889; Eklipse</a>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -327,34 +375,40 @@
 
 <script src="../js/main.js"></script>
 <script>
-  var activeGame='all',activeType='all';
-  function filterClips(btn,dim){
-    document.querySelectorAll(dim==='game'?'[data-game].filter-btn':'[data-type].filter-btn').forEach(function(b){b.classList.remove('active')});
+  var activeGame='all', activeType='all';
+
+  function filterClips(btn, dim) {
+    var selector = dim === 'game' ? '.game-btn' : '.type-btn';
+    document.querySelectorAll(selector).forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
-    if(dim==='game')activeGame=btn.dataset.game;
-    if(dim==='type')activeType=btn.dataset.type;
-    var count=0;
-    document.querySelectorAll('.clip-card').forEach(function(card){
-      var show=(activeGame==='all'||card.dataset.game===activeGame)&&(activeType==='all'||card.dataset.type===activeType);
-      card.classList.toggle('hidden',!show);
-      if(show)count++;
+    if (dim === 'game') activeGame = btn.dataset.game;
+    if (dim === 'type') activeType = btn.dataset.type;
+    var count = 0;
+    document.querySelectorAll('.clip-card').forEach(function(card) {
+      var show = (activeGame === 'all' || card.dataset.game === activeGame) &&
+                 (activeType === 'all' || card.dataset.type === activeType);
+      card.classList.toggle('hidden', !show);
+      if (show) count++;
     });
-    document.getElementById('clipCount').textContent=count;
+    document.getElementById('clipCount').textContent = count;
   }
-  function openClip(id,label,source){
-    document.getElementById('clipFrame').src='https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0';
-    document.getElementById('clipLabel').textContent=label;
-    document.getElementById('clipSource').textContent=source;
+
+  function openClip(id, label, source) {
+    document.getElementById('clipFrame').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
+    document.getElementById('clipLabel').textContent = label;
+    document.getElementById('clipSource').textContent = source;
     document.getElementById('clipModal').classList.add('open');
-    document.body.style.overflow='hidden';
+    document.body.style.overflow = 'hidden';
   }
-  function closeClip(){
-    document.getElementById('clipFrame').src='';
+
+  function closeClip() {
+    document.getElementById('clipFrame').src = '';
     document.getElementById('clipModal').classList.remove('open');
-    document.body.style.overflow='';
+    document.body.style.overflow = '';
   }
-  document.getElementById('clipModal').addEventListener('click',function(e){if(e.target===this)closeClip()});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeClip()});
+
+  document.getElementById('clipModal').addEventListener('click', function(e){ if(e.target===this) closeClip(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeClip(); });
 </script>
 </body>
 </html>
