@@ -309,7 +309,7 @@ def build_html(sections, total):
     <div class="filter-row">
       <span class="filter-label">Game</span>
       <div class="filter-pills">
-        {game_buttons}
+        __GAME_BUTTONS__
       </div>
     </div>
     <div class="filter-row">
@@ -333,11 +333,11 @@ def build_html(sections, total):
 <section class="section" style="background:var(--dark);padding-top:32px;">
   <div style="max-width:1100px;margin:0 auto;">
     <div class="clips-stats">
-      SHOWING <span id="clipCount">{total}</span> CLIPS
+      SHOWING <span id="clipCount">__TOTAL__</span> CLIPS
       &nbsp;&middot;&nbsp; <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" style="color:var(--crimson-mid);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;">SUBSCRIBE ON YOUTUBE &#8599;</a>
     </div>
     <div id="clipsGrid">
-{cards_html}
+__CARDS_HTML__
     </div>
   </div>
 </section>
@@ -408,11 +408,7 @@ def build_html(sections, total):
   document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeClip(); });
 </script>
 </body>
-</html>'''.format(
-        game_buttons=game_buttons,
-        total=total,
-        cards_html=cards_html,
-    )
+</html>'''.replace('__GAME_BUTTONS__', game_buttons).replace('__TOTAL__', str(total)).replace('__CARDS_HTML__', cards_html)
 
 def main():
     print('Fetching playlists...')
