@@ -23,14 +23,19 @@ PLAYLISTS = [
 # ── TYPE DETECTION ───────────────────────────────────────────
 # Order matters — first match wins
 TYPE_RULES = [
-    ('boss',      ['boss', 'tenebrum', 'boss kill', 'killed', 'defeated', 'slain', 'fight']),
-    ('guide',     ['guide', 'how to', 'how-to', 'tutorial', 'tips', 'explained']),
-    ('build',     ['build', 'setup', 'loadout', 'gear', 'equipment', 'spec', 'patch']),
-    ('pve',       ['pve', 'dungeon', 'raid', 'camp', 'expansion', 'quest', 'mission', 'request']),
-    ('puzzle',    ['puzzle', 'riddle', 'secret', 'hidden', 'mystery', 'cipher']),
-    ('challenge', ['challenge', 'challenged', 'hardcore', 'no death', 'speedrun']),
-    ('funny',     ['funny', 'fail', 'lol', 'oops', 'gone wrong', 'cursed', 'chaos']),
-    ('highlight', []),  # catch-all default
+    ('boss', [
+        'boss', 'tenebrum', 'boss kill',
+        'killed', 'defeated', 'slain', 'fight'
+    ]),
+
+    ('guide', ['guide', 'how to', 'how-to','tutorial', 'tips', 'explained']),
+    ('build', [ 'build', 'setup', 'loadout', 'gear', 'equipment', 'spec', 'patch' ]),
+    ('pve', ['pve', 'dungeon', 'raid', 'camp', 'expansion', 'quest','mission', 'request' ]),
+    ('puzzle', ['puzzle', 'riddle', 'secret','hidden', 'mystery', 'cipher']),
+    ('challenge', ['challenge', 'challenged','hardcore', 'no death', 'speedrun']),
+    ('funny', ['funny', 'fail', 'lol','oops', 'gone wrong','cursed', 'chaos']),
+    ('missions', ['story', 'adventure', 'campaign', 'chapter', 'episode', 'journey', 'narrative', 'cutscene','dialogue', 'lore' ]),
+    ('highlight', [])  # catch-all default
 ]
 
 BADGE_LABELS = {
@@ -42,6 +47,7 @@ BADGE_LABELS = {
     'challenge': 'Challenge',
     'funny':     'Funny',
     'missions': 'Missions',
+    'highlight': 'Highlight',
 }
 
 def detect_type(title):
@@ -60,6 +66,7 @@ def detect_type(title):
             'challenge': 'challenge',
             'funny':     'funny',
             'highlight': 'highlight',
+            'missions': 'Missions',
             'clip':      'highlight',
         }
         if tag in tag_map:
