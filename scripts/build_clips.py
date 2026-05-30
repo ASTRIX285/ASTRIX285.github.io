@@ -206,7 +206,7 @@ def build_html(sections, total):
     game_buttons = build_game_buttons()
     cards_html   = build_sections_html(sections)
 
-    return f'''<!DOCTYPE html>
+    return '''<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -214,60 +214,60 @@ def build_html(sections, total):
   <title>Clips &amp; Highlights | ASTRIX285</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .clips-hero{{padding:calc(var(--nav-height) + 60px) 40px 60px;background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.2);position:relative;overflow:hidden}}
-    .clips-hero::before{{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(139,0,0,0.15) 0%,transparent 60%)}}
-    .filter-wrap{{background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.25);padding:0 40px}}
-    .filter-inner{{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:0}}
-    .filter-row{{display:flex;align-items:center;gap:0;min-height:52px;border-bottom:1px solid rgba(139,0,0,0.1)}}
-    .filter-row:last-child{{border-bottom:none}}
-    .filter-label{{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:4px;color:var(--grey-dark);text-transform:uppercase;min-width:60px;padding-right:16px;border-right:1px solid rgba(139,0,0,0.2);margin-right:4px;flex-shrink:0}}
-    .filter-pills{{display:flex;flex-wrap:wrap;gap:2px;padding:8px 0 8px 8px}}
-    .filter-btn{{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:7px 18px;border:1px solid transparent;color:var(--grey);cursor:pointer;text-transform:uppercase;transition:all 0.2s;background:transparent;white-space:nowrap}}
-    .filter-btn:hover{{color:var(--white);border-color:rgba(139,0,0,0.5);background:rgba(139,0,0,0.06)}}
-    .filter-btn.game-btn.active{{color:var(--white);background:rgba(139,0,0,0.2);border-color:var(--crimson-mid)}}
-    .filter-btn.type-btn.active{{color:var(--dark);background:var(--gold);border-color:var(--gold)}}
-    .game-section{{margin-bottom:48px}}
-    .game-section.hidden{{display:none}}
-    .game-section-header{{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-top:8px}}
-    .game-section-label{{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;white-space:nowrap;flex-shrink:0}}
-    .game-section-line{{flex:1;height:1px;background:linear-gradient(to right,rgba(201,168,76,0.4),transparent)}}
-    .game-section-header .game-section-line:first-child{{background:linear-gradient(to left,rgba(201,168,76,0.4),transparent)}}
-    #clipsGrid{{display:flex;gap:32px;align-items:flex-start}}
-    .game-section{{flex:1;min-width:0}}
-    .clips-grid{{display:grid;grid-template-columns:1fr;gap:2px}}
-    @media(max-width:900px){{#clipsGrid{{flex-direction:column}}}}
-    .clip-card{{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}}
-    .clip-card:hover{{border-color:rgba(139,0,0,0.4)}}
-    .clip-card.hidden{{display:none}}
-    .clip-thumb{{aspect-ratio:16/9;position:relative;background:#000;cursor:pointer;overflow:hidden}}
-    .clip-thumb img{{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}}
-    .clip-card:hover .clip-thumb img{{transform:scale(1.04)}}
-    .clip-thumb-overlay{{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);display:flex;align-items:center;justify-content:center}}
-    .clip-play-btn{{width:56px;height:56px;border-radius:50%;background:rgba(139,0,0,0.9);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;transition:transform 0.2s,background 0.2s}}
-    .clip-card:hover .clip-play-btn{{transform:scale(1.12);background:var(--crimson-mid)}}
-    .clip-play-btn svg{{margin-left:4px}}
-    .clip-game-badge{{position:absolute;top:10px;left:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--white);background:var(--crimson);padding:3px 10px;text-transform:uppercase}}
-    .clip-type-badge{{position:absolute;top:10px;right:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--dark);background:var(--gold);padding:3px 10px;text-transform:uppercase}}
-    .clip-duration{{position:absolute;bottom:10px;right:10px;font-family:"Orbitron",monospace;font-size:9px;color:var(--white);background:rgba(0,0,0,0.8);padding:2px 8px;letter-spacing:1px}}
-    .clip-body{{padding:16px 20px}}
-    .clip-title{{font-family:"Orbitron",monospace;font-size:12px;font-weight:600;color:var(--white);line-height:1.4;margin-bottom:8px;letter-spacing:0.5px}}
-    .clip-meta{{display:flex;justify-content:space-between;align-items:center}}
-    .clip-date{{font-size:11px;color:var(--grey-dark);letter-spacing:1px}}
-    .clip-links{{display:flex;gap:10px}}
-    .clip-link{{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;text-decoration:none;transition:color 0.2s}}
-    .clip-link:hover{{color:var(--gold-light)}}
-    .clip-modal{{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);align-items:center;justify-content:center}}
-    .clip-modal.open{{display:flex}}
-    .clip-modal-inner{{position:relative;width:92vw;max-width:1100px}}
-    .clip-modal-close{{position:absolute;top:-44px;right:0;font-family:"Orbitron",monospace;font-size:10px;letter-spacing:2px;color:var(--grey);background:none;border:none;cursor:pointer;text-transform:uppercase}}
-    .clip-modal-close:hover{{color:var(--white)}}
-    .clip-modal-frame{{position:relative;padding-top:56.25%;background:#000}}
-    .clip-modal-frame iframe{{position:absolute;inset:0;width:100%;height:100%;border:none}}
-    .clip-modal-label{{font-family:"Orbitron",monospace;font-size:10px;letter-spacing:2px;color:var(--grey);text-align:center;margin-top:16px;text-transform:uppercase}}
-    .clip-modal-source{{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-align:center;margin-top:6px}}
-    .clips-stats{{display:flex;gap:24px;align-items:center;padding:12px 0;font-family:"Orbitron",monospace;font-size:9px;letter-spacing:2px;color:var(--grey-dark);border-bottom:1px solid rgba(139,0,0,0.1);margin-bottom:24px;flex-wrap:wrap}}
-    .clips-stats span{{color:var(--crimson-mid)}}
-    @media(max-width:768px){{.clips-hero{{padding:calc(var(--nav-height) + 40px) 20px 40px}}.clips-grid{{grid-template-columns:1fr}}.filter-wrap{{padding:0 20px}}.filter-label{{min-width:48px;font-size:7px;letter-spacing:2px}}.filter-btn{{font-size:8px;padding:6px 12px}}}}
+    .clips-hero{padding:calc(var(--nav-height) + 60px) 40px 60px;background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.2);position:relative;overflow:hidden}
+    .clips-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(139,0,0,0.15) 0%,transparent 60%)}
+    .filter-wrap{background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.25);padding:0 40px}
+    .filter-inner{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:0}
+    .filter-row{display:flex;align-items:center;gap:0;min-height:52px;border-bottom:1px solid rgba(139,0,0,0.1)}
+    .filter-row:last-child{border-bottom:none}
+    .filter-label{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:4px;color:var(--grey-dark);text-transform:uppercase;min-width:60px;padding-right:16px;border-right:1px solid rgba(139,0,0,0.2);margin-right:4px;flex-shrink:0}
+    .filter-pills{display:flex;flex-wrap:wrap;gap:2px;padding:8px 0 8px 8px}
+    .filter-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:7px 18px;border:1px solid transparent;color:var(--grey);cursor:pointer;text-transform:uppercase;transition:all 0.2s;background:transparent;white-space:nowrap}
+    .filter-btn:hover{color:var(--white);border-color:rgba(139,0,0,0.5);background:rgba(139,0,0,0.06)}
+    .filter-btn.game-btn.active{color:var(--white);background:rgba(139,0,0,0.2);border-color:var(--crimson-mid)}
+    .filter-btn.type-btn.active{color:var(--dark);background:var(--gold);border-color:var(--gold)}
+    .game-section{margin-bottom:48px}
+    .game-section.hidden{display:none}
+    .game-section-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-top:8px}
+    .game-section-label{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+    .game-section-line{flex:1;height:1px;background:linear-gradient(to right,rgba(201,168,76,0.4),transparent)}
+    .game-section-header .game-section-line:first-child{background:linear-gradient(to left,rgba(201,168,76,0.4),transparent)}
+    #clipsGrid{display:flex;gap:32px;align-items:flex-start}
+    .game-section{flex:1;min-width:0}
+    .clips-grid{display:grid;grid-template-columns:1fr;gap:2px}
+    @media(max-width:900px){#clipsGrid{flex-direction:column}}
+    .clip-card{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}
+    .clip-card:hover{border-color:rgba(139,0,0,0.4)}
+    .clip-card.hidden{display:none}
+    .clip-thumb{aspect-ratio:16/9;position:relative;background:#000;cursor:pointer;overflow:hidden}
+    .clip-thumb img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}
+    .clip-card:hover .clip-thumb img{transform:scale(1.04)}
+    .clip-thumb-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);display:flex;align-items:center;justify-content:center}
+    .clip-play-btn{width:56px;height:56px;border-radius:50%;background:rgba(139,0,0,0.9);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;transition:transform 0.2s,background 0.2s}
+    .clip-card:hover .clip-play-btn{transform:scale(1.12);background:var(--crimson-mid)}
+    .clip-play-btn svg{margin-left:4px}
+    .clip-game-badge{position:absolute;top:10px;left:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--white);background:var(--crimson);padding:3px 10px;text-transform:uppercase}
+    .clip-type-badge{position:absolute;top:10px;right:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--dark);background:var(--gold);padding:3px 10px;text-transform:uppercase}
+    .clip-duration{position:absolute;bottom:10px;right:10px;font-family:"Orbitron",monospace;font-size:9px;color:var(--white);background:rgba(0,0,0,0.8);padding:2px 8px;letter-spacing:1px}
+    .clip-body{padding:16px 20px}
+    .clip-title{font-family:"Orbitron",monospace;font-size:12px;font-weight:600;color:var(--white);line-height:1.4;margin-bottom:8px;letter-spacing:0.5px}
+    .clip-meta{display:flex;justify-content:space-between;align-items:center}
+    .clip-date{font-size:11px;color:var(--grey-dark);letter-spacing:1px}
+    .clip-links{display:flex;gap:10px}
+    .clip-link{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;text-decoration:none;transition:color 0.2s}
+    .clip-link:hover{color:var(--gold-light)}
+    .clip-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);align-items:center;justify-content:center}
+    .clip-modal.open{display:flex}
+    .clip-modal-inner{position:relative;width:92vw;max-width:1100px}
+    .clip-modal-close{position:absolute;top:-44px;right:0;font-family:"Orbitron",monospace;font-size:10px;letter-spacing:2px;color:var(--grey);background:none;border:none;cursor:pointer;text-transform:uppercase}
+    .clip-modal-close:hover{color:var(--white)}
+    .clip-modal-frame{position:relative;padding-top:56.25%;background:#000}
+    .clip-modal-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+    .clip-modal-label{font-family:"Orbitron",monospace;font-size:10px;letter-spacing:2px;color:var(--grey);text-align:center;margin-top:16px;text-transform:uppercase}
+    .clip-modal-source{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-align:center;margin-top:6px}
+    .clips-stats{display:flex;gap:24px;align-items:center;padding:12px 0;font-family:"Orbitron",monospace;font-size:9px;letter-spacing:2px;color:var(--grey-dark);border-bottom:1px solid rgba(139,0,0,0.1);margin-bottom:24px;flex-wrap:wrap}
+    .clips-stats span{color:var(--crimson-mid)}
+    @media(max-width:768px){.clips-hero{padding:calc(var(--nav-height) + 40px) 20px 40px}.clips-grid{grid-template-columns:1fr}.filter-wrap{padding:0 20px}.filter-label{min-width:48px;font-size:7px;letter-spacing:2px}.filter-btn{font-size:8px;padding:6px 12px}}
   </style>
 </head>
 <body>
@@ -368,47 +368,51 @@ def build_html(sections, total):
 <script src="../js/main.js"></script>
 <script>
   var activeGame='all', activeType='all';
-  function filterClips(btn, dim) {{
+  function filterClips(btn, dim) {
     var selector = dim === 'game' ? '.game-btn' : '.type-btn';
-    document.querySelectorAll(selector).forEach(function(b){{ b.classList.remove('active'); }});
+    document.querySelectorAll(selector).forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
     if (dim === 'game') activeGame = btn.dataset.game;
     if (dim === 'type') activeType = btn.dataset.type;
     var count = 0;
-    document.querySelectorAll('.game-section').forEach(function(sec) {{
+    document.querySelectorAll('.game-section').forEach(function(sec) {
       var gameMatch = activeGame === 'all' || sec.dataset.section === activeGame;
       sec.classList.toggle('hidden', !gameMatch);
-    }});
-    document.querySelectorAll('.clip-card').forEach(function(card) {{
+    });
+    document.querySelectorAll('.clip-card').forEach(function(card) {
       var gameMatch = activeGame === 'all' || card.dataset.game === activeGame;
       var typeMatch = activeType === 'all' || card.dataset.type === activeType;
       card.classList.toggle('hidden', !gameMatch || !typeMatch);
       if (gameMatch && typeMatch) count++;
-    }});
-    document.querySelectorAll('.game-section').forEach(function(sec) {{
+    });
+    document.querySelectorAll('.game-section').forEach(function(sec) {
       if (activeGame !== 'all') return;
       var visible = sec.querySelectorAll('.clip-card:not(.hidden)').length;
       sec.classList.toggle('hidden', visible === 0);
-    }});
+    });
     document.getElementById('clipCount').textContent = count;
-  }}
-  function openClip(id, label, source) {{
+  }
+  function openClip(id, label, source) {
     document.getElementById('clipFrame').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
     document.getElementById('clipLabel').textContent = label;
     document.getElementById('clipSource').textContent = source;
     document.getElementById('clipModal').classList.add('open');
     document.body.style.overflow = 'hidden';
-  }}
-  function closeClip() {{
+  }
+  function closeClip() {
     document.getElementById('clipFrame').src = '';
     document.getElementById('clipModal').classList.remove('open');
     document.body.style.overflow = '';
-  }}
-  document.getElementById('clipModal').addEventListener('click', function(e){{ if(e.target===this) closeClip(); }});
-  document.addEventListener('keydown', function(e){{ if(e.key==='Escape') closeClip(); }});
+  }
+  document.getElementById('clipModal').addEventListener('click', function(e){ if(e.target===this) closeClip(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeClip(); });
 </script>
 </body>
-</html>'''
+</html>'''.format(
+        game_buttons=game_buttons,
+        total=total,
+        cards_html=cards_html,
+    )
 
 def main():
     print('Fetching playlists...')
