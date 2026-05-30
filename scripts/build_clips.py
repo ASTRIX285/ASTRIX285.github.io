@@ -13,6 +13,7 @@ API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
 
 PLAYLISTS = [
     {'game': 'crimson-desert', 'label': 'Crimson Desert', 'id': 'PLYwP61l5jB7RKcMiDhH34xc1JpZg3xrGi'},
+    {'game': 'black myth: wukong','label': 'Black Myth: Wukong','id': 'PLYwP61l5jB7RlDQMOa7ibloAxJMT4gbkV'},
     # Add more as content grows:
     # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
     # {'game': 'borderlands',     'label': 'Borderlands',     'id': 'PLxxxxxxx'},
