@@ -16,7 +16,10 @@ PLAYLISTS = [
     # Add more as content grows:
     # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
     # {'game': 'borderlands',     'label': 'Borderlands',     'id': 'PLxxxxxxx'},
-    # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
+    {'game': 'black myth: wukong',       'label': 'Black Myth: Wukong',       'id': 'PLYwP61l5jB7RlDQMOa7ibloAxJMT4gbkV'},
+     # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
+     # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
+     # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
 ]
 
 # ── TYPE DETECTION ───────────────────────────────────────────
