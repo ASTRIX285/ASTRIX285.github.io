@@ -12,8 +12,8 @@ from datetime import datetime
 API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
 
 PLAYLISTS = [
-    {'game': 'crimson-desert', 'label': 'Crimson Desert', 'id': 'PLYwP61l5jB7RKcMiDhH34xc1JpZg3xrGi'},
-    {'game': 'black myth: wukong','label': 'Black Myth: Wukong','id': 'PLYwP61l5jB7RlDQMOa7ibloAxJMT4gbkV'},
+    {'game': 'crimson-desert',    'label': 'Crimson Desert',    'id': 'PLYwP61l5jB7RKcMiDhH34xc1JpZg3xrGi'},
+    {'game': 'black-myth-wukong', 'label': 'Black Myth: Wukong','id': 'PLYwP61l5jB7RlDQMOa7ibloAxJMT4gbkV'},
     # Add more as content grows:
     # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
     # {'game': 'borderlands',     'label': 'Borderlands',     'id': 'PLxxxxxxx'},
@@ -23,19 +23,15 @@ PLAYLISTS = [
 # ── TYPE DETECTION ───────────────────────────────────────────
 # Order matters — first match wins
 TYPE_RULES = [
-    ('boss', [
-        'boss', 'tenebrum', 'boss kill',
-        'killed', 'defeated', 'slain', 'fight'
-    ]),
-
-    ('guide', ['guide', 'how to', 'how-to','tutorial', 'tips', 'explained']),
-    ('build', [ 'build', 'setup', 'loadout', 'gear', 'equipment', 'spec', 'patch' ]),
-    ('pve', ['pve', 'dungeon', 'raid', 'camp', 'expansion', 'quest','mission', 'request' ]),
-    ('puzzle', ['puzzle', 'riddle', 'secret','hidden', 'mystery', 'cipher']),
-    ('challenge', ['challenge', 'challenged','hardcore', 'no death', 'speedrun']),
-    ('funny', ['funny', 'fail', 'lol','oops', 'gone wrong','cursed', 'chaos']),
-    ('missions', ['story', 'adventure', 'campaign', 'chapter', 'episode', 'journey', 'narrative', 'cutscene','dialogue', 'lore' ]),
-    ('highlight', [])  # catch-all default
+    ('boss',      ['boss', 'tenebrum', 'boss kill', 'killed', 'defeated', 'slain', 'fight']),
+    ('guide',     ['guide', 'how to', 'how-to', 'tutorial', 'tips', 'explained']),
+    ('build',     ['build', 'setup', 'loadout', 'gear', 'equipment', 'spec', 'patch']),
+    ('pve',       ['pve', 'dungeon', 'raid', 'camp', 'expansion', 'quest', 'mission', 'request']),
+    ('puzzle',    ['puzzle', 'riddle', 'secret', 'hidden', 'mystery', 'cipher']),
+    ('challenge', ['challenge', 'challenged', 'hardcore', 'no death', 'speedrun']),
+    ('funny',     ['funny', 'fail', 'lol', 'oops', 'gone wrong', 'cursed', 'chaos']),
+    ('missions',  ['story', 'adventure', 'campaign', 'chapter', 'episode', 'journey', 'narrative', 'cutscene', 'dialogue', 'lore']),
+    ('highlight', []),  # catch-all default
 ]
 
 BADGE_LABELS = {
@@ -46,7 +42,7 @@ BADGE_LABELS = {
     'puzzle':    'Puzzle',
     'challenge': 'Challenge',
     'funny':     'Funny',
-    'missions': 'Missions',
+    'missions':  'Missions',
     'highlight': 'Highlight',
 }
 
@@ -65,8 +61,8 @@ def detect_type(title):
             'puzzle':    'puzzle',
             'challenge': 'challenge',
             'funny':     'funny',
+            'missions':  'missions',
             'highlight': 'highlight',
-            'missions': 'Missions',
             'clip':      'highlight',
         }
         if tag in tag_map:
@@ -147,21 +143,17 @@ def fetch_durations(video_ids):
     return durations
 
 def build_card(video, game_key, game_label, delay_class=''):
-    vid_id    = video['id']
-    title     = video['title']
-    date      = format_date(video['published'])
-    duration  = video['duration']
-    type_key  = detect_type(title)
+    vid_id     = video['id']
+    title      = video['title']
+    date       = format_date(video['published'])
+    duration   = video['duration']
+    type_key   = detect_type(title)
     type_label = BADGE_LABELS.get(type_key, 'Highlight')
-    thumb     = f'https://img.youtube.com/vi/{vid_id}/maxresdefault.jpg'
-    fallback  = f'../img/games/{game_key}.jpg'
-    yt_url    = f'https://www.youtube.com/watch?v={vid_id}'
-    modal_label = f'{game_label} — {title}'
-    modal_src   = f'{game_label} · {type_label}'
-
-    # Escape single quotes for onclick
-    ml = modal_label.replace("'", "\\'")
-    ms = modal_src.replace("'", "\\'")
+    thumb      = f'https://img.youtube.com/vi/{vid_id}/maxresdefault.jpg'
+    fallback   = f'../img/games/{game_key}.jpg'
+    yt_url     = f'https://www.youtube.com/watch?v={vid_id}'
+    ml = f'{game_label} — {title}'.replace("'", "\\'")
+    ms = f'{game_label} · {type_label}'.replace("'", "\\'")
 
     return f'''
       <div class="clip-card reveal{delay_class}" data-game="{game_key}" data-type="{type_key}">
@@ -173,7 +165,6 @@ def build_card(video, game_key, game_label, delay_class=''):
           <div class="clip-game-badge">{game_label}</div>
           <div class="clip-type-badge">{type_label}</div>
           <div class="clip-duration">{duration}</div>
-          
         </div>
         <div class="clip-body">
           <div class="clip-title">{title}</div>
@@ -181,7 +172,6 @@ def build_card(video, game_key, game_label, delay_class=''):
             <span class="clip-date">{date}</span>
             <div class="clip-links">
               <a href="{yt_url}" target="_blank" class="clip-link">YouTube &#8599;</a>
-              
             </div>
           </div>
         </div>
@@ -193,14 +183,12 @@ def build_game_buttons():
         btns.append(f'<button class="filter-btn game-btn" data-game="{pl["game"]}" onclick="filterClips(this,\'game\')">{pl["label"]}</button>')
     return '\n        '.join(btns)
 
-
 def build_sections_html(sections):
     html = []
     for sec in sections:
-        game = sec['game']
+        game  = sec['game']
         label = sec['label']
-        cards = sec['cards']
-        section_cards = '\n'.join(cards)
+        section_cards = '\n'.join(sec['cards'])
         html.append(f'''
       <div class="game-section" data-section="{game}">
         <div class="game-section-header">
@@ -216,7 +204,7 @@ def build_sections_html(sections):
 
 def build_html(sections, total):
     game_buttons = build_game_buttons()
-    cards_html = build_sections_html(sections)
+    cards_html   = build_sections_html(sections)
 
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -244,7 +232,10 @@ def build_html(sections, total):
     .game-section-label{{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;white-space:nowrap;flex-shrink:0}}
     .game-section-line{{flex:1;height:1px;background:linear-gradient(to right,rgba(201,168,76,0.4),transparent)}}
     .game-section-header .game-section-line:first-child{{background:linear-gradient(to left,rgba(201,168,76,0.4),transparent)}}
-    .clips-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:2px}}
+    #clipsGrid{{display:flex;gap:32px;align-items:flex-start}}
+    .game-section{{flex:1;min-width:0}}
+    .clips-grid{{display:grid;grid-template-columns:1fr;gap:2px}}
+    @media(max-width:900px){{#clipsGrid{{flex-direction:column}}}}
     .clip-card{{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}}
     .clip-card:hover{{border-color:rgba(139,0,0,0.4)}}
     .clip-card.hidden{{display:none}}
@@ -258,8 +249,6 @@ def build_html(sections, total):
     .clip-game-badge{{position:absolute;top:10px;left:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--white);background:var(--crimson);padding:3px 10px;text-transform:uppercase}}
     .clip-type-badge{{position:absolute;top:10px;right:10px;font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--dark);background:var(--gold);padding:3px 10px;text-transform:uppercase}}
     .clip-duration{{position:absolute;bottom:10px;right:10px;font-family:"Orbitron",monospace;font-size:9px;color:var(--white);background:rgba(0,0,0,0.8);padding:2px 8px;letter-spacing:1px}}
-    .clip-source{{position:absolute;bottom:10px;left:10px;font-family:"Orbitron",monospace;font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.6)}}
-    .clip-source::before{{content:"⚡";font-size:10px;color:var(--gold);margin-right:4px}}
     .clip-body{{padding:16px 20px}}
     .clip-title{{font-family:"Orbitron",monospace;font-size:12px;font-weight:600;color:var(--white);line-height:1.4;margin-bottom:8px;letter-spacing:0.5px}}
     .clip-meta{{display:flex;justify-content:space-between;align-items:center}}
@@ -267,8 +256,6 @@ def build_html(sections, total):
     .clip-links{{display:flex;gap:10px}}
     .clip-link{{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;text-decoration:none;transition:color 0.2s}}
     .clip-link:hover{{color:var(--gold-light)}}
-    
-    
     .clip-modal{{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);align-items:center;justify-content:center}}
     .clip-modal.open{{display:flex}}
     .clip-modal-inner{{position:relative;width:92vw;max-width:1100px}}
@@ -308,10 +295,9 @@ def build_html(sections, total):
   <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1;">
     <div class="section-eyebrow" style="animation:fadeUp 0.8s ease 0.2s both;">AUTO-GENERATED HIGHLIGHTS</div>
     <h1 class="section-title" style="animation:fadeUp 0.8s ease 0.4s both;">Clips &amp; <span class="accent">Highlights</span></h1>
-    <p style="color:var(--grey);max-width:500px;margin-top:16px;animation:fadeUp 0.8s ease 0.6s both;">The best moments from every stream &mdash; captured live from every stream and published straight here.</p>
+    <p style="color:var(--grey);max-width:500px;margin-top:16px;animation:fadeUp 0.8s ease 0.6s both;">The best moments from every stream — captured live and published straight here.</p>
     <div style="display:flex;gap:16px;margin-top:24px;animation:fadeUp 0.8s ease 0.8s both;flex-wrap:wrap;">
       <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" class="btn-primary" style="font-size:10px;padding:10px 24px;">&#9654; &nbsp; YouTube Channel &#8599;</a>
-      
     </div>
   </div>
 </div>
@@ -323,7 +309,7 @@ def build_html(sections, total):
     <div class="filter-row">
       <span class="filter-label">Game</span>
       <div class="filter-pills">
-        {game_buttons}
+        {{game_buttons}}
       </div>
     </div>
     <div class="filter-row">
@@ -337,6 +323,7 @@ def build_html(sections, total):
         <button class="filter-btn type-btn" data-type="pve" onclick="filterClips(this,'type')">PvE</button>
         <button class="filter-btn type-btn" data-type="puzzle" onclick="filterClips(this,'type')">Puzzle</button>
         <button class="filter-btn type-btn" data-type="challenge" onclick="filterClips(this,'type')">Challenge</button>
+        <button class="filter-btn type-btn" data-type="missions" onclick="filterClips(this,'type')">Missions</button>
         <button class="filter-btn type-btn" data-type="funny" onclick="filterClips(this,'type')">Funny</button>
       </div>
     </div>
@@ -346,12 +333,11 @@ def build_html(sections, total):
 <section class="section" style="background:var(--dark);padding-top:32px;">
   <div style="max-width:1100px;margin:0 auto;">
     <div class="clips-stats">
-      SHOWING <span id="clipCount">{total}</span> CLIPS
-      
+      SHOWING <span id="clipCount">{{total}}</span> CLIPS
       &nbsp;&middot;&nbsp; <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" style="color:var(--crimson-mid);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;">SUBSCRIBE ON YOUTUBE &#8599;</a>
     </div>
-    <div class="clips-grid" id="clipsGrid">
-{cards_html}
+    <div id="clipsGrid">
+{{cards_html}}
     </div>
   </div>
 </section>
@@ -366,7 +352,6 @@ def build_html(sections, total):
   </div>
   <div class="gold-line" style="margin-bottom:20px;"></div>
   <div class="footer-copy">&copy; 2025 Astrix285 &mdash; Built for the community, powered by gaming passion and history.</div>
-  <div class="footer-disclaimer"></div>
 </footer>
 
 <div class="clip-modal" id="clipModal">
@@ -390,19 +375,16 @@ def build_html(sections, total):
     if (dim === 'game') activeGame = btn.dataset.game;
     if (dim === 'type') activeType = btn.dataset.type;
     var count = 0;
-    // Show/hide sections based on game filter
     document.querySelectorAll('.game-section').forEach(function(sec) {{
       var gameMatch = activeGame === 'all' || sec.dataset.section === activeGame;
       sec.classList.toggle('hidden', !gameMatch);
     }});
-    // Show/hide cards based on type filter
     document.querySelectorAll('.clip-card').forEach(function(card) {{
       var gameMatch = activeGame === 'all' || card.dataset.game === activeGame;
       var typeMatch = activeType === 'all' || card.dataset.type === activeType;
       card.classList.toggle('hidden', !gameMatch || !typeMatch);
       if (gameMatch && typeMatch) count++;
     }});
-    // Hide sections where all cards are hidden
     document.querySelectorAll('.game-section').forEach(function(sec) {{
       if (activeGame !== 'all') return;
       var visible = sec.querySelectorAll('.clip-card:not(.hidden)').length;
