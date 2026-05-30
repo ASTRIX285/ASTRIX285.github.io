@@ -8,84 +8,16 @@
   <style>
     .clips-hero{padding:calc(var(--nav-height) + 60px) 40px 60px;background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.2);position:relative;overflow:hidden}
     .clips-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(139,0,0,0.15) 0%,transparent 60%)}
-
-    /* ── FILTER BAR REDESIGN ── */
-    .filter-wrap {
-      background: var(--dark-2);
-      border-bottom: 1px solid rgba(139,0,0,0.25);
-      padding: 0 40px;
-    }
-    .filter-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-    .filter-row {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      min-height: 52px;
-      border-bottom: 1px solid rgba(139,0,0,0.1);
-    }
-    .filter-row:last-child { border-bottom: none; }
-    .filter-label {
-      font-family: 'Orbitron', monospace;
-      font-size: 8px;
-      letter-spacing: 4px;
-      color: var(--grey-dark);
-      text-transform: uppercase;
-      min-width: 60px;
-      padding-right: 16px;
-      border-right: 1px solid rgba(139,0,0,0.2);
-      margin-right: 4px;
-      flex-shrink: 0;
-    }
-    .filter-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2px;
-      padding: 8px 0 8px 8px;
-    }
-    .filter-btn {
-      font-family: 'Orbitron', monospace;
-      font-size: 9px;
-      letter-spacing: 2px;
-      padding: 7px 18px;
-      border: 1px solid transparent;
-      color: var(--grey);
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: all 0.2s;
-      background: transparent;
-      white-space: nowrap;
-    }
-    .filter-btn:hover {
-      color: var(--white);
-      border-color: rgba(139,0,0,0.5);
-      background: rgba(139,0,0,0.06);
-    }
-    /* Game row active — crimson */
-    .filter-btn.game-btn.active {
-      color: var(--white);
-      background: rgba(139,0,0,0.2);
-      border-color: var(--crimson-mid);
-    }
-    /* Type row active — gold */
-    .filter-btn.type-btn.active {
-      color: var(--dark);
-      background: var(--gold);
-      border-color: var(--gold);
-    }
-
-    /* ── CLIPS GRID ── */
-    .game-section{margin-bottom:48px}
-    .game-section.hidden{display:none}
-    .game-section-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-top:8px}
-    .game-section-label{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;white-space:nowrap;flex-shrink:0}
-    .game-section-line{flex:1;height:1px;background:linear-gradient(to right,rgba(201,168,76,0.4),transparent)}
-    .game-section-header .game-section-line:first-child{background:linear-gradient(to left,rgba(201,168,76,0.4),transparent)}
+    .filter-wrap{background:var(--dark-2);border-bottom:1px solid rgba(139,0,0,0.25);padding:0 40px}
+    .filter-inner{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:0}
+    .filter-row{display:flex;align-items:center;gap:0;min-height:52px;border-bottom:1px solid rgba(139,0,0,0.1)}
+    .filter-row:last-child{border-bottom:none}
+    .filter-label{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:4px;color:var(--grey-dark);text-transform:uppercase;min-width:60px;padding-right:16px;border-right:1px solid rgba(139,0,0,0.2);margin-right:4px;flex-shrink:0}
+    .filter-pills{display:flex;flex-wrap:wrap;gap:2px;padding:8px 0 8px 8px}
+    .filter-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:7px 18px;border:1px solid transparent;color:var(--grey);cursor:pointer;text-transform:uppercase;transition:all 0.2s;background:transparent;white-space:nowrap}
+    .filter-btn:hover{color:var(--white);border-color:rgba(139,0,0,0.5);background:rgba(139,0,0,0.06)}
+    .filter-btn.game-btn.active{color:var(--white);background:rgba(139,0,0,0.2);border-color:var(--crimson-mid)}
+    .filter-btn.type-btn.active{color:var(--dark);background:var(--gold);border-color:var(--gold)}
     .clips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:2px}
     .clip-card{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}
     .clip-card:hover{border-color:rgba(139,0,0,0.4)}
@@ -120,19 +52,9 @@
     .clip-modal-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
     .clip-modal-label{font-family:"Orbitron",monospace;font-size:10px;letter-spacing:2px;color:var(--grey);text-align:center;margin-top:16px;text-transform:uppercase}
     .clip-modal-source{font-family:"Orbitron",monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-align:center;margin-top:6px}
-    .clips-empty{text-align:center;padding:80px 40px;grid-column:1 / -1}
-    .clips-empty-icon{font-size:48px;margin-bottom:20px;opacity:0.3}
-    .clips-empty-text{font-family:"Orbitron",monospace;font-size:11px;letter-spacing:3px;color:var(--grey-dark);text-transform:uppercase}
     .clips-stats{display:flex;gap:24px;align-items:center;padding:12px 0;font-family:"Orbitron",monospace;font-size:9px;letter-spacing:2px;color:var(--grey-dark);border-bottom:1px solid rgba(139,0,0,0.1);margin-bottom:24px;flex-wrap:wrap}
     .clips-stats span{color:var(--crimson-mid)}
-
-    @media(max-width:768px){
-      .clips-hero{padding:calc(var(--nav-height) + 40px) 20px 40px}
-      .clips-grid{grid-template-columns:1fr}
-      .filter-wrap{padding:0 20px}
-      .filter-label{min-width:48px;font-size:7px;letter-spacing:2px}
-      .filter-btn{font-size:8px;padding:6px 12px}
-    }
+    @media(max-width:768px){.clips-hero{padding:calc(var(--nav-height) + 40px) 20px 40px}.clips-grid{grid-template-columns:1fr}.filter-wrap{padding:0 20px}.filter-label{min-width:48px;font-size:7px;letter-spacing:2px}.filter-btn{font-size:8px;padding:6px 12px}}
   </style>
 </head>
 <body>
@@ -170,166 +92,82 @@
 
 <div class="gold-line"></div>
 
-<!-- ── REDESIGNED FILTER BAR ── -->
 <div class="filter-wrap">
   <div class="filter-inner">
-
-    <!-- Game row -->
     <div class="filter-row">
       <span class="filter-label">Game</span>
       <div class="filter-pills">
         <button class="filter-btn game-btn active" data-game="all" onclick="filterClips(this,'game')">All</button>
         <button class="filter-btn game-btn" data-game="crimson-desert" onclick="filterClips(this,'game')">Crimson Desert</button>
-        <button class="filter-btn game-btn" data-game="warframe" onclick="filterClips(this,'game')">Warframe</button>
-        <button class="filter-btn game-btn" data-game="borderlands" onclick="filterClips(this,'game')">Borderlands</button>
-        <button class="filter-btn game-btn" data-game="destiny-2" onclick="filterClips(this,'game')">Destiny 2</button>
+        <button class="filter-btn game-btn" data-game="black myth: wukong" onclick="filterClips(this,'game')">Black Myth: Wukong</button>
       </div>
     </div>
-
-    <!-- Type row -->
     <div class="filter-row">
       <span class="filter-label">Type</span>
       <div class="filter-pills">
         <button class="filter-btn type-btn active" data-type="all" onclick="filterClips(this,'type')">All</button>
         <button class="filter-btn type-btn" data-type="highlight" onclick="filterClips(this,'type')">Highlight</button>
         <button class="filter-btn type-btn" data-type="boss" onclick="filterClips(this,'type')">Boss</button>
-        <button class="filter-btn type-btn" data-type="funny" onclick="filterClips(this,'type')">Funny</button>
-        <button class="filter-btn type-btn" data-type="pve" onclick="filterClips(this,'type')">PvE</button>
+        <button class="filter-btn type-btn" data-type="guide" onclick="filterClips(this,'type')">Guide</button>
         <button class="filter-btn type-btn" data-type="build" onclick="filterClips(this,'type')">Build</button>
+        <button class="filter-btn type-btn" data-type="pve" onclick="filterClips(this,'type')">PvE</button>
         <button class="filter-btn type-btn" data-type="puzzle" onclick="filterClips(this,'type')">Puzzle</button>
         <button class="filter-btn type-btn" data-type="challenge" onclick="filterClips(this,'type')">Challenge</button>
-        <button class="filter-btn type-btn" data-type="guide" onclick="filterClips(this,'type')">Guide</button>
+        <button class="filter-btn type-btn" data-type="funny" onclick="filterClips(this,'type')">Funny</button>
       </div>
     </div>
-
   </div>
 </div>
 
 <section class="section" style="background:var(--dark);padding-top:32px;">
   <div style="max-width:1100px;margin:0 auto;">
     <div class="clips-stats">
-      SHOWING <span id="clipCount">6</span> CLIPS
+      SHOWING <span id="clipCount">17</span> CLIPS
       
       &nbsp;&middot;&nbsp; <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" style="color:var(--crimson-mid);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;">SUBSCRIBE ON YOUTUBE &#8599;</a>
     </div>
-    <div id="clipsGrid">
-      <div class="game-section" data-section="crimson-desert">
-        <div class="game-section-header">
-          <div class="game-section-line"></div>
-          <span class="game-section-label">Crimson Desert</span>
-          <div class="game-section-line"></div>
-        </div>
-        <div class="clips-grid">
+    <div class="clips-grid" id="clipsGrid">
 
-      <div class="clip-card reveal" data-game="crimson-desert" data-type="boss">
-        <div class="clip-thumb" onclick="openClip('hl6E_F7boRk','Crimson Desert — Crimson Desert: Tenebrum Boss Strategy','Crimson Desert · Boss Kill')">
-          <img src="https://img.youtube.com/vi/hl6E_F7boRk/maxresdefault.jpg" alt="Crimson Desert: Tenebrum Boss Strategy" onerror="this.src='../img/games/crimsondesert.jpg'">
+      <div class="clip-card reveal" data-game="crimson-desert" data-type="challenge">
+        <div class="clip-thumb" onclick="openClip('l_xRpfrArUU','Crimson Desert — Crimson Dessert |Challenge| - Red River Ancient Ruins','Crimson Desert · Challenge')">
+          <img src="https://img.youtube.com/vi/l_xRpfrArUU/maxresdefault.jpg" alt="Crimson Dessert |Challenge| - Red River Ancient Ruins" onerror="this.src='../img/games/crimson-desert.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
           <div class="clip-game-badge">Crimson Desert</div>
-          <div class="clip-type-badge">Boss</div>
-          <div class="clip-duration">5:29</div>
+          <div class="clip-type-badge">Challenge</div>
+          <div class="clip-duration">1:48</div>
           
         </div>
         <div class="clip-body">
-          <div class="clip-title">Crimson Desert: Tenebrum Boss Strategy</div>
+          <div class="clip-title">Crimson Dessert |Challenge| - Red River Ancient Ruins</div>
           <div class="clip-meta">
-            <span class="clip-date">Apr 04, 2026</span>
+            <span class="clip-date">May 30, 2026</span>
             <div class="clip-links">
-              <a href="https://www.youtube.com/watch?v=hl6E_F7boRk" target="_blank" class="clip-link">YouTube &#8599;</a>
+              <a href="https://www.youtube.com/watch?v=l_xRpfrArUU" target="_blank" class="clip-link">YouTube &#8599;</a>
               
             </div>
           </div>
         </div>
       </div>
 
-      <div class="clip-card reveal reveal-delay-1" data-game="crimson-desert" data-type="boss">
-        <div class="clip-thumb" onclick="openClip('jPf89vU9tXI','Crimson Desert — Crimson Desert - Howling Hill Camp Expansion','Crimson Desert · Boss Kill')">
-          <img src="https://img.youtube.com/vi/jPf89vU9tXI/maxresdefault.jpg" alt="Crimson Desert - Howling Hill Camp Expansion" onerror="this.src='../img/games/crimsondesert.jpg'">
+      <div class="clip-card reveal reveal-delay-1" data-game="crimson-desert" data-type="guide">
+        <div class="clip-thumb" onclick="openClip('BWljpIJpFXA','Crimson Desert — Crimson Desert  |Guide| -  Golden Apple Farming','Crimson Desert · Guide')">
+          <img src="https://img.youtube.com/vi/BWljpIJpFXA/maxresdefault.jpg" alt="Crimson Desert  |Guide| -  Golden Apple Farming" onerror="this.src='../img/games/crimson-desert.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
           <div class="clip-game-badge">Crimson Desert</div>
-          <div class="clip-type-badge">Boss</div>
-          <div class="clip-duration">0:42</div>
+          <div class="clip-type-badge">Guide</div>
+          <div class="clip-duration">1:15</div>
           
         </div>
         <div class="clip-body">
-          <div class="clip-title">Crimson Desert - Howling Hill Camp Expansion</div>
+          <div class="clip-title">Crimson Desert  |Guide| -  Golden Apple Farming</div>
           <div class="clip-meta">
-            <span class="clip-date">Apr 05, 2026</span>
+            <span class="clip-date">May 30, 2026</span>
             <div class="clip-links">
-              <a href="https://www.youtube.com/watch?v=jPf89vU9tXI" target="_blank" class="clip-link">YouTube &#8599;</a>
-              
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="clip-card reveal reveal-delay-2" data-game="crimson-desert" data-type="build">
-        <div class="clip-thumb" onclick="openClip('o9V8_S8kmx8','Crimson Desert — Crimson Desert | Mount the Dragon | Shackles of Fate Guide','Crimson Desert · Build')">
-          <img src="https://img.youtube.com/vi/o9V8_S8kmx8/maxresdefault.jpg" alt="Crimson Desert | Mount the Dragon | Shackles of Fate Guide" onerror="this.src='../img/games/crimsondesert.jpg'">
-          <div class="clip-thumb-overlay">
-            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
-          </div>
-          <div class="clip-game-badge">Crimson Desert</div>
-          <div class="clip-type-badge">Build</div>
-          <div class="clip-duration">4:15</div>
-          
-        </div>
-        <div class="clip-body">
-          <div class="clip-title">Crimson Desert | Mount the Dragon | Shackles of Fate Guide</div>
-          <div class="clip-meta">
-            <span class="clip-date">Apr 26, 2026</span>
-            <div class="clip-links">
-              <a href="https://www.youtube.com/watch?v=o9V8_S8kmx8" target="_blank" class="clip-link">YouTube &#8599;</a>
-              
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="clip-card reveal" data-game="crimson-desert" data-type="boss">
-        <div class="clip-thumb" onclick="openClip('OqNmvv8QSsA','Crimson Desert — Crimson Desert – Ring of Lightning Guide | How to get it','Crimson Desert · Boss Kill')">
-          <img src="https://img.youtube.com/vi/OqNmvv8QSsA/maxresdefault.jpg" alt="Crimson Desert – Ring of Lightning Guide | How to get it" onerror="this.src='../img/games/crimsondesert.jpg'">
-          <div class="clip-thumb-overlay">
-            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
-          </div>
-          <div class="clip-game-badge">Crimson Desert</div>
-          <div class="clip-type-badge">Boss</div>
-          <div class="clip-duration">2:52</div>
-          
-        </div>
-        <div class="clip-body">
-          <div class="clip-title">Crimson Desert – Ring of Lightning Guide | How to get it</div>
-          <div class="clip-meta">
-            <span class="clip-date">Apr 27, 2026</span>
-            <div class="clip-links">
-              <a href="https://www.youtube.com/watch?v=OqNmvv8QSsA" target="_blank" class="clip-link">YouTube &#8599;</a>
-              
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="clip-card reveal reveal-delay-1" data-game="crimson-desert" data-type="build">
-        <div class="clip-thumb" onclick="openClip('G7VDv-BXN1w','Crimson Desert — Crimson Desert - How To Get Baby Wyvern Legendary Pet Guide New Patch 1.08.00','Crimson Desert · Build')">
-          <img src="https://img.youtube.com/vi/G7VDv-BXN1w/maxresdefault.jpg" alt="Crimson Desert - How To Get Baby Wyvern Legendary Pet Guide New Patch 1.08.00" onerror="this.src='../img/games/crimsondesert.jpg'">
-          <div class="clip-thumb-overlay">
-            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
-          </div>
-          <div class="clip-game-badge">Crimson Desert</div>
-          <div class="clip-type-badge">Build</div>
-          <div class="clip-duration">4:57</div>
-          
-        </div>
-        <div class="clip-body">
-          <div class="clip-title">Crimson Desert - How To Get Baby Wyvern Legendary Pet Guide New Patch 1.08.00</div>
-          <div class="clip-meta">
-            <span class="clip-date">May 22, 2026</span>
-            <div class="clip-links">
-              <a href="https://www.youtube.com/watch?v=G7VDv-BXN1w" target="_blank" class="clip-link">YouTube &#8599;</a>
+              <a href="https://www.youtube.com/watch?v=BWljpIJpFXA" target="_blank" class="clip-link">YouTube &#8599;</a>
               
             </div>
           </div>
@@ -337,8 +175,8 @@
       </div>
 
       <div class="clip-card reveal reveal-delay-2" data-game="crimson-desert" data-type="highlight">
-        <div class="clip-thumb" onclick="openClip('w5gwx0WqSdg','Crimson Desert — Crimson Desert - Marrow\'s Request','Crimson Desert · Highlight')">
-          <img src="https://img.youtube.com/vi/w5gwx0WqSdg/maxresdefault.jpg" alt="Crimson Desert - Marrow's Request" onerror="this.src='../img/games/crimsondesert.jpg'">
+        <div class="clip-thumb" onclick="openClip('w5gwx0WqSdg','Crimson Desert — Crimson Desert - |Highlight| - Marrow\'s Request','Crimson Desert · Highlight')">
+          <img src="https://img.youtube.com/vi/w5gwx0WqSdg/maxresdefault.jpg" alt="Crimson Desert - |Highlight| - Marrow's Request" onerror="this.src='../img/games/crimson-desert.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
@@ -348,7 +186,7 @@
           
         </div>
         <div class="clip-body">
-          <div class="clip-title">Crimson Desert - Marrow's Request</div>
+          <div class="clip-title">Crimson Desert - |Highlight| - Marrow's Request</div>
           <div class="clip-meta">
             <span class="clip-date">May 29, 2026</span>
             <div class="clip-links">
@@ -359,6 +197,325 @@
         </div>
       </div>
 
+      <div class="clip-card reveal" data-game="crimson-desert" data-type="guide">
+        <div class="clip-thumb" onclick="openClip('G7VDv-BXN1w','Crimson Desert — Crimson Desert - |Guide| - How To Get Baby Wyvern Legendary Pet New Patch 1.08.00','Crimson Desert · Guide')">
+          <img src="https://img.youtube.com/vi/G7VDv-BXN1w/maxresdefault.jpg" alt="Crimson Desert - |Guide| - How To Get Baby Wyvern Legendary Pet New Patch 1.08.00" onerror="this.src='../img/games/crimson-desert.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Crimson Desert</div>
+          <div class="clip-type-badge">Guide</div>
+          <div class="clip-duration">4:57</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Crimson Desert - |Guide| - How To Get Baby Wyvern Legendary Pet New Patch 1.08.00</div>
+          <div class="clip-meta">
+            <span class="clip-date">May 22, 2026</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=G7VDv-BXN1w" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-1" data-game="crimson-desert" data-type="guide">
+        <div class="clip-thumb" onclick="openClip('OqNmvv8QSsA','Crimson Desert — Crimson Desert – |Guide| - How to get the Ring of Lightning','Crimson Desert · Guide')">
+          <img src="https://img.youtube.com/vi/OqNmvv8QSsA/maxresdefault.jpg" alt="Crimson Desert – |Guide| - How to get the Ring of Lightning" onerror="this.src='../img/games/crimson-desert.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Crimson Desert</div>
+          <div class="clip-type-badge">Guide</div>
+          <div class="clip-duration">2:52</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Crimson Desert – |Guide| - How to get the Ring of Lightning</div>
+          <div class="clip-meta">
+            <span class="clip-date">Apr 27, 2026</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=OqNmvv8QSsA" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-2" data-game="crimson-desert" data-type="guide">
+        <div class="clip-thumb" onclick="openClip('o9V8_S8kmx8','Crimson Desert — Crimson Desert |Guide| Wyvern Dragon - Shackles of Fate','Crimson Desert · Guide')">
+          <img src="https://img.youtube.com/vi/o9V8_S8kmx8/maxresdefault.jpg" alt="Crimson Desert |Guide| Wyvern Dragon - Shackles of Fate" onerror="this.src='../img/games/crimson-desert.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Crimson Desert</div>
+          <div class="clip-type-badge">Guide</div>
+          <div class="clip-duration">4:15</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Crimson Desert |Guide| Wyvern Dragon - Shackles of Fate</div>
+          <div class="clip-meta">
+            <span class="clip-date">Apr 26, 2026</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=o9V8_S8kmx8" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal" data-game="crimson-desert" data-type="guide">
+        <div class="clip-thumb" onclick="openClip('jPf89vU9tXI','Crimson Desert — Crimson Desert - |Guide| - Howling Hill Camp Expansion','Crimson Desert · Guide')">
+          <img src="https://img.youtube.com/vi/jPf89vU9tXI/maxresdefault.jpg" alt="Crimson Desert - |Guide| - Howling Hill Camp Expansion" onerror="this.src='../img/games/crimson-desert.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Crimson Desert</div>
+          <div class="clip-type-badge">Guide</div>
+          <div class="clip-duration">0:42</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Crimson Desert - |Guide| - Howling Hill Camp Expansion</div>
+          <div class="clip-meta">
+            <span class="clip-date">Apr 05, 2026</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=jPf89vU9tXI" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-1" data-game="crimson-desert" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('hl6E_F7boRk','Crimson Desert — Crimson Desert: |Boss| Tenebrum Easy Strategy','Crimson Desert · Boss')">
+          <img src="https://img.youtube.com/vi/hl6E_F7boRk/maxresdefault.jpg" alt="Crimson Desert: |Boss| Tenebrum Easy Strategy" onerror="this.src='../img/games/crimson-desert.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Crimson Desert</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">5:29</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Crimson Desert: |Boss| Tenebrum Easy Strategy</div>
+          <div class="clip-meta">
+            <span class="clip-date">Apr 04, 2026</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=hl6E_F7boRk" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal" data-game="black myth: wukong" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('UC4wnVRUYRo','Black Myth: Wukong — Black Myth: Wukong - |Boss| - Toad King','Black Myth: Wukong · Boss')">
+          <img src="https://img.youtube.com/vi/UC4wnVRUYRo/maxresdefault.jpg" alt="Black Myth: Wukong - |Boss| - Toad King" onerror="this.src='../img/games/black myth: wukong.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Black Myth: Wukong</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">2:49</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Black Myth: Wukong - |Boss| - Toad King</div>
+          <div class="clip-meta">
+            <span class="clip-date">Sep 12, 2024</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=UC4wnVRUYRo" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-1" data-game="black myth: wukong" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('W7OpehHtp6A','Black Myth: Wukong — Black Myth: Wukong - |Boss| - The First Prince','Black Myth: Wukong · Boss')">
+          <img src="https://img.youtube.com/vi/W7OpehHtp6A/maxresdefault.jpg" alt="Black Myth: Wukong - |Boss| - The First Prince" onerror="this.src='../img/games/black myth: wukong.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Black Myth: Wukong</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">3:05</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Black Myth: Wukong - |Boss| - The First Prince</div>
+          <div class="clip-meta">
+            <span class="clip-date">Sep 12, 2024</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=W7OpehHtp6A" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-2" data-game="black myth: wukong" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('Kfc4MuWSXC8','Black Myth: Wukong — Black Myth: Wukong - |Boss| - King and Second Prince of Flowing Sands fight','Black Myth: Wukong · Boss')">
+          <img src="https://img.youtube.com/vi/Kfc4MuWSXC8/maxresdefault.jpg" alt="Black Myth: Wukong - |Boss| - King and Second Prince of Flowing Sands fight" onerror="this.src='../img/games/black myth: wukong.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Black Myth: Wukong</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">4:45</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Black Myth: Wukong - |Boss| - King and Second Prince of Flowing Sands fight</div>
+          <div class="clip-meta">
+            <span class="clip-date">Sep 12, 2024</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=Kfc4MuWSXC8" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal" data-game="black myth: wukong" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('_bYctgCbhtM','Black Myth: Wukong — Black Myth: Wukong -  |Boss| - Earth Wolf encounter','Black Myth: Wukong · Boss')">
+          <img src="https://img.youtube.com/vi/_bYctgCbhtM/maxresdefault.jpg" alt="Black Myth: Wukong -  |Boss| - Earth Wolf encounter" onerror="this.src='../img/games/black myth: wukong.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Black Myth: Wukong</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">2:16</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Black Myth: Wukong -  |Boss| - Earth Wolf encounter</div>
+          <div class="clip-meta">
+            <span class="clip-date">Sep 12, 2024</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=_bYctgCbhtM" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-1" data-game="black myth: wukong" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('Go7boKNgP18','Black Myth: Wukong — Black Myth: Wukong - |Boss| - Black Bear Guai','Black Myth: Wukong · Boss')">
+          <img src="https://img.youtube.com/vi/Go7boKNgP18/maxresdefault.jpg" alt="Black Myth: Wukong - |Boss| - Black Bear Guai" onerror="this.src='../img/games/black myth: wukong.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Black Myth: Wukong</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">6:51</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Black Myth: Wukong - |Boss| - Black Bear Guai</div>
+          <div class="clip-meta">
+            <span class="clip-date">Sep 12, 2024</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=Go7boKNgP18" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-2" data-game="black myth: wukong" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('kl1sRvTrKAY','Black Myth: Wukong — Black Myth: Wukong -  |Boss| - Black Wind King','Black Myth: Wukong · Boss')">
+          <img src="https://img.youtube.com/vi/kl1sRvTrKAY/maxresdefault.jpg" alt="Black Myth: Wukong -  |Boss| - Black Wind King" onerror="this.src='../img/games/black myth: wukong.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Black Myth: Wukong</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">4:00</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Black Myth: Wukong -  |Boss| - Black Wind King</div>
+          <div class="clip-meta">
+            <span class="clip-date">Sep 11, 2024</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=kl1sRvTrKAY" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal" data-game="black myth: wukong" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('yNzB6Fp4CeM','Black Myth: Wukong — Black Myth: Wukong -  |Boss| - Whiteclad Noble','Black Myth: Wukong · Boss')">
+          <img src="https://img.youtube.com/vi/yNzB6Fp4CeM/maxresdefault.jpg" alt="Black Myth: Wukong -  |Boss| - Whiteclad Noble" onerror="this.src='../img/games/black myth: wukong.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Black Myth: Wukong</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">6:28</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Black Myth: Wukong -  |Boss| - Whiteclad Noble</div>
+          <div class="clip-meta">
+            <span class="clip-date">Sep 11, 2024</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=yNzB6Fp4CeM" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-1" data-game="black myth: wukong" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('ZGvWs7EI0BM','Black Myth: Wukong — Black Myth: Wukong - |Boss| - Yaoguai Chief Guangmou','Black Myth: Wukong · Boss')">
+          <img src="https://img.youtube.com/vi/ZGvWs7EI0BM/maxresdefault.jpg" alt="Black Myth: Wukong - |Boss| - Yaoguai Chief Guangmou" onerror="this.src='../img/games/black myth: wukong.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Black Myth: Wukong</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">1:31</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Black Myth: Wukong - |Boss| - Yaoguai Chief Guangmou</div>
+          <div class="clip-meta">
+            <span class="clip-date">Sep 04, 2024</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=ZGvWs7EI0BM" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip-card reveal reveal-delay-2" data-game="black myth: wukong" data-type="boss">
+        <div class="clip-thumb" onclick="openClip('XlpeTHc9fuk','Black Myth: Wukong — Black Myth: Wukong - |Boss| - Yaoguai King Lingxuzi','Black Myth: Wukong · Boss')">
+          <img src="https://img.youtube.com/vi/XlpeTHc9fuk/maxresdefault.jpg" alt="Black Myth: Wukong - |Boss| - Yaoguai King Lingxuzi" onerror="this.src='../img/games/black myth: wukong.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Black Myth: Wukong</div>
+          <div class="clip-type-badge">Boss</div>
+          <div class="clip-duration">2:53</div>
+          
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Black Myth: Wukong - |Boss| - Yaoguai King Lingxuzi</div>
+          <div class="clip-meta">
+            <span class="clip-date">Sep 04, 2024</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=XlpeTHc9fuk" target="_blank" class="clip-link">YouTube &#8599;</a>
+              
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -375,7 +532,7 @@
   </div>
   <div class="gold-line" style="margin-bottom:20px;"></div>
   <div class="footer-copy">&copy; 2025 Astrix285 &mdash; Built for the community, powered by gaming passion and history.</div>
-  
+  <div class="footer-disclaimer"></div>
 </footer>
 
 <div class="clip-modal" id="clipModal">
@@ -392,7 +549,6 @@
 <script src="../js/main.js"></script>
 <script>
   var activeGame='all', activeType='all';
-
   function filterClips(btn, dim) {
     var selector = dim === 'game' ? '.game-btn' : '.type-btn';
     document.querySelectorAll(selector).forEach(function(b){ b.classList.remove('active'); });
@@ -408,7 +564,6 @@
     });
     document.getElementById('clipCount').textContent = count;
   }
-
   function openClip(id, label, source) {
     document.getElementById('clipFrame').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
     document.getElementById('clipLabel').textContent = label;
@@ -416,13 +571,11 @@
     document.getElementById('clipModal').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
-
   function closeClip() {
     document.getElementById('clipFrame').src = '';
     document.getElementById('clipModal').classList.remove('open');
     document.body.style.overflow = '';
   }
-
   document.getElementById('clipModal').addEventListener('click', function(e){ if(e.target===this) closeClip(); });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeClip(); });
 </script>
