@@ -27,6 +27,7 @@ TYPE_RULES = [
     ('build',     ['build', 'setup', 'loadout', 'gear', 'equipment', 'spec', 'patch']),
     ('pve',       ['pve', 'dungeon', 'raid', 'camp', 'expansion', 'quest', 'mission', 'request']),
     ('puzzle',    ['puzzle', 'riddle', 'secret', 'hidden', 'mystery', 'cipher']),
+    ('challenge', ['challenge', 'challenged', 'hardcore', 'no death', 'speedrun']),
     ('funny',     ['funny', 'fail', 'lol', 'oops', 'gone wrong', 'cursed', 'chaos']),
     ('highlight', []),  # catch-all default
 ]
@@ -37,6 +38,7 @@ BADGE_LABELS = {
     'build':     'Build',
     'pve':       'PvE',
     'puzzle':    'Puzzle',
+    'challenge': 'Challenge',
     'funny':     'Funny',
     'highlight': 'Highlight',
 }
@@ -54,6 +56,7 @@ def detect_type(title):
             'pve':       'pve',
             'pvp':       'pvp',
             'puzzle':    'puzzle',
+            'challenge': 'challenge',
             'funny':     'funny',
             'highlight': 'highlight',
             'clip':      'highlight',
@@ -298,6 +301,7 @@ def build_html(all_cards, total):
         <button class="filter-btn type-btn" data-type="build" onclick="filterClips(this,'type')">Build</button>
         <button class="filter-btn type-btn" data-type="pve" onclick="filterClips(this,'type')">PvE</button>
         <button class="filter-btn type-btn" data-type="puzzle" onclick="filterClips(this,'type')">Puzzle</button>
+        <button class="filter-btn type-btn" data-type="challenge" onclick="filterClips(this,'type')">Challenge</button>
         <button class="filter-btn type-btn" data-type="funny" onclick="filterClips(this,'type')">Funny</button>
       </div>
     </div>
