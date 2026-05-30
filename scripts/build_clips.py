@@ -309,7 +309,7 @@ def build_html(sections, total):
     <div class="filter-row">
       <span class="filter-label">Game</span>
       <div class="filter-pills">
-        {{game_buttons}}
+        {game_buttons}
       </div>
     </div>
     <div class="filter-row">
@@ -333,11 +333,11 @@ def build_html(sections, total):
 <section class="section" style="background:var(--dark);padding-top:32px;">
   <div style="max-width:1100px;margin:0 auto;">
     <div class="clips-stats">
-      SHOWING <span id="clipCount">{{total}}</span> CLIPS
+      SHOWING <span id="clipCount">{total}</span> CLIPS
       &nbsp;&middot;&nbsp; <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" style="color:var(--crimson-mid);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;">SUBSCRIBE ON YOUTUBE &#8599;</a>
     </div>
     <div id="clipsGrid">
-{{cards_html}}
+{cards_html}
     </div>
   </div>
 </section>
