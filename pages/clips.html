@@ -18,6 +18,12 @@
     .filter-btn:hover{color:var(--white);border-color:rgba(139,0,0,0.5);background:rgba(139,0,0,0.06)}
     .filter-btn.game-btn.active{color:var(--white);background:rgba(139,0,0,0.2);border-color:var(--crimson-mid)}
     .filter-btn.type-btn.active{color:var(--dark);background:var(--gold);border-color:var(--gold)}
+    .game-section{margin-bottom:48px}
+    .game-section.hidden{display:none}
+    .game-section-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-top:8px}
+    .game-section-label{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+    .game-section-line{flex:1;height:1px;background:linear-gradient(to right,rgba(201,168,76,0.4),transparent)}
+    .game-section-header .game-section-line:first-child{background:linear-gradient(to left,rgba(201,168,76,0.4),transparent)}
     .clips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:2px}
     .clip-card{background:var(--dark-2);border:1px solid rgba(139,0,0,0.15);overflow:hidden;transition:border-color 0.3s;position:relative}
     .clip-card:hover{border-color:rgba(139,0,0,0.4)}
@@ -127,6 +133,14 @@
       &nbsp;&middot;&nbsp; <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" style="color:var(--crimson-mid);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;">SUBSCRIBE ON YOUTUBE &#8599;</a>
     </div>
     <div class="clips-grid" id="clipsGrid">
+
+      <div class="game-section" data-section="crimson-desert">
+        <div class="game-section-header">
+          <div class="game-section-line"></div>
+          <span class="game-section-label">Crimson Desert</span>
+          <div class="game-section-line"></div>
+        </div>
+        <div class="clips-grid">
 
       <div class="clip-card reveal" data-game="crimson-desert" data-type="challenge">
         <div class="clip-thumb" onclick="openClip('l_xRpfrArUU','Crimson Desert — Crimson Dessert |Challenge| - Red River Ancient Ruins','Crimson Desert · Challenge')">
@@ -311,6 +325,16 @@
           </div>
         </div>
       </div>
+        </div>
+      </div>
+
+      <div class="game-section" data-section="black myth: wukong">
+        <div class="game-section-header">
+          <div class="game-section-line"></div>
+          <span class="game-section-label">Black Myth: Wukong</span>
+          <div class="game-section-line"></div>
+        </div>
+        <div class="clips-grid">
 
       <div class="clip-card reveal" data-game="black myth: wukong" data-type="boss">
         <div class="clip-thumb" onclick="openClip('UC4wnVRUYRo','Black Myth: Wukong — Black Myth: Wukong - |Boss| - Toad King','Black Myth: Wukong · Boss')">
@@ -518,6 +542,8 @@
           </div>
         </div>
       </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -556,11 +582,23 @@
     if (dim === 'game') activeGame = btn.dataset.game;
     if (dim === 'type') activeType = btn.dataset.type;
     var count = 0;
+    // Show/hide sections based on game filter
+    document.querySelectorAll('.game-section').forEach(function(sec) {
+      var gameMatch = activeGame === 'all' || sec.dataset.section === activeGame;
+      sec.classList.toggle('hidden', !gameMatch);
+    });
+    // Show/hide cards based on type filter
     document.querySelectorAll('.clip-card').forEach(function(card) {
-      var show = (activeGame === 'all' || card.dataset.game === activeGame) &&
-                 (activeType === 'all' || card.dataset.type === activeType);
-      card.classList.toggle('hidden', !show);
-      if (show) count++;
+      var gameMatch = activeGame === 'all' || card.dataset.game === activeGame;
+      var typeMatch = activeType === 'all' || card.dataset.type === activeType;
+      card.classList.toggle('hidden', !gameMatch || !typeMatch);
+      if (gameMatch && typeMatch) count++;
+    });
+    // Hide sections where all cards are hidden
+    document.querySelectorAll('.game-section').forEach(function(sec) {
+      if (activeGame !== 'all') return;
+      var visible = sec.querySelectorAll('.clip-card:not(.hidden)').length;
+      sec.classList.toggle('hidden', visible === 0);
     });
     document.getElementById('clipCount').textContent = count;
   }
