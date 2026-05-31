@@ -13,7 +13,7 @@
     }
     .games-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 2px;
     }
     .game-card {
@@ -126,6 +126,9 @@
       color: var(--grey); text-align: center; margin-top: 14px; text-transform: uppercase;
     }
 
+    @media (max-width: 1024px) {
+      .games-grid { grid-template-columns: repeat(2, 1fr); }
+    }
     @media (max-width: 768px) {
       .games-hero { padding: calc(var(--nav-height) + 40px) 20px 40px; }
       .games-grid { grid-template-columns: 1fr; }
