@@ -70,7 +70,7 @@ const REVIEWS_DATA = [
     "trailerId": "CdQU5fzkXwA",
     "studioLink": "https://www.warframe.com",
     "description": "A fast-paced online sci-fi action game blending shooting and sword combat as you control powerful Tenno warriors.",
-    "image": "../img/reviews/Warframe.jpg",
+    "image": "../img/games/warframe.jpg",
     "slug": "warframe"
   },
   {
@@ -107,7 +107,7 @@ const REVIEWS_DATA = [
     "trailerId": "zlEZzjpEbko",
     "studioLink": "https://borderlands.com",
     "description": "Gearbox returns with over-the-top chaos, wild humor, and explosive new co-op mayhem across alien worlds.",
-    "image": "../img/reviews/borderlands-4-red-3840x2160-22446_edited.jpg",
+    "image": "../img/games/borderlands4.jpg",
     "slug": "borderlands-4"
   },
   {
@@ -144,7 +144,7 @@ const REVIEWS_DATA = [
     "trailerId": "ZSWN-VP0lD8",
     "studioLink": "https://www.bungie.net",
     "description": "Join the Guardians and explore the stars in this genre-defining online shooter.",
-    "image": "../img/reviews/destiny2_edited.jpg",
+    "image": "../img/games/destiny2.jpg",
     "slug": "destiny-2"
   },
   {
@@ -181,7 +181,7 @@ const REVIEWS_DATA = [
     "trailerId": "tfxxuVVGjPM",
     "studioLink": "https://www.pathofexile.com",
     "description": "A dark, complex ARPG featuring deep skill trees, brutal combat, and endless replayability.",
-    "image": "../img/reviews/POE.jpg",
+    "image": "../img/games/poe.jpg",
     "slug": "path-of-exile"
   }
 ];
