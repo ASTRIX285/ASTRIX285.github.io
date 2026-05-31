@@ -12,9 +12,9 @@ from datetime import datetime
 API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
 
 PLAYLISTS = [
-    {'game': 'stream-clips',      'label': 'Stream Clips',      'id': 'PLYwP61l5jB7T4PdLZAenCjMrVrD-hhd_I'},
+   # {'game': 'stream-clips',      'label': 'Stream Clips',      'id': 'PLYwP61l5jB7T4PdLZAenCjMrVrD-hhd_I'},
     {'game': 'crimson-desert',    'label': 'Crimson Desert',    'id': 'PLYwP61l5jB7RKcMiDhH34xc1JpZg3xrGi'},
-    {'game': 'black-myth-wukong', 'label': 'Black Myth: Wukong','id': 'PLYwP61l5jB7RlDQMOa7ibloAxJMT4gbkV'},
+    {'game': 'black-myth-wukong', 'label': 'Black Myth: Wukong', 'id': 'PLYwP61l5jB7RlDQMOa7ibloAxJMT4gbkV'},
     {'game': 'god-of-war',        'label': 'God of War',        'id': 'PLYwP61l5jB7RCG1LA_4ZZWqCMdtHhgP7l'},
     {'game': 'destiny',           'label': 'Destiny',           'id': 'PLYwP61l5jB7S2nt10JFHXRKblkEQ_kEy3'},
     # Add more as content grows:
@@ -26,7 +26,7 @@ PLAYLISTS = [
 # ── TYPE DETECTION ───────────────────────────────────────────
 # Order matters — first match wins
 TYPE_RULES = [
-    ('boss',      ['boss', 'tenebrum', 'boss kill', 'killed', 'defeated', 'slain', 'fight']),
+    ('boss',      ['boss', 'boss kill', 'killed', 'defeated', 'slain', 'fight']),
     ('guide',     ['guide', 'how to', 'how-to', 'tutorial', 'tips', 'explained']),
     ('build',     ['build', 'setup', 'loadout', 'gear', 'equipment', 'spec', 'patch']),
     ('pve',       ['pve', 'dungeon', 'raid', 'camp', 'expansion', 'quest', 'mission', 'request']),
