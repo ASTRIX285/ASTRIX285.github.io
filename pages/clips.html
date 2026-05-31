@@ -101,9 +101,10 @@
       <span class="filter-label">Game</span>
       <div class="filter-pills">
         <button class="filter-btn game-btn active" data-game="all" onclick="filterClips(this,'game')">All</button>
+        <button class="filter-btn game-btn" data-game="stream-clips" onclick="filterClips(this,'game')">Stream Clips</button>
         <button class="filter-btn game-btn" data-game="crimson-desert" onclick="filterClips(this,'game')">Crimson Desert</button>
         <button class="filter-btn game-btn" data-game="black-myth-wukong" onclick="filterClips(this,'game')">Black Myth: Wukong</button>
-        <button class="filter-btn game-btn" data-game="god of war" onclick="filterClips(this,'game')">God of War</button>
+        <button class="filter-btn game-btn" data-game="god-of-war" onclick="filterClips(this,'game')">God of War</button>
         <button class="filter-btn game-btn" data-game="destiny" onclick="filterClips(this,'game')">Destiny</button>
       </div>
     </div>
@@ -128,10 +129,41 @@
 <section class="section" style="background:var(--dark);padding-top:32px;">
   <div style="max-width:1100px;margin:0 auto;">
     <div class="clips-stats">
-      SHOWING <span id="clipCount">59</span> CLIPS
+      SHOWING <span id="clipCount">60</span> CLIPS
       &nbsp;&middot;&nbsp; <a href="https://www.youtube.com/@ASTRIXPARADOX" target="_blank" style="color:var(--crimson-mid);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;">SUBSCRIBE ON YOUTUBE &#8599;</a>
     </div>
     <div id="clipsGrid">
+
+      <div class="game-section" data-section="stream-clips">
+        <div class="game-section-header">
+          <div class="game-section-line"></div>
+          <span class="game-section-label">Stream Clips</span>
+          <div class="game-section-line"></div>
+        </div>
+        <div class="clips-grid">
+
+      <div class="clip-card reveal" data-game="stream-clips" data-type="highlight">
+        <div class="clip-thumb" onclick="openClip('BjpmrLw86LE','Stream Clips — Crimson Desert |Highlight| - Fishing Docks & Catching Livelies','Stream Clips · Highlight')">
+          <img src="https://img.youtube.com/vi/BjpmrLw86LE/maxresdefault.jpg" alt="Crimson Desert |Highlight| - Fishing Docks & Catching Livelies" onerror="this.src='../img/games/stream-clips.jpg'">
+          <div class="clip-thumb-overlay">
+            <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="clip-game-badge">Stream Clips</div>
+          <div class="clip-type-badge">Highlight</div>
+          <div class="clip-duration">1:32</div>
+        </div>
+        <div class="clip-body">
+          <div class="clip-title">Crimson Desert |Highlight| - Fishing Docks & Catching Livelies</div>
+          <div class="clip-meta">
+            <span class="clip-date">May 31, 2026</span>
+            <div class="clip-links">
+              <a href="https://www.youtube.com/watch?v=BjpmrLw86LE" target="_blank" class="clip-link">YouTube &#8599;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+        </div>
+      </div>
 
       <div class="game-section" data-section="crimson-desert">
         <div class="game-section-header">
@@ -510,7 +542,7 @@
         </div>
       </div>
 
-      <div class="game-section" data-section="god of war">
+      <div class="game-section" data-section="god-of-war">
         <div class="game-section-header">
           <div class="game-section-line"></div>
           <span class="game-section-label">God of War</span>
@@ -518,9 +550,9 @@
         </div>
         <div class="clips-grid">
 
-      <div class="clip-card reveal" data-game="god of war" data-type="boss">
+      <div class="clip-card reveal" data-game="god-of-war" data-type="boss">
         <div class="clip-thumb" onclick="openClip('Y8jtbfgtBVo','God of War — God of War 4 - Hildr - Valkyrie BOSS FIGTH (God of War 2018) PS4','God of War · Boss')">
-          <img src="https://img.youtube.com/vi/Y8jtbfgtBVo/maxresdefault.jpg" alt="God of War 4 - Hildr - Valkyrie BOSS FIGTH (God of War 2018) PS4" onerror="this.src='../img/games/god of war.jpg'">
+          <img src="https://img.youtube.com/vi/Y8jtbfgtBVo/maxresdefault.jpg" alt="God of War 4 - Hildr - Valkyrie BOSS FIGTH (God of War 2018) PS4" onerror="this.src='../img/games/god-of-war.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
@@ -539,9 +571,9 @@
         </div>
       </div>
 
-      <div class="clip-card reveal reveal-delay-1" data-game="god of war" data-type="boss">
+      <div class="clip-card reveal reveal-delay-1" data-game="god-of-war" data-type="boss">
         <div class="clip-thumb" onclick="openClip('AsGGDE8_z4I','God of War — God of War 4 - Rota - Valkyrie - BOSS FIGTH (God of War 2018) PS4','God of War · Boss')">
-          <img src="https://img.youtube.com/vi/AsGGDE8_z4I/maxresdefault.jpg" alt="God of War 4 - Rota - Valkyrie - BOSS FIGTH (God of War 2018) PS4" onerror="this.src='../img/games/god of war.jpg'">
+          <img src="https://img.youtube.com/vi/AsGGDE8_z4I/maxresdefault.jpg" alt="God of War 4 - Rota - Valkyrie - BOSS FIGTH (God of War 2018) PS4" onerror="this.src='../img/games/god-of-war.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
@@ -560,9 +592,9 @@
         </div>
       </div>
 
-      <div class="clip-card reveal reveal-delay-2" data-game="god of war" data-type="boss">
+      <div class="clip-card reveal reveal-delay-2" data-game="god-of-war" data-type="boss">
         <div class="clip-thumb" onclick="openClip('HSOm4PovypA','God of War — God of War 4 - Olron - Valkyrie BOSS FIGHT (God of War 2018) PS4','God of War · Boss')">
-          <img src="https://img.youtube.com/vi/HSOm4PovypA/maxresdefault.jpg" alt="God of War 4 - Olron - Valkyrie BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god of war.jpg'">
+          <img src="https://img.youtube.com/vi/HSOm4PovypA/maxresdefault.jpg" alt="God of War 4 - Olron - Valkyrie BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god-of-war.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
@@ -581,9 +613,9 @@
         </div>
       </div>
 
-      <div class="clip-card reveal" data-game="god of war" data-type="boss">
+      <div class="clip-card reveal" data-game="god-of-war" data-type="boss">
         <div class="clip-thumb" onclick="openClip('ngvzWO3QiW8','God of War — God of War 4  - Eir - Valkyrie BOSS FIGHT (God of War 2018) PS4','God of War · Boss')">
-          <img src="https://img.youtube.com/vi/ngvzWO3QiW8/maxresdefault.jpg" alt="God of War 4  - Eir - Valkyrie BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god of war.jpg'">
+          <img src="https://img.youtube.com/vi/ngvzWO3QiW8/maxresdefault.jpg" alt="God of War 4  - Eir - Valkyrie BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god-of-war.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
@@ -602,9 +634,9 @@
         </div>
       </div>
 
-      <div class="clip-card reveal reveal-delay-1" data-game="god of war" data-type="boss">
+      <div class="clip-card reveal reveal-delay-1" data-game="god-of-war" data-type="boss">
         <div class="clip-thumb" onclick="openClip('4U9THhAnX6Y','God of War — God of War 4 - Gunner - Valkyrie  BOSS FIGHT (God of War 2018) PS4','God of War · Boss')">
-          <img src="https://img.youtube.com/vi/4U9THhAnX6Y/maxresdefault.jpg" alt="God of War 4 - Gunner - Valkyrie  BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god of war.jpg'">
+          <img src="https://img.youtube.com/vi/4U9THhAnX6Y/maxresdefault.jpg" alt="God of War 4 - Gunner - Valkyrie  BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god-of-war.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
@@ -623,9 +655,9 @@
         </div>
       </div>
 
-      <div class="clip-card reveal reveal-delay-2" data-game="god of war" data-type="boss">
+      <div class="clip-card reveal reveal-delay-2" data-game="god-of-war" data-type="boss">
         <div class="clip-thumb" onclick="openClip('DWsDYfgjeXw','God of War — God of War 4 - Geirdriful  - Valkyrie BOSS FIGHT (God of War 2018) PS4','God of War · Boss')">
-          <img src="https://img.youtube.com/vi/DWsDYfgjeXw/maxresdefault.jpg" alt="God of War 4 - Geirdriful  - Valkyrie BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god of war.jpg'">
+          <img src="https://img.youtube.com/vi/DWsDYfgjeXw/maxresdefault.jpg" alt="God of War 4 - Geirdriful  - Valkyrie BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god-of-war.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
@@ -644,9 +676,9 @@
         </div>
       </div>
 
-      <div class="clip-card reveal" data-game="god of war" data-type="boss">
+      <div class="clip-card reveal" data-game="god-of-war" data-type="boss">
         <div class="clip-thumb" onclick="openClip('9xABLI0qDt0','God of War — God Of War 4 - Svartaljqfurr - Alfheim BOSS FIGHT (God of War 2018) PS4','God of War · Boss')">
-          <img src="https://img.youtube.com/vi/9xABLI0qDt0/maxresdefault.jpg" alt="God Of War 4 - Svartaljqfurr - Alfheim BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god of war.jpg'">
+          <img src="https://img.youtube.com/vi/9xABLI0qDt0/maxresdefault.jpg" alt="God Of War 4 - Svartaljqfurr - Alfheim BOSS FIGHT (God of War 2018) PS4" onerror="this.src='../img/games/god-of-war.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
@@ -665,9 +697,9 @@
         </div>
       </div>
 
-      <div class="clip-card reveal reveal-delay-1" data-game="god of war" data-type="boss">
+      <div class="clip-card reveal reveal-delay-1" data-game="god-of-war" data-type="boss">
         <div class="clip-thumb" onclick="openClip('N5bLP3noSS4','God of War — God of War 4 - HRAZLYR the Dragon Boss Fight (God of War 2018) PS4','God of War · Boss')">
-          <img src="https://img.youtube.com/vi/N5bLP3noSS4/maxresdefault.jpg" alt="God of War 4 - HRAZLYR the Dragon Boss Fight (God of War 2018) PS4" onerror="this.src='../img/games/god of war.jpg'">
+          <img src="https://img.youtube.com/vi/N5bLP3noSS4/maxresdefault.jpg" alt="God of War 4 - HRAZLYR the Dragon Boss Fight (God of War 2018) PS4" onerror="this.src='../img/games/god-of-war.jpg'">
           <div class="clip-thumb-overlay">
             <div class="clip-play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
