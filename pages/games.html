@@ -13,7 +13,7 @@
     }
     .games-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
       gap: 2px;
     }
     .game-card {
@@ -42,36 +42,39 @@
     }
     .game-card-content {
       position: absolute; bottom: 0; left: 0; right: 0; padding: 24px;
-      transform: translateY(60px); transition: transform 0.4s ease;
     }
-    .game-card:hover .game-card-content { transform: translateY(0); }
     .game-card-tag {
       font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 3px;
       color: var(--gold); text-transform: uppercase; margin-bottom: 8px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s, transform 0.3s;
     }
+    .game-card:hover .game-card-tag { opacity: 1; transform: translateY(0); }
     .game-card-title {
       font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 700;
       color: var(--white); letter-spacing: 1px; margin-bottom: 12px; line-height: 1.2;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.9);
     }
     .game-card-desc {
       font-size: 13px; color: var(--grey); line-height: 1.6;
-      margin-bottom: 16px; opacity: 0; transition: opacity 0.3s 0.1s;
+      margin-bottom: 16px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s 0.05s, transform 0.3s 0.05s;
     }
-    .game-card:hover .game-card-desc { opacity: 1; }
+    .game-card:hover .game-card-desc { opacity: 1; transform: translateY(0); }
     .game-card-actions {
       display: flex; gap: 8px; flex-wrap: wrap;
-      opacity: 0; transition: opacity 0.3s 0.15s;
       margin-bottom: 12px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s 0.1s, transform 0.3s 0.1s;
     }
-    .game-card:hover .game-card-actions { opacity: 1; }
+    .game-card:hover .game-card-actions { opacity: 1; transform: translateY(0); }
     .game-card-btn {
       font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
       padding: 6px 14px; text-transform: uppercase; cursor: pointer;
       border: none; transition: background 0.2s;
     }
-    .game-card-btn.trailer {
-      background: var(--crimson); color: var(--white);
-    }
+    .game-card-btn.trailer { background: var(--crimson); color: var(--white); }
     .game-card-btn.trailer:hover { background: var(--crimson-mid); }
     .game-card-btn.review {
       background: transparent; color: var(--gold);
@@ -82,7 +85,10 @@
       display: inline-block;
       font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
       padding: 4px 12px; text-transform: uppercase;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s 0.15s, transform 0.3s 0.15s;
     }
+    .game-card:hover .game-card-status { opacity: 1; transform: translateY(0); }
     .game-card-status.playing { background: var(--crimson); color: var(--white); }
     .game-card-status.reviewed { border: 1px solid var(--gold-dim); color: var(--gold); }
     .game-card-corner-tl {
@@ -122,7 +128,7 @@
 
     @media (max-width: 768px) {
       .games-hero { padding: calc(var(--nav-height) + 40px) 20px 40px; }
-      .games-grid { grid-template-columns: repeat(2, 1fr); }
+      .games-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .games-grid { grid-template-columns: 1fr; }
