@@ -13,11 +13,15 @@ API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
 
 PLAYLISTS = [
     {'game': 'crimson-desert',    'label': 'Crimson Desert',    'id': 'PLYwP61l5jB7RKcMiDhH34xc1JpZg3xrGi'},
-    {'game': 'black-myth-wukong', 'label': 'Black Myth: Wukong','id': 'PLYwP61l5jB7RlDQMOa7ibloAxJMT4gbkV'},
-    # Add more as content grows:
+    {'game': 'black-myth-wukong', 'label': 'Black Myth: Wukong', 'id': 'PLYwP61l5jB7RlDQMOa7ibloAxJMT4gbkV'},
+    {'game': 'god of war',     'label': 'God of War',     'id': 'PLYwP61l5jB7RCG1LA_4ZZWqCMdtHhgP7l'},
+    {'game': 'destiny',       'label': 'Destiny',       'id': 'PLYwP61l5jB7S2nt10JFHXRKblkEQ_kEy3'},
+     # Add more as content grows:
     # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
-    # {'game': 'borderlands',     'label': 'Borderlands',     'id': 'PLxxxxxxx'},
-    # {'game': 'destiny-2',       'label': 'Destiny 2',       'id': 'PLxxxxxxx'},
+     # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
+     # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
+     # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
+     # {'game': 'warframe',        'label': 'Warframe',        'id': 'PLxxxxxxx'},
 ]
 
 # ── TYPE DETECTION ───────────────────────────────────────────
