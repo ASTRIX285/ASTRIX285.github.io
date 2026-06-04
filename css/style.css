@@ -34,20 +34,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Lock scroll at full expansion */
-body.stream-locked {
-  overflow: hidden;
-}
-body.stream-locked .stream-scroll-track {
-  overflow: hidden;
-}
-body.stream-locked .footer {
-  display: none !important;
-}
-body.stream-locked .stream-actions {
-  display: none !important;
-}
-
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--dark); }
@@ -67,7 +53,7 @@ a { color: inherit; text-decoration: none; }
   z-index: 1000;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 40px;
-  transition: background 0.1s linear, border-color 0.1s linear, opacity 0.4s ease;
+  transition: background 0.1s linear, border-color 0.1s linear;
 }
 .nav-logo {
   display: flex; align-items: center; gap: 12px;
@@ -267,37 +253,9 @@ a { color: inherit; text-decoration: none; }
 }
 .stream-sub { color: var(--grey); font-size: 14px; letter-spacing: 1px; margin-top: 12px; }
 
-/* VOD / live action buttons */
-.stream-actions {
-  display: flex; gap: 16px; flex-wrap: wrap;
-  justify-content: center; padding: 40px 40px 48px;
-}
-.stream-actions-live {
-  background: var(--dark-2);
-  border-top: 1px solid rgba(139,0,0,0.2);
-}
-
 /* ── LIVE STATE ── */
 .stream-live-full { width: 100%; background: #000; position: relative; }
 
-/* 400vh track — scroll distance for clip-path expansion */
-.stream-scroll-track {
-  position: relative;
-  height: 400vh;
-  background: #000;
-}
-
-/* Sticky wrap — full viewport, top:0 so embed covers nav too */
-.stream-sticky-wrap {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  width: 100%;
-  background: #000;
-  overflow: hidden;
-}
-
-/* LIVE NOW badge */
 .stream-live-badge {
   display: inline-block;
   font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 4px;
@@ -305,69 +263,54 @@ a { color: inherit; text-decoration: none; }
   animation: navPulse 1.5s infinite;
 }
 
-/* Header text — centred over embed, JS fades it out */
 .stream-live-header {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  text-align: center;
+  position: relative; z-index: 2;
+  text-align: center; padding: 40px 40px 32px;
+}
+
+/* ── LIVE EMBED — expands on scroll via JS scaleX ── */
+.stream-live-embed {
   width: 100%;
-  padding: 0 40px;
-  pointer-events: none;
-  will-change: opacity;
-}
-
-/* ── CLIP-PATH REVEAL EMBED ── */
-/* Starts as a small centred window, JS expands to full bleed */
-.stream-embed-clipper {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 5;
+  aspect-ratio: 16 / 9;
   background: #000;
-  clip-path: inset(30% 35% 30% 35%);
-  will-change: clip-path;
+  position: relative;
+  transform-origin: center;
+  transform: scaleX(0.6);
+  transition: transform 0.1s linear;
+  will-change: transform;
 }
-.stream-embed-clipper.fully-open {
-  clip-path: inset(0% 0% 0% 0%);
+.stream-live-embed.expanded {
+  transform: scaleX(1);
 }
-
-/* Edge fade vignette — disappears when fully open */
-.stream-embed-clipper::before,
-.stream-embed-clipper::after {
-  content: ''; position: absolute;
-  top: 0; bottom: 0; width: 10%;
-  z-index: 6; pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-.stream-embed-clipper::before { left: 0; background: linear-gradient(to right, #000, transparent); }
-.stream-embed-clipper::after  { right: 0; background: linear-gradient(to left, #000, transparent); }
-.stream-embed-clipper.fully-open::before,
-.stream-embed-clipper.fully-open::after { opacity: 0; }
-
-/* iframe fills the clipper */
-.stream-embed-clipper iframe {
-  position: absolute; top: 0; left: 0;
+.stream-live-embed iframe {
+  position: absolute; inset: 0;
   width: 100%; height: 100%;
   border: none; display: block;
 }
 
-/* ── VOD SECTION (offline with last broadcast) ── */
+/* Action buttons */
+.stream-actions {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  justify-content: center; padding: 32px 40px 48px;
+}
+.stream-actions-live {
+  background: var(--dark-2);
+  border-top: 1px solid rgba(139,0,0,0.2);
+}
+
+/* ── VOD SECTION ── */
 #vodSection {
   width: 100%; padding: 40px 40px 20px;
   background: #000; position: relative; z-index: 2;
 }
 #vodSection .stream-live-header {
-  position: relative; top: auto; left: auto; transform: none;
-  padding: 0 0 24px; background: none; pointer-events: all;
-  text-align: center; width: 100%;
+  padding: 0 0 24px; background: none; text-align: center; width: 100%;
 }
 #vodSection .stream-live-embed {
   width: 100%; max-width: 889px;
   margin: 0 auto; aspect-ratio: 16 / 9;
   background: #000; position: relative;
+  transform: none !important;
 }
 #vodSection .stream-live-embed iframe {
   position: absolute; inset: 0;
@@ -489,15 +432,9 @@ a { color: inherit; text-decoration: none; }
   }
 
   .stream-offline-content { padding: 40px 20px; }
-  .stream-scroll-track { height: auto; }
-  .stream-sticky-wrap { position: relative; height: 56vw; }
-  .stream-embed-clipper { clip-path: inset(0% 0% 0% 0%) !important; }
-  .stream-embed-clipper::before,
-  .stream-embed-clipper::after { display: none; }
-  .stream-live-header { position: relative; top: auto; left: auto; transform: none; padding: 40px 20px 24px; }
+  .stream-live-embed { transform: scaleX(1) !important; }
   .stream-actions { padding: 24px 20px 32px; flex-direction: column; align-items: stretch; }
   .stream-actions a { text-align: center; }
-  body.stream-locked { overflow: auto; }
 
   .section + .gold-line + section > div {
     grid-template-columns: repeat(2,1fr) !important;
