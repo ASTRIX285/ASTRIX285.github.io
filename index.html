@@ -149,19 +149,34 @@
     </div>
   </div>
 
-  <!-- LIVE STATE -->
+  <!-- LIVE STATE — fixed structure with scroll track + sticky wrap + clip-path embed -->
   <div class="stream-live-full" id="streamLive" style="display:none;">
-    <div class="stream-live-header">
-      <div class="stream-live-badge">🔴 LIVE NOW</div>
-      <div class="section-eyebrow">Live Transmission</div>
-      <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
-      <p class="stream-sub">Streaming live from inside the Paradox</p>
-    </div>
-    <div class="stream-live-embed">
-      <iframe id="twitchIframe"
-        src="https://player.twitch.tv/?channel=astrix285x&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=true&muted=false"
-        allowfullscreen="true" frameborder="0" scrolling="no" allow="autoplay; fullscreen"></iframe>
-    </div>
+
+    <!-- 400vh scroll track provides scroll distance for clip-path expansion -->
+    <div class="stream-scroll-track">
+
+      <!-- Sticky wrap — pins to viewport top while scrolling through track -->
+      <div class="stream-sticky-wrap">
+
+        <!-- Header text — JS fades this out as embed expands -->
+        <div class="stream-live-header">
+          <div class="stream-live-badge">🔴 LIVE NOW &nbsp;·&nbsp; LIVE TRANSMISSION</div>
+          <div class="section-eyebrow" style="margin-top:16px;">Live Transmission</div>
+          <h2 class="section-title">Watch the <span class="accent">Hunt</span> Unfold</h2>
+          <p class="stream-sub">Streaming live from inside the Paradox</p>
+        </div>
+
+        <!-- Clip-path reveal wrapper — JS drives inset() from 30%/35% → 0% on scroll -->
+        <div class="stream-embed-clipper">
+          <iframe id="twitchIframe"
+            src="https://player.twitch.tv/?channel=astrix285x&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=true&muted=false"
+            allowfullscreen="true" frameborder="0" scrolling="no" allow="autoplay; fullscreen"></iframe>
+        </div>
+
+      </div><!-- /.stream-sticky-wrap -->
+    </div><!-- /.stream-scroll-track -->
+
+    <!-- Action buttons sit below the scroll track -->
     <div class="stream-actions stream-actions-live">
       <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-primary">▶ &nbsp; Watch on Twitch</a>
       <a href="https://www.twitch.tv/astrix285x/videos" target="_blank" class="btn-secondary">Past Broadcasts ↗</a>
@@ -170,7 +185,8 @@
         Share on Facebook
       </a>
     </div>
-  </div>
+
+  </div><!-- /.stream-live-full -->
 
 </section>
 
