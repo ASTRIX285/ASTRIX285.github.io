@@ -28,55 +28,21 @@ function setupReveal() {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-// ── MOVE STREAM SECTION TO END OF PAGE (live only) ──────────
-function moveStreamToEnd() {
-  const section   = document.getElementById('streamSection');
-  const goldLine  = document.getElementById('streamGoldLine');
-  const footer    = document.querySelector('.footer');
-  if (!section || !footer) return;
-
-  // Move the gold line divider and stream section to just before footer
-  if (goldLine) document.body.insertBefore(goldLine, footer);
-  document.body.insertBefore(section, footer);
-}
-
-// ── STREAM EMBED SCROLL EXPANSION + LOCK (LIVE) ─────────────
+// ── STREAM EMBED SCROLL EXPANSION ───────────────────────────
 function setupStreamExpansion() {
-  const track   = document.querySelector('.stream-scroll-track');
-  const clipper = document.querySelector('.stream-embed-clipper');
-  const header  = document.querySelector('.stream-live-header');
-  const nav     = document.querySelector('.nav');
-  if (!track || !clipper) return;
+  const embed = document.querySelector('.stream-live-embed');
+  if (!embed) return;
 
   function onScroll() {
-    const scrollY  = window.scrollY;
-    const trackTop = track.getBoundingClientRect().top + scrollY;
-    const trackH   = track.offsetHeight;
-    const winH     = window.innerHeight;
-    const progress = Math.min(1, Math.max(0, (scrollY - trackTop) / (trackH - winH)));
-
-    // Inset collapses from 30%/35% → 0%
-    const tb = 30 - (30 * progress);
-    const lr = 35 - (35 * progress);
-    clipper.style.clipPath = `inset(${tb}% ${lr}% ${tb}% ${lr}%)`;
-
-    // Fade header out
-    if (header) header.style.opacity = String(Math.max(0, 1 - progress * 3));
-
-    // Fade nav out past 60% progress
-    if (nav) nav.style.opacity = String(Math.max(0, 1 - Math.max(0, (progress - 0.6) * 2.5)));
-
-    if (progress >= 0.99) {
-      clipper.classList.add('fully-open');
-      clipper.style.clipPath = 'inset(0% 0% 0% 0%)';
-      if (header) header.style.opacity = '0';
-      if (nav) { nav.style.opacity = '0'; nav.style.pointerEvents = 'none'; }
-      document.body.classList.add('stream-locked');
-    } else {
-      clipper.classList.remove('fully-open');
-      document.body.classList.remove('stream-locked');
-      if (nav) { nav.style.opacity = ''; nav.style.pointerEvents = ''; }
-    }
+    const rect = embed.getBoundingClientRect();
+    const winH  = window.innerHeight;
+    const distFromCenter = Math.abs((rect.top + rect.height / 2) - winH / 2);
+    const maxDist = winH / 2 + rect.height / 2;
+    const progress = Math.max(0, 1 - distFromCenter / (maxDist * 0.6));
+    const scale = 0.6 + (0.4 * progress);
+    embed.style.transform = `scaleX(${scale})`;
+    if (scale >= 0.99) embed.classList.add('expanded');
+    else embed.classList.remove('expanded');
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -91,14 +57,20 @@ function setOfflineVod(data) {
   const vodTwLink   = document.getElementById('vodTwLink');
   const vodSection  = document.getElementById('vodSection');
   const vodFallback = document.getElementById('vodFallback');
-  const offlineFull = document.getElementById('streamOffline');
 
   if (data.vod_id && vodEmbed) {
     vodEmbed.src = `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
+    const offlineFull = document.getElementById('streamOffline');
     if (offlineFull) offlineFull.classList.add('has-vod');
-    if (vodTitle)    vodTitle.textContent = data.vod_title || 'Latest Stream';
-    if (vodTwLink)   vodTwLink.href       = data.vod_url   || `https://twitch.tv/${TWITCH_CHANNEL}`;
-    if (vodFbLink)   vodFbLink.href       = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
+
+    if (vodTitle)  vodTitle.textContent = data.vod_title || 'Latest Stream';
+    if (vodTwLink) vodTwLink.href       = data.vod_url   || `https://twitch.tv/${TWITCH_CHANNEL}`;
+
+    if (vodFbLink) {
+      const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
+      vodFbLink.href = fbShareUrl;
+    }
+
     if (vodSection)  vodSection.style.display  = 'block';
     if (vodFallback) vodFallback.style.display = 'none';
   } else {
@@ -120,17 +92,13 @@ async function checkTwitchLive() {
     const data = await res.json();
 
     if (data.live) {
-      // ── LIVE — move stream to end, then show and expand ──
       if (navDot)  navDot.classList.add('live');
       if (navText) navText.textContent = '🔴 LIVE NOW';
       if (liveEl)    liveEl.style.display    = 'block';
       if (offlineEl) offlineEl.style.display = 'none';
       document.title = `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX285`;
-      moveStreamToEnd();
-      requestAnimationFrame(setupStreamExpansion);
-
+      setupStreamExpansion();
     } else {
-      // ── OFFLINE — stream stays in original position ──
       if (navDot)    navDot.classList.remove('live');
       if (navText)   navText.textContent = 'OFFLINE';
       if (offlineEl) offlineEl.style.display = 'flex';
