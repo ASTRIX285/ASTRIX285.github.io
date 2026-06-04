@@ -29,67 +29,43 @@ function setupReveal() {
 }
 
 // ── STREAM EMBED SCROLL EXPANSION + LOCK (LIVE) ─────────────
+// Stream is the LAST section on the page.
+// Once fully expanded, scroll locks permanently — footer is hidden by CSS.
 function setupStreamExpansion() {
   const track   = document.querySelector('.stream-scroll-track');
   const clipper = document.querySelector('.stream-embed-clipper');
   const header  = document.querySelector('.stream-live-header');
   if (!track || !clipper) return;
 
-  let locked = false;
-
-  function getProgress() {
+  function onScroll() {
     const scrollY  = window.scrollY;
     const trackTop = track.getBoundingClientRect().top + scrollY;
     const trackH   = track.offsetHeight;
     const winH     = window.innerHeight;
-    return Math.min(1, Math.max(0, (scrollY - trackTop) / (trackH - winH)));
-  }
-
-  function onScroll() {
-    const progress = getProgress();
+    const progress = Math.min(1, Math.max(0, (scrollY - trackTop) / (trackH - winH)));
 
     // Inset collapses from 30%/35% → 0%
     const tb = 30 - (30 * progress);
     const lr = 35 - (35 * progress);
     clipper.style.clipPath = `inset(${tb}% ${lr}% ${tb}% ${lr}%)`;
 
-    // Fade header out
+    // Fade header out as embed expands
     if (header) header.style.opacity = String(Math.max(0, 1 - progress * 3));
 
     if (progress >= 0.99) {
-      // Fully open — lock scroll
+      // Fully open — lock permanently, hide footer
       clipper.classList.add('fully-open');
       clipper.style.clipPath = 'inset(0% 0% 0% 0%)';
       if (header) header.style.opacity = '0';
-      if (!locked) {
-        locked = true;
-        document.body.classList.add('stream-locked');
-      }
+      document.body.classList.add('stream-locked');
     } else {
-      // Still expanding — ensure unlocked
+      // Still expanding — stay unlocked
       clipper.classList.remove('fully-open');
-      if (locked) {
-        locked = false;
-        document.body.classList.remove('stream-locked');
-      }
-    }
-  }
-
-  // Separate handler: unlock body once user scrolls past the track bottom
-  // so they can continue down the page
-  function checkScrollPast() {
-    if (!locked) return;
-    const progress = getProgress();
-    // Allow scrolling past once fully expanded — remove lock after brief hold
-    if (progress >= 1) {
-      // User has reached end of track — release lock so page continues
       document.body.classList.remove('stream-locked');
-      locked = false;
     }
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('scroll', checkScrollPast, { passive: true });
   onScroll();
 }
 
