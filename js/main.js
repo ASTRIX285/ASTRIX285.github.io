@@ -29,12 +29,11 @@ function setupReveal() {
 }
 
 // ── STREAM EMBED SCROLL EXPANSION + LOCK (LIVE) ─────────────
-// Stream is the LAST section on the page.
-// Once fully expanded, scroll locks permanently — footer is hidden by CSS.
 function setupStreamExpansion() {
   const track   = document.querySelector('.stream-scroll-track');
   const clipper = document.querySelector('.stream-embed-clipper');
   const header  = document.querySelector('.stream-live-header');
+  const nav     = document.querySelector('.nav');
   if (!track || !clipper) return;
 
   function onScroll() {
@@ -52,16 +51,26 @@ function setupStreamExpansion() {
     // Fade header out as embed expands
     if (header) header.style.opacity = String(Math.max(0, 1 - progress * 3));
 
+    // Fade nav out as embed expands past 60%
+    if (nav) nav.style.opacity = String(Math.max(0, 1 - Math.max(0, (progress - 0.6) * 2.5)));
+
     if (progress >= 0.99) {
-      // Fully open — lock permanently, hide footer
+      // Fully open — lock, hide nav, hide actions, embed fills page
       clipper.classList.add('fully-open');
       clipper.style.clipPath = 'inset(0% 0% 0% 0%)';
       if (header) header.style.opacity = '0';
+      if (nav) {
+        nav.style.opacity = '0';
+        nav.style.pointerEvents = 'none';
+      }
       document.body.classList.add('stream-locked');
     } else {
-      // Still expanding — stay unlocked
       clipper.classList.remove('fully-open');
       document.body.classList.remove('stream-locked');
+      if (nav) {
+        nav.style.opacity = '';
+        nav.style.pointerEvents = '';
+      }
     }
   }
 
