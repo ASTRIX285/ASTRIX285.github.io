@@ -28,43 +28,68 @@ function setupReveal() {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-// ── STREAM EMBED SCROLL EXPANSION (LIVE) ────────────────────
-// Drives clip-path reveal on the .stream-embed-clipper element
-// as the user scrolls through the 400vh .stream-scroll-track
+// ── STREAM EMBED SCROLL EXPANSION + LOCK (LIVE) ─────────────
 function setupStreamExpansion() {
   const track   = document.querySelector('.stream-scroll-track');
   const clipper = document.querySelector('.stream-embed-clipper');
   const header  = document.querySelector('.stream-live-header');
   if (!track || !clipper) return;
 
+  let locked = false;
+
+  function getProgress() {
+    const scrollY  = window.scrollY;
+    const trackTop = track.getBoundingClientRect().top + scrollY;
+    const trackH   = track.offsetHeight;
+    const winH     = window.innerHeight;
+    return Math.min(1, Math.max(0, (scrollY - trackTop) / (trackH - winH)));
+  }
+
   function onScroll() {
-    const scrollY    = window.scrollY;
-    const trackTop   = track.offsetTop;
-    const trackH     = track.offsetHeight;
-    const winH       = window.innerHeight;
+    const progress = getProgress();
 
-    // progress 0→1 through the scroll track
-    const raw      = (scrollY - trackTop) / (trackH - winH);
-    const progress = Math.min(1, Math.max(0, raw));
-
-    // Inset: starts at 30% top/bottom, 35% sides → collapses to 0
-    const tb = 30 - (30 * progress);   // top/bottom inset %
-    const lr = 35 - (35 * progress);   // left/right inset %
-
+    // Inset collapses from 30%/35% → 0%
+    const tb = 30 - (30 * progress);
+    const lr = 35 - (35 * progress);
     clipper.style.clipPath = `inset(${tb}% ${lr}% ${tb}% ${lr}%)`;
 
-    // Fade header out as embed expands
-    if (header) header.style.opacity = String(1 - Math.min(1, progress * 3));
+    // Fade header out
+    if (header) header.style.opacity = String(Math.max(0, 1 - progress * 3));
 
-    // Mark fully open at 99%+
     if (progress >= 0.99) {
+      // Fully open — lock scroll
       clipper.classList.add('fully-open');
+      clipper.style.clipPath = 'inset(0% 0% 0% 0%)';
+      if (header) header.style.opacity = '0';
+      if (!locked) {
+        locked = true;
+        document.body.classList.add('stream-locked');
+      }
     } else {
+      // Still expanding — ensure unlocked
       clipper.classList.remove('fully-open');
+      if (locked) {
+        locked = false;
+        document.body.classList.remove('stream-locked');
+      }
+    }
+  }
+
+  // Separate handler: unlock body once user scrolls past the track bottom
+  // so they can continue down the page
+  function checkScrollPast() {
+    if (!locked) return;
+    const progress = getProgress();
+    // Allow scrolling past once fully expanded — remove lock after brief hold
+    if (progress >= 1) {
+      // User has reached end of track — release lock so page continues
+      document.body.classList.remove('stream-locked');
+      locked = false;
     }
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('scroll', checkScrollPast, { passive: true });
   onScroll();
 }
 
@@ -111,7 +136,6 @@ async function checkTwitchLive() {
     const data = await res.json();
 
     if (data.live) {
-      // ── LIVE ──
       if (navDot)  navDot.classList.add('live');
       if (navText) navText.textContent = '🔴 LIVE NOW';
       if (liveEl)    liveEl.style.display    = 'block';
@@ -120,7 +144,6 @@ async function checkTwitchLive() {
       requestAnimationFrame(setupStreamExpansion);
 
     } else {
-      // ── OFFLINE ──
       if (navDot)    navDot.classList.remove('live');
       if (navText)   navText.textContent = 'OFFLINE';
       if (offlineEl) offlineEl.style.display = 'flex';
