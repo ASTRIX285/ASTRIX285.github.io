@@ -28,6 +28,18 @@ function setupReveal() {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
+// ── MOVE STREAM SECTION TO END OF PAGE (live only) ──────────
+function moveStreamToEnd() {
+  const section   = document.getElementById('streamSection');
+  const goldLine  = document.getElementById('streamGoldLine');
+  const footer    = document.querySelector('.footer');
+  if (!section || !footer) return;
+
+  // Move the gold line divider and stream section to just before footer
+  if (goldLine) document.body.insertBefore(goldLine, footer);
+  document.body.insertBefore(section, footer);
+}
+
 // ── STREAM EMBED SCROLL EXPANSION + LOCK (LIVE) ─────────────
 function setupStreamExpansion() {
   const track   = document.querySelector('.stream-scroll-track');
@@ -48,29 +60,22 @@ function setupStreamExpansion() {
     const lr = 35 - (35 * progress);
     clipper.style.clipPath = `inset(${tb}% ${lr}% ${tb}% ${lr}%)`;
 
-    // Fade header out as embed expands
+    // Fade header out
     if (header) header.style.opacity = String(Math.max(0, 1 - progress * 3));
 
-    // Fade nav out as embed expands past 60%
+    // Fade nav out past 60% progress
     if (nav) nav.style.opacity = String(Math.max(0, 1 - Math.max(0, (progress - 0.6) * 2.5)));
 
     if (progress >= 0.99) {
-      // Fully open — lock, hide nav, hide actions, embed fills page
       clipper.classList.add('fully-open');
       clipper.style.clipPath = 'inset(0% 0% 0% 0%)';
       if (header) header.style.opacity = '0';
-      if (nav) {
-        nav.style.opacity = '0';
-        nav.style.pointerEvents = 'none';
-      }
+      if (nav) { nav.style.opacity = '0'; nav.style.pointerEvents = 'none'; }
       document.body.classList.add('stream-locked');
     } else {
       clipper.classList.remove('fully-open');
       document.body.classList.remove('stream-locked');
-      if (nav) {
-        nav.style.opacity = '';
-        nav.style.pointerEvents = '';
-      }
+      if (nav) { nav.style.opacity = ''; nav.style.pointerEvents = ''; }
     }
   }
 
@@ -90,18 +95,12 @@ function setOfflineVod(data) {
 
   if (data.vod_id && vodEmbed) {
     vodEmbed.src = `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
-
     if (offlineFull) offlineFull.classList.add('has-vod');
     if (vodTitle)    vodTitle.textContent = data.vod_title || 'Latest Stream';
     if (vodTwLink)   vodTwLink.href       = data.vod_url   || `https://twitch.tv/${TWITCH_CHANNEL}`;
-
-    if (vodFbLink) {
-      vodFbLink.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
-    }
-
+    if (vodFbLink)   vodFbLink.href       = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
     if (vodSection)  vodSection.style.display  = 'block';
     if (vodFallback) vodFallback.style.display = 'none';
-
   } else {
     if (vodSection)  vodSection.style.display  = 'none';
     if (vodFallback) vodFallback.style.display = 'block';
@@ -121,14 +120,17 @@ async function checkTwitchLive() {
     const data = await res.json();
 
     if (data.live) {
+      // ── LIVE — move stream to end, then show and expand ──
       if (navDot)  navDot.classList.add('live');
       if (navText) navText.textContent = '🔴 LIVE NOW';
       if (liveEl)    liveEl.style.display    = 'block';
       if (offlineEl) offlineEl.style.display = 'none';
       document.title = `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX285`;
+      moveStreamToEnd();
       requestAnimationFrame(setupStreamExpansion);
 
     } else {
+      // ── OFFLINE — stream stays in original position ──
       if (navDot)    navDot.classList.remove('live');
       if (navText)   navText.textContent = 'OFFLINE';
       if (offlineEl) offlineEl.style.display = 'flex';
