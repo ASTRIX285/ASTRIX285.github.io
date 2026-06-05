@@ -11,8 +11,11 @@ function setActiveNav() {
   document.querySelectorAll('.nav-links a').forEach(link => {
     link.classList.remove('active');
     const href = link.getAttribute('href');
-    if (path.endsWith(href) || (path === '/' && href === 'index.html') ||
-        (path.endsWith('/') && href === 'index.html')) {
+    if (
+      path.endsWith(href) ||
+      (path === '/' && href === 'index.html') ||
+      (path.endsWith('/') && href === 'index.html')
+    ) {
       link.classList.add('active');
     }
   });
@@ -25,15 +28,22 @@ function setupReveal() {
       if (entry.isIntersecting) entry.target.classList.add('visible');
     });
   }, { threshold: 0.15 });
+
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
 // ── STREAM EMBED CINEMATIC EXPANSION ────────────────────────
 function setupStreamExpansion() {
   const liveWrap = document.getElementById('streamLive');
-  const embed    = liveWrap ? liveWrap.querySelector('.stream-live-embed') : document.querySelector('.stream-live-embed');
-  const header   = liveWrap ? liveWrap.querySelector('.stream-live-header') : document.querySelector('.stream-live-header');
-  const nav      = document.querySelector('.nav');
+  const embed    = liveWrap
+    ? liveWrap.querySelector('.stream-live-embed')
+    : document.querySelector('.stream-live-embed');
+
+  const header = liveWrap
+    ? liveWrap.querySelector('.stream-live-header')
+    : document.querySelector('.stream-live-header');
+
+  const nav = document.querySelector('.nav');
 
   if (!embed) return;
 
@@ -45,6 +55,7 @@ function setupStreamExpansion() {
 
     if (nav) {
       nav.style.pointerEvents = '';
+      nav.style.backdropFilter = '';
     }
   }
 
@@ -63,27 +74,36 @@ function setupStreamExpansion() {
     const topBottom = 30 - (30 * progress);
     const leftRight = 35 - (35 * progress);
 
-    embed.style.clipPath = `inset(${topBottom}% ${leftRight}% ${topBottom}% ${leftRight}%)`;
+    embed.style.clipPath =
+      `inset(${topBottom}% ${leftRight}% ${topBottom}% ${leftRight}%)`;
 
     if (header) {
-      header.style.opacity = String(Math.max(0, 1 - progress * 2.8));
+      header.style.opacity =
+        String(Math.max(0, 1 - progress * 2.8));
     }
 
     if (nav) {
-      const navOpacity = Math.max(0, 1 - Math.max(0, (progress - 0.55) * 2.4));
-      nav.style.opacity = String(navOpacity);
-      nav.style.background = `rgba(6,6,6,${Math.max(0, 0.95 - progress)})`;
-      nav.style.borderBottomColor = `rgba(139,0,0,${Math.max(0, 0.3 - progress * 0.3)})`;
+      nav.style.opacity = '1';
+      nav.style.background =
+        `rgba(6,6,6,${Math.max(0, 0.95 - progress)})`;
+      nav.style.borderBottomColor =
+        `rgba(139,0,0,${Math.max(0, 0.3 - progress * 0.3)})`;
     }
 
     if (progress >= 0.985) {
       embed.classList.add('expanded');
-      embed.style.clipPath = 'inset(0% 0% 0% 0%)';
+
+      embed.style.clipPath =
+        'inset(0% 0% 0% 0%)';
+
       document.body.classList.add('stream-locked');
 
       if (nav) {
-        nav.style.opacity = '0';
-        nav.style.pointerEvents = 'none';
+        nav.style.opacity = '1';
+        nav.style.background = 'transparent';
+        nav.style.borderBottomColor = 'transparent';
+        nav.style.backdropFilter = 'none';
+        nav.style.pointerEvents = 'auto';
       }
     } else {
       setUnlocked();
@@ -114,7 +134,9 @@ function setOfflineVod(data) {
   const vodFallback = document.getElementById('vodFallback');
 
   if (data.vod_id && vodEmbed) {
-    vodEmbed.src = `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
+    vodEmbed.src =
+      `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
+
     const offlineFull = document.getElementById('streamOffline');
     if (offlineFull) offlineFull.classList.add('has-vod');
 
@@ -122,7 +144,8 @@ function setOfflineVod(data) {
     if (vodTwLink) vodTwLink.href       = data.vod_url   || `https://twitch.tv/${TWITCH_CHANNEL}`;
 
     if (vodFbLink) {
-      const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
+      const fbShareUrl =
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
       vodFbLink.href = fbShareUrl;
     }
 
@@ -142,30 +165,35 @@ async function checkTwitchLive() {
   const liveEl    = document.getElementById('streamLive');
 
   try {
-    const res  = await fetch('/twitch-status.json?t=' + Date.now());
+    const res = await fetch('/twitch-status.json?t=' + Date.now());
     if (!res.ok) throw new Error('Status file not found');
+
     const data = await res.json();
 
     if (data.live) {
       if (navDot)  navDot.classList.add('live');
       if (navText) navText.textContent = '🔴 LIVE NOW';
-      if (liveEl)    liveEl.style.display    = 'block';
+      if (liveEl) liveEl.style.display = 'block';
       if (offlineEl) offlineEl.style.display = 'none';
-      document.title = `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX285`;
+
+      document.title =
+        `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX285`;
+
       setupStreamExpansion();
     } else {
-      if (navDot)    navDot.classList.remove('live');
-      if (navText)   navText.textContent = 'OFFLINE';
+      if (navDot) navDot.classList.remove('live');
+      if (navText) navText.textContent = 'OFFLINE';
       if (offlineEl) offlineEl.style.display = 'flex';
-      if (liveEl)    liveEl.style.display    = 'none';
+      if (liveEl) liveEl.style.display = 'none';
+
       setOfflineVod(data);
     }
-
   } catch (e) {
-    if (navDot)    navDot.classList.remove('live');
-    if (navText)   navText.textContent = 'OFFLINE';
+    if (navDot) navDot.classList.remove('live');
+    if (navText) navText.textContent = 'OFFLINE';
     if (offlineEl) offlineEl.style.display = 'flex';
-    if (liveEl)    liveEl.style.display    = 'none';
+    if (liveEl) liveEl.style.display = 'none';
+
     const vodFallback = document.getElementById('vodFallback');
     if (vodFallback) vodFallback.style.display = 'block';
   }
@@ -175,6 +203,7 @@ async function checkTwitchLive() {
 function setupMobileNav() {
   const toggle = document.querySelector('.nav-toggle');
   const links  = document.querySelector('.nav-links');
+
   if (!toggle || !links) return;
 
   toggle.addEventListener('click', () => {
@@ -200,9 +229,16 @@ function setupMobileNav() {
 // ── HERO VIDEO SPEED ─────────────────────────────────────────
 function setupHeroVideo() {
   const video = document.getElementById('heroBg');
+
   if (!video) return;
-  video.addEventListener('loadedmetadata', () => { video.playbackRate = 0.5; });
-  if (video.readyState >= 1) video.playbackRate = 0.5;
+
+  video.addEventListener('loadedmetadata', () => {
+    video.playbackRate = 0.5;
+  });
+
+  if (video.readyState >= 1) {
+    video.playbackRate = 0.5;
+  }
 }
 
 // ── INIT ────────────────────────────────────────────────────
