@@ -1,36 +1,259 @@
-<!-- LIVE STATE -->
-<div class="stream-live-full" id="streamLive" style="display:none;">
+<!DOCTYPE html>
+<html lang="en">
 
-  <div class="stream-scroll-track">
+<head>
 
-    <div class="stream-sticky-wrap">
+  <meta charset="UTF-8">
 
-      <div class="stream-live-header">
-        <div class="stream-live-badge">🔴 LIVE NOW</div>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-        <div class="section-eyebrow">
-          Live Transmission
-        </div>
+  <title>
+    ASTRIX PARADOX — Multi-Game Operations Hub
+  </title>
 
-        <h2 class="section-title">
-          Watch the <span class="accent">Hunt</span> Unfold
-        </h2>
+  <meta name="description"
+        content="ASTRIX PARADOX is a multi-game operations hub. Choose your universe. Join the community.">
 
-        <p class="stream-sub">
-          Streaming live from inside the Paradox
-        </p>
+  <link rel="stylesheet"
+        href="css/style.css">
+
+  <link rel="preconnect"
+        href="https://fonts.googleapis.com">
+
+</head>
+
+<body>
+
+<!-- ─────────────────────────────────────────
+     NAV
+───────────────────────────────────────── -->
+<nav class="nav">
+
+  <div class="nav-logo">
+    <img src="img/logo.png" alt="ASTRIX285">
+    <span>ASTRIX<span class="accent">285</span></span>
+  </div>
+
+  <button class="nav-toggle"
+          aria-label="Toggle menu">
+
+    <span></span>
+    <span></span>
+    <span></span>
+
+  </button>
+
+  <div class="nav-links">
+
+    <a href="index.html" class="active">Home</a>
+
+    <a href="pages/reviews.html">
+      Reviews
+    </a>
+
+    <a href="pages/news.html">
+      News
+    </a>
+
+    <a href="pages/clips.html">
+      Clips
+    </a>
+
+    <a href="pages/games.html">
+      Universes
+    </a>
+
+    <a href="pages/join.html">
+      Join Us
+    </a>
+
+  </div>
+
+  <div class="nav-live">
+
+    <div class="nav-live-dot"
+         id="navDot"></div>
+
+    <span class="nav-live-text"
+          id="navText">
+
+      OFFLINE
+
+    </span>
+
+  </div>
+
+</nav>
+
+
+<!-- ─────────────────────────────────────────
+     HERO
+───────────────────────────────────────── -->
+<section class="hero">
+
+  <div class="hero-bg">
+
+    <div class="hero-bg-video">
+
+      <video id="heroBg"
+             autoplay
+             muted
+             loop
+             playsinline
+             poster="img/hero-bg.png">
+
+        <source src="video/Digital Growth 5.mp4"
+                type="video/mp4">
+
+      </video>
+
+    </div>
+
+    <div class="hero-bg-gradient"></div>
+
+    <div class="hero-grid"></div>
+
+  </div>
+
+  <div class="hero-content">
+
+    <div class="hero-eyebrow">
+      Multi-Game Operations Hub
+    </div>
+
+    <h1 class="hero-title">
+      Welcome to the<br>
+      <span class="accent">Paradox</span>
+    </h1>
+
+    <p class="hero-body">
+
+      If you are here, you are already part
+      of something bigger than just a website.
+
+      <br><br>
+
+      Right now there is only one world
+      that matters.
+
+      <br><br>
+
+      <strong style="color:var(--crimson-mid)">
+        Crimson Desert
+      </strong>
+
+      has taken over.
+
+    </p>
+
+    <div class="hero-tags">
+
+      <span class="hero-tag">
+        Crimson Desert
+      </span>
+
+      <span class="hero-tag">
+        Destiny 2
+      </span>
+
+      <span class="hero-tag">
+        Borderlands
+      </span>
+
+      <span class="hero-tag">
+        Warframe
+      </span>
+
+      <span class="hero-tag">
+        ARK
+      </span>
+
+    </div>
+
+    <div class="hero-cta">
+
+      <a href="https://twitch.tv/astrix285x"
+         target="_blank"
+         class="btn-primary">
+
+        ▶ &nbsp; Watch Live
+
+      </a>
+
+      <a href="pages/join.html"
+         class="btn-secondary">
+
+        Enter the Paradox
+
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+<div class="gold-line"></div>
+
+
+<!-- ─────────────────────────────────────────
+     STREAM SECTION
+───────────────────────────────────────── -->
+<section class="stream-section"
+         id="streamSection">
+
+
+  <!-- ─────────────────────
+       OFFLINE STATE
+  ───────────────────── -->
+  <div class="stream-offline-full"
+       id="streamOffline">
+
+    <div class="stream-offline-scanlines"></div>
+
+    <div class="stream-offline-content"
+         id="vodFallback">
+
+      <div class="section-eyebrow">
+        Live Transmission
       </div>
 
-      <div class="stream-embed-clipper">
+      <h2 class="section-title">
 
-        <iframe
-          id="twitchIframe"
-          src="https://player.twitch.tv/?channel=astrix285x&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=true&muted=false"
-          allowfullscreen="true"
-          frameborder="0"
-          scrolling="no"
-          allow="autoplay; fullscreen">
-        </iframe>
+        Watch the
+        <span class="accent">
+          Hunt
+        </span>
+        Unfold
+
+      </h2>
+
+      <p class="stream-sub">
+        Streaming live from inside the Paradox
+      </p>
+
+      <div class="stream-offline-badge">
+        ● TRANSMISSION OFFLINE
+      </div>
+
+      <div class="stream-actions">
+
+        <a href="https://twitch.tv/astrix285x"
+           target="_blank"
+           class="btn-primary">
+
+          ▶ &nbsp; Watch on Twitch
+
+        </a>
+
+        <a href="https://www.twitch.tv/astrix285x/videos"
+           target="_blank"
+           class="btn-secondary">
+
+          Past Broadcasts ↗
+
+        </a>
 
       </div>
 
@@ -38,45 +261,126 @@
 
   </div>
 
-  <div class="stream-actions stream-actions-live">
 
-    <a href="https://twitch.tv/astrix285x"
-       target="_blank"
-       class="btn-primary">
-      ▶ &nbsp; Watch on Twitch
+  <!-- ─────────────────────
+       LIVE STATE
+  ───────────────────── -->
+  <div class="stream-live-full"
+       id="streamLive"
+       style="display:none;">
+
+    <div class="stream-scroll-track">
+
+      <div class="stream-sticky-wrap">
+
+        <div class="stream-live-header">
+
+          <div class="stream-live-badge">
+            🔴 LIVE NOW
+          </div>
+
+          <div class="section-eyebrow">
+            Live Transmission
+          </div>
+
+          <h2 class="section-title">
+
+            Watch the
+            <span class="accent">
+              Hunt
+            </span>
+            Unfold
+
+          </h2>
+
+          <p class="stream-sub">
+            Streaming live from inside the Paradox
+          </p>
+
+        </div>
+
+        <div class="stream-embed-clipper">
+
+          <iframe
+            id="twitchIframe"
+
+            src="https://player.twitch.tv/?channel=astrix285x&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=true&muted=false"
+
+            allowfullscreen="true"
+
+            frameborder="0"
+
+            scrolling="no"
+
+            allow="autoplay; fullscreen">
+
+          </iframe>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<div class="gold-line"></div>
+
+
+<!-- ─────────────────────────────────────────
+     FOOTER
+───────────────────────────────────────── -->
+<footer class="footer">
+
+  <div class="footer-social">
+
+    <a href="https://x.com/ASTRIX285"
+       target="_blank">
+
+      X / Twitter
+
     </a>
 
-    <a href="https://www.twitch.tv/astrix285x/videos"
-       target="_blank"
-       class="btn-secondary">
-      Past Broadcasts ↗
+    <a href="https://discord.com/invite/6dcyrbpdzN"
+       target="_blank">
+
+      Discord
+
     </a>
 
-    <a href="https://www.facebook.com/xASTRIX285x"
-       target="_blank"
-       class="btn-facebook">
+    <a href="https://www.twitch.tv/astrix285x"
+       target="_blank">
 
-      <svg width="16"
-           height="16"
-           viewBox="0 0 24 24"
-           fill="currentColor"
-           style="vertical-align:middle;margin-right:6px;">
+      Twitch
 
-        <path d="M24 12.073c0-6.627-5.373-12-12-12
-        s-12 5.373-12 12c0 5.99 4.388 10.954
-        10.125 11.854v-8.385H7.078v-3.47h3.047V9.43
-        c0-3.007 1.792-4.669 4.533-4.669
-        1.312 0 2.686.235 2.686.235v2.953H15.83
-        c-1.491 0-1.956.925-1.956 1.874v2.25h3.328
-        l-.532 3.47h-2.796v8.385C19.612 23.027
-        24 18.062 24 12.073z"/>
+    </a>
 
-      </svg>
+    <a href="https://www.youtube.com/c/ASTRIX285Gaming"
+       target="_blank">
 
-      Share on Facebook
+      YouTube
 
     </a>
 
   </div>
 
-</div>
+  <div class="gold-line"
+       style="margin-bottom:20px;">
+  </div>
+
+  <div class="footer-copy">
+
+    © 2025 Astrix285
+
+  </div>
+
+</footer>
+
+
+<script src="js/main.js"></script>
+
+</body>
+</html>
