@@ -54,43 +54,108 @@ function setupReveal() {
 }
 
 
+// ── HERO VIDEO SPEED ─────────────────────────────────────────
+function setupHeroVideo() {
+
+  const video =
+    document.getElementById('heroBg');
+
+  if (!video) return;
+
+  video.addEventListener('loadedmetadata', () => {
+    video.playbackRate = 0.5;
+  });
+
+  if (video.readyState >= 1) {
+    video.playbackRate = 0.5;
+  }
+
+}
+
+
+// ── MOBILE NAV ──────────────────────────────────────────────
+function setupMobileNav() {
+
+  const toggle =
+    document.querySelector('.nav-toggle');
+
+  const links =
+    document.querySelector('.nav-links');
+
+  if (!toggle || !links) return;
+
+  toggle.addEventListener('click', () => {
+
+    links.classList.toggle('open');
+    toggle.classList.toggle('open');
+
+  });
+
+  links.querySelectorAll('a').forEach(a => {
+
+    a.addEventListener('click', () => {
+
+      links.classList.remove('open');
+      toggle.classList.remove('open');
+
+    });
+
+  });
+
+}
+
+
 // ── CINEMATIC STREAM EXPANSION ─────────────────────────────
 function setupStreamExpansion() {
 
-  const track   = document.querySelector('.stream-scroll-track');
-  const clipper = document.querySelector('.stream-embed-clipper');
-  const header  = document.querySelector('.stream-live-header');
-  const nav     = document.querySelector('.nav');
+  const embed =
+    document.querySelector('.stream-live-embed');
 
-  if (!track || !clipper) return;
+  const nav =
+    document.querySelector('.nav');
 
-  function onScroll() {
+  const header =
+    document.querySelector('.stream-live-header');
 
-    const scrollY  = window.scrollY;
-    const trackTop = track.offsetTop;
-    const trackH   = track.offsetHeight;
-    const winH     = window.innerHeight;
+  if (!embed) return;
 
-    const progress = Math.min(
-      1,
+  let ticking = false;
+
+  function updateScroll() {
+
+    const rect =
+      embed.getBoundingClientRect();
+
+    const winH =
+      window.innerHeight;
+
+    const progress =
       Math.max(
         0,
-        (scrollY - trackTop) / (trackH - winH)
-      )
-    );
+        Math.min(
+          1,
+          1 - (
+            (rect.top + rect.height * 0.5 - winH * 0.5)
+            / (winH * 0.8)
+          )
+        )
+      );
 
-    // REVEAL WINDOW
-    const tb = 30 - (30 * progress);
-    const lr = 35 - (35 * progress);
+    // CINEMATIC WINDOW
+    const topBottom =
+      30 - (30 * progress);
 
-    clipper.style.clipPath =
-      `inset(${tb}% ${lr}% ${tb}% ${lr}%)`;
+    const leftRight =
+      35 - (35 * progress);
+
+    embed.style.clipPath =
+      `inset(${topBottom}% ${leftRight}% ${topBottom}% ${leftRight}%)`;
 
     // HEADER FADE
     if (header) {
 
       header.style.opacity =
-        Math.max(0, 1 - progress * 3);
+        Math.max(0, 1 - progress * 2.5);
 
     }
 
@@ -100,25 +165,23 @@ function setupStreamExpansion() {
       const navOpacity =
         Math.max(
           0,
-          1 - Math.max(0, (progress - 0.6) * 2.5)
+          1 - Math.max(0, (progress - 0.55) * 2.4)
         );
 
-      nav.style.opacity = navOpacity;
+      nav.style.opacity =
+        navOpacity;
 
       nav.style.background =
         `rgba(6,6,6,${0.95 - progress})`;
 
     }
 
-    // FULL IMMERSION LOCK
-    if (progress >= 0.99) {
-
-      clipper.classList.add('fully-open');
-
-      clipper.style.clipPath =
-        'inset(0% 0% 0% 0%)';
+    // FULL IMMERSION
+    if (progress >= 0.98) {
 
       document.body.classList.add('stream-locked');
+
+      embed.classList.add('expanded');
 
       if (nav) {
 
@@ -129,15 +192,29 @@ function setupStreamExpansion() {
 
     } else {
 
-      clipper.classList.remove('fully-open');
-
       document.body.classList.remove('stream-locked');
+
+      embed.classList.remove('expanded');
 
       if (nav) {
 
         nav.style.pointerEvents = '';
 
       }
+
+    }
+
+    ticking = false;
+
+  }
+
+  function onScroll() {
+
+    if (!ticking) {
+
+      requestAnimationFrame(updateScroll);
+
+      ticking = true;
 
     }
 
@@ -149,7 +226,7 @@ function setupStreamExpansion() {
     { passive: true }
   );
 
-  onScroll();
+  updateScroll();
 
 }
 
@@ -222,8 +299,11 @@ function setOfflineVod(data) {
 // ── TWITCH LIVE CHECK ───────────────────────────────────────
 async function checkTwitchLive() {
 
-  const navDot    = document.querySelector('.nav-live-dot');
-  const navText   = document.querySelector('.nav-live-text');
+  const navDot =
+    document.querySelector('.nav-live-dot');
+
+  const navText =
+    document.querySelector('.nav-live-text');
 
   const offlineEl =
     document.getElementById('streamOffline');
@@ -240,7 +320,8 @@ async function checkTwitchLive() {
       throw new Error('Status file not found');
     }
 
-    const data = await res.json();
+    const data =
+      await res.json();
 
     if (data.live) {
 
@@ -249,7 +330,7 @@ async function checkTwitchLive() {
       }
 
       if (navText) {
-        navText.textContent = '🔴 LIVE NOW';
+        navText.textContent = 'LIVE NOW';
       }
 
       if (liveEl) {
@@ -305,82 +386,6 @@ async function checkTwitchLive() {
       liveEl.style.display = 'none';
     }
 
-    const vodFallback =
-      document.getElementById('vodFallback');
-
-    if (vodFallback) {
-      vodFallback.style.display = 'block';
-    }
-
-  }
-
-}
-
-
-// ── MOBILE NAV ──────────────────────────────────────────────
-function setupMobileNav() {
-
-  const toggle =
-    document.querySelector('.nav-toggle');
-
-  const links =
-    document.querySelector('.nav-links');
-
-  if (!toggle || !links) return;
-
-  toggle.addEventListener('click', () => {
-
-    links.classList.toggle('open');
-    toggle.classList.toggle('open');
-
-  });
-
-  links.querySelectorAll('a').forEach(a => {
-
-    a.addEventListener('click', () => {
-
-      links.classList.remove('open');
-      toggle.classList.remove('open');
-
-    });
-
-  });
-
-  document.addEventListener('click', (e) => {
-
-    if (
-      !toggle.contains(e.target) &&
-      !links.contains(e.target)
-    ) {
-
-      links.classList.remove('open');
-      toggle.classList.remove('open');
-
-    }
-
-  });
-
-}
-
-
-// ── HERO VIDEO SPEED ─────────────────────────────────────────
-function setupHeroVideo() {
-
-  const video =
-    document.getElementById('heroBg');
-
-  if (!video) return;
-
-  video.addEventListener('loadedmetadata', () => {
-
-    video.playbackRate = 0.5;
-
-  });
-
-  if (video.readyState >= 1) {
-
-    video.playbackRate = 0.5;
-
   }
 
 }
@@ -391,8 +396,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setActiveNav();
   setupReveal();
-  setupMobileNav();
   setupHeroVideo();
+  setupMobileNav();
   checkTwitchLive();
 
 });
