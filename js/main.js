@@ -275,6 +275,85 @@ function setupStreamExpansion() {
 
 }
 
+// ── RESET STREAM IMMERSIVE STATE ────────────────────────────
+function resetStreamImmersiveState() {
+
+  const embed =
+    document.querySelector('.stream-live-embed');
+
+  const nav =
+    document.querySelector('.nav');
+
+  const header =
+    document.querySelector('.stream-live-header');
+
+  document.body.classList.remove(
+    'stream-locked'
+  );
+
+  if (embed) {
+
+    embed.classList.remove(
+      'expanded'
+    );
+
+    embed.style.clipPath =
+      '';
+
+  }
+
+  if (header) {
+
+    header.style.opacity =
+      '';
+
+  }
+
+  if (nav) {
+
+    nav.style.opacity =
+      '';
+
+    nav.style.background =
+      '';
+
+    nav.style.borderBottomColor =
+      '';
+
+    nav.style.backdropFilter =
+      '';
+
+    nav.style.pointerEvents =
+      '';
+
+  }
+
+  document
+    .querySelectorAll('.nav-links a')
+    .forEach(link => {
+
+      link.style.color =
+        '';
+
+      link.style.textShadow =
+        '';
+
+    });
+
+  const accent =
+    document.querySelector(
+      '.nav-logo .accent'
+    );
+
+  if (accent) {
+
+    accent.style.color =
+      '';
+
+  }
+
+}
+
 // ── SET OFFLINE VOD STATE ────────────────────────────────────
 function setOfflineVod(data) {
 
@@ -404,6 +483,8 @@ async function checkTwitchLive() {
     const data =
       await res.json();
 
+    // LIVE STATE
+
     if (data.live) {
 
       if (navDot) {
@@ -440,7 +521,13 @@ async function checkTwitchLive() {
 
       setupStreamExpansion();
 
-    } else {
+    }
+
+    // OFFLINE STATE
+
+    else {
+
+      resetStreamImmersiveState();
 
       if (navDot) {
 
@@ -476,6 +563,8 @@ async function checkTwitchLive() {
     }
 
   } catch (e) {
+
+    resetStreamImmersiveState();
 
     if (navDot) {
 
