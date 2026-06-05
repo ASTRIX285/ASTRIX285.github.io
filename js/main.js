@@ -5,52 +5,158 @@
 const TWITCH_CHANNEL = 'astrix285x';
 const FB_PAGE        = 'https://www.facebook.com/xASTRIX285x';
 
+
 // ── NAV ACTIVE STATE ────────────────────────────────────────
 function setActiveNav() {
+
   const path = window.location.pathname;
+
   document.querySelectorAll('.nav-links a').forEach(link => {
+
     link.classList.remove('active');
+
     const href = link.getAttribute('href');
-    if (path.endsWith(href) || (path === '/' && href === 'index.html') ||
-        (path.endsWith('/') && href === 'index.html')) {
+
+    if (
+      path.endsWith(href) ||
+      (path === '/' && href === 'index.html') ||
+      (path.endsWith('/') && href === 'index.html')
+    ) {
       link.classList.add('active');
     }
+
   });
+
 }
+
 
 // ── SCROLL REVEAL ───────────────────────────────────────────
 function setupReveal() {
+
   const observer = new IntersectionObserver((entries) => {
+
     entries.forEach(entry => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
+
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+
     });
-  }, { threshold: 0.15 });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  }, {
+    threshold: 0.15
+  });
+
+  document.querySelectorAll('.reveal').forEach(el => {
+    observer.observe(el);
+  });
+
 }
 
-// ── STREAM EMBED SCROLL EXPANSION ───────────────────────────
+
+// ── CINEMATIC STREAM EXPANSION ─────────────────────────────
 function setupStreamExpansion() {
-  const embed = document.querySelector('.stream-live-embed');
-  if (!embed) return;
+
+  const track   = document.querySelector('.stream-scroll-track');
+  const clipper = document.querySelector('.stream-embed-clipper');
+  const header  = document.querySelector('.stream-live-header');
+  const nav     = document.querySelector('.nav');
+
+  if (!track || !clipper) return;
 
   function onScroll() {
-    const rect = embed.getBoundingClientRect();
-    const winH  = window.innerHeight;
-    const distFromCenter = Math.abs((rect.top + rect.height / 2) - winH / 2);
-    const maxDist = winH / 2 + rect.height / 2;
-    const progress = Math.max(0, 1 - distFromCenter / (maxDist * 0.6));
-    const scale = 0.6 + (0.4 * progress);
-    embed.style.transform = `scaleX(${scale})`;
-    if (scale >= 0.99) embed.classList.add('expanded');
-    else embed.classList.remove('expanded');
+
+    const scrollY  = window.scrollY;
+    const trackTop = track.offsetTop;
+    const trackH   = track.offsetHeight;
+    const winH     = window.innerHeight;
+
+    const progress = Math.min(
+      1,
+      Math.max(
+        0,
+        (scrollY - trackTop) / (trackH - winH)
+      )
+    );
+
+    // REVEAL WINDOW
+    const tb = 30 - (30 * progress);
+    const lr = 35 - (35 * progress);
+
+    clipper.style.clipPath =
+      `inset(${tb}% ${lr}% ${tb}% ${lr}%)`;
+
+    // HEADER FADE
+    if (header) {
+
+      header.style.opacity =
+        Math.max(0, 1 - progress * 3);
+
+    }
+
+    // NAV FADE
+    if (nav) {
+
+      const navOpacity =
+        Math.max(
+          0,
+          1 - Math.max(0, (progress - 0.6) * 2.5)
+        );
+
+      nav.style.opacity = navOpacity;
+
+      nav.style.background =
+        `rgba(6,6,6,${0.95 - progress})`;
+
+    }
+
+    // FULL IMMERSION LOCK
+    if (progress >= 0.99) {
+
+      clipper.classList.add('fully-open');
+
+      clipper.style.clipPath =
+        'inset(0% 0% 0% 0%)';
+
+      document.body.classList.add('stream-locked');
+
+      if (nav) {
+
+        nav.style.opacity = '0';
+        nav.style.pointerEvents = 'none';
+
+      }
+
+    } else {
+
+      clipper.classList.remove('fully-open');
+
+      document.body.classList.remove('stream-locked');
+
+      if (nav) {
+
+        nav.style.pointerEvents = '';
+
+      }
+
+    }
+
   }
 
-  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener(
+    'scroll',
+    onScroll,
+    { passive: true }
+  );
+
   onScroll();
+
 }
+
 
 // ── SET OFFLINE VOD STATE ────────────────────────────────────
 function setOfflineVod(data) {
+
   const vodEmbed    = document.getElementById('vodEmbed');
   const vodTitle    = document.getElementById('vodTitle');
   const vodFbLink   = document.getElementById('vodFbLink');
@@ -59,102 +165,234 @@ function setOfflineVod(data) {
   const vodFallback = document.getElementById('vodFallback');
 
   if (data.vod_id && vodEmbed) {
-    vodEmbed.src = `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
-    const offlineFull = document.getElementById('streamOffline');
-    if (offlineFull) offlineFull.classList.add('has-vod');
 
-    if (vodTitle)  vodTitle.textContent = data.vod_title || 'Latest Stream';
-    if (vodTwLink) vodTwLink.href       = data.vod_url   || `https://twitch.tv/${TWITCH_CHANNEL}`;
+    vodEmbed.src =
+      `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
 
-    if (vodFbLink) {
-      const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
-      vodFbLink.href = fbShareUrl;
+    const offlineFull =
+      document.getElementById('streamOffline');
+
+    if (offlineFull) {
+      offlineFull.classList.add('has-vod');
     }
 
-    if (vodSection)  vodSection.style.display  = 'block';
-    if (vodFallback) vodFallback.style.display = 'none';
+    if (vodTitle) {
+      vodTitle.textContent =
+        data.vod_title || 'Latest Stream';
+    }
+
+    if (vodTwLink) {
+      vodTwLink.href =
+        data.vod_url ||
+        `https://twitch.tv/${TWITCH_CHANNEL}`;
+    }
+
+    if (vodFbLink) {
+
+      const fbShareUrl =
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
+
+      vodFbLink.href = fbShareUrl;
+
+    }
+
+    if (vodSection) {
+      vodSection.style.display = 'block';
+    }
+
+    if (vodFallback) {
+      vodFallback.style.display = 'none';
+    }
+
   } else {
-    if (vodSection)  vodSection.style.display  = 'none';
-    if (vodFallback) vodFallback.style.display = 'block';
+
+    if (vodSection) {
+      vodSection.style.display = 'none';
+    }
+
+    if (vodFallback) {
+      vodFallback.style.display = 'block';
+    }
+
   }
+
 }
+
 
 // ── TWITCH LIVE CHECK ───────────────────────────────────────
 async function checkTwitchLive() {
+
   const navDot    = document.querySelector('.nav-live-dot');
   const navText   = document.querySelector('.nav-live-text');
-  const offlineEl = document.getElementById('streamOffline');
-  const liveEl    = document.getElementById('streamLive');
+
+  const offlineEl =
+    document.getElementById('streamOffline');
+
+  const liveEl =
+    document.getElementById('streamLive');
 
   try {
-    const res  = await fetch('/twitch-status.json?t=' + Date.now());
-    if (!res.ok) throw new Error('Status file not found');
+
+    const res =
+      await fetch('/twitch-status.json?t=' + Date.now());
+
+    if (!res.ok) {
+      throw new Error('Status file not found');
+    }
+
     const data = await res.json();
 
     if (data.live) {
-      if (navDot)  navDot.classList.add('live');
-      if (navText) navText.textContent = '🔴 LIVE NOW';
-      if (liveEl)    liveEl.style.display    = 'block';
-      if (offlineEl) offlineEl.style.display = 'none';
-      document.title = `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX285`;
+
+      if (navDot) {
+        navDot.classList.add('live');
+      }
+
+      if (navText) {
+        navText.textContent = '🔴 LIVE NOW';
+      }
+
+      if (liveEl) {
+        liveEl.style.display = 'block';
+      }
+
+      if (offlineEl) {
+        offlineEl.style.display = 'none';
+      }
+
+      document.title =
+        `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX285`;
+
       setupStreamExpansion();
+
     } else {
-      if (navDot)    navDot.classList.remove('live');
-      if (navText)   navText.textContent = 'OFFLINE';
-      if (offlineEl) offlineEl.style.display = 'flex';
-      if (liveEl)    liveEl.style.display    = 'none';
+
+      if (navDot) {
+        navDot.classList.remove('live');
+      }
+
+      if (navText) {
+        navText.textContent = 'OFFLINE';
+      }
+
+      if (offlineEl) {
+        offlineEl.style.display = 'flex';
+      }
+
+      if (liveEl) {
+        liveEl.style.display = 'none';
+      }
+
       setOfflineVod(data);
+
     }
 
   } catch (e) {
-    if (navDot)    navDot.classList.remove('live');
-    if (navText)   navText.textContent = 'OFFLINE';
-    if (offlineEl) offlineEl.style.display = 'flex';
-    if (liveEl)    liveEl.style.display    = 'none';
-    const vodFallback = document.getElementById('vodFallback');
-    if (vodFallback) vodFallback.style.display = 'block';
+
+    if (navDot) {
+      navDot.classList.remove('live');
+    }
+
+    if (navText) {
+      navText.textContent = 'OFFLINE';
+    }
+
+    if (offlineEl) {
+      offlineEl.style.display = 'flex';
+    }
+
+    if (liveEl) {
+      liveEl.style.display = 'none';
+    }
+
+    const vodFallback =
+      document.getElementById('vodFallback');
+
+    if (vodFallback) {
+      vodFallback.style.display = 'block';
+    }
+
   }
+
 }
+
 
 // ── MOBILE NAV ──────────────────────────────────────────────
 function setupMobileNav() {
-  const toggle = document.querySelector('.nav-toggle');
-  const links  = document.querySelector('.nav-links');
+
+  const toggle =
+    document.querySelector('.nav-toggle');
+
+  const links =
+    document.querySelector('.nav-links');
+
   if (!toggle || !links) return;
 
   toggle.addEventListener('click', () => {
+
     links.classList.toggle('open');
     toggle.classList.toggle('open');
+
   });
 
   links.querySelectorAll('a').forEach(a => {
+
     a.addEventListener('click', () => {
+
       links.classList.remove('open');
       toggle.classList.remove('open');
+
     });
+
   });
 
   document.addEventListener('click', (e) => {
-    if (!toggle.contains(e.target) && !links.contains(e.target)) {
+
+    if (
+      !toggle.contains(e.target) &&
+      !links.contains(e.target)
+    ) {
+
       links.classList.remove('open');
       toggle.classList.remove('open');
+
     }
+
   });
+
 }
+
 
 // ── HERO VIDEO SPEED ─────────────────────────────────────────
 function setupHeroVideo() {
-  const video = document.getElementById('heroBg');
+
+  const video =
+    document.getElementById('heroBg');
+
   if (!video) return;
-  video.addEventListener('loadedmetadata', () => { video.playbackRate = 0.5; });
-  if (video.readyState >= 1) video.playbackRate = 0.5;
+
+  video.addEventListener('loadedmetadata', () => {
+
+    video.playbackRate = 0.5;
+
+  });
+
+  if (video.readyState >= 1) {
+
+    video.playbackRate = 0.5;
+
+  }
+
 }
+
 
 // ── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+
   setActiveNav();
   setupReveal();
   setupMobileNav();
   setupHeroVideo();
   checkTwitchLive();
+
 });
