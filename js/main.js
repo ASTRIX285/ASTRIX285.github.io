@@ -1,60 +1,74 @@
+```javascript
 // ============================================================
 // ASTRIX285 — Main JavaScript
 // ============================================================
 
 const TWITCH_CHANNEL = 'astrix285x';
-const FB_PAGE        = 'https://www.facebook.com/xASTRIX285x';
 
 
-// ── NAV ACTIVE STATE ────────────────────────────────────────
+// ─────────────────────────────────────────
+// NAV ACTIVE
+// ─────────────────────────────────────────
+
 function setActiveNav() {
 
   const path = window.location.pathname;
 
-  document.querySelectorAll('.nav-links a').forEach(link => {
+  document.querySelectorAll('.nav-links a')
+    .forEach(link => {
 
-    link.classList.remove('active');
+      link.classList.remove('active');
 
-    const href = link.getAttribute('href');
+      const href =
+        link.getAttribute('href');
 
-    if (
-      path.endsWith(href) ||
-      (path === '/' && href === 'index.html') ||
-      (path.endsWith('/') && href === 'index.html')
-    ) {
-      link.classList.add('active');
-    }
+      if (
+        path.endsWith(href) ||
+        (path === '/' && href === 'index.html')
+      ) {
 
-  });
+        link.classList.add('active');
 
-}
-
-
-// ── SCROLL REVEAL ───────────────────────────────────────────
-function setupReveal() {
-
-  const observer = new IntersectionObserver((entries) => {
-
-    entries.forEach(entry => {
-
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
       }
 
     });
 
-  }, {
-    threshold: 0.15
-  });
+}
 
-  document.querySelectorAll('.reveal').forEach(el => {
-    observer.observe(el);
-  });
+
+// ─────────────────────────────────────────
+// REVEALS
+// ─────────────────────────────────────────
+
+function setupReveal() {
+
+  const observer =
+    new IntersectionObserver(entries => {
+
+      entries.forEach(entry => {
+
+        if (entry.isIntersecting) {
+
+          entry.target.classList.add('visible');
+
+        }
+
+      });
+
+    }, {
+      threshold: 0.15
+    });
+
+  document.querySelectorAll('.reveal')
+    .forEach(el => observer.observe(el));
 
 }
 
 
-// ── HERO VIDEO SPEED ─────────────────────────────────────────
+// ─────────────────────────────────────────
+// HERO VIDEO
+// ─────────────────────────────────────────
+
 function setupHeroVideo() {
 
   const video =
@@ -62,18 +76,22 @@ function setupHeroVideo() {
 
   if (!video) return;
 
-  video.addEventListener('loadedmetadata', () => {
-    video.playbackRate = 0.5;
-  });
+  video.addEventListener(
+    'loadedmetadata',
+    () => {
 
-  if (video.readyState >= 1) {
-    video.playbackRate = 0.5;
-  }
+      video.playbackRate = 0.5;
+
+    }
+  );
 
 }
 
 
-// ── MOBILE NAV ──────────────────────────────────────────────
+// ─────────────────────────────────────────
+// MOBILE NAV
+// ─────────────────────────────────────────
+
 function setupMobileNav() {
 
   const toggle =
@@ -87,25 +105,16 @@ function setupMobileNav() {
   toggle.addEventListener('click', () => {
 
     links.classList.toggle('open');
-    toggle.classList.toggle('open');
-
-  });
-
-  links.querySelectorAll('a').forEach(a => {
-
-    a.addEventListener('click', () => {
-
-      links.classList.remove('open');
-      toggle.classList.remove('open');
-
-    });
 
   });
 
 }
 
 
-// ── CINEMATIC STREAM EXPANSION ─────────────────────────────
+// ─────────────────────────────────────────
+// CINEMATIC STREAM
+// ─────────────────────────────────────────
+
 function setupStreamExpansion() {
 
   const embed =
@@ -121,7 +130,7 @@ function setupStreamExpansion() {
 
   let ticking = false;
 
-  function updateScroll() {
+  function update() {
 
     const rect =
       embed.getBoundingClientRect();
@@ -129,29 +138,28 @@ function setupStreamExpansion() {
     const winH =
       window.innerHeight;
 
-    const progress =
-      Math.max(
-        0,
-        Math.min(
-          1,
-          1 - (
-            (rect.top + rect.height * 0.5 - winH * 0.5)
-            / (winH * 0.8)
-          )
-        )
+    let progress =
+      1 - (
+        (rect.top + rect.height * 0.5 - winH * 0.5)
+        / (winH * 0.8)
       );
 
+    progress =
+      Math.max(0, Math.min(1, progress));
+
     // CINEMATIC WINDOW
-    const topBottom =
+
+    const tb =
       30 - (30 * progress);
 
-    const leftRight =
+    const lr =
       35 - (35 * progress);
 
     embed.style.clipPath =
-      `inset(${topBottom}% ${leftRight}% ${topBottom}% ${leftRight}%)`;
+      `inset(${tb}% ${lr}% ${tb}% ${lr}%)`;
 
     // HEADER FADE
+
     if (header) {
 
       header.style.opacity =
@@ -160,26 +168,30 @@ function setupStreamExpansion() {
     }
 
     // NAV FADE
+
     if (nav) {
 
       const navOpacity =
         Math.max(
           0,
-          1 - Math.max(0, (progress - 0.55) * 2.4)
+          1 - Math.max(0, (progress - 0.55) * 2.5)
         );
 
       nav.style.opacity =
         navOpacity;
 
       nav.style.background =
-        `rgba(6,6,6,${0.95 - progress})`;
+        `rgba(6,6,6,${0.96 - progress})`;
 
     }
 
-    // FULL IMMERSION
+    // IMMERSION
+
     if (progress >= 0.98) {
 
-      document.body.classList.add('stream-locked');
+      document.body.classList.add(
+        'stream-locked'
+      );
 
       embed.classList.add('expanded');
 
@@ -192,7 +204,9 @@ function setupStreamExpansion() {
 
     } else {
 
-      document.body.classList.remove('stream-locked');
+      document.body.classList.remove(
+        'stream-locked'
+      );
 
       embed.classList.remove('expanded');
 
@@ -212,7 +226,7 @@ function setupStreamExpansion() {
 
     if (!ticking) {
 
-      requestAnimationFrame(updateScroll);
+      requestAnimationFrame(update);
 
       ticking = true;
 
@@ -226,69 +240,53 @@ function setupStreamExpansion() {
     { passive: true }
   );
 
-  updateScroll();
+  update();
 
 }
 
 
-// ── SET OFFLINE VOD STATE ────────────────────────────────────
+// ─────────────────────────────────────────
+// OFFLINE VOD
+// ─────────────────────────────────────────
+
 function setOfflineVod(data) {
 
-  const vodEmbed    = document.getElementById('vodEmbed');
-  const vodTitle    = document.getElementById('vodTitle');
-  const vodFbLink   = document.getElementById('vodFbLink');
-  const vodTwLink   = document.getElementById('vodTwLink');
-  const vodSection  = document.getElementById('vodSection');
-  const vodFallback = document.getElementById('vodFallback');
+  const vodEmbed =
+    document.getElementById('vodEmbed');
+
+  const vodTitle =
+    document.getElementById('vodTitle');
+
+  const vodSection =
+    document.getElementById('vodSection');
+
+  const vodFallback =
+    document.getElementById('vodFallback');
 
   if (data.vod_id && vodEmbed) {
 
     vodEmbed.src =
-      `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com&autoplay=false&muted=true`;
-
-    const offlineFull =
-      document.getElementById('streamOffline');
-
-    if (offlineFull) {
-      offlineFull.classList.add('has-vod');
-    }
+      `https://player.twitch.tv/?video=${data.vod_id}&parent=astrixparadox.com&parent=www.astrixparadox.com`;
 
     if (vodTitle) {
+
       vodTitle.textContent =
         data.vod_title || 'Latest Stream';
-    }
-
-    if (vodTwLink) {
-      vodTwLink.href =
-        data.vod_url ||
-        `https://twitch.tv/${TWITCH_CHANNEL}`;
-    }
-
-    if (vodFbLink) {
-
-      const fbShareUrl =
-        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.vod_url || '')}`;
-
-      vodFbLink.href = fbShareUrl;
 
     }
 
     if (vodSection) {
-      vodSection.style.display = 'block';
+
+      vodSection.style.display =
+        'block';
+
     }
 
     if (vodFallback) {
-      vodFallback.style.display = 'none';
-    }
 
-  } else {
+      vodFallback.style.display =
+        'none';
 
-    if (vodSection) {
-      vodSection.style.display = 'none';
-    }
-
-    if (vodFallback) {
-      vodFallback.style.display = 'block';
     }
 
   }
@@ -296,7 +294,10 @@ function setOfflineVod(data) {
 }
 
 
-// ── TWITCH LIVE CHECK ───────────────────────────────────────
+// ─────────────────────────────────────────
+// TWITCH STATUS
+// ─────────────────────────────────────────
+
 async function checkTwitchLive() {
 
   const navDot =
@@ -314,11 +315,9 @@ async function checkTwitchLive() {
   try {
 
     const res =
-      await fetch('/twitch-status.json?t=' + Date.now());
-
-    if (!res.ok) {
-      throw new Error('Status file not found');
-    }
+      await fetch(
+        '/twitch-status.json?t=' + Date.now()
+      );
 
     const data =
       await res.json();
@@ -326,42 +325,48 @@ async function checkTwitchLive() {
     if (data.live) {
 
       if (navDot) {
+
         navDot.classList.add('live');
+
       }
 
       if (navText) {
-        navText.textContent = 'LIVE NOW';
+
+        navText.textContent =
+          'LIVE NOW';
+
       }
 
       if (liveEl) {
-        liveEl.style.display = 'block';
+
+        liveEl.style.display =
+          'block';
+
       }
 
       if (offlineEl) {
-        offlineEl.style.display = 'none';
-      }
 
-      document.title =
-        `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX285`;
+        offlineEl.style.display =
+          'none';
+
+      }
 
       setupStreamExpansion();
 
     } else {
 
-      if (navDot) {
-        navDot.classList.remove('live');
-      }
-
-      if (navText) {
-        navText.textContent = 'OFFLINE';
-      }
-
       if (offlineEl) {
-        offlineEl.style.display = 'flex';
+
+        offlineEl.style.display =
+          'flex';
+
       }
 
       if (liveEl) {
-        liveEl.style.display = 'none';
+
+        liveEl.style.display =
+          'none';
+
       }
 
       setOfflineVod(data);
@@ -370,34 +375,27 @@ async function checkTwitchLive() {
 
   } catch (e) {
 
-    if (navDot) {
-      navDot.classList.remove('live');
-    }
-
-    if (navText) {
-      navText.textContent = 'OFFLINE';
-    }
-
-    if (offlineEl) {
-      offlineEl.style.display = 'flex';
-    }
-
-    if (liveEl) {
-      liveEl.style.display = 'none';
-    }
+    console.error(e);
 
   }
 
 }
 
 
-// ── INIT ────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
 
-  setActiveNav();
-  setupReveal();
-  setupHeroVideo();
-  setupMobileNav();
-  checkTwitchLive();
+document.addEventListener(
+  'DOMContentLoaded',
+  () => {
 
-});
+    setActiveNav();
+    setupReveal();
+    setupHeroVideo();
+    setupMobileNav();
+    checkTwitchLive();
+
+  }
+);
+```
