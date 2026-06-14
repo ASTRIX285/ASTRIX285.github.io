@@ -679,7 +679,7 @@ function setupMobileNav() {
 
 }
 
-// ── HERO VIDEO SPEED ─────────────────────────────────────────
+// ── HERO VIDEO SPEED + SEAMLESS LOOP FADE ────────────────────
 function setupHeroVideo() {
 
   const video =
@@ -687,20 +687,71 @@ function setupHeroVideo() {
 
   if (!video) return;
 
+  const FADE_MS = 400; // tweak this to adjust loop transition speed
+  const BASE_OPACITY = '0.55'; // matches .hero-bg-video video CSS opacity
+
+  function armLoopFade() {
+
+    if (!video.duration) return;
+
+    const fadeStart =
+      video.duration - (FADE_MS / 1000);
+
+    function onTime() {
+
+      if (video.currentTime >= fadeStart) {
+
+        video.style.opacity = '0';
+
+        video.removeEventListener(
+          'timeupdate',
+          onTime
+        );
+
+      }
+
+    }
+
+    video.addEventListener(
+      'timeupdate',
+      onTime
+    );
+
+  }
+
   video.addEventListener(
     'loadedmetadata',
     () => {
 
-      video.playbackRate =
-        0.5;
+      video.playbackRate = 0.5;
+      armLoopFade();
+
+    }
+  );
+
+  video.addEventListener(
+    'ended',
+    () => {
+
+      video.currentTime = 0;
+      video.play();
+
+      requestAnimationFrame(() => {
+
+        video.style.opacity =
+          BASE_OPACITY;
+
+        armLoopFade();
+
+      });
 
     }
   );
 
   if (video.readyState >= 1) {
 
-    video.playbackRate =
-      0.5;
+    video.playbackRate = 0.5;
+    armLoopFade();
 
   }
 
