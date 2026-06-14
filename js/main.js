@@ -768,5 +768,10 @@ document.addEventListener(
     setupHeroVideo();
     checkTwitchLive();
 
+    // Re-check Twitch live status every 10 minutes
+    // so the nav indicator and stream section update
+    // for anyone who keeps the page open
+    setInterval(checkTwitchLive, 10 * 60 * 1000);
+
   }
 );
