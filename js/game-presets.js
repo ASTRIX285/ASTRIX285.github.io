@@ -171,7 +171,21 @@ window.GAME_PRESETS = {
 };
 
 // ============================================================
-// ACTIVE GAME — change THIS line and only this line to switch
-// what shows in the hero and "Currently Playing" section.
+// ACTIVE GAME — this is the ONLY thing you touch to switch games.
+//
+// All your games are listed below, each on its own line, already
+// spelled correctly. To switch:
+//   1. Put // in front of the line that's currently active
+//   2. Remove the // from the line you want to switch to
+// Only ONE line should be active (no // in front) at a time —
+// whichever one is left "un-commented" wins.
 // ============================================================
+
+// window.ACTIVE_GAME = "crimsondesert";
 window.ACTIVE_GAME = "destiny2";
+// window.ACTIVE_GAME = "warframe";
+// window.ACTIVE_GAME = "borderlands4";
+// window.ACTIVE_GAME = "pathofexile";
+// window.ACTIVE_GAME = "blackmythwukong";
+// window.ACTIVE_GAME = "godofwar";
+// window.ACTIVE_GAME = "warhammer40kspacemarine2";
