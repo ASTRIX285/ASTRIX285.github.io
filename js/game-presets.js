@@ -130,6 +130,25 @@ window.GAME_PRESETS = {
     studio: "GAME SCIENCE"
   },
 
+  warhammer40kspacemarine2: {
+    heroName: "Warhammer 40,000: Space Marine 2",
+    eyebrow: "Active Universe",
+    nameWhite: "Space",
+    nameAccent: "Marine 2",
+    paragraphs: [
+      "Saber Interactive nailed the fantasy of being an Astartes — a wall of Tyranids in front of you, a chainsword in your hand, and nowhere to retreat. Space Marine 2 is brutal, bombastic, and exactly what the 41st Millennium deserves.",
+      "Whether I am carving through hordes solo, running Operations with the squad, or chasing the next difficulty spike — this is where you get the real experience. No fluff. Just gameplay, honest reactions, and community."
+    ],
+    reviewLink: "pages/reviews.html",
+    reviewLabel: "Read the Review",
+    watchLink: "https://twitch.tv/astrix285x",
+    watchLabel: "Watch Live",
+    image: "img/games/warhammer-40k-space.jpg",
+    imageAlt: "Warhammer 40,000: Space Marine 2",
+    badgeTitle: "SPACE MARINE 2",
+    studio: "SABER INTERACTIVE"
+  },
+
   godofwar: {
     heroName: "God of War",
     eyebrow: "Active Universe",
