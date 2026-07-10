@@ -18,37 +18,12 @@
   <link rel="icon" href="img/favicon/favicon.ico">
 
   <!-- ============================================================
-       CURRENT GAME CONFIG
-       This is the ONLY block you need to edit when switching games.
-       It drives the hero highlight AND the "Currently Playing"
-       section below. Nothing else in the page needs to change.
+       CURRENT GAME — driven by js/game-presets.js
+       To switch what "Currently Playing" shows, edit ONE line in
+       js/game-presets.js (window.ACTIVE_GAME = "..."). Nothing in
+       this file needs to change.
   ============================================================= -->
-  <script>
-    window.CURRENT_GAME = {
-      // Shown inline in the hero paragraph: "<strong>X</strong> has taken over."
-      heroName: "Destiny 2",
-
-      // "Currently Playing" section
-      eyebrow: "Active Universe",
-      nameWhite: "Destiny",      // white part of the big heading
-      nameAccent: "2",           // crimson/accent part of the big heading
-
-      paragraphs: [
-        "Bungie's sci-fi looter-shooter is where it all started for me. Raids, dungeons, Trials of Osiris — every season brings a new fight worth showing up for, and Destiny 2 is back at the center of the rotation.",
-        "Whether I am running flawless Trials cards, pushing Grandmaster Nightfalls, or diving into the newest raid on day one — this is where you get the real experience. No fluff. Just gameplay, honest reactions, and community."
-      ],
-
-      reviewLink: "pages/reviews.html",
-      reviewLabel: "Read the Review",
-      watchLink: "https://twitch.tv/astrix285x",
-      watchLabel: "Watch Live",
-
-      image: "img/games/destiny2.jpg",   // update if your filename differs
-      imageAlt: "Destiny 2",
-      badgeTitle: "DESTINY 2",
-      studio: "BUNGIE"
-    };
-  </script>
+  <script src="js/game-presets.js"></script>
 </head>
 <body>
 
@@ -301,10 +276,10 @@
   <div class="footer-disclaimer">All images featured on this site are official wallpapers sourced from the respective publishers and developers' websites. They remain the property of their rightful owners and are used here for fan and review purposes only.</div>
 </footer>
 
-<!-- Populate hero + "Currently Playing" section from window.CURRENT_GAME (set in <head>) -->
+<!-- Populate hero + "Currently Playing" section from js/game-presets.js -->
 <script>
   (function () {
-    var g = window.CURRENT_GAME;
+    var g = window.GAME_PRESETS && window.GAME_PRESETS[window.ACTIVE_GAME];
     if (!g) return;
 
     var heroEl = document.getElementById('heroGameName');
