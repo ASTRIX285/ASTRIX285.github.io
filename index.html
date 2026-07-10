@@ -16,6 +16,39 @@
   <link rel="icon" type="image/png" sizes="512x512" href="img/favicon/android-chrome-512x512.png">
   <link rel="manifest" href="site.webmanifest">
   <link rel="icon" href="img/favicon/favicon.ico">
+
+  <!-- ============================================================
+       CURRENT GAME CONFIG
+       This is the ONLY block you need to edit when switching games.
+       It drives the hero highlight AND the "Currently Playing"
+       section below. Nothing else in the page needs to change.
+  ============================================================= -->
+  <script>
+    window.CURRENT_GAME = {
+      // Shown inline in the hero paragraph: "<strong>X</strong> has taken over."
+      heroName: "Destiny 2",
+
+      // "Currently Playing" section
+      eyebrow: "Active Universe",
+      nameWhite: "Destiny",      // white part of the big heading
+      nameAccent: "2",           // crimson/accent part of the big heading
+
+      paragraphs: [
+        "Bungie's sci-fi looter-shooter is where it all started for me. Raids, dungeons, Trials of Osiris — every season brings a new fight worth showing up for, and Destiny 2 is back at the center of the rotation.",
+        "Whether I am running flawless Trials cards, pushing Grandmaster Nightfalls, or diving into the newest raid on day one — this is where you get the real experience. No fluff. Just gameplay, honest reactions, and community."
+      ],
+
+      reviewLink: "pages/reviews.html",
+      reviewLabel: "Read the Review",
+      watchLink: "https://twitch.tv/astrix285x",
+      watchLabel: "Watch Live",
+
+      image: "img/games/destiny2.jpg",   // update if your filename differs
+      imageAlt: "Destiny 2",
+      badgeTitle: "DESTINY 2",
+      studio: "BUNGIE"
+    };
+  </script>
 </head>
 <body>
 
@@ -63,7 +96,7 @@
       I am ASTRIX285 — a gamer, streamer, and community builder who has spent years
       grinding through digital worlds. Right now, there is only one world that matters.
       <br><br>
-      <strong style="color:var(--crimson-mid)">Crimson Desert</strong> has taken over.
+      <strong id="heroGameName" style="color:var(--crimson-mid)">Destiny 2</strong> has taken over.
       Drop in on <a href="https://twitch.tv/astrix285x" target="_blank">Twitch</a> to watch it live,
       catch highlights on <a href="https://youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>,
       or join the crew on <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank">Discord</a>.
@@ -71,8 +104,8 @@
       <em style="color:var(--grey);font-style:normal;letter-spacing:1px;">Welcome to the Paradox. Welcome to ASTRIX285.</em>
     </p>
     <div class="hero-tags">
-      <span class="hero-tag">Crimson Desert</span>
       <span class="hero-tag">Destiny 2</span>
+      <span class="hero-tag">Crimson Desert</span>
       <span class="hero-tag">Borderlands</span>
       <span class="hero-tag">Warframe</span>
       <span class="hero-tag">Warhammer 40K</span>
@@ -185,24 +218,18 @@
 
 <div class="gold-line"></div>
 
-<!-- 4. CURRENTLY PLAYING ── -->
+<!-- 4. CURRENTLY PLAYING ── (content injected from window.CURRENT_GAME, see <head>) -->
 <section class="section">
   <div style="max-width:1100px;margin:0 auto;">
-    <div class="section-eyebrow reveal">Active Universe</div>
-    <h2 class="section-title reveal reveal-delay-1">Crimson <span class="accent">Desert</span></h2>
+    <div class="section-eyebrow reveal" id="cgEyebrow">Active Universe</div>
+    <h2 class="section-title reveal reveal-delay-1"><span id="cgNameWhite">Destiny</span> <span class="accent" id="cgNameAccent">2</span></h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:40px;">
       <div>
-        <p class="reveal reveal-delay-2" style="color:var(--grey);line-height:1.9;font-size:16px;">
-          Pearl Abyss's brutal open-world action RPG is everything I live for. Savage combat, deep lore,
-          a world that punishes the weak and rewards the relentless. I am all in, and I am bringing you with me.
-        </p>
-        <p class="reveal reveal-delay-3" style="color:var(--grey);line-height:1.9;font-size:16px;margin-top:16px;">
-          Whether I am exploring every corner of the map, breaking down builds, or going live and taking on
-          the hardest content the game throws at me — this is where you get the real experience. No fluff. Just gameplay, honest reactions, and community.
-        </p>
+        <p class="reveal reveal-delay-2" id="cgParagraph1" style="color:var(--grey);line-height:1.9;font-size:16px;"></p>
+        <p class="reveal reveal-delay-3" id="cgParagraph2" style="color:var(--grey);line-height:1.9;font-size:16px;margin-top:16px;"></p>
         <div style="margin-top:28px;display:flex;gap:12px;flex-wrap:wrap;" class="reveal reveal-delay-3">
-          <a href="pages/reviews.html" class="btn-primary">Read the Review</a>
-          <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-secondary">Watch Live</a>
+          <a href="pages/reviews.html" class="btn-primary" id="cgReviewLink">Read the Review</a>
+          <a href="https://twitch.tv/astrix285x" target="_blank" class="btn-secondary" id="cgWatchLink">Watch Live</a>
         </div>
       </div>
       <div class="reveal reveal-delay-2" style="position:relative;">
@@ -210,13 +237,13 @@
           <div style="position:absolute;top:-1px;left:-1px;width:20px;height:20px;border-top:2px solid var(--gold);border-left:2px solid var(--gold);z-index:1;"></div>
           <div style="position:absolute;bottom:-1px;right:-1px;width:20px;height:20px;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold);z-index:1;"></div>
           <div style="aspect-ratio:16/9;position:relative;overflow:hidden;">
-            <img src="img/games/crimsondesert.jpg" alt="Crimson Desert"
+            <img id="cgImage" src="img/games/destiny2.jpg" alt="Destiny 2"
                  style="width:100%;height:100%;object-fit:cover;opacity:0.85;display:block;">
             <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(6,6,6,0.85) 0%,transparent 60%);"></div>
             <div style="position:absolute;bottom:20px;left:20px;">
               <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:5px;color:var(--gold);margin-bottom:8px;">ACTIVE UNIVERSE</div>
-              <div style="font-family:'Orbitron',monospace;font-size:clamp(16px,2vw,26px);font-weight:900;color:var(--white);letter-spacing:2px;text-shadow:0 0 20px rgba(139,0,0,0.8);">CRIMSON DESERT</div>
-              <div style="font-size:11px;letter-spacing:3px;color:var(--grey);margin-top:4px;">PEARL ABYSS</div>
+              <div style="font-family:'Orbitron',monospace;font-size:clamp(16px,2vw,26px);font-weight:900;color:var(--white);letter-spacing:2px;text-shadow:0 0 20px rgba(139,0,0,0.8);" id="cgBadgeTitle">DESTINY 2</div>
+              <div style="font-size:11px;letter-spacing:3px;color:var(--grey);margin-top:4px;" id="cgStudio">BUNGIE</div>
             </div>
           </div>
         </div>
@@ -273,6 +300,48 @@
   <div class="footer-copy">© 2025 Astrix285 — Built for the community, powered by gaming passion and history.</div>
   <div class="footer-disclaimer">All images featured on this site are official wallpapers sourced from the respective publishers and developers' websites. They remain the property of their rightful owners and are used here for fan and review purposes only.</div>
 </footer>
+
+<!-- Populate hero + "Currently Playing" section from window.CURRENT_GAME (set in <head>) -->
+<script>
+  (function () {
+    var g = window.CURRENT_GAME;
+    if (!g) return;
+
+    var heroEl = document.getElementById('heroGameName');
+    if (heroEl) heroEl.textContent = g.heroName;
+
+    var setText = function (id, val) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+
+    setText('cgEyebrow', g.eyebrow);
+    setText('cgNameWhite', g.nameWhite);
+    setText('cgNameAccent', g.nameAccent);
+    setText('cgParagraph1', g.paragraphs[0]);
+    setText('cgParagraph2', g.paragraphs[1]);
+    setText('cgBadgeTitle', g.badgeTitle);
+    setText('cgStudio', g.studio);
+
+    var reviewLink = document.getElementById('cgReviewLink');
+    if (reviewLink) {
+      reviewLink.href = g.reviewLink;
+      reviewLink.textContent = g.reviewLabel;
+    }
+
+    var watchLink = document.getElementById('cgWatchLink');
+    if (watchLink) {
+      watchLink.href = g.watchLink;
+      watchLink.textContent = g.watchLabel;
+    }
+
+    var img = document.getElementById('cgImage');
+    if (img) {
+      img.src = g.image;
+      img.alt = g.imageAlt;
+    }
+  })();
+</script>
 
 <script src="js/main.js"></script>
 </body>
