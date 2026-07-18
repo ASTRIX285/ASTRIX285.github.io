@@ -29,7 +29,7 @@ window.GAME_PRESETS = {
     reviewLabel: "Read the Review",
     watchLink: "https://twitch.tv/astrix285x",
     watchLabel: "Watch Live",
-    image: "img/games/destiny2.jpg",
+    image: "img/games/D2_JB.jpg", 
     imageAlt: "Destiny 2",
     badgeTitle: "DESTINY 2",
     studio: "BUNGIE"
