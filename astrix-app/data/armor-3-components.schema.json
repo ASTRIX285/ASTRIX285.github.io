@@ -140,11 +140,16 @@
             "required": ["type"]
           },
           "then": {
+            "properties": {
+              "setBonus": {
+                "$ref": "#/$defs/setBonusEntries"
+              }
+            },
             "required": ["setBonus"]
           },
           "else": {
-            "not": {
-              "required": ["setBonus"]
+            "properties": {
+              "setBonus": false
             }
           }
         }
