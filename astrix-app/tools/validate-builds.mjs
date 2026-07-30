@@ -162,6 +162,10 @@ function collectComponentReadinessItems(component) {
         items.push('column is missing');
       }
     }
+
+    if (component.type === 'originTrait' && !Array.isArray(component.notableWeapons)) {
+      items.push('notableWeapons is missing');
+    }
   }
 
   return [...new Set(items)];
@@ -231,6 +235,17 @@ function printComponentReadinessReport(catalogue, components) {
     if (component.type === 'artifactPerk') {
       console.log(`Artifact: ${isNonEmptyText(component.artifactName) ? component.artifactName : 'not populated'}`);
       console.log(`Column: ${isInteger(component.column) ? component.column : 'not populated'}`);
+    }
+
+    if (component.type === 'weaponPerk') {
+      console.log(`Enhanced effect: ${isNonEmptyText(component.enhancedEffect) ? 'populated' : 'not populated'}`);
+    }
+
+    if (component.type === 'originTrait') {
+      const weaponCount = Array.isArray(component.notableWeapons)
+        ? component.notableWeapons.length
+        : 'not populated';
+      console.log(`Notable weapons: ${weaponCount}`);
     }
 
     if (items.length === 0) {
