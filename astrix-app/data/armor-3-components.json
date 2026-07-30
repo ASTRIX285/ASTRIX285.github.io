@@ -4,7 +4,7 @@
   "scope": "Armor 3.0",
   "seedStatus": {
     "setBonusTableAvailable": true,
-    "notes": "All 56 set bonuses now contain verified 2-piece and 4-piece effects with cited sources. Effect text sourced from blueberries.gg (2026-07-08); Flain's 2pc/4pc order cross-checked against light.gg Bungie-API data."
+    "notes": "56 set bonuses verified. Fragments seeded for all elements (Void, Solar, Arc, Stasis, Strand, Prismatic) with effects, stat modifiers and sources; effects reworded from Armor 3.0 references. Aspects and artifact perks still pending."
   },
   "components": [
     {
@@ -1905,6 +1905,1656 @@
         }
       ],
       "statModifiers": []
+    },
+    {
+      "id": "fragment-ember-of-torches",
+      "name": "Ember of Torches",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Powered melee hits make you and nearby allies (within 8m) Radiant for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-benevolence",
+      "name": "Ember of Benevolence",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Applying a Solar buff to an ally greatly increases your grenade, melee and class ability regeneration for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-singeing",
+      "name": "Ember of Singeing",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Scorching a target that was not already scorched briefly boosts your class ability regeneration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-ember-of-ashes",
+      "name": "Ember of Ashes",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Your scorch effects apply additional scorch stacks.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-ember-of-char",
+      "name": "Ember of Char",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Your ignitions spread scorch to nearby enemies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-solace",
+      "name": "Ember of Solace",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Your Radiant and Restoration effects last 50% longer.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-ember-of-empyrean",
+      "name": "Ember of Empyrean",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Solar final blows extend the duration of your Restoration and Radiant, up to a cap.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-searing",
+      "name": "Ember of Searing",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Defeating a scorched target grants melee energy and creates a Firesprite.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-resolve",
+      "name": "Ember of Resolve",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Grenade final blows cure you.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-ember-of-mercy",
+      "name": "Ember of Mercy",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Picking up a Firesprite, or reviving an ally, grants you Restoration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-blistering",
+      "name": "Ember of Blistering",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Defeating a target with an ignition grants grenade energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-ember-of-eruption",
+      "name": "Ember of Eruption",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Your ignitions have an increased radius.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-wonder",
+      "name": "Ember of Wonder",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Ignition multikills create an Orb of Power (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-combustion",
+      "name": "Ember of Combustion",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Final blows with your Solar Super cause targets to ignite and create Firesprites.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-tempering",
+      "name": "Ember of Tempering",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Solar weapon final blows grant Health to nearby allies and spawn Firesprites.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-ember-of-beams",
+      "name": "Ember of Beams",
+      "type": "fragment",
+      "subclass": "Solar",
+      "element": "Solar",
+      "effect": "Your Blade Barrage and Daybreak projectiles track targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Super",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-spark-of-resistance",
+      "name": "Spark of Resistance",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "While surrounded by three or more enemies, you gain damage resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-spark-of-beacons",
+      "name": "Spark of Beacons",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "While Amplified, Special or Heavy Arc final blows create a blinding blast.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-spark-of-discharge",
+      "name": "Spark of Discharge",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Arc weapon final blows generate Ionic Traces; picking up an Ionic Trace grants a Bolt Charge stack.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-spark-of-magnitude",
+      "name": "Spark of Magnitude",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Your Lightning, Pulse and Storm grenades are enhanced with more projectiles or longer duration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-spark-of-ions",
+      "name": "Spark of Ions",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Defeating a jolted target, or a Bolt Charge final blow, creates an Ionic Trace (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-spark-of-shock",
+      "name": "Spark of Shock",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Your Arc grenade hits jolt targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-spark-of-amplitude",
+      "name": "Spark of Amplitude",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Rapid final blows while Amplified create an Orb of Power (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-spark-of-frequency",
+      "name": "Spark of Frequency",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Melee hits briefly boost your reload speed and stability; while Amplified you also gain extra Bolt Charge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-spark-of-feedback",
+      "name": "Spark of Feedback",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Taking melee damage briefly increases your outgoing melee damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-spark-of-momentum",
+      "name": "Spark of Momentum",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Sliding over ammo reloads your weapon and grants Bolt Charge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-spark-of-recharge",
+      "name": "Spark of Recharge",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "While at critical health, your grenade and melee regenerate much faster.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-spark-of-brilliance",
+      "name": "Spark of Brilliance",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Precision final blows on blinded targets create a blinding blast.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Super",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-spark-of-focus",
+      "name": "Spark of Focus",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "After sprinting briefly, your class ability regenerates faster. Stat penalty is class-dependent: -10 Weapons (Hunter), -10 Health (Titan), -10 Class (Warlock).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-spark-of-volts",
+      "name": "Spark of Volts",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "Finishers make you Amplified and grant a Bolt Charge stack.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-spark-of-haste",
+      "name": "Spark of Haste",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "After sprinting briefly, you gain bonus Health.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-spark-of-instinct",
+      "name": "Spark of Instinct",
+      "type": "fragment",
+      "subclass": "Arc",
+      "element": "Arc",
+      "effect": "At critical health, taking damage triggers an Arc jolting burst (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-whisper-of-shards",
+      "name": "Whisper of Shards",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Breaking a Stasis crystal greatly boosts your grenade regeneration briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-whisper-of-rime",
+      "name": "Whisper of Rime",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Increases your maximum Frost Armor stacks and their duration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-whisper-of-torment",
+      "name": "Whisper of Torment",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Taking damage grants grenade energy, increased while you have Frost Armor.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-whisper-of-durance",
+      "name": "Whisper of Durance",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Your Slow and other Stasis effects last longer.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-whisper-of-hunger",
+      "name": "Whisper of Hunger",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Picking up Stasis Shards grants increased melee energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": -20
+        }
+      ]
+    },
+    {
+      "id": "fragment-whisper-of-fissures",
+      "name": "Whisper of Fissures",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Destroying a Stasis crystal deals additional damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-whisper-of-impetus",
+      "name": "Whisper of Impetus",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Powered melee damage reloads your weapons and boosts handling briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-whisper-of-rending",
+      "name": "Whisper of Rending",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Your Kinetic weapons deal bonus damage to Stasis crystals and frozen targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-whisper-of-refraction",
+      "name": "Whisper of Refraction",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Defeating slowed or frozen targets grants class ability energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-whisper-of-fractures",
+      "name": "Whisper of Fractures",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Shattering an enemy with melee grants Frost Armor.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-whisper-of-conduction",
+      "name": "Whisper of Conduction",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Nearby Stasis Shards are drawn toward you.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": 10
+        },
+        {
+          "stat": "Super",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-whisper-of-chains",
+      "name": "Whisper of Chains",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "While you have Frost Armor, rapid final blows create a Stasis Shard.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-whisper-of-bonds",
+      "name": "Whisper of Bonds",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Defeating a frozen target creates an Orb of Power (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Super",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-whisper-of-chill",
+      "name": "Whisper of Chill",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Rapid final blows with Stasis weapons create a Stasis Shard (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-whisper-of-reversal",
+      "name": "Whisper of Reversal",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Dealing or taking melee damage while you have Frost Armor applies heavy Slow.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-whisper-of-hedrons",
+      "name": "Whisper of Hedrons",
+      "type": "fragment",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "effect": "Freezing a target grants weapon handling and bonus Health briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-thread-of-generation",
+      "name": "Thread of Generation",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Dealing damage generates grenade energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-thread-of-warding",
+      "name": "Thread of Warding",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Picking up an Orb of Power grants Woven Mail.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-thread-of-evolution",
+      "name": "Thread of Evolution",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Your Threadlings deal more damage and travel farther.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Super",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-thread-of-isolation",
+      "name": "Thread of Isolation",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Consecutive precision hits apply a severing burst (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-thread-of-fury",
+      "name": "Thread of Fury",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Damaging targets with a Tangle grants melee energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-thread-of-continuity",
+      "name": "Thread of Continuity",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Your Strand debuffs (sever, suspend, unravel) last 50% longer.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-thread-of-ascent",
+      "name": "Thread of Ascent",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Using a grenade reloads your current weapon and boosts handling and reload briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Weapons",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-thread-of-propagation",
+      "name": "Thread of Propagation",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Powered melee final blows grant Unraveling Rounds.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-thread-of-rebirth",
+      "name": "Thread of Rebirth",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Rapid Strand weapon final blows create a Threadling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-thread-of-mind",
+      "name": "Thread of Mind",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Defeating suspended targets grants class ability energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-thread-of-wisdom",
+      "name": "Thread of Wisdom",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Defeating a suspended target creates an Orb of Power (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-thread-of-transmutation",
+      "name": "Thread of Transmutation",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Weapon final blows while you have Woven Mail create a Tangle.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-thread-of-finality",
+      "name": "Thread of Finality",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Finishers create a Threadling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-thread-of-binding",
+      "name": "Thread of Binding",
+      "type": "fragment",
+      "subclass": "Strand",
+      "element": "Strand",
+      "effect": "Super final blows create a suspending blast.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-courage",
+      "name": "Facet of Courage",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Your Light abilities deal increased damage to targets debuffed by Darkness.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-purpose",
+      "name": "Facet of Purpose",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Orbs of Power grant a defensive buff matching your Super element, or a Bolt Charge on Arc.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-dominance",
+      "name": "Facet of Dominance",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Your Void grenades weaken targets and your Arc grenades jolt them.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-protection",
+      "name": "Facet of Protection",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "While surrounded by three or more enemies, you gain damage resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-dawn",
+      "name": "Facet of Dawn",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Powered melee hits make you Radiant; powered melee final blows make nearby allies Radiant.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-solitude",
+      "name": "Facet of Solitude",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Sustained precision hits apply a severing burst (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-facet-of-hope",
+      "name": "Facet of Hope",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "While affected by an elemental buff, your class ability regenerates faster.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-facet-of-ruin",
+      "name": "Facet of Ruin",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Your Stasis shatters and Solar ignitions have an increased size and radius.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Weapons",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-blessing",
+      "name": "Facet of Blessing",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Melee final blows start health regeneration, extending to allies while you are Transcendent.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-facet-of-mending",
+      "name": "Facet of Mending",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Grenade final blows cure you, doubled for Prismatic grenades.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-facet-of-command",
+      "name": "Facet of Command",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Freezing or suppressing a target reloads your weapon; defeating one spawns a Stasis Shard or Void Breach.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-facet-of-sacrifice",
+      "name": "Facet of Sacrifice",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Ability final blows grant Transcendence energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-generosity",
+      "name": "Facet of Generosity",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Defeating targets while Transcendent creates Orbs of Power for your allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-facet-of-balance",
+      "name": "Facet of Balance",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Alternating Light and Darkness final blows grant melee and grenade energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-facet-of-awakening",
+      "name": "Facet of Awakening",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Consecutive elemental final blows, or a Super final blow, create an element-matching pickup (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-bravery",
+      "name": "Facet of Bravery",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Grenade final blows grant Volatile Rounds; powered melee final blows grant Unraveling Rounds.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-facet-of-honor",
+      "name": "Facet of Honor",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Collecting an elemental pickup grants Transcendence energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-devotion",
+      "name": "Facet of Devotion",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Defeating Darkness-debuffed targets grants additional Light Transcendence energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-grace",
+      "name": "Facet of Grace",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Kinetic final blows grant you Transcendence energy; Super final blows grant it to allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-defiance",
+      "name": "Facet of Defiance",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "Finishers create a debuffing explosion matching your Super element.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-facet-of-justice",
+      "name": "Facet of Justice",
+      "type": "fragment",
+      "subclass": "Prismatic",
+      "element": "Prismatic",
+      "effect": "While Transcendent, ability final blows trigger an ability-matched explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Fragment data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Super",
+          "value": 10
+        }
+      ]
     }
   ]
 }
