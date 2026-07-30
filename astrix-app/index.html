@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="mechanics.css">
 </head>
 <body>
   <div class="app-shell">
@@ -34,7 +35,7 @@
         <div class="hero-copy">
           <p class="eyebrow">Public Armor 3.0 build library</p>
           <h1>Choose a build with <span>clear evidence.</span></h1>
-          <p class="hero-text">Browse static, inspectable Destiny 2 builds by subclass and activity. Every unconfirmed detail is clearly marked for human review.</p>
+          <p class="hero-text">Browse static, inspectable Destiny 2 builds by class, subclass, activity, role and difficulty. Every unconfirmed detail is clearly marked for human review.</p>
           <div class="hero-actions">
             <button class="button primary" type="button" data-jump="builds">Explore builds</button>
             <button class="button secondary" type="button" data-jump="guardian">View model</button>
@@ -68,13 +69,22 @@
       <section class="content-section" id="builds">
         <div class="section-heading">
           <div><p class="eyebrow">Build library</p><h2>Purpose-built loadouts.</h2></div>
-          <p data-build-status>Loading committed build data…</p>
+          <p data-build-status aria-live="polite">Loading committed build data…</p>
         </div>
         <div class="build-filters" aria-label="Build filters">
+          <label>Class <select data-filter-class><option>Loading…</option></select></label>
           <label>Subclass <select data-filter-subclass><option>Loading…</option></select></label>
           <label>Activity <select data-filter-activity><option>Loading…</option></select></label>
+          <label>Role <select data-filter-role><option>Loading…</option></select></label>
+          <label>Difficulty <select data-filter-difficulty><option>Loading…</option></select></label>
+          <button class="filter-reset" type="button" data-filter-reset>Clear filters</button>
         </div>
         <div class="build-grid" data-build-grid></div>
+        <div class="build-empty" data-build-empty hidden>
+          <h3>No matching builds</h3>
+          <p>The three current seed records do not match this exact combination. Clear one or more filters to widen the results.</p>
+          <button class="button secondary" type="button" data-empty-reset>Clear filters</button>
+        </div>
       </section>
 
       <section class="content-section split-section" id="inventory">
@@ -82,7 +92,7 @@
           <div class="section-heading compact"><div><p class="eyebrow">Public data status</p><h2>Clear limits.</h2></div><span class="offline-pill">No login</span></div>
           <div class="inventory-list">
             <div class="inventory-row"><div class="item-icon exotic">J</div><div><strong>Build catalogue</strong><span>Committed JSON records</span></div><span class="row-status">Static</span></div>
-            <div class="inventory-row"><div class="item-icon weapon">R</div><div><strong>Selection rules</strong><span>Subclass and activity filters</span></div><span class="row-status">Deterministic</span></div>
+            <div class="inventory-row"><div class="item-icon weapon">R</div><div><strong>Selection rules</strong><span>Five visible deterministic filters</span></div><span class="row-status">Inspectable</span></div>
             <div class="inventory-row"><div class="item-icon armour">A</div><div><strong>Account inventory</strong><span>Requires future OAuth backend</span></div><span class="row-status warning">Not connected</span></div>
           </div>
         </div>
@@ -97,15 +107,23 @@
       <section class="content-section" id="activities">
         <div class="section-heading"><div><p class="eyebrow">Activity planning</p><h2>Filter by the job.</h2></div><p>Activity tags map directly to relevant build records without hidden scoring.</p></div>
         <div class="activity-grid">
-          <article><span class="activity-number">01</span><h3>Grandmaster</h3><p>Surface builds tagged for high-difficulty team play.</p><button type="button" data-jump="builds">Browse builds</button></article>
-          <article><span class="activity-number">02</span><h3>Raid</h3><p>Surface builds tagged for raid roles and damage phases.</p><button type="button" data-jump="builds">Browse builds</button></article>
-          <article><span class="activity-number">03</span><h3>Dungeon</h3><p>Surface builds tagged for dungeon survival and damage.</p><button type="button" data-jump="builds">Browse builds</button></article>
+          <article><span class="activity-number">01</span><h3>Grandmaster</h3><p>Surface builds tagged for high-difficulty team play.</p><button type="button" data-activity-filter="grandmaster">Browse builds</button></article>
+          <article><span class="activity-number">02</span><h3>Raid</h3><p>Surface builds tagged for raid roles and damage phases.</p><button type="button" data-activity-filter="raid">Browse builds</button></article>
+          <article><span class="activity-number">03</span><h3>Dungeon</h3><p>Surface builds tagged for dungeon survival and damage.</p><button type="button" data-activity-filter="dungeon">Browse builds</button></article>
         </div>
       </section>
     </main>
 
     <footer><span>ASTRIX Destiny public v1</span><span>Static JSON · Armor 3.0 · No Bungie authentication</span></footer>
   </div>
+
+  <dialog class="build-dialog" data-build-dialog aria-labelledby="build-detail-title">
+    <div class="build-dialog-shell">
+      <button class="dialog-close" type="button" data-dialog-close aria-label="Close build details">×</button>
+      <div data-build-detail></div>
+    </div>
+  </dialog>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
