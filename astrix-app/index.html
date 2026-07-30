@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ASTRIX Destiny companion visual prototype">
+  <title>ASTRIX Destiny Companion Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="ASTRIX home">
+        <span class="brand-mark">A</span>
+        <span class="brand-copy"><strong>ASTRIX</strong><small>DESTINY INTELLIGENCE</small></span>
+      </a>
+      <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
+        <button class="nav-tab active" data-view="home">Home</button>
+        <button class="nav-tab" data-view="guardian">Guardian</button>
+        <button class="nav-tab" data-view="builds">Builds</button>
+        <button class="nav-tab" data-view="inventory">Inventory</button>
+        <button class="nav-tab" data-view="activities">Activities</button>
+        <button class="nav-tab nav-ai" data-view="ai">ASTRIX AI</button>
+      </nav>
+      <div class="prototype-badge">Visual prototype</div>
+    </header>
+
+    <main>
+      <section class="hero" id="home">
+        <div class="hero-copy">
+          <p class="eyebrow">Your next move, explained</p>
+          <h1>Turn your vault into a <span>battle plan.</span></h1>
+          <p class="hero-text">A clean Destiny companion concept built around decisions, not clutter. Review your Guardian, understand your builds and prepare for the activity ahead.</p>
+          <div class="hero-actions">
+            <button class="button primary" type="button" data-jump="builds">Explore builds</button>
+            <button class="button secondary" type="button" data-jump="guardian">View Guardian</button>
+          </div>
+          <div class="prototype-note"><strong>Prototype only.</strong> All Destiny information shown below is placeholder content. No Bungie login, API calls or recommendation logic is included.</div>
+        </div>
+        <aside class="guardian-card glass-panel">
+          <div class="guardian-card-top">
+            <div>
+              <span class="micro-label">Active Guardian</span>
+              <h2>Astrix-7</h2>
+              <p>Warlock · Placeholder profile</p>
+            </div>
+            <div class="power-orb"><span>Power</span><strong>0000</strong></div>
+          </div>
+          <div class="guardian-visual" aria-hidden="true">
+            <div class="guardian-silhouette"></div>
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+          </div>
+          <div class="guardian-stats">
+            <div><span>Build readiness</span><strong>Prototype</strong></div>
+            <div><span>Vault status</span><strong>Offline</strong></div>
+            <div><span>Last sync</span><strong>Not connected</strong></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="content-section" id="guardian">
+        <div class="section-heading">
+          <div><p class="eyebrow">Guardian overview</p><h2>See the signal, not the noise.</h2></div>
+          <p>Focused summaries show what matters now while deeper detail stays one click away.</p>
+        </div>
+        <div class="overview-grid">
+          <article class="feature-card large-card">
+            <div class="card-heading"><span class="icon-chip">✦</span><div><small>Current focus</small><h3>Endgame preparation</h3></div></div>
+            <p>Placeholder guidance for Grandmasters, raids and dungeons will eventually appear here after live data and the current rules engine are connected.</p>
+            <div class="progress-row"><span>Prototype completeness</span><strong>Visual layer</strong></div>
+            <div class="progress-track"><span style="width:72%"></span></div>
+          </article>
+          <article class="feature-card"><span class="micro-label">Characters</span><strong class="metric">3</strong><p>Hunter, Titan and Warlock presentation concept.</p></article>
+          <article class="feature-card"><span class="micro-label">Saved builds</span><strong class="metric">12</strong><p>Placeholder count for layout review only.</p></article>
+          <article class="feature-card"><span class="micro-label">Activity goal</span><strong class="metric metric-text">GM ready</strong><p>Future recommendations will explain every suggested change.</p></article>
+        </div>
+      </section>
+
+      <section class="content-section" id="builds">
+        <div class="section-heading">
+          <div><p class="eyebrow">Build library</p><h2>Purpose-built loadouts.</h2></div>
+          <button class="text-button" type="button">View all builds <span>→</span></button>
+        </div>
+        <div class="build-grid">
+          <article class="build-card solar">
+            <div class="build-art"><span class="class-symbol">W</span><div class="element-glow"></div></div>
+            <div class="build-body"><div class="build-tags"><span>GM / RAID</span><span>WARLOCK</span><span>PLACEHOLDER</span></div><h3>Solar Support Protocol</h3><p>Example presentation for role, Exotic focus, activity fit and short gameplay guidance.</p><div class="build-footer"><span>Support · Survival</span><button type="button">Open build</button></div></div>
+          </article>
+          <article class="build-card void">
+            <div class="build-art"><span class="class-symbol">T</span><div class="element-glow"></div></div>
+            <div class="build-body"><div class="build-tags"><span>DUNGEON</span><span>TITAN</span><span>PLACEHOLDER</span></div><h3>Void Control Frame</h3><p>Progressive detail without the dense equipment-canvas layout used by traditional tools.</p><div class="build-footer"><span>Control · Sustain</span><button type="button">Open build</button></div></div>
+          </article>
+          <article class="build-card arc">
+            <div class="build-art"><span class="class-symbol">H</span><div class="element-glow"></div></div>
+            <div class="build-body"><div class="build-tags"><span>RAID</span><span>HUNTER</span><span>PLACEHOLDER</span></div><h3>Arc Momentum Loop</h3><p>Designed to show visual hierarchy, scanning speed and responsive card behaviour.</p><div class="build-footer"><span>Damage · Mobility</span><button type="button">Open build</button></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-section split-section" id="inventory">
+        <div class="inventory-panel glass-panel">
+          <div class="section-heading compact"><div><p class="eyebrow">Inventory snapshot</p><h2>Your vault, simplified.</h2></div><span class="offline-pill">Placeholder data</span></div>
+          <div class="inventory-list">
+            <div class="inventory-row"><div class="item-icon exotic">E</div><div><strong>Exotic armour review</strong><span>Presentation concept</span></div><span class="row-status">12 items</span></div>
+            <div class="inventory-row"><div class="item-icon weapon">W</div><div><strong>Weapon role coverage</strong><span>Presentation concept</span></div><span class="row-status">48 items</span></div>
+            <div class="inventory-row"><div class="item-icon armour">A</div><div><strong>Armor 3.0 readiness</strong><span>No stat logic implemented</span></div><span class="row-status warning">Blocked</span></div>
+          </div>
+        </div>
+        <div class="ai-panel" id="ai">
+          <div class="ai-glow"></div>
+          <p class="eyebrow">ASTRIX AI</p>
+          <h2>Ask what to do next.</h2>
+          <p>Future answers will combine account data, activity context and current Destiny systems to explain the best next action in plain language.</p>
+          <div class="prompt-preview"><span>“Help me prepare my Warlock for a Grandmaster.”</span><button type="button" aria-label="Submit example prompt">→</button></div>
+          <small>Disabled in prototype. No AI or account data is connected.</small>
+        </div>
+      </section>
+
+      <section class="content-section" id="activities">
+        <div class="section-heading"><div><p class="eyebrow">Activity planning</p><h2>Prepare with confidence.</h2></div><p>Activity tiles demonstrate the future path from goal to recommended loadout and explanation.</p></div>
+        <div class="activity-grid">
+          <article><span class="activity-number">01</span><h3>Grandmaster Nightfall</h3><p>Champion coverage, survivability and team role.</p><button type="button">Prepare activity</button></article>
+          <article><span class="activity-number">02</span><h3>Raid</h3><p>Encounter role, damage options and flexible swaps.</p><button type="button">Prepare activity</button></article>
+          <article><span class="activity-number">03</span><h3>Dungeon</h3><p>Solo safety, mechanics and damage phases.</p><button type="button">Prepare activity</button></article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>ASTRIX Destiny visual prototype</span>
+      <span>Static files only · No Bungie authentication · No live data</span>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
