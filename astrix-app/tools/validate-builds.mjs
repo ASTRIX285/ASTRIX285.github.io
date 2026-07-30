@@ -145,8 +145,13 @@ function collectComponentReadinessItems(component) {
       items.push('statModifiers is missing');
     }
 
-    if (component.type === 'aspect' && !isInteger(component.fragmentSlots)) {
-      items.push('fragmentSlots is missing');
+    if (component.type === 'aspect') {
+      if (!isInteger(component.fragmentSlots)) {
+        items.push('fragmentSlots is missing');
+      }
+      if (!isNonEmptyText(component.class)) {
+        items.push('class is missing');
+      }
     }
   }
 
@@ -211,6 +216,7 @@ function printComponentReadinessReport(catalogue, components) {
         ? component.fragmentSlots
         : 'not populated';
       console.log(`Fragment slots: ${slotCount}`);
+      console.log(`Class: ${isNonEmptyText(component.class) ? component.class : 'not populated'}`);
     }
 
     if (items.length === 0) {
