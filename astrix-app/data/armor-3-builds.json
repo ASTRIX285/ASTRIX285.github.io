@@ -1,1 +1,226 @@
-{}
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-07-30",
+  "sandbox": {
+    "name": "Monument of Triumph",
+    "gameVersion": "9.7.0.3",
+    "verifiedThrough": "2026-07-07",
+    "notes": "Static public build seed. Records marked verified false require human confirmation before promotion as current recommendations."
+  },
+  "builds": [
+    {
+      "id": "warlock-void-skull-nova-control",
+      "name": "Void Nova Control",
+      "class": "Warlock",
+      "subclass": "Void",
+      "role": ["burst damage", "control"],
+      "activityTags": ["raid", "dungeon", "pinnacle-ops"],
+      "difficultyTags": ["standard", "expert"],
+      "summary": "A Void Warlock concept built around the current Skull of Dire Ahamkara Nova Bomb and Nova Lance interaction, with flexible neutral-game choices around suppression and ability uptime.",
+      "exoticArmor": {
+        "name": "Skull of Dire Ahamkara",
+        "reason": "Update 9.7.0 added a short Nova Lance follow-up window after Nova Bomb and an interaction that can create a Nova Vortex.",
+        "verified": true
+      },
+      "armor3": {
+        "statTargets": {
+          "Weapons": 100,
+          "Health": 100,
+          "Class": 70,
+          "Grenade": 100,
+          "Super": 200,
+          "Melee": 30
+        },
+        "preferredArchetypes": ["Colossus", "Powerhouse", "Grenadier"],
+        "minimumGearTier": 3,
+        "setBonuses": [],
+        "setBonusNotes": "No mandatory set bonus is assigned until the exact current set inventory and perk text are manually reviewed.",
+        "verified": false
+      },
+      "subclassSetup": {
+        "super": "Nova Bomb: Cataclysm",
+        "classAbility": "Healing Rift",
+        "movement": "Burst Glide",
+        "melee": "Pocket Singularity",
+        "grenade": "Vortex Grenade",
+        "aspects": ["Child of the Old Gods", "Feed the Void"],
+        "fragments": [],
+        "notes": "Aspect and ability names are supplied as a practical seed, but the complete fragment package must be checked in-game against the final 9.7.0 sandbox.",
+        "verified": false
+      },
+      "mods": {
+        "helmet": [],
+        "arms": [],
+        "chest": [],
+        "legs": [],
+        "classItem": [],
+        "notes": "Exact mod names and costs intentionally withheld pending an in-game 9.7.0 review.",
+        "verified": false
+      },
+      "artifact": {
+        "required": false,
+        "perks": [],
+        "notes": "No mandatory Artifact dependency. Update 9.7.0 removed anti-Champion mods from Artifacts, but optional Artifact choices still require human review.",
+        "verified": false
+      },
+      "weapons": {
+        "requirements": ["Void primary or special weapon for subclass synergy", "Boss-damage heavy weapon appropriate to the encounter"],
+        "examples": [],
+        "verified": false
+      },
+      "gameplayLoop": [
+        "Use Void abilities to control groups and maintain survivability.",
+        "Build Super energy through normal combat and orb generation.",
+        "Use Nova Bomb for burst damage, then use the Skull follow-up interaction when the encounter allows it."
+      ],
+      "sources": [
+        {"title": "Destiny 2 Update 9.7.0", "publisher": "Bungie", "date": "2026-06-09"}
+      ],
+      "verified": false,
+      "reviewNotes": ["Confirm fragments", "Confirm exact mod package", "Confirm preferred Armor 3.0 stat spread in-game", "Confirm optional Artifact choices"]
+    },
+    {
+      "id": "hunter-solar-wormhusk-team-cure",
+      "name": "Solar Team Cure",
+      "class": "Hunter",
+      "subclass": "Solar",
+      "role": ["survival", "support", "ability damage"],
+      "activityTags": ["grandmaster", "pinnacle-ops", "dungeon"],
+      "difficultyTags": ["expert", "master"],
+      "summary": "A Solar Hunter concept using the reworked Wormhusk Crown to turn dodge into a stronger personal and nearby-ally cure tool while Burning Souls supports Solar ability damage.",
+      "exoticArmor": {
+        "name": "Wormhusk Crown",
+        "reason": "Update 9.7.0 reworked Wormhusk so class ability grants cure, Solar multikills grant Burning Souls, and dodging while active greatly cures the player and nearby allies.",
+        "verified": true
+      },
+      "armor3": {
+        "statTargets": {
+          "Weapons": 70,
+          "Health": 150,
+          "Class": 150,
+          "Grenade": 100,
+          "Super": 70,
+          "Melee": 70
+        },
+        "preferredArchetypes": ["Bulwark", "Reaver", "Demolitionist"],
+        "minimumGearTier": 3,
+        "setBonuses": [],
+        "setBonusNotes": "Set bonus intentionally open until current owned sets and exact perk text are reviewed.",
+        "verified": false
+      },
+      "subclassSetup": {
+        "super": "Blade Barrage",
+        "classAbility": "Gambler's Dodge",
+        "movement": "Triple Jump",
+        "melee": "Knife Trick",
+        "grenade": "Healing Grenade",
+        "aspects": ["Knock 'Em Down", "On Your Mark"],
+        "fragments": [],
+        "notes": "The core Solar identity is practical, but the complete fragment set requires current in-game confirmation.",
+        "verified": false
+      },
+      "mods": {
+        "helmet": [],
+        "arms": [],
+        "chest": [],
+        "legs": [],
+        "classItem": [],
+        "notes": "Exact current mod names, costs and stacking behavior require human confirmation.",
+        "verified": false
+      },
+      "artifact": {
+        "required": false,
+        "perks": [],
+        "notes": "No Artifact perk is treated as mandatory for this static build seed.",
+        "verified": false
+      },
+      "weapons": {
+        "requirements": ["Solar weapon capable of reliable multikills", "Champion-capable weapon frame appropriate to the activity"],
+        "examples": [],
+        "verified": false
+      },
+      "gameplayLoop": [
+        "Use Solar weapon multikills to build Burning Souls.",
+        "Dodge while Burning Souls is active when the team needs a strong cure pulse.",
+        "Use Healing Grenade and Solar abilities to stabilize difficult rooms."
+      ],
+      "sources": [
+        {"title": "Destiny 2 Update 9.7.0", "publisher": "Bungie", "date": "2026-06-09"}
+      ],
+      "verified": false,
+      "reviewNotes": ["Confirm dodge choice", "Confirm fragments", "Confirm current armor mods", "Confirm stat targets against owned Armor 3.0 pieces"]
+    },
+    {
+      "id": "titan-solar-hallowfire-ignition-engine",
+      "name": "Solar Ignition Engine",
+      "class": "Titan",
+      "subclass": "Solar",
+      "role": ["add clear", "survival", "ability uptime"],
+      "activityTags": ["dungeon", "raid", "pinnacle-ops"],
+      "difficultyTags": ["standard", "expert"],
+      "summary": "A Solar Titan seed centered on Hallowfire Heart's Monument of Triumph rework, preserving the Super for Sunfire Furnace stacks and using grenade final blows to drive ignition pressure.",
+      "exoticArmor": {
+        "name": "Hallowfire Heart",
+        "reason": "Current Monument of Triumph build research identifies the reworked Sunfire Furnace loop as the core of the Exotic's Solar ability package.",
+        "verified": false
+      },
+      "armor3": {
+        "statTargets": {
+          "Weapons": 70,
+          "Health": 150,
+          "Class": 100,
+          "Grenade": 200,
+          "Super": 100,
+          "Melee": 70
+        },
+        "preferredArchetypes": ["Grenadier", "Demolitionist", "Bulwark"],
+        "minimumGearTier": 3,
+        "setBonuses": [],
+        "setBonusNotes": "No set bonus is prescribed without direct current perk verification.",
+        "verified": false
+      },
+      "subclassSetup": {
+        "super": "Hammer of Sol",
+        "classAbility": "Rally Barricade",
+        "movement": "Catapult Lift",
+        "melee": "Throwing Hammer",
+        "grenade": "Thermite Grenade",
+        "aspects": ["Sol Invictus", "Roaring Flames"],
+        "fragments": [],
+        "notes": "Complete subclass configuration remains a human-review item after the Monument of Triumph ability changes.",
+        "verified": false
+      },
+      "mods": {
+        "helmet": [],
+        "arms": [],
+        "chest": [],
+        "legs": [],
+        "classItem": [],
+        "notes": "No mod recommendation is promoted as current until verified in-game.",
+        "verified": false
+      },
+      "artifact": {
+        "required": false,
+        "perks": [],
+        "notes": "Optional Artifact support is not yet verified.",
+        "verified": false
+      },
+      "weapons": {
+        "requirements": ["Solar weapon for subclass synergy", "Encounter-appropriate damage weapon"],
+        "examples": [],
+        "verified": false
+      },
+      "gameplayLoop": [
+        "Keep the Super charged when the Hallowfire loop benefits from doing so.",
+        "Use grenade and Solar final blows to maintain add-clear pressure.",
+        "Use Sunspots and defensive positioning to sustain the loop."
+      ],
+      "sources": [
+        {"title": "Dev Insights - Abilities & Armor Preview", "publisher": "Bungie", "date": "2026-06-04"},
+        {"title": "Destiny 2 Update 9.7.0", "publisher": "Bungie", "date": "2026-06-09"}
+      ],
+      "verified": false,
+      "reviewNotes": ["Confirm full Hallowfire Heart perk text", "Confirm aspects and abilities", "Confirm fragments", "Confirm mods and optional Artifact choices"]
+    }
+  ]
+}
