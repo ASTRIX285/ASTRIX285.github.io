@@ -161,7 +161,9 @@
             "fragment",
             "aspect",
             "setBonus",
-            "artifactPerk"
+            "artifactPerk",
+            "weaponPerk",
+            "originTrait"
           ]
         },
         "subclass": {
@@ -186,6 +188,15 @@
         },
         "effect": {
           "type": "string"
+        },
+        "enhancedEffect": {
+          "type": "string"
+        },
+        "notableWeapons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "verified": {
           "type": "boolean"
@@ -318,6 +329,60 @@
             "properties": {
               "artifactName": false,
               "column": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "weaponPerk"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "enhancedEffect": {
+                "type": "string"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "enhancedEffect": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "originTrait"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "notableWeapons": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "notableWeapons"
+            ]
+          },
+          "else": {
+            "properties": {
+              "notableWeapons": false
             }
           }
         },
