@@ -39,6 +39,10 @@ function isNonEmptyText(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function isInteger(value) {
+  return Number.isInteger(value);
+}
+
 function loadJson(filePath) {
   return readFile(filePath, 'utf8').then((content) => JSON.parse(content));
 }
@@ -132,8 +136,18 @@ function collectComponentReadinessItems(component) {
     if (component.setBonus?.fourPiece?.verified !== true) {
       items.push('setBonus.fourPiece.verified is false');
     }
-  } else if (!isNonEmptyText(component.effect)) {
-    items.push('effect is empty');
+  } else {
+    if (!isNonEmptyText(component.effect)) {
+      items.push('effect is empty');
+    }
+
+    if (component.type === 'fragment' && !Array.isArray(component.statModifiers)) {
+      items.push('statModifiers is missing');
+    }
+
+    if (component.type === 'aspect' && !isInteger(component.fragmentSlots)) {
+      items.push('fragmentSlots is missing');
+    }
   }
 
   return [...new Set(items)];
@@ -184,6 +198,20 @@ function printComponentReadinessReport(catalogue, components) {
     console.log(`\n${component.name} (${component.id})`);
     console.log(`Type: ${component.type}`);
     console.log(`Overall verified: ${component.verified === true ? 'true' : 'false'}`);
+
+    if (component.type === 'fragment') {
+      const modifierCount = Array.isArray(component.statModifiers)
+        ? component.statModifiers.length
+        : 0;
+      console.log(`Stat modifiers: ${modifierCount}`);
+    }
+
+    if (component.type === 'aspect') {
+      const slotCount = isInteger(component.fragmentSlots)
+        ? component.fragmentSlots
+        : 'not populated';
+      console.log(`Fragment slots: ${slotCount}`);
+    }
 
     if (items.length === 0) {
       console.log('Ready: no outstanding verification items.');
