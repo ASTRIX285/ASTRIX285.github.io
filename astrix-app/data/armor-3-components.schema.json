@@ -61,6 +61,19 @@
         }
       }
     },
+    "statModifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stat", "value"],
+      "properties": {
+        "stat": {
+          "enum": ["Weapons", "Health", "Class", "Grenade", "Super", "Melee"]
+        },
+        "value": {
+          "type": "integer"
+        }
+      }
+    },
     "bonusEntry": {
       "type": "object",
       "additionalProperties": false,
@@ -125,11 +138,71 @@
             "$ref": "#/$defs/source"
           }
         },
+        "statModifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/statModifier"
+          }
+        },
+        "fragmentSlots": {
+          "type": "integer",
+          "minimum": 0
+        },
         "setBonus": {
           "$ref": "#/$defs/setBonusEntries"
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "fragment"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "statModifiers": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/statModifier"
+                }
+              }
+            },
+            "required": ["statModifiers"]
+          },
+          "else": {
+            "properties": {
+              "statModifiers": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "aspect"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "fragmentSlots": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": ["fragmentSlots"]
+          },
+          "else": {
+            "properties": {
+              "fragmentSlots": false
+            }
+          }
+        },
         {
           "if": {
             "properties": {
