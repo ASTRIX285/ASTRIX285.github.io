@@ -4,7 +4,13 @@
   "title": "ASTRIX PARADOX Armor 3.0 Component Library",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "generatedAt", "scope", "seedStatus", "components"],
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "scope",
+    "seedStatus",
+    "components"
+  ],
   "properties": {
     "schemaVersion": {
       "type": "string",
@@ -20,7 +26,10 @@
     "seedStatus": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["setBonusTableAvailable", "notes"],
+      "required": [
+        "setBonusTableAvailable",
+        "notes"
+      ],
       "properties": {
         "setBonusTableAvailable": {
           "type": "boolean"
@@ -41,7 +50,11 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["title", "publisher", "date"],
+      "required": [
+        "title",
+        "publisher",
+        "date"
+      ],
       "properties": {
         "title": {
           "type": "string",
@@ -64,10 +77,20 @@
     "statModifier": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["stat", "value"],
+      "required": [
+        "stat",
+        "value"
+      ],
       "properties": {
         "stat": {
-          "enum": ["Weapons", "Health", "Class", "Grenade", "Super", "Melee"]
+          "enum": [
+            "Weapons",
+            "Health",
+            "Class",
+            "Grenade",
+            "Super",
+            "Melee"
+          ]
         },
         "value": {
           "type": "integer"
@@ -77,7 +100,11 @@
     "bonusEntry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "effect", "verified"],
+      "required": [
+        "name",
+        "effect",
+        "verified"
+      ],
       "properties": {
         "name": {
           "type": "string",
@@ -94,7 +121,10 @@
     "setBonusEntries": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["twoPiece", "fourPiece"],
+      "required": [
+        "twoPiece",
+        "fourPiece"
+      ],
       "properties": {
         "twoPiece": {
           "$ref": "#/$defs/bonusEntry"
@@ -107,7 +137,16 @@
     "component": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "type", "subclass", "element", "effect", "verified", "sources"],
+      "required": [
+        "id",
+        "name",
+        "type",
+        "subclass",
+        "element",
+        "effect",
+        "verified",
+        "sources"
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -118,13 +157,32 @@
           "minLength": 1
         },
         "type": {
-          "enum": ["fragment", "aspect", "setBonus", "artifactPerk"]
+          "enum": [
+            "fragment",
+            "aspect",
+            "setBonus",
+            "artifactPerk"
+          ]
         },
         "subclass": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "element": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "class": {
+          "type": "string",
+          "enum": [
+            "Hunter",
+            "Titan",
+            "Warlock"
+          ]
         },
         "effect": {
           "type": "string"
@@ -160,7 +218,9 @@
                 "const": "fragment"
               }
             },
-            "required": ["type"]
+            "required": [
+              "type"
+            ]
           },
           "then": {
             "properties": {
@@ -171,7 +231,9 @@
                 }
               }
             },
-            "required": ["statModifiers"]
+            "required": [
+              "statModifiers"
+            ]
           },
           "else": {
             "properties": {
@@ -186,20 +248,34 @@
                 "const": "aspect"
               }
             },
-            "required": ["type"]
+            "required": [
+              "type"
+            ]
           },
           "then": {
             "properties": {
               "fragmentSlots": {
                 "type": "integer",
                 "minimum": 0
+              },
+              "class": {
+                "type": "string",
+                "enum": [
+                  "Hunter",
+                  "Titan",
+                  "Warlock"
+                ]
               }
             },
-            "required": ["fragmentSlots"]
+            "required": [
+              "fragmentSlots",
+              "class"
+            ]
           },
           "else": {
             "properties": {
-              "fragmentSlots": false
+              "fragmentSlots": false,
+              "class": false
             }
           }
         },
@@ -210,7 +286,9 @@
                 "const": "setBonus"
               }
             },
-            "required": ["type"]
+            "required": [
+              "type"
+            ]
           },
           "then": {
             "properties": {
@@ -218,7 +296,9 @@
                 "$ref": "#/$defs/setBonusEntries"
               }
             },
-            "required": ["setBonus"]
+            "required": [
+              "setBonus"
+            ]
           },
           "else": {
             "properties": {
