@@ -4,7 +4,7 @@
   "scope": "Armor 3.0",
   "seedStatus": {
     "setBonusTableAvailable": true,
-    "notes": "56 set bonuses, 99 fragments (all elements) and all aspects verified with effects, stat modifiers/fragment slots and sources; effect text reworded from Armor 3.0 references. Artifact perks still pending."
+    "notes": "56 set bonuses, 99 fragments (all elements) and 59 aspects seeded. 3 aspects remain unverified with empty effects pending source confirmation. Artifact perks still pending."
   },
   "components": [
     {
@@ -3599,15 +3599,9 @@
       "subclass": "Solar",
       "element": "Solar",
       "class": "Hunter",
-      "effect": "Solar Hunter aspect.",
-      "verified": true,
-      "sources": [
-        {
-          "title": "Aspect data (Armor 3.0)",
-          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
-          "date": "2026-07-30"
-        }
-      ],
+      "effect": "",
+      "verified": false,
+      "sources": [],
       "fragmentSlots": 2
     },
     {
@@ -3617,15 +3611,9 @@
       "subclass": "Void",
       "element": "Void",
       "class": "Warlock",
-      "effect": "Void Warlock aspect.",
-      "verified": true,
-      "sources": [
-        {
-          "title": "Aspect data (Armor 3.0)",
-          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
-          "date": "2026-07-30"
-        }
-      ],
+      "effect": "",
+      "verified": false,
+      "sources": [],
       "fragmentSlots": 3
     },
     {
@@ -3635,15 +3623,9 @@
       "subclass": "Solar",
       "element": "Solar",
       "class": "Titan",
-      "effect": "Solar Titan aspect.",
-      "verified": true,
-      "sources": [
-        {
-          "title": "Aspect data (Armor 3.0)",
-          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
-          "date": "2026-07-30"
-        }
-      ],
+      "effect": "",
+      "verified": false,
+      "sources": [],
       "fragmentSlots": 3
     },
     {
