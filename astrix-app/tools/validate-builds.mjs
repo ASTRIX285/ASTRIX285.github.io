@@ -153,6 +153,15 @@ function collectComponentReadinessItems(component) {
         items.push('class is missing');
       }
     }
+
+    if (component.type === 'artifactPerk') {
+      if (!isNonEmptyText(component.artifactName)) {
+        items.push('artifactName is missing');
+      }
+      if (!isInteger(component.column)) {
+        items.push('column is missing');
+      }
+    }
   }
 
   return [...new Set(items)];
@@ -217,6 +226,11 @@ function printComponentReadinessReport(catalogue, components) {
         : 'not populated';
       console.log(`Fragment slots: ${slotCount}`);
       console.log(`Class: ${isNonEmptyText(component.class) ? component.class : 'not populated'}`);
+    }
+
+    if (component.type === 'artifactPerk') {
+      console.log(`Artifact: ${isNonEmptyText(component.artifactName) ? component.artifactName : 'not populated'}`);
+      console.log(`Column: ${isInteger(component.column) ? component.column : 'not populated'}`);
     }
 
     if (items.length === 0) {
