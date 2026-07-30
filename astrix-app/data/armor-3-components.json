@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-07-30",
+  "scope": "Armor 3.0",
+  "seedStatus": {
+    "setBonusTableAvailable": false,
+    "notes": "The names-only set-bonus table was not available in the conversation uploads or repository. The component array is intentionally empty. No set names, bonus names, effects, verification states or sources have been invented."
+  },
+  "components": []
+}
