@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astrixparadox.com/schemas/armor-3-components.schema.json",
+  "title": "ASTRIX PARADOX Armor 3.0 Component Library",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "scope", "seedStatus", "components"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date"
+    },
+    "scope": {
+      "const": "Armor 3.0"
+    },
+    "seedStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["setBonusTableAvailable", "notes"],
+      "properties": {
+        "setBonusTableAvailable": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/component"
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "publisher", "date"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publisher": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "bonusEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "effect", "verified"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effect": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "setBonusEntries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["twoPiece", "fourPiece"],
+      "properties": {
+        "twoPiece": {
+          "$ref": "#/$defs/bonusEntry"
+        },
+        "fourPiece": {
+          "$ref": "#/$defs/bonusEntry"
+        }
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "type", "subclass", "element", "effect", "verified", "sources"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": ["fragment", "aspect", "setBonus", "artifactPerk"]
+        },
+        "subclass": {
+          "type": ["string", "null"]
+        },
+        "element": {
+          "type": ["string", "null"]
+        },
+        "effect": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source"
+          }
+        },
+        "setBonus": {
+          "$ref": "#/$defs/setBonusEntries"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "setBonus"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["setBonus"]
+          },
+          "else": {
+            "not": {
+              "required": ["setBonus"]
+            }
+          }
+        }
+      ]
+    }
+  }
+}
