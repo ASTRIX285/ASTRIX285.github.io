@@ -206,6 +206,14 @@
           "type": "integer",
           "minimum": 0
         },
+        "artifactName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
         "setBonus": {
           "$ref": "#/$defs/setBonusEntries"
         }
@@ -276,6 +284,40 @@
             "properties": {
               "fragmentSlots": false,
               "class": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "artifactPerk"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "artifactName": {
+                "type": "string",
+                "minLength": 1
+              },
+              "column": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "artifactName",
+              "column"
+            ]
+          },
+          "else": {
+            "properties": {
+              "artifactName": false,
+              "column": false
             }
           }
         },
