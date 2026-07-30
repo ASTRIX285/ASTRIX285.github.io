@@ -4,7 +4,7 @@
   "scope": "Armor 3.0",
   "seedStatus": {
     "setBonusTableAvailable": true,
-    "notes": "56 set bonuses verified. Fragments seeded for all elements (Void, Solar, Arc, Stasis, Strand, Prismatic) with effects, stat modifiers and sources; effects reworded from Armor 3.0 references. Aspects and artifact perks still pending."
+    "notes": "56 set bonuses, 99 fragments (all elements) and all aspects verified with effects, stat modifiers/fragment slots and sources; effect text reworded from Armor 3.0 references. Artifact perks still pending."
   },
   "components": [
     {
@@ -3555,6 +3555,1068 @@
           "value": 10
         }
       ]
+    },
+    {
+      "id": "aspect-feed-the-void",
+      "name": "Feed the Void",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Warlock",
+      "effect": "Ability final blows grant Devour, which restores health on activation and grants grenade and melee energy on kills.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-tempest-strike",
+      "name": "Tempest Strike",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Hunter",
+      "effect": "A sliding melee performs a jolting uppercut and grants heavy damage resistance for a few seconds afterwards.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-crackshot",
+      "name": "Crackshot",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Hunter",
+      "effect": "Solar Hunter aspect.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-soul-siphon",
+      "name": "Soul Siphon",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Warlock",
+      "effect": "Void Warlock aspect.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 3
+    },
+    {
+      "id": "aspect-shieldburst",
+      "name": "Shieldburst",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Titan",
+      "effect": "Solar Titan aspect.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 3
+    },
+    {
+      "id": "aspect-controlled-demolition",
+      "name": "Controlled Demolition",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Titan",
+      "effect": "Void ability damage and volatile explosions make targets volatile; volatile explosions restore health to you.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-winter-s-shroud",
+      "name": "Winter's Shroud",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Hunter",
+      "effect": "Dodging slows nearby targets and grants damage resistance based on the number of targets slowed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-banner-of-war",
+      "name": "Banner of War",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Titan",
+      "effect": "Melee, sword and finisher final blows build a banner that heals nearby allies and increases melee and sword damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-ascension",
+      "name": "Ascension",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Hunter",
+      "effect": "An airborne class ability cast amplifies you and nearby allies. Grants 3 fragment slots (2 in some configurations).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 3
+    },
+    {
+      "id": "aspect-sol-invictus",
+      "name": "Sol Invictus",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Titan",
+      "effect": "Solar ability kills, scorched kills and Hammer of Sol impacts create Sunspots that damage enemies and grant restoration and ability energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-knockout",
+      "name": "Knockout",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Titan",
+      "effect": "Melee final blows and breaking shields start health regeneration, amplify you and increase melee damage and range.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-weavewalk",
+      "name": "Weavewalk",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Warlock",
+      "effect": "Air movement enters Weavewalk, granting heavy damage resistance and perched Threadlings while disabling weapons and abilities; exiting grants Woven Mail.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-consecration",
+      "name": "Consecration",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Titan",
+      "effect": "A sliding powered melee creates an igniting slam, with damage resistance during the animation. Grants 3 fragment slots (2 in some configurations).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 3
+    },
+    {
+      "id": "aspect-stylish-executioner",
+      "name": "Stylish Executioner",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Hunter",
+      "effect": "Defeating a debuffed target grants invisibility and truesight, and your next melee deals greatly increased damage and weakens.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-threaded-specter",
+      "name": "Threaded Specter",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Hunter",
+      "effect": "Dodging spawns a Strand decoy that attracts enemy fire and explodes into Threadlings when destroyed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 3
+    },
+    {
+      "id": "aspect-on-your-mark",
+      "name": "On Your Mark",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Hunter",
+      "effect": "Precision final blows grant a stacking bonus to reload speed and weapon handling, and cure you at maximum stacks.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-gunpowder-gamble",
+      "name": "Gunpowder Gamble",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Hunter",
+      "effect": "Defeating targets with Solar damage builds a throwable explosive that ignites on impact. Grants 2 fragment slots (3 in some configurations).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-storm-s-keep",
+      "name": "Storm's Keep",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Titan",
+      "effect": "Casting your Barricade grants Bolt Charge to you and nearby allies, building further over time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-into-the-fray",
+      "name": "Into the Fray",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Titan",
+      "effect": "Destroying a Tangle, or activating your Super, grants Woven Mail and increased melee regeneration to you and nearby allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-lethal-current",
+      "name": "Lethal Current",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Hunter",
+      "effect": "After dodging, your melee hits blind targets and unleash a jolting aftershock.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-lightning-surge",
+      "name": "Lightning Surge",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Warlock",
+      "effect": "A sliding powered melee becomes a jolting blink strike that amplifies you and grants damage resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-roaring-flames",
+      "name": "Roaring Flames",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Titan",
+      "effect": "Solar ability final blows build a stacking buff that increases your Solar ability damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-touch-of-flame",
+      "name": "Touch of Flame",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Warlock",
+      "effect": "Your Healing, Firebolt, Fusion and Solar grenades gain enhanced, empowered effects.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-touch-of-thunder",
+      "name": "Touch of Thunder",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Titan",
+      "effect": "Your Flashbang, Pulse, Lightning and Storm grenades gain enhanced, empowered effects.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-mindspun-invocation",
+      "name": "Mindspun Invocation",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Warlock",
+      "effect": "Your Strand grenade and melee abilities gain enhanced effects, creating additional Threadlings or suspending targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-iceflare-bolts",
+      "name": "Iceflare Bolts",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Warlock",
+      "effect": "Shattering a frozen target releases seekers that freeze other nearby targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-whirling-maelstrom",
+      "name": "Whirling Maelstrom",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Hunter",
+      "effect": "Destroying a Tangle spawns a Strand vortex that unravels targets and generates Threadlings.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-hellion",
+      "name": "Hellion",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Warlock",
+      "effect": "Casting your class ability summons a Solar turret that fires explosive rounds at enemies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-bleak-watcher",
+      "name": "Bleak Watcher",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Warlock",
+      "effect": "Your charged grenade can be converted into a Stasis turret that slows targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-weaver-s-call",
+      "name": "Weaver's Call",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Warlock",
+      "effect": "Casting your Rift creates perched Threadlings; damage and kills add further Threadlings.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-flechette-storm",
+      "name": "Flechette Storm",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Titan",
+      "effect": "A sliding powered melee knocks enemies back and launches unravelling projectiles, with damage resistance during the animation.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-ionic-sentry",
+      "name": "Ionic Sentry",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Warlock",
+      "effect": "Your grenade is replaced with a deployable turret that blinds on impact and chains lightning between nearby targets, granting Bolt Charge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-diamond-lance",
+      "name": "Diamond Lance",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Titan",
+      "effect": "Defeating targets with Stasis creates a Stasis lance that can be thrown to freeze targets or slammed, granting Frost Armor.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 3
+    },
+    {
+      "id": "aspect-unbreakable",
+      "name": "Unbreakable",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Titan",
+      "effect": "Your charged grenade becomes a blocking Void shield with heavy damage resistance that releases damage and creates Orbs when depleted.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-vanishing-step",
+      "name": "Vanishing Step",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Hunter",
+      "effect": "Dodging travels further and grants invisibility.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-ensnaring-slam",
+      "name": "Ensnaring Slam",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Hunter",
+      "effect": "A suspending dive that triggers class ability effects and grants Woven Mail for each suspended enemy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-tectonic-harvest",
+      "name": "Tectonic Harvest",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Titan",
+      "effect": "Shattering a Stasis crystal creates a Stasis Shard that grants Frost Armor and health when collected.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-arc-soul",
+      "name": "Arc Soul",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Warlock",
+      "effect": "Your Rift grants you and allies an Arc Soul turret and increased class ability regeneration; being amplified boosts its fire rate.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-bastion",
+      "name": "Bastion",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Titan",
+      "effect": "Casting your Barricade grants a Void Overshield to you and nearby allies, and your Barricade regenerates Overshield over time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-knock-em-down",
+      "name": "Knock 'em Down",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Hunter",
+      "effect": "Your Solar Supers are enhanced while Radiant, and powered melee final blows refund melee energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-electrostatic-mind",
+      "name": "Electrostatic Mind",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Warlock",
+      "effect": "Defeating targets with Arc abilities or Arc-debuffed targets creates Ionic Traces, which amplify you when collected.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-widow-s-silk",
+      "name": "Widow's Silk",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Hunter",
+      "effect": "Grants an additional grapple charge, and your grapple creates grapple points that grant melee energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-grim-harvest",
+      "name": "Grim Harvest",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Hunter",
+      "effect": "Defeating Stasis-debuffed targets creates Stasis Shards that grant Frost Armor and health when collected.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 3
+    },
+    {
+      "id": "aspect-howl-of-the-storm",
+      "name": "Howl of the Storm",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Titan",
+      "effect": "A sliding powered melee creates a wave of Stasis crystals that freeze targets, and grants an additional melee charge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-chaos-accelerant",
+      "name": "Chaos Accelerant",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Warlock",
+      "effect": "Holding your grenade overcharges it, greatly increasing its damage, size and duration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-trapper-s-ambush",
+      "name": "Trapper's Ambush",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Hunter",
+      "effect": "Grants a weakening invisibility that uses your melee charge, and a dive that leaves a weakening smoke cloud, making nearby allies invisible.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-child-of-the-old-gods",
+      "name": "Child of the Old Gods",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Warlock",
+      "effect": "Casting your Rift creates a Void Soul that seeks targets, weakening them and returning health or ability energy to you.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-heat-rises",
+      "name": "Heat Rises",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Warlock",
+      "effect": "You can use weapons and abilities while gliding; airborne final blows grant melee energy and cure nearby allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-offensive-bulwark",
+      "name": "Offensive Bulwark",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Titan",
+      "effect": "While you have a Void Overshield, your grenade regeneration and melee damage are greatly increased and your uncharged melee is enhanced.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-shatterdive",
+      "name": "Shatterdive",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Hunter",
+      "effect": "Activate to quickly descend and shatter nearby Stasis crystals and frozen targets, granting Frost Armor.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-touch-of-winter",
+      "name": "Touch of Winter",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Hunter",
+      "effect": "Your Stasis grenades gain enhanced effects, creating additional crystals or larger areas.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-on-the-prowl",
+      "name": "On the Prowl",
+      "type": "aspect",
+      "subclass": "Void",
+      "element": "Void",
+      "class": "Hunter",
+      "effect": "Entering invisibility marks a target; defeating it creates an ally-cloaking weakening smoke cloud and grants reload and ability energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 3
+    },
+    {
+      "id": "aspect-flow-state",
+      "name": "Flow State",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Hunter",
+      "effect": "Defeating a jolted target amplifies you; while amplified your class ability regenerates faster and you gain damage resistance while dodging.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-icarus-dash",
+      "name": "Icarus Dash",
+      "type": "aspect",
+      "subclass": "Solar",
+      "element": "Solar",
+      "class": "Warlock",
+      "effect": "Grants an additional horizontal air dash; with Heat Rises you gain two dashes and cure on rapid final blows.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-glacial-harvest",
+      "name": "Glacial Harvest",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Warlock",
+      "effect": "Freezing a target creates Stasis Shards nearby, scaling with the target's rank.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-drengr-s-lash",
+      "name": "Drengr's Lash",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Titan",
+      "effect": "Casting your Barricade releases a suspending wave of Strand energy that travels forward.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-juggernaut",
+      "name": "Juggernaut",
+      "type": "aspect",
+      "subclass": "Arc",
+      "element": "Arc",
+      "class": "Titan",
+      "effect": "While sprinting with full class ability energy, you gain a frontal shield that damages and grants Bolt Charge on impact.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-the-wanderer",
+      "name": "The Wanderer",
+      "type": "aspect",
+      "subclass": "Strand",
+      "element": "Strand",
+      "class": "Warlock",
+      "effect": "Destroying a Tangle creates a suspending blast; your Tangles seek out and attach to enemies, and Threadling kills spawn Tangles.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
+    },
+    {
+      "id": "aspect-frostpulse",
+      "name": "Frostpulse",
+      "type": "aspect",
+      "subclass": "Stasis",
+      "element": "Stasis",
+      "class": "Warlock",
+      "effect": "Casting your Rift creates a freezing shockwave around you and grants class ability energy on freezing targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Aspect data (Armor 3.0)",
+          "publisher": "community Endgame Analysis reference, cross-referenced with light.gg",
+          "date": "2026-07-30"
+        }
+      ],
+      "fragmentSlots": 2
     }
   ]
 }
