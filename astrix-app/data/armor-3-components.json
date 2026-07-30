@@ -1574,6 +1574,337 @@
           "verified": true
         }
       }
+    },
+    {
+      "id": "fragment-echo-of-starvation",
+      "name": "Echo of Starvation",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Picking up an Orb of Power or a Void Breach grants Devour for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-vigilance",
+      "name": "Echo of Vigilance",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "A kill while at critical health grants a Void Overshield for a short time (8s cooldown).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-echo-of-obscurity",
+      "name": "Echo of Obscurity",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Finisher final blows grant invisibility for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-undermining",
+      "name": "Echo of Undermining",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Void grenade hits weaken targets for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-persistence",
+      "name": "Echo of Persistence",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Void buffs (Devour, Void Overshield, invisibility) last 40-50% longer. Stat penalty is class-dependent: -10 Weapons (Hunter), -10 Health (Titan), -10 Class (Warlock).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Class",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-remnants",
+      "name": "Echo of Remnants",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Your lingering Void grenade effects last significantly longer.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-echo-of-cessation",
+      "name": "Echo of Cessation",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Finishers cause a Volatile burst; defeating a Volatile target spawns a Void Breach.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-echo-of-reprisal",
+      "name": "Echo of Reprisal",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Final blows while surrounded by three or more enemies within 8m grant Super energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
+    },
+    {
+      "id": "fragment-echo-of-provision",
+      "name": "Echo of Provision",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Damaging targets with grenades grants melee energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-instability",
+      "name": "Echo of Instability",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Grenade final blows grant Volatile Rounds to your Void weapons for 11s.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-expulsion",
+      "name": "Echo of Expulsion",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Void ability final blows cause an explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Super",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-exchange",
+      "name": "Echo of Exchange",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Melee final blows grant grenade energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Melee",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-domineering",
+      "name": "Echo of Domineering",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Suppressing a target reloads your weapon from reserves and grants +30 Weapons and increased move speed for 10s (4s cooldown); defeating suppressed targets spawns a Void Breach.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Grenade",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-leeching",
+      "name": "Echo of Leeching",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Melee final blows start health regeneration for you and nearby allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Health",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-dilation",
+      "name": "Echo of Dilation",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "While crouched, you move faster (4m/s) and gain doubled radar resolution.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": [
+        {
+          "stat": "Weapons",
+          "value": 10
+        },
+        {
+          "stat": "Super",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fragment-echo-of-harvest",
+      "name": "Echo of Harvest",
+      "type": "fragment",
+      "subclass": "Void",
+      "element": "Void",
+      "effect": "Defeating a weakened target creates an Orb of Power (10s cooldown) and a Void Breach (5s cooldown).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Void fragment data (Armor 3.0)",
+          "publisher": "light.gg, cross-referenced with community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "statModifiers": []
     }
   ]
 }
