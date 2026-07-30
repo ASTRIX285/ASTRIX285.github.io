@@ -4,7 +4,7 @@
   "scope": "Armor 3.0",
   "seedStatus": {
     "setBonusTableAvailable": true,
-    "notes": "56 set bonuses, 99 fragments (all elements) and 59 aspects seeded. 3 aspects remain unverified with empty effects pending source confirmation. Artifact perks still pending."
+    "notes": "All four component types seeded: 56 set bonuses, 99 fragments, 59 aspects (3 pending effect text) and seasonal artifact perks. Effect text reworded from Armor 3.0 references with sources cited."
   },
   "components": [
     {
@@ -4599,6 +4599,2652 @@
         }
       ],
       "fragmentSlots": 2
+    },
+    {
+      "id": "artifact-encrypted-data-disk-blinding-jolts",
+      "name": "Blinding Jolts",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a jolted target blinds combatants within 8m for 10s.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 2
+    },
+    {
+      "id": "artifact-encrypted-data-disk-kinetic-synthesis",
+      "name": "Kinetic Synthesis",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing sustained Kinetic damage refills your Kinetic weapons and generates a portion of the magazine as ammo.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 1
+    },
+    {
+      "id": "artifact-encrypted-data-disk-sniper-s-meditation",
+      "name": "Sniper's Meditation",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sniper Rifle hits grant stacking bonuses to sniper damage, stability and reload for a short time; the effect persists while stowed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 3
+    },
+    {
+      "id": "artifact-encrypted-data-disk-dielectric",
+      "name": "Dielectric",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating Arc-debuffed targets grants Bolt Charge, and repeated kills create an Orb of Power and restore health.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 2
+    },
+    {
+      "id": "artifact-encrypted-data-disk-singularity-blade",
+      "name": "Singularity Blade",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Melee or Sword hits while you have a Void buff weaken the target and release a weakening burst nearby.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 2
+    },
+    {
+      "id": "artifact-encrypted-data-disk-sticker-shock",
+      "name": "Sticker Shock",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively increases Fusion, Flux and magnetic damage; such kills launch tracking Kinetic missiles.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 3
+    },
+    {
+      "id": "artifact-encrypted-data-disk-sword-storm-combo",
+      "name": "Sword Storm Combo",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Completing a light-light-light-heavy Sword combo creates a disorienting damaging aura, refreshed on kills.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 3
+    },
+    {
+      "id": "artifact-encrypted-data-disk-combination-argent-blade",
+      "name": "Combination Argent Blade",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Pausing briefly between Sword attacks grants bonus Sword damage and charge rate for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 2
+    },
+    {
+      "id": "artifact-encrypted-data-disk-counter-energy",
+      "name": "Counter Energy",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stunning a Champion grants energy to your least-charged ability.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 2
+    },
+    {
+      "id": "artifact-encrypted-data-disk-fierce-proxemics",
+      "name": "Fierce Proxemics",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Performing a finisher grants grenade and melee energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 1
+    },
+    {
+      "id": "artifact-encrypted-data-disk-kinetic-rupture",
+      "name": "Kinetic Rupture",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Kinetic damage to powerful combatants spawns a rupture that can be shot for additional damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 3
+    },
+    {
+      "id": "artifact-encrypted-data-disk-power-from-pain",
+      "name": "Power from Pain",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Consecutive final blows on weakened targets grant Devour and create a Void Breach.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 1
+    },
+    {
+      "id": "artifact-encrypted-data-disk-precision-equity",
+      "name": "Precision Equity",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Accumulating precision kills creates a large Orb of Power that grants a global damage surge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 2
+    },
+    {
+      "id": "artifact-encrypted-data-disk-reload-at-range",
+      "name": "Reload at Range",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Bow or Sniper Rifle precision hits grant stacking reload speed for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 1
+    },
+    {
+      "id": "artifact-encrypted-data-disk-tazer-tag",
+      "name": "Tazer Tag",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Arc melee damage jolts the target on hit and applies a small damage-over-time effect.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 3
+    },
+    {
+      "id": "artifact-encrypted-data-disk-void-infestation",
+      "name": "Void Infestation",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a weakened target releases a tracking weakening projectile.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 3
+    },
+    {
+      "id": "artifact-encrypted-data-disk-armorsmith",
+      "name": "Armorsmith",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking an enemy shield grants damage resistance and greatly increased melee damage for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 2
+    },
+    {
+      "id": "artifact-encrypted-data-disk-elemental-orbs-arc",
+      "name": "Elemental Orbs: Arc",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid Arc weapon final blows spawn a jolting orb.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 3
+    },
+    {
+      "id": "artifact-encrypted-data-disk-press-the-advantage",
+      "name": "Press the Advantage",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking an enemy shield grants bonus stability, handling, reload and guard resistance for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 1
+    },
+    {
+      "id": "artifact-encrypted-data-disk-rapid-remedy",
+      "name": "Rapid Remedy",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid Machine Gun final blows restore health and begin critical health regeneration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 1
+    },
+    {
+      "id": "artifact-encrypted-data-disk-riposte",
+      "name": "Riposte",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Guarding with a Sword makes your hits Unstoppable for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Encrypted Data Disk",
+      "column": 1
+    },
+    {
+      "id": "artifact-hunter-s-journal-sniper-s-meditation",
+      "name": "Sniper's Meditation",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sniper Rifle hits grant stacking bonuses to sniper damage, stability and reload for a short time; the effect persists while stowed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 3
+    },
+    {
+      "id": "artifact-hunter-s-journal-solar-fulmination",
+      "name": "Solar Fulmination",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Your ignitions deal an additional damage instance and apply extra scorch.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 2
+    },
+    {
+      "id": "artifact-hunter-s-journal-argent-blade",
+      "name": "Argent Blade",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing Sword damage while holding Armor Charge consumes a charge to grant bonus Sword damage and charge rate.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 3
+    },
+    {
+      "id": "artifact-hunter-s-journal-energy-diffusion-substrate",
+      "name": "Energy Diffusion Substrate",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively grants a small amount of damage resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 1
+    },
+    {
+      "id": "artifact-hunter-s-journal-radiant-orbs",
+      "name": "Radiant Orbs",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up an Orb of Power while using Solar or Prismatic makes you Radiant.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 2
+    },
+    {
+      "id": "artifact-hunter-s-journal-shieldcrush",
+      "name": "Shieldcrush",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While you have Frost Armor, a Void Overshield or Woven Mail, or are Amplified or Radiant, you gain increased melee and grenade recharge and damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 3
+    },
+    {
+      "id": "artifact-hunter-s-journal-sustained-fire",
+      "name": "Sustained Fire",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained Auto Rifle hits on a single target grant damage resistance that persists while stowed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 1
+    },
+    {
+      "id": "artifact-hunter-s-journal-targeting-autoloader",
+      "name": "Targeting Autoloader",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Auto Rifle final blows refill a portion of the magazine and grant stacking Auto Rifle damage, removed on readying a non-Auto Rifle.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 2
+    },
+    {
+      "id": "artifact-hunter-s-journal-elemental-siphon",
+      "name": "Elemental Siphon",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid Kinetic or Super-matched weapon final blows create a Super-matched elemental pickup.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 1
+    },
+    {
+      "id": "artifact-hunter-s-journal-blade-stamina",
+      "name": "Blade Stamina",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid Sword final blows return Sword ammo.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 2
+    },
+    {
+      "id": "artifact-hunter-s-journal-counter-energy",
+      "name": "Counter Energy",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stunning a Champion grants energy to your least-charged ability.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 2
+    },
+    {
+      "id": "artifact-hunter-s-journal-creeping-chill",
+      "name": "Creeping Chill",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a Stasis-debuffed target with Stasis damage releases a slowing burst.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 1
+    },
+    {
+      "id": "artifact-hunter-s-journal-expanding-abyss",
+      "name": "Expanding Abyss",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Increases Void damage dealt to weakened targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 3
+    },
+    {
+      "id": "artifact-hunter-s-journal-incendiary-rifle-rounds",
+      "name": "Incendiary Rifle Rounds",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Solar Sniper Rifle precision hits apply scorch.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 1
+    },
+    {
+      "id": "artifact-hunter-s-journal-shock-and-awe",
+      "name": "Shock and Awe",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a target with Arc while Amplified releases a jolting Arc burst (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 3
+    },
+    {
+      "id": "artifact-hunter-s-journal-void-hegemony",
+      "name": "Void Hegemony",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a weakened target with Void or Prismatic equipped grants a Void Overshield.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 2
+    },
+    {
+      "id": "artifact-hunter-s-journal-transference",
+      "name": "Transference",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While Transcendent, and after it ends, you gain increased grenade and melee damage and accelerated Light and Darkness energy from weapon kills.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 3
+    },
+    {
+      "id": "artifact-hunter-s-journal-press-the-advantage",
+      "name": "Press The Advantage",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking an enemy shield grants bonus stability, handling, reload and guard resistance for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 1
+    },
+    {
+      "id": "artifact-hunter-s-journal-threaded-blast",
+      "name": "Threaded Blast",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Destroying a Tangle with Strand damage creates an additional large explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 1
+    },
+    {
+      "id": "artifact-hunter-s-journal-prismatic-transfer",
+      "name": "Prismatic Transfer",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Casting your Super grants nearby allies running a different Super element a non-stacking damage bonus.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 3
+    },
+    {
+      "id": "artifact-hunter-s-journal-bad-amplitude",
+      "name": "Bad Amplitude",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Arc ability damage against Champions inflicts jolt.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Hunter's Journal",
+      "column": 2
+    },
+    {
+      "id": "artifact-implement-of-curiosity-argent-quiver",
+      "name": "Argent Quiver",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading a Bow while holding Armor Charge consumes a charge to grant several shots of stacking bonus damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 3
+    },
+    {
+      "id": "artifact-implement-of-curiosity-elemental-overdrive",
+      "name": "Elemental Overdrive",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Collecting an elemental pickup grants a stacking damage boost matching that element.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 3
+    },
+    {
+      "id": "artifact-implement-of-curiosity-cauterized-darkness",
+      "name": "Cauterized Darkness",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Greatly increases Solar damage against Darkness-debuffed non-boss combatants, one target at a time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 2
+    },
+    {
+      "id": "artifact-implement-of-curiosity-elemental-benevolence",
+      "name": "Elemental Benevolence",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Applying an elemental buff to an ally grants class ability energy per ally affected.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 1
+    },
+    {
+      "id": "artifact-implement-of-curiosity-energy-acceleration",
+      "name": "Energy Acceleration",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Repeated micro-missile damage, or a micro-missile kill, releases an Unstoppable Kinetic shockwave.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 2
+    },
+    {
+      "id": "artifact-implement-of-curiosity-horde-shuttle",
+      "name": "Horde Shuttle",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing sustained weapon damage to an unraveled target creates a Threadling; your Threadlings apply sever.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 1
+    },
+    {
+      "id": "artifact-implement-of-curiosity-iron-lord-s-vigor",
+      "name": "Iron Lord's Vigor",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying a Sword grants damage resistance, and rapid Sword final blows return ammo.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 3
+    },
+    {
+      "id": "artifact-implement-of-curiosity-pack-tactics",
+      "name": "Pack Tactics",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Threadling damage builds stacking bonus Threadling damage, which becomes Unstoppable.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 1
+    },
+    {
+      "id": "artifact-implement-of-curiosity-semi-auto-striker",
+      "name": "Semi-Auto Striker",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing several Scout Rifle, Bow or Sniper Rifle hits while low on Armor Charge grants Armor Charge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 1
+    },
+    {
+      "id": "artifact-implement-of-curiosity-shieldcrush",
+      "name": "Shieldcrush",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While you have Frost Armor, a Void Overshield or Woven Mail, or are Amplified or Radiant, you gain increased melee and grenade recharge and damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 3
+    },
+    {
+      "id": "artifact-implement-of-curiosity-shoulder-to-shoulder",
+      "name": "Shoulder to Shoulder",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained precision damage while near two allies grants damage resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 2
+    },
+    {
+      "id": "artifact-implement-of-curiosity-elemental-daze",
+      "name": "Elemental Daze",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stunning a Champion with non-Kinetic damage creates a weapon-matched elemental explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 2
+    },
+    {
+      "id": "artifact-implement-of-curiosity-fever-and-chill",
+      "name": "Fever and Chill",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing a portion of your magazine with Solar or Stasis weapons makes you Radiant or grants Frost Armor.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 1
+    },
+    {
+      "id": "artifact-implement-of-curiosity-frigid-glare",
+      "name": "Frigid Glare",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stasis precision final blows while you have Frost Armor create a freezing explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 3
+    },
+    {
+      "id": "artifact-implement-of-curiosity-frost-renewal",
+      "name": "Frost Renewal",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reaching critical health while you have Frost Armor releases a freezing burst and grants Frost Armor to allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 1
+    },
+    {
+      "id": "artifact-implement-of-curiosity-radiant-shrapnel",
+      "name": "Radiant Shrapnel",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing sustained damage while Radiant, or defeating a scorched target, releases scorching shrapnel.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 3
+    },
+    {
+      "id": "artifact-implement-of-curiosity-refresh-threads",
+      "name": "Refresh Threads",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Collecting a Super-matching elemental pickup grants energy to your least-charged ability.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 1
+    },
+    {
+      "id": "artifact-implement-of-curiosity-tangled-web",
+      "name": "Tangled Web",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a Strand-debuffed target that creates a Tangle causes a suspending explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 3
+    },
+    {
+      "id": "artifact-implement-of-curiosity-that-fresh-bullets-smell",
+      "name": "That Fresh Bullets Smell",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up ammo grants a Kinetic surge, increased further for Heavy ammo.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 2
+    },
+    {
+      "id": "artifact-implement-of-curiosity-elemental-coalescence",
+      "name": "Elemental Coalescence",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a number of combatants creates a Super-matched elemental pickup.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 2
+    },
+    {
+      "id": "artifact-implement-of-curiosity-threaded-blast",
+      "name": "Threaded Blast",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Destroying a Tangle with Strand damage creates an additional large explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Implement of Curiosity",
+      "column": 2
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-shatter-orbs",
+      "name": "Shatter Orbs",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking a matching enemy shield creates an Orb of Power.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 1
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-thunderous-retort",
+      "name": "Thunderous Retort",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "At critical health or while Amplified, your Arc Super deals increased damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 1
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-bricks-from-beyond",
+      "name": "Bricks from Beyond",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating powerful combatants with Void weapons grants Heavy ammo progress to nearby allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 2
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-passive-aggressive-guard",
+      "name": "Passive Aggressive Guard",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying a Glaive grants substantial damage resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 3
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-sustained-fire",
+      "name": "Sustained Fire",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained Auto Rifle hits on a single target grant damage resistance that persists while stowed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 1
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-targeting-autoloader",
+      "name": "Targeting Autoloader",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Auto Rifle final blows refill a portion of the magazine and grant stacking Auto Rifle damage, removed on readying a non-Auto Rifle.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 2
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-suppressing-glaive",
+      "name": "Suppressing Glaive",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Glaive projectile damage suppresses the target.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 2
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-volatile-flow",
+      "name": "Volatile Flow",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up an Orb of Power grants Volatile Rounds.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 1
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-conductive-cosmic-needle",
+      "name": "Conductive Cosmic Needle",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Increases Arc and Void ability damage against Strand-debuffed targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 3
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-counter-charge",
+      "name": "Counter Charge",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stunning a Champion grants Armor Charge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 2
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-lightning-strikes-twice",
+      "name": "Lightning Strikes Twice",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Using an Arc grenade greatly increases grenade recharge, extended further by Arc final blows.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 3
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-protective-breach",
+      "name": "Protective Breach",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up a Void Breach grants a Void Overshield.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 2
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-shock-and-awe",
+      "name": "Shock and Awe",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a target with Arc while Amplified releases a jolting Arc burst (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 3
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-supernova",
+      "name": "Supernova",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "After picking up a Void Breach, your next Void damage creates a weakening burst.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 3
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-unto-the-breach",
+      "name": "Unto the Breach",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a Void-debuffed target with Void equipped creates a Void Breach.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 1
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-void-weapon-channeling",
+      "name": "Void Weapon Channeling",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Void weapon final blows while you hold a charged Void ability grant stacking Void weapon surge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 3
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-improved-unraveling",
+      "name": "Improved Unraveling",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively increases unravelling thread damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 1
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-overload-grenades",
+      "name": "Overload Grenades",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Void grenade damage inflicts Overload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 2
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-squad-goals",
+      "name": "Squad Goals",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Finishing a target while you have a Super-matched elemental buff shares Amplified, Devour or Woven Mail with nearby allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 3
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-strand-soldier",
+      "name": "Strand Soldier",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Gaining Woven Mail while using Strand grants Unraveling Rounds.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 2
+    },
+    {
+      "id": "artifact-npa-repulsion-regulator-amped-up",
+      "name": "Amped Up",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Extends the duration of Amplified while using Arc or Prismatic.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "NPA Repulsion Regulator",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-argent-ordnance",
+      "name": "Argent Ordnance",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Firing a Rocket Launcher while holding Armor Charge consumes a charge to grant bonus rocket damage and reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 3
+    },
+    {
+      "id": "artifact-queensfoil-censer-blast-radius",
+      "name": "Blast Radius",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid Grenade Launcher or Rocket Launcher final blows grant Armor Charge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-solo-operative",
+      "name": "Solo Operative",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While playing solo, precision final blows grant stacking bonus weapon damage, lost on death.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 3
+    },
+    {
+      "id": "artifact-queensfoil-censer-hail-the-storm",
+      "name": "Hail The Storm",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Shattering Stasis crystals releases homing slowing shards and increases shatter damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 3
+    },
+    {
+      "id": "artifact-queensfoil-censer-heart-of-the-flame",
+      "name": "Heart of the Flame",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Casting a Solar Super makes nearby allies Radiant and grants bonus Super damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-horde-shuttle",
+      "name": "Horde Shuttle",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing sustained weapon damage to an unraveled target creates a Threadling; your Threadlings apply sever.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-perpetual-destruction",
+      "name": "Perpetual Destruction",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Non-Exotic Rocket Launcher final blows grant Heavy ammo and improved reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 2
+    },
+    {
+      "id": "artifact-queensfoil-censer-to-shreds",
+      "name": "To Shreds",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Repeated severed-target damage, or a severed final blow, inflicts unravel and enhances Woven Mail effects.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 3
+    },
+    {
+      "id": "artifact-queensfoil-censer-wished-into-being",
+      "name": "Wished Into Being",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Ability final blows while your Super is nearly charged create Orbs of Power.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-anti-champion-nosecone",
+      "name": "Anti-Champion Nosecone",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively increases Rocket Launcher damage against Champions.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 2
+    },
+    {
+      "id": "artifact-queensfoil-censer-creeping-chill",
+      "name": "Creeping Chill",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a Stasis-debuffed target with Stasis damage releases a slowing burst.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-fever-and-chill",
+      "name": "Fever and Chill",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing a portion of your magazine with Solar or Stasis weapons makes you Radiant or grants Frost Armor.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-frigid-glare",
+      "name": "Frigid Glare",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stasis precision final blows while you have Frost Armor create a freezing explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 3
+    },
+    {
+      "id": "artifact-queensfoil-censer-kindling-trigger",
+      "name": "Kindling Trigger",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Radiant Solar weapon damage against non-scorched combatants applies scorch.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-pillar-of-ice",
+      "name": "Pillar of Ice",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a frozen target creates a Stasis crystal, or two from a boss.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 2
+    },
+    {
+      "id": "artifact-queensfoil-censer-rays-of-precision",
+      "name": "Rays of Precision",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Radiant Solar precision final blows cause an ignition.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 3
+    },
+    {
+      "id": "artifact-queensfoil-censer-revitalizing-blast",
+      "name": "Revitalizing Blast",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stunning a Champion causes an ignition.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 2
+    },
+    {
+      "id": "artifact-queensfoil-censer-unraveling-orbs",
+      "name": "Unraveling Orbs",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up an Orb of Power, or throwing a Tangle, grants Unraveling Rounds.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 2
+    },
+    {
+      "id": "artifact-queensfoil-censer-torch",
+      "name": "Torch",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Increases weapon damage against Darkness-debuffed non-boss combatants.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-armorsmith",
+      "name": "Armorsmith",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking an enemy shield grants damage resistance and greatly increased melee damage for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 1
+    },
+    {
+      "id": "artifact-queensfoil-censer-dragon-s-bite",
+      "name": "Dragon's Bite",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking several enemy shields with Strand or Stasis weapons suspends or freezes targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Queensfoil Censer",
+      "column": 2
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-curative-orbs",
+      "name": "Curative Orbs",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking a shield, or collecting an orb, elemental pickup or destroyed Tangle, creates a healing Orb of Power.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 2
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-arc-compounding",
+      "name": "Arc Compounding",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Increases Arc damage against blinded targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 3
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-hail-the-storm",
+      "name": "Hail The Storm",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Shattering Stasis crystals releases homing slowing shards and increases shatter damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 2
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-total-carnage",
+      "name": "Total Carnage",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Finishing a powerful combatant grants damage resistance, restores health and starts regeneration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 1
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-debilitating-wave",
+      "name": "Debilitating Wave",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Performing a finisher releases a Super-matched wave that blinds, weakens or slows.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 2
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-conductive-cosmic-crystal",
+      "name": "Conductive Cosmic Crystal",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Increases Arc and Void ability damage against Stasis-debuffed targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 3
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-crystalline-converter",
+      "name": "Crystalline Converter",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "After collecting Stasis Shards, your next powered Stasis melee hit spawns Stasis crystals.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 1
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-frost-renewal",
+      "name": "Frost Renewal",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reaching critical health while you have Frost Armor releases a freezing burst and grants Frost Armor to allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 2
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-power-from-pain",
+      "name": "Power from Pain",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Consecutive final blows on weakened targets grant Devour and create a Void Breach.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 1
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-retinal-burn",
+      "name": "Retinal Burn",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Arc precision hits on non-blinded targets while holding Armor Charge consume a charge to trigger a blinding burst.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 2
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-served-cold",
+      "name": "Served Cold",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up a Stasis Shard or Void Breach grants class ability and melee energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 3
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-supernova",
+      "name": "Supernova",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "After picking up a Void Breach, your next Void damage creates a weakening burst.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 3
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-the-thick-of-it",
+      "name": "The Thick of It",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid final blows while surrounded by enemies grant Armor Charge and improved handling and charge rate.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 1
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-trace-evidence",
+      "name": "Trace Evidence",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Arc-debuffed precision hits or final blows create an Ionic Trace and grant Armor Charge.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 1
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-void-renewal",
+      "name": "Void Renewal",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Void weapon final blows while you have Devour, or picking up a Void Breach, improve handling and reload and refill Shotguns and Grenade Launchers.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 2
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-weakened-clear",
+      "name": "Weakened Clear",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Grenade Launcher damage to bosses or Champions, or breaking a shield, applies a long-lasting weaken and refills stowed weapons.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 2
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-wind-chill",
+      "name": "Wind Chill",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing a portion of your magazine with Stasis weapons grants Frost Armor and can spawn a Stasis Shard.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 1
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-kinetic-impacts",
+      "name": "Kinetic Impacts",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Repeated Grenade Launcher hits release an Unstoppable Kinetic shockwave.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 3
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-brain-freeze",
+      "name": "Brain Freeze",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Freezing an enemy creates a slowing duskfield for the duration of the freeze.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 3
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-old-god-s-rite",
+      "name": "Old God's Rite",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "After picking up a Void Breach, your next Void damage creates homing Void orbs.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 3
+    },
+    {
+      "id": "artifact-slayer-baron-apothecary-satchel-killing-breeze",
+      "name": "Killing Breeze",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid weapon final blows grant increased mobility for a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Slayer Baron Apothecary Satchel",
+      "column": 1
+    },
+    {
+      "id": "artifact-tablet-of-ruin-elemental-supercharger",
+      "name": "Elemental Supercharger",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating exhausted or severed Super-matched targets grants Super energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 3
+    },
+    {
+      "id": "artifact-tablet-of-ruin-limit-break",
+      "name": "Limit Break",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Casting your Super at critical health, or with a Super-matched buff, increases Super damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 3
+    },
+    {
+      "id": "artifact-tablet-of-ruin-defibrillating-blast",
+      "name": "Defibrillating Blast",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stunning a Champion, or discharging Bolt Charge, grants Bolt Charge stacks, inflicts jolt, restores health and starts critical health regeneration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 3
+    },
+    {
+      "id": "artifact-tablet-of-ruin-dielectric",
+      "name": "Dielectric",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating Arc-debuffed targets grants Bolt Charge, and repeated kills create an Orb of Power and restore health.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 1
+    },
+    {
+      "id": "artifact-tablet-of-ruin-elemental-siphon",
+      "name": "Elemental Siphon",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid Kinetic or Super-matched weapon final blows create a Super-matched elemental pickup and grant Super energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 1
+    },
+    {
+      "id": "artifact-tablet-of-ruin-flashover",
+      "name": "Flashover",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reaching maximum Bolt Charge makes you Amplified and increases Bolt Charge damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 2
+    },
+    {
+      "id": "artifact-tablet-of-ruin-gold-from-lead",
+      "name": "Gold from Lead",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Collecting Special ammo bricks grants Heavy ammo progress.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 2
+    },
+    {
+      "id": "artifact-tablet-of-ruin-harsh-refraction",
+      "name": "Harsh Refraction",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Trace Rifle hits on matching debuffed targets greatly increase Trace Rifle damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 2
+    },
+    {
+      "id": "artifact-tablet-of-ruin-heavy-ordnance-regeneration",
+      "name": "Heavy Ordnance Regeneration",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained Machine Gun or Rocket Launcher damage grants damage resistance and greatly accelerated grenade and melee regeneration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 3
+    },
+    {
+      "id": "artifact-tablet-of-ruin-hold-the-line",
+      "name": "Hold the Line",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying a Glaive or Machine Gun near several enemies grants stability and reload, and weapon final blows restore health.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 1
+    },
+    {
+      "id": "artifact-tablet-of-ruin-horde-shuttle",
+      "name": "Horde Shuttle",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing sustained weapon damage to an unraveled target creates a Threadling; your Threadlings apply sever.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 2
+    },
+    {
+      "id": "artifact-tablet-of-ruin-maligned-harvest",
+      "name": "Maligned Harvest",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Repeatedly applying volatile or weaken causes your next Void damage to create a weakening burst and grants a Void Overshield.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 2
+    },
+    {
+      "id": "artifact-tablet-of-ruin-particle-reconstruction",
+      "name": "Particle Reconstruction",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Fusion Rifle and Linear Fusion Rifle hits grant stacking bonus damage and refill part of the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 3
+    },
+    {
+      "id": "artifact-tablet-of-ruin-perpetual-destruction",
+      "name": "Perpetual Destruction",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Non-Exotic Rocket Launcher final blows grant Heavy ammo and improved reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 2
+    },
+    {
+      "id": "artifact-tablet-of-ruin-to-shreds",
+      "name": "To Shreds",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Repeated severed-target damage, or a severed final blow, inflicts unravel and enhances Woven Mail effects.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 3
+    },
+    {
+      "id": "artifact-tablet-of-ruin-no-bell",
+      "name": "No Bell",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Special Glaive melee final blows, or blocking with a Glaive shield, return ammo and greatly increase Glaive melee damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 2
+    },
+    {
+      "id": "artifact-tablet-of-ruin-vile-weave",
+      "name": "Vile Weave",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Detonating or collecting a Tangle applies sever and reduces your Tangle cooldown.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 2
+    },
+    {
+      "id": "artifact-tablet-of-ruin-void-flux",
+      "name": "Void Flux",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Void weapon final blows on weakened targets create a volatile burst.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 3
+    },
+    {
+      "id": "artifact-tablet-of-ruin-volatile-marksman",
+      "name": "Volatile Marksman",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing a portion of your magazine, or rapid final blows, with Void weapons grants Volatile Rounds and class ability energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 1
+    },
+    {
+      "id": "artifact-tablet-of-ruin-unraveling-orbs",
+      "name": "Unraveling Orbs",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up an Orb of Power, or throwing a Tangle, grants Unraveling Rounds.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 1
+    },
+    {
+      "id": "artifact-tablet-of-ruin-photonic-flare",
+      "name": "Photonic Flare",
+      "type": "artifactPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating exhausted or severed targets with Arc creates a blinding burst (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Seasonal artifact perk data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "artifactName": "Tablet of Ruin",
+      "column": 1
     }
   ]
 }
