@@ -1,9 +1,9 @@
-const ENGINE_VERSION = '1.2.0';
+const ENGINE_VERSION = '1.2.1';
 
 const EFFECT_RULES = [
   // Void
   { code: 'void-devour', label: 'Devour', terms: ['devour'] },
-  { code: 'void-weaken', label: 'weaken', terms: ['weaken', 'weakened', 'weakens'] },
+  { code: 'void-weaken', label: 'weaken', terms: ['weaken', 'weakened', 'weakening', 'weakens'] },
   { code: 'void-volatile', label: 'Volatile', terms: ['volatile'] },
   { code: 'void-invisibility', label: 'invisibility', terms: ['invisibility', 'invisible'] },
   { code: 'void-overshield', label: 'Void Overshield', terms: ['void overshield', 'overshield'] },
@@ -36,7 +36,7 @@ const EFFECT_RULES = [
 
   // Strand
   { code: 'strand-suspend', label: 'suspend', terms: ['suspend', 'suspended', 'suspending', 'suspends'] },
-  { code: 'strand-unravel', label: 'unravel', terms: ['unravel', 'unraveled', 'unravelling', 'unraveling'] },
+  { code: 'strand-unravel', label: 'unravel', terms: ['unravel', 'unraveled', 'unravelling', 'unraveling', 'unravels'] },
   { code: 'strand-sever', label: 'sever', terms: ['sever', 'severed', 'severing', 'severs'] },
   { code: 'strand-threadling', label: 'Threadling', terms: ['threadling', 'threadlings'] },
   { code: 'strand-tangle', label: 'Tangle', terms: ['tangle', 'tangles'] },
