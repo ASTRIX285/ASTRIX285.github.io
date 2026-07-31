@@ -167,6 +167,20 @@ function assertExpectedVoidTruePositive(result) {
   }
 }
 
+function assertExpectedVoidWeakenMatch(result) {
+  const weakenRecommendation = result.recommendations.fragments.recommendations.find(
+    (recommendation) => recommendation.reasons.some(
+      (reason) => reason.ruleCode === 'void-weaken'
+    )
+  );
+
+  if (!weakenRecommendation) {
+    throw new Error(
+      'Void Nova Control must return at least one fragment recommendation with a void-weaken reason.'
+    );
+  }
+}
+
 function assertAllBuildAspectsResolve(buildCatalogue, componentCatalogue) {
   for (const build of buildCatalogue.builds) {
     const links = resolveBuildAspectIds(build, componentCatalogue.components);
@@ -255,6 +269,7 @@ const voidResult = runDemo(catalogue, {
   activity: voidBuild.activityTags[0]
 });
 assertExpectedVoidTruePositive(voidResult);
+assertExpectedVoidWeakenMatch(voidResult);
 
 const solarResult = runDemo(catalogue, {
   buildId: 'demo-titan-solar-sol-invictus-roaring-flames',
