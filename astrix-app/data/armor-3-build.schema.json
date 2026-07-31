@@ -83,6 +83,11 @@
             "melee": {"type": "string"},
             "grenade": {"type": "string"},
             "aspects": {"type": "array", "items": {"type": "string"}},
+            "aspectIds": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^aspect-[a-z0-9-]+$"},
+              "uniqueItems": true
+            },
             "fragments": {"type": "array", "items": {"type": "string"}},
             "notes": {"type": "string"},
             "verified": {"type": "boolean"}
