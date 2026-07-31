@@ -44,6 +44,7 @@
         "melee": "Pocket Singularity",
         "grenade": "Vortex Grenade",
         "aspects": ["Child of the Old Gods", "Feed the Void"],
+        "aspectIds": ["aspect-child-of-the-old-gods", "aspect-feed-the-void"],
         "fragments": [],
         "notes": "Aspect and ability names are supplied as a practical seed, but the complete fragment package must be checked in-game against the final 9.7.0 sandbox.",
         "verified": false
@@ -115,6 +116,7 @@
         "melee": "Knife Trick",
         "grenade": "Healing Grenade",
         "aspects": ["Knock 'Em Down", "On Your Mark"],
+        "aspectIds": ["aspect-knock-em-down", "aspect-on-your-mark"],
         "fragments": [],
         "notes": "The core Solar identity is practical, but the complete fragment set requires current in-game confirmation.",
         "verified": false
@@ -186,6 +188,7 @@
         "melee": "Throwing Hammer",
         "grenade": "Thermite Grenade",
         "aspects": ["Sol Invictus", "Roaring Flames"],
+        "aspectIds": ["aspect-sol-invictus", "aspect-roaring-flames"],
         "fragments": [],
         "notes": "Complete subclass configuration remains a human-review item after the Monument of Triumph ability changes.",
         "verified": false
