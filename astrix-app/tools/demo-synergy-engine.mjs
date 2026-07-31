@@ -4,12 +4,44 @@ import path from 'node:path';
 import { resolveBuildAspectIds } from '../aspect-linkage.mjs';
 import {
   ARTIFACT_RECOMMENDATION_LIMIT,
+  EFFECT_RULES,
   recommendSynergies
 } from '../synergy-engine.mjs';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const cataloguePath = path.resolve(toolDirectory, '..', 'data', 'armor-3-components.json');
 const buildsPath = path.resolve(toolDirectory, '..', 'data', 'armor-3-builds.json');
+const ELEMENTS = ['Void', 'Solar', 'Arc', 'Stasis', 'Strand', 'Prismatic'];
+const ELEMENT_PREFIX = {
+  Void: 'void-',
+  Solar: 'solar-',
+  Arc: 'arc-',
+  Stasis: 'stasis-',
+  Strand: 'strand-',
+  Prismatic: 'prismatic-'
+};
+
+function normalize(value) {
+  return String(value ?? '').toLowerCase();
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function containsWholeTerm(text, term) {
+  const normalizedText = normalize(text);
+  const normalizedTerm = normalize(term).trim();
+  if (!normalizedTerm) return false;
+  return new RegExp(
+    `(^|[^a-z0-9])${escapeRegExp(normalizedTerm)}(?=$|[^a-z0-9])`,
+    'i'
+  ).test(normalizedText);
+}
+
+function ruleMatchesText(rule, text) {
+  return rule.terms.some((term) => containsWholeTerm(text, term));
+}
 
 function assertTraceableRecommendations(result, catalogue) {
   const byId = new Map(catalogue.components.map((component) => [component.id, component]));
@@ -89,29 +121,49 @@ function assertTraceableRecommendations(result, catalogue) {
   }
 }
 
+function assertElementSpecificFragmentMatch(result, element) {
+  const recommendations = result.recommendations.fragments.recommendations;
+  if (recommendations.length === 0) {
+    throw new Error(`${element} demo returned no fragment recommendations.`);
+  }
+
+  const prefix = ELEMENT_PREFIX[element];
+  const specificReason = recommendations
+    .flatMap((recommendation) => recommendation.reasons)
+    .find((reason) => reason.ruleCode.startsWith(prefix));
+
+  if (!specificReason) {
+    throw new Error(`${element} demo returned no element-specific fragment reason.`);
+  }
+
+  const firstGenericPriority = EFFECT_RULES.find(
+    (rule) => rule.code.startsWith('generic-')
+  )?.priority;
+  if (!firstGenericPriority || specificReason.rulePriority >= firstGenericPriority) {
+    throw new Error(`${element} element-specific rule did not outrank generic rules.`);
+  }
+}
+
 function assertExpectedVoidTruePositive(result) {
-  const fragmentIds = result.recommendations.fragments.recommendations.map(
-    (recommendation) => recommendation.componentId
+  const starvation = result.recommendations.fragments.recommendations.find(
+    (recommendation) => recommendation.componentId === 'fragment-echo-of-starvation'
   );
 
-  if (!fragmentIds.includes('fragment-echo-of-starvation')) {
+  if (!starvation) {
     throw new Error(
       'Expected fragment-echo-of-starvation to be recommended for Feed the Void + Child of the Old Gods.'
     );
   }
 
-  const starvation = result.recommendations.fragments.recommendations.find(
-    (recommendation) => recommendation.componentId === 'fragment-echo-of-starvation'
-  );
   const devourReason = starvation.reasons.find(
-    (reason) => reason.ruleCode === 'shared-devour'
+    (reason) => reason.ruleCode === 'void-devour'
   );
 
   if (!devourReason) {
     throw new Error('Echo of Starvation is missing its traceable Devour reason.');
   }
-  if (devourReason.rulePriority !== 1 || starvation.reasons[0] !== devourReason) {
-    throw new Error('Echo of Starvation must display its priority-1 Devour reason first.');
+  if (starvation.reasons[0] !== devourReason) {
+    throw new Error('Echo of Starvation must display its highest-priority Devour reason first.');
   }
 }
 
@@ -150,6 +202,39 @@ function assertAllBuildAspectsResolve(buildCatalogue, componentCatalogue) {
   }
 }
 
+function runDemo(catalogue, context) {
+  const result = recommendSynergies({ catalogue, buildContext: context });
+  assertTraceableRecommendations(result, catalogue);
+  return result;
+}
+
+function vocabularyCoverage(catalogue) {
+  const fragments = catalogue.components.filter(
+    (component) => component.type === 'fragment' && component.verified === true
+  );
+
+  return Object.fromEntries(ELEMENTS.map((element) => {
+    const elementFragments = fragments.filter(
+      (fragment) => fragment.element === element || fragment.subclass === element
+    );
+    const specificRules = EFFECT_RULES.filter(
+      (rule) => rule.code.startsWith(ELEMENT_PREFIX[element])
+    );
+    const specificMatches = elementFragments.filter(
+      (fragment) => specificRules.some((rule) => ruleMatchesText(rule, fragment.effect))
+    ).length;
+    const anyMatches = elementFragments.filter(
+      (fragment) => EFFECT_RULES.some((rule) => ruleMatchesText(rule, fragment.effect))
+    ).length;
+
+    return [element, {
+      verifiedFragments: elementFragments.length,
+      elementSpecificMatches: specificMatches,
+      anyRuleMatches: anyMatches
+    }];
+  }));
+}
+
 const [catalogue, buildCatalogue] = await Promise.all([
   readFile(cataloguePath, 'utf8').then(JSON.parse),
   readFile(buildsPath, 'utf8').then(JSON.parse)
@@ -160,19 +245,42 @@ assertAllBuildAspectsResolve(buildCatalogue, catalogue);
 const voidBuild = buildCatalogue.builds.find(
   (build) => build.id === 'warlock-void-skull-nova-control'
 );
-const aspectLinks = resolveBuildAspectIds(voidBuild, catalogue.components);
-const result = recommendSynergies({
-  catalogue,
-  buildContext: {
-    buildId: voidBuild.id,
-    class: voidBuild.class,
-    subclass: voidBuild.subclass,
-    element: voidBuild.subclass,
-    aspectIds: aspectLinks.resolvedIds,
-    activity: voidBuild.activityTags[0]
-  }
+const voidLinks = resolveBuildAspectIds(voidBuild, catalogue.components);
+const voidResult = runDemo(catalogue, {
+  buildId: voidBuild.id,
+  class: voidBuild.class,
+  subclass: voidBuild.subclass,
+  element: voidBuild.subclass,
+  aspectIds: voidLinks.resolvedIds,
+  activity: voidBuild.activityTags[0]
 });
+assertExpectedVoidTruePositive(voidResult);
 
-assertTraceableRecommendations(result, catalogue);
-assertExpectedVoidTruePositive(result);
-console.log(JSON.stringify(result, null, 2));
+const solarResult = runDemo(catalogue, {
+  buildId: 'demo-titan-solar-sol-invictus-roaring-flames',
+  class: 'Titan',
+  subclass: 'Solar',
+  element: 'Solar',
+  aspectIds: ['aspect-sol-invictus', 'aspect-roaring-flames'],
+  activity: 'Endgame PvE demo'
+});
+assertElementSpecificFragmentMatch(solarResult, 'Solar');
+
+const arcResult = runDemo(catalogue, {
+  buildId: 'demo-hunter-arc-tempest-strike-ascension',
+  class: 'Hunter',
+  subclass: 'Arc',
+  element: 'Arc',
+  aspectIds: ['aspect-tempest-strike', 'aspect-ascension'],
+  activity: 'Endgame PvE demo'
+});
+assertElementSpecificFragmentMatch(arcResult, 'Arc');
+
+console.log(JSON.stringify({
+  vocabularyCoverage: vocabularyCoverage(catalogue),
+  demos: {
+    void: voidResult,
+    solar: solarResult,
+    arc: arcResult
+  }
+}, null, 2));
