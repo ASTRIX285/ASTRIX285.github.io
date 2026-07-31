@@ -1,4 +1,4 @@
-const ENGINE_VERSION = '1.0.0';
+const ENGINE_VERSION = '1.1.0';
 
 const EFFECT_RULES = [
   { code: 'shared-devour', label: 'Devour', terms: ['devour'] },
@@ -13,10 +13,11 @@ const EFFECT_RULES = [
   { code: 'shared-melee', label: 'melee', terms: ['melee'] },
   { code: 'shared-class-ability', label: 'class ability', terms: ['class ability'] },
   { code: 'shared-super', label: 'Super', terms: ['super'] }
-];
+].map((rule, index) => ({ ...rule, priority: index + 1 }));
 
 const VALID_CLASSES = new Set(['Hunter', 'Titan', 'Warlock']);
 const RECOMMENDATION_TYPES = new Set(['fragment', 'artifactPerk', 'setBonus']);
+const ARTIFACT_RECOMMENDATION_LIMIT = 6;
 
 function isNonEmptyText(value) {
   return typeof value === 'string' && value.trim().length > 0;
@@ -72,17 +73,11 @@ function isVerifiedComponent(component) {
   }
 
   if (component.type === 'aspect') {
-    return (
-      Number.isInteger(component.fragmentSlots) &&
-      isNonEmptyText(component.class)
-    );
+    return Number.isInteger(component.fragmentSlots) && isNonEmptyText(component.class);
   }
 
   if (component.type === 'artifactPerk') {
-    return (
-      isNonEmptyText(component.artifactName) &&
-      Number.isInteger(component.column)
-    );
+    return isNonEmptyText(component.artifactName) && Number.isInteger(component.column);
   }
 
   if (component.type === 'setBonus') {
@@ -154,13 +149,15 @@ function resolveAspects(buildContext, verifiedComponentsById) {
   return { resolved, unavailable };
 }
 
-function makeReason(rule, candidate, supportingAspect, extraSummary) {
+function makeReason(rule, candidate, supportingAspect, extra = {}) {
   return {
     ruleCode: rule.code,
-    summary: extraSummary ?? `${candidate.name} and ${supportingAspect.name} both reference ${rule.label}.`,
+    rulePriority: rule.priority,
+    summary: extra.summary ?? `${candidate.name} and ${supportingAspect.name} both reference ${rule.label}.`,
     matchedKeywords: [rule.label],
-    supportingComponentIds: [supportingAspect.id, candidate.id],
-    sourceRefs: sourceRefs([supportingAspect, candidate])
+    supportingComponentIds: extra.supportingComponentIds ?? [supportingAspect.id, candidate.id],
+    sourceRefs: extra.sourceRefs ?? sourceRefs([supportingAspect, candidate]),
+    ...(extra.artifactNames ? { artifactNames: extra.artifactNames } : {})
   };
 }
 
@@ -179,40 +176,68 @@ function collectRuleMatches(candidate, aspects) {
 
   for (const aspect of aspects) {
     for (const rule of matchingRules(aspect.effect, effect)) {
-      matches.push({ rule, aspect });
+      matches.push({ rule, aspect, candidate });
     }
   }
 
   return matches;
 }
 
-function deterministicCandidateOrder(left, right) {
-  return left.id.localeCompare(right.id);
+function rankingMetadata(matches) {
+  const distinctRuleCodes = new Set(matches.map(({ rule }) => rule.code));
+  const highestPriority = matches.reduce(
+    (best, { rule }) => Math.min(best, rule.priority),
+    Number.POSITIVE_INFINITY
+  );
+
+  return {
+    highestPriority,
+    distinctRuleCount: distinctRuleCodes.size
+  };
+}
+
+function rankedCandidateOrder(left, right) {
+  if (left.ranking.highestPriority !== right.ranking.highestPriority) {
+    return left.ranking.highestPriority - right.ranking.highestPriority;
+  }
+
+  if (left.ranking.distinctRuleCount !== right.ranking.distinctRuleCount) {
+    return right.ranking.distinctRuleCount - left.ranking.distinctRuleCount;
+  }
+
+  return left.deterministicId.localeCompare(right.deterministicId);
+}
+
+function buildRankedCandidates(eligible, aspects) {
+  return eligible
+    .map((candidate) => {
+      const matches = collectRuleMatches(candidate, aspects);
+      return {
+        candidate,
+        matches,
+        ranking: rankingMetadata(matches),
+        deterministicId: candidate.id
+      };
+    })
+    .filter(({ matches }) => matches.length > 0)
+    .sort(rankedCandidateOrder);
 }
 
 function recommendFragments(verifiedComponents, aspects, buildContext, slotLimit) {
   const eligible = verifiedComponents
     .filter((component) => component.type === 'fragment')
-    .filter((component) => matchesBuildElement(component, buildContext))
-    .sort(deterministicCandidateOrder);
+    .filter((component) => matchesBuildElement(component, buildContext));
 
-  const recommendations = [];
-
-  for (const candidate of eligible) {
-    const matches = collectRuleMatches(candidate, aspects);
-    if (matches.length === 0) continue;
-
-    recommendations.push({
+  const recommendations = buildRankedCandidates(eligible, aspects)
+    .slice(0, slotLimit)
+    .map(({ candidate, matches }) => ({
       componentId: candidate.id,
       name: candidate.name,
       type: candidate.type,
       effect: candidate.effect,
       statModifiers: candidate.statModifiers.map((modifier) => ({ ...modifier })),
       reasons: matches.map(({ rule, aspect }) => makeReason(rule, candidate, aspect))
-    });
-
-    if (recommendations.length >= slotLimit) break;
-  }
+    }));
 
   return sectionResult(
     recommendations,
@@ -223,26 +248,103 @@ function recommendFragments(verifiedComponents, aspects, buildContext, slotLimit
   );
 }
 
+function groupArtifactCandidates(eligible, aspects) {
+  const groups = new Map();
+
+  for (const candidate of eligible) {
+    const key = normalize(candidate.name);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(candidate);
+  }
+
+  return [...groups.values()]
+    .map((candidates) => {
+      const matches = candidates.flatMap((candidate) => collectRuleMatches(candidate, aspects));
+      const deterministicId = candidates
+        .map((candidate) => candidate.id)
+        .sort((left, right) => left.localeCompare(right))[0];
+
+      return {
+        candidates,
+        matches,
+        ranking: rankingMetadata(matches),
+        deterministicId
+      };
+    })
+    .filter(({ matches }) => matches.length > 0)
+    .sort(rankedCandidateOrder);
+}
+
+function artifactReasons(group) {
+  const artifactNames = [...new Set(group.candidates.map((candidate) => candidate.artifactName))]
+    .sort((left, right) => left.localeCompare(right));
+  const reasonsByRuleAndAspect = new Map();
+
+  for (const match of group.matches) {
+    const key = `${match.rule.code}|${match.aspect.id}`;
+    if (!reasonsByRuleAndAspect.has(key)) {
+      reasonsByRuleAndAspect.set(key, {
+        rule: match.rule,
+        aspect: match.aspect,
+        candidates: []
+      });
+    }
+    reasonsByRuleAndAspect.get(key).candidates.push(match.candidate);
+  }
+
+  return [...reasonsByRuleAndAspect.values()]
+    .sort((left, right) => {
+      if (left.rule.priority !== right.rule.priority) {
+        return left.rule.priority - right.rule.priority;
+      }
+      return left.aspect.id.localeCompare(right.aspect.id);
+    })
+    .map(({ rule, aspect, candidates }) => {
+      const supportingCandidates = [...new Map(
+        candidates.map((candidate) => [candidate.id, candidate])
+      ).values()].sort((left, right) => left.id.localeCompare(right.id));
+      const representative = supportingCandidates[0];
+
+      return makeReason(rule, representative, aspect, {
+        summary: `${representative.name} appears in ${artifactNames.join(', ')} and shares ${rule.label} with ${aspect.name}.`,
+        artifactNames,
+        supportingComponentIds: [aspect.id, ...supportingCandidates.map((candidate) => candidate.id)],
+        sourceRefs: sourceRefs([aspect, ...supportingCandidates])
+      });
+    });
+}
+
 function recommendArtifactPerks(verifiedComponents, aspects, buildContext) {
   const eligible = verifiedComponents
     .filter((component) => component.type === 'artifactPerk')
-    .filter((component) => matchesBuildElement(component, buildContext))
-    .sort(deterministicCandidateOrder);
+    .filter((component) => matchesBuildElement(component, buildContext));
 
-  const recommendations = eligible.flatMap((candidate) => {
-    const matches = collectRuleMatches(candidate, aspects);
-    if (matches.length === 0) return [];
+  const recommendations = groupArtifactCandidates(eligible, aspects)
+    .slice(0, ARTIFACT_RECOMMENDATION_LIMIT)
+    .map((group) => {
+      const canonical = [...group.candidates]
+        .sort((left, right) => left.id.localeCompare(right.id))[0];
+      const artifactNames = [...new Set(group.candidates.map((candidate) => candidate.artifactName))]
+        .sort((left, right) => left.localeCompare(right));
 
-    return [{
-      componentId: candidate.id,
-      name: candidate.name,
-      type: candidate.type,
-      effect: candidate.effect,
-      artifactName: candidate.artifactName,
-      column: candidate.column,
-      reasons: matches.map(({ rule, aspect }) => makeReason(rule, candidate, aspect))
-    }];
-  });
+      return {
+        componentId: canonical.id,
+        componentIds: group.candidates
+          .map((candidate) => candidate.id)
+          .sort((left, right) => left.localeCompare(right)),
+        name: canonical.name,
+        type: canonical.type,
+        effect: canonical.effect,
+        artifactNames,
+        columns: group.candidates
+          .map((candidate) => ({ artifactName: candidate.artifactName, column: candidate.column }))
+          .sort((left, right) => {
+            const artifactOrder = left.artifactName.localeCompare(right.artifactName);
+            return artifactOrder !== 0 ? artifactOrder : left.column - right.column;
+          }),
+        reasons: artifactReasons(group)
+      };
+    });
 
   return sectionResult(
     recommendations,
@@ -254,22 +356,17 @@ function recommendArtifactPerks(verifiedComponents, aspects, buildContext) {
 function recommendSetBonuses(verifiedComponents, aspects, buildContext) {
   const eligible = verifiedComponents
     .filter((component) => component.type === 'setBonus')
-    .filter((component) => matchesBuildElement(component, buildContext))
-    .sort(deterministicCandidateOrder);
+    .filter((component) => matchesBuildElement(component, buildContext));
 
-  const recommendations = eligible.flatMap((candidate) => {
-    const matches = collectRuleMatches(candidate, aspects);
-    if (matches.length === 0) return [];
-
-    return [{
+  const recommendations = buildRankedCandidates(eligible, aspects)
+    .map(({ candidate, matches }) => ({
       componentId: candidate.id,
       name: candidate.name,
       type: candidate.type,
       effect: candidate.effect,
       setBonus: candidate.setBonus,
       reasons: matches.map(({ rule, aspect }) => makeReason(rule, candidate, aspect))
-    }];
-  });
+    }));
 
   return sectionResult(
     recommendations,
@@ -400,8 +497,13 @@ export function recommendSynergies({ buildContext, catalogue }) {
     resolvedAspectIds: aspects.resolved.map((aspect) => aspect.id),
     unavailableAspects: aspects.unavailable,
     fragmentSlotLimit,
+    artifactRecommendationLimit: ARTIFACT_RECOMMENDATION_LIMIT,
     recommendations
   };
 }
 
-export { ENGINE_VERSION, EFFECT_RULES };
+export {
+  ARTIFACT_RECOMMENDATION_LIMIT,
+  ENGINE_VERSION,
+  EFFECT_RULES
+};
