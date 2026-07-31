@@ -4,7 +4,7 @@
   "scope": "Armor 3.0",
   "seedStatus": {
     "setBonusTableAvailable": true,
-    "notes": "All four component types seeded: 56 set bonuses, 99 fragments, 59 aspects (3 pending effect text) and seasonal artifact perks. Effect text reworded from Armor 3.0 references with sources cited."
+    "notes": "Component library covers set bonuses, fragments, aspects, artifact perks, weapon perks and origin traits. Records with no effect data in the source remain unverified with empty effects."
   },
   "components": [
     {
@@ -7245,6 +7245,5398 @@
       ],
       "artifactName": "Tablet of Ruin",
       "column": 1
+    },
+    {
+      "id": "weapon-perk-eager-edge",
+      "name": "Eager Edge",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying a Sword greatly increases lunge distance briefly (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer lunge bonus and duration."
+    },
+    {
+      "id": "weapon-perk-envious-arsenal",
+      "name": "Envious Arsenal",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing damage with your other two weapons, then readying this one, refills its magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Additional ammo generation."
+    },
+    {
+      "id": "weapon-perk-attrition-orbs",
+      "name": "Attrition Orbs",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained damage without reloading creates an Orb of Power.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Slightly more Super energy from the orb."
+    },
+    {
+      "id": "weapon-perk-fourth-time-s-the-charm",
+      "name": "Fourth Time's the Charm",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapidly landing four precision hits returns two rounds to the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer window to land the hits."
+    },
+    {
+      "id": "weapon-perk-aggregate-charge",
+      "name": "Aggregate Charge",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Damage against elementally debuffed targets is increased, scaling with the number of debuffs.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Greater damage on the buffed portion."
+    },
+    {
+      "id": "weapon-perk-elemental-honing",
+      "name": "Elemental Honing",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing different elemental damage types builds stacking weapon damage for a duration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-heal-clip",
+      "name": "Heal Clip",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after a final blow cures you and nearby allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer window after the kill."
+    },
+    {
+      "id": "weapon-perk-physic",
+      "name": "Physic",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Repeatedly healing nearby allies grants you Restoration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster activation."
+    },
+    {
+      "id": "weapon-perk-bait-and-switch",
+      "name": "Bait and Switch",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing damage with all three weapons in quick succession greatly increases this weapon's damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-collective-demolition",
+      "name": "Collective Demolition",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": []
+    },
+    {
+      "id": "weapon-perk-dimensional-shift",
+      "name": "Dimensional Shift",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": []
+    },
+    {
+      "id": "weapon-perk-gear-shift",
+      "name": "Gear Shift",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": []
+    },
+    {
+      "id": "weapon-perk-light-touch",
+      "name": "Light Touch",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": []
+    },
+    {
+      "id": "weapon-perk-lucky-shot",
+      "name": "Lucky Shot",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": []
+    },
+    {
+      "id": "weapon-perk-mega-kill-clip",
+      "name": "Mega Kill Clip",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": []
+    },
+    {
+      "id": "weapon-perk-one-two-punch",
+      "name": "One-Two Punch",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Hitting a target with all Shotgun pellets greatly increases melee damage briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Requires fewer pellets."
+    },
+    {
+      "id": "weapon-perk-destabilizing-rounds",
+      "name": "Destabilizing Rounds",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows cause a Void explosion and grant Volatile Rounds briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Reduced cooldown."
+    },
+    {
+      "id": "weapon-perk-withering-gaze",
+      "name": "Withering Gaze",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Aiming down sights without firing applies weaken on your next shot.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster activation."
+    },
+    {
+      "id": "weapon-perk-kinetic-tremors",
+      "name": "Kinetic Tremors",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing multiple hits on a target creates damaging shockwaves beneath it.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Requires fewer hits."
+    },
+    {
+      "id": "weapon-perk-reaper-s-tithe",
+      "name": "Reaper's Tithe",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Simultaneous final blows grant stacking bonus damage, extended by further kills.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-trench-barrel",
+      "name": "Trench Barrel",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "After melee damage, this weapon gains greatly increased damage, handling and reload for a few shots.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stat bonuses."
+    },
+    {
+      "id": "weapon-perk-jolting-feedback",
+      "name": "Jolting Feedback",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing multiple hits inflicts jolt; fewer hits are needed while Amplified.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Requires fewer hits."
+    },
+    {
+      "id": "weapon-perk-rewind-rounds",
+      "name": "Rewind Rounds",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Emptying the magazine refills a portion of it based on hits landed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Refills a greater portion."
+    },
+    {
+      "id": "weapon-perk-chaos-reshaped",
+      "name": "Chaos Reshaped",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Remaining in combat grants stacking bonus damage and periodic health restoration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Shorter combat requirement."
+    },
+    {
+      "id": "weapon-perk-incandescent",
+      "name": "Incandescent",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows apply scorch to nearby combatants.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Additional scorch."
+    },
+    {
+      "id": "weapon-perk-chill-clip",
+      "name": "Chill Clip",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While the magazine is at least half full, hits apply slow stacks.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stability."
+    },
+    {
+      "id": "weapon-perk-ancillary-ordinance",
+      "name": "Ancillary Ordinance",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid elemental final blows launch a micro-missile from your next kill.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-voltshot",
+      "name": "Voltshot",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after a final blow makes your next hit apply jolt.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer proc window."
+    },
+    {
+      "id": "weapon-perk-repulsor-brace",
+      "name": "Repulsor Brace",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a Void-debuffed target grants a Void Overshield.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-lead-from-gold",
+      "name": "Lead from Gold",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up Heavy ammo grants Special ammo for this weapon.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More ammo returned."
+    },
+    {
+      "id": "weapon-perk-chain-reaction",
+      "name": "Chain Reaction",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows cause an elemental explosion on the target.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus guard endurance and ammo generation."
+    },
+    {
+      "id": "weapon-perk-slice",
+      "name": "Slice",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Using your class ability grants several hits that apply sever, refreshed by further hits.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-archer-s-gambit",
+      "name": "Archer's Gambit",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Hipfired precision hits greatly reduce draw time briefly, extendable with further hits.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-air-trigger",
+      "name": "Air Trigger",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively grants ammo generation and improved reload while airborne.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved ammo generation and reload."
+    },
+    {
+      "id": "weapon-perk-field-prep",
+      "name": "Field Prep",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively grants ammo generation and improved reload, ready and stow speed while crouching.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved ammo generation and reload."
+    },
+    {
+      "id": "weapon-perk-whirlwind-blade",
+      "name": "Whirlwind Blade",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sword hits build stacking bonus Sword damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-crystalline-corpsebloom",
+      "name": "Crystalline Corpsebloom",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows after activation spawn a Stasis crystal near the target.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Larger crystal."
+    },
+    {
+      "id": "weapon-perk-shoot-to-loot",
+      "name": "Shoot to Loot",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Shooting an ammo brick collects it and refills all your weapons.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Increased range."
+    },
+    {
+      "id": "weapon-perk-bipod",
+      "name": "Bipod",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively grants additional magazine and reserves at the cost of blast radius and damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved blast radius and reload."
+    },
+    {
+      "id": "weapon-perk-reconstruction",
+      "name": "Reconstruction",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Not firing for a period refills the magazine, up to double capacity.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster refill."
+    },
+    {
+      "id": "weapon-perk-auto-loading-holster",
+      "name": "Auto-Loading Holster",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stowing the weapon reloads it after a short time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster reload."
+    },
+    {
+      "id": "weapon-perk-clown-cartridge",
+      "name": "Clown Cartridge",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading overfills the magazine by a random amount.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Higher average overfill."
+    },
+    {
+      "id": "weapon-perk-relentless-strikes",
+      "name": "Relentless Strikes",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid Sword hits return ammo.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More forgiving timing."
+    },
+    {
+      "id": "weapon-perk-explosive-light",
+      "name": "Explosive Light",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up Orbs of Power grants stacking bonus damage and blast radius.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Additional stacks."
+    },
+    {
+      "id": "weapon-perk-redirection",
+      "name": "Redirection",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Hits against minor combatants build stacks that greatly increase damage against powerful combatants.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More efficient stack usage."
+    },
+    {
+      "id": "weapon-perk-firefly",
+      "name": "Firefly",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows cause a Solar explosion and greatly improve reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved reload."
+    },
+    {
+      "id": "weapon-perk-recombination",
+      "name": "Recombination",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Elemental final blows build stacks that greatly increase the damage of your next shot.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Additional stacks."
+    },
+    {
+      "id": "weapon-perk-demolitionist",
+      "name": "Demolitionist",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant grenade energy; using your grenade reloads the weapon.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More grenade energy."
+    },
+    {
+      "id": "weapon-perk-cascade-point",
+      "name": "Cascade Point",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after a final blow, or landing precision hits with another weapon, greatly increases rate of fire.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-controlled-burst",
+      "name": "Controlled Burst",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows, or landing all bolts, increase damage and charge rate briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-desperate-measures",
+      "name": "Desperate Measures",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon, grenade or melee final blows build stacking bonus damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-bewildering-burst",
+      "name": "Bewildering Burst",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after a final blow makes your next shot a blinding Kinetic blast.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer proc window."
+    },
+    {
+      "id": "weapon-perk-sharp-harvest",
+      "name": "Sharp Harvest",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid powered hits grant Special ammo.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer window."
+    },
+    {
+      "id": "weapon-perk-lead-from-light",
+      "name": "Lead From Light",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up Orbs of Power grants stacking Special ammo progress on your next final blow.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-impromptu-ammunition",
+      "name": "Impromptu Ammunition",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows increase ammo generation.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-vorpal-weapon",
+      "name": "Vorpal Weapon",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Increases damage against bosses, vehicles and powerful combatants.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus stability and guard resistance."
+    },
+    {
+      "id": "weapon-perk-impulse-amplifier",
+      "name": "Impulse Amplifier",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively increases projectile velocity and greatly improves reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved reload."
+    },
+    {
+      "id": "weapon-perk-frenzy",
+      "name": "Frenzy",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Being in combat for a period grants bonus damage, handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-surrounded",
+      "name": "Surrounded",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While near three or more enemies, this weapon deals greatly increased damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Higher damage bonus."
+    },
+    {
+      "id": "weapon-perk-reciprocity",
+      "name": "Reciprocity",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Healing an ally restores health per hit.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More health per hit."
+    },
+    {
+      "id": "weapon-perk-explosive-head",
+      "name": "Explosive Head",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rounds explode on impact, dealing area damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved accuracy."
+    },
+    {
+      "id": "weapon-perk-explosive-payload",
+      "name": "Explosive Payload",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rounds detonate on impact, dealing area damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved reload."
+    },
+    {
+      "id": "weapon-perk-timed-payload",
+      "name": "Timed Payload",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rounds deal a delayed explosive detonation on impact.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stability."
+    },
+    {
+      "id": "weapon-perk-one-for-all",
+      "name": "One for All",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Hitting three separate targets in quick succession greatly increases damage for a duration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-killing-tally",
+      "name": "Killing Tally",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows build stacking bonus damage until you stow or reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Increased magazine."
+    },
+    {
+      "id": "weapon-perk-grave-robber",
+      "name": "Grave Robber",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Melee final blows, or powered melee damage, refill the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved handling."
+    },
+    {
+      "id": "weapon-perk-high-ground",
+      "name": "High Ground",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While above your target and grounded, weapon final blows grant bonus damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved reload."
+    },
+    {
+      "id": "weapon-perk-close-to-melee",
+      "name": "Close to Melee",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Glaive projectile final blows greatly increase Glaive melee damage, extended by further damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-bolt-scavenger",
+      "name": "Bolt Scavenger",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up bolts improves handling and reload, scaling with the number collected.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-enlightened-action",
+      "name": "Enlightened Action",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing damage builds stacking handling and reload bonuses.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stat bonuses."
+    },
+    {
+      "id": "weapon-perk-rapid-hit",
+      "name": "Rapid Hit",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid precision hits grant stacking reload speed and stability.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-precision-instrument",
+      "name": "Precision Instrument",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Consecutive precision hits build stacking bonus precision damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Higher damage cap."
+    },
+    {
+      "id": "weapon-perk-all-star",
+      "name": "All-Star",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up ammo and then readying the weapon refills it and grants bonus damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-firing-line",
+      "name": "Firing Line",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While near two or more allies, precision damage is increased.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved handling."
+    },
+    {
+      "id": "weapon-perk-focused-fury",
+      "name": "Focused Fury",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing half a magazine in precision hits greatly increases damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-replenishing-aegis",
+      "name": "Replenishing Aegis",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Blocking and taking damage refills ammo (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-slideshot",
+      "name": "Slideshot",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sliding partially refills the magazine and grants bonus range and stability.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-slideways",
+      "name": "Slideways",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sliding partially refills the magazine and grants bonus stability and handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stability and handling."
+    },
+    {
+      "id": "weapon-perk-detonator-beam",
+      "name": "Detonator Beam",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained hits on a target cause an explosion around it.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Requires fewer hits."
+    },
+    {
+      "id": "weapon-perk-overflow",
+      "name": "Overflow",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up Special or Heavy ammo greatly overfills the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Greater overfill."
+    },
+    {
+      "id": "weapon-perk-cold-steel",
+      "name": "Cold Steel",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sword hits apply slow stacks, increased on heavy attacks.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus ammo and magazine."
+    },
+    {
+      "id": "weapon-perk-archer-s-tempo",
+      "name": "Archer's Tempo",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision hits greatly increase draw speed briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-triple-tap",
+      "name": "Triple Tap",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapidly landing three precision hits returns one round to the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer window."
+    },
+    {
+      "id": "weapon-perk-target-lock",
+      "name": "Target Lock",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained hits on a single target increase damage the longer you fire.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Higher damage bonus."
+    },
+    {
+      "id": "weapon-perk-burning-ambition",
+      "name": "Burning Ambition",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Filling the hit counter, or a direct hit on a scorched target, applies additional scorch.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Requires fewer hits."
+    },
+    {
+      "id": "weapon-perk-reservoir-burst",
+      "name": "Reservoir Burst",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "With a full magazine, your next shot deals bonus damage and causes an elemental explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stability."
+    },
+    {
+      "id": "weapon-perk-meganeura",
+      "name": "Meganeura",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Consecutive precision hits create a splash detonation that grows with stacks.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-onslaught",
+      "name": "Onslaught",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows build stacking rate of fire and reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-golden-tricorn",
+      "name": "Golden Tricorn",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant bonus damage, greatly increased if a matching ability kill is active.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-loose-change",
+      "name": "Loose Change",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Applying an elemental debuff greatly improves reload and aim assist.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-sword-logic",
+      "name": "Sword Logic",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows build stacking bonus damage, scaling with the target's rank.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-envious-assassin",
+      "name": "Envious Assassin",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Final blows with other weapons before readying this one overfill its magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Greater overfill per kill."
+    },
+    {
+      "id": "weapon-perk-eddy-current",
+      "name": "Eddy Current",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Stopping after sprinting, or being Amplified, improves handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-beacon-rounds",
+      "name": "Beacon Rounds",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows improve reload and add target tracking briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-ambitious-assassin",
+      "name": "Ambitious Assassin",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Final blows before reloading overfill the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster kill-reload timing."
+    },
+    {
+      "id": "weapon-perk-headstone",
+      "name": "Headstone",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows create a Stasis crystal on the target.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stability."
+    },
+    {
+      "id": "weapon-perk-dragonfly",
+      "name": "Dragonfly",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows cause an elemental explosion on the target.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved reload."
+    },
+    {
+      "id": "weapon-perk-circle-of-life",
+      "name": "Circle of Life",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Boosting an ally with a Support frame grants bonus damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-flash-counter",
+      "name": "Flash Counter",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Blocking any damage emits a disorienting blast.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus ammo."
+    },
+    {
+      "id": "weapon-perk-blast-distributor",
+      "name": "Blast Distributor",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing explosive damage builds stacking grenade energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More grenade energy per stack."
+    },
+    {
+      "id": "weapon-perk-unrelenting",
+      "name": "Unrelenting",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapidly defeating combatants restores health and starts regeneration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More health restored."
+    },
+    {
+      "id": "weapon-perk-tear",
+      "name": "Tear",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows cause a sever explosion (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Reduced cooldown."
+    },
+    {
+      "id": "weapon-perk-demoralize",
+      "name": "Demoralize",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows cause a weakening explosion (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Reduced cooldown."
+    },
+    {
+      "id": "weapon-perk-collective-pugilism",
+      "name": "Collective Pugilism",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Collecting a subclass pickup grants melee energy on hits for a duration.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More melee energy."
+    },
+    {
+      "id": "weapon-perk-rolling-storm",
+      "name": "Rolling Storm",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant Bolt Charge, doubled while Amplified.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Additional Bolt Charge."
+    },
+    {
+      "id": "weapon-perk-threat-detector",
+      "name": "Threat Detector",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Being near enemies grants stacking stability, handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stat bonuses."
+    },
+    {
+      "id": "weapon-perk-master-of-arms",
+      "name": "Master of Arms",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Any weapon final blow grants stacking bonus damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-paracausal-affinity",
+      "name": "Paracausal Affinity",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Final blows matching the weapon's element grant bonus damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-swashbuckler",
+      "name": "Swashbuckler",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon and melee final blows build stacking bonus damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-pugilist",
+      "name": "Pugilist",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant melee energy; melee damage improves handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More melee energy."
+    },
+    {
+      "id": "weapon-perk-discord",
+      "name": "Discord",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying this weapon shortly after another weapon's final blow refills or refunds ammo.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-cluster-bomb",
+      "name": "Cluster Bomb",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rocket detonations release additional cluster explosives.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Increased blast radius."
+    },
+    {
+      "id": "weapon-perk-deconstruct",
+      "name": "Deconstruct",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained hits greatly increase damage to constructs and vehicles and refill the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-rampage",
+      "name": "Rampage",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows build stacking bonus damage that decays over time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-trickle-charge",
+      "name": "Trickle Charge",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Gaining or discharging Bolt Charge partially refills the magazine and dissipates heat.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-subsistence",
+      "name": "Subsistence",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows partially refill the magazine from reserves.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Greater refill."
+    },
+    {
+      "id": "weapon-perk-desperado",
+      "name": "Desperado",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows followed by a reload greatly increase rate of fire.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-stats-for-all",
+      "name": "Stats for All",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Hitting three separate targets grants bonus range, stability, handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-adrenaline-junkie",
+      "name": "Adrenaline Junkie",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon and grenade final blows build stacking bonus damage and handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-multikill-clip",
+      "name": "Multikill Clip",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after multiple final blows grants bonus damage scaling with kills.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-compulsive-reloader",
+      "name": "Compulsive Reloader",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading with more than half the magazine remaining greatly improves reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved reload."
+    },
+    {
+      "id": "weapon-perk-en-garde",
+      "name": "En Garde",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying a Sword briefly increases its damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-kill-clip",
+      "name": "Kill Clip",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after a final blow increases damage briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-adagio",
+      "name": "Adagio",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows increase damage and range at the cost of rate of fire.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-proximity-power",
+      "name": "Proximity Power",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows near enemies build stacking melee energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More melee energy per stack."
+    },
+    {
+      "id": "weapon-perk-unstoppable-force",
+      "name": "Unstoppable Force",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Blocking damage increases projectile damage briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-melee-momentum",
+      "name": "Melee Momentum",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Glaive melee final blows grant Glaive energy and reduce block movement penalty.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More energy."
+    },
+    {
+      "id": "weapon-perk-rimestealer",
+      "name": "Rimestealer",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Shattering a Stasis crystal or frozen target grants Frost Armor.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Additional Frost Armor."
+    },
+    {
+      "id": "weapon-perk-under-over",
+      "name": "Under-Over",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Greatly increases damage against shields and overshields.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Higher damage bonus."
+    },
+    {
+      "id": "weapon-perk-disruption-break",
+      "name": "Disruption Break",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking an elemental or Barrier shield greatly increases Kinetic damage to that target.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-hatchling",
+      "name": "Hatchling",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows, or rapid final blows, create a Threadling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved handling."
+    },
+    {
+      "id": "weapon-perk-dual-loader",
+      "name": "Dual Loader",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively loads two rounds at a time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Loads three at a time."
+    },
+    {
+      "id": "weapon-perk-lasting-impression",
+      "name": "Lasting Impression",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rounds attach to the target and deal a delayed detonation for increased damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Increased blast radius."
+    },
+    {
+      "id": "weapon-perk-full-court",
+      "name": "Full Court",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Projectiles airborne for longer deal increased explosive damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Increased blast radius."
+    },
+    {
+      "id": "weapon-perk-strategist",
+      "name": "Strategist",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant class ability energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More class ability energy."
+    },
+    {
+      "id": "weapon-perk-thresh",
+      "name": "Thresh",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant Super energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More Super energy."
+    },
+    {
+      "id": "weapon-perk-wellspring",
+      "name": "Wellspring",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant energy split across your abilities.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More energy."
+    },
+    {
+      "id": "weapon-perk-cooling-baubles",
+      "name": "Cooling Baubles",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Collecting an elemental pickup or Orb of Power reduces weapon heat.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Greater heat reduction."
+    },
+    {
+      "id": "weapon-perk-supercharged-magazine",
+      "name": "Supercharged Magazine",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While Amplified or with Speed Booster, the magazine periodically refills.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-feeding-frenzy",
+      "name": "Feeding Frenzy",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows build stacking reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved reload."
+    },
+    {
+      "id": "weapon-perk-ensemble",
+      "name": "Ensemble",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Being near an ally improves handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stat bonuses."
+    },
+    {
+      "id": "weapon-perk-harmony",
+      "name": "Harmony",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying this weapon after another weapon's final blow grants bonus damage and handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-successful-warm-up",
+      "name": "Successful Warm-Up",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows greatly increase charge or draw speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-binary-orbit",
+      "name": "Binary Orbit",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Final blows that mismatch the weapon's element grant bonus damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-assassin-s-blade",
+      "name": "Assassin's Blade",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows increase damage and movement speed briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-collective-action",
+      "name": "Collective Action",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up a subclass item grants bonus damage, extended by further pickups.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer initial duration."
+    },
+    {
+      "id": "weapon-perk-adhesive-ordnance",
+      "name": "Adhesive Ordnance",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Picking up ammo causes your projectile to attach to the target for greatly increased damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-tracking-module",
+      "name": "Tracking Module",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Aiming down sights makes rockets track targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Increased blast radius."
+    },
+    {
+      "id": "weapon-perk-recycled-energy",
+      "name": "Recycled Energy",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after a final blow grants energy to your least-charged ability.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More energy."
+    },
+    {
+      "id": "weapon-perk-shield-disorient",
+      "name": "Shield Disorient",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking a matching shield creates a disorienting explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-genesis",
+      "name": "Genesis",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking a shield, or hitting a matching shield, refills the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved handling."
+    },
+    {
+      "id": "weapon-perk-immovable-object",
+      "name": "Immovable Object",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Blocking while stationary greatly increases energy gained per hit.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More energy."
+    },
+    {
+      "id": "weapon-perk-energy-transfer",
+      "name": "Energy Transfer",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Blocking damage with a Sword grants class ability energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More energy."
+    },
+    {
+      "id": "weapon-perk-slickdraw",
+      "name": "Slickdraw",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively grants greatly increased handling and ready speed at the cost of accuracy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Reduced accuracy penalty."
+    },
+    {
+      "id": "weapon-perk-quickdraw",
+      "name": "Quickdraw",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying this weapon grants greatly increased handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved handling."
+    },
+    {
+      "id": "weapon-perk-danger-zone",
+      "name": "Danger Zone",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Being near several enemies increases blast radius and lowers self-damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Passive blast radius bonus."
+    },
+    {
+      "id": "weapon-perk-cornered",
+      "name": "Cornered",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Being near several enemies greatly increases charge or draw speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus stability."
+    },
+    {
+      "id": "weapon-perk-backup-plan",
+      "name": "Backup Plan",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying this weapon briefly reduces charge time and greatly improves handling at reduced damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-outlaw",
+      "name": "Outlaw",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows greatly increase reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-tireless-blade",
+      "name": "Tireless Blade",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Every second Sword final blow returns ammo.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Chance for extra ammo."
+    },
+    {
+      "id": "weapon-perk-blunt-execution-rounds",
+      "name": "Blunt Execution Rounds",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Melee damage near an enemy greatly increases the damage and handling of your next shot.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-counterattack",
+      "name": "Counterattack",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Blocking an attack then striking increases damage briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-high-impact-reserves",
+      "name": "High-Impact Reserves",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Rounds deal more damage the lower the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus applies earlier."
+    },
+    {
+      "id": "weapon-perk-adaptive-munitions",
+      "name": "Adaptive Munitions",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained damage to unmatched or Barrier shields scales up damage against them.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Greater damage scaling."
+    },
+    {
+      "id": "weapon-perk-stopping-power",
+      "name": "Stopping Power",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Increases damage and stagger against low-health targets.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-osmosis",
+      "name": "Osmosis",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Using your grenade refills the magazine and changes the weapon's element to match your Super.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved handling."
+    },
+    {
+      "id": "weapon-perk-permeability",
+      "name": "Permeability",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Using your class ability refills the magazine and changes the weapon's element to match your Super.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved handling."
+    },
+    {
+      "id": "weapon-perk-celerity",
+      "name": "Celerity",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While you are the last living Guardian, gain greatly increased handling, reload and radar while aiming.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-elemental-capacitor",
+      "name": "Elemental Capacitor",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively grants stat bonuses based on your equipped subclass.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stat bonuses."
+    },
+    {
+      "id": "weapon-perk-thermal-atomization",
+      "name": "Thermal Atomization",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "At high heat, gain bonus damage and a small splash effect on final blows.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-surplus",
+      "name": "Surplus",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Each charged ability grants stacking stability, handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stat bonuses."
+    },
+    {
+      "id": "weapon-perk-sleight-of-hand",
+      "name": "Sleight of Hand",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying this weapon after other weapon or ability final blows grants stacking stability, handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-keep-away",
+      "name": "Keep Away",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While no enemies are nearby, gain bonus range and reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stat bonuses."
+    },
+    {
+      "id": "weapon-perk-turnabout",
+      "name": "Turnabout",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking an elemental shield grants an overshield.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-mulligan",
+      "name": "Mulligan",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Missing a shot has a chance to return ammo to the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Higher chance."
+    },
+    {
+      "id": "weapon-perk-snapshot-sights",
+      "name": "Snapshot Sights",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Greatly increases aim-down-sights speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stability."
+    },
+    {
+      "id": "weapon-perk-lone-wolf",
+      "name": "Lone Wolf",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While no allies are nearby, gain bonus aim assist and aim-down-sights speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved bonuses."
+    },
+    {
+      "id": "weapon-perk-tap-the-trigger",
+      "name": "Tap The Trigger",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Firing grants a brief burst of stability and reduced recoil.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-reversal-of-fortune",
+      "name": "Reversal of Fortune",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Missing twice in quick succession refunds ammo.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-sympathetic-arsenal",
+      "name": "Sympathetic Arsenal",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after a final blow also refills your stowed weapons.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "More forgiving timing."
+    },
+    {
+      "id": "weapon-perk-perpetual-motion",
+      "name": "Perpetual Motion",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Moving grants stacking stability, handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster stacking."
+    },
+    {
+      "id": "weapon-perk-magnificent-howl",
+      "name": "Magnificent Howl",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows followed by a reload greatly increase damage for several shots.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved reload."
+    },
+    {
+      "id": "weapon-perk-full-auto-trigger-system",
+      "name": "Full Auto Trigger System",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Allows the weapon to be fired fully automatically.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-box-breathing",
+      "name": "Box Breathing",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Aiming without firing greatly increases precision damage on your next shot.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster activation."
+    },
+    {
+      "id": "weapon-perk-reverberation",
+      "name": "Reverberation",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows greatly increase blast radius briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-butterfly",
+      "name": "Butterfly",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Final blows shortly after aiming cause an elemental splash detonation.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster activation."
+    },
+    {
+      "id": "weapon-perk-bottomless-grief",
+      "name": "Bottomless Grief",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While you are the last living Guardian, final blows refill the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-kickstart",
+      "name": "Kickstart",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sprinting into a slide increases damage and reduces charge time briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-valiant-charge",
+      "name": "Valiant Charge",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Blocking damage greatly increases lunge distance briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-duelist-s-trance",
+      "name": "Duelist's Trance",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sword final blows grant bonus guard stats and charge rate until stowed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus to all stats."
+    },
+    {
+      "id": "weapon-perk-pulse-monitor",
+      "name": "Pulse Monitor",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reaching critical health greatly improves handling and refreshes the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Triggers at higher health."
+    },
+    {
+      "id": "weapon-perk-shattering-blade",
+      "name": "Shattering Blade",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "A heavy attack that depletes ammo deals greatly increased damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-sneak-bow",
+      "name": "Sneak Bow",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Crouching greatly improves reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stability and reload."
+    },
+    {
+      "id": "weapon-perk-steady-hands",
+      "name": "Steady Hands",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows greatly increase handling on all weapons.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-killing-wind",
+      "name": "Killing Wind",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant bonus range, mobility and handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-shot-swap",
+      "name": "Shot Swap",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows greatly increase ready and stow speed, consumed on swapping.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-dynamic-sway-reduction",
+      "name": "Dynamic Sway Reduction",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Sustained fire scales up accuracy and stability.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster scaling."
+    },
+    {
+      "id": "weapon-perk-zen-moment",
+      "name": "Zen Moment",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing damage reduces recoil and increases flinch resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus stability."
+    },
+    {
+      "id": "weapon-perk-well-rounded",
+      "name": "Well-Rounded",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Using a grenade or powered melee grants stacking range, stability and handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-headseeker",
+      "name": "Headseeker",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Body damage briefly increases your precision damage multiplier.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus stability."
+    },
+    {
+      "id": "weapon-perk-firmly-planted",
+      "name": "Firmly Planted",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Crouching greatly increases handling and reduces recoil.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved handling."
+    },
+    {
+      "id": "weapon-perk-gutshot-straight",
+      "name": "Gutshot Straight",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Increases body damage at the cost of aim assist cone.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Reduced aim assist penalty."
+    },
+    {
+      "id": "weapon-perk-fragile-focus",
+      "name": "Fragile Focus",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While your shields are active, gain bonus range.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster reactivation."
+    },
+    {
+      "id": "weapon-perk-threat-remover",
+      "name": "Threat Remover",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Hitting a target with all Shotgun pellets briefly improves stability, handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-iron-reach",
+      "name": "Iron Reach",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively increases range at the cost of stability.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus stability."
+    },
+    {
+      "id": "weapon-perk-transcendent-moment",
+      "name": "Transcendent Moment",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Elemental final blows grant stat bonuses that differ by element, both active while Transcendent.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-tilting-at-windmills",
+      "name": "Tilting at Windmills",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Blocking damage reduces block movement penalty.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-no-distractions",
+      "name": "No Distractions",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Aiming down sights briefly grants flinch resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Faster activation."
+    },
+    {
+      "id": "weapon-perk-air-assault",
+      "name": "Air Assault",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively grants airborne effectiveness, increased further on weapon final blows.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus airborne effectiveness."
+    },
+    {
+      "id": "weapon-perk-delicate-tuning",
+      "name": "Delicate Tuning",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "At lower heat, gain bonus range, handling and accuracy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-to-the-pain",
+      "name": "To The Pain",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Taking damage grants stacking handling and aim assist, removed on stow.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-perfect-float",
+      "name": "Perfect Float",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Repeatedly dealing or taking damage grants airborne effectiveness and flinch resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-barrel-constrictor",
+      "name": "Barrel Constrictor",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows tighten pellet spread briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Tighter spread."
+    },
+    {
+      "id": "weapon-perk-moving-target",
+      "name": "Moving Target",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Aiming down sights grants bonus aim assist and reduces movement penalty.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus aim assist."
+    },
+    {
+      "id": "weapon-perk-iron-gaze",
+      "name": "Iron Gaze",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively increases aim assist at the cost of range.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus range."
+    },
+    {
+      "id": "weapon-perk-tunnel-vision",
+      "name": "Tunnel Vision",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after a final blow greatly increases aim assist and target acquisition.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-closing-time",
+      "name": "Closing Time",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "As the magazine empties, gain bonus range and handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stat bonuses."
+    },
+    {
+      "id": "weapon-perk-hip-fire-grip",
+      "name": "Hip-Fire Grip",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Improves accuracy, aim assist falloff and stability while firing from the hip.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Stronger effect."
+    },
+    {
+      "id": "weapon-perk-encore",
+      "name": "Encore",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Precision final blows grant stacking range, stability and reduced aim cone.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-built-to-blast",
+      "name": "Built to Blast",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "While you have a Void Overshield, Frost Armor or Woven Mail, gain bonus stability, aim assist and flinch resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-heating-up",
+      "name": "Heating Up",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant stacking stability and reduced recoil.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-offhand-strike",
+      "name": "Offhand Strike",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows greatly improve hipfire accuracy and stability.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Longer duration."
+    },
+    {
+      "id": "weapon-perk-under-pressure",
+      "name": "Under Pressure",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "As the magazine empties, gain bonus stability and accuracy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved stat bonuses."
+    },
+    {
+      "id": "weapon-perk-rangefinder",
+      "name": "Rangefinder",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Aiming down sights increases zoom and projectile velocity.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved handling."
+    },
+    {
+      "id": "weapon-perk-opening-shot",
+      "name": "Opening Shot",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "The first shot of an engagement has bonus range and aim assist.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Improved bonuses."
+    },
+    {
+      "id": "weapon-perk-eye-of-the-storm",
+      "name": "Eye of the Storm",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "The lower your health, the better this weapon's handling and accuracy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus stability."
+    },
+    {
+      "id": "weapon-perk-invisible-hand",
+      "name": "Invisible Hand",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Missing repeatedly grants bonus stability until you land a hit.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ]
+    },
+    {
+      "id": "weapon-perk-iron-grip",
+      "name": "Iron Grip",
+      "type": "weaponPerk",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively increases stability at the cost of reload speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "enhancedEffect": "Bonus reload."
+    },
+    {
+      "id": "origin-trait-accelerated-assault",
+      "name": "Accelerated Assault",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid hits briefly increase damage and partially refill the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Refurbished A499",
+        "Uncivil Discourse",
+        "A Good Shout",
+        "Riptide",
+        "Psi Aeterna IV"
+      ]
+    },
+    {
+      "id": "origin-trait-timelost-magazine",
+      "name": "Timelost Magazine",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant Super energy and refill the magazine; ending your Super doubles magazine size briefly.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Hezen Vengeance",
+        "Praedyth's Revenge",
+        "Corrective Measure",
+        "Fatebringer"
+      ]
+    },
+    {
+      "id": "origin-trait-winterized-gear",
+      "name": "Winterized Gear",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-veteran-s-wisdom",
+      "name": "Veteran's Wisdom",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-unburied-treasure",
+      "name": "Unburied Treasure",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-loss",
+      "name": "Loss",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-ignoble-deeds",
+      "name": "Ignoble Deeds",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-heretical-behavior",
+      "name": "Heretical Behavior",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-forge-s-kin",
+      "name": "Forge's Kin",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-featherweight",
+      "name": "Featherweight",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-fail-deadly",
+      "name": "Fail-deadly",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-eyes-up",
+      "name": "Eyes Up",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-elliptical-orbit",
+      "name": "Elliptical Orbit",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "",
+      "verified": false,
+      "sources": [],
+      "notableWeapons": []
+    },
+    {
+      "id": "origin-trait-subjugation",
+      "name": "Subjugation",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Hits against minor and powerful combatants gain an explosive payload effect and exhaust on hit.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Unsworn",
+        "Unloved",
+        "Unworthy",
+        "Unvoiced"
+      ]
+    },
+    {
+      "id": "origin-trait-souldrinker",
+      "name": "Souldrinker",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after landing hits restores health based on the portion of the magazine used.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Forbearance"
+      ]
+    },
+    {
+      "id": "origin-trait-land-tank",
+      "name": "Land Tank",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant stacking health and damage resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Explosive Personality",
+        "Recurrent Impact"
+      ]
+    },
+    {
+      "id": "origin-trait-cursed-thrall",
+      "name": "Cursed Thrall",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Melee final blows make combatants explode on weapon final blows.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Song of Ir Yut",
+        "Swordbreaker",
+        "Word of Crota",
+        "Abyss Defiant",
+        "Oversoul Edict"
+      ]
+    },
+    {
+      "id": "origin-trait-nanotech-tracer-missiles",
+      "name": "Nanotech Tracer Missiles",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing a portion of the magazine fires a tracking missile and increases rocket damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Dimensional Hypotrochoid",
+        "Circular Logic"
+      ]
+    },
+    {
+      "id": "origin-trait-imperial-allegiance",
+      "name": "Imperial Allegiance",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Being near an ally above half heat increases cooling and charge rate.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Conspiracy Honed"
+      ]
+    },
+    {
+      "id": "origin-trait-nano-munitions",
+      "name": "Nano-Munitions",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Being near an ally grants stacking magazine refill over time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Subjunctive",
+        "Adhortative"
+      ]
+    },
+    {
+      "id": "origin-trait-tenacity",
+      "name": "Tenacity",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows near enemies grant stacking damage, handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Ribbontail",
+        "Phoneutria Fera",
+        "Synanceia",
+        "Returned Memory",
+        "Mercury-A"
+      ]
+    },
+    {
+      "id": "origin-trait-advanced-reflexes",
+      "name": "Advanced Reflexes",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Aiming or guarding shortly after taking damage grants bonus mobility, handling, charge rate and damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Twilight Oath",
+        "Vouchsafe"
+      ]
+    },
+    {
+      "id": "origin-trait-bray-legacy",
+      "name": "Bray Legacy",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Hitting an enemy grants energy to your shortest remaining ability cooldown.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "VS Pyroelectric Propellant",
+        "VS Velocity Baton",
+        "VS Chill Inhibitor",
+        "Ahab Char",
+        "Eighty-Six"
+      ]
+    },
+    {
+      "id": "origin-trait-frame-of-reference",
+      "name": "Frame of Reference",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant stacking damage, range and reload, paused while stowed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "The When and Where",
+        "Antedate",
+        "Finite Maybe",
+        "Lance Ephemeral"
+      ]
+    },
+    {
+      "id": "origin-trait-dark-ether-reaper",
+      "name": "Dark Ether Reaper",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating several combatants spawns an explosive charge that detonates and overflows the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Bitter/Sweet",
+        "Heretic's Fervor",
+        "Vantage Point",
+        "Insurmountable"
+      ]
+    },
+    {
+      "id": "origin-trait-cast-no-shadows",
+      "name": "Cast No Shadows",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Melee damage improves handling and partially refills the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Perfect Paradox",
+        "Martyr's Retribution",
+        "Breachlight"
+      ]
+    },
+    {
+      "id": "origin-trait-extrovert",
+      "name": "Extrovert",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating a combatant near several enemies or a Nightmare restores health (cooldown applies).",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Nezarec's Whisper",
+        "Hollow Denial"
+      ]
+    },
+    {
+      "id": "origin-trait-dealer-s-choice",
+      "name": "Dealer's Choice",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant Super energy, increased with more trait weapons equipped.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "The Call",
+        "Pro Memoria"
+      ]
+    },
+    {
+      "id": "origin-trait-problem-solver",
+      "name": "Problem Solver",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Filling the hit counter against powerful combatants exhausts the target and improves reload and handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Mint Retrograde",
+        "Lionfish-4fr",
+        "Outrageous Fortune"
+      ]
+    },
+    {
+      "id": "origin-trait-radiolaria-transposer",
+      "name": "Radiolaria Transposer",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating several combatants creates an explosion and a damage-over-time pool beneath the enemy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Aberrant Action",
+        "Speleologist",
+        "Chronophage",
+        "Lost Signal",
+        "Corrasion"
+      ]
+    },
+    {
+      "id": "origin-trait-ambush",
+      "name": "Ambush",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "After a period without taking or dealing damage, gain bonus range, handling, draw speed and damage.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Fire and Forget",
+        "Retrofit Escapade"
+      ]
+    },
+    {
+      "id": "origin-trait-bray-inheritance",
+      "name": "Bray Inheritance",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Hitting an enemy grants a small amount of energy to all your abilities.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Commemoration",
+        "Bequest",
+        "Trustee",
+        "Posterity"
+      ]
+    },
+    {
+      "id": "origin-trait-indomitability",
+      "name": "Indomitability",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant grenade energy on Light subclasses or melee energy on Darkness subclasses.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Forbearance",
+        "Succession",
+        "The Mountaintop",
+        "The Recluse",
+        "Luna's Howl",
+        "Midnight Coup",
+        "Blast Furnace"
+      ]
+    },
+    {
+      "id": "origin-trait-runneth-over",
+      "name": "Runneth Over",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading near allies overfills the magazine, scaling with the number of allies.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Psychopomp",
+        "Watchful Eye",
+        "Qullim's Terminus",
+        "Defiance of Yasmin",
+        "Afterlight"
+      ]
+    },
+    {
+      "id": "origin-trait-nail-meet-hammer",
+      "name": "Nail, Meet Hammer",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Passively increases damage to shields and grants ammo progress based on ammo type.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "The Heron",
+        "Action Item"
+      ]
+    },
+    {
+      "id": "origin-trait-skulking-wolf",
+      "name": "Skulking Wolf",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows at low health enhance your radar and hide you from enemy radar.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Tinasha's Mastery",
+        "Multimach CCX",
+        "Tusk of the Boar",
+        "Archon's Thunder"
+      ]
+    },
+    {
+      "id": "origin-trait-contending-cascade",
+      "name": "Contending Cascade",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Building a killstreak then defeating a combatant improves handling and reload and causes an elemental explosion.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Submersion"
+      ]
+    },
+    {
+      "id": "origin-trait-restoration-ritual",
+      "name": "Restoration Ritual",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Reviving an ally or performing a finisher refills the magazine when empty.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Cold Comfort",
+        "Greasy Luck"
+      ]
+    },
+    {
+      "id": "origin-trait-veist-stinger",
+      "name": "Veist Stinger",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing hits has a chance to partially refill the magazine and improve charge rate.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Scintillation",
+        "Irukandji",
+        "Fortunate Star"
+      ]
+    },
+    {
+      "id": "origin-trait-field-tested",
+      "name": "Field-Tested",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing hits or final blows builds a lasting buff to range, stability, handling, reload and charge rate until you die.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Anonymous Autumn",
+        "Tusk of the Boar",
+        "Multimach CCX",
+        "Harsh Language",
+        "Jurassic Green",
+        "Theodolite"
+      ]
+    },
+    {
+      "id": "origin-trait-gun-and-run",
+      "name": "Gun and Run",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid final blows followed by sprinting partially refill the magazine and improve draw speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Ecliptic Distaff",
+        "Backfang"
+      ]
+    },
+    {
+      "id": "origin-trait-tex-balanced-stock",
+      "name": "Tex Balanced Stock",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Rapid hipfire hits grant bonus handling, reload and range with reduced aim movement penalty.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Wilderflight",
+        "Yeartide Apex"
+      ]
+    },
+    {
+      "id": "origin-trait-willing-vessel",
+      "name": "Willing Vessel",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon damage or final blows grant stacking stability, handling, reload and charge rate that decay over time.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Adamantite",
+        "Psychopomp"
+      ]
+    },
+    {
+      "id": "origin-trait-photoinhibition",
+      "name": "Photoinhibition",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Damaging or breaking an enemy shield greatly increases shield damage and disorients the target.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Reckless Oracle",
+        "Ancient Gospel"
+      ]
+    },
+    {
+      "id": "origin-trait-air-cooled-core",
+      "name": "Air-Cooled Core",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "With a full magazine, low heat or after a brief sprint, gain improved handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Uncivil Discourse",
+        "Refurbished A499",
+        "M-17 \"Fast Talker\""
+      ]
+    },
+    {
+      "id": "origin-trait-bitterspite",
+      "name": "Bitterspite",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Taking damage grants stacking reload speed, consumed on reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Stormchaser",
+        "Unforgiven"
+      ]
+    },
+    {
+      "id": "origin-trait-vanguard-determination",
+      "name": "Vanguard Determination",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows shortly after using your class ability grant stacking damage resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Mint Retrograde",
+        "Mercury-A",
+        "Pre Astyanax IV",
+        "Aurora Dawn",
+        "Theodolite"
+      ]
+    },
+    {
+      "id": "origin-trait-harmonic-resonance",
+      "name": "Harmonic Resonance",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Equipping another weapon with this trait grants bonus handling and reload, and bonus damage to Dread and Lucent Hive.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Koraxis's Distress",
+        "Briar's Contempt"
+      ]
+    },
+    {
+      "id": "origin-trait-h-kke-breach-armaments",
+      "name": "Häkke Breach Armaments",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Increases damage against vehicles, turrets and constructs.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Synanceia",
+        "Outrageous Fortune",
+        "Phoneutria Fera",
+        "Aureus Neutralizer",
+        "Rake Angle",
+        "Veleda-F",
+        "Ragnhild-D",
+        "Crowning Duologue"
+      ]
+    },
+    {
+      "id": "origin-trait-gravity-well",
+      "name": "Gravity Well",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading near ammo bricks, motes or crests automatically collects them.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "New Pacific Epitaph",
+        "Wilderflight",
+        "A Sudden Death",
+        "Greasy Luck"
+      ]
+    },
+    {
+      "id": "origin-trait-to-excess",
+      "name": "To Excess",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows with a full Super grant bonus grenade and melee stats.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Fixed Odds",
+        "CALUS Mini-Tool",
+        "Drang (Baroque)",
+        "Goldtusk"
+      ]
+    },
+    {
+      "id": "origin-trait-wild-card",
+      "name": "Wild Card",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows spawn damaging bolts on the enemy's corpse, scaling with rank.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Stars in Shadow",
+        "The Summoner",
+        "Pre Astyanax IV",
+        "Returned Memory"
+      ]
+    },
+    {
+      "id": "origin-trait-stunning-recovery",
+      "name": "Stunning Recovery",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Stunning a Champion refills the magazine, restores health and grants class ability energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Lotus-Eater",
+        "The Slammer",
+        "Rake Angle"
+      ]
+    },
+    {
+      "id": "origin-trait-collective-purpose",
+      "name": "Collective Purpose",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Being near allies grants stacking range, handling and charge rate.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Non-Denouement",
+        "Summum Bonum"
+      ]
+    },
+    {
+      "id": "origin-trait-noble-deeds",
+      "name": "Noble Deeds",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Healing, reviving, empowering or providing to allies grants stacking handling, reload and charge rate.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Regnant",
+        "Royal Executioner",
+        "Caretaker"
+      ]
+    },
+    {
+      "id": "origin-trait-alacrity",
+      "name": "Alacrity",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "While solo or the last Guardian alive, gain greatly improved range, stability, reload and aim assist.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "The Summoner",
+        "Incisor",
+        "Unexpected Resurgence",
+        "Exalted Truth"
+      ]
+    },
+    {
+      "id": "origin-trait-dream-work",
+      "name": "Dream Work",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Assisting or defeating an ally-damaged enemy refills a large portion of the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Festival Flight",
+        "Yeartide Apex",
+        "Crowning Duologue"
+      ]
+    },
+    {
+      "id": "origin-trait-psychohack",
+      "name": "Psychohack",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Landing multiple hits exhausts the target.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "The Enigma",
+        "Father's Sins"
+      ]
+    },
+    {
+      "id": "origin-trait-exhaustive-research",
+      "name": "Exhaustive Research",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Aiming near an enemy replaces your next round with a damage-seeking missile.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Precipial"
+      ]
+    },
+    {
+      "id": "origin-trait-omolon-fluid-dynamics",
+      "name": "Omolon Fluid Dynamics",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "As the magazine empties, gain bonus stability and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Path of Least Resistance",
+        "Ribbontail"
+      ]
+    },
+    {
+      "id": "origin-trait-explosive-pact",
+      "name": "Explosive Pact",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Using or gaining a grenade grants stacking stability and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Apex Predator",
+        "Chattering Bone",
+        "Age-Old Bond"
+      ]
+    },
+    {
+      "id": "origin-trait-paracausal-fluid",
+      "name": "Paracausal Fluid",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing damage improves handling and charge rate, and mobility while stowed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Temptation's Hook"
+      ]
+    },
+    {
+      "id": "origin-trait-sundering",
+      "name": "Sundering",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking a shield or destroying a vehicle or construct improves reload and draw speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Indebted Kindness"
+      ]
+    },
+    {
+      "id": "origin-trait-rasputin-s-arsenal",
+      "name": "Rasputin's Arsenal",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Breaking a shield refills half the magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "IKELOS_SG_v1.0.3",
+        "IKELOS_SMG_v1.0.3"
+      ]
+    },
+    {
+      "id": "origin-trait-dawning-surprise",
+      "name": "Dawning Surprise",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Defeating several combatants spawns a Dawning gift granting ability energy and health.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Avalanche",
+        "Zephyr",
+        "Albedo Wing"
+      ]
+    },
+    {
+      "id": "origin-trait-classy-contender",
+      "name": "Classy Contender",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows grant class ability energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "The Title",
+        "Hullabaloo"
+      ]
+    },
+    {
+      "id": "origin-trait-splicer-surge",
+      "name": "Splicer Surge",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading after dealing damage grants stacking handling and reload, removed on stow.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Chroma Rush",
+        "Gridskipper"
+      ]
+    },
+    {
+      "id": "origin-trait-vanguard-s-vindication",
+      "name": "Vanguard's Vindication",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Weapon final blows restore a small amount of health.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Lotus-Eater",
+        "Rake Angle",
+        "Undercurrent"
+      ]
+    },
+    {
+      "id": "origin-trait-one-quiet-moment",
+      "name": "One Quiet Moment",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "After a period without dealing or taking damage, gain bonus handling, reload and Sword movement speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "The Summoner",
+        "Unwavering Duty",
+        "Incisor",
+        "Unexpected Resurgence",
+        "Exalted Truth"
+      ]
+    },
+    {
+      "id": "origin-trait-dragon-s-vengeance",
+      "name": "Dragon's Vengeance",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Reaching critical health, or an ally dying, refills the magazine and improves reload and charge speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Scatter Signal",
+        "Doomed Petitioner"
+      ]
+    },
+    {
+      "id": "origin-trait-hot-swap",
+      "name": "Hot Swap",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Readying this weapon after taking damage grants greatly improved handling, guard stats and charge rate.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Half-Truths",
+        "The Other Half",
+        "Pardon Our Dust",
+        "Retraced Path",
+        "Wastelander M5"
+      ]
+    },
+    {
+      "id": "origin-trait-suros-synergy",
+      "name": "SUROS Synergy",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Reloading grants bonus handling and flinch resistance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Exalted Truth",
+        "Fugue-55",
+        "Retrofit Escapade"
+      ]
+    },
+    {
+      "id": "origin-trait-search-party",
+      "name": "Search Party",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "While no allies are nearby, aim-down-sights movement penalty is reduced.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Mechabre"
+      ]
+    },
+    {
+      "id": "origin-trait-unsated-hunger",
+      "name": "Unsated Hunger",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "While no abilities are charged, gain greatly improved stability, handling, reload, charge rate and guard endurance.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Until Its Return"
+      ]
+    },
+    {
+      "id": "origin-trait-fleet-footed",
+      "name": "Fleet Footed",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Dealing damage or defeating combatants grants airborne effectiveness and movement speed.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Forgiveness",
+        "Aisha's Embrace",
+        "Unwavering Duty",
+        "Aureus Neutralizer",
+        "Auric Disabler"
+      ]
+    },
+    {
+      "id": "origin-trait-roar-of-battle",
+      "name": "Roar of Battle",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Repeatedly dealing or receiving damage grants bonus stability and handling.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Unwavering Duty",
+        "Forgiveness",
+        "Pure Recollection",
+        "Aisha's Embrace"
+      ]
+    },
+    {
+      "id": "origin-trait-crossing-over",
+      "name": "Crossing Over",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Range and handling shift as the magazine depletes, with increased damage at low magazine.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "A Sudden Death",
+        "Darkest Before"
+      ]
+    },
+    {
+      "id": "origin-trait-nadir-focus",
+      "name": "Nadir Focus",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Firing or swinging grants stacking range, reduced aim cone, lunge and velocity.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Geodetic HSm"
+      ]
+    },
+    {
+      "id": "origin-trait-right-hook",
+      "name": "Right Hook",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Melee damage grants bonus range and aim assist, extended by further procs.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Tarnished Mettle",
+        "Brigand's Law",
+        "Planck's Stride"
+      ]
+    },
+    {
+      "id": "origin-trait-disaster-plan",
+      "name": "Disaster Plan",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Firing or swinging shortly after picking up ammo grants bonus range, flinch resistance and charge rate.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": [
+        "Just in Case"
+      ]
+    },
+    {
+      "id": "origin-trait-head-rush",
+      "name": "Head Rush",
+      "type": "originTrait",
+      "subclass": null,
+      "element": null,
+      "effect": "Standing up after crouching briefly improves handling and reload.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Weapon perk and origin trait data",
+          "publisher": "community Endgame Analysis reference",
+          "date": "2026-07-30"
+        }
+      ],
+      "notableWeapons": []
     }
   ]
 }
