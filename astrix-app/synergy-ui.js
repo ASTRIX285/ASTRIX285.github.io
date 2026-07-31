@@ -1,3 +1,4 @@
+import { resolveBuildAspectIds } from './aspect-linkage.mjs';
 import { recommendSynergies } from './synergy-engine.mjs';
 
 const BUILD_DATA_URL = './data/armor-3-builds.json';
@@ -38,36 +39,6 @@ function loadStaticData() {
   }
 
   return dataPromise;
-}
-
-function normalize(value) {
-  return String(value ?? '').trim().toLowerCase();
-}
-
-function resolveAspectIds(build, components) {
-  const names = Array.isArray(build.subclassSetup?.aspects)
-    ? build.subclassSetup.aspects
-    : [];
-  const resolvedIds = [];
-  const unresolved = [];
-
-  for (const name of names) {
-    const matches = components.filter((component) =>
-      component.type === 'aspect' &&
-      component.verified === true &&
-      component.class === build.class &&
-      normalize(component.subclass || component.element) === normalize(build.subclass) &&
-      component.name === name
-    );
-
-    if (matches.length === 1) {
-      resolvedIds.push(matches[0].id);
-    } else {
-      unresolved.push({ name, matchCount: matches.length });
-    }
-  }
-
-  return { resolvedIds, unresolved };
 }
 
 function reasonMarkup(reason, componentsById) {
@@ -210,7 +181,7 @@ async function renderSynergyForBuild(buildId) {
     const build = buildCatalogue.builds.find((candidate) => candidate.id === buildId);
     if (!build) throw new Error('The selected build is not present in the committed build catalogue.');
 
-    const aspectLinks = resolveAspectIds(build, componentCatalogue.components);
+    const aspectLinks = resolveBuildAspectIds(build, componentCatalogue.components);
     const result = recommendSynergies({
       catalogue: componentCatalogue,
       buildContext: {
