@@ -1,4 +1,4 @@
-const ENGINE_VERSION = '1.1.0';
+const ENGINE_VERSION = '1.1.1';
 
 const EFFECT_RULES = [
   { code: 'shared-devour', label: 'Devour', terms: ['devour'] },
@@ -161,6 +161,13 @@ function makeReason(rule, candidate, supportingAspect, extra = {}) {
   };
 }
 
+function reasonOrder(left, right) {
+  if (left.rulePriority !== right.rulePriority) {
+    return left.rulePriority - right.rulePriority;
+  }
+  return left.ruleCode.localeCompare(right.ruleCode);
+}
+
 function candidateEffect(component) {
   if (component.type !== 'setBonus') return component.effect;
   return [
@@ -236,7 +243,9 @@ function recommendFragments(verifiedComponents, aspects, buildContext, slotLimit
       type: candidate.type,
       effect: candidate.effect,
       statModifiers: candidate.statModifiers.map((modifier) => ({ ...modifier })),
-      reasons: matches.map(({ rule, aspect }) => makeReason(rule, candidate, aspect))
+      reasons: matches
+        .map(({ rule, aspect }) => makeReason(rule, candidate, aspect))
+        .sort(reasonOrder)
     }));
 
   return sectionResult(
@@ -311,7 +320,8 @@ function artifactReasons(group) {
         supportingComponentIds: [aspect.id, ...supportingCandidates.map((candidate) => candidate.id)],
         sourceRefs: sourceRefs([aspect, ...supportingCandidates])
       });
-    });
+    })
+    .sort(reasonOrder);
 }
 
 function recommendArtifactPerks(verifiedComponents, aspects, buildContext) {
@@ -365,7 +375,9 @@ function recommendSetBonuses(verifiedComponents, aspects, buildContext) {
       type: candidate.type,
       effect: candidate.effect,
       setBonus: candidate.setBonus,
-      reasons: matches.map(({ rule, aspect }) => makeReason(rule, candidate, aspect))
+      reasons: matches
+        .map(({ rule, aspect }) => makeReason(rule, candidate, aspect))
+        .sort(reasonOrder)
     }));
 
   return sectionResult(
