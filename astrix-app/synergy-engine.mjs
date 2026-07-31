@@ -1,18 +1,58 @@
-const ENGINE_VERSION = '1.1.1';
+const ENGINE_VERSION = '1.2.0';
 
 const EFFECT_RULES = [
-  { code: 'shared-devour', label: 'Devour', terms: ['devour'] },
-  { code: 'shared-weaken', label: 'weaken', terms: ['weaken', 'weakened'] },
-  { code: 'shared-volatile', label: 'Volatile', terms: ['volatile'] },
-  { code: 'shared-invisibility', label: 'invisibility', terms: ['invisibility', 'invisible'] },
-  { code: 'shared-overshield', label: 'Void Overshield', terms: ['void overshield', 'overshield'] },
-  { code: 'shared-suppression', label: 'suppression', terms: ['suppress', 'suppressed', 'suppression'] },
-  { code: 'shared-void-breach', label: 'Void Breach', terms: ['void breach'] },
-  { code: 'shared-orb-of-power', label: 'Orb of Power', terms: ['orb of power', 'orbs of power'] },
-  { code: 'shared-grenade', label: 'grenade', terms: ['grenade'] },
-  { code: 'shared-melee', label: 'melee', terms: ['melee'] },
-  { code: 'shared-class-ability', label: 'class ability', terms: ['class ability'] },
-  { code: 'shared-super', label: 'Super', terms: ['super'] }
+  // Void
+  { code: 'void-devour', label: 'Devour', terms: ['devour'] },
+  { code: 'void-weaken', label: 'weaken', terms: ['weaken', 'weakened', 'weakens'] },
+  { code: 'void-volatile', label: 'Volatile', terms: ['volatile'] },
+  { code: 'void-invisibility', label: 'invisibility', terms: ['invisibility', 'invisible'] },
+  { code: 'void-overshield', label: 'Void Overshield', terms: ['void overshield', 'overshield'] },
+  { code: 'void-suppression', label: 'suppression', terms: ['suppress', 'suppressed', 'suppressing', 'suppression'] },
+  { code: 'void-breach', label: 'Void Breach', terms: ['void breach', 'void breaches'] },
+
+  // Solar
+  { code: 'solar-scorch', label: 'scorch', terms: ['scorch', 'scorched', 'scorches', 'scorching'] },
+  { code: 'solar-ignition', label: 'ignition', terms: ['ignition', 'ignitions', 'ignite', 'ignites'] },
+  { code: 'solar-radiant', label: 'Radiant', terms: ['radiant'] },
+  { code: 'solar-restoration', label: 'Restoration', terms: ['restoration'] },
+  { code: 'solar-cure', label: 'cure', terms: ['cure', 'cures', 'cured'] },
+  { code: 'solar-firesprite', label: 'Firesprite', terms: ['firesprite', 'firesprites'] },
+
+  // Arc
+  { code: 'arc-jolt', label: 'jolt', terms: ['jolt', 'jolted', 'jolting', 'jolts'] },
+  { code: 'arc-amplified', label: 'Amplified', terms: ['amplified', 'amplify', 'amplifies'] },
+  { code: 'arc-ionic-trace', label: 'Ionic Trace', terms: ['ionic trace', 'ionic traces'] },
+  { code: 'arc-bolt-charge', label: 'Bolt Charge', terms: ['bolt charge', 'bolt charges'] },
+  { code: 'arc-blind', label: 'blind', terms: ['blind', 'blinded', 'blinding', 'blinds'] },
+
+  // Stasis
+  { code: 'stasis-freeze', label: 'freeze', terms: ['freeze', 'freezes', 'freezing'] },
+  { code: 'stasis-frozen', label: 'frozen', terms: ['frozen'] },
+  { code: 'stasis-slow', label: 'slow', terms: ['slow', 'slows', 'slowed', 'slowing'] },
+  { code: 'stasis-frost-armor', label: 'Frost Armor', terms: ['frost armor'] },
+  { code: 'stasis-shard', label: 'Stasis Shard', terms: ['stasis shard', 'stasis shards'] },
+  { code: 'stasis-shatter', label: 'shatter', terms: ['shatter', 'shattered', 'shattering', 'shatters'] },
+  { code: 'stasis-crystal', label: 'crystal', terms: ['stasis crystal', 'stasis crystals', 'crystal', 'crystals'] },
+
+  // Strand
+  { code: 'strand-suspend', label: 'suspend', terms: ['suspend', 'suspended', 'suspending', 'suspends'] },
+  { code: 'strand-unravel', label: 'unravel', terms: ['unravel', 'unraveled', 'unravelling', 'unraveling'] },
+  { code: 'strand-sever', label: 'sever', terms: ['sever', 'severed', 'severing', 'severs'] },
+  { code: 'strand-threadling', label: 'Threadling', terms: ['threadling', 'threadlings'] },
+  { code: 'strand-tangle', label: 'Tangle', terms: ['tangle', 'tangles'] },
+  { code: 'strand-woven-mail', label: 'Woven Mail', terms: ['woven mail'] },
+
+  // Prismatic
+  { code: 'prismatic-transcendence', label: 'Transcendence', terms: ['transcendence', 'transcendent'] },
+  { code: 'prismatic-light', label: 'Light', terms: ['light'] },
+  { code: 'prismatic-darkness', label: 'Darkness', terms: ['darkness'] },
+
+  // Generic, deliberately lowest priority
+  { code: 'generic-orb-of-power', label: 'Orb of Power', terms: ['orb of power', 'orbs of power'] },
+  { code: 'generic-grenade', label: 'grenade', terms: ['grenade', 'grenades'] },
+  { code: 'generic-melee', label: 'melee', terms: ['melee'] },
+  { code: 'generic-class-ability', label: 'class ability', terms: ['class ability', 'class abilities'] },
+  { code: 'generic-super', label: 'Super', terms: ['super', 'supers'] }
 ].map((rule, index) => ({ ...rule, priority: index + 1 }));
 
 const VALID_CLASSES = new Set(['Hunter', 'Titan', 'Warlock']);
@@ -31,9 +71,24 @@ function normalize(value) {
   return String(value ?? '').toLowerCase();
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function containsWholeTerm(text, term) {
+  const normalizedText = normalize(text);
+  const normalizedTerm = normalize(term).trim();
+  if (!normalizedTerm) return false;
+
+  const expression = new RegExp(
+    `(^|[^a-z0-9])${escapeRegExp(normalizedTerm)}(?=$|[^a-z0-9])`,
+    'i'
+  );
+  return expression.test(normalizedText);
+}
+
 function hasAnyTerm(text, terms) {
-  const normalized = normalize(text);
-  return terms.some((term) => normalized.includes(term));
+  return terms.some((term) => containsWholeTerm(text, term));
 }
 
 function matchingRules(leftText, rightText) {
@@ -105,7 +160,7 @@ function matchesBuildElement(component, buildContext) {
     return componentElement === requested || componentSubclass === requested;
   }
 
-  return hasAnyTerm(component.effect, [requested]);
+  return containsWholeTerm(component.effect, requested);
 }
 
 function resolveAspects(buildContext, verifiedComponentsById) {
