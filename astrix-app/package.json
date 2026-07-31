@@ -5,7 +5,8 @@
   "description": "Development-only validation tooling for the ASTRIX PARADOX static Armor 3.0 build catalogue.",
   "type": "module",
   "scripts": {
-    "validate": "node tools/validate-builds.mjs"
+    "validate": "node tools/validate-builds.mjs && node tools/demo-synergy-engine.mjs",
+    "demo:synergy": "node tools/demo-synergy-engine.mjs"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
