@@ -1,7 +1,8 @@
 export const BUILD_DATA_URL = './data/armor-3-builds.json';
+export const CANONICAL_SUBCLASSES = ['Arc', 'Solar', 'Void', 'Stasis', 'Strand', 'Prismatic'];
 
 const VALID_CLASSES = new Set(['Hunter', 'Titan', 'Warlock']);
-const VALID_SUBCLASSES = new Set(['Arc', 'Solar', 'Void', 'Stasis', 'Strand', 'Prismatic']);
+const VALID_SUBCLASSES = new Set(CANONICAL_SUBCLASSES);
 const ALL_FILTER = 'all';
 
 function normalise(value) {
@@ -64,10 +65,17 @@ function uniqueSorted(values) {
 
 export function availableFilters(builds) {
   const renderable = builds.filter(isRenderableBuild);
+  const subclassCounts = Object.fromEntries(
+    CANONICAL_SUBCLASSES.map((subclass) => [
+      subclass,
+      renderable.filter((build) => build.subclass === subclass).length
+    ])
+  );
 
   return {
     classes: uniqueSorted(renderable.map((build) => build.class)),
-    subclasses: uniqueSorted(renderable.map((build) => build.subclass)),
+    subclasses: [...CANONICAL_SUBCLASSES],
+    subclassCounts,
     activities: uniqueSorted(renderable.flatMap((build) => build.activityTags)),
     roles: uniqueSorted(renderable.flatMap((build) => build.role)),
     difficulties: uniqueSorted(renderable.flatMap((build) => build.difficultyTags))
