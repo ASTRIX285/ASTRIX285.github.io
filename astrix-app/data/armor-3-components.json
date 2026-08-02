@@ -12637,6 +12637,44 @@
         }
       ],
       "notableWeapons": []
+    },
+    {
+      "id": "exotic-warlock-nothing-manacles",
+      "name": "Nothing Manacles",
+      "type": "exoticArmor",
+      "subclass": "Voidwalker",
+      "element": "Void",
+      "class": "Warlock",
+      "slot": "Gauntlets",
+      "effect": "Grants an additional Scatter Grenade charge. Scatter Grenade projectiles gain tracking, and Scatter Grenade final blows spawn additional tracking projectiles.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Nothing Manacles",
+          "publisher": "light.gg",
+          "date": "2026-08-02",
+          "url": "https://www.light.gg/db/items/193493351/nothing-manacles/"
+        }
+      ]
+    },
+    {
+      "id": "exotic-warlock-skull-of-dire-ahamkara",
+      "name": "Skull of Dire Ahamkara",
+      "type": "exoticArmor",
+      "subclass": "Voidwalker",
+      "element": "Void",
+      "class": "Warlock",
+      "slot": "Helmet",
+      "effect": "Actual Grandeur: Increased damage resistance while Nova Bomb is active, and Nova Bomb final blows return Super energy. After casting Nova Bomb, briefly gain a weaker secondary Nova Bomb; while Devour is active, weapon final blows also grant Super energy.",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Skull of Dire Ahamkara",
+          "publisher": "light.gg",
+          "date": "2026-08-02",
+          "url": "https://www.light.gg/db/items/3050017626/skull-of-dire-ahamkara/"
+        }
+      ]
     }
   ]
 }
