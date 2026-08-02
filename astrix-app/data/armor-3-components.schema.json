@@ -163,7 +163,8 @@
             "setBonus",
             "artifactPerk",
             "weaponPerk",
-            "originTrait"
+            "originTrait",
+            "exoticArmor"
           ]
         },
         "subclass": {
@@ -227,6 +228,16 @@
         },
         "setBonus": {
           "$ref": "#/$defs/setBonusEntries"
+        },
+        "slot": {
+          "type": "string",
+          "enum": [
+            "Helmet",
+            "Gauntlets",
+            "Chest",
+            "Legs",
+            "ClassItem"
+          ]
         }
       },
       "allOf": [
@@ -293,8 +304,7 @@
           },
           "else": {
             "properties": {
-              "fragmentSlots": false,
-              "class": false
+              "fragmentSlots": false
             }
           }
         },
@@ -411,6 +421,85 @@
             "properties": {
               "setBonus": false
             }
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "aspect",
+                    "exoticArmor"
+                  ]
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "then": {
+            "properties": {
+              "class": false
+            }
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "type": {
+                  "const": "exoticArmor"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "then": {
+            "properties": {
+              "slot": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "exoticArmor"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "class": {
+                "type": "string",
+                "enum": [
+                  "Hunter",
+                  "Titan",
+                  "Warlock"
+                ]
+              },
+              "slot": {
+                "type": "string",
+                "enum": [
+                  "Helmet",
+                  "Gauntlets",
+                  "Chest",
+                  "Legs",
+                  "ClassItem"
+                ]
+              }
+            },
+            "required": [
+              "class",
+              "slot"
+            ]
           }
         }
       ]
