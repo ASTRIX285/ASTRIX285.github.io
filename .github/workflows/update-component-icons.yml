@@ -32,7 +32,7 @@ jobs:
         id: import-icons
         env:
           BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
-        run: python3 astrix-app/tools/import-component-icons.py
+        run: python3 astrix-app/tools/import-component-icons.py --force
 
       - name: Validate generated icon map
         if: steps.import-icons.outputs.changed == 'true'
