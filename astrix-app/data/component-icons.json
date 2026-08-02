@@ -1,8 +1,8 @@
 {
   "manifestVersion": "244213.26.06.29.2000-1-bnet.65583",
-  "generatedAt": "2026-08-02T12:20:22Z",
-  "totalComponents": 670,
-  "matchedComponents": 582,
+  "generatedAt": "2026-08-02T19:12:46Z",
+  "totalComponents": 672,
+  "matchedComponents": 584,
   "icons": {
     "artifact-encrypted-data-disk-armorsmith": "/common/destiny2_content/icons/f48754b849cbc1b813ea2d078e36ed0c.png",
     "artifact-encrypted-data-disk-blinding-jolts": "/common/destiny2_content/icons/2944f8b47be4ff1f4a0ceaa8439d0367.png",
@@ -195,6 +195,8 @@
     "aspect-whirling-maelstrom": "/common/destiny2_content/icons/ab8095cdd657b0cd66452ddb44ef01e1.jpg",
     "aspect-widow-s-silk": "/common/destiny2_content/icons/87de51bca878ac633a107e805426e95c.jpg",
     "aspect-winter-s-shroud": "/common/destiny2_content/icons/edf787affb7089495610e8f8c770d323.png",
+    "exotic-warlock-nothing-manacles": "/common/destiny2_content/icons/8c81d44ddde6e10ea83f65929c482dcb.jpg",
+    "exotic-warlock-skull-of-dire-ahamkara": "/common/destiny2_content/icons/19137504db8dcd63bb852f5324bbbbb3.jpg",
     "fragment-echo-of-cessation": "/common/destiny2_content/icons/d355e5ee66fd28b82d93a0f2dd895b2d.jpg",
     "fragment-echo-of-dilation": "/common/destiny2_content/icons/029faa3dc0d82eefef581dec7820d643.jpg",
     "fragment-echo-of-domineering": "/common/destiny2_content/icons/958ff340ae4ce16d7cf71c5268a13919.jpg",
