@@ -1,1 +1,284 @@
+name: Update ASTRIX Weapon Information
 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 4 * * 1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: astrix-weapon-information-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update-weapon-information:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout workflow branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install validation dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install "jsonschema[format]>=4.23,<5"
+
+      - name: Generate weapon information from Bungie manifest
+        id: weapons
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+        run: |
+          python3 astrix-app/tools/import-weapon-information.py
+
+      - name: Validate generated catalogue against schema
+        run: |
+          python3 - << 'PYEOF'
+          import json
+          from pathlib import Path
+
+          from jsonschema import Draft202012Validator
+          from jsonschema import FormatChecker
+
+          catalogue_path = Path(
+              "astrix-app/data/weapon-information.json"
+          )
+
+          schema_path = Path(
+              "astrix-app/data/weapon-information.schema.json"
+          )
+
+          if not catalogue_path.exists():
+              raise SystemExit(
+                  f"Generated catalogue is missing: {catalogue_path}"
+              )
+
+          if not schema_path.exists():
+              raise SystemExit(
+                  f"Weapon schema is missing: {schema_path}"
+              )
+
+          try:
+              catalogue = json.loads(
+                  catalogue_path.read_text(encoding="utf-8")
+              )
+          except json.JSONDecodeError as error:
+              raise SystemExit(
+                  f"Generated catalogue is invalid JSON: {error}"
+              ) from error
+
+          try:
+              schema = json.loads(
+                  schema_path.read_text(encoding="utf-8")
+              )
+          except json.JSONDecodeError as error:
+              raise SystemExit(
+                  f"Weapon schema is invalid JSON: {error}"
+              ) from error
+
+          validator = Draft202012Validator(
+              schema,
+              format_checker=FormatChecker(),
+          )
+
+          validation_errors = sorted(
+              validator.iter_errors(catalogue),
+              key=lambda error: list(error.absolute_path),
+          )
+
+          if validation_errors:
+              print("Weapon catalogue schema validation failed:")
+
+              for error in validation_errors:
+                  location = "$"
+
+                  for part in error.absolute_path:
+                      if isinstance(part, int):
+                          location += f"[{part}]"
+                      else:
+                          location += f".{part}"
+
+                  print(f"  - {location}: {error.message}")
+
+              raise SystemExit(
+                  f"{len(validation_errors)} schema validation "
+                  "error(s) found."
+              )
+
+          ids = set()
+          hashes = set()
+
+          for index, weapon in enumerate(catalogue["weapons"]):
+              weapon_id = weapon["id"]
+              bungie_hash = weapon["bungieHash"]
+
+              if weapon_id in ids:
+                  raise SystemExit(
+                      f"Duplicate weapon id at weapons[{index}]: "
+                      f"{weapon_id}"
+                  )
+
+              if bungie_hash in hashes:
+                  raise SystemExit(
+                      f"Duplicate Bungie hash at weapons[{index}]: "
+                      f"{bungie_hash}"
+                  )
+
+              expected_id = f"weapon-{bungie_hash}"
+
+              if weapon_id != expected_id:
+                  raise SystemExit(
+                      f"Weapon id does not match Bungie hash at "
+                      f"weapons[{index}]: expected {expected_id}, "
+                      f"found {weapon_id}"
+                  )
+
+              ids.add(weapon_id)
+              hashes.add(bungie_hash)
+
+          forbidden_fields = {
+              "rank",
+              "ranking",
+              "tier",
+              "score",
+              "position",
+          }
+
+          def find_forbidden(value, path="$"):
+              findings = []
+
+              if isinstance(value, dict):
+                  for key, child in value.items():
+                      child_path = f"{path}.{key}"
+
+                      if key in forbidden_fields:
+                          findings.append(child_path)
+
+                      findings.extend(
+                          find_forbidden(child, child_path)
+                      )
+
+              elif isinstance(value, list):
+                  for index, child in enumerate(value):
+                      findings.extend(
+                          find_forbidden(
+                              child,
+                              f"{path}[{index}]",
+                          )
+                      )
+
+              return findings
+
+          forbidden = find_forbidden(catalogue)
+
+          if forbidden:
+              print(
+                  "Forbidden ranking fields were found in the "
+                  "generated catalogue:"
+              )
+
+              for path in forbidden:
+                  print(f"  - {path}")
+
+              raise SystemExit(
+                  f"{len(forbidden)} forbidden field(s) found."
+              )
+
+          curated_count = sum(
+              1
+              for weapon in catalogue["weapons"]
+              if (
+                  weapon["curated"]["usageNotes"]
+                  or weapon["curated"]["loopContribution"]
+                  or weapon["curated"][
+                      "recommendedConfiguration"
+                  ]
+                  or weapon["curated"]["sources"]
+              )
+          )
+
+          verified_count = sum(
+              1
+              for weapon in catalogue["weapons"]
+              if weapon["verified"] is True
+          )
+
+          print(
+              json.dumps(
+                  {
+                      "schemaVersion": catalogue["schemaVersion"],
+                      "manifestVersion": catalogue[
+                          "manifestVersion"
+                      ],
+                      "weaponRecords": len(
+                          catalogue["weapons"]
+                      ),
+                      "curatedRecords": curated_count,
+                      "verifiedRecords": verified_count,
+                  },
+                  indent=2,
+              )
+          )
+          PYEOF
+
+      - name: Check generated change
+        id: generated
+        run: |
+          if [ -n "$(git status --porcelain -- astrix-app/data/weapon-information.json)" ]
+          then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit generated weapon information
+        if: steps.generated.outputs.changed == 'true'
+        env:
+          MANIFEST_VERSION: ${{ steps.weapons.outputs.manifest_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add astrix-app/data/weapon-information.json
+
+          git diff --cached --quiet && exit 0
+
+          git commit -m \
+            "Update weapon information for Bungie manifest ${MANIFEST_VERSION}"
+
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          IMPORT_CHANGED: ${{ steps.weapons.outputs.changed }}
+          FILE_CHANGED: ${{ steps.generated.outputs.changed }}
+          MANIFEST_VERSION: ${{ steps.weapons.outputs.manifest_version }}
+          WEAPONS: ${{ steps.weapons.outputs.weapons }}
+          CURATED: ${{ steps.weapons.outputs.curated }}
+          MATCHED: ${{ steps.weapons.outputs.matched }}
+          UNRESOLVED: ${{ steps.weapons.outputs.unresolved }}
+          AMBIGUOUS: ${{ steps.weapons.outputs.ambiguous }}
+        run: |
+          {
+            echo "## ASTRIX weapon information update"
+            echo
+            echo "- Manifest version: ${MANIFEST_VERSION:-unavailable}"
+            echo "- Importer detected meaningful change: ${IMPORT_CHANGED:-false}"
+            echo "- Generated file changed: ${FILE_CHANGED:-false}"
+            echo "- Official weapon records: ${WEAPONS:-0}"
+            echo "- Curated source rows: ${CURATED:-0}"
+            echo "- Curated rows matched: ${MATCHED:-0}"
+            echo "- Unresolved curated rows: ${UNRESOLVED:-0}"
+            echo "- Ambiguous curated rows: ${AMBIGUOUS:-0}"
+          } >> "$GITHUB_STEP_SUMMARY"
