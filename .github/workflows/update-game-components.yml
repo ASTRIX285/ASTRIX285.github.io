@@ -29,76 +29,154 @@ jobs:
           python-version: '3.12'
 
       - name: Install validation dependency
-        run: python3 -m pip install "jsonschema[format]>=4.23,<5"
+        run: |
+          python3 -m pip install \
+            "jsonschema[format]>=4.23,<5"
 
-      - name: Generate game components from Bungie manifest
+      - name: Generate raw game-component catalogue
         id: components
         env:
           BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
-        run: python3 astrix-app/tools/import-game-components.py
+        run: |
+          python3 astrix-app/tools/import-game-components.py
 
-      - name: Validate generated catalogue
+      - name: Extract committed curated component catalogue
+        run: |
+          python3 astrix-app/tools/extract-curated-catalogue.py \
+            --kind game-component \
+            --input astrix-app/data/game-components.json \
+            --output astrix-app/data/game-components.catalogue.json
+
+      - name: Validate curated component catalogue
         run: |
           python3 - << 'PYEOF'
           import json
           from pathlib import Path
-          from jsonschema import Draft202012Validator, FormatChecker
 
-          data_path = Path('astrix-app/data/game-components.json')
-          schema_path = Path('astrix-app/data/game-components.schema.json')
-          data = json.loads(data_path.read_text(encoding='utf-8'))
-          schema = json.loads(schema_path.read_text(encoding='utf-8'))
-          errors = sorted(
-              Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(data),
-              key=lambda error: list(error.absolute_path),
+          from jsonschema import Draft202012Validator
+          from jsonschema import FormatChecker
+
+          data_path = Path(
+              "astrix-app/data/game-components.catalogue.json"
           )
+
+          schema_path = Path(
+              "astrix-app/data/game-components.schema.json"
+          )
+
+          data = json.loads(
+              data_path.read_text(encoding="utf-8")
+          )
+
+          schema = json.loads(
+              schema_path.read_text(encoding="utf-8")
+          )
+
+          errors = sorted(
+              Draft202012Validator(
+                  schema,
+                  format_checker=FormatChecker(),
+              ).iter_errors(data),
+              key=lambda error: list(
+                  error.absolute_path
+              ),
+          )
+
           if errors:
               for error in errors:
-                  print(f"{list(error.absolute_path)}: {error.message}")
-              raise SystemExit(f'{len(errors)} schema validation error(s)')
+                  print(
+                      f"{list(error.absolute_path)}: "
+                      f"{error.message}"
+                  )
+
+              raise SystemExit(
+                  f"{len(errors)} schema validation error(s)"
+              )
 
           ids = set()
           hashes = set()
-          for component in data['components']:
-              if component['id'] in ids:
-                  raise SystemExit(f"Duplicate component id: {component['id']}")
-              if component['bungieHash'] in hashes:
-                  raise SystemExit(f"Duplicate component hash: {component['bungieHash']}")
-              if component['id'] != f"component-{component['bungieHash']}":
-                  raise SystemExit(f"Invalid stable id: {component['id']}")
-              ids.add(component['id'])
-              hashes.add(component['bungieHash'])
 
-          print(json.dumps({
-              'schemaVersion': data['schemaVersion'],
-              'manifestVersion': data['manifestVersion'],
-              'componentRecords': len(data['components']),
-              'artifactRecords': len(data['artifacts']),
-              'verifiedRecords': sum(1 for item in data['components'] if item['verified']),
-          }, indent=2))
+          for component in data["components"]:
+              component_id = component["id"]
+              bungie_hash = component["bungieHash"]
+
+              if component_id in ids:
+                  raise SystemExit(
+                      f"Duplicate component id: "
+                      f"{component_id}"
+                  )
+
+              if bungie_hash in hashes:
+                  raise SystemExit(
+                      f"Duplicate component hash: "
+                      f"{bungie_hash}"
+                  )
+
+              if component_id != (
+                  f"component-{bungie_hash}"
+              ):
+                  raise SystemExit(
+                      f"Invalid stable id: "
+                      f"{component_id}"
+                  )
+
+              ids.add(component_id)
+              hashes.add(bungie_hash)
+
+          print(
+              json.dumps(
+                  {
+                      "manifestVersion": data[
+                          "manifestVersion"
+                      ],
+                      "servedComponents": len(
+                          data["components"]
+                      ),
+                      "servedArtifacts": len(
+                          data["artifacts"]
+                      ),
+                      "fileBytes": (
+                          data_path.stat().st_size
+                      ),
+                  },
+                  indent=2,
+              )
+          )
           PYEOF
 
-      - name: Check generated change
+      - name: Check curated catalogue change
         id: generated
         run: |
-          if [ -n "$(git status --porcelain -- astrix-app/data/game-components.json)" ]
+          if [ -n "$(git status --porcelain -- astrix-app/data/game-components.catalogue.json)" ]
           then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Commit generated game components
+      - name: Commit curated game-component catalogue
         if: steps.generated.outputs.changed == 'true'
         env:
           MANIFEST_VERSION: ${{ steps.components.outputs.manifest_version }}
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add astrix-app/data/game-components.json
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            astrix-app/data/game-components.catalogue.json
+
           git diff --cached --quiet && exit 0
-          git commit -m "Update game components for Bungie manifest ${MANIFEST_VERSION}"
+
+          git commit -m \
+            "Update curated game components for Bungie manifest ${MANIFEST_VERSION}"
+
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Remove raw game-component catalogue
+        if: always()
+        run: |
+          rm -f astrix-app/data/game-components.json
 
       - name: Write workflow summary
         if: always()
@@ -115,10 +193,11 @@ jobs:
             echo "## ASTRIX game component update"
             echo
             echo "- Manifest version: ${MANIFEST_VERSION:-unavailable}"
-            echo "- Components: ${COMPONENTS:-0}"
-            echo "- Artifacts: ${ARTIFACTS:-0}"
+            echo "- Raw components generated: ${COMPONENTS:-0}"
+            echo "- Raw artifacts generated: ${ARTIFACTS:-0}"
             echo "- Curated matched: ${MATCHED:-0}"
             echo "- Curated unresolved: ${UNRESOLVED:-0}"
             echo "- Curated ambiguous: ${AMBIGUOUS:-0}"
-            echo "- Generated file changed: ${FILE_CHANGED:-false}"
+            echo "- Served catalogue changed: ${FILE_CHANGED:-false}"
+            echo "- Raw catalogue retained: no"
           } >> "$GITHUB_STEP_SUMMARY"
