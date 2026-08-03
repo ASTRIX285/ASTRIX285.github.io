@@ -10,12 +10,12 @@ DATA = ROOT / 'astrix-app' / 'data'
 RELATIONSHIPS = DATA / 'knowledge-relationships.json'
 
 SOURCES = {
-    'component': (DATA / 'armor-3-components.json', ('components',)),
-    'gameComponent': (DATA / 'game-components.json', ('components',)),
-    'weapon': (DATA / 'weapon-information.json', ('weapons',)),
-    'armor': (DATA / 'armor-information.json', ('armor', 'armour', 'items')),
-    'build': (DATA / 'armor-3-builds.json', ('builds',)),
-    'counterRule': (DATA / 'counter-rules.json', ('rules',)),
+    'component': {'path': DATA / 'armor-3-components.json', 'keys': ('components',), 'prefix': None},
+    'gameComponent': {'path': DATA / 'game-components.json', 'keys': ('components',), 'prefix': 'component'},
+    'weapon': {'path': DATA / 'weapon-information.json', 'keys': ('weapons',), 'prefix': 'weapon'},
+    'armor': {'path': DATA / 'armor-information.json', 'keys': ('armor', 'armour', 'items'), 'prefix': 'armor'},
+    'build': {'path': DATA / 'armor-3-builds.json', 'keys': ('builds',), 'prefix': None},
+    'counterRule': {'path': DATA / 'counter-rules.json', 'keys': ('rules',), 'prefix': None},
 }
 
 
@@ -34,6 +34,16 @@ def records(payload: Any, keys: tuple[str, ...]) -> list[dict[str, Any]]:
     return []
 
 
+def record_id(row: dict[str, Any], prefix: str | None) -> str | None:
+    existing = row.get('id')
+    if existing not in (None, ''):
+        return str(existing)
+    bungie_hash = row.get('bungieHash')
+    if prefix and isinstance(bungie_hash, int):
+        return f'{prefix}-{bungie_hash}'
+    return None
+
+
 def main() -> int:
     graph = load(RELATIONSHIPS)
     edges = graph.get('relationships')
@@ -41,12 +51,22 @@ def main() -> int:
         raise SystemExit('knowledge-relationships.json must contain a relationships array')
 
     indexes: dict[str, set[str]] = {}
-    for namespace, (path, keys) in SOURCES.items():
+    source_status: dict[str, dict[str, Any]] = {}
+
+    for namespace, config in SOURCES.items():
+        path: Path = config['path']
         if not path.exists():
             indexes[namespace] = set()
+            source_status[namespace] = {'path': str(path.relative_to(ROOT)), 'exists': False, 'records': 0}
             continue
-        indexes[namespace] = {
-            str(row['id']) for row in records(load(path), keys) if row.get('id')
+        rows = records(load(path), config['keys'])
+        ids = {resolved for row in rows if (resolved := record_id(row, config['prefix'])) is not None}
+        indexes[namespace] = ids
+        source_status[namespace] = {
+            'path': str(path.relative_to(ROOT)),
+            'exists': True,
+            'records': len(rows),
+            'indexedIds': len(ids),
         }
 
     ids: set[str] = set()
@@ -54,6 +74,8 @@ def main() -> int:
     forbidden = {'rank', 'ranking', 'tierScore', 'score', 'position'}
 
     for index, edge in enumerate(edges):
+        if not isinstance(edge, dict):
+            raise SystemExit(f'relationships[{index}] must be an object')
         edge_id = edge.get('id')
         if not edge_id:
             raise SystemExit(f'relationships[{index}] has no id')
@@ -90,6 +112,7 @@ def main() -> int:
     print(json.dumps({
         'relationships': len(edges),
         'namespacesIndexed': {key: len(value) for key, value in indexes.items()},
+        'sourceStatus': source_status,
         'unresolved': 0,
     }, indent=2))
     return 0
