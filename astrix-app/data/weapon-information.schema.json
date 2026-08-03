@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astrixparadox.com/astrix-app/data/weapon-information.schema.json",
+  "title": "ASTRIX Paradox Forge weapon information",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "manifestVersion", "weapons"],
+  "properties": {
+    "schemaVersion": {"type": "string"},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "manifestVersion": {"type": "string"},
+    "weapons": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/weapon"}
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["title", "publisher", "date"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "publisher": {"type": "string", "minLength": 1},
+        "date": {"type": "string", "format": "date"},
+        "url": {"type": "string", "format": "uri"}
+      },
+      "additionalProperties": false
+    },
+    "recommendedConfiguration": {
+      "type": "object",
+      "properties": {
+        "barrel": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "magazine": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "battery": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "blade": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "guard": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "masterwork": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "perk1": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "perk2": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "originTrait": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      },
+      "additionalProperties": false
+    },
+    "weapon": {
+      "type": "object",
+      "required": [
+        "id", "bungieHash", "name", "icon", "weaponType",
+        "ammoType", "official", "curated", "verified"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^weapon-[a-z0-9-]+$"},
+        "bungieHash": {"type": "integer", "minimum": 1},
+        "name": {"type": "string", "minLength": 1},
+        "icon": {"type": "string"},
+        "watermark": {"type": "string"},
+        "weaponType": {"type": "string"},
+        "frame": {"type": ["string", "null"]},
+        "element": {"type": ["string", "null"]},
+        "ammoType": {"enum": ["Primary", "Special", "Power", "Unknown"]},
+        "season": {"type": ["integer", "null"], "minimum": 1},
+        "source": {"type": ["string", "null"]},
+        "officialDescription": {"type": "string"},
+        "official": {
+          "type": "object",
+          "required": ["itemType", "itemSubType", "itemCategoryHashes"],
+          "properties": {
+            "itemType": {"type": "integer"},
+            "itemSubType": {"type": "integer"},
+            "itemCategoryHashes": {"type": "array", "items": {"type": "integer"}},
+            "defaultDamageTypeHash": {"type": ["integer", "null"]},
+            "equippingBlock": {"type": ["object", "null"]},
+            "sockets": {"type": ["object", "null"]}
+          },
+          "additionalProperties": true
+        },
+        "curated": {
+          "type": "object",
+          "required": ["recommendedConfiguration", "usageNotes", "loopContribution", "sources"],
+          "properties": {
+            "recommendedConfiguration": {"$ref": "#/$defs/recommendedConfiguration"},
+            "usageNotes": {"type": "string"},
+            "loopContribution": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+              "uniqueItems": true
+            },
+            "stunValue": {"type": ["number", "null"]},
+            "ammoValue": {"type": ["number", "null"]},
+            "shieldValue": {"type": ["number", "null"]},
+            "chargeValue": {"type": ["number", "null"]},
+            "impactValue": {"type": ["number", "null"]},
+            "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+          },
+          "additionalProperties": false
+        },
+        "verified": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

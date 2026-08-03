@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-08-03",
+  "purpose": "Example curated record. Delete this example before adding real data.",
+  "weapons": [
+    {
+      "bungieHash": null,
+      "name": "The Summoner",
+      "season": 29,
+      "element": "Solar",
+      "frame": "Adaptive",
+      "source": "Trials",
+      "recommendedConfiguration": {
+        "barrel": [
+          "Fluted Barrel",
+          "Arrowhead Brake"
+        ],
+        "magazine": [
+          "High-Caliber Rounds",
+          "Alloy Magazine"
+        ],
+        "masterwork": [
+          "Reload"
+        ],
+        "perk1": [
+          "Heal Clip"
+        ],
+        "perk2": [
+          "Incandescent",
+          "Burning Ambition"
+        ],
+        "originTrait": [
+          "Wild Card"
+        ]
+      },
+      "usageNotes": "Factual usage and synergy notes only. Do not include rank or tier.",
+      "loopContribution": [
+        "solar-healing",
+        "scorch-generation"
+      ],
+      "stunValue": 51,
+      "ammoValue": null,
+      "shieldValue": null,
+      "chargeValue": null,
+      "impactValue": null,
+      "verified": false,
+      "sources": [
+        {
+          "title": "Destiny 2 Endgame Analysis",
+          "publisher": "ASTRIX",
+          "date": "2026-08-03"
+        }
+      ]
+    }
+  ]
+}
