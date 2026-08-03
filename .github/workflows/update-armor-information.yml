@@ -1,0 +1,122 @@
+name: Update ASTRIX Armor Information
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * 1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: astrix-armor-information-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update-armor-information:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout workflow branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install validation dependency
+        run: python3 -m pip install "jsonschema[format]>=4.23,<5"
+
+      - name: Generate armour information from Bungie manifest
+        id: armor
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+        run: python3 astrix-app/tools/import-armor-information.py
+
+      - name: Validate generated armour catalogue
+        run: |
+          python3 - << 'PYEOF'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          data_path = Path('astrix-app/data/armor-information.json')
+          schema_path = Path('astrix-app/data/armor-information.schema.json')
+          if not data_path.exists():
+              raise SystemExit(f'Missing generated catalogue: {data_path}')
+          data = json.loads(data_path.read_text(encoding='utf-8'))
+          schema = json.loads(schema_path.read_text(encoding='utf-8'))
+          errors = sorted(
+              Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(data),
+              key=lambda error: list(error.absolute_path),
+          )
+          if errors:
+              for error in errors:
+                  print(f'{list(error.absolute_path)}: {error.message}')
+              raise SystemExit(f'{len(errors)} schema validation error(s)')
+
+          ids, hashes = set(), set()
+          for index, item in enumerate(data['armor']):
+              expected = f"armor-{item['bungieHash']}"
+              if item['id'] != expected:
+                  raise SystemExit(f'Invalid id at armor[{index}]: expected {expected}')
+              if item['id'] in ids or item['bungieHash'] in hashes:
+                  raise SystemExit(f'Duplicate armour identity at armor[{index}]')
+              ids.add(item['id']); hashes.add(item['bungieHash'])
+
+          print(json.dumps({
+              'schemaVersion': data['schemaVersion'],
+              'manifestVersion': data['manifestVersion'],
+              'armorRecords': len(data['armor']),
+              'verifiedRecords': sum(1 for item in data['armor'] if item['verified']),
+          }, indent=2))
+          PYEOF
+
+      - name: Check generated change
+        id: generated
+        run: |
+          if [ -n "$(git status --porcelain -- astrix-app/data/armor-information.json)" ]
+          then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit generated armour information
+        if: steps.generated.outputs.changed == 'true'
+        env:
+          MANIFEST_VERSION: ${{ steps.armor.outputs.manifest_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add astrix-app/data/armor-information.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update armor information for Bungie manifest ${MANIFEST_VERSION}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          MANIFEST_VERSION: ${{ steps.armor.outputs.manifest_version }}
+          ARMOR: ${{ steps.armor.outputs.armor }}
+          CURATED: ${{ steps.armor.outputs.curated }}
+          MATCHED: ${{ steps.armor.outputs.matched }}
+          UNRESOLVED: ${{ steps.armor.outputs.unresolved }}
+          AMBIGUOUS: ${{ steps.armor.outputs.ambiguous }}
+          FILE_CHANGED: ${{ steps.generated.outputs.changed }}
+        run: |
+          {
+            echo "## ASTRIX armour information update"
+            echo
+            echo "- Manifest version: ${MANIFEST_VERSION:-unavailable}"
+            echo "- Official armour records: ${ARMOR:-0}"
+            echo "- Curated rows: ${CURATED:-0}"
+            echo "- Curated rows matched: ${MATCHED:-0}"
+            echo "- Unresolved rows: ${UNRESOLVED:-0}"
+            echo "- Ambiguous rows: ${AMBIGUOUS:-0}"
+            echo "- Generated file changed: ${FILE_CHANGED:-false}"
+          } >> "$GITHUB_STEP_SUMMARY"
