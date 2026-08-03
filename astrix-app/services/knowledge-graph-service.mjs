@@ -5,7 +5,9 @@ function keyOf(ref) {
 }
 
 function clone(value) {
-  return structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
+  return typeof structuredClone === 'function'
+    ? structuredClone(value)
+    : JSON.parse(JSON.stringify(value));
 }
 
 export class KnowledgeGraphService {
@@ -20,9 +22,7 @@ export class KnowledgeGraphService {
 
   async load(options = {}) {
     const response = await this.fetchImplementation(options.url ?? this.url, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`Unable to load knowledge relationships: ${response.status} ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Unable to load knowledge relationships: ${response.status} ${response.statusText}`);
     return this.setCatalogue(await response.json());
   }
 
