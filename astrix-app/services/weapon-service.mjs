@@ -17,7 +17,7 @@
 export const WEAPON_SERVICE_VERSION = '2.0.0';
 
 export const DEFAULT_WEAPON_CATALOGUE_URL =
-  './data/weapon-information.json';
+  './data/weapon-information.catalogue.json';
 
 const VALID_AMMO_TYPES = new Set([
   'Primary',
