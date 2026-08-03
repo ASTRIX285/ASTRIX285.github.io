@@ -1,0 +1,46 @@
+name: Validate ASTRIX Knowledge Graph
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'astrix-app/data/knowledge-relationships.json'
+      - 'astrix-app/data/knowledge-relationships.schema.json'
+      - 'astrix-app/tools/validate-knowledge-graph.py'
+      - 'astrix-app/data/armor-3-components.json'
+      - 'astrix-app/data/armor-3-builds.json'
+      - 'astrix-app/data/counter-rules.json'
+      - 'astrix-app/data/game-components.json'
+      - 'astrix-app/data/weapon-information.json'
+      - 'astrix-app/data/armor-information.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-knowledge-graph:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install schema validator
+        run: python3 -m pip install "jsonschema[format]>=4.23,<5"
+      - name: Validate relationship schema
+        run: |
+          python3 - << 'PYEOF'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+          data = json.loads(Path('astrix-app/data/knowledge-relationships.json').read_text(encoding='utf-8'))
+          schema = json.loads(Path('astrix-app/data/knowledge-relationships.schema.json').read_text(encoding='utf-8'))
+          errors = sorted(Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(data), key=lambda error: list(error.absolute_path))
+          if errors:
+              for error in errors:
+                  print(f"{list(error.absolute_path)}: {error.message}")
+              raise SystemExit(f"{len(errors)} schema error(s)")
+          print(f"Schema valid: {len(data['relationships'])} relationship(s)")
+          PYEOF
+      - name: Validate graph references
+        run: python3 astrix-app/tools/validate-knowledge-graph.py
