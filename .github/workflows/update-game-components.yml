@@ -1,0 +1,124 @@
+name: Update ASTRIX Game Components
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '47 5 * * 1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: astrix-game-components-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update-game-components:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout workflow branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install validation dependency
+        run: python3 -m pip install "jsonschema[format]>=4.23,<5"
+
+      - name: Generate game components from Bungie manifest
+        id: components
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+        run: python3 astrix-app/tools/import-game-components.py
+
+      - name: Validate generated catalogue
+        run: |
+          python3 - << 'PYEOF'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          data_path = Path('astrix-app/data/game-components.json')
+          schema_path = Path('astrix-app/data/game-components.schema.json')
+          data = json.loads(data_path.read_text(encoding='utf-8'))
+          schema = json.loads(schema_path.read_text(encoding='utf-8'))
+          errors = sorted(
+              Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(data),
+              key=lambda error: list(error.absolute_path),
+          )
+          if errors:
+              for error in errors:
+                  print(f"{list(error.absolute_path)}: {error.message}")
+              raise SystemExit(f'{len(errors)} schema validation error(s)')
+
+          ids = set()
+          hashes = set()
+          for component in data['components']:
+              if component['id'] in ids:
+                  raise SystemExit(f"Duplicate component id: {component['id']}")
+              if component['bungieHash'] in hashes:
+                  raise SystemExit(f"Duplicate component hash: {component['bungieHash']}")
+              if component['id'] != f"component-{component['bungieHash']}":
+                  raise SystemExit(f"Invalid stable id: {component['id']}")
+              ids.add(component['id'])
+              hashes.add(component['bungieHash'])
+
+          print(json.dumps({
+              'schemaVersion': data['schemaVersion'],
+              'manifestVersion': data['manifestVersion'],
+              'componentRecords': len(data['components']),
+              'artifactRecords': len(data['artifacts']),
+              'verifiedRecords': sum(1 for item in data['components'] if item['verified']),
+          }, indent=2))
+          PYEOF
+
+      - name: Check generated change
+        id: generated
+        run: |
+          if [ -n "$(git status --porcelain -- astrix-app/data/game-components.json)" ]
+          then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit generated game components
+        if: steps.generated.outputs.changed == 'true'
+        env:
+          MANIFEST_VERSION: ${{ steps.components.outputs.manifest_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add astrix-app/data/game-components.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update game components for Bungie manifest ${MANIFEST_VERSION}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          MANIFEST_VERSION: ${{ steps.components.outputs.manifest_version }}
+          COMPONENTS: ${{ steps.components.outputs.components }}
+          ARTIFACTS: ${{ steps.components.outputs.artifacts }}
+          MATCHED: ${{ steps.components.outputs.matched }}
+          UNRESOLVED: ${{ steps.components.outputs.unresolved }}
+          AMBIGUOUS: ${{ steps.components.outputs.ambiguous }}
+          FILE_CHANGED: ${{ steps.generated.outputs.changed }}
+        run: |
+          {
+            echo "## ASTRIX game component update"
+            echo
+            echo "- Manifest version: ${MANIFEST_VERSION:-unavailable}"
+            echo "- Components: ${COMPONENTS:-0}"
+            echo "- Artifacts: ${ARTIFACTS:-0}"
+            echo "- Curated matched: ${MATCHED:-0}"
+            echo "- Curated unresolved: ${UNRESOLVED:-0}"
+            echo "- Curated ambiguous: ${AMBIGUOUS:-0}"
+            echo "- Generated file changed: ${FILE_CHANGED:-false}"
+          } >> "$GITHUB_STEP_SUMMARY"
