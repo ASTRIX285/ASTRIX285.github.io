@@ -1,337 +1,168 @@
-#!/usr/bin/env python3
-from __future__ import annotations
+name: Validate ASTRIX Knowledge Graph
 
-import json
-from pathlib import Path
-from typing import Any
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'astrix-app/data/knowledge-relationships.json'
+      - 'astrix-app/data/knowledge-relationships.curated.json'
+      - 'astrix-app/data/knowledge-relationships.schema.json'
+      - 'astrix-app/tools/build-knowledge-relationships.py'
+      - 'astrix-app/tools/validate-knowledge-graph.py'
+      - 'astrix-app/data/armor-3-components.json'
+      - 'astrix-app/data/armor-3-builds.json'
+      - 'astrix-app/data/counter-rules.json'
+      - 'astrix-app/data/game-components.catalogue.json'
+      - 'astrix-app/data/weapon-information.catalogue.json'
+      - 'astrix-app/data/armor-information.catalogue.json'
 
+permissions:
+  contents: write
 
-ROOT = Path(__file__).resolve().parents[2]
-DATA = ROOT / "astrix-app" / "data"
+concurrency:
+  group: astrix-knowledge-graph-${{ github.ref }}
+  cancel-in-progress: false
 
-RELATIONSHIPS = (
-    DATA
-    / "knowledge-relationships.json"
-)
+jobs:
+  validate-knowledge-graph:
+    runs-on: ubuntu-latest
 
-SOURCES = {
-    "component": {
-        "path": (
-            DATA
-            / "armor-3-components.json"
-        ),
-        "keys": ("components",),
-        "prefix": None,
-    },
-    "gameComponent": {
-        "path": (
-            DATA
-            / "game-components.catalogue.json"
-        ),
-        "keys": ("components",),
-        "prefix": "component",
-    },
-    "weapon": {
-        "path": (
-            DATA
-            / "weapon-information.catalogue.json"
-        ),
-        "keys": ("weapons",),
-        "prefix": "weapon",
-    },
-    "armor": {
-        "path": (
-            DATA
-            / "armor-information.catalogue.json"
-        ),
-        "keys": (
-            "armor",
-            "armour",
-            "items",
-        ),
-        "prefix": "armor",
-    },
-    "build": {
-        "path": (
-            DATA
-            / "armor-3-builds.json"
-        ),
-        "keys": ("builds",),
-        "prefix": None,
-    },
-    "counterRule": {
-        "path": (
-            DATA
-            / "counter-rules.json"
-        ),
-        "keys": ("rules",),
-        "prefix": None,
-    },
-}
+    steps:
+      - name: Checkout selected ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-def load(path: Path) -> Any:
-    return json.loads(
-        path.read_text(
-            encoding="utf-8"
-        )
-    )
+      - name: Install schema validator
+        run: |
+          python3 -m pip install \
+            "jsonschema[format]>=4.23,<5"
 
+      - name: Build verified knowledge relationships
+        run: |
+          python3 \
+            astrix-app/tools/build-knowledge-relationships.py
 
-def records(
-    payload: Any,
-    keys: tuple[str, ...],
-) -> list[dict[str, Any]]:
-    if isinstance(payload, list):
-        return [
-            row
-            for row in payload
-            if isinstance(row, dict)
-        ]
+      - name: Validate relationship schema
+        run: |
+          python3 - << 'PYEOF'
+          import json
+          from pathlib import Path
 
-    if isinstance(payload, dict):
-        for key in keys:
-            value = payload.get(key)
+          from jsonschema import Draft202012Validator
+          from jsonschema import FormatChecker
 
-            if isinstance(value, list):
-                return [
-                    row
-                    for row in value
-                    if isinstance(row, dict)
-                ]
+          data_path = Path(
+              "astrix-app/data/"
+              "knowledge-relationships.json"
+          )
 
-    return []
+          schema_path = Path(
+              "astrix-app/data/"
+              "knowledge-relationships.schema.json"
+          )
 
+          if not data_path.exists():
+              raise SystemExit(
+                  f"Missing generated graph: {data_path}"
+              )
 
-def record_id(
-    row: dict[str, Any],
-    prefix: str | None,
-) -> str | None:
-    existing = row.get("id")
+          if not schema_path.exists():
+              raise SystemExit(
+                  f"Missing graph schema: {schema_path}"
+              )
 
-    if existing not in (None, ""):
-        return str(existing)
+          try:
+              data = json.loads(
+                  data_path.read_text(
+                      encoding="utf-8"
+                  )
+              )
+          except json.JSONDecodeError as error:
+              raise SystemExit(
+                  f"Invalid graph JSON: {error}"
+              ) from error
 
-    bungie_hash = row.get(
-        "bungieHash"
-    )
+          try:
+              schema = json.loads(
+                  schema_path.read_text(
+                      encoding="utf-8"
+                  )
+              )
+          except json.JSONDecodeError as error:
+              raise SystemExit(
+                  f"Invalid graph schema JSON: {error}"
+              ) from error
 
-    if (
-        prefix
-        and isinstance(
-            bungie_hash,
-            int,
-        )
-    ):
-        return (
-            f"{prefix}-"
-            f"{bungie_hash}"
-        )
+          validator = Draft202012Validator(
+              schema,
+              format_checker=FormatChecker(),
+          )
 
-    return None
+          errors = sorted(
+              validator.iter_errors(data),
+              key=lambda error: list(
+                  error.absolute_path
+              ),
+          )
 
+          if errors:
+              for error in errors:
+                  print(
+                      f"{list(error.absolute_path)}: "
+                      f"{error.message}"
+                  )
 
-def main() -> int:
-    graph = load(RELATIONSHIPS)
-    edges = graph.get(
-        "relationships"
-    )
+              raise SystemExit(
+                  f"{len(errors)} schema error(s)"
+              )
 
-    if not isinstance(edges, list):
-        raise SystemExit(
-            "knowledge-relationships.json "
-            "must contain a relationships array"
-        )
+          print(
+              "Schema valid: "
+              f"{len(data['relationships'])} "
+              "relationship(s)"
+          )
+          PYEOF
 
-    indexes: dict[
-        str,
-        set[str],
-    ] = {}
+      - name: Validate graph references
+        run: |
+          python3 \
+            astrix-app/tools/validate-knowledge-graph.py
 
-    source_status: dict[
-        str,
-        dict[str, Any],
-    ] = {}
+      - name: Check generated graph change
+        id: generated
+        run: |
+          if [ -n "$(git status --porcelain -- astrix-app/data/knowledge-relationships.json)" ]
+          then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
-    for (
-        namespace,
-        config,
-    ) in SOURCES.items():
-        path: Path = config["path"]
+      - name: Commit generated graph
+        if: >-
+          github.event_name == 'workflow_dispatch'
+          && steps.generated.outputs.changed == 'true'
+        run: |
+          git config user.name \
+            "github-actions[bot]"
 
-        if not path.exists():
-            indexes[namespace] = set()
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
 
-            source_status[namespace] = {
-                "path": str(
-                    path.relative_to(ROOT)
-                ),
-                "exists": False,
-                "records": 0,
-            }
+          git add \
+            astrix-app/data/knowledge-relationships.json
 
-            continue
+          git diff --cached --quiet && exit 0
 
-        rows = records(
-            load(path),
-            config["keys"],
-        )
+          git commit -m \
+            "Update verified Paradox Forge knowledge graph"
 
-        ids = {
-            resolved
-            for row in rows
-            if (
-                resolved := record_id(
-                    row,
-                    config["prefix"],
-                )
-            )
-            is not None
-        }
-
-        indexes[namespace] = ids
-
-        source_status[namespace] = {
-            "path": str(
-                path.relative_to(ROOT)
-            ),
-            "exists": True,
-            "records": len(rows),
-            "indexedIds": len(ids),
-        }
-
-    ids: set[str] = set()
-    unresolved: list[str] = []
-
-    forbidden = {
-        "rank",
-        "ranking",
-        "tierScore",
-        "score",
-        "position",
-    }
-
-    for index, edge in enumerate(
-        edges
-    ):
-        if not isinstance(edge, dict):
-            raise SystemExit(
-                f"relationships[{index}] "
-                "must be an object"
-            )
-
-        edge_id = edge.get("id")
-
-        if not edge_id:
-            raise SystemExit(
-                f"relationships[{index}] "
-                "has no id"
-            )
-
-        if edge_id in ids:
-            raise SystemExit(
-                "duplicate relationship id: "
-                f"{edge_id}"
-            )
-
-        ids.add(edge_id)
-
-        if edge.get("verified") is not True:
-            raise SystemExit(
-                f"{edge_id} must be "
-                "verified=true"
-            )
-
-        if not edge.get("sources"):
-            raise SystemExit(
-                f"{edge_id} requires "
-                "at least one source"
-            )
-
-        if forbidden.intersection(edge):
-            raise SystemExit(
-                f"{edge_id} contains "
-                "forbidden ranking fields"
-            )
-
-        for side in (
-            "from",
-            "to",
-        ):
-            ref = edge.get(side) or {}
-            namespace = ref.get(
-                "namespace"
-            )
-            ref_id = ref.get("id")
-
-            if namespace in (
-                "effect",
-                "encounter",
-            ):
-                if not ref_id:
-                    unresolved.append(
-                        f"{edge_id}:"
-                        f"{side}:missing-id"
-                    )
-
-                continue
-
-            if namespace not in indexes:
-                unresolved.append(
-                    f"{edge_id}:"
-                    f"{side}:"
-                    "unknown-namespace:"
-                    f"{namespace}"
-                )
-
-                continue
-
-            if (
-                ref_id
-                not in indexes[namespace]
-            ):
-                unresolved.append(
-                    f"{edge_id}:"
-                    f"{side}:"
-                    f"{namespace}:"
-                    f"{ref_id}"
-                )
-
-    if unresolved:
-        print(
-            "Unresolved graph references:"
-        )
-
-        for value in unresolved:
-            print(f"  - {value}")
-
-        raise SystemExit(
-            f"{len(unresolved)} unresolved "
-            "graph reference(s)"
-        )
-
-    print(
-        json.dumps(
-            {
-                "relationships": len(edges),
-                "namespacesIndexed": {
-                    key: len(value)
-                    for (
-                        key,
-                        value,
-                    ) in indexes.items()
-                },
-                "sourceStatus": (
-                    source_status
-                ),
-                "unresolved": 0,
-            },
-            indent=2,
-        )
-    )
-
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+          git push origin \
+            "HEAD:${GITHUB_REF_NAME}"
