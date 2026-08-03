@@ -1,0 +1,8 @@
+# ASTRIX Bungie Manifest raw catalogues
+astrix-app/data/weapon-information.json
+astrix-app/data/armor-information.json
+astrix-app/data/game-components.json
+
+# Temporary catalogue paths
+astrix-app/data/*.raw.json
+astrix-app/.tmp/
