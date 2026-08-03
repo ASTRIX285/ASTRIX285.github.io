@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astrixparadox.com/astrix-app/data/knowledge-relationships.schema.json",
+  "title": "ASTRIX Paradox Forge Directed Knowledge Relationships",
+  "description": "Hand-verified directed cause-and-effect relationships linking existing Paradox Forge and Bungie-backed records.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "scope", "relationships"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "generatedAt": {"type": "string", "format": "date"},
+    "scope": {"const": "Paradox Forge knowledge graph"},
+    "relationships": {"type": "array", "items": {"$ref": "#/$defs/relationship"}}
+  },
+  "$defs": {
+    "nodeRef": {
+      "type": "object", "additionalProperties": false, "required": ["namespace", "id"],
+      "properties": {
+        "namespace": {"enum": ["component", "gameComponent", "weapon", "armor", "build", "counterRule", "effect", "encounter"]},
+        "id": {"type": "string", "minLength": 1},
+        "bungieHash": {"type": "integer", "minimum": 1},
+        "label": {"type": "string", "minLength": 1}
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false, "required": ["title", "publisher", "date"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "publisher": {"type": "string", "minLength": 1},
+        "date": {"type": "string", "format": "date"},
+        "url": {"type": "string", "format": "uri"}
+      }
+    },
+    "condition": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "value"],
+      "properties": {
+        "kind": {"enum": ["class", "subclass", "element", "activity", "modifier", "equipped", "owned", "trigger", "state"]},
+        "value": {"type": "string", "minLength": 1},
+        "note": {"type": "string"}
+      }
+    },
+    "relationship": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "from", "relation", "to", "mechanism", "direction", "verified", "sources"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+        "from": {"$ref": "#/$defs/nodeRef"},
+        "relation": {"enum": ["produces", "applies", "grants", "restores", "reducesCooldownOf", "extendsDurationOf", "amplifies", "consumes", "requires", "enables", "triggers", "feeds", "convertsTo", "counters", "matches", "belongsTo", "equips", "recommends", "limits", "conflictsWith"]},
+        "to": {"$ref": "#/$defs/nodeRef"},
+        "mechanism": {"type": "string", "minLength": 1},
+        "direction": {"const": "from-to"},
+        "conditions": {"type": "array", "items": {"$ref": "#/$defs/condition"}},
+        "strength": {"enum": ["required", "primary", "secondary", "situational"]},
+        "verified": {"const": true},
+        "sources": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/source"}},
+        "notes": {"type": "string"}
+      }
+    }
+  }
+}
