@@ -1,0 +1,107 @@
+name: Update ASTRIX Weapon Information
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 4 * * 1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: astrix-weapon-information-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update-weapon-information:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout workflow branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate weapon information from Bungie manifest
+        id: weapons
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+        run: python3 astrix-app/tools/import-weapon-information.py
+
+      - name: Validate generated JSON
+        run: |
+          python3 - << 'PYEOF'
+          import json
+          from pathlib import Path
+
+          path = Path('astrix-app/data/weapon-information.json')
+          data = json.loads(path.read_text(encoding='utf-8'))
+
+          required = {'schemaVersion', 'generatedAt', 'manifestVersion', 'weapons'}
+          missing = required.difference(data)
+          if missing:
+              raise SystemExit(f'Missing top-level fields: {sorted(missing)}')
+          if not isinstance(data['weapons'], list):
+              raise SystemExit('weapons must be an array')
+
+          ids = set()
+          hashes = set()
+          for weapon in data['weapons']:
+              if weapon['id'] in ids:
+                  raise SystemExit(f"Duplicate weapon id: {weapon['id']}")
+              if weapon['bungieHash'] in hashes:
+                  raise SystemExit(f"Duplicate Bungie hash: {weapon['bungieHash']}")
+              ids.add(weapon['id'])
+              hashes.add(weapon['bungieHash'])
+
+              forbidden = {'rank', 'ranking', 'tier', 'score', 'position'}
+              present = forbidden.intersection(weapon)
+              if present:
+                  raise SystemExit(
+                      f"Forbidden ranking fields on {weapon['name']}: {sorted(present)}"
+                  )
+
+          print(json.dumps({
+              'manifestVersion': data['manifestVersion'],
+              'weapons': len(data['weapons']),
+          }, indent=2))
+          PYEOF
+
+      - name: Commit generated weapon information
+        if: steps.weapons.outputs.changed == 'true'
+        env:
+          MANIFEST_VERSION: ${{ steps.weapons.outputs.manifest_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add astrix-app/data/weapon-information.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update weapon information for Bungie manifest ${MANIFEST_VERSION}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          CHANGED: ${{ steps.weapons.outputs.changed }}
+          MANIFEST_VERSION: ${{ steps.weapons.outputs.manifest_version }}
+          WEAPONS: ${{ steps.weapons.outputs.weapons }}
+          CURATED: ${{ steps.weapons.outputs.curated }}
+          UNRESOLVED: ${{ steps.weapons.outputs.unresolved }}
+          AMBIGUOUS: ${{ steps.weapons.outputs.ambiguous }}
+        run: |
+          {
+            echo "## ASTRIX weapon information update"
+            echo
+            echo "- Manifest version: ${MANIFEST_VERSION:-unavailable}"
+            echo "- Generated change: ${CHANGED:-false}"
+            echo "- Official weapon records: ${WEAPONS:-0}"
+            echo "- Curated rows: ${CURATED:-0}"
+            echo "- Unresolved curated rows: ${UNRESOLVED:-0}"
+            echo "- Ambiguous curated rows: ${AMBIGUOUS:-0}"
+          } >> "$GITHUB_STEP_SUMMARY"
