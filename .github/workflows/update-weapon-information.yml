@@ -233,12 +233,11 @@ jobs:
       - name: Check generated change
         id: generated
         run: |
-          if git diff --quiet -- \
-            astrix-app/data/weapon-information.json
+          if [ -n "$(git status --porcelain -- astrix-app/data/weapon-information.json)" ]
           then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
             echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Commit generated weapon information
