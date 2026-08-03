@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astrixparadox.com/astrix-app/data/game-components.schema.json",
+  "title": "ASTRIX Paradox Forge Game Components",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "manifestVersion", "curatedDigest", "components", "artifacts"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "manifestVersion": {"type": "string", "minLength": 1},
+    "curatedDigest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "components": {"type": "array", "items": {"$ref": "#/$defs/component"}},
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}}
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["title", "publisher", "date"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "publisher": {"type": "string", "minLength": 1},
+        "date": {"type": "string", "format": "date"},
+        "url": {"type": "string", "format": "uri"}
+      },
+      "additionalProperties": false
+    },
+    "curated": {
+      "type": "object",
+      "required": ["effects", "inputs", "outputs", "limitations", "counterTags", "sources"],
+      "properties": {
+        "effects": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "inputs": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}, "uniqueItems": true},
+        "outputs": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}, "uniqueItems": true},
+        "limitations": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "counterTags": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}, "uniqueItems": true},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      },
+      "additionalProperties": false
+    },
+    "component": {
+      "type": "object",
+      "required": ["id", "bungieHash", "name", "componentType", "class", "subclass", "icon", "officialDescription", "official", "curated", "verified"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^component-[0-9]+$"},
+        "bungieHash": {"type": "integer", "minimum": 1},
+        "name": {"type": "string", "minLength": 1},
+        "componentType": {"enum": ["subclass", "super", "aspect", "fragment", "grenade", "melee", "classAbility", "movementAbility", "artifactPerk"]},
+        "class": {"enum": ["Titan", "Hunter", "Warlock", "Any", "Unknown"]},
+        "subclass": {"type": ["string", "null"]},
+        "icon": {"type": "string"},
+        "officialDescription": {"type": "string"},
+        "official": {
+          "type": "object",
+          "required": ["itemType", "itemSubType", "itemTypeDisplayName", "itemCategoryHashes", "traitIds", "sockets"],
+          "properties": {
+            "itemType": {"type": "integer"},
+            "itemSubType": {"type": "integer"},
+            "itemTypeDisplayName": {"type": "string"},
+            "itemCategoryHashes": {"type": "array", "items": {"type": "integer"}},
+            "traitIds": {"type": "array", "items": {"type": "string"}},
+            "sockets": {"type": ["object", "null"]}
+          },
+          "additionalProperties": false
+        },
+        "artifact": {
+          "type": ["object", "null"],
+          "properties": {
+            "artifactHash": {"type": "integer"},
+            "tier": {"type": "integer", "minimum": 1},
+            "column": {"type": ["integer", "null"]}
+          },
+          "required": ["artifactHash", "tier", "column"],
+          "additionalProperties": false
+        },
+        "curated": {"$ref": "#/$defs/curated"},
+        "verified": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["id", "bungieHash", "name", "icon", "tiers"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^artifact-[0-9]+$"},
+        "bungieHash": {"type": "integer", "minimum": 1},
+        "name": {"type": "string", "minLength": 1},
+        "icon": {"type": "string"},
+        "tiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["tier", "itemHashes"],
+            "properties": {
+              "tier": {"type": "integer", "minimum": 1},
+              "itemHashes": {"type": "array", "items": {"type": "integer"}, "uniqueItems": true}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
