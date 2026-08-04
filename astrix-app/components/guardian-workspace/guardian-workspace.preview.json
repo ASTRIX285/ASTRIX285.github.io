@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0.0",
+  "mode": "preview",
+  "gameId": "destiny-2",
+  "notice": "Illustrative preview data. No Bungie account is connected.",
+  "player": {
+    "displayName": "ASTRIX285",
+    "membershipCode": "5438",
+    "seasonLabel": "Season Preview"
+  },
+  "character": {
+    "id": "preview-hunter",
+    "className": "Hunter",
+    "raceName": "Exo",
+    "power": null,
+    "title": "Conqueror",
+    "renderUrl": null,
+    "emblemUrl": null
+  },
+  "subclass": {
+    "name": "Nightstalker",
+    "element": {
+      "name": "Void",
+      "accent": "#a970ff",
+      "crestUrl": "https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"
+    },
+    "supers": [
+      {"id":"super-deadfall","name":"Shadowshot: Deadfall","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true,"unlocked":true},
+      {"id":"super-moebius","name":"Shadowshot: Moebius Quiver","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":false,"unlocked":true},
+      {"id":"super-spectral","name":"Spectral Blades","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":false,"unlocked":true}
+    ],
+    "abilities": [
+      {"id":"ability-class","slot":"Class Ability","name":"Gambler's Dodge","equipped":true,"unlocked":true},
+      {"id":"ability-movement","slot":"Movement","name":"Triple Jump","equipped":true,"unlocked":true},
+      {"id":"ability-melee","slot":"Melee","name":"Snare Bomb","equipped":true,"unlocked":true},
+      {"id":"ability-grenade","slot":"Grenade","name":"Vortex Grenade","equipped":true,"unlocked":true}
+    ],
+    "aspects": [
+      {"id":"aspect-stylish","name":"Stylish Executioner","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg","equipped":true,"unlocked":true,"fragmentSlots":2},
+      {"id":"aspect-vanishing","name":"Vanishing Step","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg","equipped":true,"unlocked":true,"fragmentSlots":2},
+      {"id":"aspect-trappers","name":"Trapper's Ambush","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg","equipped":false,"unlocked":true,"fragmentSlots":2}
+    ],
+    "fragments": [
+      {"id":"fragment-persistence","name":"Echo of Persistence","equipped":true,"unlocked":true,"statText":"Extends Void buffs"},
+      {"id":"fragment-starvation","name":"Echo of Starvation","equipped":true,"unlocked":true,"statText":"Orb pickup grants Devour"},
+      {"id":"fragment-obscurity","name":"Echo of Obscurity","equipped":true,"unlocked":true,"statText":"Finishers grant Invisibility"},
+      {"id":"fragment-undermining","name":"Echo of Undermining","equipped":true,"unlocked":true,"statText":"Void grenades Weaken"},
+      {"id":"fragment-leeching","name":"Echo of Leeching","equipped":false,"unlocked":true,"statText":"Melee final blows begin health regeneration"}
+    ],
+    "artifact": {
+      "name": "Seasonal Artifact Preview",
+      "unlockedCount": 12,
+      "perks": [
+        {"id":"artifact-barrier","name":"Anti-Barrier Support","unlocked":true,"active":true},
+        {"id":"artifact-overload","name":"Overload Support","unlocked":true,"active":false},
+        {"id":"artifact-unstoppable","name":"Unstoppable Support","unlocked":true,"active":true},
+        {"id":"artifact-void","name":"Void Activity Support","unlocked":true,"active":true}
+      ]
+    }
+  },
+  "equipment": {
+    "weapons": [
+      {"slot":"Kinetic","name":"The Call","power":null,"iconUrl":"","equipped":true},
+      {"slot":"Energy","name":"Funnelweb","power":null,"iconUrl":"","equipped":true},
+      {"slot":"Power","name":"Cataclysmic","power":null,"iconUrl":"","equipped":true}
+    ],
+    "armour": [
+      {"slot":"Helmet","name":"Preview Helmet","equipped":true},
+      {"slot":"Gauntlets","name":"Preview Gauntlets","equipped":true},
+      {"slot":"Chest","name":"Preview Chest","equipped":true},
+      {"slot":"Legs","name":"Preview Legs","equipped":true},
+      {"slot":"Class Item","name":"Preview Cloak","equipped":true}
+    ],
+    "mods": [],
+    "stats": [
+      {"name":"Mobility","value":100},
+      {"name":"Resilience","value":65},
+      {"name":"Recovery","value":45},
+      {"name":"Discipline","value":100},
+      {"name":"Intellect","value":36},
+      {"name":"Strength","value":70}
+    ]
+  },
+  "cosmetics": {},
+  "activity": {
+    "name": "Grandmaster Nightfall Preview",
+    "champions": ["Barrier","Unstoppable"],
+    "surge": "Void",
+    "modifiers": []
+  },
+  "analysis": {
+    "measures": [
+      {"id":"loop","label":"Loop continuity","value":92,"status":"supported"},
+      {"id":"survival","label":"Survivability support","value":88,"status":"supported"},
+      {"id":"control","label":"Crowd-control coverage","value":84,"status":"partial"}
+    ],
+    "primaryLoop": {
+      "label": "Illustrative evidence path",
+      "verified": false,
+      "nodes": ["Dodge","Invisibility","Extended duration","Safer repositioning"]
+    },
+    "gaps": ["Preview data cannot confirm live ownership or equipped state."],
+    "recommendations": [
+      {"id":"preview-recommendation","title":"Connect Bungie to analyse this Guardian","reason":"Live identity, inventory and activity state are required before Paradox Forge can make a verified personal recommendation.","tradeOff":"None. Preview state remains unchanged.","verified":true}
+    ]
+  }
+}
