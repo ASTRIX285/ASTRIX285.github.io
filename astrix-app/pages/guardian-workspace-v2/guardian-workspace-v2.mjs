@@ -1,68 +1,125 @@
-const ART = {"crest": {"Arc": "https://www.bungie.net/common/destiny2_content/icons/949af7a61d60a8e6071282daafa9e6e9.png", "Solar": "https://www.bungie.net/common/destiny2_content/icons/fedcb91b7ab0584c12f0e9fec730702b.png", "Void": "https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png", "Stasis": "https://www.bungie.net/common/destiny2_content/icons/6e441ffa8c8171ce9caf71e51b72fc19.png", "Strand": "https://www.bungie.net/common/destiny2_content/icons/41c0024ce809085ac16f4e0777ea0ac4.png"}, "prismatic": {"Hunter": "https://www.bungie.net/common/destiny2_content/icons/fab506e62fa4f188bfe2fb6d56b39614.png", "Titan": "https://www.bungie.net/common/destiny2_content/icons/c1740d829e62afc40a9e57af4e3cad4c.png", "Warlock": "https://www.bungie.net/common/destiny2_content/icons/652406349e99e3db0c3198f78af4eeae.png"}, "subname": {"Hunter": {"Arc": "Arcstrider", "Solar": "Gunslinger", "Void": "Nightstalker", "Stasis": "Revenant", "Strand": "Threadrunner", "Prismatic": "Prismatic Hunter"}, "Titan": {"Arc": "Striker", "Solar": "Sunbreaker", "Void": "Sentinel", "Stasis": "Behemoth", "Strand": "Berserker", "Prismatic": "Prismatic Titan"}, "Warlock": {"Arc": "Stormcaller", "Solar": "Dawnblade", "Void": "Voidwalker", "Stasis": "Shadebinder", "Strand": "Broodweaver", "Prismatic": "Prismatic Warlock"}}, "supers": {"Hunter": {"Arc": [{"name": "Arc Staff", "icon": "https://www.bungie.net/common/destiny2_content/icons/435489f514e2bf88d25c452a96f2dff9.png"}, {"name": "Gathering Storm", "icon": "https://www.bungie.net/common/destiny2_content/icons/edf23f2e6951efcab4c4b10630b6f7c4.png"}], "Solar": [{"name": "Blade Barrage", "icon": "https://www.bungie.net/common/destiny2_content/icons/0b01a6ddceb7b0e2e86ebcb7a6a83eaa.png"}, {"name": "Golden Gun: Deadshot", "icon": "https://www.bungie.net/common/destiny2_content/icons/e19ebe4d56d6f95d582703f6b481813f.png"}, {"name": "Golden Gun: Marksman", "icon": "https://www.bungie.net/common/destiny2_content/icons/52f2eb1fefa20e9c7b064c190855d588.png"}], "Void": [{"name": "Shadowshot: Deadfall", "icon": "https://www.bungie.net/common/destiny2_content/icons/61feac4f1271ba6cecc29cc50e20ab5a.png"}, {"name": "Shadowshot: Moebius Quiver", "icon": "https://www.bungie.net/common/destiny2_content/icons/986e8f2dd0699371d605a331bb63742a.png"}, {"name": "Spectral Blades", "icon": "https://www.bungie.net/common/destiny2_content/icons/1fbfacd5dfe847c5cd0262c5616653ff.png"}], "Stasis": [{"name": "Silence and Squall", "icon": "https://www.bungie.net/common/destiny2_content/icons/a8bbee32ce8f259e7b9e112c0c8a401a.png"}]}, "Titan": {"Arc": [{"name": "Fists of Havoc", "icon": "https://www.bungie.net/common/destiny2_content/icons/5bc4f4029b38fd41d0232460b4295600.png"}], "Solar": [{"name": "Burning Maul", "icon": "https://www.bungie.net/common/destiny2_content/icons/a0391bd2a8cf73c58cec261961db0136.png"}], "Void": [{"name": "Sentinel Shield", "icon": "https://www.bungie.net/common/destiny2_content/icons/a929ea604d638e5e99125e48f76989e2.png"}, {"name": "Ward of Dawn", "icon": "https://www.bungie.net/common/destiny2_content/icons/1caf1eccf1072969ab93bd35fde62599.png"}, {"name": "Twilight Arsenal", "icon": "https://www.bungie.net/common/destiny2_content/icons/ad8fd9cd668f4d980b29e26ade9e4369.png"}], "Stasis": [{"name": "Glacial Quake", "icon": "https://www.bungie.net/common/destiny2_content/icons/3c522f849a7d4d86d5224d7d5d5671a4.png"}], "Strand": [{"name": "Bladefury", "icon": "https://www.bungie.net/common/destiny2_content/icons/228496331415f6854ef589f33c2a2622.png"}]}, "Warlock": {"Arc": [{"name": "Chaos Reach", "icon": "https://www.bungie.net/common/destiny2_content/icons/b54195b2d82a31ae970ca85fb7fb0be7.png"}, {"name": "Stormtrance", "icon": "https://www.bungie.net/common/destiny2_content/icons/31a0445d352fd44b62c9a8dd2752ccdf.png"}], "Solar": [{"name": "Daybreak", "icon": "https://www.bungie.net/common/destiny2_content/icons/89b89220e92c5b363d3e105c25a21640.png"}, {"name": "Song of Flame", "icon": "https://www.bungie.net/common/destiny2_content/icons/ed2e5deb9b67c0120468ee136f98f2b2.png"}, {"name": "Well of Radiance", "icon": "https://www.bungie.net/common/destiny2_content/icons/2f3615ddcd86ab7c50653d2d1847c3bf.png"}], "Void": [{"name": "Nova Bomb: Cataclysm", "icon": "https://www.bungie.net/common/destiny2_content/icons/b1efa0eaa710653d85e2fcf5321047fb.png"}, {"name": "Nova Bomb: Vortex", "icon": "https://www.bungie.net/common/destiny2_content/icons/e9dc1cc0179cda4d2445845cf8992a7e.png"}, {"name": "Nova Warp", "icon": "https://www.bungie.net/common/destiny2_content/icons/feb001db8e9776bc822007c74564c1b6.png"}], "Stasis": [{"name": "Winter's Wrath", "icon": "https://www.bungie.net/common/destiny2_content/icons/c9f25c8f6d5e647366ffc4f71a825961.png"}], "Strand": [{"name": "Needlestorm", "icon": "https://www.bungie.net/common/destiny2_content/icons/2e486aef07bd3551c35807f416ba0b6c.png"}]}}, "aspects": {"Hunter": {"Void": [{"name": "On the Prowl", "icon": "https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg"}, {"name": "Stylish Executioner", "icon": "https://www.bungie.net/common/destiny2_content/icons/ed7f8c49b77fa46f4eec87a3c167c4b1.jpg"}, {"name": "Trapper's Ambush", "icon": "https://www.bungie.net/common/destiny2_content/icons/e91760df2b81d191da9e2c62cb3fcda7.jpg"}], "Arc": [{"name": "Ascension", "icon": "https://www.bungie.net/common/destiny2_content/icons/3bfe666002e12ec6ea3d0c3661f81f31.jpg"}, {"name": "Flow State", "icon": "https://www.bungie.net/common/destiny2_content/icons/83c6b789cfbe88a92f1d247ebf4ff62f.jpg"}, {"name": "Lethal Current", "icon": "https://www.bungie.net/common/destiny2_content/icons/aec5d87a0d36729045b0ab0baffb8620.jpg"}], "Solar": [{"name": "Crackshot", "icon": "https://www.bungie.net/common/destiny2_content/icons/c1f8cb8d59fc2d885b607e68020465b6.jpg"}, {"name": "Gunpowder Gamble", "icon": "https://www.bungie.net/common/destiny2_content/icons/765402ea0cdaa799f62fe46b57ad8437.jpg"}, {"name": "Knock 'Em Down", "icon": "https://www.bungie.net/common/destiny2_content/icons/01a74478066a61232e0eb0d71d56d89c.jpg"}], "Stasis": [{"name": "Shatterdive", "icon": "https://www.bungie.net/common/destiny2_content/icons/a177413a2eea2ddbefde9c9111ecd04a.png"}, {"name": "Grim Harvest", "icon": "https://www.bungie.net/common/destiny2_content/icons/aedf0a4a86c5dc63ab810879662b417a.png"}], "Strand": [{"name": "Ensnaring Slam", "icon": "https://www.bungie.net/common/destiny2_content/icons/5e777fa7e6fe7c1ae0574c91639bee10.jpg"}, {"name": "Threaded Specter", "icon": "https://www.bungie.net/common/destiny2_content/icons/f0311771bc0f771779301102d62c0ae0.jpg"}, {"name": "Whirling Maelstrom", "icon": "https://www.bungie.net/common/destiny2_content/icons/ab8095cdd657b0cd66452ddb44ef01e1.jpg"}, {"name": "The Wanderer", "icon": "https://www.bungie.net/common/destiny2_content/icons/9d7be0c24d6dc7f041289e3b08ecff5e.jpg"}]}, "Titan": {"Void": [{"name": "Bastion", "icon": "https://www.bungie.net/common/destiny2_content/icons/5428b311ff07d2bacb073e551ed2bea1.jpg"}, {"name": "Controlled Demolition", "icon": "https://www.bungie.net/common/destiny2_content/icons/ab2545998f350de7b29549d2b19996e2.jpg"}, {"name": "Offensive Bulwark", "icon": "https://www.bungie.net/common/destiny2_content/icons/68683d4544848844a1fe0acdf7417019.jpg"}, {"name": "Unbreakable", "icon": "https://www.bungie.net/common/destiny2_content/icons/717e2702d16fb2175f81b54c2d62b7be.jpg"}], "Arc": [{"name": "Juggernaut", "icon": "https://www.bungie.net/common/destiny2_content/icons/046dc9f5d7a897b38d12a05ab837f5c7.jpg"}, {"name": "Knockout", "icon": "https://www.bungie.net/common/destiny2_content/icons/e0fdf5c4c4dc10d6ee63365bf7d70821.jpg"}, {"name": "Storm's Keep", "icon": "https://www.bungie.net/common/destiny2_content/icons/58cee87c4df6399921797be06a7aa608.jpg"}], "Solar": [{"name": "Consecration", "icon": "https://www.bungie.net/common/destiny2_content/icons/5c71b63e8b653cd63a2ae0d8a8c64979.jpg"}, {"name": "Roaring Flames", "icon": "https://www.bungie.net/common/destiny2_content/icons/208e4d0d635832dd78288de5532fe062.jpg"}, {"name": "On Your Mark", "icon": "https://www.bungie.net/common/destiny2_content/icons/6b1ce964c0d1dc6beba3083353efc3f6.jpg"}], "Stasis": [{"name": "Cryoclasm", "icon": "https://www.bungie.net/common/destiny2_content/icons/784d860ee0cf74b4afff93f2ffbd4d83.png"}, {"name": "Diamond Lance", "icon": "https://www.bungie.net/common/destiny2_content/icons/663ed4baf3983fa13d5daf766ae60bd4.png"}, {"name": "Howl of the Storm", "icon": "https://www.bungie.net/common/destiny2_content/icons/cc2ac1ffdba3d5dc32afdaef4b002505.png"}, {"name": "Tectonic Harvest", "icon": "https://www.bungie.net/common/destiny2_content/icons/590dc7e1ceaf43b5ca55bd6d3aaa2739.png"}, {"name": "Glacial Harvest", "icon": "https://www.bungie.net/common/destiny2_content/icons/5fc9529c49b1d81ebeb7ed67779e6170.png"}], "Strand": [{"name": "Drengr's Lash", "icon": "https://www.bungie.net/common/destiny2_content/icons/921a526761ce27c1f419d0bc1aafbf5f.jpg"}, {"name": "Flechette Storm", "icon": "https://www.bungie.net/common/destiny2_content/icons/106bf863f701bf09ac51fe023f477bb6.jpg"}, {"name": "Into the Fray", "icon": "https://www.bungie.net/common/destiny2_content/icons/1a3b8a7df1d3b68d70c88ca97932ea12.jpg"}]}, "Warlock": {"Void": [{"name": "Child of the Old Gods", "icon": "https://www.bungie.net/common/destiny2_content/icons/ced6965ddcda23fdc728639aaf0ebd4d.jpg"}, {"name": "Feed the Void", "icon": "https://www.bungie.net/common/destiny2_content/icons/178bb0e78e55c5b960aa6f42660b9b66.jpg"}, {"name": "Soul Siphon", "icon": "https://www.bungie.net/common/destiny2_content/icons/36932a691aaeab872af392d4a1d8eba8.jpg"}], "Arc": [{"name": "Arc Soul", "icon": "https://www.bungie.net/common/destiny2_content/icons/767a0f26b7b3a790a82bb243eb6707b4.jpg"}, {"name": "Electrostatic Mind", "icon": "https://www.bungie.net/common/destiny2_content/icons/724434eedd3aeb7cc2799090cd9c3b08.jpg"}, {"name": "Ionic Sentry", "icon": "https://www.bungie.net/common/destiny2_content/icons/fbf0964f25f9f126e6a47bd6ee53a550.jpg"}, {"name": "Lightning Surge", "icon": "https://www.bungie.net/common/destiny2_content/icons/5730fd352ae02a03290387ea81d39468.jpg"}], "Solar": [{"name": "Heat Rises", "icon": "https://www.bungie.net/common/destiny2_content/icons/d647fd2019707f044ce97b52f802e465.jpg"}, {"name": "Hellion", "icon": "https://www.bungie.net/common/destiny2_content/icons/3514bec04e2464b2f48e1bd025afc668.jpg"}, {"name": "Icarus Dash", "icon": "https://www.bungie.net/common/destiny2_content/icons/55a690bbd9cd53777df674a279422865.jpg"}], "Stasis": [{"name": "Bleak Watcher", "icon": "https://www.bungie.net/common/destiny2_content/icons/51d335e369d83d303203448c75fce439.png"}, {"name": "Frostpulse", "icon": "https://www.bungie.net/common/destiny2_content/icons/3a8e991dae47b351c45b9c182e9050e4.png"}, {"name": "Iceflare Bolts", "icon": "https://www.bungie.net/common/destiny2_content/icons/ab67bdd1cdbc7d0f925707c6343d4d54.png"}], "Strand": [{"name": "Mindspun Invocation", "icon": "https://www.bungie.net/common/destiny2_content/icons/277c475b9d3a3c1d167626b1bf9815ca.jpg"}, {"name": "Weaver's Call", "icon": "https://www.bungie.net/common/destiny2_content/icons/5d38da97f92b3bdfef333a418ab8caf5.jpg"}, {"name": "Weavewalk", "icon": "https://www.bungie.net/common/destiny2_content/icons/b736858e50cbf0ffcdfe9a2d3d70e839.jpg"}]}}, "fragments": {"Arc": [{"name": "Facet of Awakening", "icon": "https://www.bungie.net/common/destiny2_content/icons/4b95e3952707f0da2be11f0a68de1f3b.png"}, {"name": "Facet of Defiance", "icon": "https://www.bungie.net/common/destiny2_content/icons/ee2901d9887ebf717331ee90bca2409b.png"}, {"name": "Facet of Dominance", "icon": "https://www.bungie.net/common/destiny2_content/icons/9a8bc8a614afe98844541df966a2c274.png"}, {"name": "Facet of Honor", "icon": "https://www.bungie.net/common/destiny2_content/icons/0381dcb3720a7eba9d3a24c0101ddfa7.png"}, {"name": "Facet of Purpose", "icon": "https://www.bungie.net/common/destiny2_content/icons/7a6b1d98544eb4a8512c6be0b6486456.png"}, {"name": "Spark of Amplitude", "icon": "https://www.bungie.net/common/destiny2_content/icons/4138dfce109db20c49877c08852f13a8.jpg"}, {"name": "Spark of Beacons", "icon": "https://www.bungie.net/common/destiny2_content/icons/8924af183dc3e6200536171a72c9fd77.jpg"}, {"name": "Spark of Brilliance", "icon": "https://www.bungie.net/common/destiny2_content/icons/d38a4297cfe3ec89427f68ef92b076e5.jpg"}, {"name": "Spark of Discharge", "icon": "https://www.bungie.net/common/destiny2_content/icons/c883bf91f42e9c4b9c9ddce1ba2d2de5.jpg"}, {"name": "Spark of Frequency", "icon": "https://www.bungie.net/common/destiny2_content/icons/4979f2f84c3da353c19815106267beb9.jpg"}, {"name": "Spark of Instinct", "icon": "https://www.bungie.net/common/destiny2_content/icons/eb9c8ec91e56b1410457aecae09ceeed.jpg"}, {"name": "Spark of Ions", "icon": "https://www.bungie.net/common/destiny2_content/icons/2a7f5d325fc745877be70c443427d15b.jpg"}, {"name": "Spark of Momentum", "icon": "https://www.bungie.net/common/destiny2_content/icons/b8cfaccdc40ccdd6a3fb4f544dcb7700.jpg"}, {"name": "Spark of Shock", "icon": "https://www.bungie.net/common/destiny2_content/icons/2f49889b1fe7bcf01ef12b2cdc0fb511.jpg"}, {"name": "Spark of Volts", "icon": "https://www.bungie.net/common/destiny2_content/icons/bb6175746eecf3160a591efe343a3fdf.jpg"}], "Solar": [{"name": "Ember of Ashes", "icon": "https://www.bungie.net/common/destiny2_content/icons/82203cd4545f6dccc3b231d138664ecd.jpg"}, {"name": "Ember of Benevolence", "icon": "https://www.bungie.net/common/destiny2_content/icons/0b5cf537c6ad5d80cbdd3675d0e7134d.jpg"}, {"name": "Ember of Blistering", "icon": "https://www.bungie.net/common/destiny2_content/icons/52dc6ef9a4b0642e36551542b3a2936e.jpg"}, {"name": "Ember of Char", "icon": "https://www.bungie.net/common/destiny2_content/icons/a299dde35bfcd830923458846d7a64f3.jpg"}, {"name": "Ember of Combustion", "icon": "https://www.bungie.net/common/destiny2_content/icons/45476d85d0e6aeded810f217a0627afb.jpg"}, {"name": "Ember of Empyrean", "icon": "https://www.bungie.net/common/destiny2_content/icons/be99d52c12f9359fc948b4563f74e712.jpg"}, {"name": "Ember of Eruption", "icon": "https://www.bungie.net/common/destiny2_content/icons/8734774377b5e73a84ed045a78ce232c.jpg"}, {"name": "Ember of Mercy", "icon": "https://www.bungie.net/common/destiny2_content/icons/5ca8c8de03f981b9c984a1f2bdea0f61.jpg"}, {"name": "Ember of Resolve", "icon": "https://www.bungie.net/common/destiny2_content/icons/24b60501785856e2898417115e3b2afd.jpg"}, {"name": "Ember of Searing", "icon": "https://www.bungie.net/common/destiny2_content/icons/7312346d93dc0e84d46e539a10aebb52.jpg"}, {"name": "Ember of Singeing", "icon": "https://www.bungie.net/common/destiny2_content/icons/c9e392abb5417ecab2dccd85fe23c00f.jpg"}, {"name": "Ember of Solace", "icon": "https://www.bungie.net/common/destiny2_content/icons/fb46711e0dff2bc2f55c21271e838fe2.jpg"}, {"name": "Ember of Tempering", "icon": "https://www.bungie.net/common/destiny2_content/icons/cddc93648f0917dc8bd6663d38d7c379.jpg"}, {"name": "Ember of Torches", "icon": "https://www.bungie.net/common/destiny2_content/icons/1ef2e34dad0d52c762ed96e8c932dc38.jpg"}, {"name": "Ember of Wonder", "icon": "https://www.bungie.net/common/destiny2_content/icons/9de7766c9c9b56b75bde1054e3eefb1a.jpg"}, {"name": "Facet of Dawn", "icon": "https://www.bungie.net/common/destiny2_content/icons/684547ed1f97efdca37df4f1a5c5e699.png"}, {"name": "Facet of Mending", "icon": "https://www.bungie.net/common/destiny2_content/icons/9e769fcade4b6088574826b72c0d28ea.png"}, {"name": "Facet of Ruin", "icon": "https://www.bungie.net/common/destiny2_content/icons/058a2677d6742227811e81d8c4354270.png"}], "Void": [{"name": "Echo of Cessation", "icon": "https://www.bungie.net/common/destiny2_content/icons/d355e5ee66fd28b82d93a0f2dd895b2d.jpg"}, {"name": "Echo of Domineering", "icon": "https://www.bungie.net/common/destiny2_content/icons/958ff340ae4ce16d7cf71c5268a13919.jpg"}, {"name": "Echo of Harvest", "icon": "https://www.bungie.net/common/destiny2_content/icons/6bd23524f7129761043724acbe90c7b5.jpg"}, {"name": "Echo of Instability", "icon": "https://www.bungie.net/common/destiny2_content/icons/0ad46f9c0c14535c4d5776daf48e871e.jpg"}, {"name": "Echo of Obscurity", "icon": "https://www.bungie.net/common/destiny2_content/icons/7d711ce4bcfb264da29c289ff70b9876.jpg"}, {"name": "Echo of Persistence", "icon": "https://www.bungie.net/common/destiny2_content/icons/914309029085289921f77d8207765150.jpg"}, {"name": "Echo of Starvation", "icon": "https://www.bungie.net/common/destiny2_content/icons/19219ecd56fef82e9ead65aed8fea63a.jpg"}, {"name": "Echo of Undermining", "icon": "https://www.bungie.net/common/destiny2_content/icons/b114e9d97c42a68b19ab7876a221b354.jpg"}, {"name": "Echo of Vigilance", "icon": "https://www.bungie.net/common/destiny2_content/icons/91e0f86be9e41faf06994faf41d818af.jpg"}, {"name": "Facet of Bravery", "icon": "https://www.bungie.net/common/destiny2_content/icons/7bade26040e7b26f4458062b9b3aa465.png"}, {"name": "Facet of Command", "icon": "https://www.bungie.net/common/destiny2_content/icons/24e6282bf3ee1c2a53717ed085cec441.png"}], "Stasis": [{"name": "Whisper of Bonds", "icon": "https://www.bungie.net/common/destiny2_content/icons/12b591b2720cc265d800e870484f6d5b.png"}, {"name": "Whisper of Chains", "icon": "https://www.bungie.net/common/destiny2_content/icons/d764e09a79be71fb5d37e612e610cf18.png"}, {"name": "Whisper of Chill", "icon": "https://www.bungie.net/common/destiny2_content/icons/eda4be269ee2122f02359e12d2cd7fb7.png"}, {"name": "Whisper of Conduction", "icon": "https://www.bungie.net/common/destiny2_content/icons/2d84a595d269762c434718e34d2e7d78.png"}, {"name": "Whisper of Durance", "icon": "https://www.bungie.net/common/destiny2_content/icons/263713a8639fb73350c13b5b520fefa2.png"}, {"name": "Whisper of Fissures", "icon": "https://www.bungie.net/common/destiny2_content/icons/9eaa93107ad40372c335ce495273c318.png"}, {"name": "Whisper of Fractures", "icon": "https://www.bungie.net/common/destiny2_content/icons/a28274406a8a0e7ec916a33ec830ba6f.png"}, {"name": "Whisper of Hedrons", "icon": "https://www.bungie.net/common/destiny2_content/icons/70b60b70634c6e539a531d47e58e1b9f.png"}, {"name": "Whisper of Hunger", "icon": "https://www.bungie.net/common/destiny2_content/icons/549368f903ac85dc177a56555ce69ae7.png"}, {"name": "Whisper of Refraction", "icon": "https://www.bungie.net/common/destiny2_content/icons/5c9285f7b0320f56a560ce9c0aa65043.png"}, {"name": "Whisper of Rending", "icon": "https://www.bungie.net/common/destiny2_content/icons/a315a6aaba35eba7f021fbea22e5e0ba.png"}, {"name": "Whisper of Reversal", "icon": "https://www.bungie.net/common/destiny2_content/icons/b49e2d59fa7cf666045c38f01655230d.png"}, {"name": "Whisper of Rime", "icon": "https://www.bungie.net/common/destiny2_content/icons/0ec49820a6de05851c099cf7fb5d7554.png"}, {"name": "Whisper of Shards", "icon": "https://www.bungie.net/common/destiny2_content/icons/5fa98c6e62d008621119d1b394e9cae9.png"}, {"name": "Whisper of Torment", "icon": "https://www.bungie.net/common/destiny2_content/icons/0f69591331f4def8ab2a4bb27c55b2aa.png"}], "Strand": [{"name": "Facet of Solitude", "icon": "https://www.bungie.net/common/destiny2_content/icons/d19b6a9b12ea095c774567c218d070c6.png"}, {"name": "Thread of Binding", "icon": "https://www.bungie.net/common/destiny2_content/icons/73a3a289acb7b91ee236d9d9a9bdee1b.jpg"}, {"name": "Thread of Continuity", "icon": "https://www.bungie.net/common/destiny2_content/icons/384da9161d140e14030e417aae613266.jpg"}, {"name": "Thread of Evolution", "icon": "https://www.bungie.net/common/destiny2_content/icons/c86847f148a9e86459dac50ba36da591.jpg"}, {"name": "Thread of Finality", "icon": "https://www.bungie.net/common/destiny2_content/icons/1e61bee1b4607fea83a6d3d01dfb8bce.jpg"}, {"name": "Thread of Fury", "icon": "https://www.bungie.net/common/destiny2_content/icons/0e8b8974d2f17e25c085703bef8a3b53.jpg"}, {"name": "Thread of Isolation", "icon": "https://www.bungie.net/common/destiny2_content/icons/9c063a2396fe1b631d6aa2cb282df9cd.jpg"}, {"name": "Thread of Mind", "icon": "https://www.bungie.net/common/destiny2_content/icons/a7a1b83217ee3fe2ee11c477705389b2.jpg"}, {"name": "Thread of Propagation", "icon": "https://www.bungie.net/common/destiny2_content/icons/d42d64ff749d858b6c72c5dc4b775797.jpg"}, {"name": "Thread of Rebirth", "icon": "https://www.bungie.net/common/destiny2_content/icons/6f8f98e361fb4265c885ae3447b498ef.jpg"}, {"name": "Thread of Transmutation", "icon": "https://www.bungie.net/common/destiny2_content/icons/d80a220ddab3e3be2641517ad3049915.jpg"}, {"name": "Thread of Warding", "icon": "https://www.bungie.net/common/destiny2_content/icons/9937046794352b7c7ce31340ac7832ba.jpg"}, {"name": "Thread of Wisdom", "icon": "https://www.bungie.net/common/destiny2_content/icons/e78cbb486a636c94a46a6e6183978249.jpg"}]}, "artifact": {"name": "Implement of Curiosity", "columns": [[{"name": "Anti-Barrier Hand Cannon", "icon": "https://www.bungie.net/common/destiny2_content/icons/9a2c53359db42bf87f48304efe7cae7b.png"}, {"name": "Dielectric", "icon": "https://www.bungie.net/common/destiny2_content/icons/2ba8a6fb47d9a36d8e5651bad5a86752.png"}, {"name": "Elemental Orbs: Arc", "icon": "https://www.bungie.net/common/destiny2_content/icons/57df71b415811ddee77e55f4b95519aa.png"}, {"name": "Impact, Shock, Gravity", "icon": "https://www.bungie.net/common/destiny2_content/icons/a8270c4670a71162f1d45477888b82ae.png"}, {"name": "Press The Advantage", "icon": "https://www.bungie.net/common/destiny2_content/icons/e79751de6d62c4820278fd3f0b833b0b.png"}], [{"name": "Anti-Barrier Sniper Rifle", "icon": "https://www.bungie.net/common/destiny2_content/icons/b74605a00dc8f942f64a7879359ab828.png"}, {"name": "Armorsmith", "icon": "https://www.bungie.net/common/destiny2_content/icons/f48754b849cbc1b813ea2d078e36ed0c.png"}, {"name": "Gravitic-Voltaic Charge", "icon": "https://www.bungie.net/common/destiny2_content/icons/24585408cad390bf80fff7f33c7e20ca.png"}, {"name": "Kinetic Rupture", "icon": "https://www.bungie.net/common/destiny2_content/icons/01fddf1eba3b2cca594be0fec0af049e.png"}, {"name": "Kinetic Synthesis", "icon": "https://www.bungie.net/common/destiny2_content/icons/cf96e4e6ccba04d4948a7bb0ca90761b.png"}], [{"name": "Counter Energy", "icon": "https://www.bungie.net/common/destiny2_content/icons/f9cff3113b9be57572ed6697be195a1a.png"}, {"name": "Expert Handling", "icon": "https://www.bungie.net/common/destiny2_content/icons/e0dd4e954cebb62915528decaf28360b.png"}, {"name": "Overload Pulse Rifle", "icon": "https://www.bungie.net/common/destiny2_content/icons/781184e10d840a1463298cffd822aa02.png"}, {"name": "Reload at Range", "icon": "https://www.bungie.net/common/destiny2_content/icons/2dacdd67e219bb9ec62226c82bfcfaaf.png"}, {"name": "Sniper's Meditation", "icon": "https://www.bungie.net/common/destiny2_content/icons/e7a8b3b1eb71f1d70e31d5642c92c5fb.png"}], [{"name": "Combination Argent Blade", "icon": "https://www.bungie.net/common/destiny2_content/icons/b1f285e95953d68a6e72312234bfd363.png"}, {"name": "Fastest Draw", "icon": "https://www.bungie.net/common/destiny2_content/icons/01c73e5250259ab4a59dd3153ce08e51.png"}, {"name": "Overload Submachine Gun", "icon": "https://www.bungie.net/common/destiny2_content/icons/8bb684eec1afb53877e2e57134c28572.png"}, {"name": "Riposte", "icon": "https://www.bungie.net/common/destiny2_content/icons/379e370534eed91f6ac666196ce56d3d.png"}, {"name": "Sword Storm Combo", "icon": "https://www.bungie.net/common/destiny2_content/icons/daaa2ac873cf0d92f0386667b84450bd.png"}], [{"name": "Elemental Siphon", "icon": "https://www.bungie.net/common/destiny2_content/icons/729357078b7e324467add99816bfda4b.png"}, {"name": "Power from Pain", "icon": "https://www.bungie.net/common/destiny2_content/icons/b59af0e3a3880873b9055c3e0697b216.png"}, {"name": "Singularity Blade", "icon": "https://www.bungie.net/common/destiny2_content/icons/f510c3b6aaee8ff2da5da4368bd4c63a.png"}, {"name": "Unstoppable Bow", "icon": "https://www.bungie.net/common/destiny2_content/icons/286b844dd82bdc5f4fffa7671e283c60.png"}, {"name": "Void Infestation", "icon": "https://www.bungie.net/common/destiny2_content/icons/5eacb6ab8ca7b9ed147dc842accdb41a.png"}], [{"name": "Blinding Jolts", "icon": "https://www.bungie.net/common/destiny2_content/icons/2944f8b47be4ff1f4a0ceaa8439d0367.png"}, {"name": "Concentrated Forward Firepower", "icon": "https://www.bungie.net/common/destiny2_content/icons/d303a19d807e6cfb2d6928f36c66dac9.png"}, {"name": "Fierce Proxemics", "icon": "https://www.bungie.net/common/destiny2_content/icons/a8990e7598af609e1ffca8ff7e3a2f54.png"}, {"name": "Stunning Fusion", "icon": "https://www.bungie.net/common/destiny2_content/icons/d303a19d807e6cfb2d6928f36c66dac9.png"}, {"name": "Tazer Tag", "icon": "https://www.bungie.net/common/destiny2_content/icons/c30820ca53f6ec778ddf10c6a0d6956b.png"}], [{"name": "Precision Equity", "icon": "https://www.bungie.net/common/destiny2_content/icons/09c1f017f974b0a8bee28bb519993957.png"}, {"name": "Rapid Remedy", "icon": "https://www.bungie.net/common/destiny2_content/icons/d4c2808826b8eceea0a1acca31079f87.png"}, {"name": "Shield-Shattering Rounds", "icon": "https://www.bungie.net/common/destiny2_content/icons/d303a19d807e6cfb2d6928f36c66dac9.png"}, {"name": "Sticker Shock", "icon": "https://www.bungie.net/common/destiny2_content/icons/132c4594b9738a242df26521caa6421f.png"}, {"name": "Vanguard Surplus Discounts", "icon": "https://www.bungie.net/common/destiny2_content/icons/d303a19d807e6cfb2d6928f36c66dac9.png"}]]}};
-// Preview adapter. OAuth can replace preview-render.png by assigning character.renderUrl without changing layout.
-const CLS="Hunter", EL="Void";
-const pick=(m)=>((m[CLS]||{})[EL]||[]);
+const PLAYER_POWER_CAP = 550;
+const STAT_CAP = 200;
 
-// subclass crest
-document.getElementById("scCrest").src = ART.crest[EL] || "";
-
-// Super + abilities (super from real data; class-ability/movement/melee/grenade are fixed labels for the Void Hunter reference)
-const supers = pick(ART.supers);
-const superPick = supers.find(s=>/Moebius/i.test(s.name)) || supers[0] || {name:"Moebius Quiver",icon:ART.crest[EL]};
-const abilities=[
-  {lbl:"SUPER", name:superPick.name, icon:superPick.icon, super:true},
-  {lbl:"CLASS ABILITY", name:"Marksman Dodge", icon:""},
-  {lbl:"MOVEMENT", name:"Triple Jump", icon:""},
-  {lbl:"MELEE", name:"Smoke Bomb", icon:""},
-  {lbl:"GRENADE", name:"Vortex Grenade", icon:""},
-];
-document.getElementById("abilityList").innerHTML = abilities.map(a=>`
-  <div class="ability-row">
-    <span class="ico-badge ${a.super?'super':''}">${a.icon?`<img src="${a.icon}" alt="" onerror="this.style.display='none'">`:'◆'}</span>
-    <div class="meta"><small>${a.lbl}</small><b>${a.name}</b></div>
-  </div>`).join("");
-
-// Aspects (real Void Hunter aspects from data) — reference shows Stylish Executioner + Vanishing Step
-let aspects = pick(ART.aspects).slice();
-const want=["Stylish Executioner","Vanishing Step","Trapper's Ambush","On the Prowl"];
-aspects.sort((a,b)=> want.indexOf(a.name)-want.indexOf(b.name));
-document.getElementById("aspectList").innerHTML = aspects.slice(0,2).map(a=>`
-  <div class="slot"><span class="ico-badge"><img src="${a.icon}" alt="" onerror="this.style.display='none'"></span><span class="nm">${a.name}</span><span class="cfg">⚙</span></div>`).join("")
-  || `<div class="slot"><span class="nm">—</span></div>`;
-
-// Fragments — reference shows Persistence / Undermining / Starvation / Obscurity
-let frags = (ART.fragments[EL]||[]).slice();
-const fw=["Echo of Persistence","Echo of Undermining","Echo of Starvation","Echo of Obscurity"];
-frags.sort((a,b)=>{const i=fw.indexOf(a.name),j=fw.indexOf(b.name);return (i<0?99:i)-(j<0?99:j);});
-document.getElementById("fragList").innerHTML = frags.slice(0,4).map(f=>`
-  <div class="slot"><span class="ico-badge"><img src="${f.icon}" alt="" onerror="this.style.display='none'"></span><span class="nm">${f.name}</span></div>`).join("");
-
-// Artifact
-document.getElementById("artName").textContent = ART.artifact.name || "Seasonal Artifact";
-const firstPerks=(ART.artifact.columns||[]).flat().slice(0,3);
-document.getElementById("artPerks").innerHTML = firstPerks.map(p=>`<img src="${p.icon}" alt="${p.name}" title="${p.name}" onerror="this.style.display='none'">`).join("");
-if(firstPerks[0]) document.getElementById("artIcon").src=firstPerks[0].icon;
-
-// Stats (reference values)
-const stats=[["Mobility",100],["Resilience",42],["Recovery",70],["Discipline",101],["Intellect",28],["Strength",38]];
-const STAT_CAP=200;
-const statTotal=stats.reduce((sum,[,value])=>sum+value,0);
-document.getElementById("statsRow").innerHTML = stats.map(([n,v])=>{
-  const pct=Math.min((Number(v)/STAT_CAP)*100,100);
-  return `<div class="st"><span class="nm">${n}</span><span class="bar"><i style="width:${pct}%"></i></span><span class="v">${v}<small> / ${STAT_CAP}</small></span></div>`;
-}).join("") + `<div class="st total"><span class="nm">Total</span><span></span><span class="v">${statTotal}</span></div>`;
-
-// Mods = ARMOUR MODS (separate manifest category from artifact perks). That data is not yet in
-// game-components.json, so these are honest placeholders — NOT filled with artifact-perk icons.
-document.getElementById("modsGrid").innerHTML = Array.from({length:9}).map(()=>
-  `<div class="mod ph"><span class="ph-glyph">◆</span></div>`).join("");
-
-export function applyGuardianCharacter(character={}){
-  const render=document.getElementById("guardianRender");
-  if(render && character.renderUrl){
-    render.src=character.renderUrl;
-    render.style.display="block";
-    const fallback=render.nextElementSibling;
-    if(fallback) fallback.style.display="none";
+const ART = {
+  crest: "https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png",
+  super: {
+    name: "Shadowshot: Moebius Quiver",
+    icon: "https://www.bungie.net/common/destiny2_content/icons/986e8f2dd0699371d605a331bb63742a.png"
+  },
+  aspects: [
+    { name: "Stylish Executioner", icon: "https://www.bungie.net/common/destiny2_content/icons/ed7f8c49b77fa46f4eec87a3c167c4b1.jpg" },
+    { name: "Trapper's Ambush", icon: "https://www.bungie.net/common/destiny2_content/icons/e91760df2b81d191da9e2c62cb3fcda7.jpg" }
+  ],
+  fragments: [
+    { name: "Echo of Persistence", icon: "https://www.bungie.net/common/destiny2_content/icons/914309029085289921f77d8207765150.jpg" },
+    { name: "Echo of Undermining", icon: "https://www.bungie.net/common/destiny2_content/icons/b114e9d97c42a68b19ab7876a221b354.jpg" },
+    { name: "Echo of Starvation", icon: "https://www.bungie.net/common/destiny2_content/icons/19219ecd56fef82e9ead65aed8fea63a.jpg" },
+    { name: "Echo of Obscurity", icon: "https://www.bungie.net/common/destiny2_content/icons/7d711ce4bcfb264da29c289ff70b9876.jpg" }
+  ],
+  artifact: {
+    name: "Implement of Curiosity",
+    icon: "https://www.bungie.net/common/destiny2_content/icons/9a2c53359db42bf87f48304efe7cae7b.png",
+    perks: [
+      { name: "Anti-Barrier Hand Cannon", icon: "https://www.bungie.net/common/destiny2_content/icons/9a2c53359db42bf87f48304efe7cae7b.png" },
+      { name: "Dielectric", icon: "https://www.bungie.net/common/destiny2_content/icons/2ba8a6fb47d9a36d8e5651bad5a86752.png" },
+      { name: "Elemental Orbs: Arc", icon: "https://www.bungie.net/common/destiny2_content/icons/57df71b415811ddee77e55f4b95519aa.png" }
+    ]
   }
+};
+
+const abilities = [
+  { label: "SUPER", name: ART.super.name, icon: ART.super.icon, super: true },
+  { label: "CLASS ABILITY", name: "Marksman Dodge", icon: "" },
+  { label: "MOVEMENT", name: "Triple Jump", icon: "" },
+  { label: "MELEE", name: "Smoke Bomb", icon: "" },
+  { label: "GRENADE", name: "Vortex Grenade", icon: "" }
+];
+
+const stats = [
+  ["Mobility", 100],
+  ["Resilience", 42],
+  ["Recovery", 70],
+  ["Discipline", 101],
+  ["Intellect", 28],
+  ["Strength", 38]
+];
+
+const byId = id => document.getElementById(id);
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;"
+})[character]);
+
+function iconMarkup(url, alt) {
+  return url
+    ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" onerror="this.style.display='none'">`
+    : '<span class="ph-glyph">◆</span>';
 }
+
+function renderVerifiedPreview() {
+  byId("scCrest").src = ART.crest;
+
+  byId("abilityList").innerHTML = abilities.map(ability => `
+    <div class="ability-row">
+      <span class="ico-badge ${ability.super ? "super" : ""}">${iconMarkup(ability.icon, ability.name)}</span>
+      <div class="meta"><small>${escapeHtml(ability.label)}</small><b>${escapeHtml(ability.name)}</b></div>
+    </div>
+  `).join("");
+
+  byId("aspectList").innerHTML = ART.aspects.map(aspect => `
+    <div class="slot">
+      <span class="ico-badge">${iconMarkup(aspect.icon, aspect.name)}</span>
+      <span class="nm">${escapeHtml(aspect.name)}</span>
+      <span class="cfg">⚙</span>
+    </div>
+  `).join("");
+
+  byId("fragList").innerHTML = ART.fragments.map(fragment => `
+    <div class="slot">
+      <span class="ico-badge">${iconMarkup(fragment.icon, fragment.name)}</span>
+      <span class="nm">${escapeHtml(fragment.name)}</span>
+    </div>
+  `).join("");
+
+  byId("artName").textContent = ART.artifact.name;
+  byId("artIcon").src = ART.artifact.icon;
+  byId("artPerks").innerHTML = ART.artifact.perks.map(perk => `
+    <img src="${escapeHtml(perk.icon)}" alt="${escapeHtml(perk.name)}" title="${escapeHtml(perk.name)}" onerror="this.style.display='none'">
+  `).join("");
+
+  const total = stats.reduce((sum, [, value]) => sum + value, 0);
+  byId("statsRow").innerHTML = stats.map(([name, value]) => {
+    const width = Math.min(100, (value / STAT_CAP) * 100);
+    return `
+      <div class="st">
+        <span class="nm">${escapeHtml(name)}</span>
+        <span class="bar"><i style="width:${width}%"></i></span>
+        <span class="v">${value}</span>
+      </div>
+    `;
+  }).join("") + `
+    <div class="st total">
+      <span class="nm">Total</span><span></span><span class="v">${total}</span>
+    </div>
+  `;
+
+  byId("modsGrid").innerHTML = Array.from({ length: 9 }, () => `
+    <div class="mod ph" title="Awaiting verified armour-mod plug data"><span class="ph-glyph">◆</span></div>
+  `).join("");
+
+  document.querySelectorAll("[data-power-cap]").forEach(element => {
+    element.textContent = PLAYER_POWER_CAP;
+  });
+
+  const guardianRender = byId("guardianRender");
+  guardianRender.addEventListener("error", () => {
+    guardianRender.style.display = "none";
+    guardianRender.nextElementSibling.style.display = "block";
+  }, { once: true });
+}
+
+renderVerifiedPreview();
