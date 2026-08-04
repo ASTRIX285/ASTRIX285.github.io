@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astrixparadox.com/astrix-app/data/cosmetic-information.schema.json",
+  "title": "ASTRIX Paradox Forge Cosmetic Information",
+  "description": "Generated Bungie manifest cosmetic catalogue. Player ownership is overlaid after OAuth and is not stored here.",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "manifestVersion", "curatedDigest", "counts", "cosmetics"],
+  "properties": {
+    "schemaVersion": {"const": "2.0.0"},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "manifestVersion": {"type": "string", "minLength": 1},
+    "curatedDigest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "cosmetics": {"type": "array", "items": {"$ref": "#/$defs/cosmetic"}}
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["title", "publisher", "date"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "publisher": {"type": "string", "minLength": 1},
+        "date": {"type": "string", "format": "date"},
+        "url": {"type": "string", "format": "uri"}
+      },
+      "additionalProperties": false
+    },
+    "curated": {
+      "type": "object",
+      "required": ["displayNotes", "availabilityNotes", "sources"],
+      "properties": {
+        "displayNotes": {"type": "string"},
+        "availabilityNotes": {"type": "string"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      },
+      "additionalProperties": false
+    },
+    "cosmetic": {
+      "type": "object",
+      "required": [
+        "id", "bungieHash", "name", "cosmeticType", "icon", "watermark", "secondaryIcon",
+        "officialDescription", "classType", "rarity", "collectibleHash", "sourceHash",
+        "itemCategoryHashes", "categoryNames", "compatibleItemHashes", "official", "curated", "verified"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^cosmetic-[0-9]+$"},
+        "bungieHash": {"type": "integer", "minimum": 0},
+        "name": {"type": "string", "minLength": 1},
+        "cosmeticType": {
+          "enum": ["emblem", "shader", "weaponOrnament", "exoticArmorOrnament", "universalArmorOrnament", "armorOrnament", "ornament"]
+        },
+        "icon": {"type": "string"},
+        "watermark": {"type": "string"},
+        "secondaryIcon": {"type": "string"},
+        "officialDescription": {"type": "string"},
+        "classType": {"enum": ["Titan", "Hunter", "Warlock", "Any", "Unknown"]},
+        "rarity": {"type": "string"},
+        "collectibleHash": {"type": ["integer", "null"]},
+        "sourceHash": {"type": ["integer", "null"]},
+        "itemCategoryHashes": {"type": "array", "items": {"type": "integer"}, "uniqueItems": true},
+        "categoryNames": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "compatibleItemHashes": {"type": "array", "items": {"type": "integer"}, "uniqueItems": true},
+        "official": {
+          "type": "object",
+          "required": ["itemType", "itemSubType", "itemTypeDisplayName", "plug", "sockets", "inventory"],
+          "properties": {
+            "itemType": {"type": "integer"},
+            "itemSubType": {"type": "integer"},
+            "itemTypeDisplayName": {"type": "string"},
+            "plug": {"type": ["object", "null"]},
+            "sockets": {"type": ["object", "null"]},
+            "inventory": {"type": ["object", "null"]}
+          },
+          "additionalProperties": true
+        },
+        "curated": {"$ref": "#/$defs/curated"},
+        "verified": {"type": "boolean"}
+      },
+      "not": {
+        "anyOf": [
+          {"required": ["rank"]}, {"required": ["ranking"]}, {"required": ["tier"]},
+          {"required": ["score"]}, {"required": ["position"]},
+          {"required": ["gameplayEffect"]}, {"required": ["synergy"]}
+        ]
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
