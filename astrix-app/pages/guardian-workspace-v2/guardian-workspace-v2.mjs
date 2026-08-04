@@ -8,9 +8,10 @@ function tile(item,meta=''){
   return `<button class="tile${item.equipped?' equipped':''}" type="button" data-name="${esc(item.name)}" data-description="${esc(item.description||meta)}">${icon}<strong>${esc(item.name)}</strong><small>${esc(meta)}</small></button>`;
 }
 function meters(items=[]){return items.map(x=>`<div class="meter"><label>${esc(x.label)}</label><span class="meter-track"><i style="width:${Math.min(100,Number(x.value)||0)}%"></i></span><b>${esc(x.value)}%</b></div>`).join('');}
-function weapon(item){return `<article class="dock-card"><h3>${esc(item.slot)}</h3><div class="dock-main"><span class="dock-image"></span><div><strong>${esc(item.name)}</strong><small>${esc(item.type)}</small><b>${esc(item.power||'Preview')}</b></div></div></article>`;}
-function stats(items=[]){return `<article class="dock-card"><h3>Stats</h3>${items.map(x=>`<div class="stat-row"><span>${esc(x.name)}</span><span class="stat-track"><i style="width:${Math.min(100,Number(x.value)||0)}%"></i></span><b>${esc(x.value)}</b></div>`).join('')}</article>`;}
-function mods(){return `<article class="dock-card"><h3>Armor Mods</h3><div class="mods-grid">${Array.from({length:8},()=>'<div class="mod-box">◇</div>').join('')}</div></article>`;}
+function weapon(item){return `<article class="dock-card weapon-card"><h3>${esc(item.slot)}</h3><div class="dock-main"><span class="dock-image"></span><div><strong>${esc(item.name)}</strong><small>${esc(item.type)}</small><b>${esc(item.power||'Preview')} / 550</b></div></div></article>`;}
+function armour(items=[]){return `<article class="dock-card armour-card"><h3>Armour</h3><div class="armour-dock">${items.map(item=>`<button class="armour-dock-item" type="button" data-name="${esc(item.name)}" data-description="${esc(item.slot)}"><span>${esc(item.shortLabel)}</span><small>${esc(item.slot)}</small></button>`).join('')}</div></article>`;}
+function stats(items=[]){return `<article class="dock-card"><h3>Stats <small>CAP 200</small></h3>${items.map(x=>`<div class="stat-row"><span>${esc(x.name)}</span><span class="stat-track"><i style="width:${Math.min(100,(Number(x.value)||0)/2)}%"></i></span><b>${esc(x.value)}</b></div>`).join('')}</article>`;}
+function mods(){return `<article class="dock-card"><h3>Armour Mods</h3><div class="mods-grid">${Array.from({length:8},()=>'<div class="mod-box">◇</div>').join('')}</div></article>`;}
 function activity(a){return `<article class="dock-card"><h3>Activity</h3><strong>${esc(a.name)}</strong><p>Champions: ${esc(a.champions.join(', '))}<br>Surge: ${esc(a.surge)}</p></article>`;}
 
 function render(data){
@@ -32,7 +33,7 @@ function render(data){
   byId('artifact').innerHTML=data.subclass.artifact.perks.map(x=>tile({...x,equipped:x.active},x.active?'Active':'Unlocked')).join('');
   text('aspect-count',`${data.subclass.aspects.filter(x=>x.equipped).length} / ${data.subclass.aspects.length}`);
   text('fragment-count',`${data.subclass.fragments.filter(x=>x.equipped).length} / ${data.subclass.fragments.length}`);
-  byId('armour-stack').innerHTML=data.equipment.armour.map(x=>`<button class="armour-item" type="button" data-name="${esc(x.name)}" data-description="${esc(x.slot)}">${esc(x.shortLabel)}</button>`).join('');
+  const armourStack=byId('armour-stack');if(armourStack)armourStack.innerHTML='';
   text('build-score',data.analysis.buildScore);text('health-grade',data.analysis.health.grade);text('health-label',data.analysis.health.label);text('health-summary',data.analysis.health.summary);
   byId('measures').innerHTML=meters(data.analysis.measures);
   byId('coverage').innerHTML=data.analysis.coverage.map(x=>`<div class="coverage-row"><span>${esc(x.label)}</span><strong class="${x.covered?'covered':'missing'}">${x.covered?'✓ Covered':'✕ Missing'}</strong></div>`).join('');
@@ -42,7 +43,7 @@ function render(data){
   byId('weaknesses').innerHTML=data.analysis.weaknesses.map(x=>`<div class="insight">${esc(x)}</div>`).join('');
   byId('recommendations').innerHTML=data.analysis.recommendations.map(x=>`<article class="recommendation"><strong>${esc(x.title)}</strong><p>${esc(x.reason)}</p></article>`).join('');
   byId('activity').innerHTML=`<strong>${esc(data.activity.name)}</strong><p>Champions: ${esc(data.activity.champions.join(', '))}<br>Surge: ${esc(data.activity.surge)}</p>`;
-  byId('bottom-dock').innerHTML=data.equipment.weapons.map(weapon).join('')+mods()+stats(data.equipment.stats)+activity(data.activity);
+  byId('bottom-dock').innerHTML=`<div class="weapon-group">${data.equipment.weapons.map(weapon).join('')}</div>${armour(data.equipment.armour)}${stats(data.equipment.stats)}${mods()}${activity(data.activity)}`;
   document.querySelectorAll('[data-name]').forEach(el=>el.addEventListener('click',()=>text('inspection',`${el.dataset.name}: ${el.dataset.description||'Ready for analysis.'}`)));
 }
 
