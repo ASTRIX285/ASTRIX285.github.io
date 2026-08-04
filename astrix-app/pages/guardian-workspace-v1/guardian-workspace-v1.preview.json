@@ -1,13 +1,14 @@
 {
   "mode":"preview",
-  "notice":"Verified preview layout. No Bungie account is connected and no values are presented as live.",
-  "player":{"displayName":"ASTRIX285","membershipCode":"5438","seasonLabel":"Season Preview"},
-  "character":{"className":"Hunter","power":null,"title":"CONQUEROR","renderUrl":null},
+  "notice":"Verified interface preview. No Bungie account is connected and no personal recommendation has been generated.",
+  "theme":{"accent":"#9f66ff","accentRgb":"159,102,255"},
+  "player":{"displayName":"ASTRIX285","membershipCode":"5438","seasonLabel":"Preview mode"},
+  "character":{"className":"Hunter","power":null,"title":"CONQUEROR","guardianRank":null,"triumphScore":null,"emblemName":"Preview emblem","renderUrl":null},
   "subclass":{
     "name":"NIGHTSTALKER",
     "element":{"name":"VOID","accent":"#9f66ff","crestUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"},
     "supers":[
-      {"id":"super-deadfall","name":"Shadowshot: Deadfall","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true},
+      {"id":"super-deadfall","name":"Shadowshot: Deadfall","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true,"description":"Selected Super preview."},
       {"id":"super-moebius","name":"Shadowshot: Moebius Quiver","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":false},
       {"id":"super-spectral","name":"Spectral Blades","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":false}
     ],
@@ -29,12 +30,13 @@
       {"id":"fragment-undermining","name":"Echo of Undermining","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true,"statText":"Grenades Weaken"},
       {"id":"fragment-leeching","name":"Echo of Leeching","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":false,"statText":"Health regeneration"}
     ],
-    "artifact":{"perks":[
+    "artifact":{"unlockedCount":12,"perks":[
       {"id":"artifact-1","name":"Barrier Support","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":true},
       {"id":"artifact-2","name":"Overload Support","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":false},
       {"id":"artifact-3","name":"Unstoppable Support","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":true},
       {"id":"artifact-4","name":"Void Support","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":true},
-      {"id":"artifact-5","name":"Flex Perk","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":false}
+      {"id":"artifact-5","name":"Flex Perk","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":false},
+      {"id":"artifact-6","name":"Season Flex","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":false}
     ]}
   },
   "equipment":{
@@ -55,20 +57,22 @@
       {"name":"Mobility","value":100},{"name":"Resilience","value":65},{"name":"Recovery","value":45},{"name":"Discipline","value":100},{"name":"Intellect","value":36},{"name":"Strength","value":70}
     ]
   },
-  "activity":{"name":"Grandmaster Nightfall Preview","champions":["Barrier","Unstoppable"],"surge":"Void"},
+  "activity":{"name":"Grandmaster Nightfall Preview","location":"Activity context demonstration","champions":["Barrier","Unstoppable"],"surge":"Void"},
   "analysis":{
     "buildScore":95,
+    "health":{"grade":"A","label":"EXCELLENT","summary":"The interface is ready to explain build health once live identity and verified reasoning are connected."},
     "measures":[
       {"label":"Loop Strength","value":92},{"label":"Survivability","value":88},{"label":"Crowd Control","value":84},{"label":"Add Clear","value":90},{"label":"Boss Damage","value":72},{"label":"Ability Uptime","value":89}
     ],
     "coverage":[
       {"label":"Barrier","covered":true},{"label":"Unstoppable","covered":true},{"label":"Overload","covered":false}
     ],
-    "loopSummary":"Illustrative preview only. The real panel will use verified graph edges, live equipment and selected activity context.",
+    "loopSummary":"Illustrative preview only. The live panel will use verified graph edges, equipped instances and selected activity context.",
     "primaryLoop":{"nodes":["Dodge","Stylish Executioner","Invisible","Echo of Persistence","Safer repositioning"]},
+    "strengths":["Strong ability uptime","Good add-control structure","Clear invisibility pathway"],
+    "weaknesses":["Boss damage remains the weakest preview measure","Overload coverage is not represented"],
     "recommendations":[
-      {"title":"Connect Bungie for verified personal advice","reason":"Live ownership, equipped instances and activity state are required before Paradox Forge can make a personal recommendation."},
-      {"title":"Preview identifies missing Overload coverage","reason":"This is a demonstration of the interface only, not a live recommendation."}
+      {"title":"Connect Bungie for verified personal advice","reason":"Live ownership, equipped instances and activity state are required before Paradox Forge can improve and deploy this Guardian."}
     ]
   }
 }
