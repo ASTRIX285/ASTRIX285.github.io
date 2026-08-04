@@ -1,10 +1,11 @@
 const $=(selector,root=document)=>root.querySelector(selector);
 const all=(selector,root=document)=>[...root.querySelectorAll(selector)];
-const safe=value=>String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+const safe=value=>String(value??'').replace(/[&<>'\"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[char]));
 
 function hexToRgb(hex){const value=String(hex||'').replace('#','');if(!/^[0-9a-f]{6}$/i.test(value))return '159,102,255';return `${parseInt(value.slice(0,2),16)},${parseInt(value.slice(2,4),16)},${parseInt(value.slice(4,6),16)}`;}
 function setText(selector,value){const node=$(selector);if(node)node.textContent=value??'';}
 function setImage(selector,url,alt=''){const node=$(selector);if(!node)return;node.src=url||'';node.alt=alt;node.hidden=!url;}
+function setHidden(node,hidden){if(node)node.hidden=Boolean(hidden);}
 
 function card(item,meta=''){
   const icon=item.iconUrl?`<img src="${safe(item.iconUrl)}" alt="${safe(item.name)}">`:'<div class="icon-fallback" aria-hidden="true"></div>';
@@ -19,7 +20,7 @@ function renderArmour(items=[]){return items.map(item=>`<button class="armour-it
 function renderStageStats(stats=[]){return stats.map(item=>`<div>${safe(item.value)} · ${safe(item.name)}</div>`).join('');}
 function dockCard(item){return `<article class="dock-card" data-inspect="${safe(item.id)}" data-description="${safe(item.description||item.type||'Preview equipment')}"><h3>${safe(item.slot)}</h3><div class="dock-main">${item.iconUrl?`<img src="${safe(item.iconUrl)}" alt="${safe(item.name)}">`:'<span class="dock-image-fallback"></span>'}<div><strong>${safe(item.name)}</strong><small>${safe(item.type||'Preview equipment')}</small><b>${item.power?safe(item.power):'Preview'}</b></div></div></article>`;}
 function statsCard(stats=[]){return `<article class="dock-card"><h3>Stats</h3>${stats.map(item=>`<div class="stat-row"><span>${safe(item.name)}</span><span><i style="width:${Math.min(100,Number(item.value)||0)}%"></i></span><b>${safe(item.value)}</b></div>`).join('')}</article>`;}
-function modsCard(mods=[]){const values=mods.length?mods:Array.from({length:8},(_,i)=>({name:`Preview mod ${i+1}`}));return `<article class="dock-card"><h3>Armor Mods</h3><div class="mods-grid">${values.map(mod=>`<button class="mod-box" type="button" data-inspect="${safe(mod.id||mod.name)}" data-description="${safe(mod.description||'Mod details load from the connected Guardian.') }" title="${safe(mod.name)}">${mod.iconUrl?`<img src="${safe(mod.iconUrl)}" alt="">`:'◇'}</button>`).join('')}</div></article>`;}
+function modsCard(mods=[]){const values=mods.length?mods:Array.from({length:8},(_,i)=>({name:`Preview mod ${i+1}`}));return `<article class="dock-card"><h3>Armor Mods</h3><div class="mods-grid">${values.map(mod=>`<button class="mod-box" type="button" data-inspect="${safe(mod.id||mod.name)}" data-description="${safe(mod.description||'Mod details load from the connected Guardian.')}" title="${safe(mod.name)}">${mod.iconUrl?`<img src="${safe(mod.iconUrl)}" alt="">`:'◇'}</button>`).join('')}</div></article>`;}
 function activityCard(activity){return `<article class="dock-card"><h3>Activity</h3><strong>${safe(activity?.name||'No activity selected')}</strong><p>${activity?`Champions: ${safe((activity.champions||[]).join(', ')||'None')}<br>Surge: ${safe(activity.surge||'None')}<br>${safe(activity.location||'')}`:'Select an activity to adapt recommendations.'}</p></article>`;}
 
 function bindInspection(){
@@ -59,33 +60,40 @@ function render(state){
 
   const renderNode=$('[data-guardian-render]');
   const fallback=$('[data-guardian-fallback]');
-  if(state.character.renderUrl){renderNode.src=state.character.renderUrl;renderNode.hidden=false;fallback.hidden=true;}else{renderNode.hidden=true;fallback.hidden=false;}
+  if(state.character.renderUrl&&renderNode){
+    renderNode.src=state.character.renderUrl;
+    setHidden(renderNode,false);
+    setHidden(fallback,true);
+  }else{
+    setHidden(renderNode,true);
+    setHidden(fallback,false);
+  }
 
-  $('[data-supers]').innerHTML=state.subclass.supers.map(item=>card(item,item.equipped?'Equipped':'Available')).join('');
-  $('[data-abilities]').innerHTML=state.subclass.abilities.map(item=>card(item,item.slot)).join('');
-  $('[data-aspects]').innerHTML=state.subclass.aspects.map(item=>card(item,`${item.fragmentSlots||0} fragment slots`)).join('');
-  $('[data-fragments]').innerHTML=state.subclass.fragments.map(item=>card(item,item.statText||'Fragment')).join('');
-  $('[data-artifact]').innerHTML=state.subclass.artifact.perks.map(item=>card({...item,equipped:item.active},item.active?'Active':'Unlocked')).join('');
+  const supers=$('[data-supers]');if(supers)supers.innerHTML=state.subclass.supers.map(item=>card(item,item.equipped?'Equipped':'Available')).join('');
+  const abilities=$('[data-abilities]');if(abilities)abilities.innerHTML=state.subclass.abilities.map(item=>card(item,item.slot)).join('');
+  const aspects=$('[data-aspects]');if(aspects)aspects.innerHTML=state.subclass.aspects.map(item=>card(item,`${item.fragmentSlots||0} fragment slots`)).join('');
+  const fragments=$('[data-fragments]');if(fragments)fragments.innerHTML=state.subclass.fragments.map(item=>card(item,item.statText||'Fragment')).join('');
+  const artifact=$('[data-artifact]');if(artifact)artifact.innerHTML=state.subclass.artifact.perks.map(item=>card({...item,equipped:item.active},item.active?'Active':'Unlocked')).join('');
   setText('[data-aspect-count]',`${state.subclass.aspects.filter(item=>item.equipped).length} / ${state.subclass.aspects.length}`);
   setText('[data-fragment-count]',`${state.subclass.fragments.filter(item=>item.equipped).length} / ${state.subclass.fragments.length}`);
   setText('[data-artifact-count]',`${state.subclass.artifact.unlockedCount??state.subclass.artifact.perks.length} unlocked`);
 
-  $('[data-armour]').innerHTML=renderArmour(state.equipment.armour);
-  $('[data-stage-stats]').innerHTML=renderStageStats(state.equipment.stats);
+  const armour=$('[data-armour]');if(armour)armour.innerHTML=renderArmour(state.equipment.armour);
+  const stageStats=$('[data-stage-stats]');if(stageStats)stageStats.innerHTML=renderStageStats(state.equipment.stats);
   setText('[data-build-score]',state.analysis.buildScore??'--');
   setText('[data-health-grade]',state.analysis.health?.grade||'--');
   setText('[data-health-label]',state.analysis.health?.label||'Analysing');
   setText('[data-health-summary]',state.analysis.health?.summary||'Connect Bungie for a verified personal assessment.');
-  $('[data-measures]').innerHTML=renderMeters(state.analysis.measures);
-  $('[data-coverage]').innerHTML=renderCoverage(state.analysis.coverage);
+  const measures=$('[data-measures]');if(measures)measures.innerHTML=renderMeters(state.analysis.measures);
+  const coverage=$('[data-coverage]');if(coverage)coverage.innerHTML=renderCoverage(state.analysis.coverage);
   setText('[data-loop-summary]',state.analysis.loopSummary);
-  $('[data-evidence-path]').innerHTML=renderPath(state.analysis.primaryLoop.nodes);
-  $('[data-strengths]').innerHTML=renderInsights(state.analysis.strengths||[]);
-  $('[data-weaknesses]').innerHTML=renderInsights(state.analysis.weaknesses||[]);
-  $('[data-recommendations]').innerHTML=renderRecommendations(state.analysis.recommendations);
-  $('[data-activity]').innerHTML=`<strong>${safe(state.activity.name)}</strong><p>${safe(state.activity.location||'')}<br>Champions: ${safe(state.activity.champions.join(', '))}<br>Surge: ${safe(state.activity.surge)}</p>`;
+  const evidencePath=$('[data-evidence-path]');if(evidencePath)evidencePath.innerHTML=renderPath(state.analysis.primaryLoop.nodes);
+  const strengths=$('[data-strengths]');if(strengths)strengths.innerHTML=renderInsights(state.analysis.strengths||[]);
+  const weaknesses=$('[data-weaknesses]');if(weaknesses)weaknesses.innerHTML=renderInsights(state.analysis.weaknesses||[]);
+  const recommendations=$('[data-recommendations]');if(recommendations)recommendations.innerHTML=renderRecommendations(state.analysis.recommendations);
+  const activity=$('[data-activity]');if(activity)activity.innerHTML=`<strong>${safe(state.activity.name)}</strong><p>${safe(state.activity.location||'')}<br>Champions: ${safe(state.activity.champions.join(', '))}<br>Surge: ${safe(state.activity.surge)}</p>`;
 
-  $('[data-bottom-dock]').innerHTML=state.equipment.weapons.map(dockCard).join('')+modsCard(state.equipment.mods)+statsCard(state.equipment.stats)+activityCard(state.activity);
+  const bottomDock=$('[data-bottom-dock]');if(bottomDock)bottomDock.innerHTML=state.equipment.weapons.map(dockCard).join('')+modsCard(state.equipment.mods)+statsCard(state.equipment.stats)+activityCard(state.activity);
   bindInspection();
   $('[data-improve]')?.addEventListener('click',()=>setText('[data-selection]','Improve My Guardian: deployment validation, ownership checks and Bungie push planning will start here after account connection.'));
 }
