@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Paradox Forge | Guardian Workspace v2</title>
+  <link rel="stylesheet" href="./guardian-workspace-v2.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">P</span><div><strong>PARADOX FORGE</strong><small>ASTRIX DESTINY ADVISOR</small></div></div>
+  <nav><a href="#">Forge</a><a class="active" href="#">Guardian</a><a href="#">Builds</a><a href="#">Encounters</a></nav>
+  <div class="account"><span class="dot"></span><strong id="account-name">Preview</strong></div>
+</header>
+
+<main class="app-shell">
+  <div class="preview-note" id="preview-note">Loading Guardian Workspace preview…</div>
+
+  <section class="workspace-grid">
+    <aside class="panel build-panel">
+      <div class="subclass-head">
+        <img id="subclass-crest" alt="Subclass crest">
+        <div><span class="eyebrow">Subclass</span><h1 id="subclass-name">NIGHTSTALKER</h1><p id="subclass-meta">HUNTER · VOID</p></div>
+        <div class="power"><strong id="power">2043</strong><small>POWER</small></div>
+      </div>
+
+      <section><div class="section-title"><h2>Super</h2><span>1 equipped</span></div><div class="tile-grid three" id="supers"></div></section>
+      <section><div class="section-title"><h2>Abilities</h2><span>Equipped</span></div><div class="tile-grid four" id="abilities"></div></section>
+      <section><div class="section-title"><h2>Aspects</h2><span id="aspect-count">2 / 3</span></div><div class="tile-grid three" id="aspects"></div></section>
+      <section><div class="section-title"><h2>Fragments</h2><span id="fragment-count">4 / 5</span></div><div class="tile-grid five" id="fragments"></div></section>
+      <section><div class="section-title"><h2>Seasonal Artifact</h2><span id="artifact-count">12 unlocked</span></div><div class="tile-grid six" id="artifact"></div></section>
+    </aside>
+
+    <section class="panel guardian-stage">
+      <div class="stage-glow"></div>
+      <div class="stage-head">
+        <div><span class="eyebrow">Guardian Workspace</span><h2 id="guardian-name">ASTRIX285</h2><p id="guardian-meta">Hunter · Nightstalker</p></div>
+        <div class="power"><strong id="stage-power">2043</strong><small>POWER</small></div>
+      </div>
+
+      <div class="identity-card">
+        <div><small>Guardian Rank</small><strong id="guardian-rank">11</strong></div>
+        <div><small>Triumph Score</small><strong id="triumph-score">184,250</strong></div>
+        <div><small>Emblem</small><strong id="emblem-name">Preview Emblem</strong></div>
+      </div>
+
+      <div class="guardian-canvas">
+        <img id="guardian-render" class="guardian-render" alt="Guardian render">
+        <div id="guardian-fallback" class="guardian-fallback">
+          <span class="fallback-ring"></span>
+          <img id="fallback-crest" alt="Subclass crest">
+          <strong>LIVE GUARDIAN</strong>
+          <span>Loads after Bungie connect</span>
+        </div>
+      </div>
+
+      <div class="armour-stack" id="armour-stack"></div>
+      <div class="title-ribbon" id="title-ribbon">CONQUEROR</div>
+    </section>
+
+    <aside class="panel analysis-panel">
+      <section class="analysis-hero">
+        <div class="analysis-top"><div><span class="eyebrow">Paradox Analysis</span><h2>Guardian Health</h2></div><div class="score"><strong id="build-score">95</strong><span>/100</span></div></div>
+        <div class="health-row"><div class="health-ring"><span id="health-grade">A</span></div><div><strong id="health-label">EXCELLENT</strong><p id="health-summary">This build is highly effective for the selected activity.</p></div></div>
+        <div id="measures"></div>
+      </section>
+
+      <section><h3>Champion Coverage</h3><div class="coverage" id="coverage"></div></section>
+      <section><h3>Why This Build Works</h3><p id="loop-summary">A directed cause-and-effect chain explains how this build sustains its loop.</p><div class="path" id="loop-path"></div></section>
+      <section><h3>Strengths</h3><div class="insight-list good" id="strengths"></div></section>
+      <section><h3>Weak Links</h3><div class="insight-list bad" id="weaknesses"></div></section>
+      <section><h3>Today's Improvement</h3><div id="recommendations"></div></section>
+      <section><h3>Activity Context</h3><div id="activity"></div></section>
+      <section><h3>Inspection</h3><p id="inspection">Choose an item to inspect its role in the build.</p></section>
+    </aside>
+
+    <section class="bottom-dock" id="bottom-dock"></section>
+  </section>
+</main>
+
+<footer class="action-bar">
+  <button>Loadouts</button><button>Compare</button><button class="primary" id="improve-button">✦ Improve My Guardian</button><button>Save Loadout</button><button>Share</button>
+</footer>
+
+<script type="module" src="./guardian-workspace-v2.mjs"></script>
+</body>
+</html>
