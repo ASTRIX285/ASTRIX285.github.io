@@ -2,7 +2,7 @@
   "notice":"Verified interface preview. No Bungie account is connected and no personal recommendation has been generated.",
   "theme":{"accent":"#9f66ff","accentRgb":"159,102,255"},
   "player":{"displayName":"ASTRIX285","membershipCode":"5438"},
-  "character":{"className":"Hunter","power":2043,"guardianRank":11,"triumphScore":"184,250","emblemName":"Preview Emblem","title":"CONQUEROR","renderUrl":null},
+  "character":{"className":"Hunter","power":550,"guardianRank":11,"triumphScore":"184,250","emblemName":"Preview Emblem","title":"CONQUEROR","renderUrl":null},
   "subclass":{
     "name":"NIGHTSTALKER",
     "element":{"name":"VOID","crestUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"},
@@ -40,9 +40,9 @@
   },
   "equipment":{
     "weapons":[
-      {"slot":"Kinetic Weapon","name":"THE CALL","type":"Sidearm","power":2010},
-      {"slot":"Energy Weapon","name":"FUNNELWEB","type":"Submachine Gun","power":2012},
-      {"slot":"Power Weapon","name":"CATACLYSMIC","type":"Linear Fusion Rifle","power":2010}
+      {"slot":"Kinetic Weapon","name":"THE CALL","type":"Sidearm","power":550},
+      {"slot":"Energy Weapon","name":"FUNNELWEB","type":"Submachine Gun","power":550},
+      {"slot":"Power Weapon","name":"CATACLYSMIC","type":"Linear Fusion Rifle","power":550}
     ],
     "armour":[
       {"slot":"Helmet","shortLabel":"HELM","name":"Preview Helmet"},
