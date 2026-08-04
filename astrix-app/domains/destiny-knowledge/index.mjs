@@ -1,8 +1,8 @@
 /**
  * Paradox Forge Destiny Knowledge domain.
  *
- * This file is an additive facade over the services that already exist.
- * Nothing is moved or renamed, so all current imports keep working.
+ * Additive facade over the services that already exist. Existing files,
+ * imports, workflows and data paths remain unchanged.
  */
 
 export {
@@ -19,8 +19,7 @@ export {
 
 export {
   GameComponentService,
-  GAME_COMPONENT_SERVICE_VERSION,
-  DEFAULT_GAME_COMPONENT_CATALOGUE_URL
+  DEFAULT_GAME_COMPONENTS_URL
 } from '../../services/game-component-service.mjs';
 
 export {
@@ -30,7 +29,5 @@ export {
 } from '../../services/cosmetic-service.mjs';
 
 export {
-  KnowledgeGraphService,
-  KNOWLEDGE_GRAPH_SERVICE_VERSION,
-  DEFAULT_KNOWLEDGE_RELATIONSHIPS_URL
+  KnowledgeGraphService
 } from '../../services/knowledge-graph-service.mjs';
