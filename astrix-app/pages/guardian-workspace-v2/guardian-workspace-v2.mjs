@@ -2,6 +2,7 @@ const byId=id=>document.getElementById(id);
 const text=(id,value)=>{const el=byId(id);if(el)el.textContent=value??'';};
 const image=(id,url,alt='')=>{const el=byId(id);if(!el)return;el.src=url||'';el.alt=alt;el.hidden=!url;};
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PREVIEW_GUARDIAN_RENDER='./guardian-preview.jpg';
 
 function tile(item,meta=''){
   const icon=item.iconUrl?`<img src="${esc(item.iconUrl)}" alt="${esc(item.name)}">`:'';
@@ -25,7 +26,14 @@ function render(data){
   text('emblem-name',data.character.emblemName||'Not connected');text('title-ribbon',data.character.title||'GUARDIAN');
   image('subclass-crest',data.subclass.element.crestUrl,`${data.subclass.element.name} crest`);image('fallback-crest',data.subclass.element.crestUrl,`${data.subclass.element.name} crest`);
   const guardian=byId('guardian-render'),fallback=byId('guardian-fallback');
-  if(guardian&&fallback){guardian.hidden=!data.character.renderUrl;fallback.hidden=Boolean(data.character.renderUrl);if(data.character.renderUrl)guardian.src=data.character.renderUrl;}
+  const guardianRenderUrl=data.character.renderUrl||PREVIEW_GUARDIAN_RENDER;
+  if(guardian&&fallback){
+    guardian.hidden=false;
+    guardian.src=guardianRenderUrl;
+    guardian.alt=data.character.renderUrl?'Live Guardian render':'Temporary Void Hunter preview render';
+    fallback.hidden=true;
+    guardian.onerror=()=>{guardian.hidden=true;fallback.hidden=false;};
+  }
   byId('supers').innerHTML=data.subclass.supers.map(x=>tile(x,x.equipped?'Equipped':'Available')).join('');
   byId('abilities').innerHTML=data.subclass.abilities.map(x=>tile(x,x.slot)).join('');
   byId('aspects').innerHTML=data.subclass.aspects.map(x=>tile(x,`${x.fragmentSlots||0} fragment slots`)).join('');
