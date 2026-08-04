@@ -2,30 +2,45 @@ const $=(selector,root=document)=>root.querySelector(selector);
 const all=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const safe=value=>String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 
-function card(item,meta=''){
-  const icon=item.iconUrl?`<img src="${safe(item.iconUrl)}" alt="${safe(item.name)}">`:'<div class="icon-fallback" aria-hidden="true"></div>';
-  return `<button class="build-card${item.equipped?' is-equipped':''}" data-inspect="${safe(item.id)}" type="button">${item.equipped?'<span class="equipped-dot">✓</span>':''}${icon}<strong>${safe(item.name)}</strong><small>${safe(meta||item.state||'Available')}</small></button>`;
-}
-
+function hexToRgb(hex){const value=String(hex||'').replace('#','');if(!/^[0-9a-f]{6}$/i.test(value))return '159,102,255';return `${parseInt(value.slice(0,2),16)},${parseInt(value.slice(2,4),16)},${parseInt(value.slice(4,6),16)}`;}
 function setText(selector,value){const node=$(selector);if(node)node.textContent=value??'';}
 function setImage(selector,url,alt=''){const node=$(selector);if(!node)return;node.src=url||'';node.alt=alt;node.hidden=!url;}
 
-function renderMeters(measures=[]){return measures.map(item=>`<div class="meter"><label>${safe(item.label)}</label><span class="meter-track"><i style="width:${Math.max(0,Math.min(100,Number(item.value)||0))}%"></i></span><b>${safe(item.value)}%</b></div>`).join('');}
+function card(item,meta=''){
+  const icon=item.iconUrl?`<img src="${safe(item.iconUrl)}" alt="${safe(item.name)}">`:'<div class="icon-fallback" aria-hidden="true"></div>';
+  return `<button class="build-card${item.equipped?' is-equipped':''}" data-inspect="${safe(item.id)}" data-description="${safe(item.description||meta||'')}" type="button">${item.equipped?'<span class="equipped-dot">✓</span>':''}${icon}<strong>${safe(item.name)}</strong><small>${safe(meta||item.state||'Available')}</small></button>`;
+}
+function renderMeters(items=[]){return items.map(item=>`<div class="meter"><label>${safe(item.label)}</label><span class="meter-track"><i style="width:${Math.max(0,Math.min(100,Number(item.value)||0))}%"></i></span><b>${safe(item.value)}%</b></div>`).join('');}
 function renderCoverage(items=[]){return items.map(item=>`<div class="coverage-row"><span>${safe(item.label)}</span><strong class="${item.covered?'status-good':'status-bad'}">${item.covered?'✓ Covered':'✕ Missing'}</strong></div>`).join('');}
-function renderPath(nodes=[]){return nodes.map((node,index)=>`${index?'<span class="path-arrow">→</span>':''}<span class="path-node">${safe(node)}</span>`).join('');}
+function renderPath(nodes=[]){return nodes.map((node,index)=>`${index?'<span class="path-arrow">→</span>':''}<button class="path-node" type="button" data-path-node="${safe(node)}">${safe(node)}</button>`).join('');}
 function renderRecommendations(items=[]){return items.map(item=>`<article class="recommendation"><strong>${safe(item.title)}</strong><p>${safe(item.reason)}</p></article>`).join('');}
-
-function renderArmour(items=[]){return items.map(item=>`<button class="armour-item" data-inspect="${safe(item.id)}" title="${safe(item.name)}">${safe(item.shortLabel||item.slot)}</button>`).join('');}
+function renderInsights(items=[]){return items.map(item=>`<div class="insight-row">${safe(item)}</div>`).join('');}
+function renderArmour(items=[]){return items.map(item=>`<button class="armour-item" data-inspect="${safe(item.id)}" data-description="${safe(item.description||item.name)}" title="${safe(item.name)}">${item.iconUrl?`<img src="${safe(item.iconUrl)}" alt="">`:safe(item.shortLabel||item.slot)}</button>`).join('');}
 function renderStageStats(stats=[]){return stats.map(item=>`<div>${safe(item.value)} · ${safe(item.name)}</div>`).join('');}
-function dockCard(item){return `<article class="dock-card" data-inspect="${safe(item.id)}"><h3>${safe(item.slot)}</h3><div class="dock-main">${item.iconUrl?`<img src="${safe(item.iconUrl)}" alt="${safe(item.name)}">`:''}<div><strong>${safe(item.name)}</strong><small>${safe(item.type||'Preview equipment')}</small><b>${item.power?safe(item.power):'Preview'}</b></div></div></article>`;}
+function dockCard(item){return `<article class="dock-card" data-inspect="${safe(item.id)}" data-description="${safe(item.description||item.type||'Preview equipment')}"><h3>${safe(item.slot)}</h3><div class="dock-main">${item.iconUrl?`<img src="${safe(item.iconUrl)}" alt="${safe(item.name)}">`:'<span class="dock-image-fallback"></span>'}<div><strong>${safe(item.name)}</strong><small>${safe(item.type||'Preview equipment')}</small><b>${item.power?safe(item.power):'Preview'}</b></div></div></article>`;}
 function statsCard(stats=[]){return `<article class="dock-card"><h3>Stats</h3>${stats.map(item=>`<div class="stat-row"><span>${safe(item.name)}</span><span><i style="width:${Math.min(100,Number(item.value)||0)}%"></i></span><b>${safe(item.value)}</b></div>`).join('')}</article>`;}
-function modsCard(mods=[]){return `<article class="dock-card"><h3>Armor Mods</h3><div class="mods-grid">${(mods.length?mods:Array.from({length:8},(_,i)=>({name:`Mod ${i+1}`}))).map(mod=>`<div class="mod-box" title="${safe(mod.name)}">◇</div>`).join('')}</div></article>`;}
-function activityCard(activity){return `<article class="dock-card"><h3>Activity Context</h3><strong>${safe(activity?.name||'No activity selected')}</strong><p>${activity?`Champions: ${safe((activity.champions||[]).join(', ')||'None')}<br>Surge: ${safe(activity.surge||'None')}`:'Select an activity to adapt recommendations.'}</p></article>`;}
+function modsCard(mods=[]){const values=mods.length?mods:Array.from({length:8},(_,i)=>({name:`Preview mod ${i+1}`}));return `<article class="dock-card"><h3>Armor Mods</h3><div class="mods-grid">${values.map(mod=>`<button class="mod-box" type="button" data-inspect="${safe(mod.id||mod.name)}" data-description="${safe(mod.description||'Mod details load from the connected Guardian.') }" title="${safe(mod.name)}">${mod.iconUrl?`<img src="${safe(mod.iconUrl)}" alt="">`:'◇'}</button>`).join('')}</div></article>`;}
+function activityCard(activity){return `<article class="dock-card"><h3>Activity</h3><strong>${safe(activity?.name||'No activity selected')}</strong><p>${activity?`Champions: ${safe((activity.champions||[]).join(', ')||'None')}<br>Surge: ${safe(activity.surge||'None')}<br>${safe(activity.location||'')}`:'Select an activity to adapt recommendations.'}</p></article>`;}
+
+function bindInspection(){
+  all('[data-inspect]').forEach(node=>node.addEventListener('click',()=>{
+    all('[data-inspect]').forEach(item=>item.classList.remove('is-focused'));
+    node.classList.add('is-focused');
+    const label=node.querySelector('strong')?.textContent||node.title||node.dataset.inspect;
+    const description=node.dataset.description||'This component is ready for manifest, ownership and reasoning bindings.';
+    setText('[data-selection]',`${label}: ${description}`);
+  }));
+  all('[data-path-node]').forEach(node=>node.addEventListener('click',()=>setText('[data-selection]',`${node.dataset.pathNode}: this is one verified step in the build's directed cause-and-effect chain.`)));
+}
 
 function render(state){
-  document.documentElement.style.setProperty('--accent',state.subclass.element.accent||'#9f66ff');
+  const accent=state.theme?.accent||state.subclass.element.accent||'#9f66ff';
+  document.documentElement.style.setProperty('--accent',accent);
+  document.documentElement.style.setProperty('--accent-rgb',state.theme?.accentRgb||hexToRgb(accent));
+  document.body.dataset.element=String(state.subclass.element.name||'void').toLowerCase();
+
   setText('[data-account]',`${state.player.displayName}${state.player.membershipCode?`#${state.player.membershipCode}`:''}`);
-  setText('[data-season]',state.player.seasonLabel||'Preview season');
+  setText('[data-season]',state.player.seasonLabel||'Preview mode');
   setText('[data-preview-banner]',state.notice||'Preview mode');
   setText('[data-subclass-name]',state.subclass.name);
   setText('[data-class-name]',`${state.character.className} SUBCLASS`);
@@ -33,7 +48,12 @@ function render(state){
   setText('[data-power]',state.character.power??'PREVIEW');
   setText('[data-stage-power]',state.character.power??'PREVIEW');
   setText('[data-guardian-name]',state.player.displayName);
+  setText('[data-guardian-class]',state.character.className);
+  setText('[data-guardian-subclass]',state.subclass.name);
   setText('[data-title]',state.character.title||'GUARDIAN');
+  setText('[data-guardian-rank]',state.character.guardianRank??'Preview');
+  setText('[data-triumph-score]',state.character.triumphScore??'Preview');
+  setText('[data-emblem]',state.character.emblemName||'Not connected');
   setImage('[data-subclass-crest]',state.subclass.element.crestUrl,`${state.subclass.element.name} crest`);
   setImage('[data-fallback-crest]',state.subclass.element.crestUrl,`${state.subclass.element.name} crest`);
 
@@ -46,23 +66,28 @@ function render(state){
   $('[data-aspects]').innerHTML=state.subclass.aspects.map(item=>card(item,`${item.fragmentSlots||0} fragment slots`)).join('');
   $('[data-fragments]').innerHTML=state.subclass.fragments.map(item=>card(item,item.statText||'Fragment')).join('');
   $('[data-artifact]').innerHTML=state.subclass.artifact.perks.map(item=>card({...item,equipped:item.active},item.active?'Active':'Unlocked')).join('');
-  setText('[data-aspect-count]',`${state.subclass.aspects.filter(item=>item.equipped).length} equipped`);
-  setText('[data-fragment-count]',`${state.subclass.fragments.filter(item=>item.equipped).length} equipped`);
+  setText('[data-aspect-count]',`${state.subclass.aspects.filter(item=>item.equipped).length} / ${state.subclass.aspects.length}`);
+  setText('[data-fragment-count]',`${state.subclass.fragments.filter(item=>item.equipped).length} / ${state.subclass.fragments.length}`);
+  setText('[data-artifact-count]',`${state.subclass.artifact.unlockedCount??state.subclass.artifact.perks.length} unlocked`);
 
   $('[data-armour]').innerHTML=renderArmour(state.equipment.armour);
   $('[data-stage-stats]').innerHTML=renderStageStats(state.equipment.stats);
-  $('[data-build-score]').textContent=state.analysis.buildScore??'--';
+  setText('[data-build-score]',state.analysis.buildScore??'--');
+  setText('[data-health-grade]',state.analysis.health?.grade||'--');
+  setText('[data-health-label]',state.analysis.health?.label||'Analysing');
+  setText('[data-health-summary]',state.analysis.health?.summary||'Connect Bungie for a verified personal assessment.');
   $('[data-measures]').innerHTML=renderMeters(state.analysis.measures);
   $('[data-coverage]').innerHTML=renderCoverage(state.analysis.coverage);
   setText('[data-loop-summary]',state.analysis.loopSummary);
   $('[data-evidence-path]').innerHTML=renderPath(state.analysis.primaryLoop.nodes);
+  $('[data-strengths]').innerHTML=renderInsights(state.analysis.strengths||[]);
+  $('[data-weaknesses]').innerHTML=renderInsights(state.analysis.weaknesses||[]);
   $('[data-recommendations]').innerHTML=renderRecommendations(state.analysis.recommendations);
-  $('[data-activity]').innerHTML=`<strong>${safe(state.activity.name)}</strong><p>Champions: ${safe(state.activity.champions.join(', '))}<br>Surge: ${safe(state.activity.surge)}</p>`;
+  $('[data-activity]').innerHTML=`<strong>${safe(state.activity.name)}</strong><p>${safe(state.activity.location||'')}<br>Champions: ${safe(state.activity.champions.join(', '))}<br>Surge: ${safe(state.activity.surge)}</p>`;
 
-  const weapons=state.equipment.weapons.map(dockCard).join('');
-  $('[data-bottom-dock]').innerHTML=weapons+modsCard(state.equipment.mods)+statsCard(state.equipment.stats)+activityCard(state.activity);
-
-  all('[data-inspect]').forEach(node=>node.addEventListener('click',()=>{const label=node.querySelector('strong')?.textContent||node.title||node.dataset.inspect;setText('[data-selection]',`${label}: preview inspection is ready for manifest and reasoning bindings.`);}));
+  $('[data-bottom-dock]').innerHTML=state.equipment.weapons.map(dockCard).join('')+modsCard(state.equipment.mods)+statsCard(state.equipment.stats)+activityCard(state.activity);
+  bindInspection();
+  $('[data-improve]')?.addEventListener('click',()=>setText('[data-selection]','Improve My Guardian: deployment validation, ownership checks and Bungie push planning will start here after account connection.'));
 }
 
 async function init(){
@@ -72,7 +97,7 @@ async function init(){
     render(await response.json());
   }catch(error){
     console.error(error);
-    setText('[data-preview-banner]',`Unable to load production preview: ${error.message}`);
+    setText('[data-preview-banner]',`Unable to load Guardian Workspace: ${error.message}`);
   }
 }
 
