@@ -32,10 +32,17 @@
 .health-row{grid-template-columns:74px 1fr;margin:8px 0}
 .health-ring{width:68px;height:68px}
 .meter{grid-template-columns:88px 1fr 30px;margin:5px 0}
-.bottom-dock{grid-column:1/-1;grid-template-columns:1.35fr 1.15fr .9fr .8fr .95fr;gap:6px}
+.bottom-dock{grid-column:1/-1;display:grid;grid-template-columns:1.55fr 1.15fr .9fr .8fr .95fr;gap:6px}
+.weapon-group{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .dock-card{min-height:154px;padding:9px}
+.weapon-group .dock-card{min-width:0}
 .dock-main{gap:8px}
-.dock-image{width:62px;height:62px}
+.dock-image{width:56px;height:56px}
+.armour-dock{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:8px}
+.armour-dock-item{min-width:0;min-height:88px;border:1px solid rgba(var(--accent-rgb),.35);background:linear-gradient(180deg,rgba(var(--accent-rgb),.16),rgba(255,255,255,.02));color:inherit;padding:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.armour-dock-item span{font-weight:800;font-size:.62rem;color:var(--accent)}
+.armour-dock-item small{font-size:.48rem;opacity:.7;text-align:center}
+.dock-card h3 small{float:right;font-size:.48rem;opacity:.65}
 .action-bar{height:var(--compact-action);grid-template-columns:.8fr .8fr minmax(300px,440px) .8fr .8fr}
 .action-bar .primary{font-size:.9rem}
 @media(min-width:1700px){.workspace-grid{grid-template-columns:320px minmax(900px,1fr) 410px}.guardian-canvas{left:230px;padding-right:50px}.guardian-render{max-width:72%;transform:translateX(8%)}}
