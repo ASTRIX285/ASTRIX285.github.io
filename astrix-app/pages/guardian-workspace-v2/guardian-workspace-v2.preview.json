@@ -1,0 +1,73 @@
+{
+  "notice":"Verified interface preview. No Bungie account is connected and no personal recommendation has been generated.",
+  "theme":{"accent":"#9f66ff","accentRgb":"159,102,255"},
+  "player":{"displayName":"ASTRIX285","membershipCode":"5438"},
+  "character":{"className":"Hunter","power":2043,"guardianRank":11,"triumphScore":"184,250","emblemName":"Preview Emblem","title":"CONQUEROR","renderUrl":null},
+  "subclass":{
+    "name":"NIGHTSTALKER",
+    "element":{"name":"VOID","crestUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"},
+    "supers":[
+      {"name":"Shadowshot: Deadfall","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true},
+      {"name":"Moebius Quiver","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"},
+      {"name":"Spectral Blades","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"}
+    ],
+    "abilities":[
+      {"name":"Gambler's Dodge","slot":"Class Ability","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true},
+      {"name":"Triple Jump","slot":"Movement","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true},
+      {"name":"Snare Bomb","slot":"Melee","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true},
+      {"name":"Vortex Grenade","slot":"Grenade","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true}
+    ],
+    "aspects":[
+      {"name":"Stylish Executioner","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg","equipped":true,"fragmentSlots":2},
+      {"name":"Vanishing Step","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg","equipped":true,"fragmentSlots":2},
+      {"name":"Trapper's Ambush","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg","fragmentSlots":2}
+    ],
+    "fragments":[
+      {"name":"Echo of Persistence","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true,"statText":"Extends Void buffs"},
+      {"name":"Echo of Starvation","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true,"statText":"Orbs grant Devour"},
+      {"name":"Echo of Obscurity","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true,"statText":"Finishers grant Invis"},
+      {"name":"Echo of Undermining","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true,"statText":"Grenades Weaken"},
+      {"name":"Echo of Leeching","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","statText":"Health regeneration"}
+    ],
+    "artifact":{"unlockedCount":12,"perks":[
+      {"name":"Barrier Support","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":true},
+      {"name":"Overload Support","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"},
+      {"name":"Unstoppable Support","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":true},
+      {"name":"Void Support","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","active":true},
+      {"name":"Ability Support","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"},
+      {"name":"Flex Perk","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"}
+    ]}
+  },
+  "equipment":{
+    "weapons":[
+      {"slot":"Kinetic Weapon","name":"THE CALL","type":"Sidearm","power":2010},
+      {"slot":"Energy Weapon","name":"FUNNELWEB","type":"Submachine Gun","power":2012},
+      {"slot":"Power Weapon","name":"CATACLYSMIC","type":"Linear Fusion Rifle","power":2010}
+    ],
+    "armour":[
+      {"slot":"Helmet","shortLabel":"HELM","name":"Preview Helmet"},
+      {"slot":"Gauntlets","shortLabel":"ARMS","name":"Preview Gauntlets"},
+      {"slot":"Chest","shortLabel":"CHEST","name":"Preview Chest"},
+      {"slot":"Legs","shortLabel":"LEGS","name":"Preview Legs"},
+      {"slot":"Class Item","shortLabel":"CLASS","name":"Preview Cloak"}
+    ],
+    "mods":[],
+    "stats":[
+      {"name":"Mobility","value":100},{"name":"Resilience","value":65},{"name":"Recovery","value":45},{"name":"Discipline","value":100},{"name":"Intellect","value":36},{"name":"Strength","value":70}
+    ]
+  },
+  "activity":{"name":"Grandmaster Nightfall Preview","champions":["Barrier","Unstoppable"],"surge":"Void"},
+  "analysis":{
+    "buildScore":95,
+    "health":{"grade":"A","label":"EXCELLENT","summary":"This build is highly effective for the selected activity."},
+    "measures":[
+      {"label":"Loop Strength","value":92},{"label":"Survivability","value":88},{"label":"Crowd Control","value":84},{"label":"Add Clear","value":90},{"label":"Boss Damage","value":72},{"label":"Ability Uptime","value":89}
+    ],
+    "coverage":[{"label":"Barrier","covered":true},{"label":"Unstoppable","covered":true},{"label":"Overload","covered":false}],
+    "loopSummary":"Dodge starts a directed invisibility and survivability loop.",
+    "primaryLoop":{"nodes":["Dodge","Stylish Executioner","Invisible","Echo of Persistence","Safer repositioning"]},
+    "strengths":["Strong ability uptime","Good add-control structure","Clear invisibility pathway"],
+    "weaknesses":["Boss damage remains the weakest area","Overload coverage is not represented"],
+    "recommendations":[{"title":"Improve boss damage","reason":"Review the Heavy weapon and supporting mods while preserving the invisibility loop."}]
+  }
+}
