@@ -42,7 +42,8 @@
   </aside>
 
   <section class="stage">
-    <div class="stage-bg" id="stageBg"></div>
+    <div class="stage-bg" id="stageBg" aria-hidden="true"></div>
+    <div class="stage-particles" aria-hidden="true"></div>
     <div class="view3d"><span class="b">⬡</span><small>VIEW IN 3D</small></div>
     <div class="identity">
       <div class="id-head"><span class="id-emblem">✦</span><div><h1>Exemplar</h1><div class="rank">Kingslayer <span class="chip">🛡 11</span></div></div></div>
@@ -57,8 +58,11 @@
         <div class="cos"><span class="sw ghost">◉</span><div><small>Ghost</small><b>Omolon Shell</b></div></div>
       </div>
     </div>
-    <div class="platform"></div>
-    <div class="guardian"><img id="guardianRender" src="preview-render.png" alt="Guardian render"><div class="render-fallback" style="display:none"></div></div>
+    <div class="platform" aria-hidden="true"></div>
+    <div class="guardian">
+      <img id="guardianRender" src="./guardian-placeholder.jpg" alt="Temporary Guardian preview render" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+      <div class="render-fallback" hidden><span>GUARDIAN PREVIEW</span><small>Add guardian-placeholder.jpg</small></div>
+    </div>
   </section>
 
   <aside class="panel right">
