@@ -1,4 +1,4 @@
-/* Guardian stage background only. Safe to theme independently of the live Guardian render. */
+/* Guardian stage background only. No Guardian artwork is allowed in this layer. */
 .stage-backdrop{
   position:absolute;
   inset:0;
@@ -6,28 +6,28 @@
   pointer-events:none;
   overflow:hidden;
   background:
-    radial-gradient(58% 52% at 70% 43%,rgba(139,92,246,.25),transparent 65%),
-    radial-gradient(105% 85% at 60% 115%,rgba(139,92,246,.17),transparent 64%),
+    radial-gradient(60% 54% at 70% 44%,rgba(139,92,246,.28),transparent 66%),
+    radial-gradient(105% 85% at 60% 115%,rgba(139,92,246,.16),transparent 64%),
     linear-gradient(180deg,#0c0a16,#08060f 72%,#05040b);
 }
 .stage-backdrop::before{
   content:"";
   position:absolute;
-  inset:0;
-  background:
-    linear-gradient(90deg,rgba(7,5,13,.95) 0%,rgba(7,5,13,.62) 28%,rgba(7,5,13,.12) 52%,rgba(7,5,13,.34) 100%),
-    url('./class-logo-bg.jpg') 72% 42%/62% auto no-repeat;
-  opacity:.5;
-  mix-blend-mode:screen;
-  filter:saturate(.9) contrast(1.08) brightness(.78);
+  width:54%;
+  aspect-ratio:1;
+  right:3%;
+  top:4%;
+  opacity:.16;
+  background:url('https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png') center/contain no-repeat;
+  filter:drop-shadow(0 0 34px rgba(139,92,246,.35));
 }
 .stage-backdrop::after{
   content:"";
   position:absolute;
   inset:0;
   background:
-    radial-gradient(circle at 72% 43%,rgba(177,135,255,.18),transparent 34%),
-    linear-gradient(90deg,rgba(6,5,11,.9),rgba(6,5,11,.32) 33%,transparent 60%);
+    linear-gradient(90deg,rgba(7,5,13,.96) 0%,rgba(7,5,13,.68) 27%,rgba(7,5,13,.14) 52%,rgba(7,5,13,.34) 100%),
+    radial-gradient(circle at 72% 43%,rgba(177,135,255,.18),transparent 34%);
   box-shadow:inset 0 0 90px rgba(0,0,0,.68);
 }
 .stage-particles{
