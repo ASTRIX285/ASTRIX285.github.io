@@ -1,0 +1,36 @@
+/* Guardian platform only. Independent from background and live Guardian render. */
+.guardian-platform{
+  position:absolute;
+  left:66%;
+  bottom:2.5%;
+  width:57%;
+  aspect-ratio:3.55/1;
+  transform:translateX(-50%);
+  z-index:3;
+  border-radius:50%;
+  background:
+    radial-gradient(ellipse at center,rgba(178,132,255,.42),rgba(139,92,246,.16) 43%,transparent 72%),
+    url('./guardian-platform.jpg') center/cover no-repeat;
+  background-blend-mode:screen,normal;
+  box-shadow:0 0 34px rgba(139,92,246,.62),0 0 90px rgba(139,92,246,.22);
+  animation:platformPulse 4.5s ease-in-out infinite;
+}
+.guardian-platform::before{
+  content:"";
+  position:absolute;
+  inset:4% 3% 8%;
+  border-radius:50%;
+  border:1px solid rgba(213,192,255,.82);
+  box-shadow:0 0 18px rgba(139,92,246,.85),inset 0 0 28px rgba(139,92,246,.42);
+}
+.guardian-platform::after{
+  content:"";
+  position:absolute;
+  left:9%;right:9%;bottom:-8%;height:42%;
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(139,92,246,.42),transparent 68%);
+  filter:blur(12px);
+}
+@keyframes platformPulse{0%,100%{filter:brightness(.93);transform:translateX(-50%) scale(.985)}50%{filter:brightness(1.14);transform:translateX(-50%) scale(1.015)}}
+@media(prefers-reduced-motion:reduce){.guardian-platform{animation:none}}
+@media(max-width:1500px){.guardian-platform{left:66%;width:61%}}
