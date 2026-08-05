@@ -1,0 +1,48 @@
+/* Guardian stage background only. Safe to theme independently of the live Guardian render. */
+.stage-backdrop{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(58% 52% at 70% 43%,rgba(139,92,246,.25),transparent 65%),
+    radial-gradient(105% 85% at 60% 115%,rgba(139,92,246,.17),transparent 64%),
+    linear-gradient(180deg,#0c0a16,#08060f 72%,#05040b);
+}
+.stage-backdrop::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(90deg,rgba(7,5,13,.95) 0%,rgba(7,5,13,.62) 28%,rgba(7,5,13,.12) 52%,rgba(7,5,13,.34) 100%),
+    url('./class-logo-bg.jpg') 72% 42%/62% auto no-repeat;
+  opacity:.5;
+  mix-blend-mode:screen;
+  filter:saturate(.9) contrast(1.08) brightness(.78);
+}
+.stage-backdrop::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 72% 43%,rgba(177,135,255,.18),transparent 34%),
+    linear-gradient(90deg,rgba(6,5,11,.9),rgba(6,5,11,.32) 33%,transparent 60%);
+  box-shadow:inset 0 0 90px rgba(0,0,0,.68);
+}
+.stage-particles{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  opacity:.3;
+  background-image:
+    radial-gradient(circle at 72% 20%,rgba(196,181,253,.8) 0 1px,transparent 2px),
+    radial-gradient(circle at 61% 31%,rgba(139,92,246,.7) 0 1px,transparent 2px),
+    radial-gradient(circle at 83% 42%,rgba(196,181,253,.7) 0 1px,transparent 2px),
+    radial-gradient(circle at 77% 67%,rgba(139,92,246,.75) 0 1px,transparent 2px),
+    radial-gradient(circle at 57% 74%,rgba(196,181,253,.65) 0 1px,transparent 2px);
+  animation:stageDrift 9s ease-in-out infinite alternate;
+}
+@keyframes stageDrift{from{transform:translateY(0);opacity:.22}to{transform:translateY(-8px);opacity:.4}}
+@media(prefers-reduced-motion:reduce){.stage-particles{animation:none}}
