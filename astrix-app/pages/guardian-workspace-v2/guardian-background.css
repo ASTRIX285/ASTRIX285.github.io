@@ -1,4 +1,9 @@
 /* Guardian stage background only. No Guardian artwork is allowed in this layer. */
+.stage{
+  --stage-accent-rgb:139,92,246;
+  --stage-class-logo:url('./D2.hunterlogo.png');
+}
+
 .stage-backdrop{
   position:absolute;
   inset:0;
@@ -6,8 +11,8 @@
   pointer-events:none;
   overflow:hidden;
   background:
-    radial-gradient(60% 54% at 70% 44%,rgba(139,92,246,.28),transparent 66%),
-    radial-gradient(105% 85% at 60% 115%,rgba(139,92,246,.16),transparent 64%),
+    radial-gradient(60% 54% at 70% 44%,rgba(var(--stage-accent-rgb),.28),transparent 66%),
+    radial-gradient(105% 85% at 60% 115%,rgba(var(--stage-accent-rgb),.16),transparent 64%),
     linear-gradient(180deg,#0c0a16,#08060f 72%,#05040b);
 }
 .stage-backdrop::before{
@@ -18,8 +23,12 @@
   right:3%;
   top:4%;
   opacity:.16;
-  background:url('https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png') center/contain no-repeat;
-  filter:drop-shadow(0 0 34px rgba(139,92,246,.35));
+  background-image:var(--stage-class-logo);
+  background-position:center;
+  background-size:contain;
+  background-repeat:no-repeat;
+  filter:drop-shadow(0 0 34px rgba(var(--stage-accent-rgb),.38));
+  transition:background-image .2s ease,filter .35s ease,opacity .35s ease;
 }
 .stage-backdrop::after{
   content:"";
@@ -27,7 +36,7 @@
   inset:0;
   background:
     linear-gradient(90deg,rgba(7,5,13,.96) 0%,rgba(7,5,13,.68) 27%,rgba(7,5,13,.14) 52%,rgba(7,5,13,.34) 100%),
-    radial-gradient(circle at 72% 43%,rgba(177,135,255,.18),transparent 34%);
+    radial-gradient(circle at 72% 43%,rgba(var(--stage-accent-rgb),.18),transparent 34%);
   box-shadow:inset 0 0 90px rgba(0,0,0,.68);
 }
 .stage-particles{
@@ -37,12 +46,13 @@
   pointer-events:none;
   opacity:.3;
   background-image:
-    radial-gradient(circle at 72% 20%,rgba(196,181,253,.8) 0 1px,transparent 2px),
-    radial-gradient(circle at 61% 31%,rgba(139,92,246,.7) 0 1px,transparent 2px),
-    radial-gradient(circle at 83% 42%,rgba(196,181,253,.7) 0 1px,transparent 2px),
-    radial-gradient(circle at 77% 67%,rgba(139,92,246,.75) 0 1px,transparent 2px),
-    radial-gradient(circle at 57% 74%,rgba(196,181,253,.65) 0 1px,transparent 2px);
+    radial-gradient(circle at 72% 20%,rgba(var(--stage-accent-rgb),.8) 0 1px,transparent 2px),
+    radial-gradient(circle at 61% 31%,rgba(var(--stage-accent-rgb),.7) 0 1px,transparent 2px),
+    radial-gradient(circle at 83% 42%,rgba(var(--stage-accent-rgb),.7) 0 1px,transparent 2px),
+    radial-gradient(circle at 77% 67%,rgba(var(--stage-accent-rgb),.75) 0 1px,transparent 2px),
+    radial-gradient(circle at 57% 74%,rgba(var(--stage-accent-rgb),.65) 0 1px,transparent 2px);
   animation:stageDrift 9s ease-in-out infinite alternate;
+  transition:background-image .35s ease;
 }
 @keyframes stageDrift{from{transform:translateY(0);opacity:.22}to{transform:translateY(-8px);opacity:.4}}
 @media(prefers-reduced-motion:reduce){.stage-particles{animation:none}}
