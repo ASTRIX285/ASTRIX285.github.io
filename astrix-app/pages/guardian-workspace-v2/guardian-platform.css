@@ -1,45 +1,19 @@
-/* Guardian platform only. Fully coded, no screenshot asset baked into it. */
-.guardian-platform{
+@import url('./guardian-platform-component.css');
+
+/* Guardian Workspace integration only. The component itself remains standalone. */
+.stage > .guardian-platform{
+  --size:clamp(360px,34vw,560px);
+  --tilt:70deg;
   position:absolute;
   left:67%;
-  bottom:2.2%;
-  width:58%;
-  aspect-ratio:3.55/1;
+  bottom:-1.5%;
   transform:translateX(-50%);
   z-index:3;
-  border-radius:50%;
-  background:
-    radial-gradient(ellipse at 50% 42%,rgba(194,160,255,.52) 0%,rgba(139,92,246,.22) 34%,rgba(56,34,91,.22) 56%,transparent 73%),
-    linear-gradient(180deg,rgba(139,92,246,.1),rgba(5,4,11,.9));
-  border:1px solid rgba(213,192,255,.58);
-  box-shadow:
-    0 0 20px rgba(177,128,255,.72),
-    0 0 65px rgba(139,92,246,.38),
-    inset 0 0 34px rgba(139,92,246,.35);
-  animation:platformPulse 4.5s ease-in-out infinite;
 }
-.guardian-platform::before{
-  content:"";
-  position:absolute;
-  inset:9% 5% 17%;
-  border-radius:50%;
-  border:1px solid rgba(223,208,255,.86);
-  background:
-    radial-gradient(circle at 50% 50%,rgba(193,158,255,.32),transparent 54%),
-    repeating-radial-gradient(ellipse at center,transparent 0 9px,rgba(177,128,255,.16) 10px 11px);
-  box-shadow:0 0 18px rgba(139,92,246,.85),inset 0 0 28px rgba(139,92,246,.42);
+
+@media (max-width:1500px){
+  .stage > .guardian-platform{
+    --size:clamp(330px,36vw,500px);
+    left:67%;
+  }
 }
-.guardian-platform::after{
-  content:"";
-  position:absolute;
-  left:8%;right:8%;bottom:-17%;height:54%;
-  border-radius:50%;
-  background:radial-gradient(ellipse at center,rgba(139,92,246,.48),rgba(139,92,246,.12) 48%,transparent 72%);
-  filter:blur(14px);
-}
-@keyframes platformPulse{
-  0%,100%{filter:brightness(.94);transform:translateX(-50%) scale(.99)}
-  50%{filter:brightness(1.1);transform:translateX(-50%) scale(1.01)}
-}
-@media(prefers-reduced-motion:reduce){.guardian-platform{animation:none}}
-@media(max-width:1500px){.guardian-platform{left:67%;width:61%}}
