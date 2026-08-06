@@ -1,33 +1,153 @@
-/* ASTRIX PARADOX Guardian Workspace Beta 0.1 overrides */
+/* ASTRIX PARADOX Guardian Workspace Beta 0.2 — wide desktop rebuild */
 :root{
   --stage-accent:#9e60ff;
   --stage-accent-soft:rgba(158,96,255,.34);
   --stage-accent-faint:rgba(158,96,255,.14);
 }
 
-/* Desktop-first tester frame: 50px breathing room, readable side panels. */
+/*
+  2560x1440 desktop target.
+  The page now reads as a wide advisor workspace rather than a portrait hero page.
+*/
 .workspace{
-  width:calc(100% - 100px);
+  width:calc(100% - 72px);
   max-width:2460px;
   margin:0 auto;
-  padding:18px 0;
-  grid-template-columns:minmax(330px,390px) minmax(680px,1fr) minmax(390px,455px);
-  gap:18px;
+  padding:14px 0 18px;
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(330px,360px) minmax(0,1fr) minmax(390px,430px);
+  grid-template-rows:700px auto;
+  grid-template-areas:
+    "left stage right"
+    "left equip right";
+  gap:16px;
+  align-items:stretch;
 }
-.left,.right{min-width:0}
-.left{padding:18px}
-.right{padding:18px}
+
+.left,.right{min-width:0;max-height:none}
+.left{padding:16px;overflow:auto}
+.right{padding:16px;overflow:auto}
 .left .ability-row .meta,.left .slot .nm,.right p,.right li{min-width:0}
 .left .ability-row .meta b,.left .slot .nm,.right p,.right li{overflow-wrap:anywhere}
+
+/* The loadout rail is a first-class column and remains visible beside the stage. */
+.left{
+  background:linear-gradient(180deg,rgba(24,18,40,.88),rgba(13,10,23,.9));
+  box-shadow:0 22px 60px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.025);
+}
+.subclass-hero{position:sticky;top:0;z-index:2;backdrop-filter:blur(14px)}
+
+/* Shorter, wider Guardian stage. */
+.stage{
+  min-height:0;
+  height:700px;
+  border-radius:18px;
+  overflow:hidden;
+  background:#08060f;
+}
+.stage::after{box-shadow:inset 0 0 76px rgba(0,0,0,.5)}
+
+/* Place identity information in a compact horizontal block. */
+.identity{
+  left:28px;
+  top:26px;
+  max-width:330px;
+}
+.id-head h1{font-size:1.72rem}
+.id-metrics{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:repeat(3,max-content);
+  gap:24px;
+  align-items:end;
+}
+.metric .v{font-size:1.55rem}
+.metric small{font-size:.52rem}
+.id-cosmetics{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:repeat(3,max-content);
+  gap:12px;
+}
+.cos{gap:8px}
+.cos .sw{width:38px;height:38px;border-radius:8px}
+.cos b{font-size:.72rem}
+.cos small{font-size:.48rem}
+
+/* Guardian sits lower and no longer consumes the entire canvas. */
+.guardian-hero{
+  right:4%;
+  top:7%;
+  bottom:8%;
+  width:58%;
+  align-items:flex-end;
+}
+.guardian-hero img{
+  height:100%;
+  max-height:100%;
+  object-position:center bottom;
+}
+
+/* Use the uploaded subclass-reactive platform as the stage anchor. */
+.stage > .guardian-platform{
+  --size:clamp(430px,27vw,540px);
+  --tilt:70deg;
+  left:70%;
+  bottom:-4%;
+  transform:translateX(-50%);
+  z-index:3;
+}
+.view3d{right:22px;top:22px}
+
+/* Restore the current-loadout presentation beneath the stage. */
+.equip{
+  grid-area:equip;
+  display:grid;
+  grid-template-columns:1.25fr 1.15fr .9fr .85fr .85fr;
+  gap:12px;
+  align-items:stretch;
+}
+.eq{
+  min-width:0;
+  padding:12px;
+  border-radius:13px;
+  background:linear-gradient(180deg,rgba(22,17,37,.88),rgba(13,10,23,.88));
+  box-shadow:0 18px 42px rgba(0,0,0,.28);
+}
+.eq-head{margin-bottom:9px}
+.weap-grid{gap:7px}
+.weap .cap{padding:6px 7px}
+.arm-grid{gap:6px}
+.stats-row{gap:5px}
+.mods-grid{gap:6px}
+
+/* Right analysis remains supportive rather than taller than the workspace. */
+.right{
+  background:linear-gradient(180deg,rgba(20,16,34,.9),rgba(12,9,21,.92));
+  box-shadow:0 22px 60px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.025);
+}
+.health-card{padding:14px}
+.health-card .ring{width:92px;height:92px}
+.focus{margin-top:10px;padding-top:10px}
+.mini-grid,.sw-grid{gap:9px}
+.mini,.sw-card{padding:11px}
+
+/* Keep the footer from covering equipment. */
+.actionbar{
+  position:sticky;
+  bottom:0;
+  padding:10px 24px;
+}
+.improve-cta{padding:12px 38px}
 
 /* Stage state feedback */
 .stage-state{
   position:absolute;inset:0;z-index:30;display:none;place-items:center;
   background:rgba(5,4,11,.72);backdrop-filter:blur(8px);pointer-events:none;
 }
-.stage[data-state="loading"] .stage-state{display:grid}
+.stage[data-state="loading"] .stage-state,.stage[data-state="error"] .stage-state{display:grid}
 .stage-state-card{padding:18px 24px;border:1px solid var(--line-2);border-radius:14px;background:var(--panel-solid);font-family:Orbitron;font-size:.72rem;letter-spacing:.12em;color:var(--muted)}
-.stage[data-state="error"] .stage-state{display:grid}
 .stage[data-state="error"] .stage-state-card{border-color:rgba(255,93,115,.45);color:#ff9aaa}
 
 /* Armour slots are inspectors, not decorative cards. */
@@ -47,20 +167,46 @@ body.armour-drawer-open .armour-drawer{transform:translateX(0)}
 .armour-drawer-tabs{display:flex;gap:8px;margin:18px 0}
 .armour-tab{padding:9px 12px;border:1px solid var(--line);border-radius:9px;color:var(--muted);font-family:Orbitron;font-size:.62rem;letter-spacing:.08em}
 .armour-tab[aria-selected="true"]{color:#fff;border-color:var(--stage-accent);background:var(--stage-accent-faint)}
-.armour-panel{display:none}
-.armour-panel.active{display:block}
+.armour-panel{display:none}.armour-panel.active{display:block}
 .inspector-empty{padding:18px;border:1px dashed var(--line-2);border-radius:12px;color:var(--muted);background:rgba(255,255,255,.02)}
 .inspector-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .inspector-field{padding:12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025)}
 .inspector-field small{display:block;color:var(--dim);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase}
 .inspector-field b{display:block;margin-top:5px;font-size:.86rem}
 
-@media(max-width:1700px){
-  .workspace{width:calc(100% - 64px);grid-template-columns:320px minmax(600px,1fr) 380px}
+@media(max-width:1900px){
+  .workspace{width:calc(100% - 44px);grid-template-columns:320px minmax(0,1fr) 380px;grid-template-rows:660px auto}
+  .stage{height:660px}
+  .guardian-hero{width:61%;right:1%}
+  .stage > .guardian-platform{--size:470px;left:69%}
+  .identity{max-width:300px}
 }
-@media(max-width:1420px){
-  .workspace{width:calc(100% - 32px);grid-template-columns:290px minmax(540px,1fr) 350px}
+@media(max-width:1550px){
+  .workspace{width:calc(100% - 28px);grid-template-columns:290px minmax(0,1fr) 350px;grid-template-rows:620px auto}
+  .stage{height:620px}
+  .guardian-hero{width:64%;right:-2%}
+  .stage > .guardian-platform{--size:430px;left:68%}
+  .id-cosmetics{display:none}
+  .equip{grid-template-columns:1.2fr 1.1fr .9fr .8fr}
+  .activity{display:none}
 }
-@media(max-width:1180px){
-  .workspace{width:calc(100% - 24px)}
+@media(max-width:1220px){
+  .workspace{
+    width:calc(100% - 20px);
+    grid-template-columns:280px minmax(0,1fr);
+    grid-template-rows:600px auto auto;
+    grid-template-areas:"left stage" "left equip" "right right";
+  }
+  .stage{height:600px}
+  .right{max-height:none}
+  .equip{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:860px){
+  .workspace{display:block;width:calc(100% - 16px)}
+  .left,.stage,.equip,.right{margin-bottom:12px}
+  .stage{height:560px}
+  .guardian-hero{width:82%;right:-12%}
+  .stage > .guardian-platform{--size:390px;left:64%}
+  .equip{grid-template-columns:1fr}
+  .actionbar{position:static;flex-wrap:wrap;justify-content:center}
 }
