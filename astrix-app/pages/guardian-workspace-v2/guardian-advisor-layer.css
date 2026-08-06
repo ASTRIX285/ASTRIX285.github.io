@@ -1,0 +1,33 @@
+/* Paradox Forge build-enhancement layer */
+.artifact-advisor{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.artifact-advisor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.artifact-advisor-head b{font-family:Orbitron;font-size:.62rem;letter-spacing:.12em;color:var(--violet-hot)}
+.artifact-context{font-size:.58rem;color:var(--muted);text-align:right}
+.artifact-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.artifact-choice{min-height:76px;padding:8px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.02);position:relative;overflow:hidden}
+.artifact-choice::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--stage-accent-faint),transparent 58%);opacity:.55;pointer-events:none}
+.artifact-choice .choice-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:5px}
+.artifact-choice .choice-icon{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;border:1px solid var(--line-2);background:rgba(0,0,0,.35);color:var(--violet-hot)}
+.artifact-choice .choice-state{font-family:Orbitron;font-size:.42rem;letter-spacing:.08em;color:var(--green)}
+.artifact-choice h4{position:relative;margin:7px 0 3px;font-size:.68rem;line-height:1.05}
+.artifact-choice p{position:relative;margin:0;color:var(--muted);font-size:.56rem;line-height:1.15}
+.artifact-choice.key{border-color:rgba(84,227,155,.45);box-shadow:0 0 18px rgba(84,227,155,.1)}
+.artifact-choice.counter{border-color:rgba(227,178,60,.38)}
+.artifact-choice.swap{opacity:.72}
+.artifact-chain{display:flex;align-items:center;gap:5px;margin-top:9px;padding:8px;border:1px solid var(--line);border-radius:9px;background:rgba(0,0,0,.18);font-size:.56rem;color:var(--muted);overflow:hidden}
+.artifact-chain b{color:var(--text);white-space:nowrap}.artifact-chain i{color:var(--violet-2);font-style:normal}
+
+.effects-panel{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.effects-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.effects-head b{font-family:Orbitron;font-size:.62rem;letter-spacing:.12em}
+.effects-head span{font-size:.54rem;color:var(--green)}
+.effects-list{display:flex;flex-direction:column;gap:7px}
+.effect-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.018)}
+.effect-row .effect-icon{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;border:1px solid var(--line-2);background:var(--stage-accent-faint);color:var(--violet-hot)}
+.effect-row b{display:block;font-size:.66rem}.effect-row small{display:block;color:var(--muted);font-size:.55rem;line-height:1.1}
+.effect-row .effect-score{font-family:Orbitron;font-size:.5rem;color:var(--green)}
+
+.stage-class-mark{position:absolute;right:7%;top:7%;width:42%;aspect-ratio:1;z-index:1;opacity:.12;pointer-events:none;color:rgb(var(--stage-accent-rgb));filter:drop-shadow(0 0 34px rgba(var(--stage-accent-rgb),.45));}
+.stage-class-mark svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;stroke-width:2.5;vector-effect:non-scaling-stroke}
+
+@media(max-width:1700px){.artifact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.artifact-choice:last-child{grid-column:span 2}}
