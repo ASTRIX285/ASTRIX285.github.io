@@ -118,8 +118,45 @@ function renderVerifiedPreview() {
   const guardianRender = byId("guardianRender");
   guardianRender.addEventListener("error", () => {
     guardianRender.style.display = "none";
-    guardianRender.nextElementSibling.style.display = "block";
   }, { once: true });
 }
 
+const PLATFORM_MARKUP = `
+  <svg class="gp-defs" aria-hidden="true">
+    <filter id="gp-smoke" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" seed="7" stitchTiles="stitch" result="noise">
+        <animate attributeName="seed" from="0" to="60" dur="70s" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.25 -0.46" result="alpha"/>
+      <feComposite in="SourceGraphic" in2="alpha" operator="in" result="tinted"/>
+      <feGaussianBlur in="tinted" stdDeviation="6"/>
+    </filter>
+  </svg>
+  <svg class="mist mist-back" viewBox="0 0 300 240" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="240"/></svg>
+  <div class="frontglow"></div>
+  <div class="deck">
+    <i class="aura"></i><i class="step"></i><i class="wall"></i><i class="face"></i><i class="grain"></i><i class="cast"></i><i class="frame"></i><i class="sigil"></i><i class="hub"></i><i class="ring ring-outer"></i><i class="ring ring-mid"></i><i class="ring ring-inner"></i><i class="depth"></i>
+  </div>
+  <svg class="mist mist-front" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="130"/></svg>
+`;
+
+const SUBCLASS_CLASSES = ["void", "solar", "arc", "stasis", "strand", "prismatic"];
+
+function initialiseGuardianPlatform(subclass = "void") {
+  const platform = document.querySelector(".stage > .guardian-platform");
+  if (!platform) return;
+  platform.innerHTML = PLATFORM_MARKUP;
+  platform.id = "guardianPlatform";
+  platform.classList.remove(...SUBCLASS_CLASSES);
+  platform.classList.add(SUBCLASS_CLASSES.includes(subclass) ? subclass : "void");
+}
+
+window.setGuardianSubclass = function setGuardianSubclass(name = "void") {
+  const platform = byId("guardianPlatform");
+  if (!platform) return;
+  platform.classList.remove(...SUBCLASS_CLASSES);
+  if (SUBCLASS_CLASSES.includes(name)) platform.classList.add(name);
+};
+
+initialiseGuardianPlatform("void");
 renderVerifiedPreview();
