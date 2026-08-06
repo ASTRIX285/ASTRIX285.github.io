@@ -3,10 +3,7 @@ const STAT_CAP = 200;
 
 const ART = {
   crest: "https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png",
-  super: {
-    name: "Shadowshot: Moebius Quiver",
-    icon: "https://www.bungie.net/common/destiny2_content/icons/986e8f2dd0699371d605a331bb63742a.png"
-  },
+  super: { name: "Shadowshot: Moebius Quiver", icon: "https://www.bungie.net/common/destiny2_content/icons/986e8f2dd0699371d605a331bb63742a.png" },
   aspects: [
     { name: "Stylish Executioner", icon: "https://www.bungie.net/common/destiny2_content/icons/ed7f8c49b77fa46f4eec87a3c167c4b1.jpg" },
     { name: "Trapper's Ambush", icon: "https://www.bungie.net/common/destiny2_content/icons/e91760df2b81d191da9e2c62cb3fcda7.jpg" }
@@ -36,127 +33,101 @@ const abilities = [
   { label: "GRENADE", name: "Vortex Grenade", icon: "" }
 ];
 
-const stats = [
-  ["Mobility", 100],
-  ["Resilience", 42],
-  ["Recovery", 70],
-  ["Discipline", 101],
-  ["Intellect", 28],
-  ["Strength", 38]
-];
-
+const stats = [["Mobility",100],["Resilience",42],["Recovery",70],["Discipline",101],["Intellect",28],["Strength",38]];
 const byId = id => document.getElementById(id);
-const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;"
-})[character]);
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[character]);
 
 function iconMarkup(url, alt) {
-  return url
-    ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" onerror="this.style.display='none'">`
-    : '<span class="ph-glyph">◆</span>';
+  return url ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" onerror="this.style.display='none'">` : '<span class="ph-glyph">◆</span>';
 }
 
 function renderVerifiedPreview() {
   byId("scCrest").src = ART.crest;
-
-  byId("abilityList").innerHTML = abilities.map(ability => `
-    <div class="ability-row">
-      <span class="ico-badge ${ability.super ? "super" : ""}">${iconMarkup(ability.icon, ability.name)}</span>
-      <div class="meta"><small>${escapeHtml(ability.label)}</small><b>${escapeHtml(ability.name)}</b></div>
-    </div>
-  `).join("");
-
-  byId("aspectList").innerHTML = ART.aspects.map(aspect => `
-    <div class="slot">
-      <span class="ico-badge">${iconMarkup(aspect.icon, aspect.name)}</span>
-      <span class="nm">${escapeHtml(aspect.name)}</span>
-      <span class="cfg">⚙</span>
-    </div>
-  `).join("");
-
-  byId("fragList").innerHTML = ART.fragments.map(fragment => `
-    <div class="slot">
-      <span class="ico-badge">${iconMarkup(fragment.icon, fragment.name)}</span>
-      <span class="nm">${escapeHtml(fragment.name)}</span>
-    </div>
-  `).join("");
-
+  byId("abilityList").innerHTML = abilities.map(ability => `<div class="ability-row"><span class="ico-badge ${ability.super ? "super" : ""}">${iconMarkup(ability.icon, ability.name)}</span><div class="meta"><small>${escapeHtml(ability.label)}</small><b>${escapeHtml(ability.name)}</b></div></div>`).join("");
+  byId("aspectList").innerHTML = ART.aspects.map(aspect => `<div class="slot"><span class="ico-badge">${iconMarkup(aspect.icon, aspect.name)}</span><span class="nm">${escapeHtml(aspect.name)}</span><span class="cfg">⚙</span></div>`).join("");
+  byId("fragList").innerHTML = ART.fragments.map(fragment => `<div class="slot"><span class="ico-badge">${iconMarkup(fragment.icon, fragment.name)}</span><span class="nm">${escapeHtml(fragment.name)}</span></div>`).join("");
   byId("artName").textContent = ART.artifact.name;
   byId("artIcon").src = ART.artifact.icon;
-  byId("artPerks").innerHTML = ART.artifact.perks.map(perk => `
-    <img src="${escapeHtml(perk.icon)}" alt="${escapeHtml(perk.name)}" title="${escapeHtml(perk.name)}" onerror="this.style.display='none'">
-  `).join("");
+  byId("artPerks").innerHTML = ART.artifact.perks.map(perk => `<img src="${escapeHtml(perk.icon)}" alt="${escapeHtml(perk.name)}" title="${escapeHtml(perk.name)}" onerror="this.style.display='none'">`).join("");
 
   const total = stats.reduce((sum, [, value]) => sum + value, 0);
-  byId("statsRow").innerHTML = stats.map(([name, value]) => {
-    const width = Math.min(100, (value / STAT_CAP) * 100);
-    return `
-      <div class="st">
-        <span class="nm">${escapeHtml(name)}</span>
-        <span class="bar"><i style="width:${width}%"></i></span>
-        <span class="v">${value}</span>
-      </div>
-    `;
-  }).join("") + `
-    <div class="st total">
-      <span class="nm">Total</span><span></span><span class="v">${total}</span>
-    </div>
-  `;
-
-  byId("modsGrid").innerHTML = Array.from({ length: 9 }, () => `
-    <div class="mod ph" title="Awaiting verified armour-mod plug data"><span class="ph-glyph">◆</span></div>
-  `).join("");
-
-  document.querySelectorAll("[data-power-cap]").forEach(element => {
-    element.textContent = PLAYER_POWER_CAP;
-  });
-
+  byId("statsRow").innerHTML = stats.map(([name, value]) => `<div class="st"><span class="nm">${escapeHtml(name)}</span><span class="bar"><i style="width:${Math.min(100,(value / STAT_CAP) * 100)}%"></i></span><span class="v">${value}</span></div>`).join("") + `<div class="st total"><span class="nm">Total</span><span></span><span class="v">${total}</span></div>`;
+  byId("modsGrid").innerHTML = Array.from({length:9}, () => `<div class="mod ph" title="Awaiting verified armour-mod plug data"><span class="ph-glyph">◆</span></div>`).join("");
+  document.querySelectorAll("[data-power-cap]").forEach(element => { element.textContent = PLAYER_POWER_CAP; });
   const guardianRender = byId("guardianRender");
-  guardianRender.addEventListener("error", () => {
-    guardianRender.style.display = "none";
-  }, { once: true });
+  guardianRender.addEventListener("error", () => { guardianRender.style.display = "none"; }, {once:true});
 }
 
 const PLATFORM_MARKUP = `
-  <svg class="gp-defs" aria-hidden="true">
-    <filter id="gp-smoke" x="-20%" y="-20%" width="140%" height="140%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" seed="7" stitchTiles="stitch" result="noise">
-        <animate attributeName="seed" from="0" to="60" dur="70s" repeatCount="indefinite"/>
-      </feTurbulence>
-      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.25 -0.46" result="alpha"/>
-      <feComposite in="SourceGraphic" in2="alpha" operator="in" result="tinted"/>
-      <feGaussianBlur in="tinted" stdDeviation="6"/>
-    </filter>
-  </svg>
-  <svg class="mist mist-back" viewBox="0 0 300 240" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="240"/></svg>
-  <div class="frontglow"></div>
-  <div class="deck">
-    <i class="aura"></i><i class="step"></i><i class="wall"></i><i class="face"></i><i class="grain"></i><i class="cast"></i><i class="frame"></i><i class="sigil"></i><i class="hub"></i><i class="ring ring-outer"></i><i class="ring ring-mid"></i><i class="ring ring-inner"></i><i class="depth"></i>
-  </div>
-  <svg class="mist mist-front" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="130"/></svg>
-`;
+  <svg class="gp-defs" aria-hidden="true"><filter id="gp-smoke" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" seed="7" stitchTiles="stitch" result="noise"><animate attributeName="seed" from="0" to="60" dur="70s" repeatCount="indefinite"/></feTurbulence><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.25 -0.46" result="alpha"/><feComposite in="SourceGraphic" in2="alpha" operator="in" result="tinted"/><feGaussianBlur in="tinted" stdDeviation="6"/></filter></svg>
+  <svg class="mist mist-back" viewBox="0 0 300 240" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="240"/></svg><div class="frontglow"></div>
+  <div class="deck"><i class="aura"></i><i class="step"></i><i class="wall"></i><i class="face"></i><i class="grain"></i><i class="cast"></i><i class="frame"></i><i class="sigil"></i><i class="hub"></i><i class="ring ring-outer"></i><i class="ring ring-mid"></i><i class="ring ring-inner"></i><i class="depth"></i></div>
+  <svg class="mist mist-front" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="130"/></svg>`;
 
-const SUBCLASS_CLASSES = ["void", "solar", "arc", "stasis", "strand", "prismatic"];
+const VALID_CLASSES = ["hunter","titan","warlock"];
+const VALID_SUBCLASSES = ["void","solar","arc","stasis","strand","prismatic"];
+const CLASS_LOGOS = {
+  hunter: "url('./D2.hunterlogo.png')",
+  titan: "url('./D2.titanlogo.png')",
+  warlock: "url('./D2.warlocklogo.png')"
+};
+const SUBCLASS_RGB = {
+  void: "139,92,246",
+  solar: "255,140,40",
+  arc: "70,170,255",
+  stasis: "120,196,255",
+  strand: "70,220,130",
+  prismatic: "255,80,220"
+};
 
-function initialiseGuardianPlatform(subclass = "void") {
+function normaliseSelection(detail = {}) {
+  const characterClass = String(detail.characterClass ?? detail.className ?? "").toLowerCase();
+  const subclass = String(detail.subclass ?? "").toLowerCase();
+  if (!VALID_CLASSES.includes(characterClass) || !VALID_SUBCLASSES.includes(subclass)) return null;
+  return { characterClass, subclass };
+}
+
+function applyGuardianSelection(selection) {
+  const resolved = normaliseSelection(selection);
+  if (!resolved) return;
+  const stage = document.querySelector(".stage");
+  const platform = byId("guardianPlatform");
+  if (!stage || !platform) return;
+
+  stage.dataset.characterClass = resolved.characterClass;
+  stage.dataset.subclass = resolved.subclass;
+  stage.style.setProperty("--stage-class-logo", CLASS_LOGOS[resolved.characterClass]);
+  stage.style.setProperty("--stage-accent-rgb", SUBCLASS_RGB[resolved.subclass]);
+
+  platform.classList.remove(...VALID_SUBCLASSES);
+  platform.classList.add(resolved.subclass);
+}
+
+function initialiseGuardianPlatform() {
   const platform = document.querySelector(".stage > .guardian-platform");
   if (!platform) return;
   platform.innerHTML = PLATFORM_MARKUP;
   platform.id = "guardianPlatform";
-  platform.classList.remove(...SUBCLASS_CLASSES);
-  platform.classList.add(SUBCLASS_CLASSES.includes(subclass) ? subclass : "void");
+
+  const stage = document.querySelector(".stage");
+  applyGuardianSelection({
+    characterClass: stage?.dataset.characterClass || "hunter",
+    subclass: stage?.dataset.subclass || "void"
+  });
 }
 
-window.setGuardianSubclass = function setGuardianSubclass(name = "void") {
-  const platform = byId("guardianPlatform");
-  if (!platform) return;
-  platform.classList.remove(...SUBCLASS_CLASSES);
-  if (SUBCLASS_CLASSES.includes(name)) platform.classList.add(name);
-};
+/*
+  Single integration contract for the workspace selection fabric.
+  The character/subclass selector dispatches this event only after the user
+  confirms a selection. The stage has no buttons, timers, cycling or separate state.
 
-initialiseGuardianPlatform("void");
+  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed", {
+    detail: { characterClass: "hunter", subclass: "void" }
+  }));
+*/
+document.addEventListener("astrix:guardian-selection-changed", event => {
+  applyGuardianSelection(event.detail);
+});
+
+initialiseGuardianPlatform();
 renderVerifiedPreview();
