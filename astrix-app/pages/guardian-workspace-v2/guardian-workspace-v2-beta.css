@@ -44,3 +44,426 @@
 }
 @media(max-width:1220px){.workspace{width:calc(100% - 20px);grid-template-columns:320px minmax(0,1fr);grid-template-rows:600px auto auto;grid-template-areas:"left stage" "left equip" "right right"}.stage{height:600px}.left{overflow:auto}.right{max-height:none}.equip{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:860px){.workspace{display:block;width:calc(100% - 16px)}.left,.stage,.equip,.right{margin-bottom:12px}.stage{height:560px}.guardian-hero{width:82%;right:-12%}.stage > .guardian-platform{--size:390px;left:64%}.equip{grid-template-columns:1fr}.actionbar{position:static;flex-wrap:wrap;justify-content:center}}
+
+/* Beta equipment layout: narrower weapons, wider armour */
+.equip {
+  grid-template-columns: minmax(240px,.72fr) minmax(0,2.28fr) !important;
+}
+
+.equip > .eq:first-child,
+.equip > .eq:nth-child(2) {
+  min-width: 0;
+}
+
+.weap-grid {
+  gap: 7px !important;
+}
+
+.weap-grid .weap {
+  min-width: 0 !important;
+}
+
+.weap-grid .weap .art {
+  aspect-ratio: 1 / 1;
+}
+
+.weap-grid .weap .art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.beta-armour-functional {
+  margin-top: 7px;
+  width: 100%;
+}
+
+.beta-armour-mod-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 5px 1px 4px;
+  font-size: 8px;
+  letter-spacing: .08em;
+  opacity: .78;
+}
+
+.beta-armour-mod-heading small {
+  font-size: 7px;
+  opacity: .55;
+}
+
+.beta-armour-mod-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 4px;
+}
+
+.beta-armour-mod-slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  border: 1px solid rgba(151,107,255,.30);
+  border-radius: 5px;
+  overflow: hidden;
+  background: linear-gradient(145deg,rgba(87,52,142,.20),rgba(15,11,27,.55));
+}
+
+.beta-armour-mod-slot.filled {
+  border-color: rgba(166,126,255,.60);
+}
+
+.beta-armour-mod-slot img {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+}
+
+.beta-armour-mod-slot.empty {
+  opacity: .52;
+}
+
+.beta-slot-glyph {
+  font-size: 12px;
+  opacity: .42;
+}
+
+.beta-exotic-trait {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(232,194,91,.52);
+  border-radius: 5px;
+  background: linear-gradient(90deg,rgba(171,126,24,.16),rgba(30,22,9,.08));
+}
+
+.beta-exotic-trait-icon {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 25px;
+  overflow: hidden;
+}
+
+.beta-exotic-trait-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.beta-exotic-trait-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.beta-exotic-trait-copy small {
+  font-size: 6px;
+  letter-spacing: .08em;
+  color: #d7b957;
+}
+
+.beta-exotic-trait-copy b {
+  font-size: 8px;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arm-grid {
+  gap: 8px !important;
+}
+
+.arm-grid .arm {
+  min-width: 0;
+}
+
+/* ASTRIX beta layout refinement: identity padding + equipment proportions */
+
+.stage .identity {
+  padding: 18px 22px 20px 24px !important;
+  box-sizing: border-box;
+}
+
+.stage .id-head {
+  margin-top: 2px !important;
+}
+
+.stage .id-metrics,
+.stage .id-cosmetics {
+  margin-top: 10px !important;
+}
+
+/* Make the weapons panel narrower and give the width to Armour & Mods */
+.equip {
+  display: grid !important;
+  grid-template-columns: minmax(240px, 24%) minmax(0, 76%) !important;
+  gap: 10px !important;
+}
+
+.equip > .eq:first-child {
+  min-width: 0 !important;
+}
+
+.equip > .eq:nth-child(2) {
+  min-width: 0 !important;
+}
+
+.weap-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+.weap-grid .weap,
+.weap-grid .weap .art {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.weap-grid .weap .art {
+  aspect-ratio: 1 / 1 !important;
+}
+
+.arm-grid {
+  width: 100% !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+@media (max-width: 1400px) {
+  .stage .identity {
+    padding: 16px 18px 18px 20px !important;
+  }
+
+  .equip {
+    grid-template-columns: minmax(220px, 26%) minmax(0, 74%) !important;
+  }
+}
+
+
+/* Exotic armour identity treatment: armour icon left, trait icon beside it */
+.arm-grid .arm {
+  position: relative;
+}
+
+.arm-grid .arm.has-beta-exotic-trait > img,
+.arm-grid .arm.has-beta-exotic-trait .armour-icon img,
+.arm-grid .arm.has-beta-exotic-trait .arm-icon img,
+.arm-grid .arm.has-beta-exotic-trait .item-icon img {
+  transform: translateX(-20px);
+}
+
+.beta-exotic-trait-inline {
+  position: absolute;
+  top: 18px;
+  left: calc(50% + 17px);
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 3px;
+  margin: 0;
+  border: 1px solid rgba(232,194,91,.72);
+  border-radius: 7px;
+  background: rgba(18,13,7,.88);
+  box-shadow: 0 0 16px rgba(232,194,91,.12);
+  cursor: help;
+  z-index: 3;
+}
+
+.beta-exotic-trait-inline img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: none !important;
+}
+
+.beta-exotic-trait-inline:hover,
+.beta-exotic-trait-inline:focus-visible {
+  border-color: rgba(255,220,111,.95);
+  box-shadow: 0 0 18px rgba(255,220,111,.24);
+  outline: none;
+}
+
+/* Legendary armour = 6 mod slots. Exotic armour = 5 mod slots + intrinsic trait. */
+
+
+/* FINAL Exotic armour + functional mod layout */
+.arm-grid .arm {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.arm-grid .arm.has-beta-exotic-trait .beta-primary-armour-image {
+  transform: translateX(-24px) !important;
+}
+
+.beta-exotic-trait-inline {
+  position: absolute !important;
+  top: 18px !important;
+  left: calc(50% + 18px) !important;
+  width: 46px !important;
+  height: 46px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 4px !important;
+  border: 1px solid rgba(232,194,91,.78) !important;
+  border-radius: 7px !important;
+  background: rgba(18,13,7,.94) !important;
+  box-shadow: 0 0 14px rgba(232,194,91,.14) !important;
+  cursor: help !important;
+  z-index: 20 !important;
+}
+
+.beta-exotic-trait-inline img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  transform: none !important;
+}
+
+.beta-exotic-trait-inline:hover,
+.beta-exotic-trait-inline:focus-visible {
+  border-color: rgba(255,222,116,.98) !important;
+  box-shadow: 0 0 18px rgba(255,222,116,.28) !important;
+  outline: none !important;
+}
+
+.beta-armour-functional {
+  width: 100% !important;
+  margin-top: 7px !important;
+  flex: 0 0 auto !important;
+}
+
+.beta-armour-mod-heading {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin: 5px 1px 4px !important;
+  font-size: 8px !important;
+  letter-spacing: .08em !important;
+  opacity: .78 !important;
+}
+
+.beta-armour-mod-heading small {
+  font-size: 7px !important;
+  opacity: .55 !important;
+}
+
+.beta-armour-mod-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  gap: 4px !important;
+}
+
+.beta-armour-mod-slot {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  aspect-ratio: 1 / 1 !important;
+  min-width: 0 !important;
+  border: 1px solid rgba(151,107,255,.30) !important;
+  border-radius: 5px !important;
+  overflow: hidden !important;
+  background: linear-gradient(
+    145deg,
+    rgba(87,52,142,.20),
+    rgba(15,11,27,.55)
+  ) !important;
+}
+
+.beta-armour-mod-slot.filled {
+  border-color: rgba(166,126,255,.60) !important;
+}
+
+.beta-armour-mod-slot img {
+  width: 82% !important;
+  height: 82% !important;
+  object-fit: contain !important;
+  transform: none !important;
+}
+
+.beta-armour-mod-slot.empty {
+  opacity: .52 !important;
+}
+
+.beta-slot-glyph {
+  font-size: 12px !important;
+  opacity: .42 !important;
+}
+
+
+/* Paradox Forge armour functional layout - rendered by guardian-workspace-v2.mjs */
+.arm-grid .arm {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.arm-grid .arm.pf-exotic-armour .pf-primary-armour-image {
+  transform: translateX(-25px) !important;
+}
+
+.pf-exotic-trait {
+  position: absolute !important;
+  top: 18px !important;
+  left: calc(50% + 20px) !important;
+  width: 48px !important;
+  height: 48px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 4px !important;
+  border: 1px solid rgba(238,198,79,.78) !important;
+  border-radius: 7px !important;
+  background: rgba(18,13,7,.94) !important;
+  box-shadow: 0 0 16px rgba(238,198,79,.13) !important;
+  cursor: help !important;
+  z-index: 30 !important;
+}
+
+.pf-exotic-trait img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  transform: none !important;
+}
+
+.pf-exotic-trait:hover,
+.pf-exotic-trait:focus-visible {
+  border-color: rgba(255,224,119,1) !important;
+  box-shadow: 0 0 20px rgba(255,224,119,.28) !important;
+  outline: none !important;
+}
+
+.pf-mod-grid {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  gap: 4px !important;
+  margin-top: 7px !important;
+}
+
+.pf-mod-slot {
+  display: grid !important;
+  place-items: center !important;
+  aspect-ratio: 1 / 1 !important;
+  min-width: 0 !important;
+  border: 1px solid rgba(151,107,255,.34) !important;
+  border-radius: 5px !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(87,52,142,.18),
+      rgba(15,11,27,.58)
+    ) !important;
+}
+
+.pf-mod-slot span {
+  font-size: 12px !important;
+  opacity: .42 !important;
+}

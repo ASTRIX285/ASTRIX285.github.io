@@ -93,6 +93,7 @@ function applyGuardianSelection(detail){
   if(next.renderUrl){setStageState("loading","Loading selected Guardian…");render.onload=()=>setStageState("ready");render.onerror=()=>{render.style.display="none";setStageState("error","Guardian render could not be loaded.")};render.style.display="block";render.src=next.renderUrl}
   if(next.power!=null) document.querySelectorAll("[data-power-cap]").forEach(el=>el.textContent=next.power);
   if(next.stats) renderStats(next.stats);
+  if(Array.isArray(next.weapons)) renderWeapons(next.weapons);
   if(Array.isArray(next.armour)) bindArmourSlots(next.armour);
   updateIdentityCosmetics(next);
 }
@@ -112,7 +113,232 @@ function createArmourDrawer(){
   document.addEventListener("keydown",event=>{if(event.key==="Escape")closeArmourDrawer()});
 }
 
+
+function renderWeapons(weapons=[]){
+  const cards=Array.from(
+    document.querySelectorAll(".weap-grid .weap")
+  );
+
+  if(!cards.length)return;
+
+  const slotOrder={
+    Kinetic:0,
+    Special:0,
+    Primary:1,
+    Energy:1,
+    Power:2,
+    Heavy:2
+  };
+
+  const ordered=[null,null,null];
+
+  weapons.forEach((weapon,index)=>{
+    const ammo=String(
+      weapon?.ammoType??""
+    );
+
+    let slot=slotOrder[ammo];
+
+    if(!Number.isInteger(slot)){
+      slot=Math.min(index,2);
+    }
+
+    while(
+      slot<3
+      && ordered[slot]
+    ){
+      slot++;
+    }
+
+    if(slot<3){
+      ordered[slot]=weapon;
+    }
+  });
+
+  cards.forEach((card,index)=>{
+    const weapon=ordered[index];
+
+    const art=card.querySelector(".art");
+    const name=card.querySelector(".cap b");
+    const meta=card.querySelector(".cap small");
+
+    if(!weapon){
+      if(art){
+        art.classList.add("ph");
+        art.innerHTML=
+          '<span class="pw">—</span>'
+          +'<span class="ph-glyph">⌖</span>';
+      }
+
+      if(meta){
+        meta.textContent="awaiting build data";
+      }
+
+      return;
+    }
+
+    if(art){
+      art.classList.remove("ph");
+
+      const icon=weapon.icon
+        ? `<img src="${escapeHtml(weapon.icon)}" `
+          +`alt="${escapeHtml(weapon.name||"Weapon")}" `
+          +`onerror="this.style.display='none'">`
+        : '<span class="ph-glyph">⌖</span>';
+
+      art.innerHTML=
+        `<span class="pw">${escapeHtml(
+          String(weapon.power??"")
+        )}</span>${icon}`;
+    }
+
+    if(name){
+      name.textContent=
+        weapon.name
+        || "Unknown weapon";
+    }
+
+    if(meta){
+      const details=[
+        weapon.weaponType,
+        weapon.element,
+        weapon.ammoType
+      ].filter(Boolean);
+
+      meta.textContent=
+        details.join(" · ")
+        || "Bungie identity resolved";
+    }
+
+    card.title=[
+      weapon.name,
+      weapon.weaponType,
+      weapon.element,
+      weapon.ammoType
+    ].filter(Boolean).join(" — ");
+  });
+}
+
+function renderArmourFunctionalSlots(armour=[]){
+  const cards=[
+    ...document.querySelectorAll(".arm-grid .arm")
+  ];
+
+  cards.forEach((card,index)=>{
+    const item=armour[index]??null;
+
+    card.querySelector(".pf-mod-grid")?.remove();
+    card.querySelector(".pf-exotic-trait")?.remove();
+    card.classList.remove("pf-exotic-armour");
+
+    const previousPrimary=
+      card.querySelector(".pf-primary-armour-image");
+
+    if(previousPrimary){
+      previousPrimary.classList.remove(
+        "pf-primary-armour-image"
+      );
+    }
+
+    if(!item)return;
+
+    const trait=item?.intrinsicTrait??null;
+    const isExotic=Boolean(trait);
+    const slotCount=isExotic?5:6;
+
+    const primaryImage=card.querySelector("img");
+
+    if(primaryImage){
+      primaryImage.classList.add(
+        "pf-primary-armour-image"
+      );
+    }
+
+    if(isExotic){
+      card.classList.add("pf-exotic-armour");
+
+      const name=
+        trait.name
+        ??"Exotic intrinsic trait";
+
+      const description=
+        trait.description
+        ??"";
+
+      const hash=
+        trait.bungieHash
+        ??trait.hash
+        ??"";
+
+      const traitButton=
+        document.createElement("button");
+
+      traitButton.type="button";
+      traitButton.className="pf-exotic-trait";
+      traitButton.title=[
+        name,
+        description,
+        hash?`Bungie hash: ${hash}`:""
+      ].filter(Boolean).join(" — ");
+
+      traitButton.setAttribute(
+        "aria-label",
+        description
+          ?`${name}. ${description}`
+          :name
+      );
+
+      if(trait.icon){
+        const img=
+          document.createElement("img");
+
+        img.src=trait.icon;
+        img.alt=name;
+        img.onerror=()=>{
+          img.style.display="none";
+        };
+
+        traitButton.appendChild(img);
+      }else{
+        traitButton.textContent="✦";
+      }
+
+      card.appendChild(traitButton);
+    }
+
+    const grid=
+      document.createElement("div");
+
+    grid.className=
+      `pf-mod-grid ${
+        isExotic
+          ?"pf-mod-grid-exotic"
+          :"pf-mod-grid-legendary"
+      }`;
+
+    grid.setAttribute(
+      "aria-label",
+      `${slotCount} armour mod slots`
+    );
+
+    for(let i=0;i<slotCount;i+=1){
+      const slot=
+        document.createElement("div");
+
+      slot.className="pf-mod-slot";
+      slot.title=`Armour mod slot ${i+1}`;
+      slot.innerHTML=
+        '<span aria-hidden="true">◇</span>';
+
+      grid.appendChild(slot);
+    }
+
+    card.appendChild(grid);
+  });
+}
+
 function bindArmourSlots(armour=[]){
+  renderArmourFunctionalSlots(armour);
   const slots=[...document.querySelectorAll(".arm-grid .arm")];
   slots.forEach((slot,index)=>{slot.tabIndex=0;slot.setAttribute("role","button");slot.dataset.slotIndex=String(index);slot.onclick=()=>openArmourDrawer(index,armour[index]);slot.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openArmourDrawer(index,armour[index])}}});
 }
@@ -124,7 +350,7 @@ function openArmourDrawer(index,item){
   const field=(label,value)=>`<div class="inspector-field"><small>${escapeHtml(label)}</small><b>${escapeHtml(value??"Awaiting live data")}</b></div>`;
   document.querySelector('[data-panel="build"]').innerHTML=resolved?`<div class="inspector-grid">${field("Power",resolved.power)}${field("Energy",resolved.energy?.type||resolved.energy)}${field("Tier",resolved.tier)}${field("Manifest hash",resolved.hash)}</div>`:fallback;
   document.querySelector('[data-panel="appearance"]').innerHTML=resolved?`<div class="inspector-grid">${field("Shader",resolved.shader?.name||resolved.shader)}${field("Ornament",resolved.ornament?.name||resolved.ornament)}${field("Default appearance",resolved.defaultAppearance||"Available from manifest")}${field("Cosmetic state",resolved.cosmeticState)}</div>`:fallback;
-  document.querySelector('[data-panel="mods"]').innerHTML=resolved?.mods?.length?resolved.mods.map(mod=>field("Armour mod",mod.name||mod)).join(""):fallback;
+  document.querySelector('[data-panel="mods"]').innerHTML=resolved?.mods?.length?(resolved.intrinsicTrait?field("Exotic trait",resolved.intrinsicTrait.name||"Intrinsic trait"): "")+resolved.mods.map(mod=>field("Armour mod",mod.name||mod)).join(""):fallback;
   document.body.classList.add("armour-drawer-open");byId("armourDrawer").setAttribute("aria-hidden","false");
 }
 function closeArmourDrawer(){document.body.classList.remove("armour-drawer-open");byId("armourDrawer")?.setAttribute("aria-hidden","true")}
