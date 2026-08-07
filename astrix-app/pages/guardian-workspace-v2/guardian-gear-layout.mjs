@@ -15,34 +15,37 @@ function loadCss(){
     style.textContent=`
       /* Final beta gear proportions */
       .equip.gear-layout-active{
-        grid-template-columns:minmax(300px,320px) minmax(0,1fr)!important;
-        gap:14px!important;
+        grid-template-columns:minmax(245px,265px) minmax(0,1fr)!important;
+        gap:12px!important;
       }
 
-      /* Weapon art should read at roughly the same visual scale as armour art. */
+      /* Compact weapon panel: keep three readable tiles without stealing armour width. */
       .gear-weapons .weap-grid{
-        grid-template-columns:repeat(3,92px)!important;
-        gap:10px!important;
+        grid-template-columns:repeat(3,72px)!important;
+        gap:7px!important;
         justify-content:start!important;
       }
       .gear-weapons .weap{
-        width:92px!important;
-        min-width:92px!important;
+        width:72px!important;
+        min-width:72px!important;
       }
       .gear-weapons .weap .art{
-        width:92px!important;
-        height:92px!important;
-        min-height:92px!important;
+        width:72px!important;
+        height:72px!important;
+        min-height:72px!important;
         aspect-ratio:1/1!important;
       }
       .gear-weapons .weap .cap{
-        width:92px!important;
-        padding-top:5px!important;
+        width:72px!important;
+        padding-top:4px!important;
       }
 
-      /* Preserve the armour-card footprint. */
+      /* Give the five armour cards enough width for five Artifact-sized mod sockets. */
       .gear-columns{
-        gap:10px!important;
+        gap:5px!important;
+      }
+      .gear-slot{
+        padding:5px!important;
       }
       .gear-arm-row{
         min-height:94px!important;
@@ -52,7 +55,7 @@ function loadCss(){
         height:88px!important;
       }
 
-      /* Only Exotic armour receives the extra intrinsic tile. Match Artifact icon scale. */
+      /* Only Exotic armour receives the extra intrinsic tile. */
       .gear-slot:not(.exotic) .gear-intrinsic{
         display:none!important;
       }
@@ -64,12 +67,14 @@ function loadCss(){
         flex:0 0 46px!important;
       }
 
-      /* Functional armour mod blocks match the 46px Artifact perk icons. */
+      /* Five functional sockets, one row, exactly Artifact-perk scale. */
       .gear-mods{
-        grid-template-columns:repeat(3,46px)!important;
+        display:grid!important;
+        grid-template-columns:repeat(5,46px)!important;
+        grid-template-rows:46px!important;
         grid-auto-rows:46px!important;
-        gap:7px!important;
-        justify-content:start!important;
+        gap:4px!important;
+        justify-content:center!important;
         align-content:start!important;
       }
       .gear-mod{
