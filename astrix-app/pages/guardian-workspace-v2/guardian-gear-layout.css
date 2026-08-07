@@ -3,15 +3,11 @@
 
 /* The subclass rail ends with the hero. The loadout band then spans the full left + centre width while Paradox Analysis remains untouched. */
 .workspace{grid-template-areas:"left stage right" "equip equip right"!important}
-.left{grid-area:left;align-self:stretch;min-height:0;max-height:700px!important}
+.left{grid-area:left;align-self:stretch;min-height:0}
 .equip{grid-area:equip}
 @media(min-width:1901px){.workspace{grid-template-columns:minmax(396px,432px) minmax(0,1fr) minmax(390px,430px)!important}}
 
-.equip.gear-layout-active{
-  grid-template-columns:minmax(340px,.95fr) minmax(0,2.05fr)!important;
-  gap:14px!important;
-  align-items:stretch!important;
-}
+.equip.gear-layout-active{grid-template-columns:minmax(340px,.95fr) minmax(0,2.05fr)!important;gap:14px!important;align-items:stretch!important}
 .equip.gear-layout-active>.gear-weapons{grid-column:1}
 .equip.gear-layout-active>.gear-combined{grid-column:2}
 
@@ -19,26 +15,26 @@
 .gear-weapons{min-height:100%;overflow:hidden}
 .gear-weapons .weap-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px!important;align-items:start}
 .gear-weapons .weap{min-width:0}
-.gear-weapons .weap .art{width:100%!important;height:auto!important;aspect-ratio:1.22/1!important;min-height:138px!important;border-radius:10px!important}
+.gear-weapons .weap .art{width:100%!important;height:auto!important;aspect-ratio:1.22/1!important;min-height:clamp(86px,9.6vh,138px)!important;border-radius:10px!important}
 .gear-weapons .weap .art img{width:100%;height:100%;object-fit:cover}
 .gear-weapons .weap .cap{padding:8px 5px 0!important;background:transparent!important;border:0!important}
-.gear-weapons .weap .cap b{font-size:.72rem}
+.gear-weapons .weap .cap b{font-size:clamp(.62rem,.52vw,.72rem)}
 .gear-weapons .weap .cap small{display:none!important}
 
-.gear-combined{min-width:0;display:flex;flex-direction:column;gap:10px}
+.gear-combined{min-width:0;display:flex;flex-direction:column;gap:clamp(5px,.65vh,10px)}
 .gear-combined .eq-head{margin-bottom:2px}
-.gear-subhead{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--dim);font-family:Orbitron;font-size:.52rem;letter-spacing:.15em;text-transform:uppercase}
-.gear-subhead span:last-child{font-family:Rajdhani;font-size:.62rem;letter-spacing:.04em;text-transform:none;color:var(--muted)}
-.gear-columns{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;min-height:0}
-.gear-slot{min-width:0;padding:10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.018)}
+.gear-subhead{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--dim);font-family:Orbitron;font-size:clamp(.44rem,.38vw,.52rem);letter-spacing:.15em;text-transform:uppercase}
+.gear-subhead span:last-child{font-family:Rajdhani;font-size:clamp(.54rem,.46vw,.62rem);letter-spacing:.04em;text-transform:none;color:var(--muted)}
+.gear-columns{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(5px,.5vw,10px);min-height:0}
+.gear-slot{min-width:0;padding:clamp(6px,.5vw,10px);border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.018)}
 .gear-slot.exotic{border-color:rgba(227,178,60,.42);box-shadow:0 0 20px rgba(227,178,60,.08)}
-.gear-slot-label{margin-bottom:7px;color:var(--dim);font-family:Orbitron;font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gear-arm-anchor{display:grid;place-items:center;margin-bottom:8px}
-.gear-arm-anchor .arm{width:min(100%,108px)!important;height:auto!important;aspect-ratio:1;margin:0!important;position:relative}
+.gear-slot-label{margin-bottom:clamp(4px,.45vh,7px);color:var(--dim);font-family:Orbitron;font-size:clamp(.42rem,.35vw,.48rem);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gear-arm-anchor{display:grid;place-items:center;margin-bottom:clamp(4px,.5vh,8px)}
+.gear-arm-anchor .arm{width:min(100%,clamp(72px,7.5vh,108px))!important;height:auto!important;aspect-ratio:1;margin:0!important;position:relative}
 .gear-arm-anchor .arm img{width:100%;height:100%;object-fit:cover}
-.gear-slot-divider{height:1px;background:var(--line);margin:2px 0 8px}
+.gear-slot-divider{height:1px;background:var(--line);margin:2px 0 clamp(4px,.5vh,8px)}
 /* Tier 5 can expose six sockets. Keep all six visible directly beneath the corresponding armour piece. */
-.gear-mods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,auto);gap:6px}
+.gear-mods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,auto);gap:clamp(3px,.3vw,6px)}
 .gear-mod{position:relative;aspect-ratio:1;border-radius:8px;border:1px solid var(--line-2);background:rgba(139,92,246,.055);display:grid;place-items:center;overflow:hidden;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
 .gear-mod:hover,.gear-mod:focus-visible{transform:translateY(-2px);border-color:var(--stage-accent);box-shadow:0 0 15px var(--stage-accent-soft);outline:none}
 .gear-mod img{width:88%;height:88%;object-fit:contain}
@@ -51,23 +47,51 @@
 .right .activity .act-hero{margin-bottom:8px}
 .right .activity .btn-change{width:100%;margin-top:8px}
 .left .activity{display:none!important}
-
 .gear-source-mods{display:none!important}
 
-@media(max-width:1900px){
-  .workspace{grid-template-areas:"left stage right" "equip equip right"!important}
-  .left{max-height:660px!important}
-  .equip.gear-layout-active{grid-template-columns:minmax(300px,.9fr) minmax(0,2.1fr)!important}
-  .gear-columns{gap:7px}.gear-slot{padding:7px}.gear-mods{gap:4px}
-  .gear-weapons .weap .art{min-height:112px!important}
+/* Desktop viewport-fit system. Preserve the composition, scale the canvas. */
+@media(min-width:1221px) and (min-height:760px){
+  html,body{height:100%;overflow:hidden}
+  .workspace{
+    width:calc(100vw - clamp(20px,2.8vw,72px))!important;
+    max-width:2460px!important;
+    height:calc(100dvh - 64px - 58px)!important;
+    min-height:0!important;
+    margin:0 auto!important;
+    padding:clamp(8px,1vh,14px) 0 clamp(6px,.8vh,12px)!important;
+    grid-template-columns:clamp(300px,16.8vw,432px) minmax(0,1fr) clamp(350px,16.8vw,430px)!important;
+    grid-template-rows:minmax(0,64fr) minmax(0,36fr)!important;
+    gap:clamp(8px,.65vw,16px)!important;
+  }
+  .stage{height:100%!important;min-height:0!important}
+  .left,.right{height:100%!important;max-height:none!important;min-height:0!important;overflow:auto}
+  .equip{height:100%!important;min-height:0!important;overflow:hidden}
+  .eq{padding:clamp(7px,.7vh,12px)!important}
+  .guardian-hero{top:clamp(4%,5vh,7%)!important;bottom:clamp(5%,5.5vh,8%)!important}
+  .stage>.guardian-platform{--size:clamp(350px,25vw,540px)!important}
+  .actionbar{height:58px;min-height:58px;padding:7px 24px!important}
 }
-@media(max-width:1550px){.left{max-height:620px!important}}
+
+/* 1080p / compact desktop refinement: same composition, smaller visual rhythm. */
+@media(min-width:1221px) and (max-height:1120px){
+  .workspace{grid-template-rows:minmax(0,65fr) minmax(0,35fr)!important}
+  .left{padding:clamp(9px,1vh,14px)!important}
+  .right{padding:clamp(9px,1vh,14px)!important}
+  .left{gap:clamp(7px,.75vh,12px)!important}
+  .left .super-focus{padding:clamp(7px,.8vh,12px) 10px!important;gap:4px!important}
+  .left .super-focus-icon,.left .super-focus-icon .ico-badge{width:clamp(60px,7.2vh,80px)!important;height:clamp(60px,7.2vh,80px)!important}
+  .artifact-row{padding:clamp(7px,.75vh,11px)!important}
+  .stage .hero-stats{top:clamp(220px,27vh,310px)!important}
+  .identity{top:clamp(82px,10vh,125px)!important}
+}
+
 @media(max-width:1350px){
   .equip.gear-layout-active{grid-template-columns:1fr!important}
   .equip.gear-layout-active>.gear-weapons,.equip.gear-layout-active>.gear-combined{grid-column:1}
 }
 @media(max-width:1220px){
-  .workspace{grid-template-areas:"left stage" "equip equip" "right right"!important}
+  html,body{overflow:auto}
+  .workspace{height:auto!important;grid-template-areas:"left stage" "equip equip" "right right"!important}
   .left{max-height:600px!important}
 }
 @media(max-width:860px){.left{max-height:none!important}}
