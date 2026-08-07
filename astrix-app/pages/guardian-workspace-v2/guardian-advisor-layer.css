@@ -45,7 +45,42 @@
 /* Remove the previous prose/card experiment completely. */
 .artifact-advisor,.effects-panel{display:none!important}
 
+/* Destiny-style stat stack now lives inside the Guardian hero stage. */
+.stage .hero-stats{
+  position:absolute;
+  left:28px;
+  top:252px;
+  z-index:8;
+  width:250px;
+  min-height:0;
+  padding:12px 14px 14px;
+  border:1px solid rgba(168,130,255,.16);
+  background:linear-gradient(180deg,rgba(18,14,32,.56),rgba(10,8,20,.32));
+  backdrop-filter:blur(8px);
+  box-shadow:none;
+}
+.stage .hero-stats .eq-head{margin-bottom:10px}
+.stage .hero-stats .eq-head h3{font-size:.66rem;letter-spacing:.16em}
+.stage .hero-stats .stats-row{gap:7px}
+.stage .hero-stats .st{grid-template-columns:68px 1fr 30px;gap:8px;font-size:.7rem}
+.stage .hero-stats .st .bar{height:6px}
+.stage .hero-stats .st .v{font-size:.68rem}
+.stage .hero-stats .st.total{margin-top:5px;padding-top:8px}
+
+/* With Stats removed from the lower strip, give the remaining loadout cards the space. */
+.equip{grid-template-columns:1.35fr 1.25fr .95fr .85fr!important}
+
+/* The uploaded platform was too upright. Push the plane close to flat like Destiny's character screen. */
+.stage > .guardian-platform{--tilt:80deg!important;bottom:-6%!important}
+
 @media(max-width:1700px){
   #abilityList,.slot-list{gap:6px!important}
   .artifact-row .perks{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .stage .hero-stats{left:22px;top:238px;width:230px}
+}
+@media(max-width:1550px){
+  .stage .hero-stats{width:210px;top:220px}
+}
+@media(max-width:1220px){
+  .stage .hero-stats{left:18px;top:220px;width:205px}
 }
