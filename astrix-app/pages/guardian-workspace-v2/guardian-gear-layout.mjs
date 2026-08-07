@@ -13,141 +13,31 @@ function loadCss(){
     const style=document.createElement('style');
     style.id='pf-gear-layout-final';
     style.textContent=`
-      /* Bottom equipment architecture only. Top Guardian workspace is untouched. */
-      .equip.gear-layout-active{
-        grid-template-columns:286px minmax(0,1fr)!important;
-        gap:12px!important;
-        align-items:start!important;
-      }
+      .equip.gear-layout-active{grid-template-columns:286px minmax(0,1fr)!important;gap:12px!important;align-items:start!important}
+      .gear-weapons{min-height:0!important;height:max-content!important;align-self:start!important}
+      .gear-weapons .weap-grid{grid-template-columns:repeat(3,84px)!important;gap:7px!important;justify-content:start!important;align-items:start!important}
+      .gear-weapons .weap{width:84px!important;min-width:84px!important;max-width:84px!important}
+      .gear-weapons .weap .art{width:84px!important;height:84px!important;min-height:84px!important;aspect-ratio:1/1!important}
+      .gear-weapons .weap .cap{width:84px!important;padding:5px 1px 0!important}
+      .gear-weapons .weap .cap b{font-size:.55rem!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+      .gear-combined{min-width:0!important;min-height:236px!important}
+      .gear-columns{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px!important;align-items:stretch!important}
+      .gear-slot{min-width:0!important;min-height:205px!important;padding:6px!important;display:flex!important;flex-direction:column!important;gap:4px!important}
+      .gear-slot-label{margin-bottom:1px!important}
+      .gear-arm-row{min-height:96px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important}
+      .gear-arm-anchor .arm{width:90px!important;height:90px!important;min-width:90px!important;min-height:90px!important}
+      .gear-slot.exotic .gear-arm-anchor{transform:none!important}
+      .gear-slot:not(.exotic) .gear-intrinsic{display:none!important}
+      .gear-intrinsic{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;flex:0 0 46px!important}
+      .gear-appearance-row{min-height:38px!important;margin:2px 0!important;gap:6px!important}
+      .gear-appearance{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}
+      .gear-slot-divider{margin:1px 0 4px!important}
 
-      /* Weapons remain compact, but readable. */
-      .gear-weapons{
-        min-height:0!important;
-        height:max-content!important;
-        align-self:start!important;
-      }
-      .gear-weapons .weap-grid{
-        grid-template-columns:repeat(3,84px)!important;
-        gap:7px!important;
-        justify-content:start!important;
-        align-items:start!important;
-      }
-      .gear-weapons .weap{
-        width:84px!important;
-        min-width:84px!important;
-        max-width:84px!important;
-      }
-      .gear-weapons .weap .art{
-        width:84px!important;
-        height:84px!important;
-        min-height:84px!important;
-        aspect-ratio:1/1!important;
-      }
-      .gear-weapons .weap .cap{
-        width:84px!important;
-        padding:5px 1px 0!important;
-      }
-      .gear-weapons .weap .cap b{
-        font-size:.55rem!important;
-        white-space:nowrap!important;
-        overflow:hidden!important;
-        text-overflow:ellipsis!important;
-      }
-
-      /* Five armour cards keep equal rhythm without becoming miniature strips. */
-      .gear-combined{
-        min-width:0!important;
-        min-height:236px!important;
-      }
-      .gear-columns{
-        display:grid!important;
-        grid-template-columns:repeat(5,minmax(0,1fr))!important;
-        gap:6px!important;
-        align-items:stretch!important;
-      }
-      .gear-slot{
-        min-width:0!important;
-        min-height:205px!important;
-        padding:6px!important;
-        display:flex!important;
-        flex-direction:column!important;
-        gap:4px!important;
-      }
-      .gear-slot-label{
-        margin-bottom:1px!important;
-      }
-
-      /* Armour image remains the hero of each card. Exotic trait exists only beside Exotic armour. */
-      .gear-arm-row{
-        min-height:96px!important;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:center!important;
-        gap:8px!important;
-      }
-      .gear-arm-anchor .arm{
-        width:90px!important;
-        height:90px!important;
-        min-width:90px!important;
-        min-height:90px!important;
-      }
-      .gear-slot.exotic .gear-arm-anchor{
-        transform:none!important;
-      }
-      .gear-slot:not(.exotic) .gear-intrinsic{
-        display:none!important;
-      }
-      .gear-intrinsic{
-        width:46px!important;
-        height:46px!important;
-        min-width:46px!important;
-        min-height:46px!important;
-        flex:0 0 46px!important;
-      }
-
-      /* Shader / ornament stay in the established location and size. */
-      .gear-appearance-row{
-        min-height:38px!important;
-        margin:2px 0!important;
-        gap:6px!important;
-      }
-      .gear-appearance{
-        width:38px!important;
-        height:38px!important;
-        min-width:38px!important;
-        min-height:38px!important;
-      }
-
-      .gear-slot-divider{
-        margin:1px 0 4px!important;
-      }
-
-      /* Five sockets on one row. Match Artifact perk slot dimensions exactly. */
-      .gear-mods{
-        display:grid!important;
-        grid-template-columns:repeat(5,46px)!important;
-        grid-template-rows:46px!important;
-        grid-auto-rows:46px!important;
-        gap:7px!important;
-        width:100%!important;
-        justify-content:center!important;
-        align-content:start!important;
-      }
-      .gear-mod{
-        width:46px!important;
-        height:46px!important;
-        min-width:46px!important;
-        min-height:46px!important;
-        max-width:46px!important;
-        max-height:46px!important;
-        aspect-ratio:1/1!important;
-        border-radius:7px!important;
-      }
-      .gear-mod img{
-        width:88%!important;
-        height:88%!important;
-        object-fit:contain!important;
-      }
+      /* Equipment strip is rendered at ~63% of the Artifact panel scale.
+         73px here renders at ~46px on screen, matching Artifact perk slots. */
+      .gear-mods{display:grid!important;grid-template-columns:repeat(5,73px)!important;grid-template-rows:73px!important;grid-auto-rows:73px!important;gap:11px!important;width:100%!important;justify-content:center!important;align-content:start!important}
+      .gear-mod{width:73px!important;height:73px!important;min-width:73px!important;min-height:73px!important;max-width:73px!important;max-height:73px!important;aspect-ratio:1/1!important;border-radius:7px!important}
+      .gear-mod img{width:88%!important;height:88%!important;object-fit:contain!important}
     `;
     document.head.appendChild(style);
   }
