@@ -1,19 +1,38 @@
 @import url('./guardian-platform-component.css');
 
-/* Guardian Workspace integration only. The component itself remains standalone. */
+/* Guardian Workspace integration only.
+   The platform shares the exact same stage centreline as the Guardian hero. */
 .stage > .guardian-platform{
-  --size:clamp(360px,34vw,560px);
+  --size:clamp(360px,34cqw,620px);
   --tilt:70deg;
   position:absolute;
-  left:67%;
+  left:var(--guardian-stage-x,68%);
   bottom:-1.5%;
   transform:translateX(-50%);
+  transform-origin:50% 50%;
   z-index:3;
 }
 
-@media (max-width:1500px){
+/* Lower effective viewport: platform contracts with the hero instead of drifting away from it. */
+@media (min-width:1221px) and (max-height:1150px){
   .stage > .guardian-platform{
-    --size:clamp(330px,36vw,500px);
-    left:67%;
+    --size:clamp(320px,33cqw,520px);
+    bottom:-1%;
+  }
+}
+
+/* Extra-short effective viewport caused by OS/browser scaling. */
+@media (min-width:1221px) and (max-height:900px){
+  .stage > .guardian-platform{
+    --size:clamp(290px,32cqw,470px);
+    bottom:-.5%;
+  }
+}
+
+/* Larger desktop / 1440p+: increase presence while preserving the same 3D centreline. */
+@media (min-width:2200px) and (min-height:1200px){
+  .stage > .guardian-platform{
+    --size:clamp(480px,34cqw,700px);
+    bottom:-1.75%;
   }
 }
