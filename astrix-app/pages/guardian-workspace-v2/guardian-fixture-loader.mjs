@@ -41,6 +41,7 @@ function manifestIdentity(hash){
     traitIds:row.traitIds||[],
     equipmentSlotTypeHash:row.equippingBlock?.equipmentSlotTypeHash??null,
     ammoTypeCode:row.equippingBlock?.ammoType??null,
+    uniqueLabelHash:row.equippingBlock?.uniqueLabelHash??null,
     intrinsicPlugHashes:row.intrinsicPlugHashes||[],
     sourceKind:inferSourceKind(row),
     identitySource:"bungie-current-manifest"
@@ -151,15 +152,23 @@ function enrichArmourItem(item,fixture){
     ??item.equipmentSlotTypeHash
     ??null;
 
-  /* DIM's modsByBucket payload is appearance state (shader/ornament-style plugs)
-     for these fixtures. Keep it separate from functional armour mod sockets. */
+  /* DIM fixture appearance plugs are kept separate from functional mod slots. */
   const appearanceByBucket=fixture.rawDim?.parameters?.modsByBucket??{};
   const appearanceHashes=
     bucketHash!=null
       ?(appearanceByBucket[String(bucketHash)]??[])
       :[];
 
-  const intrinsicHashes=official?.intrinsicPlugHashes??[];
+  const rarityText=String(item.rarity??item.tier??"").toLowerCase();
+  const isExotic=
+    item.isExotic===true
+    ||rarityText.includes("exotic")
+    ||Boolean(official?.equippingBlock?.uniqueLabelHash);
+
+  const intrinsicHashes=isExotic
+    ?(official?.intrinsicPlugHashes??[])
+    :[];
+
   const intrinsicTraits=intrinsicHashes.map(resolve).filter(Boolean);
 
   return {
@@ -168,9 +177,10 @@ function enrichArmourItem(item,fixture){
     armorSlot:bucketName(bucketHash)||item.armorSlot||"",
     appearancePlugs:appearanceHashes.map(resolve),
     mods:[],
+    isExotic,
     intrinsicTraits,
-    intrinsicTrait:intrinsicTraits[0]??null,
-    rarity:item.rarity??(intrinsicTraits.length?"Exotic":null)
+    intrinsicTrait:isExotic?(intrinsicTraits[0]??null):null,
+    rarity:item.rarity??(isExotic?"Exotic":null)
   };
 }
 
