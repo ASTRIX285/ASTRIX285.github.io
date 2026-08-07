@@ -1,86 +1,58 @@
-/* Guardian Workspace left-rail icon presentation.
-   Mirrors the loaded Guardian. Names live in hover/focus tooltips, not inline cards. */
-.left{gap:16px}
-.subclass-hero{padding:15px 16px}
-.subclass-hero b{font-size:1.08rem}
-.subclass-hero::after{content:attr(data-subtitle);display:block;position:absolute;left:72px;bottom:8px;font-family:Rajdhani;font-size:.58rem;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+/* Guardian Workspace left rail: visual mirror of the equipped Guardian. */
+.left{gap:14px}
 
-#abilityList::before{content:"ABILITIES";display:block;grid-column:1/-1;color:var(--dim);font-family:Orbitron;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:2px}
-#abilityList,.slot-list{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px!important}
-#aspectList{grid-template-columns:repeat(2,minmax(0,1fr))}
-#fragList{grid-template-columns:repeat(4,minmax(0,1fr))}
-.ability-row,.slot{padding:0!important;border:0!important;background:transparent!important;display:block!important}
+/* Subclass is the identity anchor: large crest, name beneath. */
+.subclass-hero{position:relative!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important;padding:14px 16px 16px!important;min-height:118px;text-align:center}
+.subclass-hero .crest,.subclass-hero .crest-fb{width:66px!important;height:66px!important;flex:0 0 66px!important;margin:0!important;filter:drop-shadow(0 0 18px var(--stage-accent-soft))}
+.subclass-hero b{font-size:1rem!important;letter-spacing:.08em}
+.subclass-hero::after{content:attr(data-subtitle);position:static!important;display:block;font-family:Rajdhani;font-size:.56rem;letter-spacing:.17em;color:var(--muted);text-transform:uppercase;margin-top:-5px}
+
+/* Super is deliberately separated from the four normal ability slots. */
+.super-focus{width:100%;display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line-2);border-radius:12px;background:linear-gradient(135deg,var(--stage-accent-faint),rgba(255,255,255,.018));text-align:left;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.super-focus:hover,.super-focus:focus-visible{transform:translateY(-2px);border-color:var(--stage-accent);box-shadow:0 0 20px var(--stage-accent-soft);outline:none}
+.super-focus-icon{width:76px;height:76px;display:grid;place-items:center}
+.super-focus-icon .ico-badge{width:76px!important;height:76px!important}
+.super-focus-copy{display:flex;flex-direction:column;min-width:0}
+.super-focus-copy small{font-family:Orbitron;font-size:.5rem;letter-spacing:.18em;color:var(--dim)}
+.super-focus-copy b{margin-top:4px;font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.super-focus-copy em{margin-top:5px;font-family:Rajdhani;font-style:normal;font-size:.64rem;color:var(--stage-accent);letter-spacing:.06em}
+
+#abilityList::before{content:"ABILITIES";display:block;width:100%;color:var(--dim);font-family:Orbitron;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:7px}
+#abilityList{display:flex!important;flex-wrap:wrap;justify-content:space-between;gap:8px!important}
+.slot-list{display:flex!important;flex-wrap:wrap;gap:10px!important}
+#aspectList{justify-content:flex-start}
+#fragList{justify-content:space-between;flex-wrap:nowrap!important}
+.ability-row,.slot{padding:0!important;border:0!important;background:transparent!important;display:block!important;width:58px!important;flex:0 0 58px!important}
 .ability-row+.ability-row{border-top:0!important}
 .ability-row .meta,.slot .nm,.slot .cfg{display:none!important}
-.ico-badge{
-  width:100%!important;height:auto!important;aspect-ratio:1;border-radius:9px!important;
-  background:rgba(0,0,0,.34)!important;border:1px solid var(--line-2)!important;
-  display:grid!important;place-items:center!important;overflow:hidden!important;
-  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
-}
-.ico-badge img{width:86%!important;height:86%!important;object-fit:contain!important}
+.ico-badge{width:58px!important;height:58px!important;aspect-ratio:1;border-radius:9px!important;background:rgba(0,0,0,.34)!important;border:1px solid var(--line-2)!important;display:grid!important;place-items:center!important;overflow:hidden!important;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.ico-badge img{width:88%!important;height:88%!important;object-fit:contain!important}
 .ability-row:hover .ico-badge,.ability-row:focus-within .ico-badge,.slot:hover .ico-badge,.slot:focus-within .ico-badge{transform:translateY(-2px);border-color:var(--stage-accent)!important;box-shadow:0 0 16px var(--stage-accent-soft)}
+.ico-badge.empty{opacity:.55}
+.fragment-locked{opacity:.28;filter:grayscale(.65) blur(.35px)}
+.fragment-locked .ico-badge{border-style:dashed!important}
 
-/* Artifact: equipped artifact identity first, only recommended perk icons beneath it. */
-.artifact-row{
-  display:grid!important;grid-template-columns:52px minmax(0,1fr)!important;grid-template-rows:auto auto;
-  gap:10px 12px!important;padding:12px!important;align-items:center!important;
-}
-.artifact-row .art{width:52px!important;height:52px!important;grid-column:1;grid-row:1}
+/* Aspects use the same footprint as abilities/fragments, not oversized artwork cards. */
+#aspectList .ico-badge,#aspectList .slot{width:58px!important;height:58px!important;flex-basis:58px!important}
+
+/* Artifact: larger equipped artifact identity, recommended build perks beneath. */
+.artifact-row{display:grid!important;grid-template-columns:66px minmax(0,1fr)!important;grid-template-rows:auto auto;gap:10px 12px!important;padding:12px!important;align-items:center!important}
+.artifact-row .art{width:66px!important;height:66px!important;grid-column:1;grid-row:1}
+.artifact-row .art img{width:100%!important;height:100%!important;object-fit:cover!important}
 .artifact-row>div:nth-child(2){grid-column:2;grid-row:1;min-width:0}
 .artifact-row>div:nth-child(2) b{display:block;font-size:.76rem}
 .artifact-row>div:nth-child(2) small{font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.artifact-row .perks{
-  grid-column:1/-1;grid-row:2;margin:0!important;padding-top:10px;border-top:1px solid var(--line);
-  display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px!important;
-}
-.artifact-row .perks:empty::before{content:"No artifact perks recommended for this build yet";grid-column:1/-1;color:var(--dim);font-size:.62rem;letter-spacing:.05em}
-.artifact-row .perks img{
-  width:100%!important;height:auto!important;aspect-ratio:1;border-radius:8px!important;object-fit:cover;
-  border:1px solid var(--line-2)!important;background:rgba(0,0,0,.34);padding:2px;
-  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
-}
+.artifact-row .perks{grid-column:1/-1;grid-row:2;margin:0!important;padding-top:10px;border-top:1px solid var(--line);display:flex!important;flex-wrap:wrap;gap:7px!important}
+.artifact-row .perks:empty::before{content:"No artifact perks recommended for this build yet";color:var(--dim);font-size:.62rem;letter-spacing:.05em}
+.artifact-row .perks img{width:42px!important;height:42px!important;border-radius:8px!important;object-fit:cover;border:1px solid var(--line-2)!important;background:rgba(0,0,0,.34);padding:2px;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
 .artifact-row .perks img:hover,.artifact-row .perks img:focus{transform:translateY(-2px);border-color:var(--stage-accent)!important;box-shadow:0 0 16px var(--stage-accent-soft);outline:none}
-
-/* Remove the previous prose/card experiment completely. */
 .artifact-advisor,.effects-panel{display:none!important}
 
-/* Destiny-style stat stack now lives inside the Guardian hero stage. */
-.stage .hero-stats{
-  position:absolute;
-  left:28px;
-  top:252px;
-  z-index:8;
-  width:250px;
-  min-height:0;
-  padding:12px 14px 14px;
-  border:1px solid rgba(168,130,255,.16);
-  background:linear-gradient(180deg,rgba(18,14,32,.56),rgba(10,8,20,.32));
-  backdrop-filter:blur(8px);
-  box-shadow:none;
-}
-.stage .hero-stats .eq-head{margin-bottom:10px}
-.stage .hero-stats .eq-head h3{font-size:.66rem;letter-spacing:.16em}
-.stage .hero-stats .stats-row{gap:7px}
-.stage .hero-stats .st{grid-template-columns:68px 1fr 30px;gap:8px;font-size:.7rem}
-.stage .hero-stats .st .bar{height:6px}
-.stage .hero-stats .st .v{font-size:.68rem}
-.stage .hero-stats .st.total{margin-top:5px;padding-top:8px}
-
-/* With Stats removed from the lower strip, give the remaining loadout cards the space. */
+.stage .hero-stats{position:absolute;left:28px;top:252px;z-index:8;width:250px;min-height:0;padding:12px 14px 14px;border:1px solid rgba(168,130,255,.16);background:linear-gradient(180deg,rgba(18,14,32,.56),rgba(10,8,20,.32));backdrop-filter:blur(8px);box-shadow:none}
+.stage .hero-stats .eq-head{margin-bottom:10px}.stage .hero-stats .eq-head h3{font-size:.66rem;letter-spacing:.16em}.stage .hero-stats .stats-row{gap:7px}.stage .hero-stats .st{grid-template-columns:68px 1fr 30px;gap:8px;font-size:.7rem}.stage .hero-stats .st .bar{height:6px}.stage .hero-stats .st .v{font-size:.68rem}.stage .hero-stats .st.total{margin-top:5px;padding-top:8px}
 .equip{grid-template-columns:1.35fr 1.25fr .95fr .85fr!important}
-
-/* The uploaded platform was too upright. Push the plane close to flat like Destiny's character screen. */
 .stage > .guardian-platform{--tilt:80deg!important;bottom:-6%!important}
 
-@media(max-width:1700px){
-  #abilityList,.slot-list{gap:6px!important}
-  .artifact-row .perks{grid-template-columns:repeat(5,minmax(0,1fr))}
-  .stage .hero-stats{left:22px;top:238px;width:230px}
-}
-@media(max-width:1550px){
-  .stage .hero-stats{width:210px;top:220px}
-}
-@media(max-width:1220px){
-  .stage .hero-stats{left:18px;top:220px;width:205px}
-}
+@media(max-width:1700px){.ability-row,.slot,#aspectList .slot{width:52px!important;flex-basis:52px!important}.ico-badge,#aspectList .ico-badge{width:52px!important;height:52px!important}.super-focus{grid-template-columns:68px minmax(0,1fr)}.super-focus-icon,.super-focus-icon .ico-badge{width:68px!important;height:68px!important}.stage .hero-stats{left:22px;top:238px;width:230px}}
+@media(max-width:1550px){.stage .hero-stats{width:210px;top:220px}}
+@media(max-width:1220px){.stage .hero-stats{left:18px;top:220px;width:205px}}
