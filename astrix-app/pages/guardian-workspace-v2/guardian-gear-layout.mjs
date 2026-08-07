@@ -13,49 +13,85 @@ function loadCss(){
     const style=document.createElement('style');
     style.id='pf-gear-layout-final';
     style.textContent=`
-      /* Final beta gear proportions */
+      /* Locked bottom equipment architecture. Top Guardian workspace is untouched. */
       .equip.gear-layout-active{
-        grid-template-columns:minmax(245px,265px) minmax(0,1fr)!important;
+        grid-template-columns:286px minmax(0,1fr)!important;
         gap:12px!important;
+        align-items:start!important;
       }
 
-      /* Compact weapon panel: keep three readable tiles without stealing armour width. */
+      /* Weapons: three readable armour-scale tiles, no oversized empty panel. */
+      .gear-weapons{
+        min-height:0!important;
+        height:max-content!important;
+        align-self:start!important;
+      }
       .gear-weapons .weap-grid{
-        grid-template-columns:repeat(3,72px)!important;
+        grid-template-columns:repeat(3,84px)!important;
         gap:7px!important;
         justify-content:start!important;
+        align-items:start!important;
       }
       .gear-weapons .weap{
-        width:72px!important;
-        min-width:72px!important;
+        width:84px!important;
+        min-width:84px!important;
+        max-width:84px!important;
       }
       .gear-weapons .weap .art{
-        width:72px!important;
-        height:72px!important;
-        min-height:72px!important;
+        width:84px!important;
+        height:84px!important;
+        min-height:84px!important;
         aspect-ratio:1/1!important;
       }
       .gear-weapons .weap .cap{
-        width:72px!important;
-        padding-top:4px!important;
+        width:84px!important;
+        padding:5px 1px 0!important;
+      }
+      .gear-weapons .weap .cap b{
+        font-size:.55rem!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
       }
 
-      /* Give the five armour cards enough width for five Artifact-sized mod sockets. */
+      /* Armour: dense five-column equipment strip, no dead space. */
+      .gear-combined{
+        min-width:0!important;
+      }
       .gear-columns{
+        display:grid!important;
+        grid-template-columns:repeat(5,minmax(0,1fr))!important;
         gap:5px!important;
+        align-items:start!important;
       }
       .gear-slot{
-        padding:5px!important;
+        min-width:0!important;
+        padding:7px!important;
+        display:flex!important;
+        flex-direction:column!important;
+        gap:4px!important;
       }
-      .gear-arm-row{
-        min-height:94px!important;
-      }
-      .gear-arm-anchor .arm{
-        width:88px!important;
-        height:88px!important;
+      .gear-slot-label{
+        margin-bottom:1px!important;
       }
 
-      /* Only Exotic armour receives the extra intrinsic tile. */
+      /* Armour image and Exotic intrinsic are a single deliberate identity row. */
+      .gear-arm-row{
+        min-height:90px!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        gap:8px!important;
+      }
+      .gear-arm-anchor .arm{
+        width:84px!important;
+        height:84px!important;
+        min-width:84px!important;
+        min-height:84px!important;
+      }
+      .gear-slot.exotic .gear-arm-anchor{
+        transform:none!important;
+      }
       .gear-slot:not(.exotic) .gear-intrinsic{
         display:none!important;
       }
@@ -67,22 +103,47 @@ function loadCss(){
         flex:0 0 46px!important;
       }
 
-      /* Five functional sockets, one row, exactly Artifact-perk scale. */
+      /* Keep shader / ornament in their established position and readable scale. */
+      .gear-appearance-row{
+        min-height:38px!important;
+        margin:2px 0!important;
+        gap:6px!important;
+      }
+      .gear-appearance{
+        width:38px!important;
+        height:38px!important;
+        min-width:38px!important;
+        min-height:38px!important;
+      }
+
+      .gear-slot-divider{
+        margin:1px 0 3px!important;
+      }
+
+      /* Five functional mod sockets: one clean row, sized to fill the card rather than float in it. */
       .gear-mods{
         display:grid!important;
-        grid-template-columns:repeat(5,46px)!important;
-        grid-template-rows:46px!important;
-        grid-auto-rows:46px!important;
-        gap:4px!important;
-        justify-content:center!important;
+        grid-template-columns:repeat(5,minmax(0,1fr))!important;
+        grid-template-rows:40px!important;
+        grid-auto-rows:40px!important;
+        gap:3px!important;
+        width:100%!important;
+        justify-content:stretch!important;
         align-content:start!important;
       }
       .gear-mod{
-        width:46px!important;
-        height:46px!important;
-        min-width:46px!important;
-        min-height:46px!important;
-        aspect-ratio:1/1!important;
+        width:100%!important;
+        height:40px!important;
+        min-width:0!important;
+        min-height:40px!important;
+        max-height:40px!important;
+        aspect-ratio:auto!important;
+        border-radius:7px!important;
+      }
+      .gear-mod img{
+        width:92%!important;
+        height:92%!important;
+        object-fit:contain!important;
       }
     `;
     document.head.appendChild(style);
