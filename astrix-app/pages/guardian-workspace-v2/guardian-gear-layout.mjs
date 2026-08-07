@@ -122,30 +122,30 @@ function loadCss(){
         margin:1px 0 4px!important;
       }
 
-      /* Five sockets on one row. Fixed square size prevents the browser shrinking them into slivers. */
+      /* Five sockets on one row. Match Artifact perk slot dimensions exactly. */
       .gear-mods{
         display:grid!important;
-        grid-template-columns:repeat(5,40px)!important;
-        grid-template-rows:40px!important;
-        grid-auto-rows:40px!important;
-        gap:2px!important;
+        grid-template-columns:repeat(5,46px)!important;
+        grid-template-rows:46px!important;
+        grid-auto-rows:46px!important;
+        gap:7px!important;
         width:100%!important;
         justify-content:center!important;
         align-content:start!important;
       }
       .gear-mod{
-        width:40px!important;
-        height:40px!important;
-        min-width:40px!important;
-        min-height:40px!important;
-        max-width:40px!important;
-        max-height:40px!important;
+        width:46px!important;
+        height:46px!important;
+        min-width:46px!important;
+        min-height:46px!important;
+        max-width:46px!important;
+        max-height:46px!important;
         aspect-ratio:1/1!important;
         border-radius:7px!important;
       }
       .gear-mod img{
-        width:90%!important;
-        height:90%!important;
+        width:88%!important;
+        height:88%!important;
         object-fit:contain!important;
       }
     `;
