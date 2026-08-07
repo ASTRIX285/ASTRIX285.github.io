@@ -39,12 +39,9 @@ function manifestIdentity(hash){
     classType:row.classType,
     itemCategoryHashes:row.itemCategoryHashes||[],
     traitIds:row.traitIds||[],
-    equipmentSlotTypeHash:
-      row.equippingBlock?.equipmentSlotTypeHash??null,
-    ammoTypeCode:
-      row.equippingBlock?.ammoType??null,
-    intrinsicPlugHashes:
-      row.intrinsicPlugHashes||[],
+    equipmentSlotTypeHash:row.equippingBlock?.equipmentSlotTypeHash??null,
+    ammoTypeCode:row.equippingBlock?.ammoType??null,
+    intrinsicPlugHashes:row.intrinsicPlugHashes||[],
     sourceKind:inferSourceKind(row),
     identitySource:"bungie-current-manifest"
   };
@@ -59,9 +56,7 @@ const resolve=hash=>{
     return {
       ...legacy,
       ...official,
-      sourceKind:
-        legacy.sourceKind
-        ??official.sourceKind
+      sourceKind:legacy.sourceKind??official.sourceKind
     };
   }
 
@@ -108,12 +103,7 @@ async function ensureData(){
   );
 
   manifestByHash=new Map(
-    Object.entries(
-      manifest.inventoryItems??{}
-    ).map(([hash,row])=>[
-      String(hash),
-      row
-    ])
+    Object.entries(manifest.inventoryItems??{}).map(([hash,row])=>[String(hash),row])
   );
 }
 
@@ -121,10 +111,7 @@ function subclassParts(fixture){
   const subclassItem=(fixture.rawDim?.equipped??[])
     .find(x=>Number(x.hash)===Number(fixture.subclassHash));
 
-  const socketHashes=Object.values(
-    subclassItem?.socketOverrides??{}
-  );
-
+  const socketHashes=Object.values(subclassItem?.socketOverrides??{});
   const parts=socketHashes.map(resolve);
 
   const out={
@@ -153,59 +140,37 @@ function subclassParts(fixture){
 }
 
 function bucketName(hash){
-  return (
-    manifest?.support?.buckets?.[String(hash)]?.display?.name
-    ??""
-  );
+  return manifest?.support?.buckets?.[String(hash)]?.display?.name??"";
 }
 
 function enrichArmourItem(item,fixture){
-  const official=manifestByHash.get(
-    String(item.hash)
-  )??null;
+  const official=manifestByHash.get(String(item.hash))??null;
 
   const bucketHash=
     official?.equippingBlock?.equipmentSlotTypeHash
     ??item.equipmentSlotTypeHash
     ??null;
 
-  const modsByBucket=
-    fixture.rawDim?.parameters?.modsByBucket
-    ??{};
-
-  const modHashes=
+  /* DIM's modsByBucket payload is appearance state (shader/ornament-style plugs)
+     for these fixtures. Keep it separate from functional armour mod sockets. */
+  const appearanceByBucket=fixture.rawDim?.parameters?.modsByBucket??{};
+  const appearanceHashes=
     bucketHash!=null
-      ?(modsByBucket[String(bucketHash)]??[])
+      ?(appearanceByBucket[String(bucketHash)]??[])
       :[];
 
-  const intrinsicHashes=
-    official?.intrinsicPlugHashes
-    ??[];
-
-  const intrinsicTraits=
-    intrinsicHashes
-      .map(resolve)
-      .filter(Boolean);
+  const intrinsicHashes=official?.intrinsicPlugHashes??[];
+  const intrinsicTraits=intrinsicHashes.map(resolve).filter(Boolean);
 
   return {
     ...item,
     equipmentSlotTypeHash:bucketHash,
-    armorSlot:
-      bucketName(bucketHash)
-      ||item.armorSlot
-      ||"",
-    mods:modHashes.map(resolve),
+    armorSlot:bucketName(bucketHash)||item.armorSlot||"",
+    appearancePlugs:appearanceHashes.map(resolve),
+    mods:[],
     intrinsicTraits,
-    intrinsicTrait:
-      intrinsicTraits[0]
-      ??null,
-    rarity:
-      item.rarity
-      ??(
-        intrinsicTraits.length
-          ?"Exotic"
-          :null
-      )
+    intrinsicTrait:intrinsicTraits[0]??null,
+    rarity:item.rarity??(intrinsicTraits.length?"Exotic":null)
   };
 }
 
@@ -218,79 +183,56 @@ function normalizeFixture(fixture){
 
   const subclass=subclassParts(fixture);
 
-  const weapons=equipped.filter(
-    x=>x.sourceKind==="weapon"
-  );
+  const weapons=equipped.filter(x=>x.sourceKind==="weapon");
 
   const armour=equipped
-    .filter(
-      x=>x.sourceKind==="armor"
-    )
-    .map(
-      item=>enrichArmourItem(
-        item,
-        fixture
-      )
-    );
+    .filter(x=>x.sourceKind==="armor")
+    .map(item=>enrichArmourItem(item,fixture));
 
-  const artifactUnlocks=
-    fixture.rawDim?.parameters?.artifactUnlocks??null;
+  const artifactUnlocks=fixture.rawDim?.parameters?.artifactUnlocks??null;
 
   const artifact=artifactUnlocks?{
-    seasonNumber:
-      artifactUnlocks.seasonNumber
-      ??fixture.artifactSeason
-      ??null,
-    perks:(artifactUnlocks.unlockedItemHashes??[])
-      .map(resolve)
+    seasonNumber:artifactUnlocks.seasonNumber??fixture.artifactSeason??null,
+    perks:(artifactUnlocks.unlockedItemHashes??[]).map(resolve)
   }:null;
 
   const unresolvedHashes=(fixture.allDestinyHashes??[])
-    .filter(h=>!byHash.has(String(h)));
+    .filter(h=>!manifestByHash.has(String(h))&&!byHash.has(String(h)));
 
   return {
     source:"paradox-beta-fixture",
     fixtureId:fixture.fixtureId,
     dimId:fixture.dimId,
     characterId:fixture.fixtureId,
-
     displayName:fixture.displayName,
-
     classType:fixture.classType,
     className:fixture.className,
     characterClass:String(fixture.className??"").toLowerCase(),
-
     subclass:String(fixture.element??"").toLowerCase(),
     subclassName:fixture.subclassName,
     subclassHash:fixture.subclassHash,
     subclassIdentity:resolve(fixture.subclassHash),
     subclassIcon:resolve(fixture.subclassHash)?.icon??"",
-
     super:subclass.super,
     classAbility:subclass.classAbility,
     movement:subclass.movement,
     melee:subclass.melee,
     grenade:subclass.grenade,
-
     abilities:[
       subclass.classAbility,
       subclass.movement,
       subclass.melee,
       subclass.grenade
     ].filter(Boolean),
-
     aspects:subclass.aspects,
     fragments:subclass.fragments,
-
     artifact,
     weapons,
     armour,
-
+    armourModPool:(fixture.rawDim?.parameters?.mods??[]).map(resolve),
     beta:{
       evidenceStatus:fixture.evidenceStatus,
-      resolved:
-        (fixture.allDestinyHashes?.length??0)
-        -unresolvedHashes.length,
+      resolved:(fixture.allDestinyHashes?.length??0)-unresolvedHashes.length,
       unresolved:unresolvedHashes.length,
       unresolvedHashes
     }
@@ -309,17 +251,11 @@ export async function loadBetaFixture(id=DEFAULT_FIXTURE_ID){
   const detail=normalizeFixture(fixture);
 
   document.dispatchEvent(
-    new CustomEvent(
-      "astrix:guardian-selection-changed",
-      {detail}
-    )
+    new CustomEvent("astrix:guardian-selection-changed",{detail})
   );
 
   document.dispatchEvent(
-    new CustomEvent(
-      "astrix:beta-fixture-loaded",
-      {detail}
-    )
+    new CustomEvent("astrix:beta-fixture-loaded",{detail})
   );
 
   return detail;
