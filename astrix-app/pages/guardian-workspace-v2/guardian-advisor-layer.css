@@ -1,5 +1,5 @@
 /* Guardian Workspace left rail + hero subclass identity. */
-.left{gap:12px}
+.left{gap:10px}
 
 /* Hero stage: subclass identity only. No surrounding card. */
 .hero-subclass-dock{position:absolute;left:28px;top:22px;z-index:12;pointer-events:none}
@@ -8,53 +8,49 @@
 .hero-subclass-dock .subclass-hero b{font-size:1.02rem!important;letter-spacing:.08em;white-space:nowrap}
 .hero-subclass-dock .subclass-hero::after{display:none!important;content:none!important}
 .hero-subclass-dock .subclass-hero .wisp{display:none!important}
-
-/* Keep Guardian identity below the subclass marker so the hero never overlaps itself. */
 .stage .identity{left:28px!important;top:96px!important;max-width:360px!important}
 
-/* Super belongs in the left rail and is centred with a larger icon. */
-.left .super-focus{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:12px 10px;border:1px solid var(--line-2);border-radius:12px;background:linear-gradient(180deg,var(--stage-accent-faint),rgba(255,255,255,.018));text-align:center;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
-.left .super-focus:hover,.left .super-focus:focus-visible{transform:translateY(-2px);border-color:var(--stage-accent);box-shadow:0 0 22px var(--stage-accent-soft);outline:none}
-.left .super-focus-icon,.left .super-focus-icon .ico-badge{width:88px!important;height:88px!important}
-.left .super-focus-icon{display:grid;place-items:center}
+/* Super is a focal emblem, not a card. */
+.left .super-focus{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 8px 10px;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:center;cursor:pointer;transition:transform .16s ease,filter .16s ease}
+.left .super-focus:hover,.left .super-focus:focus-visible{transform:translateY(-2px);filter:drop-shadow(0 0 18px var(--stage-accent-soft));outline:none}
+.left .super-focus-icon,.left .super-focus-icon .ico-badge{width:106px!important;height:106px!important}
+.left .super-focus-icon{display:grid;place-items:center;margin-bottom:2px}
+.left .super-focus-icon .ico-badge{border:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+.left .super-focus-icon .ico-badge img{width:100%!important;height:100%!important;object-fit:contain!important;filter:drop-shadow(0 0 14px var(--stage-accent-soft))}
 .left .super-focus-copy{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%}
-.left .super-focus-copy small{font-family:Orbitron;font-size:.46rem;letter-spacing:.18em;color:var(--dim)}
-.left .super-focus-copy b{margin-top:3px;max-width:100%;font-size:.82rem;line-height:1.12;white-space:normal;text-align:center}
-.left .super-focus-copy em{margin-top:4px;font-family:Rajdhani;font-style:normal;font-size:.62rem;color:var(--stage-accent);letter-spacing:.06em}
+.left .super-focus-copy small{font-family:Orbitron;font-size:.48rem;letter-spacing:.18em;color:var(--dim)}
+.left .super-focus-copy b{margin-top:2px;max-width:100%;font-size:.82rem;line-height:1.12;white-space:normal;text-align:center}
+.left .super-focus-copy em{margin-top:3px;font-family:Rajdhani;font-style:normal;font-size:.63rem;color:var(--stage-accent);letter-spacing:.06em}
 
-/* Abilities, aspects and fragments deliberately share one visual size. */
-#abilityList::before{content:"ABILITIES";display:block;grid-column:1/-1;color:var(--dim);font-family:Orbitron;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:2px}
+/* Abilities, aspects and fragments deliberately share one visual size and section rhythm. */
+.left>.grp{padding-top:8px;border-top:1px solid rgba(168,130,255,.12)}
+.left>.grp:first-of-type{border-top:0;padding-top:0}
+#abilityList::before{content:"ABILITIES";display:block;grid-column:1/-1;color:var(--dim);font-family:Orbitron;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px}
 #abilityList{display:grid!important;grid-template-columns:repeat(4,58px)!important;gap:10px!important;justify-content:start!important}
 .slot-list{display:grid!important;gap:10px!important;justify-content:start!important}
 #aspectList{grid-template-columns:repeat(5,58px)!important}
 #fragList{grid-template-columns:repeat(5,58px)!important}
 .ability-row,.slot,#aspectList .slot,#fragList .slot{padding:0!important;border:0!important;background:transparent!important;display:block!important;width:58px!important;height:58px!important;min-width:58px!important;flex:none!important}
-.ability-row+.ability-row{border-top:0!important}
-.ability-row .meta,.slot .nm,.slot .cfg{display:none!important}
+.ability-row+.ability-row{border-top:0!important}.ability-row .meta,.slot .nm,.slot .cfg{display:none!important}
 .ico-badge,#aspectList .ico-badge,#fragList .ico-badge{width:58px!important;height:58px!important;aspect-ratio:1!important;border-radius:9px!important;background:rgba(0,0,0,.34)!important;border:1px solid var(--line-2)!important;display:grid!important;place-items:center!important;overflow:hidden!important;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
-.ico-badge img{width:88%!important;height:88%!important;object-fit:contain!important}
-.ability-row:hover .ico-badge,.ability-row:focus-within .ico-badge,.slot:hover .ico-badge,.slot:focus-within .ico-badge{transform:translateY(-2px);border-color:var(--stage-accent)!important;box-shadow:0 0 16px var(--stage-accent-soft)}
+.ico-badge img{width:88%!important;height:88%!important;object-fit:contain!important}.ability-row:hover .ico-badge,.ability-row:focus-within .ico-badge,.slot:hover .ico-badge,.slot:focus-within .ico-badge{transform:translateY(-2px);border-color:var(--stage-accent)!important;box-shadow:0 0 16px var(--stage-accent-soft)}
 .ico-badge.empty{opacity:.55}.fragment-locked{opacity:.28;filter:grayscale(.65) blur(.35px)}.fragment-locked .ico-badge{border-style:dashed!important}
 
-.artifact-row{display:grid!important;grid-template-columns:60px minmax(0,1fr)!important;grid-template-rows:auto auto;gap:9px 11px!important;padding:11px!important;align-items:center!important}
-.artifact-row .art{width:60px!important;height:60px!important;grid-column:1;grid-row:1}
-.artifact-row .art img{width:100%!important;height:100%!important;object-fit:cover!important}
-.artifact-row>div:nth-child(2){grid-column:2;grid-row:1;min-width:0}.artifact-row>div:nth-child(2) b{display:block;font-size:.76rem}.artifact-row>div:nth-child(2) small{font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.artifact-row .perks{grid-column:1/-1;grid-row:2;margin:0!important;padding-top:9px;border-top:1px solid var(--line);display:flex!important;flex-wrap:wrap;gap:7px!important}
-.artifact-row .perks:empty::before{content:"No artifact perks recommended for this build yet";color:var(--dim);font-size:.62rem;letter-spacing:.05em}
-.artifact-row .perks img{width:40px!important;height:40px!important;border-radius:8px!important;object-fit:cover;border:1px solid var(--line-2)!important;background:rgba(0,0,0,.34);padding:2px;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
-.artifact-row .perks img:hover,.artifact-row .perks img:focus{transform:translateY(-2px);border-color:var(--stage-accent)!important;box-shadow:0 0 16px var(--stage-accent-soft);outline:none}
-.artifact-advisor,.effects-panel{display:none!important}
+/* Artifact: identity above, seven equal build-selected perk slots below. */
+.left>.grp:last-of-type{margin-top:1px}
+.artifact-row{display:grid!important;grid-template-columns:60px minmax(0,1fr)!important;grid-template-rows:auto auto;gap:8px 11px!important;padding:0!important;align-items:center!important;border:0!important;background:transparent!important;border-radius:0!important}
+.artifact-row .art{width:60px!important;height:60px!important;grid-column:1;grid-row:1;border-radius:10px!important;border:1px solid rgba(45,224,224,.36)!important;background:rgba(0,30,34,.28)!important}
+.artifact-row .art img{width:100%!important;height:100%!important;object-fit:contain!important}
+.artifact-row>div:nth-child(2){grid-column:2;grid-row:1;min-width:0}.artifact-row>div:nth-child(2) b{display:block;font-size:.82rem;letter-spacing:.04em}.artifact-row>div:nth-child(2) small{font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.artifact-row .perks{grid-column:1/-1;grid-row:2;margin:0!important;padding-top:9px;border-top:1px solid var(--line);display:grid!important;grid-template-columns:repeat(7,58px)!important;gap:8px!important;justify-content:start;overflow:visible}
+.artifact-perk{width:58px;height:58px;border-radius:9px;border:1px solid rgba(39,220,220,.58);background:linear-gradient(180deg,rgba(19,91,94,.36),rgba(4,31,35,.54));display:grid;place-items:center;overflow:hidden;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.artifact-perk img{width:88%!important;height:88%!important;object-fit:contain!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important}
+.artifact-perk:hover,.artifact-perk:focus-visible{transform:translateY(-2px);border-color:#42ffff;box-shadow:0 0 16px rgba(50,230,230,.28);outline:none}.artifact-perk.empty{opacity:.28;border-style:dashed}.artifact-perk .ph-glyph{font-size:.72rem}
+.artifact-row .perks:empty::before{content:none!important}.artifact-advisor,.effects-panel{display:none!important}
 
 .stage .hero-stats{position:absolute;left:28px;top:300px;z-index:8;width:250px;min-height:0;padding:12px 14px 14px;border:1px solid rgba(168,130,255,.16);background:linear-gradient(180deg,rgba(18,14,32,.56),rgba(10,8,20,.32));backdrop-filter:blur(8px);box-shadow:none}.stage .hero-stats .eq-head{margin-bottom:10px}.stage .hero-stats .eq-head h3{font-size:.66rem;letter-spacing:.16em}.stage .hero-stats .stats-row{gap:7px}.stage .hero-stats .st{grid-template-columns:68px 1fr 30px;gap:8px;font-size:.7rem}.stage .hero-stats .st .bar{height:6px}.stage .hero-stats .st .v{font-size:.68rem}.stage .hero-stats .st.total{margin-top:5px;padding-top:8px}
 .equip{grid-template-columns:1.35fr 1.25fr .95fr .85fr!important}.stage > .guardian-platform{--tilt:80deg!important;bottom:-6%!important}
 
-@media(max-width:1700px){
-  .hero-subclass-dock{left:20px;top:20px}.stage .identity{left:20px!important;top:90px!important;max-width:320px!important}
-  .hero-subclass-dock .subclass-hero .crest,.hero-subclass-dock .subclass-hero .crest-fb{width:52px!important;height:52px!important;flex-basis:52px!important}
-  #abilityList{grid-template-columns:repeat(4,52px)!important;gap:8px!important}#aspectList,#fragList{grid-template-columns:repeat(5,52px)!important;gap:8px!important}
-  .ability-row,.slot,#aspectList .slot,#fragList .slot,.ico-badge,#aspectList .ico-badge,#fragList .ico-badge{width:52px!important;height:52px!important;min-width:52px!important}
-  .left .super-focus-icon,.left .super-focus-icon .ico-badge{width:80px!important;height:80px!important}.stage .hero-stats{left:20px;top:286px;width:230px}
-}
+@media(max-width:1700px){.hero-subclass-dock{left:20px;top:20px}.stage .identity{left:20px!important;top:90px!important;max-width:320px!important}.hero-subclass-dock .subclass-hero .crest,.hero-subclass-dock .subclass-hero .crest-fb{width:52px!important;height:52px!important;flex-basis:52px!important}#abilityList{grid-template-columns:repeat(4,52px)!important;gap:8px!important}#aspectList,#fragList{grid-template-columns:repeat(5,52px)!important;gap:8px!important}.ability-row,.slot,#aspectList .slot,#fragList .slot,.ico-badge,#aspectList .ico-badge,#fragList .ico-badge{width:52px!important;height:52px!important;min-width:52px!important}.left .super-focus-icon,.left .super-focus-icon .ico-badge{width:96px!important;height:96px!important}.artifact-row .perks{grid-template-columns:repeat(7,52px)!important;gap:7px!important}.artifact-perk{width:52px;height:52px}.stage .hero-stats{left:20px;top:286px;width:230px}}
 @media(max-width:1550px){.stage .identity{max-width:300px!important}.stage .hero-stats{width:210px;top:280px}}
-@media(max-width:1220px){.hero-subclass-dock{left:18px;top:18px}.stage .identity{left:18px!important;top:86px!important}.stage .hero-stats{left:18px;top:276px;width:205px}}
+@media(max-width:1220px){.hero-subclass-dock{left:18px;top:18px}.stage .identity{left:18px!important;top:86px!important}.stage .hero-stats{left:18px;top:276px;width:205px}.artifact-row .perks{grid-template-columns:repeat(7,46px)!important;gap:6px!important}.artifact-perk{width:46px;height:46px}}
