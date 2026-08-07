@@ -13,14 +13,14 @@ function loadCss(){
     const style=document.createElement('style');
     style.id='pf-gear-layout-final';
     style.textContent=`
-      /* Locked bottom equipment architecture. Top Guardian workspace is untouched. */
+      /* Bottom equipment architecture only. Top Guardian workspace is untouched. */
       .equip.gear-layout-active{
         grid-template-columns:286px minmax(0,1fr)!important;
         gap:12px!important;
         align-items:start!important;
       }
 
-      /* Weapons: three readable armour-scale tiles, no oversized empty panel. */
+      /* Weapons remain compact, but readable. */
       .gear-weapons{
         min-height:0!important;
         height:max-content!important;
@@ -54,19 +54,21 @@ function loadCss(){
         text-overflow:ellipsis!important;
       }
 
-      /* Armour: dense five-column equipment strip, no dead space. */
+      /* Five armour cards keep equal rhythm without becoming miniature strips. */
       .gear-combined{
         min-width:0!important;
+        min-height:236px!important;
       }
       .gear-columns{
         display:grid!important;
         grid-template-columns:repeat(5,minmax(0,1fr))!important;
-        gap:5px!important;
-        align-items:start!important;
+        gap:6px!important;
+        align-items:stretch!important;
       }
       .gear-slot{
         min-width:0!important;
-        padding:7px!important;
+        min-height:205px!important;
+        padding:6px!important;
         display:flex!important;
         flex-direction:column!important;
         gap:4px!important;
@@ -75,19 +77,19 @@ function loadCss(){
         margin-bottom:1px!important;
       }
 
-      /* Armour image and Exotic intrinsic are a single deliberate identity row. */
+      /* Armour image remains the hero of each card. Exotic trait exists only beside Exotic armour. */
       .gear-arm-row{
-        min-height:90px!important;
+        min-height:96px!important;
         display:flex!important;
         align-items:center!important;
         justify-content:center!important;
         gap:8px!important;
       }
       .gear-arm-anchor .arm{
-        width:84px!important;
-        height:84px!important;
-        min-width:84px!important;
-        min-height:84px!important;
+        width:90px!important;
+        height:90px!important;
+        min-width:90px!important;
+        min-height:90px!important;
       }
       .gear-slot.exotic .gear-arm-anchor{
         transform:none!important;
@@ -103,7 +105,7 @@ function loadCss(){
         flex:0 0 46px!important;
       }
 
-      /* Keep shader / ornament in their established position and readable scale. */
+      /* Shader / ornament stay in the established location and size. */
       .gear-appearance-row{
         min-height:38px!important;
         margin:2px 0!important;
@@ -117,32 +119,33 @@ function loadCss(){
       }
 
       .gear-slot-divider{
-        margin:1px 0 3px!important;
+        margin:1px 0 4px!important;
       }
 
-      /* Five functional mod sockets: one clean row, sized to fill the card rather than float in it. */
+      /* Five sockets on one row. Fixed square size prevents the browser shrinking them into slivers. */
       .gear-mods{
         display:grid!important;
-        grid-template-columns:repeat(5,minmax(0,1fr))!important;
+        grid-template-columns:repeat(5,40px)!important;
         grid-template-rows:40px!important;
         grid-auto-rows:40px!important;
-        gap:3px!important;
+        gap:2px!important;
         width:100%!important;
-        justify-content:stretch!important;
+        justify-content:center!important;
         align-content:start!important;
       }
       .gear-mod{
-        width:100%!important;
+        width:40px!important;
         height:40px!important;
-        min-width:0!important;
+        min-width:40px!important;
         min-height:40px!important;
+        max-width:40px!important;
         max-height:40px!important;
-        aspect-ratio:auto!important;
+        aspect-ratio:1/1!important;
         border-radius:7px!important;
       }
       .gear-mod img{
-        width:92%!important;
-        height:92%!important;
+        width:90%!important;
+        height:90%!important;
         object-fit:contain!important;
       }
     `;
