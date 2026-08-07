@@ -1,6 +1,73 @@
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const armourNames=['Helmet','Gauntlets','Chest','Legs','Class Item'];
-function loadCss(){if(document.querySelector('link[href="./guardian-gear-layout.css"]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href='./guardian-gear-layout.css';document.head.appendChild(l)}
+
+function loadCss(){
+  if(!document.querySelector('link[href="./guardian-gear-layout.css"]')){
+    const l=document.createElement('link');
+    l.rel='stylesheet';
+    l.href='./guardian-gear-layout.css';
+    document.head.appendChild(l);
+  }
+
+  if(!document.getElementById('pf-gear-layout-final')){
+    const style=document.createElement('style');
+    style.id='pf-gear-layout-final';
+    style.textContent=`
+      /* Final beta gear proportions */
+      .equip.gear-layout-active{
+        grid-template-columns:minmax(300px,320px) minmax(0,1fr)!important;
+        gap:14px!important;
+      }
+
+      /* Weapon art should read at roughly the same visual scale as armour art. */
+      .gear-weapons .weap-grid{
+        grid-template-columns:repeat(3,92px)!important;
+        gap:10px!important;
+        justify-content:start!important;
+      }
+      .gear-weapons .weap{
+        width:92px!important;
+        min-width:92px!important;
+      }
+      .gear-weapons .weap .art{
+        width:92px!important;
+        height:92px!important;
+        min-height:92px!important;
+        aspect-ratio:1/1!important;
+      }
+      .gear-weapons .weap .cap{
+        width:92px!important;
+        padding-top:5px!important;
+      }
+
+      /* Preserve the armour-card footprint and mod-slot size. */
+      .gear-columns{
+        gap:10px!important;
+      }
+      .gear-arm-row{
+        min-height:94px!important;
+      }
+      .gear-arm-anchor .arm{
+        width:88px!important;
+        height:88px!important;
+      }
+      .gear-intrinsic{
+        width:48px!important;
+        height:48px!important;
+      }
+      .gear-mods{
+        grid-template-columns:repeat(3,minmax(52px,1fr))!important;
+        gap:6px!important;
+      }
+      .gear-mod{
+        min-width:52px!important;
+        min-height:52px!important;
+        aspect-ratio:1/1!important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
 
 function modTile(mod){
   const name=mod?.name??mod?.displayName??'Empty mod slot';
@@ -32,11 +99,12 @@ function traitTile(trait){
 function armourCard(index,item){
   const name=item?.name??armourNames[index];
   const icon=item?.icon??item?.iconUrl??item?.displayProperties?.icon??'';
-  const trait=item?.intrinsicTrait??null;
-  const isExotic=Boolean(trait)||String(item?.tier??item?.rarity??'').toLowerCase().includes('exotic')||item?.isExotic===true;
+  const rarity=String(item?.rarity??item?.tier??'').toLowerCase();
+  const isExotic=item?.isExotic===true||rarity.includes('exotic');
+  const trait=isExotic?(item?.intrinsicTrait??null):null;
   const mods=Array.isArray(item?.mods)?item.mods:[];
   const appearance=Array.isArray(item?.appearancePlugs)?item.appearancePlugs:[];
-  const slotCount=isExotic?5:6;
+  const slotCount=5;
 
   return `<article class="gear-slot ${isExotic?'exotic':''}" data-armour-index="${index}">
     <div class="gear-slot-label">${esc(name)}</div>
@@ -47,7 +115,7 @@ function armourCard(index,item){
           ${icon?`<img src="${esc(icon)}" alt="">`:'<span class="ph-glyph">◇</span>'}
         </div>
       </div>
-      ${isExotic?traitTile(trait):''}
+      ${isExotic&&trait?traitTile(trait):''}
     </div>
     ${appearance.length?`<div class="gear-appearance-row">${appearance.slice(0,2).map(appearanceTile).join('')}</div>`:''}
     <div class="gear-slot-divider"></div>
@@ -72,15 +140,28 @@ function initialise(){
   const stats=cards.find(c=>c.querySelector('h3')?.textContent.trim()==='STATS');
   const mods=cards.find(c=>c.querySelector('h3')?.textContent.trim()==='MODS');
   const activity=cards.find(c=>c.classList.contains('activity'))||document.querySelector('.left .activity');
-  if(activity&&!right.contains(activity)){activity.classList.add('analysis-activity');const improvement=right.querySelector('.improve');if(improvement)right.insertBefore(activity,improvement);else right.appendChild(activity)}
-  if(stats&&!document.querySelector('.stage .eq')){stats.classList.add('stage-stats');document.querySelector('.stage')?.appendChild(stats)}
+  if(activity&&!right.contains(activity)){
+    activity.classList.add('analysis-activity');
+    const improvement=right.querySelector('.improve');
+    if(improvement)right.insertBefore(activity,improvement);
+    else right.appendChild(activity);
+  }
+  if(stats&&!document.querySelector('.stage .eq')){
+    stats.classList.add('stage-stats');
+    document.querySelector('.stage')?.appendChild(stats);
+  }
   if(weapons)weapons.classList.add('gear-weapons');
   if(armour)armour.remove();
   if(mods)mods.remove();
-  if(!equip.querySelector('.gear-combined'))equip.insertAdjacentHTML('beforeend',`<section class="eq gear-combined"><div class="eq-head"><h3>ARMOUR & MODS</h3><span class="tools">EQUIPPED</span></div><div class="gear-subhead"><span>Armour above · functional mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div class="gear-columns"></div></section>`);
+  if(!equip.querySelector('.gear-combined')){
+    equip.insertAdjacentHTML('beforeend',`<section class="eq gear-combined"><div class="eq-head"><h3>ARMOUR & MODS</h3><span class="tools">EQUIPPED</span></div><div class="gear-subhead"><span>Armour above · 5 functional mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div class="gear-columns"></div></section>`);
+  }
   equip.classList.add('gear-layout-active');
   buildGear([]);
 }
 
-document.addEventListener('astrix:guardian-selection-changed',e=>{if(Array.isArray(e.detail?.armour))buildGear(e.detail.armour)});
+document.addEventListener('astrix:guardian-selection-changed',e=>{
+  if(Array.isArray(e.detail?.armour))buildGear(e.detail.armour);
+});
+
 initialise();
