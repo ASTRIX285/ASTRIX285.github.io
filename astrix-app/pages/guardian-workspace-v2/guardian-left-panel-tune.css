@@ -32,21 +32,28 @@
 .artifact-row .perks .artifact-perk:nth-child(6){grid-row:2!important;grid-column:3!important}
 .artifact-row .perks .artifact-perk:nth-child(7){grid-row:2!important;grid-column:4!important}
 
-/* 1080p keeps the same 3+4 structure and still uses larger, readable icons. */
+/* 1080p: preserve the 3+4 artifact layout but compact the vertical rhythm enough to keep the rail fully visible. */
 @media (min-width:1221px) and (max-width:2199px) and (max-height:1150px){
   .workspace{
     grid-template-columns:380px minmax(0,1fr) clamp(330px,19vw,380px)!important;
   }
-  #abilityList{grid-template-columns:repeat(4,56px)!important;gap:9px!important}
-  #aspectList,#fragList{grid-template-columns:repeat(5,56px)!important;gap:8px!important}
+  .left{overflow:hidden!important;padding:10px!important;gap:5px!important}
+  .left .super-focus{padding:2px 6px 5px!important;gap:1px!important}
+  .left .super-focus-icon,.left .super-focus-icon .ico-badge{width:72px!important;height:72px!important}
+  .left>.grp{padding-top:5px!important}
+  .grp .lbl,#abilityList::before{margin-bottom:3px!important}
+  #abilityList{grid-template-columns:repeat(4,52px)!important;gap:7px!important}
+  #aspectList,#fragList{grid-template-columns:repeat(5,52px)!important;gap:7px!important}
   .ability-row,.slot,#aspectList .slot,#fragList .slot,
   .ico-badge,#aspectList .ico-badge,#fragList .ico-badge,
   .artifact-perk{
-    width:56px!important;
-    height:56px!important;
-    min-width:56px!important;
+    width:52px!important;
+    height:52px!important;
+    min-width:52px!important;
   }
-  .artifact-row .perks{grid-template-columns:repeat(4,56px)!important;gap:8px!important}
+  .artifact-row{grid-template-columns:46px minmax(0,1fr)!important;gap:5px 8px!important}
+  .artifact-row .art{width:46px!important;height:46px!important}
+  .artifact-row .perks{grid-template-columns:repeat(4,52px)!important;gap:7px!important;padding-top:5px!important}
 }
 
 /* 2560x1440 can stay proportionate while the larger icons make better use of the panel. */
