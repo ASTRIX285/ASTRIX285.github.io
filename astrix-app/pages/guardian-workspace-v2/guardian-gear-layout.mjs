@@ -32,14 +32,26 @@ function loadCss(){
       .gear-appearance-row{min-height:38px!important;margin:2px 0!important;gap:6px!important}
       .gear-appearance{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}
       .gear-slot-divider{margin:1px 0 4px!important}
-
-      /* Equipment strip is rendered at ~63% of the Artifact panel scale.
-         73px here renders at ~46px on screen, matching Artifact perk slots. */
-      .gear-mods{display:grid!important;grid-template-columns:repeat(5,73px)!important;grid-template-rows:73px!important;grid-auto-rows:73px!important;gap:11px!important;width:100%!important;justify-content:center!important;align-content:start!important}
-      .gear-mod{width:73px!important;height:73px!important;min-width:73px!important;min-height:73px!important;max-width:73px!important;max-height:73px!important;aspect-ratio:1/1!important;border-radius:7px!important}
+      .gear-mods{display:grid!important;grid-template-columns:repeat(5,var(--pf-mod-size,46px))!important;grid-template-rows:var(--pf-mod-size,46px)!important;grid-auto-rows:var(--pf-mod-size,46px)!important;gap:7px!important;width:100%!important;justify-content:center!important;align-content:start!important}
+      .gear-mod{width:var(--pf-mod-size,46px)!important;height:var(--pf-mod-size,46px)!important;min-width:var(--pf-mod-size,46px)!important;min-height:var(--pf-mod-size,46px)!important;max-width:var(--pf-mod-size,46px)!important;max-height:var(--pf-mod-size,46px)!important;aspect-ratio:1/1!important;border-radius:7px!important}
       .gear-mod img{width:88%!important;height:88%!important;object-fit:contain!important}
     `;
     document.head.appendChild(style);
+  }
+}
+
+function syncModSizeToArtifact(){
+  const artifact=document.querySelector('.artifact-perk');
+  const mod=document.querySelector('.gear-mod');
+  if(!artifact||!mod)return;
+
+  const target=artifact.getBoundingClientRect().width;
+  const actual=mod.getBoundingClientRect().width;
+  const css=parseFloat(getComputedStyle(mod).width)||46;
+
+  if(target>0&&actual>0){
+    const corrected=Math.max(24,Math.min(90,css*(target/actual)));
+    document.documentElement.style.setProperty('--pf-mod-size',`${corrected}px`);
   }
 }
 
@@ -101,6 +113,10 @@ function buildGear(armour=[]){
   const gear=document.querySelector('.gear-combined');
   if(!gear)return;
   gear.querySelector('.gear-columns').innerHTML=Array.from({length:5},(_,i)=>armourCard(i,armour[i])).join('');
+  requestAnimationFrame(()=>{
+    syncModSizeToArtifact();
+    requestAnimationFrame(syncModSizeToArtifact);
+  });
 }
 
 function initialise(){
@@ -138,4 +154,5 @@ document.addEventListener('astrix:guardian-selection-changed',e=>{
   if(Array.isArray(e.detail?.armour))buildGear(e.detail.armour);
 });
 
+window.addEventListener('resize',()=>requestAnimationFrame(syncModSizeToArtifact));
 initialise();
