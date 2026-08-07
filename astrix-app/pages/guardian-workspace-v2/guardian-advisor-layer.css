@@ -1,22 +1,23 @@
-/* Guardian Workspace left rail + hero subclass controls. */
+/* Guardian Workspace left rail + hero subclass identity. */
 .left{gap:12px}
 
-/* Subclass + Super now live inside the Guardian hero stage, top-left. */
-.hero-subclass-dock{position:absolute;left:24px;top:24px;z-index:12;width:300px;display:flex;flex-direction:column;align-items:center;gap:12px;pointer-events:auto}
-.hero-subclass-dock .subclass-hero{position:relative!important;display:grid!important;grid-template-columns:54px minmax(0,1fr)!important;grid-template-rows:auto auto!important;align-items:center!important;column-gap:12px!important;width:100%;padding:11px 13px!important;min-height:0!important;text-align:left!important;background:linear-gradient(135deg,rgba(70,38,120,.72),rgba(30,20,52,.62))!important;backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.2)}
-.hero-subclass-dock .subclass-hero .crest,.hero-subclass-dock .subclass-hero .crest-fb{width:50px!important;height:50px!important;flex:0 0 50px!important;grid-column:1;grid-row:1/3;margin:0!important;filter:drop-shadow(0 0 18px var(--stage-accent-soft))}
-.hero-subclass-dock .subclass-hero b{grid-column:2;grid-row:1;font-size:.95rem!important;letter-spacing:.08em;align-self:end}
-.hero-subclass-dock .subclass-hero::after{content:attr(data-subtitle);grid-column:2;grid-row:2;position:static!important;display:block;font-family:Rajdhani;font-size:.52rem;letter-spacing:.17em;color:var(--muted);text-transform:uppercase;margin:1px 0 0!important;align-self:start}
+/* Hero stage: subclass identity only. No surrounding card. */
+.hero-subclass-dock{position:absolute;left:24px;top:24px;z-index:12;pointer-events:none}
+.hero-subclass-dock .subclass-hero{position:relative!important;display:flex!important;align-items:center!important;gap:12px!important;width:auto!important;padding:0!important;min-height:0!important;text-align:left!important;background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;pointer-events:none}
+.hero-subclass-dock .subclass-hero .crest,.hero-subclass-dock .subclass-hero .crest-fb{width:58px!important;height:58px!important;flex:0 0 58px!important;margin:0!important;filter:drop-shadow(0 0 18px var(--stage-accent-soft))}
+.hero-subclass-dock .subclass-hero b{font-size:1.02rem!important;letter-spacing:.08em;white-space:nowrap}
+.hero-subclass-dock .subclass-hero::after{display:none!important;content:none!important}
+.hero-subclass-dock .subclass-hero .wisp{display:none!important}
 
-/* Super is the focal point: larger icon, centered, name underneath. */
-.hero-subclass-dock .super-focus{width:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 12px 10px;border:1px solid var(--line-2);border-radius:12px;background:linear-gradient(180deg,var(--stage-accent-faint),rgba(255,255,255,.018));text-align:center;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
-.hero-subclass-dock .super-focus:hover,.hero-subclass-dock .super-focus:focus-visible{transform:translateY(-2px);border-color:var(--stage-accent);box-shadow:0 0 22px var(--stage-accent-soft);outline:none}
-.hero-subclass-dock .super-focus-icon,.hero-subclass-dock .super-focus-icon .ico-badge{width:92px!important;height:92px!important}
-.hero-subclass-dock .super-focus-icon{display:grid;place-items:center}
-.hero-subclass-dock .super-focus-copy{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%}
-.hero-subclass-dock .super-focus-copy small{font-family:Orbitron;font-size:.46rem;letter-spacing:.18em;color:var(--dim)}
-.hero-subclass-dock .super-focus-copy b{margin-top:3px;max-width:100%;font-size:.82rem;line-height:1.12;white-space:normal;text-align:center}
-.hero-subclass-dock .super-focus-copy em{margin-top:4px;font-family:Rajdhani;font-style:normal;font-size:.62rem;color:var(--stage-accent);letter-spacing:.06em}
+/* Super belongs back in the left rail and is centred with a larger icon. */
+.left .super-focus{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:12px 10px;border:1px solid var(--line-2);border-radius:12px;background:linear-gradient(180deg,var(--stage-accent-faint),rgba(255,255,255,.018));text-align:center;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.left .super-focus:hover,.left .super-focus:focus-visible{transform:translateY(-2px);border-color:var(--stage-accent);box-shadow:0 0 22px var(--stage-accent-soft);outline:none}
+.left .super-focus-icon,.left .super-focus-icon .ico-badge{width:88px!important;height:88px!important}
+.left .super-focus-icon{display:grid;place-items:center}
+.left .super-focus-copy{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%}
+.left .super-focus-copy small{font-family:Orbitron;font-size:.46rem;letter-spacing:.18em;color:var(--dim)}
+.left .super-focus-copy b{margin-top:3px;max-width:100%;font-size:.82rem;line-height:1.12;white-space:normal;text-align:center}
+.left .super-focus-copy em{margin-top:4px;font-family:Rajdhani;font-style:normal;font-size:.62rem;color:var(--stage-accent);letter-spacing:.06em}
 
 #abilityList::before{content:"ABILITIES";display:block;grid-column:1/-1;color:var(--dim);font-family:Orbitron;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:2px}
 #abilityList{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
@@ -41,9 +42,9 @@
 .artifact-row .perks img:hover,.artifact-row .perks img:focus{transform:translateY(-2px);border-color:var(--stage-accent)!important;box-shadow:0 0 16px var(--stage-accent-soft);outline:none}
 .artifact-advisor,.effects-panel{display:none!important}
 
-.stage .hero-stats{position:absolute;left:28px;top:330px;z-index:8;width:250px;min-height:0;padding:12px 14px 14px;border:1px solid rgba(168,130,255,.16);background:linear-gradient(180deg,rgba(18,14,32,.56),rgba(10,8,20,.32));backdrop-filter:blur(8px);box-shadow:none}.stage .hero-stats .eq-head{margin-bottom:10px}.stage .hero-stats .eq-head h3{font-size:.66rem;letter-spacing:.16em}.stage .hero-stats .stats-row{gap:7px}.stage .hero-stats .st{grid-template-columns:68px 1fr 30px;gap:8px;font-size:.7rem}.stage .hero-stats .st .bar{height:6px}.stage .hero-stats .st .v{font-size:.68rem}.stage .hero-stats .st.total{margin-top:5px;padding-top:8px}
+.stage .hero-stats{position:absolute;left:28px;top:252px;z-index:8;width:250px;min-height:0;padding:12px 14px 14px;border:1px solid rgba(168,130,255,.16);background:linear-gradient(180deg,rgba(18,14,32,.56),rgba(10,8,20,.32));backdrop-filter:blur(8px);box-shadow:none}.stage .hero-stats .eq-head{margin-bottom:10px}.stage .hero-stats .eq-head h3{font-size:.66rem;letter-spacing:.16em}.stage .hero-stats .stats-row{gap:7px}.stage .hero-stats .st{grid-template-columns:68px 1fr 30px;gap:8px;font-size:.7rem}.stage .hero-stats .st .bar{height:6px}.stage .hero-stats .st .v{font-size:.68rem}.stage .hero-stats .st.total{margin-top:5px;padding-top:8px}
 .equip{grid-template-columns:1.35fr 1.25fr .95fr .85fr!important}.stage > .guardian-platform{--tilt:80deg!important;bottom:-6%!important}
 
-@media(max-width:1700px){.hero-subclass-dock{left:20px;top:20px;width:270px}.hero-subclass-dock .super-focus{width:176px}.hero-subclass-dock .super-focus-icon,.hero-subclass-dock .super-focus-icon .ico-badge{width:82px!important;height:82px!important}.stage .hero-stats{left:22px;top:310px;width:230px}}
-@media(max-width:1550px){.hero-subclass-dock{width:250px}.stage .hero-stats{width:210px;top:300px}}
-@media(max-width:1220px){.hero-subclass-dock{left:18px;top:18px;width:235px}.stage .hero-stats{left:18px;top:290px;width:205px}}
+@media(max-width:1700px){.hero-subclass-dock{left:20px;top:20px}.hero-subclass-dock .subclass-hero .crest,.hero-subclass-dock .subclass-hero .crest-fb{width:52px!important;height:52px!important;flex-basis:52px!important}.left .super-focus-icon,.left .super-focus-icon .ico-badge{width:80px!important;height:80px!important}.stage .hero-stats{left:22px;top:238px;width:230px}}
+@media(max-width:1550px){.stage .hero-stats{width:210px;top:220px}}
+@media(max-width:1220px){.hero-subclass-dock{left:18px;top:18px}.stage .hero-stats{left:18px;top:220px;width:205px}}
