@@ -1,9 +1,39 @@
-/* Beta 0.1 class identity and subclass-reactive atmosphere overrides. */
-.stage{--stage-accent:#9e60ff;--stage-accent-rgb:158,96,255;--stage-class-logo:url('./D2.hunterlogo.png')}
-.stage-backdrop{background:radial-gradient(62% 56% at 69% 44%,rgba(var(--stage-accent-rgb),.28),transparent 66%),radial-gradient(110% 90% at 62% 116%,rgba(var(--stage-accent-rgb),.15),transparent 64%),linear-gradient(180deg,#0c0a16,#08060f 72%,#05040b);transition:background .45s ease}
-.stage-backdrop::before{width:58%;right:1%;top:2%;opacity:.2;background-image:var(--stage-class-logo);filter:drop-shadow(0 0 22px rgba(var(--stage-accent-rgb),.42)) drop-shadow(0 0 64px rgba(var(--stage-accent-rgb),.22))}
-.stage-backdrop::after{inset:-10%;background:radial-gradient(ellipse at 70% 45%,rgba(var(--stage-accent-rgb),.2),transparent 36%),radial-gradient(ellipse at 63% 65%,rgba(var(--stage-accent-rgb),.15),transparent 42%),linear-gradient(90deg,rgba(7,5,13,.97) 0%,rgba(7,5,13,.7) 26%,rgba(7,5,13,.08) 55%,rgba(7,5,13,.35) 100%);opacity:.78;animation:classSmoke 16s ease-in-out infinite alternate}
-.stage[data-class="hunter"]{--stage-class-logo:url('./D2.hunterlogo.png')}.stage[data-class="titan"]{--stage-class-logo:url('./D2.titanlogo.png')}.stage[data-class="warlock"]{--stage-class-logo:url('./D2.warlocklogo.png')}
-.stage[data-subclass="void"]{--stage-accent:#9e60ff;--stage-accent-rgb:158,96,255}.stage[data-subclass="solar"]{--stage-accent:#ff8c28;--stage-accent-rgb:255,140,40}.stage[data-subclass="arc"]{--stage-accent:#46aaff;--stage-accent-rgb:70,170,255}.stage[data-subclass="stasis"]{--stage-accent:#78c4ff;--stage-accent-rgb:120,196,255}.stage[data-subclass="strand"]{--stage-accent:#46dc82;--stage-accent-rgb:70,220,130}.stage[data-subclass="prismatic"]{--stage-accent:#ff50dc;--stage-accent-rgb:255,80,220}
+/* Guardian Workspace atmosphere. Keep Bungie's restrained loadout-screen feel without a large class/subclass logo behind the Guardian. */
+.stage{--stage-accent:#9e60ff;--stage-accent-rgb:158,96,255}
+.stage-backdrop{
+  background:
+    radial-gradient(62% 56% at 69% 44%,rgba(var(--stage-accent-rgb),.22),transparent 66%),
+    radial-gradient(110% 90% at 62% 116%,rgba(var(--stage-accent-rgb),.12),transparent 64%),
+    linear-gradient(180deg,#0c0a16,#08060f 72%,#05040b);
+  transition:background .45s ease;
+}
+/* Deliberately no class/subclass emblem here. The background should provide motion and atmosphere, not another information tile. */
+.stage-backdrop::before{
+  width:72%;right:-8%;top:-18%;bottom:-18%;opacity:.16;
+  background:
+    repeating-radial-gradient(circle at 62% 48%,rgba(255,255,255,.13) 0 1px,transparent 1px 34px),
+    conic-gradient(from 0deg at 62% 48%,transparent 0 7deg,rgba(var(--stage-accent-rgb),.13) 7deg 8deg,transparent 8deg 22deg);
+  mask-image:radial-gradient(circle at 62% 48%,#000 0 54%,transparent 76%);
+  -webkit-mask-image:radial-gradient(circle at 62% 48%,#000 0 54%,transparent 76%);
+  transform-origin:62% 48%;
+  animation:astrixBackdropRotate 90s linear infinite;
+  filter:none;
+}
+.stage-backdrop::after{
+  inset:-10%;
+  background:
+    radial-gradient(ellipse at 70% 45%,rgba(var(--stage-accent-rgb),.17),transparent 36%),
+    radial-gradient(ellipse at 63% 65%,rgba(var(--stage-accent-rgb),.12),transparent 42%),
+    linear-gradient(90deg,rgba(7,5,13,.97) 0%,rgba(7,5,13,.7) 26%,rgba(7,5,13,.08) 55%,rgba(7,5,13,.35) 100%);
+  opacity:.74;
+  animation:classSmoke 16s ease-in-out infinite alternate;
+}
+.stage[data-subclass="void"]{--stage-accent:#9e60ff;--stage-accent-rgb:158,96,255}
+.stage[data-subclass="solar"]{--stage-accent:#ff8c28;--stage-accent-rgb:255,140,40}
+.stage[data-subclass="arc"]{--stage-accent:#46aaff;--stage-accent-rgb:70,170,255}
+.stage[data-subclass="stasis"]{--stage-accent:#78c4ff;--stage-accent-rgb:120,196,255}
+.stage[data-subclass="strand"]{--stage-accent:#46dc82;--stage-accent-rgb:70,220,130}
+.stage[data-subclass="prismatic"]{--stage-accent:#ff50dc;--stage-accent-rgb:255,80,220}
+@keyframes astrixBackdropRotate{to{transform:rotate(360deg)}}
 @keyframes classSmoke{from{transform:translate3d(-1%,1%,0) scale(1)}to{transform:translate3d(2%,-2%,0) scale(1.05)}}
-@media(prefers-reduced-motion:reduce){.stage-backdrop::after{animation:none}}
+@media(prefers-reduced-motion:reduce){.stage-backdrop::before,.stage-backdrop::after{animation:none}}
