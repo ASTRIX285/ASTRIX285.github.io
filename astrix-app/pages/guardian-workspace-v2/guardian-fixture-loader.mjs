@@ -9,6 +9,7 @@ let identities=null;
 let manifest=null;
 let byHash=new Map();
 let manifestByHash=new Map();
+let activeFixtureId=DEFAULT_FIXTURE_ID;
 
 const absIcon=v=>{
   const s=String(v??"").trim();
@@ -144,7 +145,19 @@ function bucketName(hash){
   return manifest?.support?.buckets?.[String(hash)]?.display?.name??"";
 }
 
-function enrichArmourItem(item,fixture){
+function packedDisplayMods(modPool,index){
+  return modPool
+    .slice(index*5,index*5+5)
+    .map((mod,slotIndex)=>({
+      ...mod,
+      displayPlacement:"dim-loadout-mod-pool",
+      displaySlot:slotIndex,
+      assignmentVerified:false,
+      assignmentNote:"DIM stores loadout mods separately from armour. This beta fixture displays the real DIM mod pool in source order; exact armour socket assignment requires live Bungie instance socket data."
+    }));
+}
+
+function enrichArmourItem(item,fixture,displayMods=[]){
   const official=manifestByHash.get(String(item.hash))??null;
 
   const bucketHash=
@@ -152,7 +165,7 @@ function enrichArmourItem(item,fixture){
     ??item.equipmentSlotTypeHash
     ??null;
 
-  /* DIM fixture appearance plugs are kept separate from functional mod slots. */
+  /* DIM fixture appearance plugs are bucket-specific and remain separate from functional mods. */
   const appearanceByBucket=fixture.rawDim?.parameters?.modsByBucket??{};
   const appearanceHashes=
     bucketHash!=null
@@ -176,7 +189,9 @@ function enrichArmourItem(item,fixture){
     equipmentSlotTypeHash:bucketHash,
     armorSlot:bucketName(bucketHash)||item.armorSlot||"",
     appearancePlugs:appearanceHashes.map(resolve),
-    mods:[],
+    mods:displayMods,
+    modAssignmentVerified:false,
+    modDisplaySource:"dim-loadout-mod-pool",
     isExotic,
     intrinsicTraits,
     intrinsicTrait:isExotic?(intrinsicTraits[0]??null):null,
@@ -192,12 +207,12 @@ function normalizeFixture(fixture){
     }));
 
   const subclass=subclassParts(fixture);
-
   const weapons=equipped.filter(x=>x.sourceKind==="weapon");
+  const modPool=(fixture.rawDim?.parameters?.mods??[]).map(resolve);
 
   const armour=equipped
     .filter(x=>x.sourceKind==="armor")
-    .map(item=>enrichArmourItem(item,fixture));
+    .map((item,index)=>enrichArmourItem(item,fixture,packedDisplayMods(modPool,index)));
 
   const artifactUnlocks=fixture.rawDim?.parameters?.artifactUnlocks??null;
 
@@ -228,18 +243,14 @@ function normalizeFixture(fixture){
     movement:subclass.movement,
     melee:subclass.melee,
     grenade:subclass.grenade,
-    abilities:[
-      subclass.classAbility,
-      subclass.movement,
-      subclass.melee,
-      subclass.grenade
-    ].filter(Boolean),
+    abilities:[subclass.classAbility,subclass.movement,subclass.melee,subclass.grenade].filter(Boolean),
     aspects:subclass.aspects,
     fragments:subclass.fragments,
     artifact,
     weapons,
     armour,
-    armourModPool:(fixture.rawDim?.parameters?.mods??[]).map(resolve),
+    armourModPool:modPool,
+    modAssignmentVerified:false,
     beta:{
       evidenceStatus:fixture.evidenceStatus,
       resolved:(fixture.allDestinyHashes?.length??0)-unresolvedHashes.length,
@@ -249,8 +260,46 @@ function normalizeFixture(fixture){
   };
 }
 
+function syncFixturePicker(detail){
+  const select=document.getElementById("astrixBetaFixtureSelect");
+  if(select)select.value=detail.fixtureId;
+
+  const classLabel=document.querySelector(".char-switch b");
+  if(classLabel)classLabel.textContent=`${detail.className} ▾`;
+}
+
+function installFixturePicker(){
+  const host=document.querySelector(".char-switch");
+  if(!host||document.getElementById("astrixBetaFixtureSelect"))return;
+
+  host.style.position="relative";
+  host.style.cursor="pointer";
+
+  const select=document.createElement("select");
+  select.id="astrixBetaFixtureSelect";
+  select.setAttribute("aria-label","Select Paradox Forge beta loadout");
+  select.style.cssText="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5";
+
+  for(const f of fixtures.fixtures??[]){
+    const option=document.createElement("option");
+    option.value=f.fixtureId;
+    option.textContent=`${f.fixtureId} · ${f.displayName} · ${f.className} · ${f.subclassName}`;
+    select.appendChild(option);
+  }
+
+  select.value=activeFixtureId;
+  select.addEventListener("change",()=>{
+    loadBetaFixture(select.value).catch(error=>{
+      console.error("[Paradox beta fixture selector]",error);
+    });
+  });
+
+  host.appendChild(select);
+}
+
 export async function loadBetaFixture(id=DEFAULT_FIXTURE_ID){
   await ensureData();
+  installFixturePicker();
 
   const fixture=(fixtures.fixtures??[]).find(
     f=>f.fixtureId===id||f.displayName===id
@@ -258,15 +307,12 @@ export async function loadBetaFixture(id=DEFAULT_FIXTURE_ID){
 
   if(!fixture)throw new Error(`Unknown beta fixture: ${id}`);
 
+  activeFixtureId=fixture.fixtureId;
   const detail=normalizeFixture(fixture);
+  syncFixturePicker(detail);
 
-  document.dispatchEvent(
-    new CustomEvent("astrix:guardian-selection-changed",{detail})
-  );
-
-  document.dispatchEvent(
-    new CustomEvent("astrix:beta-fixture-loaded",{detail})
-  );
+  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
+  document.dispatchEvent(new CustomEvent("astrix:beta-fixture-loaded",{detail}));
 
   return detail;
 }
@@ -285,6 +331,8 @@ export async function listBetaFixtures(){
 
 async function start(){
   try{
+    await ensureData();
+    installFixturePicker();
     await loadBetaFixture(DEFAULT_FIXTURE_ID);
   }catch(error){
     console.error("[Paradox beta fixture loader]",error);
@@ -299,23 +347,16 @@ function startOnce(){
   start();
 }
 
-document.addEventListener(
-  "astrix:guardian-workspace-ready",
-  startOnce,
-  {once:true}
-);
+document.addEventListener("astrix:guardian-workspace-ready",startOnce,{once:true});
 
 if(document.readyState==="loading"){
-  document.addEventListener(
-    "DOMContentLoaded",
-    ()=>setTimeout(startOnce,0),
-    {once:true}
-  );
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(startOnce,0),{once:true});
 }else{
   setTimeout(startOnce,0);
 }
 
 globalThis.ASTRIXBetaFixtures={
   load:loadBetaFixture,
-  list:listBetaFixtures
+  list:listBetaFixtures,
+  current:()=>activeFixtureId
 };
