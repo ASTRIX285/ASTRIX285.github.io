@@ -32,33 +32,89 @@
 .artifact-row .perks .artifact-perk:nth-child(6){grid-row:2!important;grid-column:3!important}
 .artifact-row .perks .artifact-perk:nth-child(7){grid-row:2!important;grid-column:4!important}
 
-/* Lower-resolution desktop: scale the entire left-rail icon language together so the panel stays inside the hero height without its own scrollbar. */
+/*
+  Lower-resolution desktop calibration.
+  Do not jump between fixed icon sizes: derive one shared icon size from the available viewport height.
+  This keeps Abilities, Aspects, Fragments and Artifact perks proportional when Windows/browser scaling
+  reduces the effective CSS viewport on a 1080p monitor.
+*/
 @media (min-width:1221px) and (max-width:2199px) and (max-height:1150px){
-  .workspace{
-    grid-template-columns:360px minmax(0,1fr) clamp(330px,19vw,380px)!important;
+  :root{
+    --rail-icon:clamp(36px,4.35vh,46px);
+    --rail-gap:clamp(5px,.52vh,7px);
   }
-  .left{overflow:hidden!important;padding:9px!important;gap:4px!important}
-  .left .super-focus{padding:1px 5px 4px!important;gap:1px!important}
-  .left .super-focus-icon,.left .super-focus-icon .ico-badge{width:62px!important;height:62px!important}
-  .left .super-focus-copy small{font-size:.42rem!important}
-  .left .super-focus-copy b{font-size:.68rem!important;line-height:1.05!important}
-  .left .super-focus-copy em{font-size:.54rem!important;margin-top:1px!important}
-  .left>.grp{padding-top:4px!important}
-  .grp .lbl,#abilityList::before{margin-bottom:2px!important;font-size:.44rem!important}
-  #abilityList{grid-template-columns:repeat(4,44px)!important;gap:6px!important}
-  #aspectList,#fragList{grid-template-columns:repeat(5,44px)!important;gap:6px!important}
+  .workspace{
+    grid-template-columns:clamp(330px,18.75vw,370px) minmax(0,1fr) clamp(320px,18vw,370px)!important;
+  }
+  .workspace > .left{
+    overflow:hidden!important;
+    overflow-x:hidden!important;
+    overflow-y:hidden!important;
+    scrollbar-width:none!important;
+    padding:clamp(7px,.8vh,10px)!important;
+    gap:clamp(2px,.35vh,4px)!important;
+  }
+  .workspace > .left::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+
+  .left .super-focus{
+    padding:0 4px clamp(2px,.35vh,4px)!important;
+    gap:0!important;
+    min-height:0!important;
+  }
+  .left .super-focus-icon,
+  .left .super-focus-icon .ico-badge{
+    width:calc(var(--rail-icon) * 1.38)!important;
+    height:calc(var(--rail-icon) * 1.38)!important;
+  }
+  .left .super-focus-copy small{font-size:clamp(.36rem,.58vh,.42rem)!important}
+  .left .super-focus-copy b{font-size:clamp(.57rem,.82vh,.66rem)!important;line-height:1.02!important}
+  .left .super-focus-copy em{font-size:clamp(.46rem,.66vh,.53rem)!important;margin-top:0!important}
+
+  .left>.grp{padding-top:clamp(2px,.42vh,4px)!important;margin-top:0!important}
+  .grp .lbl,#abilityList::before{
+    margin-bottom:clamp(1px,.3vh,3px)!important;
+    font-size:clamp(.39rem,.58vh,.44rem)!important;
+  }
+
+  #abilityList{
+    grid-template-columns:repeat(4,var(--rail-icon))!important;
+    gap:var(--rail-gap)!important;
+  }
+  #aspectList,#fragList{
+    grid-template-columns:repeat(5,var(--rail-icon))!important;
+    gap:var(--rail-gap)!important;
+  }
   .ability-row,.slot,#aspectList .slot,#fragList .slot,
   .ico-badge,#aspectList .ico-badge,#fragList .ico-badge,
   .artifact-perk{
-    width:44px!important;
-    height:44px!important;
-    min-width:44px!important;
+    width:var(--rail-icon)!important;
+    height:var(--rail-icon)!important;
+    min-width:var(--rail-icon)!important;
   }
-  .artifact-row{grid-template-columns:42px minmax(0,1fr)!important;gap:4px 7px!important}
-  .artifact-row .art{width:42px!important;height:42px!important}
-  .artifact-row>div:nth-child(2) b{font-size:.72rem!important}
-  .artifact-row>div:nth-child(2) small{font-size:.58rem!important}
-  .artifact-row .perks{grid-template-columns:repeat(4,44px)!important;gap:6px!important;padding-top:4px!important}
+
+  .artifact-row{
+    grid-template-columns:var(--rail-icon) minmax(0,1fr)!important;
+    gap:clamp(3px,.42vh,5px) clamp(5px,.65vh,7px)!important;
+    padding:clamp(4px,.55vh,7px)!important;
+  }
+  .artifact-row .art{width:var(--rail-icon)!important;height:var(--rail-icon)!important}
+  .artifact-row>div:nth-child(2) b{font-size:clamp(.6rem,.82vh,.7rem)!important}
+  .artifact-row>div:nth-child(2) small{font-size:clamp(.48rem,.66vh,.56rem)!important}
+  .artifact-row .perks{
+    grid-template-columns:repeat(4,var(--rail-icon))!important;
+    gap:var(--rail-gap)!important;
+    padding-top:clamp(2px,.38vh,4px)!important;
+  }
+}
+
+/* Extra-short desktop viewport (1080p with aggressive OS/browser scaling): shrink proportionally again rather than scrolling. */
+@media (min-width:1221px) and (max-width:2199px) and (max-height:900px){
+  :root{--rail-icon:clamp(32px,4.05vh,38px);--rail-gap:4px}
+  .workspace{grid-template-columns:clamp(310px,18vw,340px) minmax(0,1fr) clamp(300px,18vw,350px)!important}
+  .workspace > .left{padding:6px!important;gap:2px!important}
+  .left .super-focus-icon,.left .super-focus-icon .ico-badge{width:calc(var(--rail-icon) * 1.32)!important;height:calc(var(--rail-icon) * 1.32)!important}
+  .left>.grp{padding-top:2px!important}
+  .artifact-row{padding:4px!important}
 }
 
 /* 2560x1440 can stay proportionate while the larger icons make better use of the panel. */
