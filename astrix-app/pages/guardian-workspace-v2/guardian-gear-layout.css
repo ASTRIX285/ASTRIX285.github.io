@@ -1,5 +1,12 @@
 /* Paradox Forge gear relationship layout.
    Familiar Destiny loadout logic, redesigned around armour -> socketed mods. */
+
+/* The subclass rail ends with the hero. The loadout band then spans the full left + centre width while Paradox Analysis remains untouched. */
+.workspace{grid-template-areas:"left stage right" "equip equip right"!important}
+.left{grid-area:left;align-self:stretch;min-height:0;max-height:700px!important}
+.equip{grid-area:equip}
+@media(min-width:1901px){.workspace{grid-template-columns:minmax(396px,432px) minmax(0,1fr) minmax(390px,430px)!important}}
+
 .equip.gear-layout-active{
   grid-template-columns:minmax(340px,.95fr) minmax(0,2.05fr)!important;
   gap:14px!important;
@@ -12,7 +19,7 @@
 .gear-weapons{min-height:100%;overflow:hidden}
 .gear-weapons .weap-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px!important;align-items:start}
 .gear-weapons .weap{min-width:0}
-.gear-weapons .weap .art{width:100%!important;height:auto!important;aspect-ratio:1.22/1!important;min-height:110px!important;border-radius:10px!important}
+.gear-weapons .weap .art{width:100%!important;height:auto!important;aspect-ratio:1.22/1!important;min-height:138px!important;border-radius:10px!important}
 .gear-weapons .weap .art img{width:100%;height:100%;object-fit:cover}
 .gear-weapons .weap .cap{padding:8px 5px 0!important;background:transparent!important;border:0!important}
 .gear-weapons .weap .cap b{font-size:.72rem}
@@ -48,11 +55,19 @@
 .gear-source-mods{display:none!important}
 
 @media(max-width:1900px){
+  .workspace{grid-template-areas:"left stage right" "equip equip right"!important}
+  .left{max-height:660px!important}
   .equip.gear-layout-active{grid-template-columns:minmax(300px,.9fr) minmax(0,2.1fr)!important}
   .gear-columns{gap:7px}.gear-slot{padding:7px}.gear-mods{gap:4px}
-  .gear-weapons .weap .art{min-height:96px!important}
+  .gear-weapons .weap .art{min-height:112px!important}
 }
+@media(max-width:1550px){.left{max-height:620px!important}}
 @media(max-width:1350px){
   .equip.gear-layout-active{grid-template-columns:1fr!important}
   .equip.gear-layout-active>.gear-weapons,.equip.gear-layout-active>.gear-combined{grid-column:1}
 }
+@media(max-width:1220px){
+  .workspace{grid-template-areas:"left stage" "equip equip" "right right"!important}
+  .left{max-height:600px!important}
+}
+@media(max-width:860px){.left{max-height:none!important}}
