@@ -5,6 +5,14 @@ const item=v=>!v?null:typeof v==='string'?{name:v,icon:''}:{...v,name:v.name??v.
 const list=v=>Array.isArray(v)?v.map(item).filter(Boolean):[];
 function tile(v,superTile=false){const x=item(v);if(!x)return'';return `<span class="ico-badge ${superTile?'super':''}" tabindex="0" title="${esc(x.name||'Loaded item')}" aria-label="${esc(x.name||'Loaded item')}">${x.icon?`<img src="${esc(x.icon)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:''}<span class="ph-glyph" style="${x.icon?'display:none':''}">◆</span></span>`}
 function abilityList(data){if(Array.isArray(data.abilities))return list(data.abilities);const a=data.abilities&&typeof data.abilities==='object'?data.abilities:{};return [data.super??a.super,data.classAbility??a.classAbility??a.class,data.movement??a.movement,data.melee??a.melee,data.grenade??a.grenade].map(item).filter(Boolean)}
+function moveStatsIntoHero(){
+  const stage=document.querySelector('.stage');
+  const statsRow=document.getElementById('statsRow');
+  const statsCard=statsRow?.closest('.eq');
+  if(!stage||!statsCard||statsCard.classList.contains('hero-stats'))return;
+  statsCard.classList.add('hero-stats');
+  stage.appendChild(statsCard);
+}
 function render(data={}){
   Object.assign(state,data);
   const cls=String(data.characterClass??data.className??state.characterClass).toLowerCase();
@@ -20,7 +28,9 @@ function render(data={}){
   const recSource=data.recommendedArtifactPerks??data.artifactRecommendations??data.recommendedArtifactMods??state.recommendedArtifactPerks;
   if(Array.isArray(recSource)){state.recommendedArtifactPerks=recSource;const p=document.getElementById('artPerks');if(p)p.innerHTML=list(recSource).map(x=>x.icon?`<img src="${esc(x.icon)}" alt="" tabindex="0" title="${esc(x.name||'Recommended artifact perk')}" aria-label="${esc(x.name||'Recommended artifact perk')}" onerror="this.style.display='none'">`:tile(x)).join('')}
   const sw=document.querySelector('.char-switch b');if(sw)sw.textContent=`${cls.charAt(0).toUpperCase()+cls.slice(1)} ▾`;
+  moveStatsIntoHero();
 }
 document.addEventListener('astrix:guardian-selection-changed',e=>render(e.detail||{}));
 document.addEventListener('astrix:artifact-recommendations-changed',e=>render(e.detail||{}));
 render({characterClass:'hunter',subclass:'void'});
+moveStatsIntoHero();
