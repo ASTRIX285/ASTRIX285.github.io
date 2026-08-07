@@ -1,0 +1,103 @@
+/* Fluid Hero composition: identity, stats, Guardian render and controls scale together with the stage. */
+.stage{
+  container-type:size;
+  container-name:guardian-stage;
+  --hero-pad-x:clamp(16px,2.2cqw,30px);
+  --hero-pad-y:clamp(16px,2.4cqh,26px);
+  --hero-crest:clamp(44px,7.2cqh,60px);
+  --hero-stat-w:clamp(190px,23cqw,250px);
+  --hero-name:clamp(1.18rem,2.1cqh,1.72rem);
+  --hero-metric:clamp(1.08rem,1.95cqh,1.52rem);
+}
+
+/* Subclass identity remains visually anchored, but now grows/shrinks with the Hero canvas. */
+.hero-subclass-dock{
+  left:var(--hero-pad-x)!important;
+  top:var(--hero-pad-y)!important;
+}
+.hero-subclass-dock .subclass-hero .crest,
+.hero-subclass-dock .subclass-hero .crest-fb{
+  width:var(--hero-crest)!important;
+  height:var(--hero-crest)!important;
+  flex:0 0 var(--hero-crest)!important;
+}
+.hero-subclass-dock .subclass-hero b{
+  font-size:clamp(.78rem,1.45cqh,1.02rem)!important;
+}
+
+/* Guardian identity stack scales from the stage rather than fixed desktop pixels. */
+.stage .identity{
+  left:var(--hero-pad-x)!important;
+  top:clamp(78px,13.8cqh,104px)!important;
+  max-width:clamp(270px,34cqw,390px)!important;
+}
+.stage .id-head h1{font-size:var(--hero-name)!important}
+.stage .id-head .rank{font-size:clamp(.64rem,1.1cqh,.82rem)!important}
+.stage .id-metrics{
+  margin-top:clamp(10px,1.7cqh,18px)!important;
+  gap:clamp(12px,2.3cqw,30px)!important;
+}
+.stage .metric .v{font-size:var(--hero-metric)!important}
+.stage .metric small{font-size:clamp(.44rem,.72cqh,.56rem)!important}
+.stage .id-cosmetics{
+  margin-top:clamp(10px,1.6cqh,18px)!important;
+  gap:clamp(7px,1.2cqw,12px)!important;
+}
+.stage .cos .sw{
+  width:clamp(30px,5.2cqh,40px)!important;
+  height:clamp(30px,5.2cqh,40px)!important;
+}
+.stage .cos b{font-size:clamp(.58rem,1cqh,.72rem)!important}
+.stage .cos small{font-size:clamp(.42rem,.68cqh,.5rem)!important}
+
+/* Hero Stats remains part of the same information column and scales with it. */
+.stage .hero-stats{
+  left:var(--hero-pad-x)!important;
+  top:clamp(245px,43cqh,315px)!important;
+  width:var(--hero-stat-w)!important;
+  padding:clamp(9px,1.5cqh,14px)!important;
+}
+.stage .hero-stats .eq-head{margin-bottom:clamp(6px,1.1cqh,10px)!important}
+.stage .hero-stats .stats-row{gap:clamp(4px,.75cqh,7px)!important}
+.stage .hero-stats .st{
+  grid-template-columns:clamp(52px,8cqw,68px) 1fr clamp(24px,3.4cqw,30px)!important;
+  gap:clamp(5px,.8cqw,8px)!important;
+  font-size:clamp(.56rem,.95cqh,.7rem)!important;
+}
+.stage .hero-stats .st .v{font-size:clamp(.56rem,.92cqh,.68rem)!important}
+
+/* The Guardian itself is stage-relative in both axes. This keeps the visual weight consistent across monitors. */
+.stage .guardian-hero{
+  right:clamp(-3%, -1cqw, 1%)!important;
+  top:clamp(3%,4.5cqh,6%)!important;
+  bottom:clamp(5%,7cqh,8%)!important;
+  width:clamp(58%,64cqw,69%)!important;
+  height:auto!important;
+}
+.stage .guardian-hero img{
+  width:auto!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  object-position:center bottom!important;
+}
+
+/* Controls scale with the same stage, avoiding fixed desktop offsets. */
+.stage .view3d{
+  right:clamp(12px,1.8cqw,22px)!important;
+  top:clamp(12px,2cqh,22px)!important;
+  transform:scale(clamp(.82,.86 + .16 * (100cqh / 700px),1));
+  transform-origin:top right;
+}
+
+/* Compact desktop: preserve composition by reducing the whole Hero information density together. */
+@container guardian-stage (max-height:620px){
+  .stage .identity{top:clamp(72px,13cqh,84px)!important}
+  .stage .hero-stats{top:clamp(220px,41cqh,255px)!important}
+  .stage .guardian-hero{width:64%!important;right:-1%!important;top:4%!important;bottom:6%!important}
+}
+
+@container guardian-stage (min-height:760px){
+  .stage .guardian-hero{width:61%!important;right:2%!important;top:4%!important;bottom:7%!important}
+}
