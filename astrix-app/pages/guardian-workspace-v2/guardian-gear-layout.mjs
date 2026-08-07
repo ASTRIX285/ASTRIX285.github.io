@@ -40,7 +40,7 @@ function loadCss(){
         padding-top:5px!important;
       }
 
-      /* Preserve the armour-card footprint and mod-slot size. */
+      /* Preserve the armour-card footprint. */
       .gear-columns{
         gap:10px!important;
       }
@@ -51,17 +51,32 @@ function loadCss(){
         width:88px!important;
         height:88px!important;
       }
-      .gear-intrinsic{
-        width:48px!important;
-        height:48px!important;
+
+      /* Only Exotic armour receives the extra intrinsic tile. Match Artifact icon scale. */
+      .gear-slot:not(.exotic) .gear-intrinsic{
+        display:none!important;
       }
+      .gear-intrinsic{
+        width:46px!important;
+        height:46px!important;
+        min-width:46px!important;
+        min-height:46px!important;
+        flex:0 0 46px!important;
+      }
+
+      /* Functional armour mod blocks match the 46px Artifact perk icons. */
       .gear-mods{
-        grid-template-columns:repeat(3,minmax(52px,1fr))!important;
-        gap:6px!important;
+        grid-template-columns:repeat(3,46px)!important;
+        grid-auto-rows:46px!important;
+        gap:7px!important;
+        justify-content:start!important;
+        align-content:start!important;
       }
       .gear-mod{
-        min-width:52px!important;
-        min-height:52px!important;
+        width:46px!important;
+        height:46px!important;
+        min-width:46px!important;
+        min-height:46px!important;
         aspect-ratio:1/1!important;
       }
     `;
