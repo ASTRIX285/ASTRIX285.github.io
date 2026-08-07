@@ -1,6 +1,6 @@
-/* Final left-rail proportion pass: seven artifact perks fit cleanly and all build icons share one visual size. */
+/* Left-rail proportion pass: artifact perks use a 3+4 two-row layout so the rail no longer needs excessive width. */
 .workspace{
-  grid-template-columns:clamp(440px,18vw,540px) minmax(0,1fr) clamp(350px,16.8vw,430px)!important;
+  grid-template-columns:clamp(380px,16.5vw,460px) minmax(0,1fr) clamp(350px,16.8vw,430px)!important;
 }
 
 /* One icon language for abilities, aspects, fragments and artifact perks. */
@@ -13,12 +13,29 @@
   height:58px!important;
   min-width:58px!important;
 }
-.artifact-row .perks{grid-template-columns:repeat(7,58px)!important;gap:8px!important}
 
-/* Keep the visual rhythm intact on 1080p while still fitting all seven artifact perks. */
+/* Artifact perks: seven slots split over two rows, 3 on the first line and 4 on the second. */
+.artifact-row .perks{
+  display:grid!important;
+  grid-template-columns:repeat(4,58px)!important;
+  gap:8px!important;
+  justify-content:start!important;
+  width:max-content!important;
+  max-width:100%!important;
+}
+.artifact-row .perks .artifact-perk:nth-child(-n+3){grid-row:1!important}
+.artifact-row .perks .artifact-perk:nth-child(1){grid-column:1!important}
+.artifact-row .perks .artifact-perk:nth-child(2){grid-column:2!important}
+.artifact-row .perks .artifact-perk:nth-child(3){grid-column:3!important}
+.artifact-row .perks .artifact-perk:nth-child(4){grid-row:2!important;grid-column:1!important}
+.artifact-row .perks .artifact-perk:nth-child(5){grid-row:2!important;grid-column:2!important}
+.artifact-row .perks .artifact-perk:nth-child(6){grid-row:2!important;grid-column:3!important}
+.artifact-row .perks .artifact-perk:nth-child(7){grid-row:2!important;grid-column:4!important}
+
+/* 1080p keeps the same 3+4 structure with slightly smaller icons. */
 @media (min-width:1221px) and (max-width:2199px) and (max-height:1150px){
   .workspace{
-    grid-template-columns:440px minmax(0,1fr) clamp(330px,19vw,380px)!important;
+    grid-template-columns:380px minmax(0,1fr) clamp(330px,19vw,380px)!important;
   }
   #abilityList{grid-template-columns:repeat(4,52px)!important;gap:8px!important}
   #aspectList,#fragList{grid-template-columns:repeat(5,52px)!important;gap:8px!important}
@@ -29,13 +46,13 @@
     height:52px!important;
     min-width:52px!important;
   }
-  .artifact-row .perks{grid-template-columns:repeat(7,52px)!important;gap:7px!important}
+  .artifact-row .perks{grid-template-columns:repeat(4,52px)!important;gap:7px!important}
 }
 
-/* 2560x1440 and larger desktop: give the rail enough real inner width for seven 58px perks plus gaps and padding. */
+/* 2560x1440 can now stay proportionate instead of forcing an oversized left rail. */
 @media (min-width:2200px){
   .workspace{
-    grid-template-columns:minmax(540px,21vw) minmax(0,1fr) clamp(400px,16.5vw,460px)!important;
+    grid-template-columns:minmax(400px,16.5vw) minmax(0,1fr) clamp(400px,16.5vw,460px)!important;
   }
   .left{overflow-x:hidden!important}
 }
