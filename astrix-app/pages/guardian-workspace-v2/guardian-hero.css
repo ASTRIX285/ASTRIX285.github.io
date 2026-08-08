@@ -1,0 +1,67 @@
+/* Guardian hero only. OAuth later replaces #guardianRender.src without changing layout.
+   The Guardian and platform now share one stage anchor so the character remains centred
+   over the platform as viewport size, Windows scaling and browser zoom change. */
+.stage{
+  --guardian-stage-x:68%;
+  --guardian-footline:8.5%;
+  --guardian-max-h:84%;
+  container-type:size;
+}
+
+.guardian-hero{
+  position:absolute;
+  left:var(--guardian-stage-x);
+  bottom:var(--guardian-footline);
+  width:clamp(420px,58cqw,980px);
+  height:var(--guardian-max-h);
+  transform:translateX(-50%);
+  z-index:4;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  pointer-events:none;
+  min-width:0;
+  min-height:0;
+}
+
+.guardian-hero img{
+  display:block;
+  width:auto;
+  height:100%;
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  object-position:center bottom;
+  filter:drop-shadow(0 22px 42px rgba(0,0,0,.72)) drop-shadow(0 0 34px rgba(139,92,246,.3));
+}
+
+.guardian-hero[hidden],.guardian-hero img[hidden]{display:none!important}
+
+/* Lower effective desktop viewport: reduce both the character footprint and footline proportionally. */
+@media (min-width:1221px) and (max-height:1150px){
+  .stage{
+    --guardian-stage-x:68%;
+    --guardian-footline:7.25%;
+    --guardian-max-h:82%;
+  }
+  .guardian-hero{width:clamp(360px,57cqw,820px)}
+}
+
+/* Extra-short effective viewport caused by OS scaling or browser zoom. */
+@media (min-width:1221px) and (max-height:900px){
+  .stage{
+    --guardian-footline:6.5%;
+    --guardian-max-h:80%;
+  }
+  .guardian-hero{width:clamp(330px,56cqw,700px)}
+}
+
+/* Larger desktop / 1440p+: keep the same centreline while allowing more visual presence. */
+@media (min-width:2200px) and (min-height:1200px){
+  .stage{
+    --guardian-stage-x:68%;
+    --guardian-footline:8.75%;
+    --guardian-max-h:86%;
+  }
+  .guardian-hero{width:clamp(520px,58cqw,1040px)}
+}

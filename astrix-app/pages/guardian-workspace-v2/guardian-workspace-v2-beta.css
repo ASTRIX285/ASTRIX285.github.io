@@ -1,0 +1,469 @@
+/* ASTRIX PARADOX Guardian Workspace Beta 0.7 — proportional desktop grid */
+:root{
+  --stage-accent:#9e60ff;
+  --stage-accent-soft:rgba(158,96,255,.34);
+  --stage-accent-faint:rgba(158,96,255,.14);
+  --desktop-stage-h:clamp(590px,64.8vh,900px);
+}
+/* Desktop architecture is proportional: loadout / Hero / analysis.  The left track has a hard content floor so seven Artifact perks never force horizontal scrolling. */
+.workspace{width:calc(100% - clamp(28px,2.8vw,72px));max-width:none;margin:0 auto;padding:14px 0 18px;min-height:0;display:grid;grid-template-columns:minmax(490px,19fr) minmax(760px,64fr) minmax(360px,17fr);grid-template-rows:var(--desktop-stage-h) auto;grid-template-areas:"left stage right" "left equip right";gap:clamp(12px,.7vw,18px);align-items:stretch}
+.left,.right{min-width:0;max-height:none}.left{padding:clamp(12px,.72vw,18px);overflow:hidden}.right{padding:clamp(13px,.72vw,18px);overflow:auto}.left .ability-row .meta,.left .slot .nm,.right p,.right li{min-width:0}.left .ability-row .meta b,.left .slot .nm,.right p,.right li{overflow-wrap:anywhere}
+.left{background:linear-gradient(180deg,rgba(24,18,40,.88),rgba(13,10,23,.9));box-shadow:0 22px 60px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.025)}
+.subclass-hero{position:sticky;top:0;z-index:2;backdrop-filter:blur(14px)}
+.stage{min-height:0;height:var(--desktop-stage-h);border-radius:18px;overflow:hidden;background:#08060f}.stage::after{box-shadow:inset 0 0 76px rgba(0,0,0,.5)}
+.identity{left:clamp(22px,1.15vw,34px);top:clamp(22px,1.05vw,30px);max-width:clamp(300px,15vw,390px)}.id-head h1{font-size:clamp(1.62rem,1.18vw,2rem)}.id-metrics{margin-top:18px;display:grid;grid-template-columns:repeat(3,max-content);gap:clamp(20px,1.2vw,32px);align-items:end}.metric .v{font-size:clamp(1.45rem,1.12vw,1.9rem)}.metric small{font-size:.52rem}.id-cosmetics{margin-top:18px;display:grid;grid-template-columns:repeat(3,max-content);gap:12px}.cos{gap:8px}.cos .sw{width:38px;height:38px;border-radius:8px}.cos b{font-size:.72rem}.cos small{font-size:.48rem}
+.guardian-hero{right:2%;top:5%;bottom:7%;width:61%;align-items:flex-end}.guardian-hero img{height:100%;max-height:100%;object-position:center bottom}
+.stage > .guardian-platform{--size:clamp(430px,27vw,650px);--tilt:80deg;left:70%;bottom:-5.5%;transform:translateX(-50%);z-index:3}.view3d{right:22px;top:22px}
+.equip{grid-area:equip;display:grid;grid-template-columns:1.25fr 1.15fr .68fr .85fr;gap:12px;align-items:stretch}.eq{min-width:0;padding:12px;border-radius:13px;background:linear-gradient(180deg,rgba(22,17,37,.88),rgba(13,10,23,.88));box-shadow:0 18px 42px rgba(0,0,0,.28)}.eq-head{margin-bottom:9px}.weap-grid{gap:7px}.weap .cap{padding:6px 7px}.arm-grid{gap:6px}.stats-row{gap:5px}
+.mods-grid{display:grid!important;grid-template-columns:repeat(5,34px)!important;grid-auto-rows:34px;gap:7px!important;align-content:start;justify-content:start}.mod{width:34px!important;height:34px!important;aspect-ratio:1!important;border-radius:7px!important;padding:3px!important;overflow:hidden;display:grid!important;place-items:center!important;background:rgba(139,92,246,.055)!important}.mod img{display:block;width:100%;height:100%;object-fit:contain;border-radius:4px}.mod .ph-glyph{font-size:.62rem!important;opacity:.28}.mod .n{font-size:.4rem!important;top:1px!important;right:2px!important}
+.right{background:linear-gradient(180deg,rgba(20,16,34,.9),rgba(12,9,21,.92));box-shadow:0 22px 60px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.025)}.health-card{padding:14px}.health-card .ring{width:92px;height:92px}.focus{margin-top:10px;padding-top:10px}.mini-grid,.sw-grid{gap:9px}.mini,.sw-card{padding:11px}
+.actionbar{position:sticky;bottom:0;padding:10px 24px}.improve-cta{padding:12px 38px}
+.stage-state{position:absolute;inset:0;z-index:30;display:none;place-items:center;background:rgba(5,4,11,.72);backdrop-filter:blur(8px);pointer-events:none}.stage[data-state="loading"] .stage-state,.stage[data-state="error"] .stage-state{display:grid}.stage-state-card{padding:18px 24px;border:1px solid var(--line-2);border-radius:14px;background:var(--panel-solid);font-family:Orbitron;font-size:.72rem;letter-spacing:.12em;color:var(--muted)}.stage[data-state="error"] .stage-state-card{border-color:rgba(255,93,115,.45);color:#ff9aaa}
+.arm{cursor:pointer;transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}.arm:hover,.arm:focus-visible{transform:translateY(-2px);border-color:var(--stage-accent)!important;box-shadow:0 0 18px var(--stage-accent-soft);outline:none}.arm::after{content:"INSPECT";position:absolute;left:5px;right:5px;bottom:4px;text-align:center;font-family:Orbitron;font-size:.42rem;letter-spacing:.1em;color:transparent;transition:color .18s ease}.arm:hover::after,.arm:focus-visible::after{color:var(--muted)}
+.armour-drawer-backdrop{position:fixed;inset:0;z-index:80;background:rgba(2,2,7,.62);backdrop-filter:blur(5px);opacity:0;pointer-events:none;transition:opacity .22s ease}.armour-drawer{position:fixed;right:0;top:0;bottom:0;z-index:81;width:min(520px,92vw);padding:24px;border-left:1px solid var(--line-2);background:linear-gradient(180deg,#151020,#090711);box-shadow:-30px 0 70px rgba(0,0,0,.6);transform:translateX(102%);transition:transform .24s ease;overflow:auto}body.armour-drawer-open .armour-drawer-backdrop{opacity:0;pointer-events:none}body.armour-drawer-open .armour-drawer{transform:translateX(0)}.armour-drawer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--line)}.armour-drawer-head h2{margin:4px 0 0;font-family:Orbitron;font-size:1.1rem;letter-spacing:.08em}.armour-drawer-close{width:40px;height:40px;border:1px solid var(--line);border-radius:10px;color:var(--muted);background:rgba(255,255,255,.03)}.armour-drawer-tabs{display:flex;gap:8px;margin:18px 0}.armour-tab{padding:9px 12px;border:1px solid var(--line);border-radius:9px;color:var(--muted);font-family:Orbitron;font-size:.62rem;letter-spacing:.08em}.armour-tab[aria-selected="true"]{color:#fff;border-color:var(--stage-accent);background:var(--stage-accent-faint)}.armour-panel{display:none}.armour-panel.active{display:block}.inspector-empty{padding:18px;border:1px dashed var(--line-2);border-radius:12px;color:var(--muted);background:rgba(255,255,255,.02)}.inspector-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.inspector-field{padding:12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025)}.inspector-field small{display:block;color:var(--dim);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase}.inspector-field b{display:block;margin-top:5px;font-size:.86rem}
+/* Compact desktop.  This rule is width-bounded so it cannot accidentally catch a high-resolution display that merely reports a short CSS viewport because of OS/browser scaling. */
+@media (min-width:1221px) and (max-width:2100px) and (max-height:1150px){
+  :root{--desktop-stage-h:clamp(590px,64.2vh,700px)}
+  .workspace{grid-template-columns:minmax(370px,20fr) minmax(700px,61fr) minmax(330px,19fr);gap:12px;padding-top:10px}
+  .left{padding:11px;gap:7px!important;overflow:hidden!important}
+  .left .super-focus{padding:8px 8px;gap:3px}.left .super-focus-icon,.left .super-focus-icon .ico-badge{width:66px!important;height:66px!important}.left .super-focus-copy b{font-size:.72rem}.left .super-focus-copy em{margin-top:2px}
+  #abilityList{grid-template-columns:repeat(4,46px)!important;gap:7px!important}#aspectList,#fragList{grid-template-columns:repeat(5,46px)!important;gap:7px!important}.ability-row,.slot,#aspectList .slot,#fragList .slot,.ico-badge,#aspectList .ico-badge,#fragList .ico-badge{width:46px!important;height:46px!important;min-width:46px!important}.grp .lbl,#abilityList::before{margin-bottom:4px!important;font-size:.49rem!important}
+  .artifact-row{grid-template-columns:48px minmax(0,1fr)!important;gap:6px 9px!important;padding:8px!important}.artifact-row .art{width:48px!important;height:48px!important}.artifact-row .perks{grid-template-columns:repeat(7,46px)!important;gap:7px!important;padding-top:6px!important}.artifact-perk{width:46px!important;height:46px!important}.artifact-perk img{width:88%!important;height:88%!important}
+  .hero-subclass-dock{left:20px;top:18px}.stage .identity{left:20px!important;top:84px!important}.stage .hero-stats{left:20px;top:270px;width:220px}
+  .guardian-hero{width:62%;right:0;top:5%;bottom:7%}.stage > .guardian-platform{--size:clamp(410px,25vw,475px);left:69%}
+  .mods-grid{grid-template-columns:repeat(5,30px)!important;grid-auto-rows:30px}.mod{width:30px!important;height:30px!important}
+}
+/* Large desktop: use percentages rather than a fixed left-column maximum. */
+@media (min-width:2101px){
+  .workspace{grid-template-columns:minmax(520px,19fr) minmax(0,64fr) minmax(400px,17fr);gap:clamp(16px,.7vw,20px)}
+  .left{padding:clamp(17px,.8vw,24px)}
+}
+@media (min-width:2101px) and (min-height:1200px){
+  :root{--desktop-stage-h:clamp(760px,65vh,920px)}
+  .guardian-hero{width:60%;right:2%;top:4%;bottom:7%}.stage > .guardian-platform{--size:clamp(560px,26vw,680px)}
+}
+@media(max-width:1220px){.workspace{width:calc(100% - 20px);grid-template-columns:320px minmax(0,1fr);grid-template-rows:600px auto auto;grid-template-areas:"left stage" "left equip" "right right"}.stage{height:600px}.left{overflow:auto}.right{max-height:none}.equip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:860px){.workspace{display:block;width:calc(100% - 16px)}.left,.stage,.equip,.right{margin-bottom:12px}.stage{height:560px}.guardian-hero{width:82%;right:-12%}.stage > .guardian-platform{--size:390px;left:64%}.equip{grid-template-columns:1fr}.actionbar{position:static;flex-wrap:wrap;justify-content:center}}
+
+/* Beta equipment layout: narrower weapons, wider armour */
+.equip {
+  grid-template-columns: minmax(240px,.72fr) minmax(0,2.28fr) !important;
+}
+
+.equip > .eq:first-child,
+.equip > .eq:nth-child(2) {
+  min-width: 0;
+}
+
+.weap-grid {
+  gap: 7px !important;
+}
+
+.weap-grid .weap {
+  min-width: 0 !important;
+}
+
+.weap-grid .weap .art {
+  aspect-ratio: 1 / 1;
+}
+
+.weap-grid .weap .art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.beta-armour-functional {
+  margin-top: 7px;
+  width: 100%;
+}
+
+.beta-armour-mod-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 5px 1px 4px;
+  font-size: 8px;
+  letter-spacing: .08em;
+  opacity: .78;
+}
+
+.beta-armour-mod-heading small {
+  font-size: 7px;
+  opacity: .55;
+}
+
+.beta-armour-mod-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 4px;
+}
+
+.beta-armour-mod-slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  border: 1px solid rgba(151,107,255,.30);
+  border-radius: 5px;
+  overflow: hidden;
+  background: linear-gradient(145deg,rgba(87,52,142,.20),rgba(15,11,27,.55));
+}
+
+.beta-armour-mod-slot.filled {
+  border-color: rgba(166,126,255,.60);
+}
+
+.beta-armour-mod-slot img {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+}
+
+.beta-armour-mod-slot.empty {
+  opacity: .52;
+}
+
+.beta-slot-glyph {
+  font-size: 12px;
+  opacity: .42;
+}
+
+.beta-exotic-trait {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(232,194,91,.52);
+  border-radius: 5px;
+  background: linear-gradient(90deg,rgba(171,126,24,.16),rgba(30,22,9,.08));
+}
+
+.beta-exotic-trait-icon {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 25px;
+  overflow: hidden;
+}
+
+.beta-exotic-trait-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.beta-exotic-trait-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.beta-exotic-trait-copy small {
+  font-size: 6px;
+  letter-spacing: .08em;
+  color: #d7b957;
+}
+
+.beta-exotic-trait-copy b {
+  font-size: 8px;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arm-grid {
+  gap: 8px !important;
+}
+
+.arm-grid .arm {
+  min-width: 0;
+}
+
+/* ASTRIX beta layout refinement: identity padding + equipment proportions */
+
+.stage .identity {
+  padding: 18px 22px 20px 24px !important;
+  box-sizing: border-box;
+}
+
+.stage .id-head {
+  margin-top: 2px !important;
+}
+
+.stage .id-metrics,
+.stage .id-cosmetics {
+  margin-top: 10px !important;
+}
+
+/* Make the weapons panel narrower and give the width to Armour & Mods */
+.equip {
+  display: grid !important;
+  grid-template-columns: minmax(240px, 24%) minmax(0, 76%) !important;
+  gap: 10px !important;
+}
+
+.equip > .eq:first-child {
+  min-width: 0 !important;
+}
+
+.equip > .eq:nth-child(2) {
+  min-width: 0 !important;
+}
+
+.weap-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+.weap-grid .weap,
+.weap-grid .weap .art {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.weap-grid .weap .art {
+  aspect-ratio: 1 / 1 !important;
+}
+
+.arm-grid {
+  width: 100% !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+@media (max-width: 1400px) {
+  .stage .identity {
+    padding: 16px 18px 18px 20px !important;
+  }
+
+  .equip {
+    grid-template-columns: minmax(220px, 26%) minmax(0, 74%) !important;
+  }
+}
+
+
+/* Exotic armour identity treatment: armour icon left, trait icon beside it */
+.arm-grid .arm {
+  position: relative;
+}
+
+.arm-grid .arm.has-beta-exotic-trait > img,
+.arm-grid .arm.has-beta-exotic-trait .armour-icon img,
+.arm-grid .arm.has-beta-exotic-trait .arm-icon img,
+.arm-grid .arm.has-beta-exotic-trait .item-icon img {
+  transform: translateX(-20px);
+}
+
+.beta-exotic-trait-inline {
+  position: absolute;
+  top: 18px;
+  left: calc(50% + 17px);
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 3px;
+  margin: 0;
+  border: 1px solid rgba(232,194,91,.72);
+  border-radius: 7px;
+  background: rgba(18,13,7,.88);
+  box-shadow: 0 0 16px rgba(232,194,91,.12);
+  cursor: help;
+  z-index: 3;
+}
+
+.beta-exotic-trait-inline img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: none !important;
+}
+
+.beta-exotic-trait-inline:hover,
+.beta-exotic-trait-inline:focus-visible {
+  border-color: rgba(255,220,111,.95);
+  box-shadow: 0 0 18px rgba(255,220,111,.24);
+  outline: none;
+}
+
+/* Legendary armour = 6 mod slots. Exotic armour = 5 mod slots + intrinsic trait. */
+
+
+/* FINAL Exotic armour + functional mod layout */
+.arm-grid .arm {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.arm-grid .arm.has-beta-exotic-trait .beta-primary-armour-image {
+  transform: translateX(-24px) !important;
+}
+
+.beta-exotic-trait-inline {
+  position: absolute !important;
+  top: 18px !important;
+  left: calc(50% + 18px) !important;
+  width: 46px !important;
+  height: 46px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 4px !important;
+  border: 1px solid rgba(232,194,91,.78) !important;
+  border-radius: 7px !important;
+  background: rgba(18,13,7,.94) !important;
+  box-shadow: 0 0 14px rgba(232,194,91,.14) !important;
+  cursor: help !important;
+  z-index: 20 !important;
+}
+
+.beta-exotic-trait-inline img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  transform: none !important;
+}
+
+.beta-exotic-trait-inline:hover,
+.beta-exotic-trait-inline:focus-visible {
+  border-color: rgba(255,222,116,.98) !important;
+  box-shadow: 0 0 18px rgba(255,222,116,.28) !important;
+  outline: none !important;
+}
+
+.beta-armour-functional {
+  width: 100% !important;
+  margin-top: 7px !important;
+  flex: 0 0 auto !important;
+}
+
+.beta-armour-mod-heading {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin: 5px 1px 4px !important;
+  font-size: 8px !important;
+  letter-spacing: .08em !important;
+  opacity: .78 !important;
+}
+
+.beta-armour-mod-heading small {
+  font-size: 7px !important;
+  opacity: .55 !important;
+}
+
+.beta-armour-mod-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  gap: 4px !important;
+}
+
+.beta-armour-mod-slot {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  aspect-ratio: 1 / 1 !important;
+  min-width: 0 !important;
+  border: 1px solid rgba(151,107,255,.30) !important;
+  border-radius: 5px !important;
+  overflow: hidden !important;
+  background: linear-gradient(
+    145deg,
+    rgba(87,52,142,.20),
+    rgba(15,11,27,.55)
+  ) !important;
+}
+
+.beta-armour-mod-slot.filled {
+  border-color: rgba(166,126,255,.60) !important;
+}
+
+.beta-armour-mod-slot img {
+  width: 82% !important;
+  height: 82% !important;
+  object-fit: contain !important;
+  transform: none !important;
+}
+
+.beta-armour-mod-slot.empty {
+  opacity: .52 !important;
+}
+
+.beta-slot-glyph {
+  font-size: 12px !important;
+  opacity: .42 !important;
+}
+
+
+/* Paradox Forge armour functional layout - rendered by guardian-workspace-v2.mjs */
+.arm-grid .arm {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.arm-grid .arm.pf-exotic-armour .pf-primary-armour-image {
+  transform: translateX(-25px) !important;
+}
+
+.pf-exotic-trait {
+  position: absolute !important;
+  top: 18px !important;
+  left: calc(50% + 20px) !important;
+  width: 48px !important;
+  height: 48px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 4px !important;
+  border: 1px solid rgba(238,198,79,.78) !important;
+  border-radius: 7px !important;
+  background: rgba(18,13,7,.94) !important;
+  box-shadow: 0 0 16px rgba(238,198,79,.13) !important;
+  cursor: help !important;
+  z-index: 30 !important;
+}
+
+.pf-exotic-trait img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  transform: none !important;
+}
+
+.pf-exotic-trait:hover,
+.pf-exotic-trait:focus-visible {
+  border-color: rgba(255,224,119,1) !important;
+  box-shadow: 0 0 20px rgba(255,224,119,.28) !important;
+  outline: none !important;
+}
+
+.pf-mod-grid {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  gap: 4px !important;
+  margin-top: 7px !important;
+}
+
+.pf-mod-slot {
+  display: grid !important;
+  place-items: center !important;
+  aspect-ratio: 1 / 1 !important;
+  min-width: 0 !important;
+  border: 1px solid rgba(151,107,255,.34) !important;
+  border-radius: 5px !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(87,52,142,.18),
+      rgba(15,11,27,.58)
+    ) !important;
+}
+
+.pf-mod-slot span {
+  font-size: 12px !important;
+  opacity: .42 !important;
+}

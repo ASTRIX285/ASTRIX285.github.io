@@ -1,0 +1,43 @@
+/* Stage shell, identity and controls only. Visual layers live in dedicated CSS files. */
+.stage{
+  grid-area:stage;
+  position:relative;
+  min-height:620px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  overflow:hidden;
+  isolation:isolate;
+  background:#08060f;
+}
+.stage::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:6;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(8,6,14,.22),transparent 24%,transparent 74%,rgba(8,6,14,.5));
+  box-shadow:inset 0 0 90px rgba(0,0,0,.55);
+}
+.identity{position:absolute;left:34px;top:30px;z-index:7;max-width:270px}
+.id-head{display:flex;align-items:center;gap:14px}
+.id-emblem{width:56px;height:56px;border-radius:11px;display:grid;place-items:center;color:var(--gold);border:1px solid rgba(227,178,60,.4);background:rgba(227,178,60,.08);box-shadow:0 0 22px rgba(227,178,60,.08)}
+.id-head h1{margin:0;font-family:Orbitron;font-weight:800;font-size:2rem;line-height:1}
+.id-head .rank{display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:600;font-size:.9rem;margin-top:5px}
+.id-head .rank .chip{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 5px;border-radius:6px;background:rgba(139,92,246,.18);border:1px solid var(--line-2);color:var(--violet-hot);font-family:Orbitron;font-size:.66rem}
+.id-metrics{margin-top:26px;display:flex;flex-direction:column;gap:20px}
+.metric .v{font-family:Orbitron;font-weight:800;font-size:2.1rem;line-height:.9;display:flex;align-items:center;gap:8px}
+.metric.power .v{color:var(--gold)}.metric.rank .v{color:var(--text)}.metric.triumph .v{color:var(--cyan)}
+.metric .v .g{font-size:1.1rem}
+.metric small{display:block;color:var(--dim);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;margin-top:6px}
+.id-cosmetics{margin-top:30px;display:flex;flex-direction:column;gap:14px}
+.cos{display:flex;align-items:center;gap:13px}
+.cos .sw{width:52px;height:52px;flex:none;border-radius:10px;border:1px solid var(--line-2);overflow:hidden;display:grid;place-items:center;background:rgba(0,0,0,.35)}
+.cos .sw.emblem{color:var(--violet-2)}
+.cos .sw.shader{background:conic-gradient(from 210deg,#8b5cf6,#c4b5fd,#5b21b6,#8b5cf6)}
+.cos .sw.ghost{color:var(--cyan);background:rgba(87,199,255,.08);border-color:rgba(87,199,255,.3)}
+.cos small{display:block;color:var(--dim);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase}
+.cos b{font-weight:600;font-size:.86rem}
+.view3d{position:absolute;right:22px;top:24px;z-index:8;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);pointer-events:auto}
+.view3d .b{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;border:1px solid var(--line-2);background:var(--panel);color:var(--violet-2)}
+.view3d small{font-size:.52rem;letter-spacing:.16em;color:var(--dim)}
+@media(max-width:1500px){.identity{left:26px;top:26px}}
