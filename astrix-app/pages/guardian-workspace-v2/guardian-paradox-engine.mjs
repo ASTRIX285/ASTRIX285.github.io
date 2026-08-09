@@ -316,22 +316,163 @@ function recommendationsFromWeakLinks(weakLinks) {
   return recs;
 }
 
+/* ---------- curated fixture evidence ---------- */
+
+function hasEvidence(value) {
+  if (value == null) return false;
+  if (typeof value === 'string') return clean(value).length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') return Object.keys(value).length > 0;
+  return false;
+}
+
+function endpointKey(endpoint) {
+  const hash = Number(endpoint?.hash ?? endpoint?.bungieHash);
+  return Number.isFinite(hash) ? `h:${hash}` : `n:${lower(endpoint?.name)}`;
+}
+
+function chainKey(link) {
+  return `${endpointKey(link?.from)}|${canonEffect(link?.output)}|${endpointKey(link?.to)}`;
+}
+
+function runtimeLoopWithSource(loop) {
+  return loop.map(link => ({
+    ...link,
+    source: 'runtime-description-parsing',
+    evidenceSources: [
+      { source: 'runtime-description-parsing', evidence: link.evidence }
+    ]
+  }));
+}
+
+function normalizeCuratedChain(entry) {
+  if (!entry || typeof entry !== 'object' || !hasEvidence(entry.evidence)) return null;
+  const output = canonEffect(entry.output);
+  const input = canonEffect(entry.input ?? entry.output);
+  if (!entry.from || !entry.to || !output || !input) return null;
+  const from = {
+    hash: Number.isFinite(Number(entry.from.hash ?? entry.from.bungieHash)) ? Number(entry.from.hash ?? entry.from.bungieHash) : null,
+    name: clean(entry.from.name),
+    type: clean(entry.from.type) || 'component'
+  };
+  const to = {
+    hash: Number.isFinite(Number(entry.to.hash ?? entry.to.bungieHash)) ? Number(entry.to.hash ?? entry.to.bungieHash) : null,
+    name: clean(entry.to.name),
+    type: clean(entry.to.type) || 'component'
+  };
+  if ((!from.name && from.hash == null) || (!to.name && to.hash == null)) return null;
+  return {
+    ...entry,
+    from,
+    output,
+    to,
+    input,
+    chain: clean(entry.chain) || `${from.name || from.hash} -> ${output} -> ${to.name || to.hash}`,
+    source: 'curated-fixture-data',
+    evidenceSources: [
+      { source: 'curated-fixture-data', evidence: entry.evidence }
+    ]
+  };
+}
+
+function mergeBuildLoop(runtimeLoop, curatedEntries) {
+  const merged = new Map();
+  for (const link of runtimeLoopWithSource(runtimeLoop)) merged.set(chainKey(link), link);
+
+  for (const raw of Array.isArray(curatedEntries) ? curatedEntries : []) {
+    const curated = normalizeCuratedChain(raw);
+    if (!curated) continue;
+    const key = chainKey(curated);
+    const existing = merged.get(key);
+    if (!existing) {
+      merged.set(key, curated);
+      continue;
+    }
+    merged.set(key, {
+      ...existing,
+      source: 'runtime-description-parsing+curated-fixture-data',
+      evidenceSources: [
+        ...(existing.evidenceSources ?? []),
+        ...curated.evidenceSources
+      ]
+    });
+  }
+  return [...merged.values()];
+}
+
+function curatedEvidenceRows(rows, type) {
+  return (Array.isArray(rows) ? rows : [])
+    .filter(row => row && typeof row === 'object' && hasEvidence(row.evidence))
+    .map(row => ({ ...row, type: row.type ?? type, source: 'curated-fixture-data' }));
+}
+
+function mergeStatementRows(runtimeRows, curatedRows) {
+  const out = [...runtimeRows];
+  const seen = new Set(runtimeRows.map(row => lower(row?.statement)));
+  for (const row of curatedRows) {
+    const key = lower(row?.statement);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
+}
+
+function mergeWeaponContribution(runtimeRows, curatedRows) {
+  const verifiedCurated = curatedEvidenceRows(curatedRows, 'weapon-contribution');
+  const out = runtimeRows.map(row => ({ ...row }));
+
+  for (const curated of verifiedCurated) {
+    const hash = Number(curated.hash ?? curated.bungieHash);
+    const at = out.findIndex(row =>
+      (Number.isFinite(hash) && Number(row.hash) === hash) ||
+      (!Number.isFinite(hash) && lower(row.name) === lower(curated.name))
+    );
+    if (at < 0) {
+      out.push(curated);
+      continue;
+    }
+    const current = out[at];
+    out[at] = {
+      ...current,
+      ...curated,
+      roles: uniq([...(current.roles ?? []), ...(curated.roles ?? [])]),
+      source: current.source ? `${current.source}+curated-fixture-data` : 'curated-fixture-data',
+      evidenceSources: [
+        ...(current.evidence ? [{ source: 'runtime-description-parsing', evidence: current.evidence }] : []),
+        { source: 'curated-fixture-data', evidence: curated.evidence }
+      ]
+    };
+  }
+  return out;
+}
+
 export function analyzeGuardianBuild(build = {}) {
   if (build?.source && build.source !== ALPHA_SOURCE) {
     throw new Error(`Paradox Alpha engine rejected non-fixture source: ${build.source}`);
   }
 
   const nodes = buildEvidenceNodes(build);
-  const buildLoop = makeLoop(nodes);
+  const runtimeLoop = makeLoop(nodes);
+  const buildLoop = mergeBuildLoop(runtimeLoop, build.synergyChains);
   const missing = missingInputs(nodes);
-  const weapons = weaponContribution(nodes, buildLoop);
-  const weakLinks = evidenceWeakLinks(nodes, missing, weapons);
+  const runtimeWeapons = weaponContribution(nodes, buildLoop);
+  const weapons = mergeWeaponContribution(runtimeWeapons, build.weaponContribution);
+  const runtimeWeakLinks = evidenceWeakLinks(nodes, missing, weapons);
+  const weakLinks = mergeStatementRows(
+    runtimeWeakLinks,
+    curatedEvidenceRows(build.knownWeakLinks, 'curated-weak-link')
+  );
+  const strengths = mergeStatementRows(
+    strengthsFromLoop(buildLoop),
+    curatedEvidenceRows(build.knownStrengths, 'curated-strength')
+  );
 
-  return {
+  const result = {
     fixtureId: build.fixtureId ?? null,
     source: 'paradox-alpha-deterministic-engine',
     buildLoop,
-    strengths: strengthsFromLoop(buildLoop),
+    strengths,
     weakLinks,
     weaponContribution: weapons,
     artifactFit: artifactFit(nodes, buildLoop, build),
@@ -339,6 +480,9 @@ export function analyzeGuardianBuild(build = {}) {
     confidence: confidence(build, nodes, buildLoop, missing),
     recommendations: recommendationsFromWeakLinks(weakLinks)
   };
+
+  if (build.buildFocus != null) result.buildFocus = build.buildFocus;
+  return result;
 }
 
 export function compareAnalysisMutation(beforeBuild, afterBuild) {
