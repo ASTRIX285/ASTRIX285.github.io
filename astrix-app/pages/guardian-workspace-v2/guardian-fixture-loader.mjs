@@ -251,6 +251,13 @@ function normalizeFixture(fixture){
     armour,
     armourModPool:modPool,
     modAssignmentVerified:false,
+    buildFocus:fixture.buildFocus??null,
+    synergyChains:fixture.synergyChains??[],
+    weaponContribution:fixture.weaponContribution??[],
+    activityProfile:fixture.activityProfile??{},
+    knownStrengths:fixture.knownStrengths??[],
+    knownWeakLinks:fixture.knownWeakLinks??[],
+    mutationCases:fixture.mutationCases??[],
     beta:{
       evidenceStatus:fixture.evidenceStatus,
       resolved:(fixture.allDestinyHashes?.length??0)-unresolvedHashes.length,
