@@ -331,6 +331,26 @@ function endpointKey(endpoint) {
   return Number.isFinite(hash) ? `h:${hash}` : `n:${lower(endpoint?.name)}`;
 }
 
+function endpointMatchesNode(endpoint, node) {
+  const hash = Number(endpoint?.hash ?? endpoint?.bungieHash);
+  if (Number.isFinite(hash)) return Number(node?.hash) === hash;
+  const name = lower(endpoint?.name);
+  return Boolean(name) && lower(node?.name) === name;
+}
+
+function endpointIsEquipped(endpoint, nodes) {
+  return Array.isArray(nodes) && nodes.some(node => endpointMatchesNode(endpoint, node));
+}
+
+function referencedItem(row) {
+  if (!row || typeof row !== 'object') return null;
+  if (row.item && typeof row.item === 'object') return row.item;
+  const hash = Number(row.hash ?? row.bungieHash);
+  const name = clean(row.name);
+  if (Number.isFinite(hash) || name) return { hash: Number.isFinite(hash) ? hash : null, name };
+  return null;
+}
+
 function chainKey(link) {
   return `${endpointKey(link?.from)}|${canonEffect(link?.output)}|${endpointKey(link?.to)}`;
 }
@@ -375,13 +395,14 @@ function normalizeCuratedChain(entry) {
   };
 }
 
-function mergeBuildLoop(runtimeLoop, curatedEntries) {
+function mergeBuildLoop(runtimeLoop, curatedEntries, nodes) {
   const merged = new Map();
   for (const link of runtimeLoopWithSource(runtimeLoop)) merged.set(chainKey(link), link);
 
   for (const raw of Array.isArray(curatedEntries) ? curatedEntries : []) {
     const curated = normalizeCuratedChain(raw);
     if (!curated) continue;
+    if (!endpointIsEquipped(curated.from, nodes) || !endpointIsEquipped(curated.to, nodes)) continue;
     const key = chainKey(curated);
     const existing = merged.get(key);
     if (!existing) {
@@ -400,9 +421,13 @@ function mergeBuildLoop(runtimeLoop, curatedEntries) {
   return [...merged.values()];
 }
 
-function curatedEvidenceRows(rows, type) {
+function curatedEvidenceRows(rows, type, nodes) {
   return (Array.isArray(rows) ? rows : [])
     .filter(row => row && typeof row === 'object' && hasEvidence(row.evidence))
+    .filter(row => {
+      const item = referencedItem(row);
+      return !item || endpointIsEquipped(item, nodes);
+    })
     .map(row => ({ ...row, type: row.type ?? type, source: 'curated-fixture-data' }));
 }
 
@@ -418,8 +443,9 @@ function mergeStatementRows(runtimeRows, curatedRows) {
   return out;
 }
 
-function mergeWeaponContribution(runtimeRows, curatedRows) {
-  const verifiedCurated = curatedEvidenceRows(curatedRows, 'weapon-contribution');
+function mergeWeaponContribution(runtimeRows, curatedRows, nodes) {
+  const verifiedCurated = curatedEvidenceRows(curatedRows, 'weapon-contribution', nodes)
+    .filter(row => endpointIsEquipped(row, nodes));
   const out = runtimeRows.map(row => ({ ...row }));
 
   for (const curated of verifiedCurated) {
@@ -454,18 +480,18 @@ export function analyzeGuardianBuild(build = {}) {
 
   const nodes = buildEvidenceNodes(build);
   const runtimeLoop = makeLoop(nodes);
-  const buildLoop = mergeBuildLoop(runtimeLoop, build.synergyChains);
+  const buildLoop = mergeBuildLoop(runtimeLoop, build.synergyChains, nodes);
   const missing = missingInputs(nodes);
   const runtimeWeapons = weaponContribution(nodes, buildLoop);
-  const weapons = mergeWeaponContribution(runtimeWeapons, build.weaponContribution);
+  const weapons = mergeWeaponContribution(runtimeWeapons, build.weaponContribution, nodes);
   const runtimeWeakLinks = evidenceWeakLinks(nodes, missing, weapons);
   const weakLinks = mergeStatementRows(
     runtimeWeakLinks,
-    curatedEvidenceRows(build.knownWeakLinks, 'curated-weak-link')
+    curatedEvidenceRows(build.knownWeakLinks, 'curated-weak-link', nodes)
   );
   const strengths = mergeStatementRows(
     strengthsFromLoop(buildLoop),
-    curatedEvidenceRows(build.knownStrengths, 'curated-strength')
+    curatedEvidenceRows(build.knownStrengths, 'curated-strength', nodes)
   );
 
   const result = {
