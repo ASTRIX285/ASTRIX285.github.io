@@ -3,7 +3,7 @@
   "purpose": "Additive Bungie manifest evidence extension for Exotic-first prototypes. No ASTRIX-authored gameplay inference; item identities and perk descriptions are transcribed from Bungie DestinyInventoryItemDefinition pages or manifest identity records.",
   "baseCache": "beta-bungie-manifest-cache.json",
   "sourceRoute": "Official Bungie DestinyInventoryItemDefinition detail pages; Fusion Grenade identity hash cross-checked against Destiny manifest API records",
-  "additionalItemCount": 17,
+  "additionalItemCount": 18,
   "items": [
     {"bungieHash":1496419775,"name":"Bane of Sorrow","sourceKind":"weapon","weaponType":"Machine Gun","damageType":"Void","officialDescription":"","perks":[{"name":"Demolitionist","description":"Kills with this weapon generate grenade energy. Activating your grenade ability reloads this weapon from reserves."}],"source":"https://www.bungie.net/en/Explore/Detail/DestinyInventoryItemDefinition/1496419775"},
     {"bungieHash":1028582252,"name":"The Comedian","sourceKind":"weapon","weaponType":"Shotgun","damageType":"Void","officialDescription":"","perks":[{"name":"Adrenaline Junkie","description":"This weapon gains increased damage and handling from final blows with grenades or this weapon."}],"source":"https://www.bungie.net/en/Explore/Detail/DestinyInventoryItemDefinition/1028582252"},
