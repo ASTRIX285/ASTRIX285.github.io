@@ -109,9 +109,21 @@ async function ensureData(){
   );
 }
 
+function inferredSubclassItem(fixture){
+  const candidates=(fixture.rawDim?.equipped??[]).filter(item=>{
+    const socketHashes=Object.values(item?.socketOverrides??{});
+    if(!socketHashes.length)return false;
+    const componentTypes=socketHashes.map(resolve).map(part=>part?.componentType);
+    return componentTypes.includes("aspect")&&componentTypes.includes("fragment");
+  });
+  return candidates.length===1?candidates[0]:null;
+}
+
 function subclassParts(fixture){
-  const subclassItem=(fixture.rawDim?.equipped??[])
-    .find(x=>Number(x.hash)===Number(fixture.subclassHash));
+  const equipped=fixture.rawDim?.equipped??[];
+  const subclassItem=equipped.find(x=>
+    fixture.subclassHash!=null&&Number(x.hash)===Number(fixture.subclassHash)
+  )??inferredSubclassItem(fixture);
 
   const socketHashes=Object.values(subclassItem?.socketOverrides??{});
   const parts=socketHashes.map(resolve);
