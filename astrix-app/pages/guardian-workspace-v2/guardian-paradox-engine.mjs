@@ -393,6 +393,11 @@ const RECOMMEND_OUTPUT_PATTERNS = [
   /\b(generate|generates|generated|provide|provides|provided|return|returns|returned|restore|restores|restored|recharge|recharges|recharged|refund|refunds|refunded)\b/i
 ];
 
+const RECOMMEND_INPUT_PATTERNS = [
+  ...INPUT_PATTERNS,
+  /\b(final blows?|from|with)\b/i
+];
+
 function sentenceWindows(text) {
   return clean(text).split(/(?<=[.!?])\s+/).map(clean).filter(Boolean);
 }
@@ -408,7 +413,7 @@ function recommendationEffects(evidenceParts) {
       if (!term.patterns.some(re => re.test(sentence))) continue;
       mentions.push(term.effect);
       if (RECOMMEND_OUTPUT_PATTERNS.some(re => re.test(sentence))) outputs.push(term.effect);
-      if (INPUT_PATTERNS.some(re => re.test(sentence))) inputs.push(term.effect);
+      if (RECOMMEND_INPUT_PATTERNS.some(re => re.test(sentence))) inputs.push(term.effect);
     }
   }
   return { outputs: uniq(outputs), inputs: uniq(inputs), mentions: uniq(mentions) };
@@ -523,13 +528,13 @@ export function recommendBuildForExotic(exoticHash, vaultPool, manifestCache = {
     if (candidate?.type === 'weapon' && grenade && effects.outputs.includes('grenade-energy')) {
       chain = recommendationChain(item, 'grenade-energy', grenade, 'grenade-energy', { producer: evidenceParts, consumer: 'Documented Destiny ability mechanic: grenade energy is the resource spent to make the equipped grenade ability available.', source: 'bungie-manifest+documented-game-mechanic' });
       role = `Feeds grenade energy back into the ${exotic.name} ${grenade.name} loop.`;
-    } else if (candidate?.type === 'weapon' && grenade && effects.inputs.includes('grenade-final-blow')) {
-      chain = recommendationChain(grenade, 'grenade-final-blow', item, 'grenade-final-blow', { producer: grenadeChain?.evidence ?? `${poolContext?.fixtureId ?? 'Anchor'} equips ${grenade.name}.`, consumer: evidenceParts, source: 'curated-fixture+bungie-manifest' });
-      role = `Consumes ${grenade.name} final blows to increase weapon damage/handling.`;
     } else if (candidate?.type === 'weapon' && grenade && effects.inputs.includes('matching-damage-grenade-final-blow') && grenadeDamageType && lower(candidate?.damageType) === grenadeDamageType) {
       const perk = candidatePerkForEffect(candidate, manifestItem, 'matching-damage-grenade-final-blow');
       chain = recommendationChain(grenade, `matching-${grenadeDamageType}-grenade-final-blow`, item, 'matching-damage-grenade-final-blow', { producer: grenadeChain?.evidence ?? `${poolContext?.fixtureId ?? 'Anchor'} equips ${clean(candidate?.damageType)} ${grenade.name}.`, consumer: evidenceParts, source: 'curated-fixture+bungie-manifest' });
       role = `Consumes a ${candidate.damageType} ${grenade.name} kill to strengthen ${clean(perk?.name) || item.name} after its weapon-final-blow setup.`;
+    } else if (candidate?.type === 'weapon' && grenade && effects.inputs.includes('grenade-final-blow')) {
+      chain = recommendationChain(grenade, 'grenade-final-blow', item, 'grenade-final-blow', { producer: grenadeChain?.evidence ?? `${poolContext?.fixtureId ?? 'Anchor'} equips ${grenade.name}.`, consumer: evidenceParts, source: 'curated-fixture+bungie-manifest' });
+      role = `Consumes ${grenade.name} final blows to increase weapon damage/handling.`;
     }
 
     if (chain) {
