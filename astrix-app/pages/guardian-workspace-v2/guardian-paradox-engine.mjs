@@ -366,6 +366,105 @@ function candidateEvidence(candidate, manifestItem) {
   return uniq(parts).filter(Boolean);
 }
 
+function candidateEffectEvidence(candidate, manifestItem) {
+  const parts = [];
+  const pushRows = rows => (Array.isArray(rows) ? rows : []).forEach(row => parts.push(clean(row?.description)));
+  parts.push(clean(candidate?.description));
+  pushRows(candidate?.ownedRoll);
+  if (candidate?.intrinsic?.description) parts.push(clean(candidate.intrinsic.description));
+  parts.push(evidenceText(manifestItem));
+  pushRows(manifestItem?.perks);
+  return uniq(parts).filter(Boolean);
+}
+
+const RECOMMEND_EFFECT_TERMS = [
+  { effect: 'grenade-energy', patterns: [/\bgrenade energy\b/i] },
+  { effect: 'grenade-final-blow', patterns: [/\bgrenades?\b.{0,36}\b(?:final blows?|kills?)\b/i, /\b(?:final blows?|kills?)\b.{0,36}\bgrenades?\b/i] },
+  { effect: 'matching-damage-grenade-final-blow', patterns: [/\bgrenades?\b.{0,48}\b(?:kills?|final blows?)\b.{0,48}\bsame damage type\b/i, /\bgrenades?\b.{0,48}\bsame damage type\b.{0,48}\b(?:kills?|final blows?)\b/i, /\bgrenade or melee kills?\b.{0,48}\bsame damage type\b/i] },
+  { effect: 'element-debuffed-target', patterns: [/\b(?:arc|solar|void|stasis|strand)[ -]debuffed targets?\b/i] },
+  { effect: 'class-ability-energy', patterns: [/\bclass ability energy\b/i, /\brift energy\b/i] },
+  { effect: 'empowered-weapon-damage', patterns: [/\bempowered weapon (?:damage|hits?|final blows?|kills?)\b/i] },
+  { effect: 'fusion-grenade-energy', patterns: [/\bfusion grenade energy\b/i] },
+  { effect: 'fusion-grenade-final-blow', patterns: [/\bfusion grenades?\b.{0,36}\b(?:final blows?|kills?|defeating)\b/i, /\b(?:final blows?|kills?|defeating)\b.{0,36}\bfusion grenades?\b/i] }
+];
+
+const RECOMMEND_OUTPUT_PATTERNS = [
+  ...OUTPUT_PATTERNS,
+  /\b(generate|generates|generated|provide|provides|provided|return|returns|returned|restore|restores|restored|recharge|recharges|recharged|refund|refunds|refunded)\b/i
+];
+
+function sentenceWindows(text) {
+  return clean(text).split(/(?<=[.!?])\s+/).map(clean).filter(Boolean);
+}
+
+function recommendationEffects(evidenceParts) {
+  const text = (Array.isArray(evidenceParts) ? evidenceParts : [evidenceParts]).filter(Boolean).join(' ');
+  const subclass = descriptionEffects({ description: text, traitIds: [] });
+  const outputs = [...subclass.outputs];
+  const inputs = [...subclass.inputs];
+  const mentions = [...subclass.mentions];
+  for (const sentence of sentenceWindows(text)) {
+    for (const term of RECOMMEND_EFFECT_TERMS) {
+      if (!term.patterns.some(re => re.test(sentence))) continue;
+      mentions.push(term.effect);
+      if (RECOMMEND_OUTPUT_PATTERNS.some(re => re.test(sentence))) outputs.push(term.effect);
+      if (INPUT_PATTERNS.some(re => re.test(sentence))) inputs.push(term.effect);
+    }
+  }
+  return { outputs: uniq(outputs), inputs: uniq(inputs), mentions: uniq(mentions) };
+}
+
+function anchorEndpoints(anchorChains) {
+  const out = [];
+  const seen = new Set();
+  for (const chain of anchorChains) {
+    for (const endpoint of [chain?.from, chain?.to]) {
+      if (!endpoint) continue;
+      const key = endpointKey(endpoint);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(endpoint);
+    }
+  }
+  return out;
+}
+
+function anchorEvidenceParts(anchorChains) {
+  return anchorChains.flatMap(chain => {
+    const value = chain?.evidence;
+    if (typeof value === 'string') return [value];
+    if (Array.isArray(value)) return value.map(clean).filter(Boolean);
+    if (value && typeof value === 'object') return Object.values(value).map(clean).filter(Boolean);
+    return [];
+  });
+}
+
+function actionChain(anchorChains, actionType = 'grenade') {
+  return anchorChains.find(chain => lower(chain?.from?.type) === lower(actionType) && lower(chain?.output).includes('final-blow'))
+    ?? anchorChains.find(chain => lower(chain?.from?.type) === lower(actionType))
+    ?? null;
+}
+
+function anchorAction(anchorChains, actionType = 'grenade') {
+  const active = actionChain(anchorChains, actionType);
+  if (active?.from) return active.from;
+  return anchorEndpoints(anchorChains).find(endpoint => lower(endpoint?.type) === lower(actionType)) ?? null;
+}
+
+function chainDamageType(chain) {
+  const output = lower(chain?.output);
+  const match = output.match(/^([a-z]+)-(?:ability|grenade)-final-blow$/);
+  return match?.[1] ?? '';
+}
+
+function candidatePerkForEffect(candidate, manifestItem, effect) {
+  const rows = [...(candidate?.ownedRoll ?? []), ...(manifestItem?.perks ?? [])];
+  return rows.find(row => {
+    const effects = recommendationEffects([row?.description]);
+    return effects.inputs.includes(effect) || effects.outputs.includes(effect);
+  }) ?? null;
+}
+
 function recommendationChain(from, output, to, input, evidence) {
   return {
     from: { hash: Number(from.hash), name: from.name, type: from.type },
@@ -375,6 +474,16 @@ function recommendationChain(from, output, to, input, evidence) {
     chain: `${from.name} -> ${output} -> ${to.name}`,
     evidence
   };
+}
+
+function anchorLoopNames(exotic, anchorChains) {
+  const active = actionChain(anchorChains);
+  const names = active ? [exotic?.name, active?.from?.name, active?.to?.name] : [exotic?.name, ...anchorEndpoints(anchorChains).map(x => x?.name)];
+  return uniq(names.map(clean).filter(Boolean));
+}
+
+function displayEffect(effect) {
+  return clean(effect).split('-').map(word => word ? `${word[0].toUpperCase()}${word.slice(1)}` : '').join(' ');
 }
 
 export function recommendBuildForExotic(exoticHash, vaultPool, manifestCache = {}) {
@@ -387,9 +496,11 @@ export function recommendBuildForExotic(exoticHash, vaultPool, manifestCache = {
   if (!exotic) throw new Error(`Exotic ${exoticHash} is not resolved by the supplied inventory/manifest evidence.`);
 
   const anchorChains = (poolContext?.anchorEvidence?.synergyChains ?? []).map(normalizeCuratedChain).filter(Boolean);
-  const scatter = { hash: 1514173218, name: 'Scatter Grenade', type: 'grenade' };
-  const anchorHasScatter = anchorChains.some(link => Number(link?.from?.hash) === scatter.hash || Number(link?.to?.hash) === scatter.hash);
-  const anchorHasDevour = anchorChains.some(link => Number(link?.to?.hash) === 2321824284 && lower(link?.output).includes('void-ability-final-blow'));
+  const anchorEffects = recommendationEffects(anchorEvidenceParts(anchorChains));
+  const grenade = anchorAction(anchorChains, 'grenade');
+  const grenadeChain = actionChain(anchorChains, 'grenade');
+  const grenadeDamageType = chainDamageType(grenadeChain);
+  const loopNames = anchorLoopNames(exotic, anchorChains);
   const recommendedWeapons = [];
   const recommendedArmor = [];
   const rejectedCandidates = [];
@@ -398,7 +509,8 @@ export function recommendBuildForExotic(exoticHash, vaultPool, manifestCache = {
   for (const candidate of candidates) {
     const manifestItem = manifest.get(Number(candidate?.hash));
     const evidenceParts = candidateEvidence(candidate, manifestItem);
-    const text = lower(evidenceParts.join(' '));
+    const effectParts = candidateEffectEvidence(candidate, manifestItem);
+    const effects = recommendationEffects(effectParts);
     const item = { hash: Number(candidate?.hash), name: clean(candidate?.name ?? manifestItem?.name), type: clean(candidate?.type ?? manifestItem?.sourceKind) || 'item' };
 
     if (candidate?.type === 'armor' && candidate?.exotic && Number(candidate.hash) !== Number(exoticHash)) {
@@ -408,15 +520,16 @@ export function recommendBuildForExotic(exoticHash, vaultPool, manifestCache = {
 
     let chain = null;
     let role = null;
-    if (candidate?.type === 'weapon' && anchorHasScatter && text.includes('kills with this weapon generate grenade energy')) {
-      chain = recommendationChain(item, 'grenade-energy', scatter, 'grenade-energy', { producer: evidenceParts, consumer: 'Documented Destiny ability mechanic: grenade energy is the resource spent to make the equipped grenade ability available.', source: 'bungie-manifest+documented-game-mechanic' });
-      role = 'Feeds grenade energy back into the Nothing Manacles Scatter Grenade loop.';
-    } else if (candidate?.type === 'weapon' && anchorHasScatter && text.includes('final blows with grenades or this weapon')) {
-      chain = recommendationChain(scatter, 'grenade-final-blow', item, 'grenade-final-blow', { producer: poolContext?.anchorEvidence?.synergyChains?.find(x => Number(x?.from?.hash) === scatter.hash)?.evidence ?? 'PF-BETA-11 equips Scatter Grenade.', consumer: evidenceParts, source: 'curated-fixture+bungie-manifest' });
-      role = 'Consumes Scatter Grenade final blows to increase weapon damage/handling.';
-    } else if (candidate?.type === 'weapon' && anchorHasScatter && lower(candidate?.damageType) === 'void' && text.includes('grenade or melee kills of the same damage type')) {
-      chain = recommendationChain(scatter, 'matching-void-grenade-final-blow', item, 'matching-damage-grenade-final-blow', { producer: poolContext?.anchorEvidence?.synergyChains?.find(x => Number(x?.from?.hash) === scatter.hash)?.evidence ?? 'PF-BETA-11 equips Void Scatter Grenade.', consumer: evidenceParts, source: 'curated-fixture+bungie-manifest' });
-      role = 'Consumes a Void Scatter Grenade kill to strengthen Golden Tricorn after its weapon-final-blow setup.';
+    if (candidate?.type === 'weapon' && grenade && effects.outputs.includes('grenade-energy')) {
+      chain = recommendationChain(item, 'grenade-energy', grenade, 'grenade-energy', { producer: evidenceParts, consumer: 'Documented Destiny ability mechanic: grenade energy is the resource spent to make the equipped grenade ability available.', source: 'bungie-manifest+documented-game-mechanic' });
+      role = `Feeds grenade energy back into the ${exotic.name} ${grenade.name} loop.`;
+    } else if (candidate?.type === 'weapon' && grenade && effects.inputs.includes('grenade-final-blow')) {
+      chain = recommendationChain(grenade, 'grenade-final-blow', item, 'grenade-final-blow', { producer: grenadeChain?.evidence ?? `${poolContext?.fixtureId ?? 'Anchor'} equips ${grenade.name}.`, consumer: evidenceParts, source: 'curated-fixture+bungie-manifest' });
+      role = `Consumes ${grenade.name} final blows to increase weapon damage/handling.`;
+    } else if (candidate?.type === 'weapon' && grenade && effects.inputs.includes('matching-damage-grenade-final-blow') && grenadeDamageType && lower(candidate?.damageType) === grenadeDamageType) {
+      const perk = candidatePerkForEffect(candidate, manifestItem, 'matching-damage-grenade-final-blow');
+      chain = recommendationChain(grenade, `matching-${grenadeDamageType}-grenade-final-blow`, item, 'matching-damage-grenade-final-blow', { producer: grenadeChain?.evidence ?? `${poolContext?.fixtureId ?? 'Anchor'} equips ${clean(candidate?.damageType)} ${grenade.name}.`, consumer: evidenceParts, source: 'curated-fixture+bungie-manifest' });
+      role = `Consumes a ${candidate.damageType} ${grenade.name} kill to strengthen ${clean(perk?.name) || item.name} after its weapon-final-blow setup.`;
     }
 
     if (chain) {
@@ -426,12 +539,17 @@ export function recommendBuildForExotic(exoticHash, vaultPool, manifestCache = {
       continue;
     }
 
-    if (candidate?.type === 'weapon' && anchorHasDevour && text.includes('grant devour')) {
-      rejectedCandidates.push({ item, reason: 'Produces Devour, but PF-BETA-11 already has a verified Scatter Grenade -> Feed the Void -> Devour route; no new producer->consumer edge is proven.', evidence: evidenceParts });
-    } else if (text.includes('void-debuffed target')) {
-      rejectedCandidates.push({ item, reason: 'Requires a Void-debuffed target, but the verified PF-BETA-11 anchor chains do not establish weaken, volatile, or suppression as an input producer.', evidence: evidenceParts });
+    const redundant = effects.outputs.find(effect => anchorEffects.outputs.includes(effect));
+    const elementDebuffInput = effectParts.join(' ').match(/\b(arc|solar|void|stasis|strand)[ -]debuffed targets?\b/i)?.[1];
+    if (candidate?.type === 'weapon' && redundant) {
+      const active = actionChain(anchorChains);
+      const route = active ? `${active.from.name} -> ${active.to.name} -> ${displayEffect(redundant)}` : `${loopNames.join(' -> ')} -> ${displayEffect(redundant)}`;
+      rejectedCandidates.push({ item, reason: `Produces ${displayEffect(redundant)}, but ${poolContext?.fixtureId ?? 'the supplied anchor'} already has a verified ${route} route; no new producer->consumer edge is proven.`, evidence: evidenceParts });
+    } else if (elementDebuffInput) {
+      const element = `${elementDebuffInput[0].toUpperCase()}${elementDebuffInput.slice(1).toLowerCase()}`;
+      rejectedCandidates.push({ item, reason: `Requires a ${element}-debuffed target, but the verified ${poolContext?.fixtureId ?? 'anchor'} anchor chains do not establish weaken, volatile, or suppression as an input producer.`, evidence: evidenceParts });
     } else {
-      rejectedCandidates.push({ item, reason: 'No explicit producer/consumer relationship to the verified Nothing Manacles / Scatter Grenade / Feed the Void loop is present in the supplied evidence.', evidence: evidenceParts });
+      rejectedCandidates.push({ item, reason: `No explicit producer/consumer relationship to the verified ${loopNames.join(' / ')} loop is present in the supplied evidence.`, evidence: evidenceParts });
     }
   }
 
