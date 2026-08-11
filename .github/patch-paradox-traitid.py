@@ -1,0 +1,106 @@
+from pathlib import Path
+
+engine = Path('astrix-app/pages/guardian-workspace-v2/guardian-paradox-engine.mjs')
+text = engine.read_text()
+
+old = """    description: evidenceText(item),\n    traitIds: traitIds(item),\n    unresolved: unresolved(item),"""
+new = """    description: evidenceText(item),\n    traitIds: traitIds(item),\n    directionEvidence: item?.directionEvidence ?? null,\n    unresolved: unresolved(item),"""
+assert old in text
+text = text.replace(old, new, 1)
+
+marker = "function buildEvidenceNodes(build) {"
+assert marker in text
+insert = r'''
+const DIRECTION_DIRECT_OUTPUT = new Map([
+  ['blind', /\b(?:blind|blinds|blinding)\b/i],
+  ['freeze', /\b(?:freeze|freezes|freezing)\b/i],
+  ['ignite', /\b(?:ignite|ignites|igniting)\b/i],
+  ['jolt', /\b(?:jolt|jolts|jolting)\b/i],
+  ['scorch', /\b(?:scorch|scorches|scorching)\b/i],
+  ['sever', /\b(?:sever|severs|severing)\b/i],
+  ['suspend', /\b(?:suspend|suspends|suspending)\b/i],
+  ['suppression', /\b(?:suppress|suppresses|suppressing)\b/i],
+  ['unravel', /\b(?:unravel|unravels|unraveling)\b/i],
+  ['weaken', /\b(?:weaken|weakens|weakening)\b/i]
+]);
+
+const DIRECTION_STATE_FORMS = new Map([
+  ['amplified', /\bamplified\b/i],
+  ['blind', /\bblinded\b/i],
+  ['cure', /\bcure(?:d)?\b/i],
+  ['devour', /\bdevour\b/i],
+  ['freeze', /\bfrozen\b/i],
+  ['ignite', /\bignit(?:ed|ion)\b/i],
+  ['invisibility', /\binvisib(?:le|ility)\b/i],
+  ['jolt', /\bjolted\b/i],
+  ['overshield', /\bovershield\b/i],
+  ['radiant', /\bradiant\b/i],
+  ['restoration', /\brestoration\b/i],
+  ['scorch', /\bscorched\b/i],
+  ['sever', /\bsevered\b/i],
+  ['shatter', /\bshattered\b/i],
+  ['slow', /\bslowed\b/i],
+  ['suspend', /\bsuspended\b/i],
+  ['suppression', /\bsuppressed\b/i],
+  ['threadling', /\bthreadlings?\b/i],
+  ['unravel', /\bunraveled\b/i],
+  ['volatile', /\bvolatile\b/i],
+  ['weaken', /\bweakened\b/i],
+  ['woven mail', /\bwoven mail\b/i]
+]);
+
+function directionalTextEffects(item) {
+  const texts = [item?.description, item?.directionEvidence?.description].map(clean).filter(Boolean);
+  if (!texts.length) return { outputs: [], inputs: [], mentions: [], evidence: [] };
+  const outputs = [];
+  const inputs = [];
+  const mentions = [];
+  const evidence = [];
+  const genericOutputVerb = /\b(?:grant|grants|gain|gains|become|becomes|apply|applies|inflict|inflicts|cause|causes|create|creates|spawn|spawns|emit|emits|release|releases)\b/i;
+  const triggerVerb = /\b(?:while|when|after|upon|against|defeat|defeating|defeats|kill|killing|kills|damage|damaging|hit|hitting)\b/i;
+
+  for (const sourceText of texts) {
+    for (const sentence of sourceText.split(/(?<=[.!?])\s+/).map(clean).filter(Boolean)) {
+      for (const effect of uniq(EFFECT_TERMS.map(canonEffect))) {
+        const direct = DIRECTION_DIRECT_OUTPUT.get(effect);
+        const state = DIRECTION_STATE_FORMS.get(effect);
+        const effectMention = direct?.test(sentence) || state?.test(sentence) || lower(sentence).includes(effect);
+        if (!effectMention) continue;
+        mentions.push(effect);
+        if (direct?.test(sentence)) outputs.push(effect);
+        if (state) {
+          const match = sentence.match(state);
+          if (match) {
+            const before = sentence.slice(0, match.index);
+            if (genericOutputVerb.test(before.slice(-48))) outputs.push(effect);
+            if (triggerVerb.test(before.slice(-64))) inputs.push(effect);
+          }
+        }
+      }
+      evidence.push(sentence);
+    }
+  }
+  return { outputs: uniq(outputs), inputs: uniq(inputs), mentions: uniq(mentions), evidence: uniq(evidence) };
+}
+
+'''
+text = text.replace(marker, insert + marker, 1)
+
+old = """function buildEvidenceNodes(build) {\n  return equippedComponents(build).map(item => ({\n    ...item,\n    effects: descriptionEffects(item),\n    traitEffects: traitIdEffects(item)\n  }));\n}"""
+new = """function buildEvidenceNodes(build) {\n  return equippedComponents(build).map(item => ({\n    ...item,\n    effects: descriptionEffects(item),\n    directionEffects: directionalTextEffects(item),\n    traitEffects: traitIdEffects(item)\n  }));\n}"""
+assert old in text
+text = text.replace(old, new, 1)
+
+old = """        const descriptionAB=a.effects.outputs.includes(effect)&&b.effects.inputs.includes(effect);\n        const descriptionBA=b.effects.outputs.includes(effect)&&a.effects.inputs.includes(effect);\n        const buffAB=a.traitEffects.buffOutputs.includes(effect)&&b.traitEffects.mentions.includes(effect)&&!b.traitEffects.buffOutputs.includes(effect);\n        const buffBA=b.traitEffects.buffOutputs.includes(effect)&&a.traitEffects.mentions.includes(effect)&&!a.traitEffects.buffOutputs.includes(effect);\n\n        if(descriptionAB)addLink(a,effect,b,'runtime-description-parsing');\n        if(descriptionBA)addLink(b,effect,a,'runtime-description-parsing');\n        if(curatedAB)addLink(a,effect,b,'curated-fixture-data');\n        if(curatedBA)addLink(b,effect,a,'curated-fixture-data');\n        if(!descriptionAB&&!curatedAB&&buffAB)addLink(a,effect,b,'keywords.buffs producer signal');\n        if(!descriptionBA&&!curatedBA&&buffBA)addLink(b,effect,a,'keywords.buffs producer signal');\n\n        const directed=descriptionAB||descriptionBA||curatedAB||curatedBA||buffAB||buffBA;"""
+new = """        const directionAB=a.directionEffects.outputs.includes(effect)&&b.directionEffects.inputs.includes(effect);\n        const directionBA=b.directionEffects.outputs.includes(effect)&&a.directionEffects.inputs.includes(effect);\n        const buffAB=a.traitEffects.buffOutputs.includes(effect)&&b.traitEffects.mentions.includes(effect)&&!b.traitEffects.buffOutputs.includes(effect);\n        const buffBA=b.traitEffects.buffOutputs.includes(effect)&&a.traitEffects.mentions.includes(effect)&&!a.traitEffects.buffOutputs.includes(effect);\n        const anchorAB=(a.directionEvidence?.description||b.directionEvidence?.description)?'bungie-direction-description':'runtime-description-direction';\n        const anchorBA=(b.directionEvidence?.description||a.directionEvidence?.description)?'bungie-direction-description':'runtime-description-direction';\n\n        if(directionAB)addLink(a,effect,b,anchorAB);\n        if(directionBA)addLink(b,effect,a,anchorBA);\n        if(curatedAB)addLink(a,effect,b,'curated-fixture-data');\n        if(curatedBA)addLink(b,effect,a,'curated-fixture-data');\n        if(!directionAB&&!curatedAB&&buffAB)addLink(a,effect,b,'keywords.buffs producer signal');\n        if(!directionBA&&!curatedBA&&buffBA)addLink(b,effect,a,'keywords.buffs producer signal');\n\n        const directed=directionAB||directionBA||curatedAB||curatedBA||buffAB||buffBA;"""
+assert old in text
+text = text.replace(old, new, 1)
+engine.write_text(text)
+
+test = Path('astrix-app/tools/test-pf-beta-04-subclass-fallback.mjs')
+t = test.read_text()
+old = """assert.ok(String(forward.source).includes('runtime-traitid-parsing'),'PF-BETA-04 forward jolt link must include runtime-traitid-parsing evidence');\nassert.ok(String(forward.source).includes('runtime-description-parsing'),'PF-BETA-04 direction must be anchored by official description parsing');"""
+new = """assert.ok(String(forward.source).includes('runtime-traitid-parsing'),'PF-BETA-04 forward jolt link must include runtime-traitid-parsing evidence');\nassert.equal(forward.evidence?.directionalAnchor,'bungie-direction-description','PF-BETA-04 trait direction must be anchored by separate official Bungie direction evidence');"""
+assert old in t
+t = t.replace(old, new, 1)
+test.write_text(t)
