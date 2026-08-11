@@ -1,0 +1,35 @@
+name: tmp-paradox-traitid-regression-v4
+on:
+  push:
+    branches:
+      - tmp/paradox-traitid-regression-20260811-v4
+permissions:
+  contents: write
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Save temporary patch script
+        run: cp .github/patch-paradox-traitid-v4.py /tmp/patch-paradox-traitid-v4.py
+      - name: Check out feature branch
+        run: |
+          git fetch origin feature/astrix-multigame-platform
+          git checkout -B feature/astrix-multigame-platform origin/feature/astrix-multigame-platform
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply narrowed trait patch
+        run: python /tmp/patch-paradox-traitid-v4.py
+      - name: Run PF-BETA-04 traitId and full Alpha regression
+        shell: bash
+        run: |
+          set -o pipefail
+          node astrix-app/tools/test-pf-beta-04-subclass-fallback.mjs | tee /tmp/paradox-trait-regression.json
+      - name: Commit verified feature changes
+        run: |
+          git config user.name "ASTRIX285"
+          git config user.email "43313768+ASTRIX285@users.noreply.github.com"
+          git add astrix-app/pages/guardian-workspace-v2/guardian-paradox-engine.mjs
+          git commit -m "Narrow trait direction inference to stronger evidence"
+          git push origin HEAD:feature/astrix-multigame-platform
