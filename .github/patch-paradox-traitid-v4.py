@@ -9,3 +9,11 @@ assert old in text
 text=text.replace(old,new,1)
 text=text.replace('const trait = traitEvidence(nodes,build.synergyChains);','const trait = traitEvidence(nodes,build.synergyChains,runtimeLoop);',1)
 engine.write_text(text)
+
+test=Path('astrix-app/tools/test-pf-beta-04-subclass-fallback.mjs')
+t=test.read_text()
+old="""  const keyMap=new Map();\n  for(const link of result.buildLoop){\n    const key=`${Number(link.from?.hash)}|${link.output}|${Number(link.to?.hash)}`;\n    keyMap.set(key,(keyMap.get(key)??0)+1);\n    const reverse=`${Number(link.to?.hash)}|${link.output}|${Number(link.from?.hash)}`;\n    if(keyMap.has(reverse))suspicious.push({fixtureId:fixture.fixtureId,type:'symmetric',link:link.chain,reverse});\n  }\n  for(const [key,count] of keyMap){\n    if(count>1)suspicious.push({fixtureId:fixture.fixtureId,type:'duplicate',key,count});\n  }"""
+new="""  const keyRows=new Map();\n  const keyCounts=new Map();\n  const isTraitOnly=link=>{\n    const sources=(link?.evidenceSources??[]).map(row=>row?.source).filter(Boolean);\n    return String(link?.source)==='runtime-traitid-parsing' || (sources.length>0&&sources.every(source=>source==='runtime-traitid-parsing'));\n  };\n  for(const link of result.buildLoop){\n    const key=`${Number(link.from?.hash)}|${link.output}|${Number(link.to?.hash)}`;\n    const reverse=`${Number(link.to?.hash)}|${link.output}|${Number(link.from?.hash)}`;\n    const reverseLink=keyRows.get(reverse);\n    if(reverseLink&&(isTraitOnly(link)||isTraitOnly(reverseLink))){\n      suspicious.push({fixtureId:fixture.fixtureId,type:'trait-created-symmetric',link:link.chain,reverse:reverseLink.chain});\n    }\n    keyRows.set(key,link);\n    keyCounts.set(key,(keyCounts.get(key)??0)+1);\n  }\n  for(const [key,count] of keyCounts){\n    if(count>1)suspicious.push({fixtureId:fixture.fixtureId,type:'duplicate',key,count});\n  }"""
+assert old in t
+t=t.replace(old,new,1)
+test.write_text(t)
