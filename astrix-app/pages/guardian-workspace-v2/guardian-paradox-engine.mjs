@@ -23,6 +23,18 @@ const CANONICAL_EFFECT = new Map([
   ['suppress','suppression'],['weakened','weaken']
 ]);
 
+const TRAIT_EFFECT_ALIAS = new Map([
+  ['amplified','amplified'],['blind','blind'],['cure','cure'],['devour','devour'],
+  ['freeze','freeze'],['frozen','freeze'],['ignite','ignite'],['ignition','ignite'],
+  ['detonation','ignite'],['invisibility','invisibility'],['invisible','invisibility'],
+  ['jolt','jolt'],['overshield','overshield'],['radiant','radiant'],
+  ['restoration','restoration'],['scorch','scorch'],['sever','sever'],
+  ['shatter','shatter'],['slow','slow'],['suspend','suspend'],
+  ['suppression','suppression'],['suppress','suppression'],['threadling','threadling'],
+  ['unravel','unravel'],['volatile','volatile'],['weaken','weaken'],
+  ['weakened','weaken'],['body_armor','woven mail'],['woven_mail','woven mail']
+]);
+
 const OUTPUT_PATTERNS = [
   /\b(grant|grants|gain|gains|become|becomes|apply|applies|inflict|inflicts|cause|causes|create|creates|spawn|spawns|emit|emits|release|releases)\b/i,
   /\b(freeze|freezes|ignite|ignites|jolt|jolts|blind|blinds|weaken|weakens|suppress|suppresses|scorch|scorches|suspend|suspends|sever|severs|unravel|unravels)\b/i
@@ -124,8 +136,36 @@ function descriptionEffects(item) {
   };
 }
 
+function traitIdEffects(item) {
+  const buffOutputs=[];
+  const debuffMentions=[];
+  const mentions=[];
+  const evidence=[];
+  for(const raw of item?.traitIds??[]){
+    const trait=lower(raw);
+    const match=trait.match(/^keywords\.(buffs|debuffs)\.[^.]+\.([a-z0-9_]+)$/i);
+    if(!match)continue;
+    const effect=TRAIT_EFFECT_ALIAS.get(match[2]);
+    if(!effect||!EFFECT_TERMS.includes(effect))continue;
+    mentions.push(effect);
+    evidence.push(raw);
+    if(match[1]==='buffs')buffOutputs.push(effect);
+    else debuffMentions.push(effect);
+  }
+  return {
+    buffOutputs:uniq(buffOutputs),
+    debuffMentions:uniq(debuffMentions),
+    mentions:uniq(mentions),
+    evidence:uniq(evidence)
+  };
+}
+
 function buildEvidenceNodes(build) {
-  return equippedComponents(build).map(item => ({ ...item, effects: descriptionEffects(item) }));
+  return equippedComponents(build).map(item => ({
+    ...item,
+    effects: descriptionEffects(item),
+    traitEffects: traitIdEffects(item)
+  }));
 }
 
 function makeLoop(nodes) {
@@ -150,6 +190,125 @@ function makeLoop(nodes) {
     }
   }
   return links;
+}
+
+function endpointKey(endpoint) {
+  const hash = Number(endpoint?.hash ?? endpoint?.bungieHash);
+  return Number.isFinite(hash) ? `h:${hash}` : `n:${lower(endpoint?.name)}`;
+}
+
+function endpointMatchesNode(endpoint, node) {
+  const hash = Number(endpoint?.hash ?? endpoint?.bungieHash);
+  if (Number.isFinite(hash)) return Number(node?.hash) === hash;
+  const name = lower(endpoint?.name);
+  return Boolean(name) && lower(node?.name) === name;
+}
+
+function endpointIsEquipped(endpoint, nodes) {
+  return Array.isArray(nodes) && nodes.some(node => endpointMatchesNode(endpoint, node));
+}
+
+function hasEvidence(value) {
+  if (value == null) return false;
+  if (typeof value === 'string') return clean(value).length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') return Object.keys(value).length > 0;
+  return false;
+}
+
+function normalizeCuratedChain(entry) {
+  if (!entry || typeof entry !== 'object' || !hasEvidence(entry.evidence)) return null;
+  const output = canonEffect(entry.output);
+  const input = canonEffect(entry.input ?? entry.output);
+  if (!entry.from || !entry.to || !output || !input) return null;
+  const from = { hash: Number.isFinite(Number(entry.from.hash ?? entry.from.bungieHash)) ? Number(entry.from.hash ?? entry.from.bungieHash) : null, name: clean(entry.from.name), type: clean(entry.from.type) || 'component' };
+  const to = { hash: Number.isFinite(Number(entry.to.hash ?? entry.to.bungieHash)) ? Number(entry.to.hash ?? entry.to.bungieHash) : null, name: clean(entry.to.name), type: clean(entry.to.type) || 'component' };
+  if ((!from.name && from.hash == null) || (!to.name && to.hash == null)) return null;
+  return { ...entry, from, output, to, input, chain: clean(entry.chain) || `${from.name || from.hash} -> ${output} -> ${to.name || to.hash}`, source: 'curated-fixture-data', evidenceSources: [{ source: 'curated-fixture-data', evidence: entry.evidence }] };
+}
+
+function curatedDirection(curatedEntries,nodes,from,to,effect){
+  return (Array.isArray(curatedEntries)?curatedEntries:[]).some(raw=>{
+    const chain=normalizeCuratedChain(raw);
+    return chain&&endpointIsEquipped(chain.from,nodes)&&endpointIsEquipped(chain.to,nodes)&&endpointMatchesNode(chain.from,from)&&endpointMatchesNode(chain.to,to)&&canonEffect(chain.output)===effect;
+  });
+}
+
+function traitLink(from,effect,to,directionalAnchor){
+  return {
+    from:{hash:from.hash,name:from.name,type:from.type},
+    output:effect,
+    to:{hash:to.hash,name:to.name,type:to.type},
+    input:effect,
+    chain:`${from.name} -> ${effect} -> ${to.name}`,
+    source:'runtime-traitid-parsing',
+    evidence:{
+      producerTraitIds:from.traitEffects.evidence,
+      consumerTraitIds:to.traitEffects.evidence,
+      directionalAnchor
+    },
+    evidenceSources:[{
+      source:'runtime-traitid-parsing',
+      evidence:{producerTraitIds:from.traitEffects.evidence,consumerTraitIds:to.traitEffects.evidence,directionalAnchor}
+    }]
+  };
+}
+
+function traitEvidence(nodes,curatedEntries){
+  const links=[];
+  const candidates=[];
+  const seenLinks=new Set();
+  const seenCandidates=new Set();
+  const addLink=(from,effect,to,anchor)=>{
+    const key=`${from.hash}:${effect}:${to.hash}`;
+    if(seenLinks.has(key))return;
+    seenLinks.add(key);
+    links.push(traitLink(from,effect,to,anchor));
+  };
+
+  for(let i=0;i<nodes.length;i++){
+    for(let j=i+1;j<nodes.length;j++){
+      const a=nodes[i];
+      const b=nodes[j];
+      const sharedDebuffs=a.traitEffects.debuffMentions.filter(effect=>b.traitEffects.debuffMentions.includes(effect));
+      const sharedMentions=a.traitEffects.mentions.filter(effect=>b.traitEffects.mentions.includes(effect));
+      for(const effect of uniq([...sharedDebuffs,...sharedMentions])){
+        const curatedAB=curatedDirection(curatedEntries,nodes,a,b,effect);
+        const curatedBA=curatedDirection(curatedEntries,nodes,b,a,effect);
+        const descriptionAB=a.effects.outputs.includes(effect)&&b.effects.inputs.includes(effect);
+        const descriptionBA=b.effects.outputs.includes(effect)&&a.effects.inputs.includes(effect);
+        const buffAB=a.traitEffects.buffOutputs.includes(effect)&&b.traitEffects.mentions.includes(effect)&&!b.traitEffects.buffOutputs.includes(effect);
+        const buffBA=b.traitEffects.buffOutputs.includes(effect)&&a.traitEffects.mentions.includes(effect)&&!a.traitEffects.buffOutputs.includes(effect);
+
+        if(descriptionAB)addLink(a,effect,b,'runtime-description-parsing');
+        if(descriptionBA)addLink(b,effect,a,'runtime-description-parsing');
+        if(curatedAB)addLink(a,effect,b,'curated-fixture-data');
+        if(curatedBA)addLink(b,effect,a,'curated-fixture-data');
+        if(!descriptionAB&&!curatedAB&&buffAB)addLink(a,effect,b,'keywords.buffs producer signal');
+        if(!descriptionBA&&!curatedBA&&buffBA)addLink(b,effect,a,'keywords.buffs producer signal');
+
+        const directed=descriptionAB||descriptionBA||curatedAB||curatedBA||buffAB||buffBA;
+        if(!directed&&sharedDebuffs.includes(effect)){
+          const key=`${Math.min(Number(a.hash),Number(b.hash))}:${effect}:${Math.max(Number(a.hash),Number(b.hash))}`;
+          if(seenCandidates.has(key))continue;
+          seenCandidates.add(key);
+          candidates.push({
+            status:'direction-unresolved',
+            confidence:'low',
+            effect,
+            items:[
+              {hash:a.hash,name:a.name,type:a.type,traitIds:a.traitEffects.evidence},
+              {hash:b.hash,name:b.name,type:b.type,traitIds:b.traitEffects.evidence}
+            ],
+            source:'runtime-traitid-parsing',
+            reason:`Both equipped components are trait-associated with ${effect}, but traitIds alone do not establish which side produces or consumes it.`
+          });
+        }
+      }
+    }
+  }
+
+  return {links,candidates};
 }
 
 function missingInputs(nodes) {
@@ -245,30 +404,6 @@ function recommendationsFromWeakLinks(weakLinks) {
   return recs;
 }
 
-function hasEvidence(value) {
-  if (value == null) return false;
-  if (typeof value === 'string') return clean(value).length > 0;
-  if (Array.isArray(value)) return value.length > 0;
-  if (typeof value === 'object') return Object.keys(value).length > 0;
-  return false;
-}
-
-function endpointKey(endpoint) {
-  const hash = Number(endpoint?.hash ?? endpoint?.bungieHash);
-  return Number.isFinite(hash) ? `h:${hash}` : `n:${lower(endpoint?.name)}`;
-}
-
-function endpointMatchesNode(endpoint, node) {
-  const hash = Number(endpoint?.hash ?? endpoint?.bungieHash);
-  if (Number.isFinite(hash)) return Number(node?.hash) === hash;
-  const name = lower(endpoint?.name);
-  return Boolean(name) && lower(node?.name) === name;
-}
-
-function endpointIsEquipped(endpoint, nodes) {
-  return Array.isArray(nodes) && nodes.some(node => endpointMatchesNode(endpoint, node));
-}
-
 function referencedItem(row) {
   if (!row || typeof row !== 'object') return null;
   if (row.item && typeof row.item === 'object') return row.item;
@@ -286,28 +421,36 @@ function runtimeLoopWithSource(loop) {
   return loop.map(link => ({ ...link, source: 'runtime-description-parsing', evidenceSources: [{ source: 'runtime-description-parsing', evidence: link.evidence }] }));
 }
 
-function normalizeCuratedChain(entry) {
-  if (!entry || typeof entry !== 'object' || !hasEvidence(entry.evidence)) return null;
-  const output = canonEffect(entry.output);
-  const input = canonEffect(entry.input ?? entry.output);
-  if (!entry.from || !entry.to || !output || !input) return null;
-  const from = { hash: Number.isFinite(Number(entry.from.hash ?? entry.from.bungieHash)) ? Number(entry.from.hash ?? entry.from.bungieHash) : null, name: clean(entry.from.name), type: clean(entry.from.type) || 'component' };
-  const to = { hash: Number.isFinite(Number(entry.to.hash ?? entry.to.bungieHash)) ? Number(entry.to.hash ?? entry.to.bungieHash) : null, name: clean(entry.to.name), type: clean(entry.to.type) || 'component' };
-  if ((!from.name && from.hash == null) || (!to.name && to.hash == null)) return null;
-  return { ...entry, from, output, to, input, chain: clean(entry.chain) || `${from.name || from.hash} -> ${output} -> ${to.name || to.hash}`, source: 'curated-fixture-data', evidenceSources: [{ source: 'curated-fixture-data', evidence: entry.evidence }] };
+function sourceParts(link){
+  if(Array.isArray(link?.evidenceSources)&&link.evidenceSources.length)return link.evidenceSources;
+  return [{source:link?.source??'unknown',evidence:link?.evidence}];
 }
 
-function mergeBuildLoop(runtimeLoop, curatedEntries, nodes) {
+function mergeLoopLink(merged,link){
+  const key=chainKey(link);
+  const existing=merged.get(key);
+  if(!existing){merged.set(key,link);return;}
+  const parts=[];
+  const seen=new Set();
+  for(const row of [...sourceParts(existing),...sourceParts(link)]){
+    const signature=`${row.source}:${JSON.stringify(row.evidence)}`;
+    if(seen.has(signature))continue;
+    seen.add(signature);
+    parts.push(row);
+  }
+  const sources=uniq(parts.map(row=>row.source));
+  merged.set(key,{...existing,source:sources.join('+'),evidenceSources:parts});
+}
+
+function mergeBuildLoop(runtimeLoop, traitLoop, curatedEntries, nodes) {
   const merged = new Map();
-  for (const link of runtimeLoopWithSource(runtimeLoop)) merged.set(chainKey(link), link);
+  for (const link of runtimeLoopWithSource(runtimeLoop)) mergeLoopLink(merged,link);
+  for (const link of Array.isArray(traitLoop)?traitLoop:[]) mergeLoopLink(merged,link);
   for (const raw of Array.isArray(curatedEntries) ? curatedEntries : []) {
     const curated = normalizeCuratedChain(raw);
     if (!curated) continue;
     if (!endpointIsEquipped(curated.from, nodes) || !endpointIsEquipped(curated.to, nodes)) continue;
-    const key = chainKey(curated);
-    const existing = merged.get(key);
-    if (!existing) merged.set(key, curated);
-    else merged.set(key, { ...existing, source: 'runtime-description-parsing+curated-fixture-data', evidenceSources: [...(existing.evidenceSources ?? []), ...curated.evidenceSources] });
+    mergeLoopLink(merged,curated);
   }
   return [...merged.values()];
 }
@@ -571,7 +714,8 @@ export function analyzeGuardianBuild(build = {}) {
   if (build?.source && build.source !== ALPHA_SOURCE) throw new Error(`Paradox Alpha engine rejected non-fixture source: ${build.source}`);
   const nodes = buildEvidenceNodes(build);
   const runtimeLoop = makeLoop(nodes);
-  const buildLoop = mergeBuildLoop(runtimeLoop, build.synergyChains, nodes);
+  const trait = traitEvidence(nodes,build.synergyChains);
+  const buildLoop = mergeBuildLoop(runtimeLoop, trait.links, build.synergyChains, nodes);
   const missing = missingInputs(nodes);
   const runtimeWeapons = weaponContribution(nodes, buildLoop);
   const weapons = mergeWeaponContribution(runtimeWeapons, build.weaponContribution, nodes);
@@ -582,6 +726,7 @@ export function analyzeGuardianBuild(build = {}) {
     fixtureId: build.fixtureId ?? null,
     source: 'paradox-alpha-deterministic-engine',
     buildLoop,
+    candidateRelationships:trait.candidates,
     strengths,
     weakLinks,
     weaponContribution: weapons,
