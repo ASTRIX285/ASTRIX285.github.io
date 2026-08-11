@@ -1,14 +1,17 @@
 const FIXTURE_URL="../../data/paradox-forge/beta/ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json";
 const IDENTITY_URL="../../data/paradox-forge/beta/beta-component-identities.json";
 const MANIFEST_URL="../../data/paradox-forge/beta/beta-bungie-manifest-cache.json";
+const TRAIT_DIRECTION_URL="../../data/paradox-forge/beta/beta-bungie-manifest-cache-trait-direction-extension.json";
 const DEFAULT_FIXTURE_ID="PF-BETA-03";
 const BUNGIE_ROOT="https://www.bungie.net";
 
 let fixtures=null;
 let identities=null;
 let manifest=null;
+let traitDirection=null;
 let byHash=new Map();
 let manifestByHash=new Map();
+let traitDirectionByHash=new Map();
 let activeFixtureId=DEFAULT_FIXTURE_ID;
 
 const absIcon=v=>{
@@ -49,21 +52,50 @@ function manifestIdentity(hash){
   };
 }
 
+function withTraitDirectionDescription(item,hash){
+  if(!item)return item;
+  const row=traitDirectionByHash.get(String(Number(hash)));
+  if(!row)return item;
+  const current=String(item.description??item.officialDescription??"").trim();
+  if(current)return item;
+  return {
+    ...item,
+    description:row.officialDescription??row.description??"",
+    officialDescription:row.officialDescription??row.description??"",
+    descriptionSource:row.source??"bungie-official-description-extension"
+  };
+}
+
 const resolve=hash=>{
   const h=Number(hash);
   const legacy=byHash.get(String(h))??null;
   const official=manifestIdentity(h);
 
   if(legacy&&official){
-    return {
+    return withTraitDirectionDescription({
       ...legacy,
       ...official,
       sourceKind:legacy.sourceKind??official.sourceKind
-    };
+    },h);
   }
 
-  if(official)return official;
-  if(legacy)return legacy;
+  if(official)return withTraitDirectionDescription(official,h);
+  if(legacy)return withTraitDirectionDescription(legacy,h);
+
+  const directional=traitDirectionByHash.get(String(h));
+  if(directional){
+    return {
+      hash:h,
+      bungieHash:h,
+      name:directional.name??`Destiny item ${h}`,
+      description:directional.officialDescription??directional.description??"",
+      officialDescription:directional.officialDescription??directional.description??"",
+      sourceKind:directional.sourceKind??"gameComponent",
+      componentType:directional.componentType??null,
+      identitySource:"bungie-official-description-extension",
+      descriptionSource:directional.source??"bungie-official-description-extension"
+    };
+  }
 
   return {
     bungieHash:h,
@@ -75,21 +107,24 @@ const resolve=hash=>{
 };
 
 async function ensureData(){
-  if(fixtures&&identities&&manifest)return;
+  if(fixtures&&identities&&manifest&&traitDirection)return;
 
-  const [fr,ir,mr]=await Promise.all([
+  const [fr,ir,mr,tr]=await Promise.all([
     fetch(FIXTURE_URL,{cache:"no-store"}),
     fetch(IDENTITY_URL,{cache:"no-store"}),
-    fetch(MANIFEST_URL,{cache:"no-store"})
+    fetch(MANIFEST_URL,{cache:"no-store"}),
+    fetch(TRAIT_DIRECTION_URL,{cache:"no-store"})
   ]);
 
   if(!fr.ok)throw new Error(`Fixture load failed: ${fr.status}`);
   if(!ir.ok)throw new Error(`Identity load failed: ${ir.status}`);
   if(!mr.ok)throw new Error(`Manifest cache load failed: ${mr.status}`);
+  if(!tr.ok)throw new Error(`Trait direction cache load failed: ${tr.status}`);
 
   fixtures=await fr.json();
   identities=await ir.json();
   manifest=await mr.json();
+  traitDirection=await tr.json();
 
   byHash=new Map(
     (identities.identities??[]).map(row=>{
@@ -106,6 +141,10 @@ async function ensureData(){
 
   manifestByHash=new Map(
     Object.entries(manifest.inventoryItems??{}).map(([hash,row])=>[String(hash),row])
+  );
+
+  traitDirectionByHash=new Map(
+    (traitDirection.items??[]).map(row=>[String(Number(row.bungieHash??row.hash)),row])
   );
 }
 
@@ -177,7 +216,6 @@ function enrichArmourItem(item,fixture,displayMods=[]){
     ??item.equipmentSlotTypeHash
     ??null;
 
-  /* DIM fixture appearance plugs are bucket-specific and remain separate from functional mods. */
   const appearanceByBucket=fixture.rawDim?.parameters?.modsByBucket??{};
   const appearanceHashes=
     bucketHash!=null
@@ -234,7 +272,7 @@ function normalizeFixture(fixture){
   }:null;
 
   const unresolvedHashes=(fixture.allDestinyHashes??[])
-    .filter(h=>!manifestByHash.has(String(h))&&!byHash.has(String(h)));
+    .filter(h=>!manifestByHash.has(String(h))&&!byHash.has(String(h))&&!traitDirectionByHash.has(String(h)));
 
   return {
     source:"paradox-beta-fixture",
