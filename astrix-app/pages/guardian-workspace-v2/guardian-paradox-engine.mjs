@@ -201,7 +201,7 @@ const DIRECTION_STATE_FORMS = new Map([
 ]);
 
 function directionalTextEffects(item) {
-  const texts = [item?.description, item?.directionEvidence?.description].map(clean).filter(Boolean);
+  const texts = [item?.directionEvidence?.description].map(clean).filter(Boolean);
   if (!texts.length) return { outputs: [], inputs: [], mentions: [], evidence: [] };
   const outputs = [];
   const inputs = [];
@@ -329,7 +329,7 @@ function traitLink(from,effect,to,directionalAnchor){
   };
 }
 
-function traitEvidence(nodes,curatedEntries){
+function traitEvidence(nodes,curatedEntries,runtimeLoop=[]){
   const links=[];
   const candidates=[];
   const seenLinks=new Set();
@@ -350,21 +350,23 @@ function traitEvidence(nodes,curatedEntries){
       for(const effect of uniq([...sharedDebuffs,...sharedMentions])){
         const curatedAB=curatedDirection(curatedEntries,nodes,a,b,effect);
         const curatedBA=curatedDirection(curatedEntries,nodes,b,a,effect);
+        const runtimeAB=runtimeLoop.some(link=>Number(link?.from?.hash)===Number(a.hash)&&canonEffect(link?.output)===effect&&Number(link?.to?.hash)===Number(b.hash));
+        const runtimeBA=runtimeLoop.some(link=>Number(link?.from?.hash)===Number(b.hash)&&canonEffect(link?.output)===effect&&Number(link?.to?.hash)===Number(a.hash));
         const directionAB=a.directionEffects.outputs.includes(effect)&&b.directionEffects.inputs.includes(effect);
         const directionBA=b.directionEffects.outputs.includes(effect)&&a.directionEffects.inputs.includes(effect);
         const buffAB=a.traitEffects.buffOutputs.includes(effect)&&b.traitEffects.mentions.includes(effect)&&!b.traitEffects.buffOutputs.includes(effect);
         const buffBA=b.traitEffects.buffOutputs.includes(effect)&&a.traitEffects.mentions.includes(effect)&&!a.traitEffects.buffOutputs.includes(effect);
-        const anchorAB=(a.directionEvidence?.description||b.directionEvidence?.description)?'bungie-direction-description':'runtime-description-direction';
-        const anchorBA=(b.directionEvidence?.description||a.directionEvidence?.description)?'bungie-direction-description':'runtime-description-direction';
 
-        if(directionAB)addLink(a,effect,b,anchorAB);
-        if(directionBA)addLink(b,effect,a,anchorBA);
+        if(runtimeAB)addLink(a,effect,b,'runtime-description-parsing');
+        if(runtimeBA)addLink(b,effect,a,'runtime-description-parsing');
         if(curatedAB)addLink(a,effect,b,'curated-fixture-data');
         if(curatedBA)addLink(b,effect,a,'curated-fixture-data');
-        if(!directionAB&&!curatedAB&&buffAB)addLink(a,effect,b,'keywords.buffs producer signal');
-        if(!directionBA&&!curatedBA&&buffBA)addLink(b,effect,a,'keywords.buffs producer signal');
+        if(directionAB&&!runtimeBA&&!curatedBA)addLink(a,effect,b,'bungie-direction-description');
+        if(directionBA&&!runtimeAB&&!curatedAB)addLink(b,effect,a,'bungie-direction-description');
+        if(buffAB&&!runtimeBA&&!curatedBA&&!directionBA)addLink(a,effect,b,'keywords.buffs producer signal');
+        if(buffBA&&!runtimeAB&&!curatedAB&&!directionAB)addLink(b,effect,a,'keywords.buffs producer signal');
 
-        const directed=directionAB||directionBA||curatedAB||curatedBA||buffAB||buffBA;
+        const directed=runtimeAB||runtimeBA||directionAB||directionBA||curatedAB||curatedBA||buffAB||buffBA;
         if(!directed&&sharedDebuffs.includes(effect)){
           const key=`${Math.min(Number(a.hash),Number(b.hash))}:${effect}:${Math.max(Number(a.hash),Number(b.hash))}`;
           if(seenCandidates.has(key))continue;
@@ -791,7 +793,7 @@ export function analyzeGuardianBuild(build = {}) {
   if (build?.source && build.source !== ALPHA_SOURCE) throw new Error(`Paradox Alpha engine rejected non-fixture source: ${build.source}`);
   const nodes = buildEvidenceNodes(build);
   const runtimeLoop = makeLoop(nodes);
-  const trait = traitEvidence(nodes,build.synergyChains);
+  const trait = traitEvidence(nodes,build.synergyChains,runtimeLoop);
   const buildLoop = mergeBuildLoop(runtimeLoop, trait.links, build.synergyChains, nodes);
   const missing = missingInputs(nodes);
   const runtimeWeapons = weaponContribution(nodes, buildLoop);
