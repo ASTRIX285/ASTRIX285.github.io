@@ -1,0 +1,24 @@
+name: tmp-paradox-traitid-delta-audit
+on:
+  push:
+    branches:
+      - tmp/paradox-traitid-delta-audit-20260811
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/astrix-multigame-platform
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Recover pre-trait engine baseline
+        run: git show 396f7ce7a2d651717761a8213b13ea051c2da251:astrix-app/pages/guardian-workspace-v2/guardian-paradox-engine.mjs > astrix-app/tools/_baseline-no-trait-engine.mjs
+      - name: Copy audit script from temporary branch
+        run: git show ${{ github.sha }}:.github/audit-paradox-traitid.mjs > /tmp/audit-paradox-traitid.mjs
+      - name: Run traitId delta audit
+        run: cp /tmp/audit-paradox-traitid.mjs .github/audit-paradox-traitid-run.mjs && node .github/audit-paradox-traitid-run.mjs
