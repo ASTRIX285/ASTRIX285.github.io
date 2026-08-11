@@ -10,8 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Save temporary patch script
-        run: cp .github/patch-paradox-traitid-v4.py /tmp/patch-paradox-traitid-v4.py
+      - name: Save temporary verification files
+        run: |
+          cp .github/patch-paradox-trait-test-only.py /tmp/patch-paradox-trait-test-only.py
+          cp .github/audit-paradox-traitid-v4.mjs /tmp/audit-paradox-traitid-v4.mjs
       - name: Check out feature branch
         run: |
           git fetch origin feature/astrix-multigame-platform
@@ -19,17 +21,29 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply narrowed trait patch
-        run: python /tmp/patch-paradox-traitid-v4.py
-      - name: Run PF-BETA-04 traitId and full Alpha regression
+      - name: Update permanent source-aware regression assertion
+        run: python /tmp/patch-paradox-trait-test-only.py
+      - name: Recover pre-trait analysis baseline
+        run: git show 396f7ce7a2d651717761a8213b13ea051c2da251:astrix-app/pages/guardian-workspace-v2/guardian-paradox-engine.mjs > astrix-app/tools/_baseline-no-trait-engine.mjs
+      - name: Run permanent PF-BETA-04 and 23-fixture regression
         shell: bash
         run: |
           set -o pipefail
           node astrix-app/tools/test-pf-beta-04-subclass-fallback.mjs | tee /tmp/paradox-trait-regression.json
-      - name: Commit verified feature changes
+      - name: Run strict additive before-after audit
+        shell: bash
         run: |
+          cp /tmp/audit-paradox-traitid-v4.mjs .github/audit-paradox-traitid-run.mjs
+          node .github/audit-paradox-traitid-run.mjs | tee /tmp/paradox-trait-delta.json
+      - name: Commit verified permanent test
+        run: |
+          rm -f astrix-app/tools/_baseline-no-trait-engine.mjs .github/audit-paradox-traitid-run.mjs
           git config user.name "ASTRIX285"
           git config user.email "43313768+ASTRIX285@users.noreply.github.com"
-          git add astrix-app/pages/guardian-workspace-v2/guardian-paradox-engine.mjs
-          git commit -m "Narrow trait direction inference to stronger evidence"
-          git push origin HEAD:feature/astrix-multigame-platform
+          git add astrix-app/tools/test-pf-beta-04-subclass-fallback.mjs
+          if git diff --cached --quiet; then
+            echo "Permanent test already matches verified source-aware version."
+          else
+            git commit -m "Make trait regression source-aware"
+            git push origin HEAD:feature/astrix-multigame-platform
+          fi
