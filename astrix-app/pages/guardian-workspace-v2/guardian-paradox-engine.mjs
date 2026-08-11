@@ -81,6 +81,7 @@ function normalizeItem(item, fallbackType = 'component') {
     type: sourceType(item, fallbackType),
     description: evidenceText(item),
     traitIds: traitIds(item),
+    directionEvidence: item?.directionEvidence ?? null,
     unresolved: unresolved(item),
     raw: item
   };
@@ -160,10 +161,84 @@ function traitIdEffects(item) {
   };
 }
 
+
+const DIRECTION_DIRECT_OUTPUT = new Map([
+  ['blind', /\b(?:blind|blinds|blinding)\b/i],
+  ['freeze', /\b(?:freeze|freezes|freezing)\b/i],
+  ['ignite', /\b(?:ignite|ignites|igniting)\b/i],
+  ['jolt', /\b(?:jolt|jolts|jolting)\b/i],
+  ['scorch', /\b(?:scorch|scorches|scorching)\b/i],
+  ['sever', /\b(?:sever|severs|severing)\b/i],
+  ['suspend', /\b(?:suspend|suspends|suspending)\b/i],
+  ['suppression', /\b(?:suppress|suppresses|suppressing)\b/i],
+  ['unravel', /\b(?:unravel|unravels|unraveling)\b/i],
+  ['weaken', /\b(?:weaken|weakens|weakening)\b/i]
+]);
+
+const DIRECTION_STATE_FORMS = new Map([
+  ['amplified', /\bamplified\b/i],
+  ['blind', /\bblinded\b/i],
+  ['cure', /\bcure(?:d)?\b/i],
+  ['devour', /\bdevour\b/i],
+  ['freeze', /\bfrozen\b/i],
+  ['ignite', /\bignit(?:ed|ion)\b/i],
+  ['invisibility', /\binvisib(?:le|ility)\b/i],
+  ['jolt', /\bjolted\b/i],
+  ['overshield', /\bovershield\b/i],
+  ['radiant', /\bradiant\b/i],
+  ['restoration', /\brestoration\b/i],
+  ['scorch', /\bscorched\b/i],
+  ['sever', /\bsevered\b/i],
+  ['shatter', /\bshattered\b/i],
+  ['slow', /\bslowed\b/i],
+  ['suspend', /\bsuspended\b/i],
+  ['suppression', /\bsuppressed\b/i],
+  ['threadling', /\bthreadlings?\b/i],
+  ['unravel', /\bunraveled\b/i],
+  ['volatile', /\bvolatile\b/i],
+  ['weaken', /\bweakened\b/i],
+  ['woven mail', /\bwoven mail\b/i]
+]);
+
+function directionalTextEffects(item) {
+  const texts = [item?.description, item?.directionEvidence?.description].map(clean).filter(Boolean);
+  if (!texts.length) return { outputs: [], inputs: [], mentions: [], evidence: [] };
+  const outputs = [];
+  const inputs = [];
+  const mentions = [];
+  const evidence = [];
+  const genericOutputVerb = /\b(?:grant|grants|gain|gains|become|becomes|apply|applies|inflict|inflicts|cause|causes|create|creates|spawn|spawns|emit|emits|release|releases)\b/i;
+  const triggerVerb = /\b(?:while|when|after|upon|against|defeat|defeating|defeats|kill|killing|kills|damage|damaging|hit|hitting)\b/i;
+
+  for (const sourceText of texts) {
+    for (const sentence of sourceText.split(/(?<=[.!?])\s+/).map(clean).filter(Boolean)) {
+      for (const effect of uniq(EFFECT_TERMS.map(canonEffect))) {
+        const direct = DIRECTION_DIRECT_OUTPUT.get(effect);
+        const state = DIRECTION_STATE_FORMS.get(effect);
+        const effectMention = direct?.test(sentence) || state?.test(sentence) || lower(sentence).includes(effect);
+        if (!effectMention) continue;
+        mentions.push(effect);
+        if (direct?.test(sentence)) outputs.push(effect);
+        if (state) {
+          const match = sentence.match(state);
+          if (match) {
+            const before = sentence.slice(0, match.index);
+            if (genericOutputVerb.test(before.slice(-48))) outputs.push(effect);
+            if (triggerVerb.test(before.slice(-64))) inputs.push(effect);
+          }
+        }
+      }
+      evidence.push(sentence);
+    }
+  }
+  return { outputs: uniq(outputs), inputs: uniq(inputs), mentions: uniq(mentions), evidence: uniq(evidence) };
+}
+
 function buildEvidenceNodes(build) {
   return equippedComponents(build).map(item => ({
     ...item,
     effects: descriptionEffects(item),
+    directionEffects: directionalTextEffects(item),
     traitEffects: traitIdEffects(item)
   }));
 }
@@ -275,19 +350,21 @@ function traitEvidence(nodes,curatedEntries){
       for(const effect of uniq([...sharedDebuffs,...sharedMentions])){
         const curatedAB=curatedDirection(curatedEntries,nodes,a,b,effect);
         const curatedBA=curatedDirection(curatedEntries,nodes,b,a,effect);
-        const descriptionAB=a.effects.outputs.includes(effect)&&b.effects.inputs.includes(effect);
-        const descriptionBA=b.effects.outputs.includes(effect)&&a.effects.inputs.includes(effect);
+        const directionAB=a.directionEffects.outputs.includes(effect)&&b.directionEffects.inputs.includes(effect);
+        const directionBA=b.directionEffects.outputs.includes(effect)&&a.directionEffects.inputs.includes(effect);
         const buffAB=a.traitEffects.buffOutputs.includes(effect)&&b.traitEffects.mentions.includes(effect)&&!b.traitEffects.buffOutputs.includes(effect);
         const buffBA=b.traitEffects.buffOutputs.includes(effect)&&a.traitEffects.mentions.includes(effect)&&!a.traitEffects.buffOutputs.includes(effect);
+        const anchorAB=(a.directionEvidence?.description||b.directionEvidence?.description)?'bungie-direction-description':'runtime-description-direction';
+        const anchorBA=(b.directionEvidence?.description||a.directionEvidence?.description)?'bungie-direction-description':'runtime-description-direction';
 
-        if(descriptionAB)addLink(a,effect,b,'runtime-description-parsing');
-        if(descriptionBA)addLink(b,effect,a,'runtime-description-parsing');
+        if(directionAB)addLink(a,effect,b,anchorAB);
+        if(directionBA)addLink(b,effect,a,anchorBA);
         if(curatedAB)addLink(a,effect,b,'curated-fixture-data');
         if(curatedBA)addLink(b,effect,a,'curated-fixture-data');
-        if(!descriptionAB&&!curatedAB&&buffAB)addLink(a,effect,b,'keywords.buffs producer signal');
-        if(!descriptionBA&&!curatedBA&&buffBA)addLink(b,effect,a,'keywords.buffs producer signal');
+        if(!directionAB&&!curatedAB&&buffAB)addLink(a,effect,b,'keywords.buffs producer signal');
+        if(!directionBA&&!curatedBA&&buffBA)addLink(b,effect,a,'keywords.buffs producer signal');
 
-        const directed=descriptionAB||descriptionBA||curatedAB||curatedBA||buffAB||buffBA;
+        const directed=directionAB||directionBA||curatedAB||curatedBA||buffAB||buffBA;
         if(!directed&&sharedDebuffs.includes(effect)){
           const key=`${Math.min(Number(a.hash),Number(b.hash))}:${effect}:${Math.max(Number(a.hash),Number(b.hash))}`;
           if(seenCandidates.has(key))continue;

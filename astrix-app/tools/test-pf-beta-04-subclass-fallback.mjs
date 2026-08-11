@@ -73,7 +73,7 @@ const forward=analysis.buildLoop.find(link=>
 );
 assert.ok(forward,'Expected Tempest Strike -> jolt -> Flow State link is missing');
 assert.ok(String(forward.source).includes('runtime-traitid-parsing'),'PF-BETA-04 forward jolt link must include runtime-traitid-parsing evidence');
-assert.ok(String(forward.source).includes('runtime-description-parsing'),'PF-BETA-04 direction must be anchored by official description parsing');
+assert.equal(forward.evidence?.directionalAnchor,'bungie-direction-description','PF-BETA-04 trait direction must be anchored by separate official Bungie direction evidence');
 assert.equal(
   analysis.buildLoop.some(link=>Number(link.from?.hash)===4194622036&&link.output==='jolt'&&Number(link.to?.hash)===4194622037),
   false,
