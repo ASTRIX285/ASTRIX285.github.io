@@ -1,0 +1,17 @@
+name: tmp-paradox-traitid-regression
+on:
+  push:
+    branches:
+      - tmp/paradox-traitid-regression-20260811
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run PF-BETA-04 traitId and full Alpha regression
+        run: node astrix-app/tools/test-pf-beta-04-subclass-fallback.mjs
