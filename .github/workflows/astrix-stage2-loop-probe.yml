@@ -1,0 +1,34 @@
+name: ASTRIX Stage 2 Loop Probe
+on:
+  push:
+    branches: [feature/astrix-multigame-platform]
+    paths: ['.github/workflows/astrix-stage2-loop-probe.yml']
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: feature/astrix-multigame-platform }
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - name: Print real high-fixture loops
+        shell: bash
+        run: |
+          cat > /tmp/probe.mjs <<'NODE'
+          import fs from 'node:fs/promises'; import path from 'node:path'; import {pathToFileURL} from 'node:url';
+          const root=process.cwd(), dataRoot=path.join(root,'astrix-app/data/paradox-forge/beta');
+          const routes=new Map(['ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json','beta-component-identities.json','beta-bungie-manifest-cache.json','beta-bungie-manifest-cache-trait-direction-extension.json'].map(n=>[n,path.join(dataRoot,n)]));
+          globalThis.document={readyState:'loading',addEventListener(){},dispatchEvent(){return true},getElementById(){return null},querySelector(){return null},createElement(){return {setAttribute(){},appendChild(){},style:{},addEventListener(){}}}};
+          globalThis.CustomEvent=class{constructor(t,i={}){this.type=t;this.detail=i.detail}};
+          globalThis.fetch=async input=>{const s=String(input),n=[...routes.keys()].find(k=>s.endsWith(k));if(!n)return{ok:false,status:404,json:async()=>({})};const txt=await fs.readFile(routes.get(n),'utf8');return{ok:true,status:200,json:async()=>JSON.parse(txt)}};
+          const pr=path.join(root,'astrix-app/pages/guardian-workspace-v2');
+          const loader=await import(pathToFileURL(path.join(pr,'guardian-fixture-loader.mjs')).href+'?s2=1'); const engine=await import(pathToFileURL(path.join(pr,'guardian-paradox-engine.mjs')).href+'?s2=1');
+          for(const id of ['PF-BETA-10','PF-BETA-13','PF-BETA-14','PF-BETA-15','PF-BETA-19']){const b=await loader.loadBetaFixture(id);const a=engine.analyzeGuardianBuild(b);console.log('FIXTURE '+id);for(const l of a.buildLoop)console.log(' LOOP '+l.chain+' ['+l.source+']');for(const w of a.weaponContribution)console.log(' WEAPON '+JSON.stringify({hash:w.hash,name:w.name,status:w.status,roles:w.roles}));}
+          NODE
+          node /tmp/probe.mjs
+      - name: Remove temporary loop probe
+        if: always()
+        run: |
+          git config user.name 'ASTRIX Probe Bot'; git config user.email 'actions@users.noreply.github.com'; git rm .github/workflows/astrix-stage2-loop-probe.yml; git commit -m 'Remove temporary Stage 2 loop probe'; git push origin HEAD:feature/astrix-multigame-platform
