@@ -1,0 +1,71 @@
+name: ASTRIX Stage 2 Weapon Contribution
+on:
+  push:
+    branches: [feature/astrix-multigame-platform]
+    paths:
+      - '.astrix-stage2/**'
+      - '.github/workflows/astrix-stage2-weapon-contribution.yml'
+permissions:
+  contents: write
+jobs:
+  curate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/astrix-multigame-platform
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - name: Apply data-only weaponContribution patch
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const target='astrix-app/data/paradox-forge/beta/ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json';
+          const patch=JSON.parse(fs.readFileSync('.astrix-stage2/weapon-contribution-patch.json','utf8'));
+          const data=JSON.parse(fs.readFileSync(target,'utf8'));
+          const before={fixtures:data.fixtures.length,chains:data.fixtures.reduce((n,f)=>n+(f.synergyChains?.length??0),0),mutations:data.fixtures.reduce((n,f)=>n+(f.mutationCases?.length??0),0)};
+          if(JSON.stringify(before)!==JSON.stringify({fixtures:23,chains:33,mutations:7})) throw new Error('Stage 1 invariants changed: '+JSON.stringify(before));
+          const targets=new Set(Object.keys(patch));
+          for(const f of data.fixtures){
+            if(targets.has(f.fixtureId)) f.weaponContribution=patch[f.fixtureId];
+          }
+          const row=data.fixtures.find(f=>f.fixtureId==='PF-BETA-13')?.weaponContribution?.[0];
+          if(Number(row?.hash)!==19024058 || !row?.evidence || !row?.roles?.length) throw new Error('Prometheus Lens contribution missing or invalid');
+          const nonTarget=data.fixtures.filter(f=>!targets.has(f.fixtureId)).reduce((n,f)=>n+(f.weaponContribution?.length??0),0);
+          if(nonTarget!==0) throw new Error('Unexpected weaponContribution outside target fixtures: '+nonTarget);
+          fs.writeFileSync(target,JSON.stringify(data));
+          console.log('PATCH_SUMMARY='+JSON.stringify({added:1,targetFixtures:[...targets],honestlyUnresolvedEquippedWeapons:14}));
+          NODE
+      - name: Run real 23-fixture loader-engine regression
+        shell: bash
+        run: |
+          cat > /tmp/regression.mjs <<'NODE'
+          import fs from 'node:fs/promises'; import path from 'node:path'; import {pathToFileURL} from 'node:url';
+          const root=process.cwd(), dataRoot=path.join(root,'astrix-app/data/paradox-forge/beta');
+          const names=['ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json','beta-component-identities.json','beta-bungie-manifest-cache.json','beta-bungie-manifest-cache-trait-direction-extension.json'];
+          const routes=new Map(names.map(n=>[n,path.join(dataRoot,n)]));
+          globalThis.document={readyState:'loading',addEventListener(){},dispatchEvent(){return true},getElementById(){return null},querySelector(){return null},createElement(){return {setAttribute(){},appendChild(){},style:{},addEventListener(){}}}};
+          globalThis.CustomEvent=class{constructor(t,i={}){this.type=t;this.detail=i.detail}};
+          globalThis.fetch=async input=>{const s=String(input),n=[...routes.keys()].find(k=>s.endsWith(k));if(!n)return{ok:false,status:404,json:async()=>({})};const txt=await fs.readFile(routes.get(n),'utf8');return{ok:true,status:200,json:async()=>JSON.parse(txt)}};
+          const pr=path.join(root,'astrix-app/pages/guardian-workspace-v2');
+          const loader=await import(pathToFileURL(path.join(pr,'guardian-fixture-loader.mjs')).href+'?stage2=1'); const engine=await import(pathToFileURL(path.join(pr,'guardian-paradox-engine.mjs')).href+'?stage2=1');
+          const fixtures=await loader.listBetaFixtures(); const counts={high:0,medium:0,insufficient:0,low:0}; let totalLinks=0; const highs={};
+          for(const f of fixtures){const b=await loader.loadBetaFixture(f.fixtureId);const a=engine.analyzeGuardianBuild(b);counts[a.confidence.level]++;totalLinks+=a.buildLoop.length;if(['PF-BETA-10','PF-BETA-13','PF-BETA-14','PF-BETA-15','PF-BETA-19'].includes(f.fixtureId)) highs[f.fixtureId]={level:a.confidence.level,links:a.buildLoop.length,weaponContribution:a.weaponContribution};}
+          const summary={...counts,totalLinks,fixtures:fixtures.length}; console.log('REGRESSION_SUMMARY='+JSON.stringify(summary)); console.log('HIGH_FIXTURES='+JSON.stringify(highs));
+          const expected={high:5,medium:18,insufficient:0,low:0,totalLinks:53,fixtures:23}; if(JSON.stringify(summary)!==JSON.stringify(expected)) throw new Error('Stage 2 altered buildLoop/confidence: '+JSON.stringify(summary));
+          const pf13=highs['PF-BETA-13'].weaponContribution.find(x=>Number(x.hash)===19024058); if(!pf13 || !String(pf13.source??'').includes('curated-fixture-data') || !pf13.roles?.some(x=>x.includes('Ember of Empyrean'))) throw new Error('Curated Prometheus Lens contribution did not merge');
+          NODE
+          node /tmp/regression.mjs
+      - name: Commit data and remove temporary scaffolding
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ASTRIX Curation Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add astrix-app/data/paradox-forge/beta/ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json
+          git rm -r .astrix-stage2
+          git rm .github/workflows/astrix-stage2-weapon-contribution.yml
+          git commit -m 'Curate verified high-confidence weapon contribution'
+          git push origin HEAD:feature/astrix-multigame-platform
