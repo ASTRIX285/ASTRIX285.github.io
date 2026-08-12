@@ -1,0 +1,59 @@
+name: ASTRIX Stage 1 Fixture Assembly
+
+on:
+  push:
+    branches:
+      - feature/astrix-multigame-platform
+    paths:
+      - '.astrix-stage1/**'
+      - '.github/workflows/astrix-stage1-fixtures.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/astrix-multigame-platform
+          fetch-depth: 0
+
+      - name: Reconstruct exact minified fixture JSON
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .astrix-stage1/chunk1.b64 .astrix-stage1/chunk2.b64 .astrix-stage1/chunk3.b64 .astrix-stage1/chunk4.b64 > /tmp/fixtures.b64
+          base64 -d /tmp/fixtures.b64 | gunzip > /tmp/fixtures.json
+          python - <<'PY'
+          import json, hashlib
+          p='/tmp/fixtures.json'
+          b=open(p,'rb').read()
+          expected='6db3dbd48b1dee98a7c2cb7c40cefbc9c4507f49fd08041e66e279fca71c4d91'
+          actual=hashlib.sha256(b).hexdigest()
+          assert actual == expected, (actual, expected)
+          d=json.loads(b)
+          fs=d['fixtures']
+          assert len(fs)==23
+          assert len({f['fixtureId'] for f in fs})==23
+          assert sum(len(f.get('synergyChains',[])) for f in fs)==33
+          assert sum(len(f.get('mutationCases',[])) for f in fs)==7
+          assert all(f.get('synergyChains') for f in fs)
+          assert all(c.get('evidence') for f in fs for c in f.get('synergyChains',[]))
+          print('fixtureCount=23 synergyChains=33 mutationCases=7 emptyChains=0')
+          print('sha256='+actual)
+          PY
+          mv /tmp/fixtures.json astrix-app/data/paradox-forge/beta/ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json
+
+      - name: Commit validated fixture and remove transport scaffolding
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ASTRIX Fixture Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add astrix-app/data/paradox-forge/beta/ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json
+          git rm -r .astrix-stage1
+          git rm .github/workflows/astrix-stage1-fixtures.yml
+          git commit -m 'Land validated 33-chain Alpha fixture curation'
+          git push origin HEAD:feature/astrix-multigame-platform
