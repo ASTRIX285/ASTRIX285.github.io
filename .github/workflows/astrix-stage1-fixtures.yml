@@ -24,13 +24,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          wc -c .astrix-stage1/chunk*.b64
-          sha256sum .astrix-stage1/chunk*.b64
           echo '6755ee7c66140b50ffca8aac098ecdb7f709accb8c814f35b0f722544cc384d8  .astrix-stage1/chunk1.b64' | sha256sum -c -
-          echo '7a473c60b1ae7d4c4989a3868bf3fc3caac889ade1a8db9e96db58a6309d85dd  .astrix-stage1/chunk2.b64' | sha256sum -c -
+          echo '012da7a209887eda2bea0c86bc014e63b0d78b5afc6d813570f74ed12f2d3477  .astrix-stage1/chunk2a.b64' | sha256sum -c -
+          echo '774dbb8ccc2f56c3d23f95b90a0a29fa9cbdb8113ac7cd27b9a53098b779f3e6  .astrix-stage1/chunk2b.b64' | sha256sum -c -
           echo '0ea941785633566b126e1355de13f152963ba8e260ce2be215ce474a421734c9  .astrix-stage1/chunk3.b64' | sha256sum -c -
           echo '59ef3f4afddee9b70f27b1e84280b217492b3c82c475366344b7f9cd8fb808c5  .astrix-stage1/chunk4.b64' | sha256sum -c -
-          cat .astrix-stage1/chunk1.b64 .astrix-stage1/chunk2.b64 .astrix-stage1/chunk3.b64 .astrix-stage1/chunk4.b64 > /tmp/fixtures.b64
+          cat .astrix-stage1/chunk1.b64 .astrix-stage1/chunk2a.b64 .astrix-stage1/chunk2b.b64 .astrix-stage1/chunk3.b64 .astrix-stage1/chunk4.b64 > /tmp/fixtures.b64
           base64 -d /tmp/fixtures.b64 | gunzip > /tmp/fixtures.json
           python - <<'PY'
           import json, hashlib
