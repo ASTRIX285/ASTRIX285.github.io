@@ -1,0 +1,99 @@
+name: ASTRIX Stage 1 Regression
+
+on:
+  push:
+    branches:
+      - feature/astrix-multigame-platform
+    paths:
+      - '.github/workflows/astrix-stage1-regression.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/astrix-multigame-platform
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Run real loader to engine regression
+        shell: bash
+        run: |
+          cat > /tmp/astrix-regression.mjs <<'NODE'
+          import fs from 'node:fs/promises';
+          import path from 'node:path';
+          import { pathToFileURL } from 'node:url';
+
+          const root = process.cwd();
+          const dataRoot = path.join(root, 'astrix-app/data/paradox-forge/beta');
+          const routes = new Map([
+            ['ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json', path.join(dataRoot, 'ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json')],
+            ['beta-component-identities.json', path.join(dataRoot, 'beta-component-identities.json')],
+            ['beta-bungie-manifest-cache.json', path.join(dataRoot, 'beta-bungie-manifest-cache.json')],
+            ['beta-bungie-manifest-cache-trait-direction-extension.json', path.join(dataRoot, 'beta-bungie-manifest-cache-trait-direction-extension.json')]
+          ]);
+
+          globalThis.document = {
+            readyState: 'loading',
+            addEventListener(){},
+            dispatchEvent(){ return true; },
+            getElementById(){ return null; },
+            querySelector(){ return null; },
+            createElement(){ return { setAttribute(){}, appendChild(){}, style:{}, addEventListener(){}, value:'', textContent:'' }; }
+          };
+          globalThis.CustomEvent = class CustomEvent { constructor(type, init={}){ this.type=type; this.detail=init.detail; } };
+          globalThis.fetch = async input => {
+            const s = String(input);
+            const name = [...routes.keys()].find(k => s.endsWith(k));
+            if (!name) return { ok:false, status:404, json:async()=>({}) };
+            const text = await fs.readFile(routes.get(name), 'utf8');
+            return { ok:true, status:200, json:async()=>JSON.parse(text), text:async()=>text };
+          };
+
+          const pageRoot = path.join(root, 'astrix-app/pages/guardian-workspace-v2');
+          const loader = await import(pathToFileURL(path.join(pageRoot, 'guardian-fixture-loader.mjs')).href + '?regression=1');
+          const engine = await import(pathToFileURL(path.join(pageRoot, 'guardian-paradox-engine.mjs')).href + '?regression=1');
+          const fixtures = await loader.listBetaFixtures();
+          if (fixtures.length !== 23) throw new Error(`Expected 23 fixtures, got ${fixtures.length}`);
+
+          const counts = { high:0, medium:0, insufficient:0, low:0 };
+          let totalLinks = 0;
+          const rows = [];
+          for (const f of fixtures) {
+            const build = await loader.loadBetaFixture(f.fixtureId);
+            const analysis = engine.analyzeGuardianBuild(build);
+            const level = analysis.confidence.level;
+            counts[level] = (counts[level] ?? 0) + 1;
+            totalLinks += analysis.buildLoop.length;
+            rows.push({
+              fixtureId:f.fixtureId,
+              confidence:level,
+              links:analysis.buildLoop.length,
+              blockers:analysis.confidence.blockers,
+              curated:analysis.buildLoop.filter(x => (x.evidenceSources??[]).some(e => e.source==='curated-fixture-data')).length,
+              runtime:analysis.buildLoop.filter(x => (x.evidenceSources??[]).some(e => e.source==='runtime-description-parsing')).length,
+              trait:analysis.buildLoop.filter(x => (x.evidenceSources??[]).some(e => e.source==='runtime-traitid-parsing')).length
+            });
+          }
+          for (const row of rows) console.log(JSON.stringify(row));
+          console.log('REGRESSION_SUMMARY='+JSON.stringify({ ...counts, totalLinks, fixtures:rows.length }));
+          console.log('HIGH_FIXTURES='+JSON.stringify(rows.filter(r=>r.confidence==='high').map(r=>r.fixtureId)));
+          NODE
+          node /tmp/astrix-regression.mjs
+
+      - name: Remove temporary regression workflow
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ASTRIX Regression Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git rm .github/workflows/astrix-stage1-regression.yml
+          git commit -m 'Remove temporary Stage 1 regression workflow'
+          git push origin HEAD:feature/astrix-multigame-platform
