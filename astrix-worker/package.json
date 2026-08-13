@@ -2,15 +2,15 @@
   "name": "astrix-destiny-backend",
   "version": "0.1.0",
   "private": true,
-  "description": "Cloudflare Worker scaffold for the ASTRIX Destiny backend. OAuth implementation is intentionally gated.",
+  "description": "Cloudflare Worker backend for ASTRIX Destiny authentication and API access.",
   "scripts": {
     "dev": "wrangler dev",
     "check": "tsc --noEmit && wrangler deploy --dry-run",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260730.0",
+    "@cloudflare/workers-types": "5.20260729.1",
     "typescript": "^5.9.0",
-    "wrangler": "^4.0.0"
+    "wrangler": "4.114.0"
   }
 }
