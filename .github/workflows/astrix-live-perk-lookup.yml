@@ -1,0 +1,14 @@
+name: ASTRIX Live Perk Lookup
+'on':
+  push:
+    branches: [feature/astrix-multigame-platform]
+    paths: ['.github/workflows/astrix-live-perk-lookup.yml']
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/astrix-multigame-platform
+      - run: python3 .astrix-community/live_perk_lookup.py
