@@ -1,0 +1,369 @@
+{
+  "schemaVersion": "1.0",
+  "source": "live-bungie-manifest",
+  "refreshedAt": "2026-08-13T13:57:10.104051Z",
+  "seasonNumber": 28,
+  "seasonHash": 2758726560,
+  "seasonName": "Monument of Triumph",
+  "artifactHash": 2894222926,
+  "artifactName": "Implement of Curiosity",
+  "artifactInventoryItems": [
+    {
+      "itemHash": 3980449645,
+      "name": "Encrypted Data Disk",
+      "artifactHash": 2894222926
+    }
+  ],
+  "perks": [
+    {
+      "perkHash": 4217417017,
+      "sandboxPerkHash": 2269748027,
+      "name": "Anti-Barrier Hand Cannon",
+      "description": "Your equipped Hand Cannons fire shield-piercing rounds and stun [Shield-Piercing] Barrier Champions.",
+      "column": 1,
+      "order": 1,
+      "globalOrder": 1,
+      "minimumUnlockPointsUsedRequirement": 0
+    },
+    {
+      "perkHash": 4217417018,
+      "sandboxPerkHash": 3144088660,
+      "name": "Anti-Barrier Sniper Rifle",
+      "description": "Your equipped Sniper Rifles fire shield-piercing rounds and stun [Shield-Piercing] Barrier Champions.",
+      "column": 1,
+      "order": 2,
+      "globalOrder": 2,
+      "minimumUnlockPointsUsedRequirement": 0
+    },
+    {
+      "perkHash": 4217417019,
+      "sandboxPerkHash": 3845907181,
+      "name": "Overload Pulse Rifle",
+      "description": "Your equipped Pulse Rifles fire disrupting rounds which stun the target, delaying ability energy regeneration and lowering combatant damage output.\n\nStrong against [Disruption] Overload Champions.",
+      "column": 1,
+      "order": 3,
+      "globalOrder": 3,
+      "minimumUnlockPointsUsedRequirement": 0
+    },
+    {
+      "perkHash": 4217417020,
+      "sandboxPerkHash": 805688323,
+      "name": "Overload Submachine Gun",
+      "description": "Your equipped Submachine Guns fire disrupting rounds which stun the target, delaying ability energy regeneration and lowering combatant damage output.\n\nStrong against [Disruption] Overload Champions.",
+      "column": 1,
+      "order": 4,
+      "globalOrder": 4,
+      "minimumUnlockPointsUsedRequirement": 0
+    },
+    {
+      "perkHash": 4217417021,
+      "sandboxPerkHash": 1753587492,
+      "name": "Unstoppable Bow",
+      "description": "Crossbows, and Bows that have been fully drawn for a short time, fire a powerful explosive payload that stuns unshielded combatants. Strong against [Stagger] Unstoppable Champions.",
+      "column": 1,
+      "order": 5,
+      "globalOrder": 5,
+      "minimumUnlockPointsUsedRequirement": 0
+    },
+    {
+      "perkHash": 4217417022,
+      "sandboxPerkHash": 3546213477,
+      "name": "Stunning Fusion",
+      "description": "Aiming down the sights of a Fusion Rifle or Linear Fusion Rifle for a short time loads a powerful payload that stuns unshielded combatants. \n\nStrong against [Stagger] Unstoppable Champions.",
+      "column": 1,
+      "order": 6,
+      "globalOrder": 6,
+      "minimumUnlockPointsUsedRequirement": 0
+    },
+    {
+      "perkHash": 4217417023,
+      "sandboxPerkHash": 3546213476,
+      "name": "Shield-Shattering Rounds",
+      "description": "Your Machine Guns fire shield-piercing rounds and stun [Shield-Piercing] Barrier Champions.",
+      "column": 1,
+      "order": 7,
+      "globalOrder": 7,
+      "minimumUnlockPointsUsedRequirement": 0
+    },
+    {
+      "perkHash": 3619040072,
+      "sandboxPerkHash": 3297340159,
+      "name": "Impact, Shock, Gravity",
+      "description": "Grants access to the Helmet mods: Kinetic/Void Siphon and Kinetic/Arc Siphon.\n\nThese mods combine two elemental siphons at a discounted cost.",
+      "column": 2,
+      "order": 1,
+      "globalOrder": 8,
+      "minimumUnlockPointsUsedRequirement": 3
+    },
+    {
+      "perkHash": 3619040075,
+      "sandboxPerkHash": 3297340156,
+      "name": "Gravitic-Voltaic Charge",
+      "description": "While you have an Arc or Void Super equipped, increase the maximum number of stacks of Armor Charge you can carry by 1.",
+      "column": 2,
+      "order": 2,
+      "globalOrder": 9,
+      "minimumUnlockPointsUsedRequirement": 3
+    },
+    {
+      "perkHash": 3619040074,
+      "sandboxPerkHash": 3297340157,
+      "name": "Expert Handling",
+      "description": "Weapon final blows grant a stacking bonus to stability which resets on weapon reload or stow. Swords gain Guard Resistance.",
+      "column": 2,
+      "order": 3,
+      "globalOrder": 10,
+      "minimumUnlockPointsUsedRequirement": 3
+    },
+    {
+      "perkHash": 3619040077,
+      "sandboxPerkHash": 3297340154,
+      "name": "Fastest Draw",
+      "description": "If the first shot shortly after reloading or readying your weapon is a precision hit, gain flinch resistance.",
+      "column": 2,
+      "order": 4,
+      "globalOrder": 11,
+      "minimumUnlockPointsUsedRequirement": 3
+    },
+    {
+      "perkHash": 3619040076,
+      "sandboxPerkHash": 3297340155,
+      "name": "Elemental Siphon",
+      "description": "Rapid final blows with a Kinetic weapon or a weapon matching your equipped Super create an Elemental pickup that matches your equipped Super.",
+      "column": 2,
+      "order": 5,
+      "globalOrder": 12,
+      "minimumUnlockPointsUsedRequirement": 3
+    },
+    {
+      "perkHash": 3619040079,
+      "sandboxPerkHash": 3297340152,
+      "name": "Concentrated Forward Firepower",
+      "description": "Sustained damage from Fusion Rifles, Linear Fusion Rifles, and Machine Guns grants those weapons bonus stability, range, and aim assist for a short time.",
+      "column": 2,
+      "order": 6,
+      "globalOrder": 13,
+      "minimumUnlockPointsUsedRequirement": 3
+    },
+    {
+      "perkHash": 3619040078,
+      "sandboxPerkHash": 3297340153,
+      "name": "Vanguard Surplus Discounts",
+      "description": "All Ammo Finder mods are discounted.",
+      "column": 2,
+      "order": 7,
+      "globalOrder": 14,
+      "minimumUnlockPointsUsedRequirement": 3
+    },
+    {
+      "perkHash": 3834273543,
+      "sandboxPerkHash": 193266676,
+      "name": "Press The Advantage",
+      "description": "Breaking a combatant's shield grants increased weapon stability, handling, and reload speed. Swords gain increased guard resistance.",
+      "column": 3,
+      "order": 1,
+      "globalOrder": 15,
+      "minimumUnlockPointsUsedRequirement": 5
+    },
+    {
+      "perkHash": 3834273540,
+      "sandboxPerkHash": 193266679,
+      "name": "Kinetic Synthesis",
+      "description": "Sustained Kinetic weapon damage and rapid final blows have a chance to generate a unique ammo brick. Collecting this brick will grant ammo to equipped Kinetic damage weapons and grant Special and Heavy ammo progress.",
+      "column": 3,
+      "order": 2,
+      "globalOrder": 16,
+      "minimumUnlockPointsUsedRequirement": 5
+    },
+    {
+      "perkHash": 3834273541,
+      "sandboxPerkHash": 193266678,
+      "name": "Reload at Range",
+      "description": "Precision hits with Bows and Sniper Rifles grant a stacking bonus to their reload speed.",
+      "column": 3,
+      "order": 3,
+      "globalOrder": 17,
+      "minimumUnlockPointsUsedRequirement": 5
+    },
+    {
+      "perkHash": 3834273538,
+      "sandboxPerkHash": 193266673,
+      "name": "Riposte",
+      "description": "Shortly after guarding with a Sword, your light and heavy attacks stun unshielded combatants. Strong against [Stagger] Unstoppable Champions.",
+      "column": 3,
+      "order": 4,
+      "globalOrder": 18,
+      "minimumUnlockPointsUsedRequirement": 5
+    },
+    {
+      "perkHash": 3834273539,
+      "sandboxPerkHash": 193266672,
+      "name": "Power from Pain",
+      "description": "Rapid final blows against weakened combatants grant you Devour.",
+      "column": 3,
+      "order": 5,
+      "globalOrder": 19,
+      "minimumUnlockPointsUsedRequirement": 5
+    },
+    {
+      "perkHash": 3834273536,
+      "sandboxPerkHash": 193266675,
+      "name": "Fierce Proxemics",
+      "description": "Finisher final blows grant grenade and melee energy.",
+      "column": 3,
+      "order": 6,
+      "globalOrder": 20,
+      "minimumUnlockPointsUsedRequirement": 5
+    },
+    {
+      "perkHash": 3834273537,
+      "sandboxPerkHash": 193266674,
+      "name": "Rapid Remedy",
+      "description": "Machine Gun rapid final blows heal you.",
+      "column": 3,
+      "order": 7,
+      "globalOrder": 21,
+      "minimumUnlockPointsUsedRequirement": 5
+    },
+    {
+      "perkHash": 2903198438,
+      "sandboxPerkHash": 3369784249,
+      "name": "Dielectric",
+      "description": "Defeating [Arc]Arc debuffed targets grants Bolt Charge.\n\nRapidly defeating Arc debuffed targets spawns an Orb of Power and heals a small portion of health.",
+      "column": 4,
+      "order": 1,
+      "globalOrder": 22,
+      "minimumUnlockPointsUsedRequirement": 7
+    },
+    {
+      "perkHash": 2903198437,
+      "sandboxPerkHash": 3369784250,
+      "name": "Armorsmith",
+      "description": "Breaking a combatant's shield temporarily grants you damage resistance and increased melee damage.",
+      "column": 4,
+      "order": 2,
+      "globalOrder": 23,
+      "minimumUnlockPointsUsedRequirement": 7
+    },
+    {
+      "perkHash": 2903198436,
+      "sandboxPerkHash": 3369784251,
+      "name": "Counter Energy",
+      "description": "When you or a member of your fireteam stuns a champion, you gain energy for your least-charged ability.",
+      "column": 4,
+      "order": 3,
+      "globalOrder": 24,
+      "minimumUnlockPointsUsedRequirement": 7
+    },
+    {
+      "perkHash": 2903198435,
+      "sandboxPerkHash": 3369784252,
+      "name": "Combination Argent Blade",
+      "description": "Briefly pause after executing a light attack, then follow it up with a light or heavy attack to empower your Sword for a short time, granting it bonus damage and charge rate.",
+      "column": 4,
+      "order": 4,
+      "globalOrder": 25,
+      "minimumUnlockPointsUsedRequirement": 7
+    },
+    {
+      "perkHash": 2903198434,
+      "sandboxPerkHash": 3369784253,
+      "name": "Singularity Blade",
+      "description": "While you have a Void elemental buff, melee and Sword hits weaken targets, while melee and Sword final blows create a weakening burst.",
+      "column": 4,
+      "order": 5,
+      "globalOrder": 26,
+      "minimumUnlockPointsUsedRequirement": 7
+    },
+    {
+      "perkHash": 2903198433,
+      "sandboxPerkHash": 3369784254,
+      "name": "Blinding Jolts",
+      "description": "Final blows on jolted combatants blind nearby combatants.",
+      "column": 4,
+      "order": 6,
+      "globalOrder": 27,
+      "minimumUnlockPointsUsedRequirement": 7
+    },
+    {
+      "perkHash": 2903198432,
+      "sandboxPerkHash": 3369784255,
+      "name": "Precision Equity",
+      "description": "Precision final blows build progress towards a large Orb of Power that also grants bonus weapon damage on pickup. Higher ranked targets grant more progress.",
+      "column": 4,
+      "order": 7,
+      "globalOrder": 28,
+      "minimumUnlockPointsUsedRequirement": 7
+    },
+    {
+      "perkHash": 2742146821,
+      "sandboxPerkHash": 679036014,
+      "name": "Elemental Orbs: Arc",
+      "description": "[Arc]Arc weapon final blows have a chance to spawn an Arc Elemental Orb. Arc Orbs can be thrown or shot to create an Arc explosion that jolts targets it damages.",
+      "column": 5,
+      "order": 1,
+      "globalOrder": 29,
+      "minimumUnlockPointsUsedRequirement": 10
+    },
+    {
+      "perkHash": 2742146822,
+      "sandboxPerkHash": 679036013,
+      "name": "Kinetic Rupture",
+      "description": "Kinetic weapon damage against a powerful combatant has a chance to create a Kinetic Rupture. Targeting this Rupture causes a damaging explosion that staggers combatants. Strong against [Stagger] Unstoppable Champions.",
+      "column": 5,
+      "order": 2,
+      "globalOrder": 30,
+      "minimumUnlockPointsUsedRequirement": 10
+    },
+    {
+      "perkHash": 2742146823,
+      "sandboxPerkHash": 679036012,
+      "name": "Sniper's Meditation",
+      "description": "Sniper Rifle hits grant stacking Sniper Rifle damage, stability, and reload bonuses for a short time. Heavy ammo Sniper Rifle hits count as more than one hit.",
+      "column": 5,
+      "order": 3,
+      "globalOrder": 31,
+      "minimumUnlockPointsUsedRequirement": 10
+    },
+    {
+      "perkHash": 2742146816,
+      "sandboxPerkHash": 679036011,
+      "name": "Sword Storm Combo",
+      "description": "Performing three Sword light attacks followed by a heavy attack summons penumbral blades that surround you to damage and disorient combatants. Sword final blows extend the duration of these penumbral blades.",
+      "column": 5,
+      "order": 4,
+      "globalOrder": 32,
+      "minimumUnlockPointsUsedRequirement": 10
+    },
+    {
+      "perkHash": 2742146817,
+      "sandboxPerkHash": 679036010,
+      "name": "Void Infestation",
+      "description": "Defeating a weakened target spawns a tracking projectile that weakens other targets.",
+      "column": 5,
+      "order": 5,
+      "globalOrder": 33,
+      "minimumUnlockPointsUsedRequirement": 10
+    },
+    {
+      "perkHash": 2742146818,
+      "sandboxPerkHash": 679036009,
+      "name": "Tazer Tag",
+      "description": "Arc-powered melee hits jolt combatants and deal further damage for a short duration.",
+      "column": 5,
+      "order": 6,
+      "globalOrder": 34,
+      "minimumUnlockPointsUsedRequirement": 10
+    },
+    {
+      "perkHash": 2742146819,
+      "sandboxPerkHash": 679036008,
+      "name": "Sticker Shock",
+      "description": "Arc Flux, Magnetic, and Fusion Grenades deal more damage when attached to combatants; on final blows, they release several micro-missiles that seek nearby combatants.",
+      "column": 5,
+      "order": 7,
+      "globalOrder": 35,
+      "minimumUnlockPointsUsedRequirement": 10
+    }
+  ]
+}
