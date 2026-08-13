@@ -10,6 +10,10 @@ APP_ORIGINS = "https://astrixparadox.com,https://app.astrixparadox.com"
 OAUTH_REDIRECT_URI = "https://auth.astrixparadox.com/bungie/callback"
 DEFAULT_RETURN_URL = "https://astrixparadox.com"
 
+[[routes]]
+pattern = "auth.astrixparadox.com"
+custom_domain = true
+
 [[durable_objects.bindings]]
 name = "AUTH_RECORDS"
 class_name = "AuthRecord"

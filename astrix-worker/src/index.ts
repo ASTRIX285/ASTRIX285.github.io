@@ -176,10 +176,14 @@ async function oauthCallback(request: Request, env: Env): Promise<Response> {
 
   const returnUrl = new URL(tx.returnUrl);
   returnUrl.searchParams.set("bungie", "connected");
-  const response = Response.redirect(returnUrl.toString(), 302);
-  response.headers.set("Set-Cookie", sessionCookie(sessionId, Math.floor(SESSION_TTL_MS / 1000)));
-  response.headers.set("Cache-Control", "no-store");
-  return response;
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: returnUrl.toString(),
+      "Set-Cookie": sessionCookie(sessionId, Math.floor(SESSION_TTL_MS / 1000)),
+      "Cache-Control": "no-store"
+    }
+  });
 }
 
 async function sessionRoute(request: Request, env: Env): Promise<Response> {
