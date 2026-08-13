@@ -82,6 +82,9 @@ function normalizeItem(item, fallbackType = 'component') {
     description: evidenceText(item),
     traitIds: traitIds(item),
     directionEvidence: item?.directionEvidence ?? null,
+    rollPerks: Array.isArray(item?.rollPerks) ? item.rollPerks : [],
+    resolvedPerks: Array.isArray(item?.resolvedPerks) ? item.resolvedPerks : [],
+    fixtureSourceUrl: item?.fixtureSourceUrl ?? null,
     unresolved: unresolved(item),
     raw: item
   };
@@ -234,13 +237,47 @@ function directionalTextEffects(item) {
   return { outputs: uniq(outputs), inputs: uniq(inputs), mentions: uniq(mentions), evidence: uniq(evidence) };
 }
 
+const WEAPON_ROLE_TYPES = new Set(['verb-applicator','energy-engine','pickup/entity-generator','final-blow-trigger','verb-payoff','counter-role']);
+const WEAPON_VERB_TOKENS = new Set(['blind','devour','freeze','ignite','jolt','radiant','restoration','scorch','sever','slow','suspend','suppression','unravel','volatile','weaken']);
+const WEAPON_ENTITY_TOKENS = new Set(['ionic-trace','stasis-crystal','stasis-shard','tangle','threadling','orb-of-power']);
+const WEAPON_ENERGY_TOKENS = new Set(['grenade-energy','melee-energy','class-ability-energy','super-energy']);
+
+function weaponTriggerEffects(description) {
+  const text=lower(description);const outputs=[];const inputs=[];const mentions=[];
+  const addOut=x=>{outputs.push(x);mentions.push(x)};const addIn=x=>{inputs.push(x);mentions.push(x)};
+  if(/\b(?:kills|final blows?) with this weapon\b.{0,80}\bgrenade energy\b|\b(?:kills|final blows?)\b.{0,80}\bgrenade energy\b/i.test(text))addOut('grenade-energy');
+  if(/\bionic traces?\b/i.test(text)&&/\b(?:create|creates|generate|generates|spawn|spawns)\b/i.test(text))addOut('ionic-trace');
+  if(/\bprecision final blows?\b/i.test(text)){addIn('precision-final-blow');if(/\bstasis crystal\b/i.test(text))addOut('stasis-crystal');}
+  else if(/\brapid(?:ly)?\b.{0,28}\b(?:kills?|final blows?)\b|\b(?:rapid kills?|rapid final blows?)\b/i.test(text))addIn('rapid-final-blow');
+  else if(/\b(?:kills?|final blows?|defeating a target|defeating targets)\b/i.test(text))addIn('weapon-final-blow');
+  if(/\breload(?:ing)?\b/i.test(text))addIn('reload');
+  if(/\b(?:stow|stowed|ready|readied)\b/i.test(text))addIn('stow-ready');
+  if(/\b(?:spread|spreads)\b.{0,30}\bscorch\b/i.test(text))addOut('scorch');
+  if(/\b(?:slow|slows|slowing)\b.{0,36}\b(?:target|targets|enemy|enemies|combatants)\b/i.test(text))addOut('slow');
+  if(/\b(?:makes?|making)\b.{0,30}\bvolatile\b|\bvolatile rounds\b/i.test(text))addOut('volatile');
+  if(/\bgrenade or melee kills?\b.{0,64}\bsame damage type\b/i.test(text))addIn('matching-element-ability-final-blow');
+  if(/\bvoid-debuffed target\b/i.test(text))addIn('void-debuffed-target');
+  return {outputs:uniq(outputs),inputs:uniq(inputs),mentions:uniq(mentions)};
+}
+
+function weaponRollEffects(item){
+  if(item?.type!=='weapon'||!item.resolvedPerks?.length)return {hasRollEvidence:false,outputs:[],inputs:[],mentions:[],evidence:[]};
+  const outputs=[],inputs=[],mentions=[],evidence=[];
+  for(const row of item.resolvedPerks){
+    const perk=normalizeItem(row?.definition,'weaponPerk');
+    if(!perk||perk.unresolved||!perk.description)continue;
+    const base=descriptionEffects(perk);const trigger=weaponTriggerEffects(perk.description);const traits=traitIdEffects(perk);
+    outputs.push(...base.outputs,...trigger.outputs,...traits.buffOutputs);inputs.push(...base.inputs,...trigger.inputs);mentions.push(...base.mentions,...trigger.mentions,...traits.mentions);
+    evidence.push({perkHash:Number(row.perkHash),socket:row.socket,manifestSnippet:perk.description,traitIds:perk.traitIds,sourceUrl:item.fixtureSourceUrl??null});
+  }
+  return {hasRollEvidence:evidence.length>0,outputs:uniq(outputs),inputs:uniq(inputs),mentions:uniq(mentions),evidence};
+}
+
 function buildEvidenceNodes(build) {
-  return equippedComponents(build).map(item => ({
-    ...item,
-    effects: descriptionEffects(item),
-    directionEffects: directionalTextEffects(item),
-    traitEffects: traitIdEffects(item)
-  }));
+  return equippedComponents(build).map(item => {
+    const base=descriptionEffects(item);const weaponEffects=weaponRollEffects(item);
+    return {...item,effects:weaponEffects.hasRollEvidence?{outputs:uniq([...base.outputs,...weaponEffects.outputs]),inputs:uniq([...base.inputs,...weaponEffects.inputs]),mentions:uniq([...base.mentions,...weaponEffects.mentions])}:base,directionEffects:directionalTextEffects(item),traitEffects:traitIdEffects(item),weaponEffects};
+  });
 }
 
 function makeLoop(nodes) {
@@ -253,13 +290,17 @@ function makeLoop(nodes) {
         const key = `${producer.hash}:${effect}:${consumer.hash}`;
         if (seen.has(key)) continue;
         seen.add(key);
+        const producerPerkEvidence=producer.weaponEffects?.outputs?.includes(effect)?producer.weaponEffects.evidence:[];
+        const consumerPerkEvidence=consumer.weaponEffects?.inputs?.includes(effect)?consumer.weaponEffects.evidence:[];
+        const weaponBacked=producerPerkEvidence.length||consumerPerkEvidence.length;
         links.push({
           from: { hash: producer.hash, name: producer.name, type: producer.type },
           output: effect,
           to: { hash: consumer.hash, name: consumer.name, type: consumer.type },
           input: effect,
           chain: `${producer.name} -> ${effect} -> ${consumer.name}`,
-          evidence: { producer: producer.description, consumer: consumer.description, source: 'bungie-manifest-description' }
+          source: weaponBacked?'runtime-weapon-perk-parsing':undefined,
+          evidence: { producer: producerPerkEvidence.length?producerPerkEvidence:producer.description, consumer: consumerPerkEvidence.length?consumerPerkEvidence:consumer.description, source: weaponBacked?'bungie-manifest-weapon-perk':'bungie-manifest-description' }
         });
       }
     }
@@ -406,18 +447,27 @@ function missingInputs(nodes) {
   return missing;
 }
 
+function weaponRoleType(link,weapon){
+  const outgoing=Number(link?.from?.hash)===Number(weapon.hash);const token=canonEffect(outgoing?link.output:link.input);
+  if(WEAPON_ENERGY_TOKENS.has(token))return 'energy-engine';
+  if(WEAPON_ENTITY_TOKENS.has(token))return 'pickup/entity-generator';
+  if(outgoing&&WEAPON_VERB_TOKENS.has(token))return 'verb-applicator';
+  if(!outgoing&&(token.includes('final-blow')||token==='reload'||token==='stow-ready'))return 'final-blow-trigger';
+  if(!outgoing&&WEAPON_VERB_TOKENS.has(token))return 'verb-payoff';
+  return 'final-blow-trigger';
+}
+
 function weaponContribution(nodes, loop) {
   return nodes.filter(n => n.type === 'weapon').map(weapon => {
     const outgoing = loop.filter(x => x.from.hash === weapon.hash);
     const incoming = loop.filter(x => x.to.hash === weapon.hash);
     const roles = uniq([...outgoing.map(x => `supplies ${x.output} to ${x.to.name}`), ...incoming.map(x => `uses ${x.input} from ${x.from.name}`)]);
     const verified = !weapon.unresolved && roles.length > 0;
-    return {
-      hash: weapon.hash, name: weapon.name,
-      status: weapon.unresolved ? 'unresolved' : verified ? 'verified-loop-contributor' : 'insufficient-evidence',
-      roles, evidence: verified ? weapon.description : null,
-      note: verified ? null : weapon.unresolved ? 'Weapon identity is unresolved; no loop claim made.' : 'No explicit causal contribution can be proven from available fixture/manifest evidence; no loop claim made.'
-    };
+    const base={hash:weapon.hash,name:weapon.name,status:weapon.unresolved?'unresolved':verified?'verified-loop-contributor':'insufficient-evidence',roles,evidence:verified?weapon.description:null,note:verified?null:weapon.unresolved?'Weapon identity is unresolved; no loop claim made.':'No explicit causal contribution can be proven from available fixture/manifest evidence; no loop claim made.'};
+    if(!weapon.weaponEffects?.hasRollEvidence)return base;
+    const contributionLinks=[...outgoing,...incoming].filter(link=>link.source==='runtime-weapon-perk-parsing'||sourceParts(link).some(x=>x.source==='runtime-weapon-perk-parsing'));
+    const contributions=contributionLinks.map(link=>{const roleType=weaponRoleType(link,weapon);if(!WEAPON_ROLE_TYPES.has(roleType))throw new Error(`Unknown weapon role type: ${roleType}`);return {roleType,chain:link.chain,output:link.output,input:link.input,evidence:link.evidence};});
+    return {...base,status:contributions.length?'verified-loop-contributor':'insufficient-evidence',emits:weapon.weaponEffects.outputs,consumes:weapon.weaponEffects.inputs,evidence:weapon.weaponEffects.evidence,contributions,note:contributions.length?null:'Roll perks resolved, but no equipped citable consumer/producer completed a directed edge.'};
   });
 }
 
@@ -497,7 +547,7 @@ function chainKey(link) {
 }
 
 function runtimeLoopWithSource(loop) {
-  return loop.map(link => ({ ...link, source: 'runtime-description-parsing', evidenceSources: [{ source: 'runtime-description-parsing', evidence: link.evidence }] }));
+  return loop.map(link => {const source=link.source??'runtime-description-parsing';return {...link,source,evidenceSources:[{source,evidence:link.evidence}]};});
 }
 
 function sourceParts(link){
