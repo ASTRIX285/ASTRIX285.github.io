@@ -1,3 +1,5 @@
+import "./guardian-bungie-auth.mjs";
+
 const qs=(s,r=document)=>r.querySelector(s);
 
 function simpleModal(title,message){
