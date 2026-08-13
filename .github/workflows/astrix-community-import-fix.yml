@@ -1,8 +1,10 @@
 name: Fix Community Import Manifest
 'on':
   push:
-    branches: [feature/astrix-multigame-platform]
-    paths: [.github/workflows/astrix-community-import-fix.yml]
+    branches:
+      - feature/astrix-multigame-platform
+    paths:
+      - .github/workflows/astrix-community-import-fix.yml
 permissions:
   contents: write
 jobs:
@@ -13,7 +15,8 @@ jobs:
         with:
           ref: feature/astrix-multigame-platform
           fetch-depth: 0
-      - shell: bash
+      - name: Patch manifest unpacking
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -37,7 +40,8 @@ jobs:
               dbpath.write_bytes(payload)
           con=sqlite3.connect(str(dbpath)); cur=con.cursor()
 """
-          if old not in s: raise SystemExit('target manifest block not found')
+          if old not in s:
+              raise SystemExit('target manifest block not found')
           p.write_text(s.replace(old,new))
           PY
           git config user.name 'ASTRIX Fix Bot'
