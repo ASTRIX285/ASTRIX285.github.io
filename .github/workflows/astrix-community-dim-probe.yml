@@ -1,0 +1,66 @@
+name: ASTRIX Community DIM Probe
+on:
+  push:
+    branches: [feature/astrix-multigame-platform]
+    paths: ['.github/workflows/astrix-community-dim-probe.yml']
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: feature/astrix-multigame-platform, fetch-depth: 0 }
+      - name: Probe DIM endpoints
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request, json, re
+          urls='''https://dim.gg/oyx3bsa/SUPER-EASY-Bolt-Charge-Titan
+https://dim.gg/szjarri/MOT-Prismatic-Melee-DPS-Build
+https://dim.gg/wkzlwmq/1-End-Game-Titan-No-Back-Up-Plans-Slayer
+https://dim.gg/ycztcty/SHATTER-EVERYTHING-Stasis-Titan
+https://dim.gg/mpr7yny/D2Nova's-Unkillable-Frontline-Tank
+https://dim.gg/jrfyp7y/MOT-Titan-Strand-Melee-DPS-Build
+https://dim.gg/63ykeda/Dragon's-Blade
+https://dim.gg/pcc2zfa/Wormgod-Strand-Titan
+https://dim.gg/ufbro7i/Howl-of-the-Storm-Stasis-Syntho
+https://dim.gg/2yynpji/MOT-Arc-Thundercrash-Ability-Build
+https://dim.gg/2qldf2y/MOT-Solar-Ability-DPS-Build
+https://dim.gg/r472cdi/God-Mode-Prismatic-Titan
+https://dim.gg/yl4dbga/1-Blinding-Warlock
+https://dim.gg/3whj4qa/1-Amazing-Buddy-Build-Warlock
+https://dim.gg/fyurggy/1-Dark-Blink-Insanity
+https://dim.gg/zts4l3i/Deimosu-God
+https://dim.gg/qdsc3pa/Void-Osmio-Godlock
+https://dim.gg/4tbq2ga/1-Nova-Nuke-Warlock
+https://dim.gg/kgvzbua/Fire-and-Ice-Warlock
+https://dim.gg/fijmlwy/Strand
+https://dim.gg/cywwnii/1-Amazing-Dragon-Hunter
+https://dim.gg/vono5wi/1-GM-Prismatic-Hunter
+https://dim.gg/oou73zy/1-Crackshot-Hunter
+https://dim.gg/fx266jy/1-Strand-Hunter-Build
+https://dim.gg/dcp7ani/A-Shadow-Hunter
+https://dim.gg/q66yigi/Praxic-Stinger
+https://dim.gg/gtrj65a/Slayer's-Fang-Hunter
+https://dim.gg/jrroq5a/Prismatic-Sting
+https://dim.gg/delilmq/Unreal-Prismatic-Hunter'''.splitlines()
+          for u in urls:
+              try:
+                  req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'})
+                  with urllib.request.urlopen(req,timeout=30) as r:
+                      body=r.read().decode('utf-8','replace')
+                      print('URL',u)
+                      print('FINAL',r.geturl(),'STATUS',r.status,'TYPE',r.headers.get('content-type'),'LEN',len(body))
+                      print('HEAD',body[:500].replace('\n',' '))
+              except Exception as e:
+                  print('URL',u,'ERROR',repr(e))
+          PY
+      - name: Remove probe
+        shell: bash
+        run: |
+          git config user.name 'ASTRIX Probe Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git rm .github/workflows/astrix-community-dim-probe.yml
+          git commit -m 'Remove temporary community DIM probe'
+          git push origin HEAD:feature/astrix-multigame-platform
