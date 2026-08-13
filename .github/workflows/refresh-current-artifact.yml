@@ -1,0 +1,137 @@
+name: Refresh Current Destiny Artifact
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * 1'
+  push:
+    branches: [feature/astrix-multigame-platform]
+    paths:
+      - 'astrix-app/tools/download-bungie-manifest.py'
+      - '.github/workflows/refresh-current-artifact.yml'
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download current English Bungie manifest
+        run: python3 astrix-app/tools/download-bungie-manifest.py /tmp/world.content
+      - name: Refresh current artifact and weapon identity cache
+        run: |
+          python3 - <<'PY'
+          import copy
+          import datetime
+          import json
+          import sqlite3
+          from pathlib import Path
+
+          ROOT=Path('.')
+          DATA=ROOT/'astrix-app/data/paradox-forge/beta'
+          CACHE=DATA/'beta-bungie-manifest-cache.json'
+          FIXTURES=DATA/'ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json'
+          OUT=DATA/'beta-current-artifact.json'
+
+          def signed(h): return h if h < 2**31 else h - 2**32
+          def dt(v): return datetime.datetime.fromisoformat(v.replace('Z','+00:00')) if v else None
+          def definition(cur,table,h):
+            row=cur.execute(f'SELECT json FROM {table} WHERE id=?',(signed(int(h)),)).fetchone()
+            return json.loads(row[0]) if row else None
+
+          con=sqlite3.connect('/tmp/world.content'); cur=con.cursor(); now=datetime.datetime.now(datetime.timezone.utc)
+          seasons=[json.loads(row[0]) for row in cur.execute('SELECT json FROM DestinySeasonDefinition')]
+          active=[s for s in seasons if dt(s.get('startDate')) and dt(s.get('endDate')) and dt(s['startDate']) <= now < dt(s['endDate'])]
+          if len(active)!=1:
+            raise RuntimeError('active season resolution is ambiguous: '+json.dumps([(s.get('seasonNumber'),s.get('hash')) for s in active]))
+          season=active[0]; season_hash=season['hash']
+
+          artifact_items=[]
+          for (raw,) in cur.execute('SELECT json FROM DestinyInventoryItemDefinition'):
+            item=json.loads(raw); artifact_hash=(item.get('preview') or {}).get('artifactHash')
+            if item.get('seasonHash')==season_hash and artifact_hash:
+              artifact_items.append({'itemHash':item.get('hash'),'name':(item.get('displayProperties') or {}).get('name') or '','artifactHash':artifact_hash})
+          artifact_hashes=sorted({row['artifactHash'] for row in artifact_items})
+          if len(artifact_hashes)!=1:
+            raise RuntimeError('artifact resolution is ambiguous: '+json.dumps(artifact_items))
+          artifact_hash=artifact_hashes[0]
+          artifact=definition(cur,'DestinyArtifactDefinition',artifact_hash)
+          if not artifact: raise RuntimeError(f'artifact definition {artifact_hash} did not resolve')
+
+          perks=[]; global_order=0
+          for column,tier in enumerate(artifact.get('tiers') or [],1):
+            for order,slot in enumerate(tier.get('items') or [],1):
+              global_order+=1; perk_hash=slot.get('itemHash')
+              item=definition(cur,'DestinyInventoryItemDefinition',perk_hash)
+              if not item: raise RuntimeError(f'artifact item {perk_hash} did not resolve')
+              display=item.get('displayProperties') or {}
+              sandbox=[]
+              for perk_ref in item.get('perks') or []:
+                sandbox_hash=perk_ref.get('perkHash')
+                sandbox_def=definition(cur,'DestinySandboxPerkDefinition',sandbox_hash)
+                if sandbox_def:
+                  sandbox_display=sandbox_def.get('displayProperties') or {}
+                  if sandbox_display.get('description'):
+                    sandbox.append({'sandboxPerkHash':sandbox_hash,'name':sandbox_display.get('name') or '','description':sandbox_display.get('description') or ''})
+              descriptions={row['description'] for row in sandbox if row['description']}
+              if len(descriptions)!=1:
+                raise RuntimeError(f'artifact item {perk_hash} has ambiguous/missing sandbox descriptions: {sandbox}')
+              source=sandbox[0]
+              perks.append({'perkHash':perk_hash,'sandboxPerkHash':source['sandboxPerkHash'],'name':display.get('name') or source['name'],'description':source['description'],'column':column,'order':order,'globalOrder':global_order,'minimumUnlockPointsUsedRequirement':tier.get('minimumUnlockPointsUsedRequirement')})
+          if not perks: raise RuntimeError('current artifact contains no perks')
+
+          artifact_display=artifact.get('displayProperties') or {}; season_display=season.get('displayProperties') or {}
+          artifact_out={'schemaVersion':'1.0','source':'live-bungie-manifest','refreshedAt':now.isoformat().replace('+00:00','Z'),'seasonNumber':season.get('seasonNumber'),'seasonHash':season_hash,'seasonName':season_display.get('name') or '','artifactHash':artifact_hash,'artifactName':artifact_display.get('name') or '','artifactInventoryItems':artifact_items,'perks':perks}
+          OUT.write_text(json.dumps(artifact_out,indent=2)+'\n')
+
+          damage_names={}
+          for (raw,) in cur.execute('SELECT json FROM DestinyDamageTypeDefinition'):
+            d=json.loads(raw); damage_names[d['hash']]=(d.get('displayProperties') or {}).get('name') or ''
+          cache=json.loads(CACHE.read_text()); inventory=cache.setdefault('inventoryItems',{})
+          fixture_doc=json.loads(FIXTURES.read_text()); hashes=set()
+          for fixture in fixture_doc.get('fixtures',[]):
+            for row in (fixture.get('rawDim') or {}).get('equipped',[]):
+              h=row.get('hash',row.get('itemHash'))
+              if h is not None: hashes.add(int(h))
+          # Validation build from dim.gg/iiz3rvi/best-bladebarrage-build.
+          hashes.update([4019651319,2965080304,17096506])
+          added=0; enriched=0
+          for h in sorted(hashes):
+            d=definition(cur,'DestinyInventoryItemDefinition',h)
+            if not d or d.get('itemType')!=3: continue
+            dp=d.get('displayProperties') or {}; damage_hash=d.get('defaultDamageTypeHash')
+            if str(h) not in inventory:
+              inventory[str(h)]={'display':dp,'itemType':d.get('itemType'),'itemSubType':d.get('itemSubType'),'itemTypeDisplayName':d.get('itemTypeDisplayName',''),'classType':d.get('classType'),'itemCategoryHashes':d.get('itemCategoryHashes') or [],'traitIds':d.get('traitIds') or [],'equippingBlock':d.get('equippingBlock') or {},'intrinsicPlugHashes':[]}
+              added+=1
+            row=inventory[str(h)]
+            values={'weaponType':d.get('itemTypeDisplayName') or '','weaponSubType':d.get('itemSubType'),'defaultDamageTypeHash':damage_hash,'element':damage_names.get(damage_hash,'')}
+            if any(row.get(k)!=v for k,v in values.items()):
+              row.update(values); enriched+=1
+          CACHE.write_text(json.dumps(cache,separators=(',',':')))
+          con.close()
+          print('ARTIFACT_REFRESH='+json.dumps({'seasonNumber':artifact_out['seasonNumber'],'seasonHash':season_hash,'seasonName':artifact_out['seasonName'],'artifactHash':artifact_hash,'perkCount':len(perks),'weaponEntriesAdded':added,'weaponEntriesEnriched':enriched},separators=(',',':')))
+          PY
+      - name: Validate cache shape
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('astrix-app/data/paradox-forge/beta/beta-current-artifact.json'); d=json.loads(p.read_text())
+          assert isinstance(d.get('seasonNumber'),int)
+          assert isinstance(d.get('artifactHash'),int)
+          assert d.get('perks') and all(x.get('perkHash') and x.get('description') and x.get('column') and x.get('order') for x in d['perks'])
+          print('ARTIFACT_CACHE_VALID='+json.dumps({'seasonNumber':d['seasonNumber'],'artifactHash':d['artifactHash'],'perkCount':len(d['perks'])}))
+          PY
+      - name: Commit refreshed data when changed
+        run: |
+          set -euo pipefail
+          git config user.name 'ASTRIX Artifact Data Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add astrix-app/data/paradox-forge/beta/beta-current-artifact.json astrix-app/data/paradox-forge/beta/beta-bungie-manifest-cache.json
+          if git diff --cached --quiet; then
+            echo 'No artifact data changes.'
+            exit 0
+          fi
+          git commit -m 'Refresh current Destiny artifact cache'
+          git push origin HEAD:${GITHUB_REF_NAME}
