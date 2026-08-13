@@ -7,6 +7,8 @@ on:
     branches: [feature/astrix-multigame-platform]
     paths:
       - 'astrix-app/tools/download-bungie-manifest.py'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-artifact-recommender.mjs'
+      - 'astrix-app/tools/test-artifact-recommender.mjs'
       - '.github/workflows/refresh-current-artifact.yml'
 permissions:
   contents: write
@@ -22,7 +24,6 @@ jobs:
       - name: Refresh current artifact and weapon identity cache
         run: |
           python3 - <<'PY'
-          import copy
           import datetime
           import json
           import sqlite3
@@ -94,7 +95,6 @@ jobs:
             for row in (fixture.get('rawDim') or {}).get('equipped',[]):
               h=row.get('hash',row.get('itemHash'))
               if h is not None: hashes.add(int(h))
-          # Validation build from dim.gg/iiz3rvi/best-bladebarrage-build.
           hashes.update([4019651319,2965080304,17096506])
           added=0; enriched=0
           for h in sorted(hashes):
@@ -123,6 +123,8 @@ jobs:
           assert d.get('perks') and all(x.get('perkHash') and x.get('description') and x.get('column') and x.get('order') for x in d['perks'])
           print('ARTIFACT_CACHE_VALID='+json.dumps({'seasonNumber':d['seasonNumber'],'artifactHash':d['artifactHash'],'perkCount':len(d['perks'])}))
           PY
+      - name: Validate deterministic artifact recommendations
+        run: node astrix-app/tools/test-artifact-recommender.mjs
       - name: Commit refreshed data when changed
         run: |
           set -euo pipefail
