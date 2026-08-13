@@ -1,24 +1,33 @@
 name = "astrix-destiny-backend"
 main = "src/index.ts"
-compatibility_date = "2026-07-30"
+compatibility_date = "2026-08-13"
+compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
 [vars]
-ENVIRONMENT = "scaffold"
-APP_ORIGIN = "https://app.astrixparadox.com"
+ENVIRONMENT = "production"
+APP_ORIGINS = "https://astrixparadox.com,https://app.astrixparadox.com"
+OAUTH_REDIRECT_URI = "https://auth.astrixparadox.com/bungie/callback"
+DEFAULT_RETURN_URL = "https://astrixparadox.com"
 
-# OAuth gate: custom domains are intentionally not activated by this scaffold.
-# Miguel must provision and verify the Cloudflare zone and Worker first.
-# After verification, add both Custom Domains in the Cloudflare dashboard or
-# deliberately uncomment equivalent route configuration.
-#
-# [[routes]]
-# pattern = "api.astrixparadox.com"
-# custom_domain = true
-#
-# [[routes]]
-# pattern = "auth.astrixparadox.com"
-# custom_domain = true
+[[durable_objects.bindings]]
+name = "AUTH_RECORDS"
+class_name = "AuthRecord"
 
-# OAuth gate: do not place BUNGIE_CLIENT_SECRET under [vars].
-# It will be created later as an encrypted Worker secret after provisioning.
+[exports.AuthRecord]
+type = "durable-object"
+storage = "sqlite"
+
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+
+# Production custom domains are attached after the Worker is deployed and
+# astrixparadox.com is confirmed active in the owning Cloudflare account:
+# auth.astrixparadox.com
+# api.astrixparadox.com
+#
+# Required encrypted Worker secrets (never commit values here):
+# BUNGIE_API_KEY
+# BUNGIE_CLIENT_ID
+# BUNGIE_CLIENT_SECRET
