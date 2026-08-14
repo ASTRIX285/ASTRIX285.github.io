@@ -112,3 +112,12 @@
   .left{max-height:600px!important}
 }
 @media(max-width:860px){.left{max-height:none!important}}
+
+@media(min-width:2400px) and (min-height:1100px){
+  .workspace{
+    width:calc(100vw - clamp(24px,1.2vw,48px))!important;
+    max-width:none!important;
+    height:calc(100dvh - clamp(64px,4.2vh,84px) - 58px)!important;
+    grid-template-columns:clamp(420px,17vw,620px) minmax(0,1fr) clamp(760px,36vw,1180px)!important;
+  }
+}
