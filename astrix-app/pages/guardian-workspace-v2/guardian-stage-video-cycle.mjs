@@ -1,25 +1,33 @@
 const backdrop=document.querySelector('.stage-backdrop');
 
 if(backdrop && !matchMedia('(prefers-reduced-motion: reduce)').matches){
-  const video=document.createElement('video');
-  video.className='stage-paradox-video';
-  video.autoplay=true;
-  video.loop=true;
-  video.muted=true;
-  video.defaultMuted=true;
-  video.playsInline=true;
-  video.preload='auto';
-  video.defaultPlaybackRate=.6;
-  video.playbackRate=.6;
-  video.src='../../../video/Digital%20Growth%20Hero%20Loop.mp4';
-
-  backdrop.prepend(video);
-
-  const reveal=()=>{
-    video.classList.remove('is-fading');
-    requestAnimationFrame(()=>video.classList.add('is-active'));
+  const source='../../../video/Digital%20Growth%20Hero%20Loop.mp4';
+  const makeVideo=()=>{
+    const video=document.createElement('video');
+    video.className='stage-paradox-video';
+    video.loop=true;
+    video.muted=true;
+    video.defaultMuted=true;
+    video.playsInline=true;
+    video.preload='auto';
+    video.defaultPlaybackRate=.4;
+    video.playbackRate=.4;
+    video.src=source;
+    backdrop.prepend(video);
+    return video;
   };
 
-  video.addEventListener('playing',reveal,{once:true});
-  video.play().catch(()=>{});
+  const videos=[makeVideo(),makeVideo()];
+  const metadata=video=>new Promise(resolve=>{
+    if(video.readyState>=1) resolve();
+    else video.addEventListener('loadedmetadata',resolve,{once:true});
+  });
+
+  Promise.all(videos.map(metadata)).then(()=>{
+    videos[1].currentTime=videos[1].duration/2;
+    videos.forEach(video=>{
+      video.play().catch(()=>{});
+      requestAnimationFrame(()=>video.classList.add('is-active'));
+    });
+  });
 }

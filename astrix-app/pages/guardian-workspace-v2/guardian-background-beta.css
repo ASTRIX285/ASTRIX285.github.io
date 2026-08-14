@@ -29,7 +29,7 @@
   will-change:opacity,transform;
 }
 .stage-paradox-video.is-active{
-  opacity:.19;
+  opacity:.11;
   transform:scale(1.03) translateX(1.5%);
 }
 .stage-paradox-video.is-fading{
@@ -55,6 +55,14 @@
  * the Guardian, which sits above the backdrop, remains colour-neutral. */
 body .stage .stage-backdrop::before{
   display:block!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  aspect-ratio:auto!important;
+  background-position:0 0!important;
+  background-size:100% 100%!important;
+  background-repeat:no-repeat!important;
+  filter:none!important;
 }
 
 /* Dark focus mask keeps identity text and Guardian dominant. */
