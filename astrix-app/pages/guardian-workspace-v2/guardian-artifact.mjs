@@ -122,9 +122,9 @@ function renderArtifactDisplay() {
       const shown = perks.slice(0, PANEL_ICONS);
       const extra = perks.length - shown.length;
       perksEl.innerHTML = shown.map(p => p.icon
-        ? `<img src="${esc(p.icon)}" alt="${esc(p.name)}" title="${esc(p.name)}" onerror="this.style.display='none'">`
+        ? `<span class="artifact-perk" title="${esc(p.name)}" aria-label="${esc(p.name)}"><img src="${esc(p.icon)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span class="ph-glyph" style="display:none">◆</span></span>`
         : `<span class="artifact-perk" title="${esc(p.name)}" aria-label="${esc(p.name)}">◆</span>`
-      ).join('') + (extra > 0 ? `<span class="art-more" title="${extra} more selected">+${extra}</span>` : '');
+      ).join('') + (extra > 0 ? `<span class="artifact-perk art-more" title="${extra} more selected" aria-label="${extra} more selected">+${extra}</span>` : '');
     }
   }
 
