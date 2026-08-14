@@ -30,6 +30,31 @@ body :where(*){
   font-family:var(--font-brand)!important;
 }
 
+/* Match the established astrixparadox.com navigation lockup. */
+.brand-logo{
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  object-fit:contain;
+  filter:drop-shadow(0 0 10px rgba(201,168,76,.18));
+}
+.brand .nm{
+  font-size:1.05rem!important;
+  font-weight:900!important;
+  letter-spacing:2px!important;
+  line-height:1!important;
+  color:#fff!important;
+}
+.brand .nm .brand-accent{color:#b22222}
+.brand .sub{
+  margin-top:4px!important;
+  color:#c9a84c!important;
+  font-size:.5rem!important;
+  font-weight:700!important;
+  letter-spacing:.13em!important;
+  white-space:nowrap;
+}
+
 /* Inter needs less tracking than the former narrow display faces. */
 .ws-label,
 .eyebrow,
