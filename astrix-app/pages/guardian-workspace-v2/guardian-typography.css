@@ -1,0 +1,52 @@
+:root{
+  --font-ui:"Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --font-brand:"Orbitron",system-ui,sans-serif;
+}
+
+html{
+  font-synthesis:none;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+body,
+button,
+input,
+select,
+textarea{
+  font-family:var(--font-ui)!important;
+}
+
+body :where(*){
+  font-family:inherit!important;
+}
+
+/* Preserve the distinctive ASTRIX PARADOX identity while the product UI uses
+ * the clearer, neutral Inter family. */
+.brand .mk,
+.brand .nm,
+.brand .sub{
+  font-family:var(--font-brand)!important;
+}
+
+/* Inter needs less tracking than the former narrow display faces. */
+.ws-label,
+.eyebrow,
+.grp .lbl,
+.focus .lbl,
+.mini .t,
+.sw-card .t,
+.eq-head h3,
+.gear-subhead,
+.gear-slot-label,
+#abilityList::before{
+  letter-spacing:.11em!important;
+}
+
+.ra-head h2,
+.btn-rec,
+.btn-change,
+.improve-cta{
+  letter-spacing:.045em!important;
+}
