@@ -1,6 +1,6 @@
 /* Guardian Workspace hero atmosphere.
- * Digital Growth 6 is the feature background.
- * No synthetic legacy rings, sweeps or particle geometry are layered over it. */
+ * Digital Growth is the feature background.
+ * Two web-safe MP4 clips crossfade before either reaches a hard loop point. */
 .stage{
   --stage-accent:#9e60ff;
   --stage-accent-rgb:158,96,255;
@@ -17,14 +17,23 @@
 
 .stage-paradox-video{
   position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
+  inset:-2%;
+  width:104%;
+  height:104%;
   object-fit:cover;
-  object-position:center center;
-  opacity:.46;
+  object-position:left center;
+  opacity:0;
   filter:saturate(.62) brightness(.66) contrast(1.08);
-  transform:scale(1.015);
+  transform:scale(1.015) translateX(-1.5%);
+  transition:opacity 2.6s ease-in-out,transform 14s linear;
+  will-change:opacity,transform;
+}
+.stage-paradox-video.is-active{
+  opacity:.46;
+  transform:scale(1.03) translateX(1.5%);
+}
+.stage-paradox-video.is-fading{
+  opacity:0;
 }
 
 /* Subclass tint only. The motion and geometry come from Digital Growth itself. */
@@ -32,7 +41,7 @@
   content:"";
   position:absolute;
   inset:0;
-  z-index:1;
+  z-index:3;
   background:
     radial-gradient(ellipse 46% 58% at 70% 48%,rgba(var(--stage-accent-rgb),.24),transparent 72%),
     linear-gradient(125deg,rgba(var(--stage-accent-rgb),.035),rgba(var(--stage-accent-rgb),.16) 60%,rgba(var(--stage-accent-rgb),.025));
@@ -46,7 +55,7 @@
   content:"";
   position:absolute;
   inset:0;
-  z-index:2;
+  z-index:4;
   background:
     linear-gradient(90deg,rgba(3,4,8,.84) 0%,rgba(3,4,8,.50) 30%,rgba(3,4,8,.14) 58%,rgba(3,4,8,.25) 100%),
     linear-gradient(180deg,rgba(2,3,7,.18),transparent 40%,rgba(2,3,7,.38));
