@@ -29,7 +29,7 @@
   will-change:opacity,transform;
 }
 .stage-paradox-video.is-active{
-  opacity:.32;
+  opacity:.19;
   transform:scale(1.03) translateX(1.5%);
 }
 .stage-paradox-video.is-fading{
@@ -43,10 +43,10 @@
   inset:0;
   z-index:3;
   background:
-    radial-gradient(ellipse 48% 62% at 70% 48%,rgba(var(--stage-accent-rgb),.48),transparent 72%),
-    linear-gradient(125deg,rgba(var(--stage-accent-rgb),.10),rgba(var(--stage-accent-rgb),.34) 60%,rgba(var(--stage-accent-rgb),.08));
+    radial-gradient(ellipse 52% 66% at 68% 48%,rgba(var(--stage-accent-rgb),.92),rgba(var(--stage-accent-rgb),.72) 58%,rgba(var(--stage-accent-rgb),.62)),
+    linear-gradient(rgba(var(--stage-accent-rgb),.72),rgba(var(--stage-accent-rgb),.72));
   mix-blend-mode:color;
-  opacity:.96;
+  opacity:1;
   transition:background .4s ease,opacity .4s ease;
 }
 
@@ -89,8 +89,8 @@ body .stage .stage-backdrop::before{
  * into the source footage. Keep it behind the Guardian, not across the armour. */
 body .stage[data-subclass="prismatic"] .stage-backdrop::before{
   background:
-    radial-gradient(ellipse 50% 64% at 68% 48%,rgba(255,72,218,.48),transparent 72%),
-    linear-gradient(122deg,rgba(105,55,210,.30),rgba(255,68,210,.44) 58%,rgba(148,82,255,.32))!important;
+    radial-gradient(ellipse 50% 64% at 68% 48%,rgba(255,72,218,.94),rgba(168,78,255,.86) 72%),
+    linear-gradient(122deg,rgba(105,55,210,.90),rgba(255,68,210,.94) 58%,rgba(148,82,255,.90))!important;
   mix-blend-mode:color!important;
   opacity:1;
 }

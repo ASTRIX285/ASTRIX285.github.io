@@ -9,6 +9,8 @@ if(backdrop && !matchMedia('(prefers-reduced-motion: reduce)').matches){
   video.defaultMuted=true;
   video.playsInline=true;
   video.preload='auto';
+  video.defaultPlaybackRate=.6;
+  video.playbackRate=.6;
   video.src='../../../video/Digital%20Growth%20Hero%20Loop.mp4';
 
   backdrop.prepend(video);
