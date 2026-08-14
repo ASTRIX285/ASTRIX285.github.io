@@ -1,7 +1,7 @@
 const backdrop=document.querySelector('.stage-backdrop');
 
 if(backdrop && !matchMedia('(prefers-reduced-motion: reduce)').matches){
-  const source='../../../video/Digital%20Growth%20Hero%20Loop.mp4';
+  const source='../../../video/Digital%20Growth%20Hero%20Loop%20Slow.mp4';
   const makeVideo=()=>{
     const video=document.createElement('video');
     video.className='stage-paradox-video';
@@ -10,8 +10,8 @@ if(backdrop && !matchMedia('(prefers-reduced-motion: reduce)').matches){
     video.defaultMuted=true;
     video.playsInline=true;
     video.preload='auto';
-    video.defaultPlaybackRate=.4;
-    video.playbackRate=.4;
+    video.defaultPlaybackRate=1;
+    video.playbackRate=1;
     video.src=source;
     backdrop.prepend(video);
     return video;
