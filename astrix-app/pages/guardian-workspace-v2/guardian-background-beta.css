@@ -29,7 +29,7 @@
   will-change:opacity,transform;
 }
 .stage-paradox-video.is-active{
-  opacity:.46;
+  opacity:.32;
   transform:scale(1.03) translateX(1.5%);
 }
 .stage-paradox-video.is-fading{
@@ -84,6 +84,16 @@ body .stage .stage-backdrop::before{
 .stage[data-subclass="stasis"]{--stage-accent:#78c4ff;--stage-accent-rgb:120,196,255!important}
 .stage[data-subclass="strand"]{--stage-accent:#46dc82;--stage-accent-rgb:70,220,130!important}
 .stage[data-subclass="prismatic"]{--stage-accent:#ff50dc;--stage-accent-rgb:255,80,220!important}
+
+/* Prismatic uses a violet/magenta spectrum rather than exposing the cyan baked
+ * into the source footage. Keep it behind the Guardian, not across the armour. */
+body .stage[data-subclass="prismatic"] .stage-backdrop::before{
+  background:
+    radial-gradient(ellipse 50% 64% at 68% 48%,rgba(255,72,218,.48),transparent 72%),
+    linear-gradient(122deg,rgba(105,55,210,.30),rgba(255,68,210,.44) 58%,rgba(148,82,255,.32))!important;
+  mix-blend-mode:color!important;
+  opacity:1;
+}
 
 @media(prefers-reduced-motion:reduce){
   .stage-paradox-video{display:none}
