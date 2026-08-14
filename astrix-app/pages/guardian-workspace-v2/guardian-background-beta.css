@@ -1,83 +1,75 @@
 /* Guardian Workspace hero atmosphere.
- * Reuses the ASTRIX PARADOX homepage language at a tighter scale:
- * subdued planetary depth + technical grid/network + subclass-reactive energy.
- * The Guardian remains the visual priority. */
+ * The real ASTRIX PARADOX Digital Growth motion asset is the feature background.
+ * Subclass colour is layered over it without overpowering the Guardian. */
 .stage{
   --stage-accent:#9e60ff;
   --stage-accent-rgb:158,96,255;
 }
 
 .stage-backdrop{
-  background:
-    radial-gradient(58% 54% at 70% 45%,rgba(var(--stage-accent-rgb),.13),transparent 67%),
-    radial-gradient(105% 84% at 61% 116%,rgba(var(--stage-accent-rgb),.07),transparent 65%),
-    linear-gradient(180deg,#0b0913,#07060d 72%,#040309);
-  transition:background .45s ease;
+  position:absolute;
+  inset:0;
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+  background:#05070b;
 }
 
-/* Faint planet / orbital body. It should be discovered after the Guardian,
-   never compete with the Guardian. */
+.stage-paradox-video{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center center;
+  opacity:.48;
+  filter:saturate(.58) brightness(.68) contrast(1.08);
+  transform:scale(1.015);
+}
+
+/* Subclass colour wash. mix-blend-mode keeps the motion detail visible while
+   making the same Digital Growth asset feel Arc/Solar/Void/etc. */
 .stage-backdrop::before{
   content:"";
   position:absolute;
-  width:58%;
-  aspect-ratio:1;
-  right:-3%;
-  top:-21%;
-  border-radius:50%;
-  opacity:.085;
+  inset:0;
+  z-index:1;
   background:
-    radial-gradient(circle at 37% 34%,rgba(255,255,255,.18),transparent 2%),
-    radial-gradient(circle at 42% 38%,rgba(var(--stage-accent-rgb),.28),transparent 22%),
-    radial-gradient(circle at 54% 58%,rgba(255,255,255,.055),transparent 31%),
-    radial-gradient(circle at 50% 50%,rgba(25,31,43,.95) 0 59%,rgba(5,7,12,.88) 68%,transparent 69%);
-  box-shadow:
-    inset -54px -36px 80px rgba(0,0,0,.72),
-    0 0 80px rgba(var(--stage-accent-rgb),.08);
-  filter:saturate(.7);
-  transform:none;
-  animation:none;
+    radial-gradient(ellipse 48% 58% at 70% 48%,rgba(var(--stage-accent-rgb),.28),transparent 70%),
+    linear-gradient(125deg,rgba(var(--stage-accent-rgb),.08),rgba(var(--stage-accent-rgb),.24) 58%,rgba(var(--stage-accent-rgb),.06));
+  mix-blend-mode:color;
+  opacity:.82;
+  transition:background .4s ease,opacity .4s ease;
 }
 
-/* Homepage-style technical field. Small scale, low contrast, strongest around
-   the Guardian's outer silhouette rather than across the body. */
+/* Readability/focus mask. The Digital Growth network remains visible, but the
+   Guardian and identity information remain the strongest visual elements. */
 .stage-backdrop::after{
   content:"";
   position:absolute;
-  inset:-6%;
-  opacity:.48;
-  background-image:
-    linear-gradient(rgba(var(--stage-accent-rgb),.065) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(var(--stage-accent-rgb),.055) 1px,transparent 1px),
-    repeating-radial-gradient(circle at 70% 48%,rgba(255,255,255,.055) 0 1px,transparent 1px 38px),
-    conic-gradient(from 14deg at 70% 48%,transparent 0 8deg,rgba(var(--stage-accent-rgb),.09) 8deg 8.5deg,transparent 8.5deg 23deg);
-  background-size:38px 38px,38px 38px,auto,auto;
-  mask-image:radial-gradient(ellipse 62% 76% at 70% 48%,rgba(0,0,0,.52) 0 34%,#000 57%,transparent 91%);
-  -webkit-mask-image:radial-gradient(ellipse 62% 76% at 70% 48%,rgba(0,0,0,.52) 0 34%,#000 57%,transparent 91%);
-  box-shadow:inset 0 0 90px rgba(0,0,0,.74);
-  animation:astrixGridBreathe 11s ease-in-out infinite alternate;
+  inset:0;
+  z-index:2;
+  background:
+    radial-gradient(ellipse 28% 56% at 70% 50%,rgba(var(--stage-accent-rgb),.06),transparent 72%),
+    linear-gradient(90deg,rgba(3,4,8,.82) 0%,rgba(3,4,8,.48) 32%,rgba(3,4,8,.16) 59%,rgba(3,4,8,.28) 100%),
+    linear-gradient(180deg,rgba(2,3,7,.22),transparent 38%,rgba(2,3,7,.42));
+  box-shadow:inset 0 0 85px rgba(0,0,0,.58);
 }
 
-/* Reactive network energy. Existing particle layer becomes the pulse layer so
-   no additional markup is required. */
+/* Small energy flashes ride over the Digital Growth network. They inherit the
+   equipped subclass colour rather than introducing a separate visual language. */
 .stage-particles{
   z-index:1;
-  opacity:.38;
+  opacity:.25;
   background-image:
-    linear-gradient(112deg,transparent 0 46%,rgba(var(--stage-accent-rgb),.12) 47%,rgba(var(--stage-accent-rgb),.7) 48%,rgba(var(--stage-accent-rgb),.12) 49%,transparent 50% 100%),
-    linear-gradient(24deg,transparent 0 61%,rgba(var(--stage-accent-rgb),.09) 62%,rgba(var(--stage-accent-rgb),.55) 63%,rgba(var(--stage-accent-rgb),.08) 64%,transparent 65% 100%),
-    radial-gradient(circle at 72% 20%,rgba(var(--stage-accent-rgb),.9) 0 1px,transparent 2px),
-    radial-gradient(circle at 61% 31%,rgba(var(--stage-accent-rgb),.72) 0 1px,transparent 2px),
-    radial-gradient(circle at 83% 42%,rgba(var(--stage-accent-rgb),.78) 0 1px,transparent 2px),
-    radial-gradient(circle at 77% 67%,rgba(var(--stage-accent-rgb),.82) 0 1px,transparent 2px),
-    radial-gradient(circle at 57% 74%,rgba(var(--stage-accent-rgb),.68) 0 1px,transparent 2px);
-  background-size:220% 220%,240% 240%,auto,auto,auto,auto,auto;
+    linear-gradient(112deg,transparent 0 46%,rgba(var(--stage-accent-rgb),.08) 47%,rgba(var(--stage-accent-rgb),.72) 48%,rgba(var(--stage-accent-rgb),.08) 49%,transparent 50% 100%),
+    linear-gradient(24deg,transparent 0 61%,rgba(var(--stage-accent-rgb),.06) 62%,rgba(var(--stage-accent-rgb),.48) 63%,rgba(var(--stage-accent-rgb),.06) 64%,transparent 65% 100%);
+  background-size:230% 230%,250% 250%;
+  filter:drop-shadow(0 0 7px rgba(var(--stage-accent-rgb),.32));
   animation:astrixEnergyPulse 8.5s cubic-bezier(.45,0,.25,1) infinite;
-  filter:drop-shadow(0 0 5px rgba(var(--stage-accent-rgb),.28));
-  transition:background-image .35s ease,filter .35s ease,opacity .35s ease;
+  transition:filter .35s ease,opacity .35s ease;
 }
 
-/* Subclass colour system. */
 .stage[data-subclass="void"]{--stage-accent:#9e60ff;--stage-accent-rgb:158,96,255}
 .stage[data-subclass="solar"]{--stage-accent:#ff8c28;--stage-accent-rgb:255,140,40}
 .stage[data-subclass="arc"]{--stage-accent:#46aaff;--stage-accent-rgb:70,170,255}
@@ -85,28 +77,26 @@
 .stage[data-subclass="strand"]{--stage-accent:#46dc82;--stage-accent-rgb:70,220,130}
 .stage[data-subclass="prismatic"]{--stage-accent:#ff50dc;--stage-accent-rgb:255,80,220}
 
-/* Behaviour changes as well as colour: Arc is sharper, Void breathes,
-   Solar rolls, Stasis/Strand remain calmer. */
-.stage[data-subclass="arc"] .stage-particles{animation-duration:5.8s;filter:drop-shadow(0 0 7px rgba(var(--stage-accent-rgb),.42))}
-.stage[data-subclass="solar"] .stage-particles{animation-duration:7.2s}
-.stage[data-subclass="void"] .stage-particles{animation-duration:10s;opacity:.32}
-.stage[data-subclass="stasis"] .stage-particles{animation-duration:11s;opacity:.3}
-.stage[data-subclass="strand"] .stage-particles{animation-duration:7.8s}
-.stage[data-subclass="prismatic"] .stage-particles{animation-duration:6.8s;opacity:.4}
+.stage[data-subclass="arc"] .stage-particles{animation-duration:5.5s;opacity:.32}
+.stage[data-subclass="solar"] .stage-particles{animation-duration:7s;opacity:.29}
+.stage[data-subclass="void"] .stage-particles{animation-duration:9.5s;opacity:.23}
+.stage[data-subclass="stasis"] .stage-particles{animation-duration:10.5s;opacity:.21}
+.stage[data-subclass="strand"] .stage-particles{animation-duration:7.6s;opacity:.27}
+.stage[data-subclass="prismatic"] .stage-particles{animation-duration:6.6s;opacity:.31}
 
-@keyframes astrixGridBreathe{
-  from{transform:translate3d(-.6%,.3%,0) scale(1);opacity:.38}
-  to{transform:translate3d(.8%,-.5%,0) scale(1.015);opacity:.52}
-}
 @keyframes astrixEnergyPulse{
-  0%,14%{background-position:125% 125%,130% 120%,0 0,0 0,0 0,0 0,0 0;opacity:.2}
-  25%{opacity:.46}
-  43%{background-position:65% 64%,76% 70%,0 0,0 0,0 0,0 0,0 0;opacity:.3}
-  58%{opacity:.52}
-  74%{background-position:-15% -12%,-8% -4%,0 0,0 0,0 0,0 0,0 0;opacity:.24}
-  100%{background-position:-70% -62%,-58% -50%,0 0,0 0,0 0,0 0,0 0;opacity:.18}
+  0%,18%{background-position:130% 125%,136% 122%;opacity:.12}
+  28%{opacity:.36}
+  46%{background-position:62% 61%,72% 68%;opacity:.2}
+  61%{opacity:.4}
+  78%{background-position:-18% -14%,-9% -5%;opacity:.18}
+  100%{background-position:-72% -64%,-60% -52%;opacity:.11}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .stage-backdrop::after,.stage-particles{animation:none}
+  .stage-paradox-video{display:none}
+  .stage-particles{animation:none}
+  .stage-backdrop{background:
+    radial-gradient(60% 58% at 70% 48%,rgba(var(--stage-accent-rgb),.16),transparent 70%),
+    #05070b}
 }
