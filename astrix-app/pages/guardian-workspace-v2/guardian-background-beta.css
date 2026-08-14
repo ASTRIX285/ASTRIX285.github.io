@@ -43,11 +43,18 @@
   inset:0;
   z-index:3;
   background:
-    radial-gradient(ellipse 46% 58% at 70% 48%,rgba(var(--stage-accent-rgb),.24),transparent 72%),
-    linear-gradient(125deg,rgba(var(--stage-accent-rgb),.035),rgba(var(--stage-accent-rgb),.16) 60%,rgba(var(--stage-accent-rgb),.025));
+    radial-gradient(ellipse 48% 62% at 70% 48%,rgba(var(--stage-accent-rgb),.48),transparent 72%),
+    linear-gradient(125deg,rgba(var(--stage-accent-rgb),.10),rgba(var(--stage-accent-rgb),.34) 60%,rgba(var(--stage-accent-rgb),.08));
   mix-blend-mode:color;
-  opacity:.74;
+  opacity:.96;
   transition:background .4s ease,opacity .4s ease;
+}
+
+/* guardian-platform.css previously hid this pseudo-element with !important.
+ * Restore it here so subclass colour reaches the Digital Growth footage while
+ * the Guardian, which sits above the backdrop, remains colour-neutral. */
+body .stage .stage-backdrop::before{
+  display:block!important;
 }
 
 /* Dark focus mask keeps identity text and Guardian dominant. */
@@ -71,12 +78,12 @@
   opacity:0!important;
 }
 
-.stage[data-subclass="void"]{--stage-accent:#9e60ff;--stage-accent-rgb:158,96,255}
-.stage[data-subclass="solar"]{--stage-accent:#ff8c28;--stage-accent-rgb:255,140,40}
-.stage[data-subclass="arc"]{--stage-accent:#46aaff;--stage-accent-rgb:70,170,255}
-.stage[data-subclass="stasis"]{--stage-accent:#78c4ff;--stage-accent-rgb:120,196,255}
-.stage[data-subclass="strand"]{--stage-accent:#46dc82;--stage-accent-rgb:70,220,130}
-.stage[data-subclass="prismatic"]{--stage-accent:#ff50dc;--stage-accent-rgb:255,80,220}
+.stage[data-subclass="void"]{--stage-accent:#9e60ff;--stage-accent-rgb:158,96,255!important}
+.stage[data-subclass="solar"]{--stage-accent:#ff8c28;--stage-accent-rgb:255,140,40!important}
+.stage[data-subclass="arc"]{--stage-accent:#46aaff;--stage-accent-rgb:70,170,255!important}
+.stage[data-subclass="stasis"]{--stage-accent:#78c4ff;--stage-accent-rgb:120,196,255!important}
+.stage[data-subclass="strand"]{--stage-accent:#46dc82;--stage-accent-rgb:70,220,130!important}
+.stage[data-subclass="prismatic"]{--stage-accent:#ff50dc;--stage-accent-rgb:255,80,220!important}
 
 @media(prefers-reduced-motion:reduce){
   .stage-paradox-video{display:none}
