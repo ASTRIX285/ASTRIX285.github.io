@@ -35,6 +35,14 @@ function randomToken(): string {
   return crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
 }
 
+function bindingInfo(value: unknown): { present: boolean; type: string; length: number | null } {
+  return {
+    present: typeof value === "string" ? value.length > 0 : value != null,
+    type: typeof value,
+    length: typeof value === "string" ? value.length : null
+  };
+}
+
 function recordStub(env: Env, key: string): DurableObjectStub {
   return env.AUTH_RECORDS.get(env.AUTH_RECORDS.idFromName(key));
 }
@@ -222,6 +230,14 @@ export default {
       if (request.method === "OPTIONS") return handlePreflight(request, env);
       if (request.method === "GET" && (url.pathname === "/health" || url.pathname === "/v1/health")) {
         return json({ service: "astrix-destiny-backend", status: "ready" });
+      }
+      if (request.method === "GET" && url.pathname === "/diagnostics/runtime-bindings") {
+        return json({
+          BUNGIE_API_KEY: bindingInfo(env.BUNGIE_API_KEY),
+          BUNGIE_CLIENT_ID: bindingInfo(env.BUNGIE_CLIENT_ID),
+          BUNGIE_CLIENT_SECRET: bindingInfo(env.BUNGIE_CLIENT_SECRET),
+          OAUTH_REDIRECT_URI: bindingInfo(env.OAUTH_REDIRECT_URI)
+        }, 200, { "Cache-Control": "no-store" });
       }
       if (request.method === "GET" && url.pathname === "/bungie/start") return startOAuth(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/callback") return oauthCallback(request, env);
