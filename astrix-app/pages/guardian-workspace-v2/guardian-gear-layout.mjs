@@ -22,7 +22,7 @@ function loadCss(){
       .gear-weapons .weap .cap b{font-size:.55rem!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
       .gear-combined{min-width:0!important;min-height:236px!important}
       .gear-columns{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px!important;align-items:stretch!important}
-      .gear-slot{min-width:0!important;min-height:0!important;padding:6px!important;display:flex!important;flex-direction:column!important;gap:4px!important}
+      .gear-slot{min-width:0!important;min-height:0!important;padding:6px 3px!important;display:flex!important;flex-direction:column!important;gap:4px!important}
       .gear-slot-label{margin-bottom:1px!important}
       .gear-arm-row{min-height:96px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important}
       .gear-arm-anchor .arm{width:90px!important;height:90px!important;min-width:90px!important;min-height:90px!important}
@@ -32,7 +32,7 @@ function loadCss(){
       .gear-appearance-row{min-height:38px!important;margin:2px 0!important;gap:6px!important}
       .gear-appearance{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}
       .gear-slot-divider{margin:1px 0 4px!important}
-      .gear-mods{display:grid!important;grid-template-columns:repeat(2,var(--pf-mod-size,40px))!important;grid-template-rows:repeat(3,var(--pf-mod-size,40px))!important;grid-auto-rows:var(--pf-mod-size,40px)!important;gap:6px!important;width:100%!important;justify-content:center!important;align-content:start!important}
+      .gear-mods{display:grid!important;grid-template-columns:repeat(3,var(--pf-mod-size,52px))!important;grid-template-rows:repeat(2,var(--pf-mod-size,52px))!important;grid-auto-rows:var(--pf-mod-size,52px)!important;gap:3px!important;width:100%!important;justify-content:center!important;align-content:start!important}
       .gear-mod{width:var(--pf-mod-size,46px)!important;height:var(--pf-mod-size,46px)!important;min-width:var(--pf-mod-size,46px)!important;min-height:var(--pf-mod-size,46px)!important;max-width:var(--pf-mod-size,46px)!important;max-height:var(--pf-mod-size,46px)!important;aspect-ratio:1/1!important;border-radius:7px!important}
       .gear-mod img{width:88%!important;height:88%!important;object-fit:contain!important}
     `;
@@ -45,8 +45,11 @@ function syncModSizeToArtifact(){
   const slot=mod?.closest('.gear-slot');
   if(!mod||!slot)return;
 
-  const available=slot.clientWidth-24;
-  const target=Math.max(30,Math.min(44,Math.floor(available/2)));
+  const fragment=document.querySelector('#fragList .ico-badge');
+  const fragmentSize=fragment?.getBoundingClientRect().width||52;
+  const available=slot.clientWidth-12;
+  const maximumFit=Math.floor((available-6)/3);
+  const target=Math.max(30,Math.min(fragmentSize,maximumFit));
   document.documentElement.style.setProperty('--pf-mod-size',`${target}px`);
 }
 
