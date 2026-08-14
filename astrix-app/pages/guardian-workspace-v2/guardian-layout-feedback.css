@@ -16,7 +16,7 @@ html{font-size:clamp(16px,.52vw,22px)}
 .right .focus .lbl,
 .right .mini .t,
 .right .sw-card .t{
-  font-size:.72rem!important;
+  font-size:clamp(12px,.34vw,15px)!important;
 }
 
 .right .health-card .verdict small,
@@ -25,14 +25,14 @@ html{font-size:clamp(16px,.52vw,22px)}
 .right .improve p,
 .right .activity .act-hero small,
 .right .act-row{
-  font-size:.88rem!important;
-  line-height:1.35!important;
+  font-size:clamp(14px,.42vw,18px)!important;
+  line-height:1.5!important;
 }
 
-.right .ra-head h2{font-size:1.05rem!important}
+.right .ra-head h2{font-size:clamp(18px,.55vw,24px)!important}
 .right .focus-row b,
-.right .activity .act-hero b{font-size:.94rem!important}
-.right .btn-rec,.right .btn-change{font-size:.82rem!important}
+.right .activity .act-hero b{font-size:clamp(15px,.46vw,20px)!important}
+.right .btn-rec,.right .btn-change{font-size:clamp(13px,.38vw,16px)!important}
 
 /* The wider intelligence rail should use its space rather than stretching
    every card into one long line. */
