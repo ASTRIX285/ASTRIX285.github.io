@@ -1,8 +1,11 @@
 const backdrop=document.querySelector('.stage-backdrop');
 
 if(backdrop && !matchMedia('(prefers-reduced-motion: reduce)').matches){
-  const source='../../../video/Digital%20Growth%20Hero%20Loop%20Slow.mp4';
-  const makeVideo=()=>{
+  const sources=[
+    '../../../video/Digital%20Growth%20Hero%20Pass%20A.mp4',
+    '../../../video/Digital%20Growth%20Hero%20Pass%20B.mp4'
+  ];
+  const makeVideo=(source)=>{
     const video=document.createElement('video');
     video.className='stage-paradox-video';
     video.loop=true;
@@ -17,14 +20,13 @@ if(backdrop && !matchMedia('(prefers-reduced-motion: reduce)').matches){
     return video;
   };
 
-  const videos=[makeVideo(),makeVideo()];
+  const videos=sources.map(makeVideo);
   const metadata=video=>new Promise(resolve=>{
     if(video.readyState>=1) resolve();
     else video.addEventListener('loadedmetadata',resolve,{once:true});
   });
 
   Promise.all(videos.map(metadata)).then(()=>{
-    videos[1].currentTime=videos[1].duration/2;
     videos.forEach(video=>{
       video.play().catch(()=>{});
       requestAnimationFrame(()=>video.classList.add('is-active'));
