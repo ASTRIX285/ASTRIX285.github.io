@@ -84,6 +84,11 @@ function clearSessionCookie(): string {
 
 async function startOAuth(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
+  const clientId = (env.BUNGIE_CLIENT_ID || "").trim();
+  if (!clientId) {
+    return json({ error: "oauth_not_configured", missing: ["BUNGIE_CLIENT_ID"] }, 500);
+  }
+
   const state = randomToken();
   const returnUrl = approvedReturnUrl(url.searchParams.get("return"), env);
   const tx: OAuthTransaction = {
@@ -96,10 +101,9 @@ async function startOAuth(request: Request, env: Env): Promise<Response> {
   await putRecord(env, `oauth:${state}`, tx);
 
   const authorize = new URL(BUNGIE_AUTHORIZE);
-  authorize.searchParams.set("client_id", env.BUNGIE_CLIENT_ID);
+  authorize.searchParams.set("client_id", clientId);
   authorize.searchParams.set("response_type", "code");
   authorize.searchParams.set("state", state);
-  authorize.searchParams.set("redirect_uri", env.OAUTH_REDIRECT_URI);
   return Response.redirect(authorize.toString(), 302);
 }
 
