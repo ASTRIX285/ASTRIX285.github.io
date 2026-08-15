@@ -13,6 +13,7 @@ def main() -> int:
     module = (PAGE / "guardian-character-cards.mjs").read_text(encoding="utf-8")
     profile = (PAGE / "guardian-bungie-profile.mjs").read_text(encoding="utf-8")
     styles = (PAGE / "guardian-character-cards.css").read_text(encoding="utf-8")
+    hero_styles = (PAGE / "guardian-hero.css").read_text(encoding="utf-8")
 
     assert 'id="guardianCharacterCards"' in html
     assert 'src="./guardian-character-cards.mjs"' in html
@@ -40,7 +41,9 @@ def main() -> int:
     assert ".super-option:nth-child(3){top:2px;left:75%}" in styles
     assert "scrollbar-width:none" in styles
     assert ".slice(0,3)" in (PAGE / "guardian-advisor-layer.mjs").read_text(encoding="utf-8")
-    assert ".guardian-render-status{left:50%!important" in styles
+    assert "left:50%!important" in hero_styles
+    assert "top:50%!important" in hero_styles
+    assert "transform:translate(-50%,-50%)!important" in hero_styles
     assert '.stage>.identity,.stage>.hero-stats{display:none!important}' in styles
 
     print("PARADOX_CHARACTER_CARDS=PASS")

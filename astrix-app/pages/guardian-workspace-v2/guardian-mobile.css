@@ -43,8 +43,6 @@
   .bungie-auth-btn{max-width:132px;padding:9px 10px!important;font-size:.58rem!important;white-space:normal;line-height:1.2!important;text-align:center}
 
   .workspace{
-    display:flex!important;
-    flex-direction:column!important;
     width:100%!important;
     max-width:100%!important;
     min-width:0!important;
@@ -54,10 +52,6 @@
     padding:var(--mobile-gap)!important;
     gap:var(--mobile-gap)!important;
   }
-  .workspace>.stage{order:1}
-  .workspace>.left{order:2}
-  .workspace>.right{order:3}
-  .workspace>.equip{order:4}
   .workspace>*{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important}
 
   .panel,.stage,.equip{border-radius:14px!important}
@@ -93,12 +87,6 @@
     top:292px!important;
     width:min(46vw,205px)!important;
     padding:12px!important;
-  }
-  .guardian-hero{
-    width:66%!important;
-    height:72%!important;
-    right:-6%!important;
-    bottom:2%!important;
   }
   .view3d{right:14px!important;top:14px!important}
   .hero-subclass-dock{left:16px!important;top:16px!important}

@@ -331,7 +331,7 @@ async function loadSelectedLoadout(selection){
   }
   loadoutCache.set(cacheKey,detail);
   document.documentElement.dataset.guardianSource="bungie-loadout";
-  setRenderStatus("CHARACTER RENDERING",`Bungie loadout ${index+1} ready`,"Saved build loaded for analysis");
+  setRenderStatus("BUILD INTELLIGENCE",`Bungie loadout ${index+1} ready`,"Saved build loaded for analysis");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail}));
 }
@@ -346,7 +346,7 @@ async function loadLiveProfile(session,{background=false}={}){
   liveProfilePayload=payload;
   liveProfileSession=session;
   document.documentElement.dataset.guardianSource="bungie-live";
-  setRenderStatus("CHARACTER RENDERING","Live profile data ready","3D assembly in development");
+  setRenderStatus("BUILD INTELLIGENCE","Live profile data ready","Equipment and loadout analysis active");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   publishCharacterRoster(payload,detail.characterId);
   document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail}));
@@ -357,7 +357,7 @@ function selectLiveCharacter(characterId){
   if(!liveProfilePayload)return null;
   const detail=normaliseLiveProfile(liveProfilePayload,liveProfileSession,characterId);
   document.documentElement.dataset.guardianSource="bungie-live";
-  setRenderStatus("CHARACTER RENDERING",`${detail.characterClass} profile ready`,"Live equipment and saved loadouts selected");
+  setRenderStatus("BUILD INTELLIGENCE",`${detail.characterClass} profile ready`,"Live equipment and saved loadouts selected");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   publishCharacterRoster(liveProfilePayload,detail.characterId);
   document.dispatchEvent(new CustomEvent("astrix:bungie-character-selected",{detail}));

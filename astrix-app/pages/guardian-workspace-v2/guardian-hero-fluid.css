@@ -8,8 +8,7 @@
    Principle:
    - workspace columns respond to the effective CSS viewport
    - left-rail children respond to the LEFT PANEL, not monitor resolution
-   - Guardian + platform respond to the HERO STAGE, not monitor resolution
-   - Guardian and platform share one 3D centreline and one ground plane
+   - centre-stage content responds to the HERO STAGE, not monitor resolution
    ====================================================================== */
 
 :root{
@@ -24,7 +23,6 @@
   margin:0!important;
   padding:var(--workspace-pad)!important;
   gap:var(--workspace-gap)!important;
-  grid-template-rows:minmax(0,auto) auto!important;
 }
 
 /* Stage height reacts continuously to the effective viewport height.
@@ -135,9 +133,9 @@
   .artifact-row .perks .artifact-perk:nth-child(7){grid-column:4!important;grid-row:2!important}
 }
 
-/* ---------- HERO STAGE: one shared coordinate system ---------- */
+/* ---------- HERO STAGE: one contained coordinate system ---------- */
 .stage{
-  --stage-anchor-x:50%;
+  --stage-anchor-x:69%;
   --stage-ground-y:clamp(42px,6.5cqh,68px);
   --stage-platform-offset:clamp(20px,3cqh,34px);
   --stage-platform-size:clamp(300px,43cqw,620px);
@@ -155,37 +153,6 @@
   --size:var(--stage-platform-size)!important;
   z-index:3!important;
 }
-.stage > .guardian-hero{
-  left:var(--stage-anchor-x)!important;
-  right:auto!important;
-  top:auto!important;
-  bottom:var(--stage-ground-y)!important;
-  transform:translateX(-50%)!important;
-  width:clamp(360px,50cqw,760px)!important;
-  height:min(82cqh,calc(100cqh - var(--stage-ground-y)))!important;
-  max-width:64cqw!important;
-  max-height:calc(100% - var(--stage-ground-y))!important;
-  display:flex!important;
-  align-items:flex-end!important;
-  justify-content:center!important;
-}
-
-.stage > .guardian-render-status{
-  left:50%!important; right:auto!important; top:50%!important; bottom:auto!important;
-  width:clamp(260px,34cqw,440px)!important; height:auto!important;
-  max-width:calc(100% - 32px)!important; max-height:calc(100% - 32px)!important;
-  transform:translate(-50%,-50%)!important;
-}
-.stage > .guardian-hero img{
-  display:block!important;
-  width:auto!important;
-  height:100%!important;
-  max-width:100%!important;
-  max-height:100%!important;
-  object-fit:contain!important;
-  object-position:center bottom!important;
-}
-
 /* Identity and stats also use stage-container units, so their density tracks
    the same canvas without changing the Guardian/platform relationship. */
 .stage .identity{
@@ -222,7 +189,6 @@
 /* Ultra-wide screens get breathing room, not a larger character. */
 @media (min-aspect-ratio:2/1){
   .stage{--stage-platform-size:clamp(310px,36cqw,600px)}
-  .stage > .guardian-hero{width:clamp(370px,43cqw,700px)!important}
 }
 
 /* Below desktop width we allow the existing tablet/mobile layout to take over. */

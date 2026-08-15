@@ -132,7 +132,6 @@
   border:1px solid rgba(196,181,253,.4)}
 .improve-cta:hover{transform:translateY(-2px)}
 
-}
 @media (max-width:1200px){
   .stage{min-height:520px}
   .equip{grid-template-columns:1fr 1fr}
