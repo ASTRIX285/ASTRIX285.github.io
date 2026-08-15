@@ -81,7 +81,6 @@
 .class-super-row .super-option.is-active{opacity:1;background:rgba(var(--stage-accent-rgb,139,92,246),.28);box-shadow:0 0 0 1px rgba(var(--stage-accent-rgb,139,92,246),.34),0 0 16px rgba(var(--stage-accent-rgb,139,92,246),.36)}
 .class-super-row .super-option.is-inactive{z-index:1;opacity:.34;filter:saturate(.4) brightness(.72)}
 .class-super-row .super-option.is-inactive:hover,.class-super-row .super-option.is-inactive:focus-visible{opacity:.7;filter:saturate(.8);outline:none}
-.guardian-render-status{left:50%!important;top:58%!important}
 .topbar .gtag{display:none!important}
 @media(max-width:1220px){
   .guardian-character-cards{left:20px;right:72px;gap:8px}
@@ -99,5 +98,4 @@
   .guardian-character-card__stat{flex-direction:column;gap:2px;min-height:40px}
   .guardian-character-card__stat i{width:19px;height:19px;flex-basis:19px}
   .view3d{top:150px!important}
-  .guardian-render-status{top:60%!important}
 }
