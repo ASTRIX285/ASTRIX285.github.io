@@ -74,7 +74,10 @@ def main() -> int:
     assert "const SLOT_COUNT=20" in renderer
     assert "loadoutIdentity(loadout)" in renderer
     assert "is-empty" in renderer and "EMPTY" in renderer
+    assert 'event.detail?.source!=="bungie-live"' in renderer
+    assert 'renderStatus("Loadout data unavailable","unavailable")' in renderer
     assert "hashHue" not in renderer
+    assert ".guardian-loadouts-status.is-unavailable" in styles
     assert ".guardian-loadout-slot.is-empty::before" in styles
     assert ".guardian-loadout-slot.is-empty::after" in styles
 
@@ -85,6 +88,7 @@ def main() -> int:
     print(f"COLORS={len(generated['colors'])}")
     print("SLOTS=20")
     print("EMPTY_SLOT_MARKER=PASS")
+    print("UNAVAILABLE_IS_NOT_EMPTY=PASS")
     return 0
 
 
