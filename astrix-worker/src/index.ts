@@ -229,10 +229,10 @@ async function refreshAccessToken(sessionId: string, session: SessionRecord, env
 }
 
 function activeCharacterDefinitionHashes(profile: DestinyProfilePayload): number[] {
-  const characters = (Object.values(profile.characters?.data || {}) as Array<{
-    characterId?: string;
-    dateLastPlayed?: string;
-  }>).sort((a, b) =>
+  const characterData = (profile.characters as {
+    data?: Record<string, { characterId?: string; dateLastPlayed?: string }>;
+  } | undefined)?.data || {};
+  const characters = Object.values(characterData).sort((a, b) =>
     String(b.dateLastPlayed || "").localeCompare(String(a.dateLastPlayed || ""))
   );
   const characterId = String(characters[0]?.characterId || "");
