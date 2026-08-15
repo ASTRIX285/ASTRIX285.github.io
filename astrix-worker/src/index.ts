@@ -55,7 +55,7 @@ const PROFILE_COMPONENTS = [
   200, // Characters
   201, // CharacterInventories
   202, // CharacterProgressions
-  204, // CharacterRenderData
+  203, // CharacterRenderData\n  204, // CharacterActivities
   205, // CharacterEquipment
   300, // ItemInstances
   302, // ItemPerks
@@ -238,8 +238,30 @@ async function fetchInventoryDefinitions(
 ): Promise<Record<string, Record<string, unknown>>> {
   // Keep the profile request plus definition lookups below the Worker subrequest budget.
   // Equipment hashes are inserted before plug hashes, so visible gear resolves first.
-  const entries = await Promise.all(hashes.slice(0, 45).map(async (hash) => {
+  const entries = await Promise.all(hashes.slice(0, 34).map(async (hash) => {
     const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-API-Key": env.BUNGIE_API_KEY,
+        "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+      }
+    });
+    if (!response.ok) return null;
+    const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+    return payload?.Response ? [String(hash), payload.Response] as const : null;
+  }));
+  return Object.fromEntries(entries.filter((entry): entry is readonly [string, Record<string, unknown>] => entry !== null));
+}
+
+async function fetchGearAssetDefinitions(
+  hashes: number[],
+  accessToken: string,
+  env: Env
+): Promise<Record<string, Record<string, unknown>>> {
+  // Character assembly needs Bungie's geometry, textures and dye metadata.
+  // Keep the total profile request below the Worker subrequest ceiling.
+  const entries = await Promise.all(hashes.slice(0, 12).map(async (hash) => {
+    const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyGearAssetsDefinition/${hash}/`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "X-API-Key": env.BUNGIE_API_KEY,
@@ -317,11 +339,11 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  const definitions = await fetchInventoryDefinitions(
-    equippedDefinitionHashes(payload.Response),
-    session.accessToken,
-    env
-  );
+  const equippedHashes = equippedDefinitionHashes(payload.Response);
+  const [definitions, gearAssets] = await Promise.all([
+    fetchInventoryDefinitions(equippedHashes, session.accessToken, env),
+    fetchGearAssetDefinitions(equippedHashes, session.accessToken, env)
+  ]);
   const updatedSession = { ...session, lastUsedAt: Date.now() };
   await putSession(env, sessionId, updatedSession);
   return withCors(request, env, json({
