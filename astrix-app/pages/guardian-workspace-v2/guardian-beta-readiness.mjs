@@ -25,7 +25,7 @@ function modal(title,body,actions=''){
   wrap.id='astrixBetaModal';
   wrap.className='beta-modal-backdrop';
   wrap.innerHTML=`<section class="beta-modal" role="dialog" aria-modal="true" aria-label="${title}">
-    <header><div><small>PARADOX FORGE BETA</small><h2>${title}</h2></div><button type="button" data-beta-close aria-label="Close">✕</button></header>
+    <header><div><small>PARADOX FORGE ALPHA</small><h2>${title}</h2></div><button type="button" data-beta-close aria-label="Close">✕</button></header>
     <div class="beta-modal-body">${body}</div>
     ${actions?`<footer>${actions}</footer>`:''}
   </section>`;
@@ -72,7 +72,7 @@ async function openCompare(){
   if(!api?.list)return toast('Loadout data is still initialising.');
   const fixtures=await api.list();
   const options=fixtures.map(f=>`<option value="${f.fixtureId}">${f.displayName} · ${f.className} · ${f.subclassName}</option>`).join('');
-  const m=modal('Compare Loadouts',`<p class="beta-note">Beta comparison switches between verified fixture identities without inventing performance scores.</p><div class="beta-compare-grid"><label>Current<select id="betaCompareA">${options}</select></label><label>Compare with<select id="betaCompareB">${options}</select></label></div><div id="betaCompareResult" class="beta-compare-result"></div>`,`<button type="button" class="beta-primary" id="betaCompareRun">COMPARE</button>`);
+  const m=modal('Compare Loadouts',`<p class="beta-note">Alpha comparison switches between verified fixture identities without inventing performance scores.</p><div class="beta-compare-grid"><label>Current<select id="betaCompareA">${options}</select></label><label>Compare with<select id="betaCompareB">${options}</select></label></div><div id="betaCompareResult" class="beta-compare-result"></div>`,`<button type="button" class="beta-primary" id="betaCompareRun">COMPARE</button>`);
   qs('#betaCompareA',m).value=currentFixture();
   qs('#betaCompareB',m).selectedIndex=Math.min(1,fixtures.length-1);
   qs('#betaCompareRun',m).addEventListener('click',()=>{
@@ -86,7 +86,7 @@ function openRecommendations(){
   const strengths=qsa('.sw-card.str li').map(x=>x.textContent.trim());
   const weaknesses=qsa('.sw-card.weak li').map(x=>x.textContent.trim());
   const improvement=qs('.improve p')?.textContent?.trim()||'No recommendation loaded.';
-  modal('Build Recommendations',`<p class="beta-note">This beta view surfaces only the recommendation data already loaded into Paradox Analysis.</p><div class="beta-rec-grid"><section><h3>STRENGTHS</h3>${strengths.map(x=>`<p>✓ ${x}</p>`).join('')}</section><section><h3>WEAK LINKS</h3>${weaknesses.map(x=>`<p>• ${x}</p>`).join('')}</section></div><div class="beta-improvement"><small>TODAY'S IMPROVEMENT</small><p>${improvement}</p></div>`);
+  modal('Build Recommendations',`<p class="beta-note">This alpha view surfaces only the recommendation data already loaded into Paradox Analysis.</p><div class="beta-rec-grid"><section><h3>STRENGTHS</h3>${strengths.map(x=>`<p>✓ ${x}</p>`).join('')}</section><section><h3>WEAK LINKS</h3>${weaknesses.map(x=>`<p>• ${x}</p>`).join('')}</section></div><div class="beta-improvement"><small>TODAY'S IMPROVEMENT</small><p>${improvement}</p></div>`);
 }
 
 function improveGuardian(){
@@ -114,12 +114,12 @@ async function shareLoadout(){
 
 function changeActivity(){
   const choices=['Grandmaster Nightfall','Raid / Dungeon','General PvE','Onslaught / Horde','PvP'];
-  const m=modal('Activity Profile',`<p class="beta-note">Activity selection is a beta UI control. Encounter-specific counter reasoning will replace the current preview analysis when that engine is connected.</p><div class="beta-activity-list">${choices.map((x,i)=>`<button type="button" data-activity="${x}" class="${i===0?'active':''}">${x}</button>`).join('')}</div>`);
+  const m=modal('Activity Profile',`<p class="beta-note">Activity selection is a alpha UI control. Encounter-specific counter reasoning will replace the current preview analysis when that engine is connected.</p><div class="beta-activity-list">${choices.map((x,i)=>`<button type="button" data-activity="${x}" class="${i===0?'active':''}">${x}</button>`).join('')}</div>`);
   qsa('[data-activity]',m).forEach(btn=>btn.addEventListener('click',()=>{
     const label=qs('.activity .act-hero b');
     if(label)label.textContent=btn.dataset.activity;
     m.remove();
-    toast(`${btn.dataset.activity} selected for beta preview`);
+    toast(`${btn.dataset.activity} selected for alpha preview`);
   }));
 }
 
@@ -138,7 +138,7 @@ function wireControls(){
     else if(text.includes('COMPARE'))btn.addEventListener('click',openCompare);
     else if(text.includes('SAVE LOADOUT'))btn.addEventListener('click',saveLoadout);
     else if(text.includes('SHARE'))btn.addEventListener('click',shareLoadout);
-    else btn.addEventListener('click',()=>modal('More',`<button type="button" class="beta-menu-item" id="betaSaved">VIEW SAVED BETA LOADOUTS</button><button type="button" class="beta-menu-item" id="betaFeedback">BETA FEEDBACK INFO</button>`));
+    else btn.addEventListener('click',()=>modal('More',`<button type="button" class="beta-menu-item" id="betaSaved">VIEW SAVED BETA LOADOUTS</button><button type="button" class="beta-menu-item" id="betaFeedback">ALPHA FEEDBACK INFO</button>`));
   });
 
   qs('.view3d')?.setAttribute('role','button');
@@ -146,9 +146,9 @@ function wireControls(){
   qs('.view3d')?.addEventListener('click',()=>betaUnavailable('View in 3D'));
 
   const top=qsa('.top-icons .ib');
-  top[0]?.addEventListener('click',()=>toast('No new beta notifications'));
-  top[1]?.addEventListener('click',()=>modal('Beta Settings','<p>Fixture mode is active. Live Bungie account settings will appear here after authentication is enabled.</p>'));
-  top[2]?.addEventListener('click',()=>modal('Beta Help','<p>Use CHARACTER or LOADOUTS to switch among the 23 beta fixtures. Hover sourced icons for Bungie details. Use SHARE to copy a fixture-specific link.</p>'));
+  top[0]?.addEventListener('click',()=>toast('No new alpha notifications'));
+  top[1]?.addEventListener('click',()=>modal('Alpha Settings','<p>Fixture mode is active. Live Bungie account settings will appear here after authentication is enabled.</p>'));
+  top[2]?.addEventListener('click',()=>modal('Alpha Help','<p>Use CHARACTER or LOADOUTS to switch among the 23 alpha fixtures. Hover sourced icons for Bungie details. Use SHARE to copy a fixture-specific link.</p>'));
 
   qs('.gtag')?.addEventListener('click',()=>betaUnavailable('Guardian Account'));
 
@@ -177,7 +177,7 @@ function accessGate(){
   return new Promise(resolve=>{
     const gate=document.createElement('div');
     gate.className='beta-access-gate';
-    gate.innerHTML=`<div class="beta-access-card"><small>ASTRIX PARADOX</small><h1>GUARDIAN WORKSPACE BETA</h1><p>Enter the tester access code.</p><form><input type="password" autocomplete="off" aria-label="Beta access code" placeholder="ACCESS CODE"><button type="submit">ENTER BETA</button><div class="beta-access-error"></div></form></div>`;
+    gate.innerHTML=`<div class="beta-access-card"><small>ASTRIX PARADOX</small><h1>GUARDIAN WORKSPACE ALPHA</h1><p>Enter the tester access code.</p><form><input type="password" autocomplete="off" aria-label="Alpha access code" placeholder="ACCESS CODE"><button type="submit">ENTER ALPHA</button><div class="beta-access-error"></div></form></div>`;
     document.body.appendChild(gate);
     const form=qs('form',gate),input=qs('input',gate),error=qs('.beta-access-error',gate);
     form.addEventListener('submit',e=>{
@@ -189,5 +189,24 @@ function accessGate(){
   });
 }
 
+async function waitForBungieAuthentication(){
+  try{
+    const response=await fetch("https://auth.astrixparadox.com/session",{
+      credentials:"include",
+      headers:{Accept:"application/json"}
+    });
+    if(response.ok){
+      const session=await response.json();
+      if(session?.authenticated)return session;
+    }
+  }catch(error){
+    console.info("[ASTRIX Alpha gate] Bungie session not active",error);
+  }
+
+  return new Promise(resolve=>{
+    globalThis.addEventListener("astrix:bungie-session",event=>resolve(event.detail),{once:true});
+  });
+}
+
 installStyles();
-accessGate().then(wireControls);
+waitForBungieAuthentication().then(accessGate).then(wireControls);
