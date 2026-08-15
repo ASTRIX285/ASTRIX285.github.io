@@ -18,6 +18,22 @@ const setRenderStatus=(title,message,detail="")=>{
   if(detailNode)detailNode.textContent=detail;
 };
 
+async function fetchJsonWithTimeout(url,timeoutMs=15000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{
+    const response=await fetch(url,{credentials:"include",headers:{Accept:"application/json"},signal:controller.signal});
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload.error||`Bungie request failed (${response.status}).`);
+    return payload;
+  }catch(error){
+    if(error?.name==="AbortError")throw new Error("Bungie profile request timed out. Refresh or reconnect Bungie.");
+    throw error;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
 const absoluteIcon=path=>path?new URL(path,BUNGIE_ORIGIN).toString():"";
 const definition=(definitions,hash)=>definitions?.[String(hash)]||null;
 const displayItem=(definitions,hash)=>{
@@ -159,9 +175,7 @@ async function loadSelectedLoadout(selection){
 async function loadLiveProfile(session){
   setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
   document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
-  const response=await fetch(`${AUTH_ORIGIN}/bungie/profile`,{credentials:"include",headers:{Accept:"application/json"}});
-  const payload=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(payload.error||`Bungie profile request failed (${response.status}).`);
+  const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
   const detail=normaliseLiveProfile(payload,session);
   document.documentElement.dataset.guardianSource="bungie-live";
   setRenderStatus("CHARACTER RENDERING","Live profile data ready","3D assembly in development");
@@ -174,8 +188,8 @@ globalThis.addEventListener("astrix:bungie-session",event=>{
     const message=error.message||"Guardian data could not be loaded.";
     console.error("[ASTRIX Bungie profile]",error);
     setRenderStatus("LIVE PROFILE UNAVAILABLE",message,"Your preview workspace remains available");
-    document.querySelector(".stage")?.setAttribute("data-state","ready");
     document.dispatchEvent(new CustomEvent("astrix:profile-error",{detail:{message}}));
+    document.dispatchEvent(new CustomEvent("astrix:guardian-error",{detail:{message}}));
   });
 });
 
