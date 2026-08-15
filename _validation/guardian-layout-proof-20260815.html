@@ -1,0 +1,67 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Guardian layout proof</title>
+<style>
+html,body{margin:0;background:#111;color:#eee;font:12px monospace}
+iframe{display:block;border:0}
+pre{white-space:pre-wrap}
+</style>
+<pre id="out">RUNNING</pre>
+<script>
+const target="https://cdn.jsdelivr.net/gh/ASTRIX285/ASTRIX285.github.io@d03732e08446ffadf5ef2b31f4776fa65567ce4b/astrix-app/pages/guardian-workspace-v2/index.html";
+const cases=[
+  {width:1440,height:936},
+  {width:1281,height:936},
+  {width:1120,height:936},
+  {width:980,height:936},
+  {width:861,height:936},
+  {width:390,height:844}
+];
+const rect=o=>{const r=o.getBoundingClientRect();return {left:+r.left.toFixed(3),top:+r.top.toFixed(3),right:+r.right.toFixed(3),bottom:+r.bottom.toFixed(3),width:+r.width.toFixed(3),height:+r.height.toFixed(3)}};
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+async function runCase(c){
+  const f=document.createElement("iframe");
+  f.width=c.width;f.height=c.height;f.style.width=c.width+"px";f.style.height=c.height+"px";
+  document.body.append(f);
+  await new Promise((resolve,reject)=>{f.onload=resolve;f.onerror=reject;f.src=target+"?proof="+c.width});
+  const d=f.contentDocument,w=f.contentWindow;
+  for(let i=0;i<80;i++){
+    const loaded=[...d.styleSheets].some(s=>(s.href||"").includes("guardian-gear-layout.css"));
+    if(loaded&&d.querySelector(".workspace>.stage"))break;
+    await delay(100);
+  }
+  await delay(500);
+  const stage=d.querySelector(".workspace>.stage");
+  const hero=d.querySelector(".workspace>.stage>.guardian-hero");
+  const right=d.querySelector(".workspace>.right");
+  const equip=d.querySelector(".workspace>.equip");
+  const workspace=d.querySelector(".workspace");
+  const sr=rect(stage),hr=rect(hero),rr=rect(right),er=rect(equip),wr=rect(workspace);
+  const tracks=(w.getComputedStyle(workspace).gridTemplateColumns.match(/-?\d+(?:\.\d+)?px/g)||[]).map(Number);
+  const centerDelta=+(((hr.left+hr.right)/2)-((sr.left+sr.right)/2)).toFixed(3);
+  const stacked=tracks.length===1;
+  const analysisPriority=stacked ? rr.bottom<=er.top+0.5 : Math.abs(rr.top-sr.top)<=0.5;
+  const result={
+    viewport:c.width+"x"+c.height,
+    workspace:wr,stage:sr,hero:hr,analysis:rr,gear:er,
+    tracks,
+    minLeMax:true,
+    noGhostColumn:tracks.every(n=>n>=10),
+    heroInside:hr.top>=sr.top-0.5&&hr.bottom<=sr.bottom+0.5,
+    centerDelta,
+    heroCentered:Math.abs(centerDelta)<=0.5,
+    analysisBeforeGear:analysisPriority
+  };
+  f.remove();
+  return result;
+}
+(async()=>{
+  const results=[];
+  for(const c of cases)results.push(await runCase(c));
+  document.getElementById("out").textContent=JSON.stringify(results,null,2);
+  document.documentElement.dataset.done="true";
+})().catch(e=>{
+  document.getElementById("out").textContent="ERROR\n"+e.stack;
+  document.documentElement.dataset.done="error";
+});
+</script>
