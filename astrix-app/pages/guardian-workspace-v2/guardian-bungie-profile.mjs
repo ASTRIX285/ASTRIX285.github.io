@@ -51,6 +51,16 @@ function normaliseItem(profile,definitions,item){
   return {...base,power:instance?.primaryStat?.value??null,isExotic:String(base.tier).toLowerCase()==="exotic",shader,ornament,appearancePlugs:[shader,ornament].filter(Boolean),mods};
 }
 
+function subclassConfiguration(profile,definitions,item){
+  const plugs=socketPlugs(profile,definitions,item);
+  const typeOf=plug=>`${plug.itemTypeDisplayName||""} ${plug.definition?.plug?.plugCategoryIdentifier||""}`.toLowerCase();
+  return {
+    abilities:plugs.filter(plug=>/super|class ability|movement|melee|grenade/.test(typeOf(plug))),
+    aspects:plugs.filter(plug=>/aspect/.test(typeOf(plug))),
+    fragments:plugs.filter(plug=>/fragment/.test(typeOf(plug)))
+  };
+}
+
 function identityCosmetics(profile,definitions,equipment,character){
   const ghostItem=equipment.find(item=>definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===BUCKETS.ghost);
   const allPlugs=equipment.flatMap(item=>socketPlugs(profile,definitions,item));
@@ -69,12 +79,15 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
+  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem):{abilities:[],aspects:[],fragments:[]};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character);
   return {
     source:"bungie-live",
     characterId:character.characterId,
     characterClass:CLASS_NAMES[Number(character.classType)]||"hunter",
     subclass:classifySubclass(subclass),
+    subclassName:subclass?.name||"Subclass",
+    subclassBuild,
     power:character.light??null,
     stats:STAT_ORDER.map(([name,hash])=>[name,Number(character.stats?.[hash]??0)]),
     weapons,
@@ -103,6 +116,13 @@ function profileWithSelectedLoadout(payload){
     if(!item.itemInstanceId)return;
     profile.itemComponents.sockets.data[item.itemInstanceId]={sockets:(item.plugItemHashes||[]).map(plugHash=>({plugHash}))};
   });
+  const statData=profile?.itemComponents?.stats?.data||{};
+  const character=profile?.characters?.data?.[characterId];
+  if(character){
+    const totals={};
+    STAT_ORDER.forEach(([,hash])=>{totals[hash]=items.reduce((sum,item)=>sum+Number(statData?.[item.itemInstanceId]?.stats?.[hash]?.value||0),0)});
+    character.stats=totals;
+  }
   return profile;
 }
 
