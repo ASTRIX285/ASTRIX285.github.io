@@ -1,5 +1,5 @@
 // ============================================================
-// ASTRIX285 — Main JavaScript
+// ASTRIX PARADOX — Main JavaScript
 // ============================================================
 
 const TWITCH_CHANNEL = 'astrix285x';
@@ -517,7 +517,7 @@ async function checkTwitchLive() {
       }
 
       document.title =
-        `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX285`;
+        `🔴 LIVE — ${data.game || 'Gaming'} | ASTRIX PARADOX`;
 
       setupStreamExpansion();
 
