@@ -1,5 +1,6 @@
 name: Deploy ASTRIX Destiny Worker
 
+# Deployment is intentionally driven from GitHub Actions using repository-scoped Cloudflare credentials.
 on:
   push:
     branches:
