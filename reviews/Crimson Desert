@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game Reviews | ASTRIX285</title>
+  <title>Game Reviews | ASTRIX PARADOX</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
     .reviews-hero {
@@ -88,7 +88,7 @@
 
 <nav class="nav">
   <div class="nav-logo">
-    <img src="../img/logo.png" alt="ASTRIX285">
+    <img src="../img/logo.png" alt="ASTRIX PARADOX">
     <span>ASTRIX<span class="accent">285</span></span>
   </div>
   <div class="nav-links">
@@ -393,7 +393,7 @@
     <a href="https://www.youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>
   </div>
   <div class="gold-line" style="margin-bottom:20px;"></div>
-  <div class="footer-copy">© 2025 Astrix285 — Built for the community, powered by gaming passion and history.</div>
+  <div class="footer-copy">© 2025 ASTRIX PARADOX — Built for the community, powered by gaming passion and history.</div>
   <div class="footer-disclaimer">All images featured on this site are official wallpapers sourced from the respective publishers and developers' websites. They remain the property of their rightful owners and are used here for fan and review purposes only.</div>
 </footer>
 
