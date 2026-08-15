@@ -146,8 +146,17 @@ function subclassConfiguration(profile,definitions,item){
   const movement=find(/movement|jump|lift|glide/);
   const melee=find(/melee/);
   const grenade=find(/grenade/);
+  const socketStates=profile?.itemComponents?.sockets?.data?.[item?.itemInstanceId]?.sockets||[];
+  const superSocketIndex=superItem?socketStates.findIndex(socket=>Number(socket.plugHash)===Number(superItem.hash)):-1;
+  const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item?.itemInstanceId]?.plugs||{};
+  const reusableRows=superSocketIndex>=0?(reusable[String(superSocketIndex)]||reusable[superSocketIndex]||[]):[];
+  const superOptions=[
+    superItem,
+    ...reusableRows.map(row=>displayItem(definitions,row.plugItemHash??row.plugHash)).filter(row=>row.definition&&/(^|\W)super(\W|$)/.test(plugType(row)))
+  ].filter((row,index,rows)=>row&&rows.findIndex(other=>Number(other.hash)===Number(row.hash))===index);
   return {
     super:superItem,
+    superOptions,
     classAbility,
     movement,
     melee,
@@ -155,7 +164,8 @@ function subclassConfiguration(profile,definitions,item){
     abilities:[classAbility,movement,melee,grenade].filter(Boolean),
     aspects:plugs.filter(plug=>/aspect/.test(plugType(plug))),
     fragments:plugs.filter(plug=>/fragment/.test(plugType(plug))),
-    socketsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.sockets?.data?.[item.itemInstanceId])
+    socketsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]),
+    reusablePlugsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId])
   };
 }
 
@@ -204,6 +214,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     subclassName:subclass?.name||"Subclass",
     subclassBuild,
     super:subclassBuild.super,
+    superOptions:subclassBuild.superOptions,
     classAbility:subclassBuild.classAbility,
     movement:subclassBuild.movement,
     melee:subclassBuild.melee,
