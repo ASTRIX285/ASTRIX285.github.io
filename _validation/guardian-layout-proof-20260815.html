@@ -8,7 +8,7 @@ pre{white-space:pre-wrap}
 </style>
 <pre id="out">RUNNING</pre>
 <script>
-const target="https://cdn.jsdelivr.net/gh/ASTRIX285/ASTRIX285.github.io@d03732e08446ffadf5ef2b31f4776fa65567ce4b/astrix-app/pages/guardian-workspace-v2/index.html";
+const target="https://raw.githack.com/ASTRIX285/ASTRIX285.github.io/d03732e08446ffadf5ef2b31f4776fa65567ce4b/astrix-app/pages/guardian-workspace-v2/index.html";
 const cases=[
   {width:1440,height:936},
   {width:1281,height:936},
@@ -25,6 +25,7 @@ async function runCase(c){
   document.body.append(f);
   await new Promise((resolve,reject)=>{f.onload=resolve;f.onerror=reject;f.src=target+"?proof="+c.width});
   const d=f.contentDocument,w=f.contentWindow;
+  if(!d)throw new Error("frame document unavailable at "+c.width);
   for(let i=0;i<80;i++){
     const loaded=[...d.styleSheets].some(s=>(s.href||"").includes("guardian-gear-layout.css"));
     if(loaded&&d.querySelector(".workspace>.stage"))break;
