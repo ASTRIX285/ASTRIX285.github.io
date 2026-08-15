@@ -83,7 +83,7 @@ function normaliseLiveProfile(payload,session){
     ornaments:armour.map(item=>item?.ornament).filter(Boolean),
     renderData:profile?.characterRenderData?.data?.[character.characterId]||null,
     itemRenderData:profile?.itemComponents?.renderData?.data||{},
-    gearAssets:payload.gearAssets||{},
+    gearAssets:payload.gearAssets||{},\n    loadouts:profile?.characterLoadouts?.data?.[character.characterId]?.loadouts||[],
     displayName:payload.membership?.displayName||session?.activeDestinyMembership?.displayName||"Guardian"
   };
 }
