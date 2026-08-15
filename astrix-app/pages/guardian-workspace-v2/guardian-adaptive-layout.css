@@ -88,16 +88,18 @@
   .view3d{top:150px!important}
 }
 
-/* Left rail: class and Supers remain side by side, with scalable diamond
- * controls and horizontal overflow only inside the Super selector. */
+/* Left rail: class and Supers remain side by side. The equipped Super sits
+ * forward in the lower diamond while the other valid Supers recede behind. */
 @container (max-width:340px){
   .class-super-row{grid-template-columns:minmax(110px,.88fr) minmax(0,1.12fr)!important;padding:5px!important}
   .class-super-row .subclass-hero{grid-template-columns:36px minmax(0,1fr);padding:4px 6px 4px 3px!important}
   .class-super-row .subclass-hero .crest,.class-super-row .subclass-hero .crest-fb{width:36px!important;height:36px!important;flex-basis:36px!important}
   .class-super-row .super-focus{padding:2px 3px!important}
-  .class-super-row .super-options{justify-content:flex-start!important;width:100%}
-  .class-super-row .super-option{width:34px;height:34px;flex-basis:34px;padding:4px}
-  .class-super-row .super-option .ico-badge{width:26px!important;height:26px!important;min-width:26px!important}
+  .class-super-row .super-options{width:min(116px,100%);height:56px}
+  .class-super-row .super-focus{grid-template-rows:auto 56px auto}
+  .class-super-row .super-option{width:34px;height:34px;padding:4px}
+  .class-super-row .super-option.is-active{top:16px}
+  .class-super-row .super-option .ico-badge{width:23px!important;height:23px!important;min-width:23px!important}
 }
 
 /* Armour cards keep five columns while space permits, then reflow without
