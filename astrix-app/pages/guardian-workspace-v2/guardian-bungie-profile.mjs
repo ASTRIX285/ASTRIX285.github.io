@@ -171,9 +171,11 @@ async function loadLiveProfile(session){
 
 globalThis.addEventListener("astrix:bungie-session",event=>{
   loadLiveProfile(event.detail).catch(error=>{
+    const message=error.message||"Guardian data could not be loaded.";
     console.error("[ASTRIX Bungie profile]",error);
-    setRenderStatus("LIVE PROFILE UNAVAILABLE",error.message||"Guardian data could not be loaded.","Reconnect Bungie or refresh this page");
-    document.dispatchEvent(new CustomEvent("astrix:guardian-error",{detail:{message:error.message||"Guardian data could not be loaded."}}));
+    setRenderStatus("LIVE PROFILE UNAVAILABLE",message,"Your preview workspace remains available");
+    document.querySelector(".stage")?.setAttribute("data-state","ready");
+    document.dispatchEvent(new CustomEvent("astrix:profile-error",{detail:{message}}));
   });
 });
 
