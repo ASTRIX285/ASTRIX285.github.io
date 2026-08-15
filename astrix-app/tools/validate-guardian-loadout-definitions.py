@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKSPACE = ROOT / "astrix-app" / "pages" / "guardian-workspace-v2"
 DEFINITIONS = WORKSPACE / "guardian-loadout-definitions.mjs"
 RENDERER = WORKSPACE / "guardian-loadouts.mjs"
+PROFILE = WORKSPACE / "guardian-bungie-profile.mjs"
 STYLES = WORKSPACE / "guardian-left-panel-tune.css"
 BUNGIE_ROOT = "https://www.bungie.net"
 USER_AGENT = {"User-Agent": "ASTRIX-Paradox-Validator/1.0"}
@@ -70,12 +71,15 @@ def main() -> int:
         )
 
     renderer = RENDERER.read_text(encoding="utf-8")
+    profile = PROFILE.read_text(encoding="utf-8")
     styles = STYLES.read_text(encoding="utf-8")
     assert "const SLOT_COUNT=20" in renderer
     assert "loadoutIdentity(loadout)" in renderer
     assert "is-empty" in renderer and "EMPTY" in renderer
     assert 'event.detail?.source!=="bungie-live"' in renderer
+    assert 'event.detail?.loadoutsAvailable!==true' in renderer
     assert 'renderStatus("Loadout data unavailable","unavailable")' in renderer
+    assert "const loadoutsAvailable=Array.isArray(characterLoadouts?.loadouts)" in profile
     assert "hashHue" not in renderer
     assert ".guardian-loadouts-status.is-unavailable" in styles
     assert ".guardian-loadout-slot.is-empty::before" in styles
@@ -89,6 +93,7 @@ def main() -> int:
     print("SLOTS=20")
     print("EMPTY_SLOT_MARKER=PASS")
     print("UNAVAILABLE_IS_NOT_EMPTY=PASS")
+    print("MISSING_COMPONENT_IS_NOT_EMPTY=PASS")
     return 0
 
 
