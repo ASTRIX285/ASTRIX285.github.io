@@ -100,6 +100,8 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
   const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem):{abilities:[],aspects:[],fragments:[]};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character);
+  const characterLoadouts=profile?.characterLoadouts?.data?.[character.characterId];
+  const loadoutsAvailable=Array.isArray(characterLoadouts?.loadouts);
   return {
     source:"bungie-live",
     characterId:character.characterId,
@@ -116,7 +118,8 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     renderData:profile?.characterRenderData?.data?.[character.characterId]||null,
     itemRenderData:profile?.itemComponents?.renderData?.data||{},
     gearAssets:payload.gearAssets||{},
-    loadouts:profile?.characterLoadouts?.data?.[character.characterId]?.loadouts||[],
+    loadoutsAvailable,
+    loadouts:loadoutsAvailable?characterLoadouts.loadouts:[],
     displayName:payload.membership?.displayName||session?.activeDestinyMembership?.displayName||"Guardian"
   };
 }
