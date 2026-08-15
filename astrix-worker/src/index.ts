@@ -56,7 +56,7 @@ const PROFILE_COMPONENTS = [
   201, // CharacterInventories
   202, // CharacterProgressions
   203, // CharacterRenderData\n  204, // CharacterActivities
-  205, // CharacterEquipment
+  205, // CharacterEquipment\n  206, // CharacterLoadouts
   300, // ItemInstances
   302, // ItemPerks
   304, // ItemStats
