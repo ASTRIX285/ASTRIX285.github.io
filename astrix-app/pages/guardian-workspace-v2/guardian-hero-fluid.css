@@ -24,10 +24,6 @@
   margin:0!important;
   padding:var(--workspace-pad)!important;
   gap:var(--workspace-gap)!important;
-  grid-template-columns:
-    clamp(300px,18vw,440px)
-    minmax(0,1fr)
-    clamp(330px,18vw,440px)!important;
   grid-template-rows:minmax(0,auto) auto!important;
 }
 
@@ -141,7 +137,7 @@
 
 /* ---------- HERO STAGE: one shared coordinate system ---------- */
 .stage{
-  --stage-anchor-x:69%;
+  --stage-anchor-x:50%;
   --stage-ground-y:clamp(42px,6.5cqh,68px);
   --stage-platform-offset:clamp(20px,3cqh,34px);
   --stage-platform-size:clamp(300px,43cqw,620px);
@@ -166,12 +162,19 @@
   bottom:var(--stage-ground-y)!important;
   transform:translateX(-50%)!important;
   width:clamp(360px,50cqw,760px)!important;
-  height:clamp(390px,82cqh,700px)!important;
+  height:min(82cqh,calc(100cqh - var(--stage-ground-y)))!important;
   max-width:64cqw!important;
-  max-height:86cqh!important;
+  max-height:calc(100% - var(--stage-ground-y))!important;
   display:flex!important;
   align-items:flex-end!important;
   justify-content:center!important;
+}
+
+.stage > .guardian-render-status{
+  left:50%!important; right:auto!important; top:50%!important; bottom:auto!important;
+  width:clamp(260px,34cqw,440px)!important; height:auto!important;
+  max-width:calc(100% - 32px)!important; max-height:calc(100% - 32px)!important;
+  transform:translate(-50%,-50%)!important;
 }
 .stage > .guardian-hero img{
   display:block!important;
@@ -226,6 +229,5 @@
 @media (max-width:1220px){
   .workspace{
     max-width:100%!important;
-    grid-template-columns:minmax(280px,34vw) minmax(0,1fr)!important;
   }
 }
