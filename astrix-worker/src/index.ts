@@ -39,6 +39,14 @@ type BungieApiResponse<T> = {
   Message?: string;
 };
 
+type DestinyItemComponent = { itemHash?: number; itemInstanceId?: string };
+type DestinySocketComponent = { sockets?: Array<{ plugHash?: number }> };
+type DestinyProfilePayload = {
+  characterEquipment?: { data?: Record<string, { items?: DestinyItemComponent[] }> };
+  itemComponents?: { sockets?: { data?: Record<string, DestinySocketComponent> } };
+  [key: string]: unknown;
+};
+
 const PROFILE_COMPONENTS = [
   100, // Profiles
   102, // ProfileInventories
@@ -207,6 +215,42 @@ async function refreshAccessToken(sessionId: string, session: SessionRecord, env
   return refreshed;
 }
 
+function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
+  const hashes = new Set<number>();
+  const equipment = profile.characterEquipment?.data || {};
+  for (const character of Object.values(equipment)) {
+    for (const item of character.items || []) {
+      if (Number.isInteger(item.itemHash)) hashes.add(Number(item.itemHash));
+      if (!item.itemInstanceId) continue;
+      const socketData = profile.itemComponents?.sockets?.data?.[item.itemInstanceId];
+      for (const socket of socketData?.sockets || []) {
+        if (Number.isInteger(socket.plugHash)) hashes.add(Number(socket.plugHash));
+      }
+    }
+  }
+  return [...hashes];
+}
+
+async function fetchInventoryDefinitions(
+  hashes: number[],
+  accessToken: string,
+  env: Env
+): Promise<Record<string, Record<string, unknown>>> {
+  const entries = await Promise.all(hashes.slice(0, 160).map(async (hash) => {
+    const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-API-Key": env.BUNGIE_API_KEY,
+        "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+      }
+    });
+    if (!response.ok) return null;
+    const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+    return payload?.Response ? [String(hash), payload.Response] as const : null;
+  }));
+  return Object.fromEntries(entries.filter((entry): entry is readonly [string, Record<string, unknown>] => entry !== null));
+}
+
 async function profileRoute(request: Request, env: Env): Promise<Response> {
   const sessionId = cookieValue(request, SESSION_COOKIE);
   if (!sessionId) return withCors(request, env, json({ authenticated: false, error: "authentication_required" }, 401));
@@ -256,7 +300,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
       "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
     }
   });
-  const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+  const payload = await response.json<BungieApiResponse<DestinyProfilePayload>>().catch(() => null);
   if (!response.ok || !payload?.Response) {
     console.error("bungie_profile_failed", {
       status: response.status,
@@ -271,13 +315,19 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
+  const definitions = await fetchInventoryDefinitions(
+    equippedDefinitionHashes(payload.Response),
+    session.accessToken,
+    env
+  );
   const updatedSession = { ...session, lastUsedAt: Date.now() };
   await putSession(env, sessionId, updatedSession);
   return withCors(request, env, json({
     authenticated: true,
     membership,
     components: PROFILE_COMPONENTS,
-    profile: payload.Response
+    profile: payload.Response,
+    definitions
   }));
 }
 
