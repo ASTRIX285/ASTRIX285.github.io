@@ -98,9 +98,22 @@ function applyGuardianSelection(detail){
   if(next.renderUrl){setStageState("loading","Loading selected Guardian…");render.onload=()=>setStageState("ready");render.onerror=()=>{render.style.display="none";setStageState("error","Guardian render could not be loaded.")};render.style.display="block";render.src=next.renderUrl}
   if(next.power!=null) document.querySelectorAll("[data-power-cap]").forEach(el=>el.textContent=next.power);
   if(next.stats) renderStats(next.stats);
+  if(next.subclassBuild)renderSubclassBuild(next.subclassBuild,next.subclassName);
   if(Array.isArray(next.weapons)) renderWeapons(next.weapons);
   if(Array.isArray(next.armour)) bindArmourSlots(next.armour);
   updateIdentityCosmetics(next);
+}
+
+function renderSubclassBuild(build={},subclassName="Subclass"){
+  const abilities=Array.isArray(build.abilities)?build.abilities:[];
+  const aspects=Array.isArray(build.aspects)?build.aspects:[];
+  const fragments=Array.isArray(build.fragments)?build.fragments:[];
+  const abilityHost=byId("abilityList");
+  const aspectHost=byId("aspectList");
+  const fragmentHost=byId("fragList");
+  if(abilityHost&&abilities.length)abilityHost.innerHTML=abilities.map(item=>`<div class="ability-row"><span class="ico-badge">${iconMarkup(item.icon,item.name)}</span><div class="meta"><small>${escapeHtml(item.itemTypeDisplayName||subclassName)}</small><b>${escapeHtml(item.name)}</b></div></div>`).join("");
+  if(aspectHost)aspectHost.innerHTML=aspects.map(item=>`<div class="slot"><span class="ico-badge">${iconMarkup(item.icon,item.name)}</span><span class="nm">${escapeHtml(item.name)}</span><span class="cfg">⚙</span></div>`).join("");
+  if(fragmentHost)fragmentHost.innerHTML=fragments.map(item=>`<div class="slot"><span class="ico-badge">${iconMarkup(item.icon,item.name)}</span><span class="nm">${escapeHtml(item.name)}</span></div>`).join("");
 }
 
 function updateIdentityCosmetics(data){
