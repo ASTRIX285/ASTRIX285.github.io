@@ -24,11 +24,6 @@
   margin:0!important;
   padding:var(--workspace-pad)!important;
   gap:var(--workspace-gap)!important;
-  grid-template-columns:
-    clamp(300px,18vw,440px)
-    minmax(0,1fr)
-    clamp(330px,18vw,440px)!important;
-  grid-template-rows:minmax(0,auto) auto!important;
 }
 
 /* Stage height reacts continuously to the effective viewport height.
@@ -159,30 +154,6 @@
   --size:var(--stage-platform-size)!important;
   z-index:3!important;
 }
-.stage > .guardian-hero{
-  left:var(--stage-anchor-x)!important;
-  right:auto!important;
-  top:auto!important;
-  bottom:var(--stage-ground-y)!important;
-  transform:translateX(-50%)!important;
-  width:clamp(360px,50cqw,760px)!important;
-  height:clamp(390px,82cqh,700px)!important;
-  max-width:64cqw!important;
-  max-height:86cqh!important;
-  display:flex!important;
-  align-items:flex-end!important;
-  justify-content:center!important;
-}
-.stage > .guardian-hero img{
-  display:block!important;
-  width:auto!important;
-  height:100%!important;
-  max-width:100%!important;
-  max-height:100%!important;
-  object-fit:contain!important;
-  object-position:center bottom!important;
-}
-
 /* Identity and stats also use stage-container units, so their density tracks
    the same canvas without changing the Guardian/platform relationship. */
 .stage .identity{
@@ -219,13 +190,11 @@
 /* Ultra-wide screens get breathing room, not a larger character. */
 @media (min-aspect-ratio:2/1){
   .stage{--stage-platform-size:clamp(310px,36cqw,600px)}
-  .stage > .guardian-hero{width:clamp(370px,43cqw,700px)!important}
 }
 
 /* Below desktop width we allow the existing tablet/mobile layout to take over. */
 @media (max-width:1220px){
   .workspace{
     max-width:100%!important;
-    grid-template-columns:minmax(280px,34vw) minmax(0,1fr)!important;
   }
 }
