@@ -58,10 +58,10 @@ function identityCosmetics(profile,definitions,equipment,character){
   return {ghost:ghostItem?normaliseItem(profile,definitions,ghostItem):null,shader,emblem:{hash:character.emblemHash??null,icon:absoluteIcon(character.emblemPath),background:absoluteIcon(character.emblemBackgroundPath)}};
 }
 
-function normaliseLiveProfile(payload,session){
+function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const profile=payload.profile||{};
   const definitions=payload.definitions||{};
-  const character=activeCharacter(profile);
+  const character=(preferredCharacterId&&profile?.characters?.data?.[preferredCharacterId])||activeCharacter(profile);
   if(!character?.characterId)throw new Error("No Destiny character was returned for this membership.");
   const equipment=profile?.characterEquipment?.data?.[character.characterId]?.items||[];
   const byBucket=hash=>equipment.find(item=>definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===hash)||null;
@@ -89,6 +89,41 @@ function normaliseLiveProfile(payload,session){
   };
 }
 
+function profileWithSelectedLoadout(payload){
+  const profile=structuredClone(payload.profile||{});
+  const characterId=String(payload.characterId||"");
+  const items=Array.isArray(payload.selectedItems)?payload.selectedItems:[];
+  profile.characterEquipment=profile.characterEquipment||{data:{}};
+  profile.characterEquipment.data=profile.characterEquipment.data||{};
+  profile.characterEquipment.data[characterId]={items:items.map(({plugItemHashes,...item})=>item)};
+  profile.itemComponents=profile.itemComponents||{};
+  profile.itemComponents.sockets=profile.itemComponents.sockets||{data:{}};
+  profile.itemComponents.sockets.data=profile.itemComponents.sockets.data||{};
+  items.forEach(item=>{
+    if(!item.itemInstanceId)return;
+    profile.itemComponents.sockets.data[item.itemInstanceId]={sockets:(item.plugItemHashes||[]).map(plugHash=>({plugHash}))};
+  });
+  return profile;
+}
+
+async function loadSelectedLoadout(selection){
+  const characterId=String(selection?.characterId||"");
+  const index=Number(selection?.index);
+  if(!characterId||!Number.isInteger(index))throw new Error("Invalid Bungie loadout selection.");
+  document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
+  const url=new URL(`${AUTH_ORIGIN}/bungie/loadout`);
+  url.searchParams.set("characterId",characterId);
+  url.searchParams.set("index",String(index));
+  const response=await fetch(url,{credentials:"include",headers:{Accept:"application/json"}});
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(payload.error||`Bungie loadout request failed (${response.status}).`);
+  payload.profile=profileWithSelectedLoadout(payload);
+  const detail={...normaliseLiveProfile(payload,null,characterId),selectedLoadoutIndex:index,loadoutSource:"bungie-live"};
+  document.documentElement.dataset.guardianSource="bungie-loadout";
+  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
+  document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail}));
+}
+
 async function loadLiveProfile(session){
   setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
   document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
@@ -110,4 +145,11 @@ globalThis.addEventListener("astrix:bungie-session",event=>{
   });
 });
 
-export {normaliseLiveProfile};
+document.addEventListener("astrix:loadout-selected",event=>{
+  loadSelectedLoadout(event.detail).catch(error=>{
+    console.error("[ASTRIX Bungie loadout]",error);
+    document.dispatchEvent(new CustomEvent("astrix:guardian-error",{detail:{message:error.message||"Saved loadout could not be loaded."}}));
+  });
+});
+
+export {normaliseLiveProfile,loadSelectedLoadout};
