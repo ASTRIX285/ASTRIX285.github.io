@@ -6,6 +6,7 @@ export { AuthRecord };
 const BUNGIE_AUTHORIZE = "https://www.bungie.net/en/oauth/authorize";
 const BUNGIE_TOKEN = "https://www.bungie.net/platform/app/oauth/token/";
 const BUNGIE_MEMBERSHIPS = "https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/";
+const BUNGIE_PLATFORM = "https://www.bungie.net/Platform";
 const SESSION_COOKIE = "astrix_session";
 const OAUTH_TTL_MS = 10 * 60 * 1000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -30,6 +31,31 @@ type BungieMembershipResponse = {
   ErrorCode?: number;
   Message?: string;
 };
+
+type BungieApiResponse<T> = {
+  Response?: T;
+  ErrorCode?: number;
+  ErrorStatus?: string;
+  Message?: string;
+};
+
+const PROFILE_COMPONENTS = [
+  100, // Profiles
+  102, // ProfileInventories
+  103, // ProfileCurrencies
+  104, // ProfileProgression
+  200, // Characters
+  201, // CharacterInventories
+  202, // CharacterProgressions
+  204, // CharacterRenderData
+  205, // CharacterEquipment
+  300, // ItemInstances
+  302, // ItemPerks
+  304, // ItemStats
+  305, // ItemSockets
+  309, // ItemPlugObjectives
+  310  // ItemReusablePlugs
+] as const;
 
 function randomToken(): string {
   return crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
@@ -67,6 +93,10 @@ async function getSession(env: Env, sessionId: string): Promise<SessionRecord | 
   if (!response.ok) return null;
   const value = await response.json<OAuthTransaction | SessionRecord>();
   return value.kind === "session" ? value : null;
+}
+
+async function putSession(env: Env, sessionId: string, session: SessionRecord): Promise<void> {
+  await putRecord(env, `session:${sessionId}`, session);
 }
 
 async function deleteSession(env: Env, sessionId: string): Promise<void> {
@@ -142,6 +172,113 @@ async function fetchMemberships(accessToken: string, env: Env): Promise<BungieMe
   });
   if (!response.ok) throw new Error(`bungie_memberships_failed:${response.status}:${await response.text()}`);
   return response.json<BungieMembershipResponse>();
+}
+
+async function refreshAccessToken(sessionId: string, session: SessionRecord, env: Env): Promise<SessionRecord> {
+  if (session.accessExpiresAt > Date.now() + 60_000) return session;
+  if (!session.refreshToken || (session.refreshExpiresAt !== null && session.refreshExpiresAt <= Date.now())) {
+    throw new Error("bungie_reauthentication_required");
+  }
+
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    refresh_token: session.refreshToken,
+    client_id: env.BUNGIE_CLIENT_ID,
+    client_secret: env.BUNGIE_CLIENT_SECRET
+  });
+  const response = await fetch(BUNGIE_TOKEN, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body
+  });
+  if (!response.ok) throw new Error(`bungie_token_refresh_failed:${response.status}`);
+
+  const token = await response.json<TokenResponse>();
+  const now = Date.now();
+  const refreshed: SessionRecord = {
+    ...session,
+    lastUsedAt: now,
+    accessToken: token.access_token,
+    refreshToken: token.refresh_token || session.refreshToken,
+    accessExpiresAt: now + token.expires_in * 1000,
+    refreshExpiresAt: token.refresh_expires_in ? now + token.refresh_expires_in * 1000 : session.refreshExpiresAt
+  };
+  await putSession(env, sessionId, refreshed);
+  return refreshed;
+}
+
+async function profileRoute(request: Request, env: Env): Promise<Response> {
+  const sessionId = cookieValue(request, SESSION_COOKIE);
+  if (!sessionId) return withCors(request, env, json({ authenticated: false, error: "authentication_required" }, 401));
+
+  const storedSession = await getSession(env, sessionId);
+  if (!storedSession || storedSession.absoluteExpiresAt <= Date.now()) {
+    if (storedSession) await deleteSession(env, sessionId);
+    return withCors(request, env, json(
+      { authenticated: false, error: "session_expired" },
+      401,
+      { "Set-Cookie": clearSessionCookie() }
+    ));
+  }
+
+  if (!storedSession.activeDestinyMembership) {
+    return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
+  }
+
+  let session: SessionRecord;
+  try {
+    session = await refreshAccessToken(sessionId, storedSession, env);
+  } catch (error) {
+    if (error instanceof Error && error.message === "bungie_reauthentication_required") {
+      await deleteSession(env, sessionId);
+      return withCors(request, env, json(
+        { authenticated: false, error: "bungie_reauthentication_required" },
+        401,
+        { "Set-Cookie": clearSessionCookie() }
+      ));
+    }
+    throw error;
+  }
+
+  const membership = session.activeDestinyMembership;
+  if (!membership) {
+    return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
+  }
+  const profileUrl = new URL(
+    `${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Profile/${encodeURIComponent(membership.membershipId)}/`
+  );
+  profileUrl.searchParams.set("components", PROFILE_COMPONENTS.join(","));
+
+  const response = await fetch(profileUrl, {
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`,
+      "X-API-Key": env.BUNGIE_API_KEY,
+      "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+    }
+  });
+  const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+  if (!response.ok || !payload?.Response) {
+    console.error("bungie_profile_failed", {
+      status: response.status,
+      errorCode: payload?.ErrorCode,
+      errorStatus: payload?.ErrorStatus
+    });
+    return withCors(request, env, json({
+      error: "bungie_profile_failed",
+      status: response.status,
+      errorCode: payload?.ErrorCode ?? null,
+      errorStatus: payload?.ErrorStatus ?? null
+    }, response.status >= 400 && response.status < 500 ? response.status : 502));
+  }
+
+  const updatedSession = { ...session, lastUsedAt: Date.now() };
+  await putSession(env, sessionId, updatedSession);
+  return withCors(request, env, json({
+    authenticated: true,
+    membership,
+    components: PROFILE_COMPONENTS,
+    profile: payload.Response
+  }));
 }
 
 async function oauthCallback(request: Request, env: Env): Promise<Response> {
@@ -242,6 +379,9 @@ export default {
       if (request.method === "GET" && url.pathname === "/bungie/start") return startOAuth(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/callback") return oauthCallback(request, env);
       if (request.method === "GET" && url.pathname === "/session") return sessionRoute(request, env);
+      if (request.method === "GET" && (url.pathname === "/bungie/profile" || url.pathname === "/v1/destiny/profile")) {
+        return profileRoute(request, env);
+      }
       if (request.method === "POST" && url.pathname === "/logout") return logoutRoute(request, env);
       return json({ error: "not_found" }, 404);
     } catch (error) {
