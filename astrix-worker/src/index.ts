@@ -252,7 +252,7 @@ async function fetchInventoryDefinitions(
   // Keep the profile request plus definition lookups below the Worker subrequest budget.
   // Equipment hashes are inserted before plug hashes, so visible gear resolves first.
   const entries = await Promise.all(hashes.slice(0, 34).map(async (hash) => {
-    const cache = caches.default;
+    const cache = await caches.open("astrix-bungie-definitions");
     const cacheKey = new Request(`https://astrix-definition-cache.invalid/inventory/${hash}`, { method: "GET" });
     const cached = await cache.match(cacheKey);
     if (cached) {
@@ -285,7 +285,7 @@ async function fetchGearAssetDefinitions(
   // Character assembly needs Bungie's geometry, textures and dye metadata.
   // Keep the total profile request below the Worker subrequest ceiling.
   const entries = await Promise.all(hashes.slice(0, 12).map(async (hash) => {
-    const cache = caches.default;
+    const cache = await caches.open("astrix-bungie-definitions");
     const cacheKey = new Request(`https://astrix-definition-cache.invalid/gear/${hash}`, { method: "GET" });
     const cached = await cache.match(cacheKey);
     if (cached) {
