@@ -1,0 +1,73 @@
+/* Feedback pass: preserve the approved left rail and weapons panel while
+   assigning substantially more room to Paradox intelligence. */
+html{font-size:clamp(16px,.52vw,22px)}
+
+@media (min-width:1500px){
+  .workspace{
+    width:calc(100vw - clamp(20px,1.4vw,40px))!important;
+    max-width:none!important;
+  }
+}
+
+/* Two readable size steps above the previous micro-copy. */
+.right .ra-head .upd,
+.right .eyebrow,
+.right .focus .lbl,
+.right .mini .t,
+.right .sw-card .t{
+  font-size:clamp(12px,.34vw,15px)!important;
+}
+
+.right .health-card .verdict small,
+.right .focus-row p,
+.right .sw-card li,
+.right .improve p,
+.right .activity .act-hero small,
+.right .act-row{
+  font-size:clamp(14px,.42vw,18px)!important;
+  line-height:1.5!important;
+}
+
+.right .ra-head h2{font-size:clamp(18px,.55vw,24px)!important}
+.right .focus-row b,
+.right .activity .act-hero b{font-size:clamp(15px,.46vw,20px)!important}
+.right .btn-rec,.right .btn-change{font-size:clamp(13px,.38vw,16px)!important}
+
+/* The wider intelligence rail should use its space rather than stretching
+   every card into one long line. */
+.right{container-type:inline-size}
+@container (min-width:620px){
+  .right .health-card{grid-template-columns:104px minmax(0,1fr)!important}
+  .right .mini-grid,
+  .right .sw-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* Large desktop and 4K displays: the grid already expands, so lift the old
+   component caps as well. This keeps the page readable without browser zoom. */
+@media (min-width:2400px) and (min-height:1100px){
+  .topbar{height:clamp(64px,4.2vh,84px)!important}
+  .workspace{
+    min-height:calc(100dvh - clamp(64px,4.2vh,84px))!important;
+  }
+  .workspace > .left{
+    --rail-icon:clamp(60px,15cqw,88px)!important;
+  }
+  .left .super-focus-icon,
+  .left .super-focus-icon .ico-badge{
+    width:clamp(86px,22cqw,124px)!important;
+    height:clamp(86px,22cqw,124px)!important;
+  }
+  .stage > .guardian-platform{
+    --size:clamp(480px,43cqw,860px)!important;
+  }
+  .gear-weapons .weap-grid{
+    grid-template-columns:repeat(3,clamp(84px,5vw,118px))!important;
+  }
+  .gear-weapons .weap,
+  .gear-weapons .weap .art,
+  .gear-weapons .weap .cap{
+    width:clamp(84px,5vw,118px)!important;
+    max-width:118px!important;
+  }
+  .gear-weapons .weap .art{height:clamp(84px,5vw,118px)!important}
+}

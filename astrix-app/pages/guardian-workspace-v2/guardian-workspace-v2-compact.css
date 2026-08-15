@@ -132,11 +132,7 @@
   border:1px solid rgba(196,181,253,.4)}
 .improve-cta:hover{transform:translateY(-2px)}
 
-@media (max-width:1500px){
-  .workspace{grid-template-columns:280px minmax(0,1fr) 340px}
-}
 @media (max-width:1200px){
-  .workspace{grid-template-columns:1fr;grid-template-areas:"stage" "left" "right" "equip";}
   .stage{min-height:520px}
   .equip{grid-template-columns:1fr 1fr}
   .season,.char-switch{display:none}

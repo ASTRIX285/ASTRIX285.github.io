@@ -1,10 +1,8 @@
 /* Paradox Forge gear relationship layout.
    Familiar Destiny loadout logic, redesigned around armour -> socketed mods. */
 
-.workspace{grid-template-areas:"left stage right" "equip equip right"!important}
 .left{grid-area:left;align-self:stretch;min-height:0}
 .equip{grid-area:equip}
-@media(min-width:1901px){.workspace{grid-template-columns:minmax(396px,432px) minmax(0,1fr) minmax(390px,430px)!important}}
 
 /* Narrower weapon panel, wider armour panel. */
 .equip.gear-layout-active{grid-template-columns:minmax(270px,300px) minmax(0,1fr)!important;gap:14px!important;align-items:start!important}
@@ -48,8 +46,9 @@
 
 .gear-slot-divider{height:1px;background:var(--line);margin:3px 0 clamp(4px,.5vh,8px)}
 
-/* Legendary = six functional slots. Exotic = five functional slots + intrinsic above. */
-.gear-mods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,auto);gap:clamp(3px,.3vw,6px)}
+/* Armour 3.0 supports six functional slots. Stack them 3 × 2 so every armour
+   tier, including T5 and Exotic, has room for the additional socket. */
+.gear-mods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,auto);gap:clamp(2px,.2vw,4px);justify-content:center}
 .gear-mod{position:relative;aspect-ratio:1;border-radius:8px;border:1px solid var(--line-2);background:rgba(139,92,246,.055);display:grid;place-items:center;overflow:hidden;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
 .gear-mod:hover,.gear-mod:focus-visible{transform:translateY(-2px);border-color:var(--stage-accent);box-shadow:0 0 15px var(--stage-accent-soft);outline:none}
 .gear-mod img{width:88%;height:88%;object-fit:contain}
@@ -66,13 +65,12 @@
 @media(min-width:1221px) and (min-height:760px){
   html,body{height:100%;overflow:hidden}
   .workspace{
-    width:calc(100vw - clamp(20px,2.8vw,72px))!important;
-    max-width:2460px!important;
+    width:calc(100vw - clamp(20px,1.4vw,40px))!important;
+    max-width:none!important;
     height:calc(100dvh - 64px - 58px)!important;
     min-height:0!important;
     margin:0 auto!important;
     padding:clamp(8px,1vh,14px) 0 clamp(6px,.8vh,12px)!important;
-    grid-template-columns:clamp(300px,16.8vw,432px) minmax(0,1fr) clamp(350px,16.8vw,430px)!important;
     grid-template-rows:minmax(0,64fr) minmax(0,36fr)!important;
     gap:clamp(8px,.65vw,16px)!important;
   }
@@ -80,7 +78,6 @@
   .left,.right{height:100%!important;max-height:none!important;min-height:0!important;overflow:auto}
   .equip{height:100%!important;min-height:0!important;overflow:hidden}
   .eq{padding:clamp(7px,.7vh,12px)!important}
-  .guardian-hero{top:clamp(4%,5vh,7%)!important;bottom:clamp(5%,5.5vh,8%)!important}
   .stage>.guardian-platform{--size:clamp(350px,25vw,540px)!important}
   .actionbar{height:58px;min-height:58px;padding:7px 24px!important}
 }
@@ -103,7 +100,15 @@
 }
 @media(max-width:1220px){
   html,body{overflow:auto}
-  .workspace{height:auto!important;grid-template-areas:"left stage" "equip equip" "right right"!important}
+  .workspace{height:auto!important}
   .left{max-height:600px!important}
 }
 @media(max-width:860px){.left{max-height:none!important}}
+
+@media(min-width:2400px) and (min-height:1100px){
+  .workspace{
+    width:calc(100vw - clamp(24px,1.2vw,48px))!important;
+    max-width:none!important;
+    height:calc(100dvh - clamp(64px,4.2vh,84px) - 58px)!important;
+  }
+}
