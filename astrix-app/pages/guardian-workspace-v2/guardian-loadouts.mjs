@@ -57,6 +57,10 @@ document.addEventListener("astrix:guardian-selection-changed",event=>{
     renderStatus("Connect Bungie to load in-game slots","disconnected");
     return;
   }
+  if(event.detail?.loadoutsAvailable!==true){
+    renderStatus("Bungie loadout component unavailable","unavailable");
+    return;
+  }
   activeCharacterId=String(event.detail?.characterId||activeCharacterId||"");
   if(Number.isInteger(event.detail?.selectedLoadoutIndex))activeIndex=event.detail.selectedLoadoutIndex;
   render(event.detail?.loadouts||[]);
