@@ -8,6 +8,8 @@ const ARMOUR_ORDER=[BUCKETS.helmet,BUCKETS.gauntlets,BUCKETS.chest,BUCKETS.legs,
 const WEAPON_ORDER=[BUCKETS.kinetic,BUCKETS.energy,BUCKETS.power];
 const STAT_ORDER=[["Weapons",2996146975],["Health",392767087],["Class",1943323491],["Grenade",1735777505],["Super",144602215],["Melee",4244567218]];
 const loadoutCache=new Map();
+let liveProfilePayload=null;
+let liveProfileSession=null;
 
 const setRenderStatus=(title,message,detail="")=>{
   const host=document.querySelector("#guardianHero.guardian-render-status");
@@ -52,6 +54,44 @@ function classifySubclass(item){
 function activeCharacter(profile){
   const rows=Object.values(profile?.characters?.data||{});
   return rows.sort((a,b)=>String(b.dateLastPlayed||"").localeCompare(String(a.dateLastPlayed||"")))[0]||null;
+}
+
+function guardianRank(profile){
+  const progression=profile?.profileProgression?.data||{};
+  const rank=progression.currentGuardianRank??progression.highestCurrentGuardianRank;
+  return Number.isFinite(Number(rank))?Number(rank):null;
+}
+
+function equippedTitle(payload,character){
+  const hash=character?.titleRecordHash;
+  if(!hash)return {hash:null,name:""};
+  const row=payload?.recordDefinitions?.[String(hash)]||payload?.definitions?.[String(hash)]||null;
+  return {hash:Number(hash),name:String(row?.displayProperties?.name||"")};
+}
+
+function characterRoster(payload,selectedCharacterId=null){
+  const profile=payload?.profile||{};
+  const rank=guardianRank(profile);
+  const order={hunter:0,warlock:1,titan:2};
+  return Object.values(profile?.characters?.data||{}).map(character=>{
+    const characterClass=CLASS_NAMES[Number(character.classType)]||"hunter";
+    const title=equippedTitle(payload,character);
+    return {
+      characterId:String(character.characterId||""),
+      characterClass,
+      power:character.light??null,
+      guardianRank:rank,
+      titleHash:title.hash,
+      title:title.name,
+      stats:STAT_ORDER.map(([name,hash])=>[name,Number(character.stats?.[hash]??0)]),
+      emblem:{hash:character.emblemHash??null,icon:absoluteIcon(character.emblemPath),background:absoluteIcon(character.emblemBackgroundPath)},
+      selected:String(character.characterId||"")===String(selectedCharacterId||"")
+    };
+  }).sort((a,b)=>(order[a.characterClass]??9)-(order[b.characterClass]??9));
+}
+
+function publishCharacterRoster(payload,selectedCharacterId){
+  document.dispatchEvent(new CustomEvent("astrix:bungie-character-roster",{detail:{source:"bungie-live",selectedCharacterId:String(selectedCharacterId||""),characters:characterRoster(payload,selectedCharacterId)}}));
 }
 
 function socketPlugs(profile,definitions,item){
@@ -102,6 +142,8 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const cosmetics=identityCosmetics(profile,definitions,equipment,character);
   const characterLoadouts=profile?.characterLoadouts?.data?.[character.characterId];
   const loadoutsAvailable=Array.isArray(characterLoadouts?.loadouts);
+  const rank=guardianRank(profile);
+  const title=equippedTitle(payload,character);
   return {
     source:"bungie-live",
     characterId:character.characterId,
@@ -110,6 +152,9 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     subclassName:subclass?.name||"Subclass",
     subclassBuild,
     power:character.light??null,
+    guardianRank:rank,
+    titleHash:title.hash,
+    title:title.name,
     stats:STAT_ORDER.map(([name,hash])=>[name,Number(character.stats?.[hash]??0)]),
     weapons,
     armour,
@@ -182,10 +227,24 @@ async function loadLiveProfile(session,{background=false}={}){
   }
   const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
   const detail=normaliseLiveProfile(payload,session);
+  liveProfilePayload=payload;
+  liveProfileSession=session;
   document.documentElement.dataset.guardianSource="bungie-live";
   setRenderStatus("CHARACTER RENDERING","Live profile data ready","3D assembly in development");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
+  publishCharacterRoster(payload,detail.characterId);
   document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail}));
+  return detail;
+}
+
+function selectLiveCharacter(characterId){
+  if(!liveProfilePayload)return null;
+  const detail=normaliseLiveProfile(liveProfilePayload,liveProfileSession,characterId);
+  document.documentElement.dataset.guardianSource="bungie-live";
+  setRenderStatus("CHARACTER RENDERING",`${detail.characterClass} profile ready`,"Live equipment and saved loadouts selected");
+  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
+  publishCharacterRoster(liveProfilePayload,detail.characterId);
+  document.dispatchEvent(new CustomEvent("astrix:bungie-character-selected",{detail}));
   return detail;
 }
 
@@ -238,9 +297,14 @@ document.addEventListener("astrix:loadout-selected",event=>{
   });
 });
 
+document.addEventListener("astrix:character-selected",event=>{
+  try{selectLiveCharacter(String(event.detail?.characterId||""));}
+  catch(error){reportProfileError(error);}
+});
+
 /* Start the protected profile request beside the session check. Returning
    authenticated users therefore pay one network wait instead of two. */
 ensureLiveProfile(globalThis.ASTRIX_BUNGIE_SESSION||null,{background:true,silent:true});
 getBungieSession().then(handleAuthenticatedSession);
 
-export {normaliseLiveProfile,loadSelectedLoadout};
+export {normaliseLiveProfile,loadSelectedLoadout,characterRoster,selectLiveCharacter};
