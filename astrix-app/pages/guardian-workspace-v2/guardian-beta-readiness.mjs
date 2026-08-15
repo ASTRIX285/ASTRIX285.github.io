@@ -1,3 +1,5 @@
+import {getBungieSession} from "./guardian-bungie-auth.mjs";
+
 const BETA_ACCESS_CODE="PARADOX285";
 const STORAGE_KEY="astrix-paradox-beta-access";
 const SAVED_KEY="astrix-paradox-saved-loadouts";
@@ -190,19 +192,8 @@ function accessGate(){
 }
 
 async function waitForBungieAuthentication(){
-  try{
-    const response=await fetch("https://auth.astrixparadox.com/session",{
-      credentials:"include",
-      headers:{Accept:"application/json"}
-    });
-    if(response.ok){
-      const session=await response.json();
-      if(session?.authenticated)return session;
-    }
-  }catch(error){
-    console.info("[ASTRIX Alpha gate] Bungie session not active",error);
-  }
-
+  const session=await getBungieSession();
+  if(session?.authenticated)return session;
   return new Promise(resolve=>{
     globalThis.addEventListener("astrix:bungie-session",event=>resolve(event.detail),{once:true});
   });
