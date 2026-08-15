@@ -228,6 +228,27 @@ async function refreshAccessToken(sessionId: string, session: SessionRecord, env
   return refreshed;
 }
 
+function activeCharacterDefinitionHashes(profile: DestinyProfilePayload): number[] {
+  const characters = Object.values(profile.characters?.data || {}).sort((a, b) =>
+    String(b.dateLastPlayed || "").localeCompare(String(a.dateLastPlayed || ""))
+  );
+  const characterId = String(characters[0]?.characterId || "");
+  const items = profile.characterEquipment?.data?.[characterId]?.items || [];
+  const hashes = new Set<number>();
+  // Base equipment first so every visible slot can resolve before optional plugs.
+  for (const item of items) {
+    if (Number.isInteger(item.itemHash)) hashes.add(Number(item.itemHash));
+  }
+  for (const item of items) {
+    if (!item.itemInstanceId) continue;
+    const socketData = profile.itemComponents?.sockets?.data?.[item.itemInstanceId];
+    for (const socket of socketData?.sockets || []) {
+      if (Number.isInteger(socket.plugHash)) hashes.add(Number(socket.plugHash));
+    }
+  }
+  return [...hashes];
+}
+
 function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
   const hashes = new Set<number>();
   const equipment = profile.characterEquipment?.data || {};
@@ -253,12 +274,17 @@ async function fetchInventoryDefinitions(
   // Keep the profile request plus definition lookups below the Worker subrequest budget.
   // Equipment hashes are inserted before plug hashes, so visible gear resolves first.
   const entries = await Promise.all(hashes.slice(0, limit).map(async (hash) => {
-    const cache = await caches.open("astrix-bungie-definitions");
-    const cacheKey = new Request(`https://astrix-definition-cache.invalid/inventory/${hash}`, { method: "GET" });
-    const cached = await cache.match(cacheKey);
-    if (cached) {
-      const definition = await cached.json<Record<string, unknown>>().catch(() => null);
-      if (definition) return [String(hash), definition] as const;
+    let cache: Cache | null = null;
+    const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/inventory/${hash}`, { method: "GET" });
+    try {
+      cache = await caches.open("astrix-bungie-definitions");
+      const cached = await cache.match(cacheKey);
+      if (cached) {
+        const definition = await cached.json<Record<string, unknown>>().catch(() => null);
+        if (definition) return [String(hash), definition] as const;
+      }
+    } catch (error) {
+      console.warn("definition_cache_read_failed", { hash, error: String(error) });
     }
     const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
       headers: {
@@ -270,9 +296,15 @@ async function fetchInventoryDefinitions(
     if (!response.ok) return null;
     const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
     if (!payload?.Response) return null;
-    await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
-      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
-    }));
+    if (cache) {
+      try {
+        await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
+          headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
+        }));
+      } catch (error) {
+        console.warn("definition_cache_write_failed", { hash, error: String(error) });
+      }
+    }
     return [String(hash), payload.Response] as const;
   }));
   return Object.fromEntries(entries.filter((entry): entry is readonly [string, Record<string, unknown>] => entry !== null));
@@ -375,11 +407,11 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  const equippedHashes = equippedDefinitionHashes(payload.Response);
+  const equippedHashes = activeCharacterDefinitionHashes(payload.Response);
   // The current workspace presents character rendering as in development.
   // Avoid gear-asset fan-out here and reserve the request budget for the
   // equipment, subclass and socket definitions required by the live UI.
-  const definitions = await fetchInventoryDefinitions(equippedHashes, session.accessToken, env, 24);
+  const definitions = await fetchInventoryDefinitions(equippedHashes, session.accessToken, env, 18);
   const gearAssets: Record<string, Record<string, unknown>> = {};
   const updatedSession = { ...session, lastUsedAt: Date.now() };
   await putSession(env, sessionId, updatedSession);
