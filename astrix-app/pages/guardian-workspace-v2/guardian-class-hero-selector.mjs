@@ -1,9 +1,3 @@
-const HERO_BY_CLASS={
-  hunter:'./Hunter-hero-transparent.png',
-  titan:'./titan-hero-transparent.png',
-  warlock:'./Warlock-hero-transparent.png'
-};
-
 const CLASS_ORDER=['hunter','titan','warlock'];
 const qs=(s,r=document)=>r.querySelector(s);
 const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -47,16 +41,7 @@ function applyHero(detail={}){
   const cls=className(detail.characterClass??detail.className??activeClass);
   activeClass=cls;
   const stage=qs('.stage');
-  const image=qs('#guardianRender');
   if(stage)stage.dataset.class=cls;
-  if(image){
-    const src=HERO_BY_CLASS[cls];
-    if(src&&image.getAttribute('src')!==src){
-      image.style.display='block';
-      image.src=src;
-    }
-    image.alt=`${cls.charAt(0).toUpperCase()+cls.slice(1)} Guardian beta render`;
-  }
   const label=qs('.char-switch b');
   if(label)label.textContent=`${cls.charAt(0).toUpperCase()+cls.slice(1)} ▾`;
 }
