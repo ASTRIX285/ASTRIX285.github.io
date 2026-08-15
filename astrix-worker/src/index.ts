@@ -247,11 +247,12 @@ function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
 async function fetchInventoryDefinitions(
   hashes: number[],
   accessToken: string,
-  env: Env
+  env: Env,
+  limit = 34
 ): Promise<Record<string, Record<string, unknown>>> {
   // Keep the profile request plus definition lookups below the Worker subrequest budget.
   // Equipment hashes are inserted before plug hashes, so visible gear resolves first.
-  const entries = await Promise.all(hashes.slice(0, 34).map(async (hash) => {
+  const entries = await Promise.all(hashes.slice(0, limit).map(async (hash) => {
     const cache = await caches.open("astrix-bungie-definitions");
     const cacheKey = new Request(`https://astrix-definition-cache.invalid/inventory/${hash}`, { method: "GET" });
     const cached = await cache.match(cacheKey);
@@ -459,16 +460,21 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
     selectedByInstance.set(id, { ...item, plugItemHashes: row.plugItemHashes?.length ? row.plugItemHashes : (prior?.plugItemHashes || []) });
   }
   const selectedItems = [...selectedByInstance.values()];
+  // Prioritise the visible equipment definitions, then subclass/mod plugs.
+  // The character renderer is intentionally a placeholder, so loadout selection
+  // does not need the expensive gear-asset requests.
   const definitionHashes = new Set<number>();
   for (const item of selectedItems) {
     if (Number.isInteger(item.itemHash)) definitionHashes.add(Number(item.itemHash));
-    for (const plugHash of item.plugItemHashes) if (Number.isInteger(plugHash)) definitionHashes.add(Number(plugHash));
+  }
+  for (const item of selectedItems) {
+    for (const plugHash of item.plugItemHashes) {
+      if (Number.isInteger(plugHash)) definitionHashes.add(Number(plugHash));
+    }
   }
   const hashes = [...definitionHashes];
-  const [definitions, gearAssets] = await Promise.all([
-    fetchInventoryDefinitions(hashes, session.accessToken, env),
-    fetchGearAssetDefinitions(selectedItems.map(item => Number(item.itemHash)).filter(Number.isInteger), session.accessToken, env)
-  ]);
+  const definitions = await fetchInventoryDefinitions(hashes, session.accessToken, env, 24);
+  const gearAssets: Record<string, Record<string, unknown>> = {};
   await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
   return withCors(request, env, json({
     authenticated: true,
