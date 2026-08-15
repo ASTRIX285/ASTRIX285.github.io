@@ -39,20 +39,54 @@ function makeControl(){
   return button;
 }
 
-async function refreshAuthState(button){
+let sessionRequest=null;
+
+async function requestSession(){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),12000);
   try{
-    const response=await fetch(`${AUTH_ORIGIN}/session`,{credentials:"include",headers:{Accept:"application/json"}});
-    if(!response.ok) throw new Error(`session:${response.status}`);
-    const session=await response.json();
-    if(session?.authenticated){
-      button.dataset.state="connected";
-      const active=session.activeDestinyMembership;
-      button.textContent=active?.displayName?`BUNGIE: ${active.displayName}`:"BUNGIE CONNECTED";
-      globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session}));
-      return;
-    }
-  }catch(error){
-    console.info("[ASTRIX Bungie auth] no active session",error);
+    const response=await fetch(`${AUTH_ORIGIN}/session`,{
+      credentials:"include",
+      headers:{Accept:"application/json"},
+      signal:controller.signal
+    });
+    const session=await response.json().catch(()=>({authenticated:false}));
+    if(response.status===401)return {authenticated:false};
+    if(!response.ok)throw new Error(session?.error||`session:${response.status}`);
+    return session;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+function publishSession(session){
+  if(!session?.authenticated)return;
+  globalThis.ASTRIX_BUNGIE_SESSION=session;
+  globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session}));
+}
+
+function getBungieSession({force=false}={}){
+  if(!force&&sessionRequest)return sessionRequest;
+  sessionRequest=requestSession()
+    .then(session=>{
+      publishSession(session);
+      return session;
+    })
+    .catch(error=>{
+      console.info("[ASTRIX Bungie auth] no active session",error);
+      return {authenticated:false,error:error?.message||"session_unavailable"};
+    });
+  globalThis.ASTRIX_BUNGIE_SESSION_PROMISE=sessionRequest;
+  return sessionRequest;
+}
+
+async function refreshAuthState(button){
+  const session=await getBungieSession();
+  if(session?.authenticated){
+    button.dataset.state="connected";
+    const active=session.activeDestinyMembership;
+    button.textContent=active?.displayName?`BUNGIE: ${active.displayName}`:"BUNGIE CONNECTED";
+    return;
   }
   button.dataset.state="disconnected";
   button.textContent="CONNECT BUNGIE";
@@ -61,3 +95,5 @@ async function refreshAuthState(button){
 installStyles();
 const button=makeControl();
 if(button) refreshAuthState(button);
+
+export {AUTH_ORIGIN,getBungieSession};
