@@ -91,13 +91,13 @@
 /* Left rail: class and Supers remain side by side, with scalable diamond
  * controls and horizontal overflow only inside the Super selector. */
 @container (max-width:340px){
-  .class-super-row{grid-template-columns:minmax(94px,.82fr) minmax(0,1.18fr)!important;gap:5px!important}
-  .class-super-row .subclass-hero{padding:5px!important}
-  .class-super-row .subclass-hero .crest,.class-super-row .subclass-hero .crest-fb{width:46px!important;height:46px!important;flex-basis:46px!important}
-  .class-super-row .super-focus{padding:5px!important}
+  .class-super-row{grid-template-columns:minmax(110px,.88fr) minmax(0,1.12fr)!important;padding:5px!important}
+  .class-super-row .subclass-hero{grid-template-columns:36px minmax(0,1fr);padding:4px 6px 4px 3px!important}
+  .class-super-row .subclass-hero .crest,.class-super-row .subclass-hero .crest-fb{width:36px!important;height:36px!important;flex-basis:36px!important}
+  .class-super-row .super-focus{padding:2px 3px!important}
   .class-super-row .super-options{justify-content:flex-start!important;width:100%}
-  .class-super-row .super-option{width:44px;height:44px;flex-basis:44px;padding:5px}
-  .class-super-row .super-option .ico-badge{width:34px!important;height:34px!important}
+  .class-super-row .super-option{width:34px;height:34px;flex-basis:34px;padding:4px}
+  .class-super-row .super-option .ico-badge{width:26px!important;height:26px!important;min-width:26px!important}
 }
 
 /* Armour cards keep five columns while space permits, then reflow without
@@ -132,4 +132,3 @@
   .workspace>.stage{height:clamp(560px,145vw,680px)!important}
   .gear-columns{grid-template-columns:1fr!important}
 }
-
