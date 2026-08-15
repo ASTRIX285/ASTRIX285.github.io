@@ -214,7 +214,7 @@ def build_html(sections, total):
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clips &amp; Highlights | ASTRIX285</title>
+  <title>Clips &amp; Highlights | ASTRIX PARADOX</title>
   <link rel="stylesheet" href="../css/style.css">
 
   <!-- Favicons -->
@@ -285,7 +285,7 @@ def build_html(sections, total):
 <body>
 <nav class="nav">
   <div class="nav-logo">
-    <img src="../img/logo.png" alt="ASTRIX285">
+    <img src="../img/logo.png" alt="ASTRIX PARADOX">
     <span>ASTRIX<span class="accent">285</span></span>
   </div>
   <button class="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
@@ -363,7 +363,7 @@ __CARDS_HTML__
     <a href="https://www.youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>
   </div>
   <div class="gold-line" style="margin-bottom:20px;"></div>
-  <div class="footer-copy">&copy; 2025 Astrix285 &mdash; Built for the community, powered by gaming passion and history.</div>
+  <div class="footer-copy">&copy; 2025 ASTRIX PARADOX &mdash; Built for the community, powered by gaming passion and history.</div>
 </footer>
 
 <div class="clip-modal" id="clipModal">
