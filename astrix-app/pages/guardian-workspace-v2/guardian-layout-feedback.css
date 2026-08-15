@@ -6,7 +6,6 @@ html{font-size:clamp(16px,.52vw,22px)}
   .workspace{
     width:calc(100vw - clamp(20px,1.4vw,40px))!important;
     max-width:none!important;
-    grid-template-columns:clamp(300px,17vw,420px) minmax(0,1fr) clamp(600px,36vw,900px)!important;
   }
 }
 
@@ -57,12 +56,6 @@ html{font-size:clamp(16px,.52vw,22px)}
   .left .super-focus-icon .ico-badge{
     width:clamp(86px,22cqw,124px)!important;
     height:clamp(86px,22cqw,124px)!important;
-  }
-  .stage > .guardian-hero{
-    width:clamp(520px,50cqw,1100px)!important;
-    height:clamp(560px,82cqh,1040px)!important;
-    max-width:70cqw!important;
-    max-height:90cqh!important;
   }
   .stage > .guardian-platform{
     --size:clamp(480px,43cqw,860px)!important;
