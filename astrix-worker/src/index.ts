@@ -236,7 +236,9 @@ async function fetchInventoryDefinitions(
   accessToken: string,
   env: Env
 ): Promise<Record<string, Record<string, unknown>>> {
-  const entries = await Promise.all(hashes.slice(0, 160).map(async (hash) => {
+  // Keep the profile request plus definition lookups below the Worker subrequest budget.
+  // Equipment hashes are inserted before plug hashes, so visible gear resolves first.
+  const entries = await Promise.all(hashes.slice(0, 45).map(async (hash) => {
     const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
