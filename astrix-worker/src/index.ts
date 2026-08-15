@@ -376,10 +376,11 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   }
 
   const equippedHashes = equippedDefinitionHashes(payload.Response);
-  const [definitions, gearAssets] = await Promise.all([
-    fetchInventoryDefinitions(equippedHashes, session.accessToken, env),
-    fetchGearAssetDefinitions(equippedHashes, session.accessToken, env)
-  ]);
+  // The current workspace presents character rendering as in development.
+  // Avoid gear-asset fan-out here and reserve the request budget for the
+  // equipment, subclass and socket definitions required by the live UI.
+  const definitions = await fetchInventoryDefinitions(equippedHashes, session.accessToken, env, 24);
+  const gearAssets: Record<string, Record<string, unknown>> = {};
   const updatedSession = { ...session, lastUsedAt: Date.now() };
   await putSession(env, sessionId, updatedSession);
   return withCors(request, env, json({
