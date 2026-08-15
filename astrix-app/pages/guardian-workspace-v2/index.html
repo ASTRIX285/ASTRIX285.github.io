@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<base href="https://cdn.jsdelivr.net/gh/ASTRIX285/ASTRIX285.github.io@df7e057fa6d8d0687aeb26a0349d3ef2e969a6b3/astrix-app/pages/guardian-workspace-v2/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex">
 <title>ASTRIX PARADOX — Guardian Workspace</title>
-<base href="https://cdn.jsdelivr.net/gh/ASTRIX285/ASTRIX285.github.io@21746047a4712a1bbdb68e9aa34c9f5d3d5f6ae3/astrix-app/pages/guardian-workspace-v2/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./guardian-workspace-v2.css">
 <link rel="stylesheet" href="./guardian-workspace-v2-compact.css">
 <link rel="stylesheet" href="./guardian-workspace-v2-stage.css">
@@ -19,13 +18,15 @@
 <link rel="stylesheet" href="./guardian-left-panel-tune.css">
 <link rel="stylesheet" href="./guardian-hero-fluid.css">
 <link rel="stylesheet" href="./guardian-typography.css">
+<link rel="stylesheet" href="./guardian-layout-feedback.css">
+<link rel="stylesheet" href="./guardian-character-cards.css">
 <link rel="stylesheet" href="./guardian-mobile.css">
 </head>
 <body>
 <header class="topbar">
   <div class="brand"><img class="brand-logo" src="../../../img/logo.png" alt="ASTRIX PARADOX logo"><div><div class="nm">ASTRIX <span class="brand-accent">PARADOX</span></div><div class="sub">AI GAMING INTELLIGENCE</div></div></div>
   <div class="ws-label">GUARDIAN WORKSPACE</div>
-  <div style="display:flex;align-items:center;gap:10px"><div class="top-icons"><button class="ib" aria-label="Notifications">🔔<span class="badge">3</span></button><button class="ib" aria-label="Settings">⚙</button><button class="ib" aria-label="Help">?</button></div><div class="gtag" role="button" tabindex="0"><span class="ci">✦</span><div><small>GUARDIAN</small><b>Exemplar ▾</b></div></div></div>
+  <div style="display:flex;align-items:center;gap:10px"><div class="top-icons"><button class="ib" aria-label="Notifications">🔔<span class="badge">3</span></button><button class="ib" aria-label="Settings">⚙</button><button class="ib" aria-label="Help">?</button></div></div>
 </header>
 <div class="workspace">
   <aside class="panel left">
@@ -38,9 +39,9 @@
   </aside>
   <section class="stage" aria-label="Guardian hero stage">
     <div class="stage-backdrop" aria-hidden="true"></div><div class="stage-particles" aria-hidden="true"></div><div class="guardian-platform" aria-hidden="true"></div>
+    <div class="guardian-character-cards" id="guardianCharacterCards" aria-label="Bungie characters"><div class="guardian-character-cards__status" role="status">CONNECT BUNGIE TO LOAD CHARACTERS</div></div>
     <div class="guardian-hero guardian-render-status" id="guardianHero" role="status" aria-live="polite"><span class="guardian-render-status__icon" aria-hidden="true">⬡</span><strong>CHARACTER RENDERING</strong><span>Profile in development</span><small>Live equipment and appearance data connected</small></div>
     <div class="view3d"><span class="b">⬡</span><small>VIEW IN 3D</small></div>
-    <div class="identity"><div class="id-head"><span class="id-emblem">✦</span><div><h1>Exemplar</h1><div class="rank">Kingslayer <span class="chip">🛡 11</span></div></div></div><div class="id-metrics"><div class="metric power"><div class="v"><span class="g">✦</span><span data-power-cap>550</span></div><small>Power</small></div><div class="metric rank"><div class="v">⬧ 11</div><small>Guardian Rank</small></div><div class="metric triumph"><div class="v">◈ 184,250</div><small>Triumph Score</small></div></div><div class="id-cosmetics"><div class="cos"><span class="sw emblem">✦</span><div><small>Emblem</small></div></div><div class="cos"><span class="sw shader"></span><div><small>Shader</small><b>Amethyst Veil</b></div></div><div class="cos"><span class="sw ghost">◉</span><div><small>Ghost</small><b>Omolon Shell</b></div></div></div></div>
   </section>
   <aside class="panel right">
     <div class="ra-head"><h2>PARADOX ANALYSIS</h2><span class="upd">Last updated: 2 min ago ↻</span></div><div class="health-card"><div class="ring" style="--p:82"><span class="heart">♥</span></div><div><div class="eyebrow" style="margin:0 0 4px">Guardian Health</div><div class="verdict">EXCELLENT<small>Your build is highly effective for Grandmaster Nightfalls.</small></div></div></div><div class="focus"><span class="lbl">Build Focus</span><div class="focus-row"><span class="fi">◎</span><div><b>Boss Damage</b><p>This is the weakest area in your current build.</p></div></div><button class="btn-rec">View Recommendations</button></div><div class="mini-grid"><div class="mini"><div class="t">Current Loop</div><div class="big" style="margin-bottom:8px">Strong</div><div class="loop"><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i></div></div><div class="mini"><div class="t">Champion Coverage</div><div class="champs"><span class="c ok">⚔<span class="tick">✓</span></span><span class="c ok">◈<span class="tick">✓</span></span><span class="c ok">✷<span class="tick">✓</span></span><span class="c warn">⚔</span><span class="c ok">◈<span class="tick">✓</span></span></div></div><div class="mini"><div class="t">Activity Fit</div><div class="big green">Excellent Match</div></div><div class="mini"><div class="t">Confidence</div><div class="big">Very High</div><div class="conf-bar"><i></i></div></div></div><div class="sw-grid"><div class="sw-card str"><div class="t">Strengths</div><ul><li><span class="d"></span>Excellent survivability</li><li><span class="d"></span>Strong ability uptime</li><li><span class="d"></span>Great add clear</li><li><span class="d"></span>High invisibility uptime</li></ul></div><div class="sw-card weak"><div class="t">Weak Links</div><ul><li><span class="d"></span>Boss damage output</li><li><span class="d"></span>Limited burst windows</li><li><span class="d"></span>Heavy weapon uptime</li></ul></div></div><div class="improve"><div class="top"><b>📈 TODAY'S IMPROVEMENT</b><span class="pct">+12%</span></div><p>Equip a damage-focused Heavy Weapon and adjust mods to increase boss DPS.</p></div>
@@ -52,18 +53,6 @@
   </section>
 </div>
 <div class="actionbar"><div class="grp"><button class="ab-btn">▤ LOADOUTS</button><button class="ab-btn">⤬ COMPARE</button></div><button class="improve-cta">✦ IMPROVE MY GUARDIAN</button><div class="grp"><button class="ab-btn">🖫 SAVE LOADOUT</button><button class="ab-btn">⤴ SHARE</button><button class="ab-btn">•••</button></div></div>
-<script type="module" src="./guardian-workspace-v2.mjs"></script>
-<script type="module" src="./guardian-loadouts.mjs"></script>
-<script type="module" src="./guardian-bungie-profile.mjs"></script>
-<script type="module" src="./guardian-fixture-loader.mjs"></script>
-<script type="module" src="./guardian-artifact.mjs"></script>
-<script type="module" src="./guardian-paradox-engine.mjs"></script>
-<script type="module" src="./guardian-advisor-layer.mjs"></script>
-<script type="module" src="./guardian-beta-readiness.mjs"></script>
-<script type="module" src="./guardian-beta-runtime.mjs"></script>
-<script type="module" src="./guardian-bottom-equal-height.mjs"></script>
-<script type="module" src="./guardian-class-hero-selector.mjs"></script>
-<script type="module" src="./guardian-stage-video-cycle.mjs"></script>
-<script type="module" src="./guardian-bungie-auth.mjs"></script>
+<script type="module" src="./guardian-workspace-v2.mjs"></script><script type="module" src="./guardian-character-cards.mjs"></script><script type="module" src="./guardian-loadouts.mjs"></script><script type="module" src="./guardian-bungie-profile.mjs"></script><script type="module" src="./guardian-stage-video-cycle.mjs"></script><script type="module" src="./guardian-fixture-loader.mjs"></script><script type="module" src="./guardian-artifact.mjs"></script><script type="module" src="./guardian-paradox-engine.mjs"></script><script type="module" src="./guardian-advisor-layer.mjs"></script><script type="module" src="./guardian-beta-readiness.mjs"></script><script type="module" src="./guardian-beta-runtime.mjs"></script><script type="module" src="./guardian-bottom-equal-height.mjs"></script><script type="module" src="./guardian-class-hero-selector.mjs"></script>
 </body>
 </html>
