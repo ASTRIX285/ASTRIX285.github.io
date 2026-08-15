@@ -6,6 +6,17 @@ const ARMOUR_ORDER=[BUCKETS.helmet,BUCKETS.gauntlets,BUCKETS.chest,BUCKETS.legs,
 const WEAPON_ORDER=[BUCKETS.kinetic,BUCKETS.energy,BUCKETS.power];
 const STAT_ORDER=[["Weapons",2996146975],["Health",392767087],["Class",1943323491],["Grenade",1735777505],["Super",144602215],["Melee",4244567218]];
 
+const setRenderStatus=(title,message,detail="")=>{
+  const host=document.querySelector("#guardianHero.guardian-render-status");
+  if(!host)return;
+  const heading=host.querySelector("strong");
+  const messageNode=host.querySelector(":scope > span:not(.guardian-render-status__icon)");
+  const detailNode=host.querySelector("small");
+  if(heading)heading.textContent=title;
+  if(messageNode)messageNode.textContent=message;
+  if(detailNode)detailNode.textContent=detail;
+};
+
 const absoluteIcon=path=>path?new URL(path,BUNGIE_ORIGIN).toString():"";
 const definition=(definitions,hash)=>definitions?.[String(hash)]||null;
 const displayItem=(definitions,hash)=>{
@@ -76,12 +87,14 @@ function normaliseLiveProfile(payload,session){
 }
 
 async function loadLiveProfile(session){
+  setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
   document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
   const response=await fetch(`${AUTH_ORIGIN}/bungie/profile`,{credentials:"include",headers:{Accept:"application/json"}});
   const payload=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(payload.error||`Bungie profile request failed (${response.status}).`);
   const detail=normaliseLiveProfile(payload,session);
   document.documentElement.dataset.guardianSource="bungie-live";
+  setRenderStatus("CHARACTER RENDERING","Live profile data ready","3D assembly in development");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail}));
 }
@@ -89,6 +102,7 @@ async function loadLiveProfile(session){
 globalThis.addEventListener("astrix:bungie-session",event=>{
   loadLiveProfile(event.detail).catch(error=>{
     console.error("[ASTRIX Bungie profile]",error);
+    setRenderStatus("LIVE PROFILE UNAVAILABLE",error.message||"Guardian data could not be loaded.","Reconnect Bungie or refresh this page");
     document.dispatchEvent(new CustomEvent("astrix:guardian-error",{detail:{message:error.message||"Guardian data could not be loaded."}}));
   });
 });
