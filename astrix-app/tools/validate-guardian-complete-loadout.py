@@ -25,6 +25,7 @@ def main() -> int:
         "aspects:subclassBuild.aspects",
         "fragments:subclassBuild.fragments",
         "superOptions:subclassBuild.superOptions",
+        'subclassIcon:subclass?.icon||""',
     ):
         assert field in profile, f"Missing public subclass field: {field}"
 
@@ -68,6 +69,7 @@ def main() -> int:
     assert "clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)" in cards_css
     assert ".super-option.is-active" in cards_css
     assert ".super-option.is-inactive" in cards_css
+    assert ".super-options::-webkit-scrollbar{display:none" in cards_css
     assert "const mods=Array.isArray(item?.mods)?item.mods:[]" in gear
     assert "Array.from({length:slotCount}" in gear
     assert "modTile(mods[i])" in gear
