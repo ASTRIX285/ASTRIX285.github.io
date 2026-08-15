@@ -2,7 +2,7 @@ const REVIEWS_DATA = [
   {
     "title": "Crimson Desert",
     "rating": "9.0",
-    "author": "ASTRIX285",
+    "author": "ASTRIX PARADOX",
     "publishDate": "2025-10-29",
     "currentlyPlaying": true,
     "featured": true,
@@ -39,7 +39,7 @@ const REVIEWS_DATA = [
   {
     "title": "Warframe",
     "rating": "9.2",
-    "author": "ASTRIX285",
+    "author": "ASTRIX PARADOX",
     "publishDate": "2025-10-29",
     "currentlyPlaying": false,
     "featured": false,
@@ -76,7 +76,7 @@ const REVIEWS_DATA = [
   {
     "title": "Borderlands 4",
     "rating": "8.5",
-    "author": "ASTRIX285",
+    "author": "ASTRIX PARADOX",
     "publishDate": "2025-10-29",
     "currentlyPlaying": false,
     "featured": false,
@@ -113,7 +113,7 @@ const REVIEWS_DATA = [
   {
     "title": "Destiny 2: Edge of Fate",
     "rating": "5.5",
-    "author": "ASTRIX285",
+    "author": "ASTRIX PARADOX",
     "publishDate": "2025-10-29",
     "currentlyPlaying": false,
     "featured": false,
@@ -150,7 +150,7 @@ const REVIEWS_DATA = [
   {
     "title": "Path of Exile",
     "rating": "6.5",
-    "author": "ASTRIX285",
+    "author": "ASTRIX PARADOX",
     "publishDate": "2025-10-29",
     "currentlyPlaying": false,
     "featured": false,
