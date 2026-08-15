@@ -60,8 +60,20 @@
 .guardian-character-card__stat i{display:grid;place-items:center;width:18px;height:18px;flex:0 0 18px;border-radius:4px;color:rgb(var(--stage-accent-rgb,139,92,246));background:rgba(var(--stage-accent-rgb,139,92,246),.11);font:normal .72rem Inter,sans-serif}
 .guardian-character-card__stat b{color:#fff;font:750 clamp(.64rem,.65vw,.84rem) Inter,sans-serif}
 .stage>.identity,.stage>.hero-stats{display:none!important}
-.hero-subclass-dock{left:clamp(24px,2.1vw,46px)!important;top:clamp(138px,10vw,158px)!important}
-.guardian-render-status{top:58%!important}
+.class-super-row{display:grid!important;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:8px;align-items:stretch;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.class-super-row .subclass-hero{position:relative!important;top:auto!important;display:flex!important;flex-direction:column;align-items:center!important;justify-content:center!important;gap:6px!important;min-height:96px;padding:8px!important;text-align:center!important;background:rgba(var(--stage-accent-rgb,139,92,246),.035)!important}
+.class-super-row .subclass-hero .crest,.class-super-row .subclass-hero .crest-fb{width:56px!important;height:56px!important;margin:0!important;flex:0 0 56px!important}
+.class-super-row .subclass-hero b{font-size:clamp(.68rem,.72vw,.86rem)!important;white-space:normal!important}
+.class-super-row .subclass-hero .wisp{display:none!important}
+.class-super-row .super-focus{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;min-width:0!important;gap:5px!important;padding:8px!important;border:1px solid rgba(var(--stage-accent-rgb,139,92,246),.13)!important;border-radius:10px!important;background:rgba(var(--stage-accent-rgb,139,92,246),.025)!important}
+.class-super-row .super-focus-copy b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(.62rem,.65vw,.8rem)!important}
+.class-super-row .super-options{display:flex;justify-content:center;gap:6px;max-width:100%;overflow-x:auto;padding:2px}
+.class-super-row .super-option{display:grid;place-items:center;width:50px;height:50px;flex:0 0 50px;padding:6px;border:1px solid rgba(var(--stage-accent-rgb,139,92,246),.2);border-radius:0;background:rgba(var(--stage-accent-rgb,139,92,246),.06);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);cursor:pointer;transition:opacity .16s ease,filter .16s ease,border-color .16s ease,box-shadow .16s ease}
+.class-super-row .super-option .ico-badge{width:40px!important;height:40px!important;border:0!important;background:transparent!important;box-shadow:none!important}
+.class-super-row .super-option.is-active{opacity:1;border-color:rgb(var(--stage-accent-rgb,139,92,246));background:rgba(var(--stage-accent-rgb,139,92,246),.14);box-shadow:0 0 16px rgba(var(--stage-accent-rgb,139,92,246),.2)}
+.class-super-row .super-option.is-inactive{opacity:.38;filter:saturate(.45)}
+.class-super-row .super-option.is-inactive:hover,.class-super-row .super-option.is-inactive:focus-visible{opacity:.7;filter:saturate(.8);outline:none}
+.guardian-render-status{left:50%!important;top:58%!important}
 .topbar .gtag{display:none!important}
 @media(max-width:1220px){
   .guardian-character-cards{left:20px;right:72px;gap:8px}
@@ -70,7 +82,7 @@
   .guardian-character-card__emblem{width:30px;height:30px}
   .guardian-character-card__stat{gap:2px}
   .guardian-character-card__stat i{width:16px;height:16px;flex-basis:16px;font-size:.66rem}
-  .hero-subclass-dock{left:20px!important;top:128px!important}
+  .class-super-row{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
 }
 @media(max-width:860px){
   .guardian-character-cards{left:14px;right:14px;top:14px;display:flex;gap:9px;overflow-x:auto;overflow-y:hidden;padding:0 0 8px;scroll-snap-type:x mandatory;scrollbar-width:thin}
@@ -78,7 +90,6 @@
   .guardian-character-cards__status{flex:1 0 100%;min-height:86px}
   .guardian-character-card__stat{flex-direction:column;gap:2px;min-height:40px}
   .guardian-character-card__stat i{width:19px;height:19px;flex-basis:19px}
-  .hero-subclass-dock{left:16px!important;top:146px!important}
   .view3d{top:150px!important}
   .guardian-render-status{top:60%!important}
 }
