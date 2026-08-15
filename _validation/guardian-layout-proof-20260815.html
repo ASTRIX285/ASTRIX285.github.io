@@ -19,6 +19,23 @@ const cases=[
 ];
 const rect=o=>{const r=o.getBoundingClientRect();return {left:+r.left.toFixed(3),top:+r.top.toFixed(3),right:+r.right.toFixed(3),bottom:+r.bottom.toFixed(3),width:+r.width.toFixed(3),height:+r.height.toFixed(3)}};
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
+function activeWorkspaceColumns(d,w){
+  const found=[];
+  const walk=rules=>{
+    for(const rule of rules){
+      if(rule.type===4){
+        if(w.matchMedia(rule.conditionText).matches)walk(rule.cssRules);
+      }else if(rule.selectorText&&rule.selectorText.split(",").some(s=>s.trim()===".workspace")&&rule.style.gridTemplateColumns){
+        found.push(rule.style.gridTemplateColumns);
+      }
+    }
+  };
+  for(const sheet of d.styleSheets){try{walk(sheet.cssRules)}catch{}}
+  return found.at(-1)||"";
+}
+function minLeMax(declaration){
+  return [...declaration.matchAll(/minmax\(\s*(-?\d+(?:\.\d+)?)px\s*,\s*(-?\d+(?:\.\d+)?)px\s*\)/g)].every(m=>+m[1]<=+m[2]);
+}
 async function runCase(c){
   const f=document.createElement("iframe");
   f.width=c.width;f.height=c.height;f.style.width=c.width+"px";f.style.height=c.height+"px";
@@ -38,19 +55,23 @@ async function runCase(c){
   const equip=d.querySelector(".workspace>.equip");
   const workspace=d.querySelector(".workspace");
   const sr=rect(stage),hr=rect(hero),rr=rect(right),er=rect(equip),wr=rect(workspace);
-  const tracks=(w.getComputedStyle(workspace).gridTemplateColumns.match(/-?\d+(?:\.\d+)?px/g)||[]).map(Number);
+  const tracks=(w.getComputedStyle(workspace).gridTemplateColumns.match(/-?\d+(?:\.\d+)?px/g)||[]).map(parseFloat);
+  const declaration=activeWorkspaceColumns(d,w);
   const centerDelta=+(((hr.left+hr.right)/2)-((sr.left+sr.right)/2)).toFixed(3);
+  const centerDeltaY=+(((hr.top+hr.bottom)/2)-((sr.top+sr.bottom)/2)).toFixed(3);
   const stacked=tracks.length===1;
   const analysisPriority=stacked ? rr.bottom<=er.top+0.5 : Math.abs(rr.top-sr.top)<=0.5;
   const result={
     viewport:c.width+"x"+c.height,
     workspace:wr,stage:sr,hero:hr,analysis:rr,gear:er,
+    columnDeclaration:declaration,
     tracks,
-    minLeMax:true,
+    minLeMax:minLeMax(declaration),
     noGhostColumn:tracks.every(n=>n>=10),
     heroInside:hr.top>=sr.top-0.5&&hr.bottom<=sr.bottom+0.5,
     centerDelta,
-    heroCentered:Math.abs(centerDelta)<=0.5,
+    centerDeltaY,
+    heroCentered:Math.abs(centerDelta)<=0.5&&Math.abs(centerDeltaY)<=0.5,
     analysisBeforeGear:analysisPriority
   };
   f.remove();
