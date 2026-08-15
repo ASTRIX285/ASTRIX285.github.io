@@ -1,14 +1,8 @@
 /* Paradox Forge gear relationship layout.
    Familiar Destiny loadout logic, redesigned around armour -> socketed mods. */
 
-.workspace{grid-template-areas:"left stage right" "equip equip right"!important}
 .left{grid-area:left;align-self:stretch;min-height:0}
 .equip{grid-area:equip}
-@media(min-width:1500px){
-  .workspace{
-    grid-template-columns:clamp(300px,17vw,420px) minmax(0,1fr) clamp(600px,36vw,900px)!important;
-  }
-}
 
 /* Narrower weapon panel, wider armour panel. */
 .equip.gear-layout-active{grid-template-columns:minmax(270px,300px) minmax(0,1fr)!important;gap:14px!important;align-items:start!important}
@@ -77,7 +71,6 @@
     min-height:0!important;
     margin:0 auto!important;
     padding:clamp(8px,1vh,14px) 0 clamp(6px,.8vh,12px)!important;
-    grid-template-columns:clamp(300px,17vw,420px) minmax(0,1fr) clamp(600px,36vw,900px)!important;
     grid-template-rows:minmax(0,64fr) minmax(0,36fr)!important;
     gap:clamp(8px,.65vw,16px)!important;
   }
@@ -85,7 +78,6 @@
   .left,.right{height:100%!important;max-height:none!important;min-height:0!important;overflow:auto}
   .equip{height:100%!important;min-height:0!important;overflow:hidden}
   .eq{padding:clamp(7px,.7vh,12px)!important}
-  .guardian-hero{top:clamp(4%,5vh,7%)!important;bottom:clamp(5%,5.5vh,8%)!important}
   .stage>.guardian-platform{--size:clamp(350px,25vw,540px)!important}
   .actionbar{height:58px;min-height:58px;padding:7px 24px!important}
 }
@@ -108,7 +100,7 @@
 }
 @media(max-width:1220px){
   html,body{overflow:auto}
-  .workspace{height:auto!important;grid-template-areas:"left stage" "equip equip" "right right"!important}
+  .workspace{height:auto!important}
   .left{max-height:600px!important}
 }
 @media(max-width:860px){.left{max-height:none!important}}
@@ -118,6 +110,5 @@
     width:calc(100vw - clamp(24px,1.2vw,48px))!important;
     max-width:none!important;
     height:calc(100dvh - clamp(64px,4.2vh,84px) - 58px)!important;
-    grid-template-columns:clamp(420px,17vw,620px) minmax(0,1fr) clamp(760px,36vw,1180px)!important;
   }
 }
