@@ -31,7 +31,9 @@ def main() -> int:
     assert "color:rgb(var(--stage-accent-rgb" in styles
     assert "background:rgba(var(--stage-accent-rgb" in styles
     assert "clamp(.64rem,.65vw,.84rem)" in styles
-    assert ".hero-subclass-dock{left:clamp(24px,2.1vw,46px)!important" in styles
+    assert ".class-super-row{" in styles
+    assert ".class-super-row .subclass-hero" in styles
+    assert ".guardian-render-status{left:50%!important" in styles
     assert '.stage>.identity,.stage>.hero-stats{display:none!important}' in styles
 
     print("PARADOX_CHARACTER_CARDS=PASS")
@@ -44,7 +46,8 @@ def main() -> int:
     print("GUARDIAN_RANK_DEFERRED=PASS")
     print("STAT_ICON_SUBCLASS_TINT=PASS")
     print("STAT_VALUE_SIZE_TWO_STEPS=PASS")
-    print("HERO_CARD_PADDING_ALIGNMENT=PASS")
+    print("LEFT_CLASS_SUPER_ALIGNMENT=PASS")
+    print("HERO_STATUS_CENTRED=PASS")
     return 0
 
 
