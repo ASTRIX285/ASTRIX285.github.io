@@ -66,7 +66,10 @@ def main() -> int:
     assert 'type="button" class="super-option' in advisor
     assert "available in future build editor" in advisor
     assert ".class-super-row" in cards_css
-    assert "clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)" in cards_css
+    assert "transform:translateX(-50%) rotate(45deg)" in cards_css
+    assert "transform:rotate(-45deg)" in cards_css
+    assert ".super-option:nth-child(2)" in cards_css
+    assert ".super-option:nth-child(3)" in cards_css
     assert ".super-option.is-active" in cards_css
     assert ".super-option.is-inactive" in cards_css
     assert ".super-options::-webkit-scrollbar{display:none" in cards_css
