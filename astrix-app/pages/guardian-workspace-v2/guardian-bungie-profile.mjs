@@ -212,6 +212,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     characterClass:CLASS_NAMES[Number(character.classType)]||"hunter",
     subclass:classifySubclass(subclass),
     subclassName:subclass?.name||"Subclass",
+    subclassIcon:subclass?.icon||"",
     subclassBuild,
     super:subclassBuild.super,
     superOptions:subclassBuild.superOptions,
