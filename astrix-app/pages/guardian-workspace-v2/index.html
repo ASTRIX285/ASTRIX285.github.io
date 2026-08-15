@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
 <title>ASTRIX PARADOX — Guardian Workspace</title>
-<base href="https://cdn.jsdelivr.net/gh/ASTRIX285/ASTRIX285.github.io@06c5d407a3b6e6cdd6e29c69f4caa86493c99e8c/astrix-app/pages/guardian-workspace-v2/">
+<base href="https://cdn.jsdelivr.net/gh/ASTRIX285/ASTRIX285.github.io@bded5d18edbb3407cc210fecb199d02cf403253e/astrix-app/pages/guardian-workspace-v2/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
@@ -36,6 +36,7 @@
     <div class="grp"><p class="lbl">Aspects</p><div class="slot-list" id="aspectList"></div></div>
     <div class="grp"><p class="lbl">Fragments</p><div class="slot-list frag-list" id="fragList"></div></div>
     <div class="grp"><p class="lbl">Artifact</p><div class="artifact-row"><span class="art"><img id="artIcon" alt="Seasonal artifact" onerror="this.style.opacity=0"></span><div><b>ARTIFACT</b><small id="artName">Seasonal Artifact</small></div><div class="perks" id="artPerks"></div></div></div>
+    <div class="grp guardian-loadouts-panel"><div class="guardian-loadouts-head"><p class="lbl">In-game Loadouts</p><small>BUNGIE · 1–20</small></div><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div>
   </aside>
   <section class="stage" aria-label="Guardian hero stage">
     <div class="stage-backdrop" aria-hidden="true"></div><div class="stage-particles" aria-hidden="true"></div><div class="guardian-platform" aria-hidden="true"></div>
@@ -53,7 +54,8 @@
   </section>
 </div>
 <div class="actionbar"><div class="grp"><button class="ab-btn">▤ LOADOUTS</button><button class="ab-btn">⤬ COMPARE</button></div><button class="improve-cta">✦ IMPROVE MY GUARDIAN</button><div class="grp"><button class="ab-btn">🖫 SAVE LOADOUT</button><button class="ab-btn">⤴ SHARE</button><button class="ab-btn">•••</button></div></div>
-<script type="module" src="./guardian-workspace-v2.mjs"></script>\n<script type="module" src="./guardian-bungie-profile.mjs"></script>
+<script type="module" src="./guardian-workspace-v2.mjs"></script>
+<script type="module" src="./guardian-loadouts.mjs"></script>\n<script type="module" src="./guardian-bungie-profile.mjs"></script>
 <script type="module" src="./guardian-fixture-loader.mjs"></script>
 <script type="module" src="./guardian-artifact.mjs"></script>
 <script type="module" src="./guardian-paradox-engine.mjs"></script>
