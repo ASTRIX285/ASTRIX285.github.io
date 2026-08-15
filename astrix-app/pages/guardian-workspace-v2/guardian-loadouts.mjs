@@ -21,6 +21,12 @@ function isSaved(loadout){
   return Boolean(loadout&&(loadout.items?.length||loadout.subclassOverrides?.length));
 }
 
+function renderStatus(message,state="pending"){
+  const target=host();
+  if(!target)return;
+  target.innerHTML=`<div class="guardian-loadouts-status is-${escapeHtml(state)}" role="status">${escapeHtml(message)}</div>`;
+}
+
 function render(loadouts=[]){
   const target=host();
   if(!target)return;
@@ -47,12 +53,18 @@ function render(loadouts=[]){
 }
 
 document.addEventListener("astrix:guardian-selection-changed",event=>{
+  if(event.detail?.source!=="bungie-live"){
+    renderStatus("Connect Bungie to load in-game slots","disconnected");
+    return;
+  }
   activeCharacterId=String(event.detail?.characterId||activeCharacterId||"");
   if(Number.isInteger(event.detail?.selectedLoadoutIndex))activeIndex=event.detail.selectedLoadoutIndex;
   render(event.detail?.loadouts||[]);
 });
-document.addEventListener("astrix:beta-fixture-loaded",()=>render([]));
-render([]);
+document.addEventListener("astrix:guardian-loading",()=>renderStatus("Loading Bungie loadouts…","pending"));
+document.addEventListener("astrix:guardian-error",()=>renderStatus("Loadout data unavailable","unavailable"));
+document.addEventListener("astrix:beta-fixture-loaded",()=>renderStatus("Connect Bungie to load in-game slots","disconnected"));
+renderStatus("Connect Bungie to load in-game slots","disconnected");
 
 export {render as renderGuardianLoadouts};
-export {isSaved,loadoutIdentity};
+export {isSaved,loadoutIdentity,renderStatus as renderGuardianLoadoutStatus};
