@@ -6,7 +6,7 @@
   --desktop-stage-h:clamp(590px,64.8vh,900px);
 }
 /* Desktop architecture is proportional: loadout / Hero / analysis.  The left track has a hard content floor so seven Artifact perks never force horizontal scrolling. */
-.workspace{width:calc(100% - clamp(28px,2.8vw,72px));max-width:none;margin:0 auto;padding:14px 0 18px;min-height:0;display:grid;grid-template-columns:minmax(490px,19fr) minmax(760px,64fr) minmax(360px,17fr);grid-template-rows:var(--desktop-stage-h) auto;grid-template-areas:"left stage right" "left equip right";gap:clamp(12px,.7vw,18px);align-items:stretch}
+.workspace{width:calc(100% - clamp(28px,2.8vw,72px));max-width:none;margin:0 auto;padding:14px 0 18px;min-height:0;display:grid;grid-template-rows:var(--desktop-stage-h) auto;grid-template-areas:"left stage right" "left equip right";gap:clamp(12px,.7vw,18px);align-items:stretch}
 .left,.right{min-width:0;max-height:none}.left{padding:clamp(12px,.72vw,18px);overflow:hidden}.right{padding:clamp(13px,.72vw,18px);overflow:auto}.left .ability-row .meta,.left .slot .nm,.right p,.right li{min-width:0}.left .ability-row .meta b,.left .slot .nm,.right p,.right li{overflow-wrap:anywhere}
 .left{background:linear-gradient(180deg,rgba(24,18,40,.88),rgba(13,10,23,.9));box-shadow:0 22px 60px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.025)}
 .subclass-hero{position:sticky;top:0;z-index:2;backdrop-filter:blur(14px)}
@@ -24,7 +24,6 @@
 /* Compact desktop.  This rule is width-bounded so it cannot accidentally catch a high-resolution display that merely reports a short CSS viewport because of OS/browser scaling. */
 @media (min-width:1221px) and (max-width:2100px) and (max-height:1150px){
   :root{--desktop-stage-h:clamp(590px,64.2vh,700px)}
-  .workspace{grid-template-columns:minmax(370px,20fr) minmax(700px,61fr) minmax(330px,19fr);gap:12px;padding-top:10px}
   .left{padding:11px;gap:7px!important;overflow:hidden!important}
   .left .super-focus{padding:8px 8px;gap:3px}.left .super-focus-icon,.left .super-focus-icon .ico-badge{width:66px!important;height:66px!important}.left .super-focus-copy b{font-size:.72rem}.left .super-focus-copy em{margin-top:2px}
   #abilityList{grid-template-columns:repeat(4,46px)!important;gap:7px!important}#aspectList,#fragList{grid-template-columns:repeat(5,46px)!important;gap:7px!important}.ability-row,.slot,#aspectList .slot,#fragList .slot,.ico-badge,#aspectList .ico-badge,#fragList .ico-badge{width:46px!important;height:46px!important;min-width:46px!important}.grp .lbl,#abilityList::before{margin-bottom:4px!important;font-size:.49rem!important}
@@ -35,14 +34,13 @@
 }
 /* Large desktop: use percentages rather than a fixed left-column maximum. */
 @media (min-width:2101px){
-  .workspace{grid-template-columns:minmax(520px,19fr) minmax(0,64fr) minmax(400px,17fr);gap:clamp(16px,.7vw,20px)}
   .left{padding:clamp(17px,.8vw,24px)}
 }
 @media (min-width:2101px) and (min-height:1200px){
   :root{--desktop-stage-h:clamp(760px,65vh,920px)}
   .guardian-hero{width:60%;right:2%;top:4%;bottom:7%}.stage > .guardian-platform{--size:clamp(560px,26vw,680px)}
 }
-@media(max-width:1220px){.workspace{width:calc(100% - 20px);grid-template-columns:320px minmax(0,1fr);grid-template-rows:600px auto auto;grid-template-areas:"left stage" "left equip" "right right"}.stage{height:600px}.left{overflow:auto}.right{max-height:none}.equip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1220px){.workspace{width:calc(100% - 20px);grid-template-rows:600px auto auto;grid-template-areas:"left stage" "left equip" "right right"}.stage{height:600px}.left{overflow:auto}.right{max-height:none}.equip{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:860px){.workspace{display:block;width:calc(100% - 16px)}.left,.stage,.equip,.right{margin-bottom:12px}.stage{height:560px}.guardian-hero{width:82%;right:-12%}.stage > .guardian-platform{--size:390px;left:64%}.equip{grid-template-columns:1fr}.actionbar{position:static;flex-wrap:wrap;justify-content:center}}
 
 /* Beta equipment layout: narrower weapons, wider armour */
