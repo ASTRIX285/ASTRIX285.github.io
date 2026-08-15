@@ -252,6 +252,13 @@ async function fetchInventoryDefinitions(
   // Keep the profile request plus definition lookups below the Worker subrequest budget.
   // Equipment hashes are inserted before plug hashes, so visible gear resolves first.
   const entries = await Promise.all(hashes.slice(0, 34).map(async (hash) => {
+    const cache = caches.default;
+    const cacheKey = new Request(`https://astrix-definition-cache.invalid/inventory/${hash}`, { method: "GET" });
+    const cached = await cache.match(cacheKey);
+    if (cached) {
+      const definition = await cached.json<Record<string, unknown>>().catch(() => null);
+      if (definition) return [String(hash), definition] as const;
+    }
     const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -261,7 +268,11 @@ async function fetchInventoryDefinitions(
     });
     if (!response.ok) return null;
     const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
-    return payload?.Response ? [String(hash), payload.Response] as const : null;
+    if (!payload?.Response) return null;
+    await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
+      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
+    }));
+    return [String(hash), payload.Response] as const;
   }));
   return Object.fromEntries(entries.filter((entry): entry is readonly [string, Record<string, unknown>] => entry !== null));
 }
@@ -274,6 +285,13 @@ async function fetchGearAssetDefinitions(
   // Character assembly needs Bungie's geometry, textures and dye metadata.
   // Keep the total profile request below the Worker subrequest ceiling.
   const entries = await Promise.all(hashes.slice(0, 12).map(async (hash) => {
+    const cache = caches.default;
+    const cacheKey = new Request(`https://astrix-definition-cache.invalid/gear/${hash}`, { method: "GET" });
+    const cached = await cache.match(cacheKey);
+    if (cached) {
+      const definition = await cached.json<Record<string, unknown>>().catch(() => null);
+      if (definition) return [String(hash), definition] as const;
+    }
     const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyGearAssetsDefinition/${hash}/`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -283,7 +301,11 @@ async function fetchGearAssetDefinitions(
     });
     if (!response.ok) return null;
     const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
-    return payload?.Response ? [String(hash), payload.Response] as const : null;
+    if (!payload?.Response) return null;
+    await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
+      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
+    }));
+    return [String(hash), payload.Response] as const;
   }));
   return Object.fromEntries(entries.filter((entry): entry is readonly [string, Record<string, unknown>] => entry !== null));
 }
