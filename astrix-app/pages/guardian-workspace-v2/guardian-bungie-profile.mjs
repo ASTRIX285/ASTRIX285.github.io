@@ -5,6 +5,7 @@ const BUCKETS={kinetic:1498876634,energy:2465295065,power:953998645,helmet:34482
 const ARMOUR_ORDER=[BUCKETS.helmet,BUCKETS.gauntlets,BUCKETS.chest,BUCKETS.legs,BUCKETS.classItem];
 const WEAPON_ORDER=[BUCKETS.kinetic,BUCKETS.energy,BUCKETS.power];
 const STAT_ORDER=[["Weapons",2996146975],["Health",392767087],["Class",1943323491],["Grenade",1735777505],["Super",144602215],["Melee",4244567218]];
+const loadoutCache=new Map();
 
 const setRenderStatus=(title,message,detail="")=>{
   const host=document.querySelector("#guardianHero.guardian-render-status");
@@ -130,7 +131,16 @@ async function loadSelectedLoadout(selection){
   const characterId=String(selection?.characterId||"");
   const index=Number(selection?.index);
   if(!characterId||!Number.isInteger(index))throw new Error("Invalid Bungie loadout selection.");
-  document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
+  const cacheKey=`${characterId}:${index}`;
+  const cached=loadoutCache.get(cacheKey);
+  if(cached){
+    document.documentElement.dataset.guardianSource="bungie-loadout";
+    document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:cached}));
+    document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:cached}));
+    return;
+  }
+  setRenderStatus("LOADING SAVED LOADOUT",`Opening Bungie loadout ${index+1}`,"Resolving equipment and subclass configuration");
+  document.dispatchEvent(new CustomEvent("astrix:loadout-loading",{detail:{characterId,index}}));
   const url=new URL(`${AUTH_ORIGIN}/bungie/loadout`);
   url.searchParams.set("characterId",characterId);
   url.searchParams.set("index",String(index));
@@ -139,7 +149,9 @@ async function loadSelectedLoadout(selection){
   if(!response.ok)throw new Error(payload.error||`Bungie loadout request failed (${response.status}).`);
   payload.profile=profileWithSelectedLoadout(payload);
   const detail={...normaliseLiveProfile(payload,null,characterId),selectedLoadoutIndex:index,loadoutSource:"bungie-live"};
+  loadoutCache.set(cacheKey,detail);
   document.documentElement.dataset.guardianSource="bungie-loadout";
+  setRenderStatus("CHARACTER RENDERING",`Bungie loadout ${index+1} ready`,"Saved build loaded for analysis");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail}));
 }
