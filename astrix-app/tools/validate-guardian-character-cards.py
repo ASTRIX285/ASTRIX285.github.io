@@ -33,6 +33,13 @@ def main() -> int:
     assert "clamp(.64rem,.65vw,.84rem)" in styles
     assert ".class-super-row{" in styles
     assert ".class-super-row .subclass-hero" in styles
+    assert "grid-template-rows:auto 62px auto" in styles
+    assert "transform:translateX(-50%) rotate(45deg)" in styles
+    assert ".super-option.is-active{top:18px;left:50%;z-index:3}" in styles
+    assert ".super-option:nth-child(2){top:2px;left:25%}" in styles
+    assert ".super-option:nth-child(3){top:2px;left:75%}" in styles
+    assert "scrollbar-width:none" in styles
+    assert ".slice(0,3)" in (PAGE / "guardian-advisor-layer.mjs").read_text(encoding="utf-8")
     assert ".guardian-render-status{left:50%!important" in styles
     assert '.stage>.identity,.stage>.hero-stats{display:none!important}' in styles
 
