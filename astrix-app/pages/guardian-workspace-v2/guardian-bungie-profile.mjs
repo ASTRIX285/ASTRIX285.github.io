@@ -1,3 +1,5 @@
+import {getBungieSession} from "./guardian-bungie-auth.mjs";
+
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
 const CLASS_NAMES=["titan","hunter","warlock"];
@@ -160,9 +162,7 @@ async function loadSelectedLoadout(selection){
   const url=new URL(`${AUTH_ORIGIN}/bungie/loadout`);
   url.searchParams.set("characterId",characterId);
   url.searchParams.set("index",String(index));
-  const response=await fetch(url,{credentials:"include",headers:{Accept:"application/json"}});
-  const payload=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(payload.error||`Bungie loadout request failed (${response.status}).`);
+  const payload=await fetchJsonWithTimeout(url);
   payload.profile=profileWithSelectedLoadout(payload);
   const detail={...normaliseLiveProfile(payload,null,characterId),selectedLoadoutIndex:index,loadoutSource:"bungie-live"};
   loadoutCache.set(cacheKey,detail);
@@ -172,25 +172,58 @@ async function loadSelectedLoadout(selection){
   document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail}));
 }
 
-async function loadLiveProfile(session){
-  setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
-  document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
+async function loadLiveProfile(session,{background=false}={}){
+  if(!background){
+    setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
+    document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
+  }
   const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
   const detail=normaliseLiveProfile(payload,session);
   document.documentElement.dataset.guardianSource="bungie-live";
   setRenderStatus("CHARACTER RENDERING","Live profile data ready","3D assembly in development");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail}));
+  return detail;
+}
+
+let liveProfileRequest=null;
+let liveProfileReady=false;
+
+function reportProfileError(error){
+  const message=error?.message||"Guardian data could not be loaded.";
+  console.error("[ASTRIX Bungie profile]",error);
+  setRenderStatus("LIVE PROFILE UNAVAILABLE",message,"Your preview workspace remains available");
+  document.dispatchEvent(new CustomEvent("astrix:profile-error",{detail:{message}}));
+  document.dispatchEvent(new CustomEvent("astrix:guardian-error",{detail:{message}}));
+}
+
+function ensureLiveProfile(session,{background=false,silent=false}={}){
+  if(liveProfileReady)return Promise.resolve(null);
+  if(liveProfileRequest)return liveProfileRequest;
+  liveProfileRequest=loadLiveProfile(session,{background})
+    .then(detail=>{
+      liveProfileReady=true;
+      return detail;
+    })
+    .catch(error=>{
+      if(!silent)reportProfileError(error);
+      return null;
+    })
+    .finally(()=>{
+      if(!liveProfileReady)liveProfileRequest=null;
+    });
+  return liveProfileRequest;
+}
+
+async function handleAuthenticatedSession(session){
+  if(!session?.authenticated)return null;
+  const first=await ensureLiveProfile(session,{background:true,silent:true});
+  if(first||liveProfileReady)return first;
+  return ensureLiveProfile(session,{background:false,silent:false});
 }
 
 globalThis.addEventListener("astrix:bungie-session",event=>{
-  loadLiveProfile(event.detail).catch(error=>{
-    const message=error.message||"Guardian data could not be loaded.";
-    console.error("[ASTRIX Bungie profile]",error);
-    setRenderStatus("LIVE PROFILE UNAVAILABLE",message,"Your preview workspace remains available");
-    document.dispatchEvent(new CustomEvent("astrix:profile-error",{detail:{message}}));
-    document.dispatchEvent(new CustomEvent("astrix:guardian-error",{detail:{message}}));
-  });
+  handleAuthenticatedSession(event.detail);
 });
 
 document.addEventListener("astrix:loadout-selected",event=>{
@@ -201,5 +234,10 @@ document.addEventListener("astrix:loadout-selected",event=>{
     document.dispatchEvent(new CustomEvent("astrix:loadout-error",{detail:{...event.detail,message}}));
   });
 });
+
+/* Start the protected profile request beside the session check. Returning
+   authenticated users therefore pay one network wait instead of two. */
+ensureLiveProfile(globalThis.ASTRIX_BUNGIE_SESSION||null,{background:true,silent:true});
+getBungieSession().then(handleAuthenticatedSession);
 
 export {normaliseLiveProfile,loadSelectedLoadout};
