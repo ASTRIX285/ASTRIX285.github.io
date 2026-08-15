@@ -47,9 +47,6 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 /* ---------- workspace grid ---------- */
 .workspace{
   display:grid;
-  grid-template-columns:308px minmax(0,1fr) 372px;
-  grid-template-rows:minmax(0,1fr) auto;
-  grid-template-areas:"left stage right" "equip equip right";
   gap:16px;padding:16px;max-width:1920px;margin:0 auto;min-height:calc(100vh - 64px)}
 .panel{border:1px solid var(--line);border-radius:16px;background:var(--panel);backdrop-filter:blur(18px);box-shadow:0 24px 60px rgba(0,0,0,.45)}
 .eyebrow{color:var(--dim);font-family:Orbitron;font-weight:600;font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;margin:0 0 10px}
