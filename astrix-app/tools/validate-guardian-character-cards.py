@@ -20,6 +20,7 @@ def main() -> int:
     assert '<div class="identity">' not in html
     assert "const MAX_CHARACTERS=3" in module
     assert "STAT_SYMBOLS" in module
+    assert "guardian-character-card__rank" not in module
     assert 'new CustomEvent("astrix:character-selected"' in module
     assert '"astrix:bungie-character-roster"' in module
     assert "function characterRoster(" in profile
@@ -27,6 +28,10 @@ def main() -> int:
     assert 'publishCharacterRoster(payload,detail.characterId)' in profile
     assert 'grid-template-columns:repeat(3' in styles
     assert 'scroll-snap-type:x mandatory' in styles
+    assert "color:rgb(var(--stage-accent-rgb" in styles
+    assert "background:rgba(var(--stage-accent-rgb" in styles
+    assert "clamp(.64rem,.65vw,.84rem)" in styles
+    assert ".hero-subclass-dock{left:clamp(24px,2.1vw,46px)!important" in styles
     assert '.stage>.identity,.stage>.hero-stats{display:none!important}' in styles
 
     print("PARADOX_CHARACTER_CARDS=PASS")
@@ -36,6 +41,10 @@ def main() -> int:
     print("DESKTOP_THREE_CARD_ROW=PASS")
     print("MOBILE_HORIZONTAL_STRIP=PASS")
     print("LEGACY_IDENTITY_STATS_REMOVED=PASS")
+    print("GUARDIAN_RANK_DEFERRED=PASS")
+    print("STAT_ICON_SUBCLASS_TINT=PASS")
+    print("STAT_VALUE_SIZE_TWO_STEPS=PASS")
+    print("HERO_CARD_PADDING_ALIGNMENT=PASS")
     return 0
 
 
