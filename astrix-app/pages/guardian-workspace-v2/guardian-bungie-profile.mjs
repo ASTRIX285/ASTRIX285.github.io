@@ -70,7 +70,7 @@ function normaliseLiveProfile(payload,session){
     armour,
     ...cosmetics,
     ornaments:armour.map(item=>item?.ornament).filter(Boolean),
-    renderData:profile?.characterRenderData?.data?.[character.characterId]||null,
+    renderData:profile?.characterRenderData?.data?.[character.characterId]||null,\n    itemRenderData:profile?.itemComponents?.renderData?.data||{},\n    gearAssets:payload.gearAssets||{},
     displayName:payload.membership?.displayName||session?.activeDestinyMembership?.displayName||"Guardian"
   };
 }
