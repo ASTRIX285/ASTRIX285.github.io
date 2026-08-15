@@ -73,6 +73,7 @@ function renderStats(stats){
 const PLATFORM_MARKUP=`<svg class="gp-defs" aria-hidden="true"><filter id="gp-smoke" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" seed="7" stitchTiles="stitch" result="noise"><animate attributeName="seed" from="0" to="60" dur="70s" repeatCount="indefinite"/></feTurbulence><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.25 -0.46" result="alpha"/><feComposite in="SourceGraphic" in2="alpha" operator="in" result="tinted"/><feGaussianBlur in="tinted" stdDeviation="6"/></filter></svg><svg class="mist mist-back" viewBox="0 0 300 240" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="240"/></svg><div class="frontglow"></div><div class="deck"><i class="aura"></i><i class="step"></i><i class="wall"></i><i class="face"></i><i class="grain"></i><i class="cast"></i><i class="frame"></i><i class="sigil"></i><i class="hub"></i><i class="ring ring-outer"></i><i class="ring ring-mid"></i><i class="ring ring-inner"></i><i class="depth"></i></div><svg class="mist mist-front" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="130"/></svg>`;
 
 const workspaceState={characterId:null,characterClass:"hunter",subclass:"void",renderUrl:null,power:PLAYER_POWER_CAP,stats:null,weapons:[],armour:[],emblem:null,ghost:null,shader:null,ornaments:[]};
+let stageLoadingTimer=0;
 
 function normaliseSelection(detail={}){
   const characterClass=String(detail.characterClass??detail.className??detail.classType??workspaceState.characterClass).toLowerCase();
@@ -82,10 +83,21 @@ function normaliseSelection(detail={}){
 }
 
 function setStageState(state,message=""){
-  const stage=document.querySelector(".stage");if(!stage)return;stage.dataset.state=state||"ready";
+  const stage=document.querySelector(".stage");if(!stage)return;
+  clearTimeout(stageLoadingTimer);
+  stage.dataset.state=state||"ready";
   let overlay=stage.querySelector(".stage-state");
   if(!overlay){overlay=document.createElement("div");overlay.className="stage-state";overlay.innerHTML='<div class="stage-state-card"></div>';stage.appendChild(overlay)}
-  overlay.querySelector(".stage-state-card").textContent=message||"Loading Guardian data…";
+  const card=overlay.querySelector(".stage-state-card");
+  card.textContent=message||"Loading Guardian data…";
+  if(state==="loading"){
+    stageLoadingTimer=setTimeout(()=>{
+      if(stage.dataset.state!=="loading")return;
+      stage.dataset.state="error";
+      card.textContent="Guardian data took too long. Refresh or reconnect Bungie.";
+      document.dispatchEvent(new CustomEvent("astrix:guardian-load-timeout"));
+    },15000);
+  }
 }
 
 function applyGuardianSelection(detail){
@@ -95,15 +107,17 @@ function applyGuardianSelection(detail){
   stage.dataset.class=next.characterClass;stage.dataset.subclass=next.subclass;
   platform.classList.remove(...VALID_SUBCLASSES);platform.classList.add(next.subclass);
   const render=byId("guardianRender");
-  if(next.renderUrl){
+  if(render&&next.renderUrl){
     setStageState("loading","Loading selected Guardian…");
     render.onload=()=>setStageState("ready");
     render.onerror=()=>{render.style.display="none";setStageState("error","Guardian render could not be loaded.")};
     render.style.display="block";
     render.src=next.renderUrl;
   }else{
-    render.removeAttribute("src");
-    render.style.display="none";
+    if(render){
+      render.removeAttribute("src");
+      render.style.display="none";
+    }
     setStageState("ready");
   }
   if(next.power!=null) document.querySelectorAll("[data-power-cap]").forEach(el=>el.textContent=next.power);
@@ -384,7 +398,13 @@ function openArmourDrawer(index,item){
 function closeArmourDrawer(){document.body.classList.remove("armour-drawer-open");byId("armourDrawer")?.setAttribute("aria-hidden","true")}
 
 /* Single UI integration contract. Dispatch only after the user selects/loads a character. */
-document.addEventListener("astrix:guardian-selection-changed",event=>applyGuardianSelection(event.detail));
+document.addEventListener("astrix:guardian-selection-changed",event=>{
+  try{applyGuardianSelection(event.detail)}
+  catch(error){
+    console.error("[ASTRIX Guardian render]",error);
+    setStageState("error","Guardian data arrived, but the workspace could not render it.");
+  }
+});
 document.addEventListener("astrix:guardian-loading",()=>setStageState("loading","Loading Guardian data…"));
 document.addEventListener("astrix:guardian-error",event=>setStageState("error",event.detail?.message||"Guardian data could not be loaded."));
 
