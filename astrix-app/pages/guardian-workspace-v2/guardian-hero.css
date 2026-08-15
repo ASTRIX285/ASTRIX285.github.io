@@ -65,3 +65,48 @@
   }
   .guardian-hero{width:clamp(520px,58cqw,1040px)}
 }
+
+
+/* Live Guardian image is intentionally withheld until the Bungie appearance renderer is complete. */
+.guardian-render-status{
+  bottom:auto!important;
+  top:50%;
+  width:clamp(260px,34cqw,440px)!important;
+  height:auto!important;
+  min-height:190px;
+  transform:translate(-50%,-50%)!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex-direction:column;
+  gap:8px;
+  padding:28px 32px;
+  border:1px solid rgba(var(--stage-accent-rgb,139,92,246),.34);
+  border-radius:16px;
+  background:linear-gradient(180deg,rgba(12,13,24,.82),rgba(7,8,16,.68));
+  box-shadow:0 24px 70px rgba(0,0,0,.38),inset 0 0 42px rgba(var(--stage-accent-rgb,139,92,246),.06);
+  backdrop-filter:blur(10px);
+  text-align:center;
+  color:#f5f3ff;
+}
+.guardian-render-status__icon{
+  display:grid;
+  place-items:center;
+  width:52px;
+  height:52px;
+  margin-bottom:4px;
+  border:1px solid rgba(var(--stage-accent-rgb,139,92,246),.48);
+  border-radius:12px;
+  color:rgb(var(--stage-accent-rgb,139,92,246));
+  background:rgba(var(--stage-accent-rgb,139,92,246),.09);
+  font-size:22px;
+}
+.guardian-render-status strong{font:700 clamp(14px,1.25cqw,18px) Inter,sans-serif;letter-spacing:.12em}
+.guardian-render-status>span:not(.guardian-render-status__icon){font:600 clamp(14px,1.1cqw,17px) Inter,sans-serif;color:#c8c4d7}
+.guardian-render-status small{font:500 clamp(11px,.9cqw,13px) Inter,sans-serif;color:#817b96}
+@media(max-width:1220px){
+  .guardian-render-status{left:68%;width:min(42cqw,360px)!important;min-height:160px;padding:22px}
+}
+@media(max-width:700px){
+  .guardian-render-status{left:66%;width:min(48cqw,300px)!important;min-height:145px;padding:18px 14px}
+  .guardian-render-status__icon{width:42px;height:42px}
+}
