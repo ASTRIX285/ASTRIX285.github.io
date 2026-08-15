@@ -15,11 +15,6 @@ function installStyles(){
   const style=document.createElement('style');
   style.id='astrix-class-selector-style';
   style.textContent=`
-    .stage[data-class="hunter"]{--class-hero-footline:6.7%;--class-hero-height:82%}
-    .stage[data-class="titan"]{--class-hero-footline:6.5%;--class-hero-height:82%}
-    .stage[data-class="warlock"]{--class-hero-footline:11.5%;--class-hero-height:84%}
-    .stage[data-class] .guardian-hero{bottom:var(--class-hero-footline,var(--guardian-footline))!important;height:var(--class-hero-height,var(--guardian-max-h))!important}
-    .stage[data-class="warlock"] .guardian-hero img{filter:drop-shadow(0 26px 46px rgba(0,0,0,.72)) drop-shadow(0 0 42px rgba(139,92,246,.38))}
     .char-switch{cursor:pointer!important}
     .pf-class-picker-backdrop{position:fixed;inset:0;z-index:420;display:grid;place-items:center;padding:24px;background:rgba(2,2,8,.78);backdrop-filter:blur(8px)}
     .pf-class-picker{width:min(820px,94vw);max-height:82vh;overflow:auto;border:1px solid rgba(158,96,255,.36);border-radius:16px;background:linear-gradient(180deg,#171022,#09070f);box-shadow:0 30px 90px #000;color:#fff}
