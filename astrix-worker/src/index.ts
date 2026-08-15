@@ -629,8 +629,14 @@ export default {
       if (request.method === "POST" && url.pathname === "/logout") return logoutRoute(request, env);
       return json({ error: "not_found" }, 404);
     } catch (error) {
-      console.error(error);
-      return json({ error: "server_error" }, 500);
+      console.error("worker_request_failed", {
+        path: url.pathname,
+        message: error instanceof Error ? error.message : String(error)
+      });
+      return withCors(request, env, json({
+        error: "server_error",
+        path: url.pathname
+      }, 500));
     }
   }
 } satisfies ExportedHandler<Env>;
