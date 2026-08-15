@@ -14,7 +14,20 @@
 .workspace>.right,
 .workspace>.equip{container-type:inline-size}
 
-@media (min-width:1281px){
+@media (min-width:1500px){
+  .workspace{
+    width:calc(100vw - (var(--workspace-edge) * 2))!important;
+    max-width:none!important;
+    grid-template-columns:
+      clamp(300px,17vw,420px)
+      minmax(0,1fr)
+      clamp(420px,30vw,600px)!important;
+    grid-template-areas:"left stage right" "equip equip right"!important;
+    gap:var(--workspace-gap)!important;
+  }
+}
+
+@media (min-width:1281px) and (max-width:1499px){
   .workspace{
     width:calc(100vw - (var(--workspace-edge) * 2))!important;
     max-width:none!important;
@@ -22,21 +35,24 @@
       clamp(286px,17vw,390px)
       minmax(520px,1fr)
       clamp(360px,25vw,560px)!important;
-    grid-template-areas:"left stage right" "left equip right"!important;
+    grid-template-areas:"left stage right" "equip equip right"!important;
     gap:var(--workspace-gap)!important;
   }
 }
 
-/* Browser zoom and compact desktop: keep the build and hero together while
- * allowing analysis and equipment to use the full row instead of clipping. */
+/* Browser zoom and compact desktop: preserve all three primary regions in
+ * the top row. Analysis continues down the right rail beside equipment. */
 @media (min-width:981px) and (max-width:1280px){
   html,body{height:auto!important;overflow:auto!important}
   .workspace{
     width:calc(100vw - (var(--workspace-edge) * 2))!important;
     height:auto!important;
-    grid-template-columns:clamp(272px,27vw,330px) minmax(0,1fr)!important;
-    grid-template-rows:minmax(570px,68vh) auto auto!important;
-    grid-template-areas:"left stage" "equip equip" "right right"!important;
+    grid-template-columns:
+      clamp(248px,25vw,310px)
+      minmax(0,1fr)
+      clamp(280px,28vw,340px)!important;
+    grid-template-rows:minmax(570px,68vh) auto!important;
+    grid-template-areas:"left stage right" "equip equip right"!important;
     gap:var(--workspace-gap)!important;
   }
   .workspace>.left,.workspace>.stage{height:100%!important;max-height:none!important}
@@ -46,9 +62,8 @@
   .actionbar{position:static!important}
 }
 
-/* Heavy desktop zoom / landscape tablet. A single-column flow is clearer and
- * remains fully usable than forcing a narrow hero beside a fixed rail. */
-@media (min-width:861px) and (max-width:980px){
+/* All stacked widths use one reading order: build, Guardian, analysis, gear. */
+@media (max-width:980px){
   html,body{height:auto!important;overflow:auto!important}
   .workspace{
     display:grid!important;
@@ -56,7 +71,7 @@
     height:auto!important;
     grid-template-columns:1fr!important;
     grid-template-rows:auto!important;
-    grid-template-areas:"stage" "left" "equip" "right"!important;
+    grid-template-areas:"left" "stage" "right" "equip"!important;
     gap:var(--workspace-gap)!important;
   }
   .workspace>*{width:100%!important;height:auto!important;max-height:none!important;overflow:visible!important}
