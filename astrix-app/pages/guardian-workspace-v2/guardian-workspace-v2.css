@@ -47,7 +47,6 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 /* ---------- workspace grid ---------- */
 .workspace{
   display:grid;
-  grid-template-columns:308px minmax(0,1fr) 372px;
   grid-template-rows:minmax(0,1fr) auto;
   grid-template-areas:"left stage right" "equip equip right";
   gap:16px;padding:16px;max-width:1920px;margin:0 auto;min-height:calc(100vh - 64px)}
