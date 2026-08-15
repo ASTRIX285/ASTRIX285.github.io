@@ -95,7 +95,17 @@ function applyGuardianSelection(detail){
   stage.dataset.class=next.characterClass;stage.dataset.subclass=next.subclass;
   platform.classList.remove(...VALID_SUBCLASSES);platform.classList.add(next.subclass);
   const render=byId("guardianRender");
-  if(next.renderUrl){setStageState("loading","Loading selected Guardian…");render.onload=()=>setStageState("ready");render.onerror=()=>{render.style.display="none";setStageState("error","Guardian render could not be loaded.")};render.style.display="block";render.src=next.renderUrl}
+  if(next.renderUrl){
+    setStageState("loading","Loading selected Guardian…");
+    render.onload=()=>setStageState("ready");
+    render.onerror=()=>{render.style.display="none";setStageState("error","Guardian render could not be loaded.")};
+    render.style.display="block";
+    render.src=next.renderUrl;
+  }else{
+    render.removeAttribute("src");
+    render.style.display="none";
+    setStageState("ready");
+  }
   if(next.power!=null) document.querySelectorAll("[data-power-cap]").forEach(el=>el.textContent=next.power);
   if(next.stats) renderStats(next.stats);
   if(next.subclassBuild)renderSubclassBuild(next.subclassBuild,next.subclassName);
