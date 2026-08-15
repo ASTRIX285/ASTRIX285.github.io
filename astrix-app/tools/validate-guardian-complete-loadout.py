@@ -12,6 +12,7 @@ def main() -> int:
     profile = (PAGE / "guardian-bungie-profile.mjs").read_text(encoding="utf-8")
     advisor = (PAGE / "guardian-advisor-layer.mjs").read_text(encoding="utf-8")
     gear = (PAGE / "guardian-gear-layout.mjs").read_text(encoding="utf-8")
+    cards_css = (PAGE / "guardian-character-cards.css").read_text(encoding="utf-8")
 
     # Subclass socket data must be promoted to the renderer's public contract.
     for field in (
@@ -23,6 +24,7 @@ def main() -> int:
         "abilities:subclassBuild.abilities",
         "aspects:subclassBuild.aspects",
         "fragments:subclassBuild.fragments",
+        "superOptions:subclassBuild.superOptions",
     ):
         assert field in profile, f"Missing public subclass field: {field}"
 
@@ -49,6 +51,8 @@ def main() -> int:
     ):
         assert category in profile, f"Coverage gate missing: {category}"
     assert "if(!detail.coverage.complete)" in profile
+    assert "itemComponents?.reusablePlugs" in profile
+    assert "reusablePlugsAvailable" in profile
 
     # The page regions consume the same contract rather than retaining fixture data.
     assert "data.super" in advisor
@@ -56,6 +60,14 @@ def main() -> int:
     assert "Array.isArray(data.aspects)" in advisor
     assert "Array.isArray(data.fragments)" in advisor
     assert "data.artifact" in advisor
+    assert "ensureClassSuperRow" in advisor
+    assert "data.superOptions??data.subclassBuild?.superOptions" in advisor
+    assert 'type="button" class="super-option' in advisor
+    assert "available in future build editor" in advisor
+    assert ".class-super-row" in cards_css
+    assert "clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)" in cards_css
+    assert ".super-option.is-active" in cards_css
+    assert ".super-option.is-inactive" in cards_css
     assert "const mods=Array.isArray(item?.mods)?item.mods:[]" in gear
     assert "Array.from({length:slotCount}" in gear
     assert "modTile(mods[i])" in gear
@@ -66,6 +78,8 @@ def main() -> int:
     print("WEAPONS_ARMOUR_MODS=PASS")
     print("ARTIFACT_CHARACTER_CONTEXT=PASS")
     print("EMBLEM_SHADER_ORNAMENT=PASS")
+    print("CLASS_SUPER_SELECTOR=PASS")
+    print("SUPER_DIAMOND_CONTROLS=PASS")
     print("INCOMPLETE_BUNGIE_PAYLOAD_REJECTED=PASS")
     return 0
 
