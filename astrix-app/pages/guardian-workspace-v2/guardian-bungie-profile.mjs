@@ -179,8 +179,10 @@ globalThis.addEventListener("astrix:bungie-session",event=>{
 
 document.addEventListener("astrix:loadout-selected",event=>{
   loadSelectedLoadout(event.detail).catch(error=>{
+    const message=error.message||"Saved loadout could not be loaded.";
     console.error("[ASTRIX Bungie loadout]",error);
-    document.dispatchEvent(new CustomEvent("astrix:guardian-error",{detail:{message:error.message||"Saved loadout could not be loaded."}}));
+    setRenderStatus("SAVED LOADOUT UNAVAILABLE",message,"Your current Guardian profile is still active");
+    document.dispatchEvent(new CustomEvent("astrix:loadout-error",{detail:{...event.detail,message}}));
   });
 });
 
