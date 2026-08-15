@@ -1,6 +1,6 @@
 /* ASTRIX PARADOX adaptive layout authority.
- * Loaded last so legacy fixed-width passes cannot fight browser zoom or
- * container resizing. Components respond to the space they actually own. */
+ * Sole owner of top-level .workspace grid-template-columns and responsive
+ * top-level reading order. Component grids remain owned by their components. */
 
 :root{
   --workspace-gap:clamp(8px,.7vw,16px);
@@ -14,86 +14,108 @@
 .workspace>.right,
 .workspace>.equip{container-type:inline-size}
 
-@media (min-width:1281px){
+/* Wide desktop. Intelligence rail capped below the centre track so the
+ * Guardian stays the widest main region. */
+@media (min-width:1500px){
   .workspace{
     width:calc(100vw - (var(--workspace-edge) * 2))!important;
     max-width:none!important;
     grid-template-columns:
       clamp(286px,17vw,390px)
-      minmax(520px,1fr)
-      clamp(360px,25vw,560px)!important;
-    grid-template-areas:"left stage right" "left equip right"!important;
+      minmax(600px,1fr)
+      clamp(360px,30vw,650px)!important;
+    grid-template-areas:
+      "left stage right"
+      "equip equip right"!important;
     gap:var(--workspace-gap)!important;
   }
 }
 
-/* Browser zoom and compact desktop: keep the build and hero together while
- * allowing analysis and equipment to use the full row instead of clipping. */
+/* Standard desktop. */
+@media (min-width:1281px) and (max-width:1499px){
+  .workspace{
+    width:calc(100vw - (var(--workspace-edge) * 2))!important;
+    max-width:none!important;
+    grid-template-columns:
+      clamp(286px,17vw,350px)
+      minmax(520px,1fr)
+      clamp(320px,25vw,390px)!important;
+    grid-template-areas:
+      "left stage right"
+      "equip equip right"!important;
+    gap:var(--workspace-gap)!important;
+  }
+}
+
+/* Compact desktop. Paradox remains top-right, never demoted beneath gear. */
 @media (min-width:981px) and (max-width:1280px){
   html,body{height:auto!important;overflow:auto!important}
   .workspace{
     width:calc(100vw - (var(--workspace-edge) * 2))!important;
     height:auto!important;
-    grid-template-columns:clamp(272px,27vw,330px) minmax(0,1fr)!important;
-    grid-template-rows:minmax(570px,68vh) auto auto!important;
-    grid-template-areas:"left stage" "equip equip" "right right"!important;
+    grid-template-columns:
+      clamp(250px,24vw,300px)
+      minmax(360px,1fr)
+      clamp(300px,29vw,360px)!important;
+    grid-template-rows:minmax(570px,68vh) auto!important;
+    grid-template-areas:
+      "left stage right"
+      "equip equip right"!important;
     gap:var(--workspace-gap)!important;
   }
-  .workspace>.left,.workspace>.stage{height:100%!important;max-height:none!important}
-  .workspace>.right,.workspace>.equip{height:auto!important;max-height:none!important;overflow:visible!important}
+  .workspace>.left,
+  .workspace>.stage{height:100%!important;max-height:none!important}
+  .workspace>.right,
+  .workspace>.equip{height:auto!important;max-height:none!important;overflow:visible!important}
   .equip.gear-layout-active{grid-template-columns:minmax(220px,270px) minmax(0,1fr)!important}
   .right .mini-grid,.right .sw-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .actionbar{position:static!important}
 }
 
-/* Heavy desktop zoom / landscape tablet. A single-column flow is clearer and
- * remains fully usable than forcing a narrow hero beside a fixed rail. */
+/* Tablet stack. Mobile below 861 already uses flex with matching item order. */
 @media (min-width:861px) and (max-width:980px){
   html,body{height:auto!important;overflow:auto!important}
   .workspace{
-    display:grid!important;
     width:calc(100vw - (var(--workspace-edge) * 2))!important;
     height:auto!important;
-    grid-template-columns:1fr!important;
+    grid-template-columns:minmax(0,1fr)!important;
     grid-template-rows:auto!important;
-    grid-template-areas:"stage" "left" "equip" "right"!important;
+    grid-template-areas:"stage" "left" "right" "equip"!important;
     gap:var(--workspace-gap)!important;
   }
   .workspace>*{width:100%!important;height:auto!important;max-height:none!important;overflow:visible!important}
   .workspace>.stage{height:clamp(570px,72vh,720px)!important;overflow:hidden!important}
   .workspace>.left{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(260px,.72fr)!important;align-items:start!important}
-  .workspace>.left>.class-super-row,.workspace>.left>.guardian-loadouts-panel{grid-column:1/-1}
+  .workspace>.left>.class-super-row,
+  .workspace>.left>.guardian-loadouts-panel{grid-column:1/-1}
   .equip.gear-layout-active{grid-template-columns:1fr!important}
-  .equip.gear-layout-active>.gear-weapons,.equip.gear-layout-active>.gear-combined{grid-column:1!important}
+  .equip.gear-layout-active>.gear-weapons,
+  .equip.gear-layout-active>.gear-combined{grid-column:1!important}
   .actionbar{position:static!important}
 }
 
 /* Character selector responds to the hero, not the browser. */
 @container (max-width:780px){
   .guardian-character-cards{
-    left:14px!important;
-    right:64px!important;
-    display:flex!important;
-    gap:8px!important;
-    overflow-x:auto!important;
-    padding-bottom:6px!important;
+    left:14px!important;right:64px!important;
+    display:flex!important;gap:8px!important;
+    overflow-x:auto!important;padding-bottom:6px!important;
     scroll-snap-type:x proximity;
   }
   .guardian-character-card{flex:0 0 clamp(238px,62cqw,310px);scroll-snap-align:start}
 }
-
 @container (max-width:560px){
   .guardian-character-cards{right:14px!important}
   .guardian-character-card{flex-basis:min(84cqw,290px)}
   .view3d{top:150px!important}
 }
 
-/* Left rail: class and Supers remain side by side. The equipped Super sits
- * forward in the lower diamond while the other valid Supers recede behind. */
+/* Left rail: class and Supers remain side by side. */
 @container (max-width:340px){
   .class-super-row{grid-template-columns:minmax(110px,.88fr) minmax(0,1.12fr)!important;padding:5px!important}
   .class-super-row .subclass-hero{grid-template-columns:36px minmax(0,1fr);padding:4px 6px 4px 3px!important}
-  .class-super-row .subclass-hero .crest,.class-super-row .subclass-hero .crest-fb{width:36px!important;height:36px!important;flex-basis:36px!important}
+  .class-super-row .subclass-hero .crest,
+  .class-super-row .subclass-hero .crest-fb{width:36px!important;height:36px!important;flex-basis:36px!important}
   .class-super-row .super-focus{padding:2px 3px!important}
   .class-super-row .super-options{width:min(116px,100%);height:56px}
   .class-super-row .super-focus{grid-template-rows:auto 56px auto}
@@ -102,27 +124,16 @@
   .class-super-row .super-option .ico-badge{width:23px!important;height:23px!important;min-width:23px!important}
 }
 
-/* Armour cards keep five columns while space permits, then reflow without
- * crushing their 3 x 2 mod grids. */
+/* Armour cards keep five columns while space permits. */
 .gear-combined{container-type:inline-size}
 .gear-columns{grid-template-columns:repeat(5,minmax(128px,1fr))!important}
-
-@container (max-width:900px){
-  .gear-columns{grid-template-columns:repeat(3,minmax(150px,1fr))!important}
-}
-
-@container (max-width:580px){
-  .gear-columns{grid-template-columns:repeat(2,minmax(145px,1fr))!important}
-}
-
-@container (max-width:340px){
-  .gear-columns{grid-template-columns:1fr!important}
-}
+@container (max-width:900px){.gear-columns{grid-template-columns:repeat(3,minmax(150px,1fr))!important}}
+@container (max-width:580px){.gear-columns{grid-template-columns:repeat(2,minmax(145px,1fr))!important}}
+@container (max-width:340px){.gear-columns{grid-template-columns:1fr!important}}
 
 /* Analysis copy and cards wrap rather than generating horizontal overflow. */
 .right :is(.health-card,.focus-row,.mini,.sw-card,.activity,.improve){min-width:0}
 .right :is(p,small,b,li,.verdict){overflow-wrap:anywhere}
-
 @container (max-width:520px){
   .right .health-card{grid-template-columns:82px minmax(0,1fr)!important}
   .right .ring{width:82px!important;height:82px!important;flex-basis:82px!important}
@@ -130,7 +141,8 @@
 }
 
 @media (max-width:860px){
+  .workspace{width:100%!important}
   .workspace>.left{display:flex!important;flex-direction:column!important}
-  .workspace>.stage{height:clamp(560px,145vw,680px)!important}
+  .workspace>.stage{height:clamp(560px,145vw,680px)!important;min-height:560px!important}
   .gear-columns{grid-template-columns:1fr!important}
 }
