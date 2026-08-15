@@ -1,5 +1,7 @@
 const SLOT_COUNT=20;
 const host=()=>document.querySelector("#guardianLoadouts");
+let activeCharacterId="";
+let activeIndex=null;
 
 function hashHue(value,index){
   const numeric=Number(value);
@@ -15,15 +17,21 @@ function render(loadouts=[]){
     const saved=Boolean(loadout&&(loadout.items?.length||loadout.subclassOverrides?.length));
     const hue=hashHue(loadout?.colorHash,index);
     const title=saved?`Bungie in-game loadout ${index+1}`:`Empty loadout position ${index+1}`;
-    return `<button type="button" class="guardian-loadout-slot ${saved?"is-saved":""}" data-loadout-slot="${index}" aria-label="${title}" title="${title}" style="--loadout-hue:${hue}"><span class="guardian-loadout-symbol" aria-hidden="true">${saved?"✦":"◇"}</span><small>${index+1}</small></button>`;
+    return `<button type="button" class="guardian-loadout-slot ${saved?"is-saved":""} ${activeIndex===index?"is-active":""}" data-loadout-slot="${index}" aria-label="${title}" title="${title}" style="--loadout-hue:${hue}"><span class="guardian-loadout-symbol" aria-hidden="true">${saved?"✦":"◇"}</span><small>${index+1}</small></button>`;
   }).join("");
   target.querySelectorAll(".is-saved").forEach(button=>button.addEventListener("click",()=>{
     const index=Number(button.dataset.loadoutSlot);
-    document.dispatchEvent(new CustomEvent("astrix:loadout-selected",{detail:{index,loadout:rows[index],source:"bungie-live"}}));
+    activeIndex=index;
+    target.querySelectorAll(".guardian-loadout-slot").forEach(slot=>slot.classList.toggle("is-active",Number(slot.dataset.loadoutSlot)===index));
+    document.dispatchEvent(new CustomEvent("astrix:loadout-selected",{detail:{index,characterId:activeCharacterId,loadout:rows[index],source:"bungie-live"}}));
   }));
 }
 
-document.addEventListener("astrix:guardian-selection-changed",event=>render(event.detail?.loadouts||[]));
+document.addEventListener("astrix:guardian-selection-changed",event=>{
+  activeCharacterId=String(event.detail?.characterId||activeCharacterId||"");
+  if(Number.isInteger(event.detail?.selectedLoadoutIndex))activeIndex=event.detail.selectedLoadoutIndex;
+  render(event.detail?.loadouts||[]);
+});
 document.addEventListener("astrix:beta-fixture-loaded",()=>render([]));
 render([]);
 
