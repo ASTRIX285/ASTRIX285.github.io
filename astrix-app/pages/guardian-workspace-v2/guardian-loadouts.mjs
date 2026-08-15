@@ -1,11 +1,24 @@
+import {LOADOUT_DEFINITIONS} from "./guardian-loadout-definitions.mjs";
+
 const SLOT_COUNT=20;
+const BUNGIE_ORIGIN="https://www.bungie.net";
 const host=()=>document.querySelector("#guardianLoadouts");
 let activeCharacterId="";
 let activeIndex=null;
 
-function hashHue(value,index){
-  const numeric=Number(value);
-  return Number.isFinite(numeric)?Math.abs(numeric)%360:(250+(index*19))%360;
+const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,character=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character]));
+const absoluteAsset=path=>path?new URL(path,BUNGIE_ORIGIN).toString():"";
+const manifestRow=(section,hash)=>LOADOUT_DEFINITIONS?.[section]?.[String(hash)]||null;
+
+function loadoutIdentity(loadout){
+  const name=manifestRow("names",loadout?.nameHash)?.name||"Saved Loadout";
+  const icon=absoluteAsset(manifestRow("icons",loadout?.iconHash)?.iconImagePath);
+  const color=absoluteAsset(manifestRow("colors",loadout?.colorHash)?.colorImagePath);
+  return {name,icon,color};
+}
+
+function isSaved(loadout){
+  return Boolean(loadout&&(loadout.items?.length||loadout.subclassOverrides?.length));
 }
 
 function render(loadouts=[]){
@@ -14,10 +27,16 @@ function render(loadouts=[]){
   const rows=Array.isArray(loadouts)?loadouts:[];
   target.innerHTML=Array.from({length:SLOT_COUNT},(_,index)=>{
     const loadout=rows[index]||null;
-    const saved=Boolean(loadout&&(loadout.items?.length||loadout.subclassOverrides?.length));
-    const hue=hashHue(loadout?.colorHash,index);
-    const title=saved?`Bungie in-game loadout ${index+1}`:`Empty loadout position ${index+1}`;
-    return `<button type="button" class="guardian-loadout-slot ${saved?"is-saved":""} ${activeIndex===index?"is-active":""}" data-loadout-slot="${index}" aria-label="${title}" title="${title}" style="--loadout-hue:${hue}"><span class="guardian-loadout-symbol" aria-hidden="true">${saved?"✦":"◇"}</span><small>${index+1}</small></button>`;
+    const saved=isSaved(loadout);
+    if(!saved){
+      const title=`Empty Bungie loadout slot ${index+1}`;
+      return `<button type="button" class="guardian-loadout-slot is-empty" data-loadout-slot="${index}" aria-label="${title}" title="${title}" disabled><span class="guardian-loadout-empty-label" aria-hidden="true">EMPTY</span><small>${index+1}</small></button>`;
+    }
+    const identity=loadoutIdentity(loadout);
+    const title=`${identity.name}, Bungie loadout slot ${index+1}`;
+    const colorStyle=identity.color?` style="--loadout-color-image:url(${escapeHtml(identity.color)})"`:"";
+    const icon=identity.icon?`<img class="guardian-loadout-icon" src="${escapeHtml(identity.icon)}" alt="" loading="lazy" decoding="async">`:`<span class="guardian-loadout-icon-fallback" aria-hidden="true">◆</span>`;
+    return `<button type="button" class="guardian-loadout-slot is-saved ${activeIndex===index?"is-active":""}" data-loadout-slot="${index}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}"${colorStyle}>${icon}<span class="guardian-loadout-name" aria-hidden="true">${escapeHtml(identity.name)}</span><small>${index+1}</small></button>`;
   }).join("");
   target.querySelectorAll(".is-saved").forEach(button=>button.addEventListener("click",()=>{
     const index=Number(button.dataset.loadoutSlot);
@@ -36,3 +55,4 @@ document.addEventListener("astrix:beta-fixture-loaded",()=>render([]));
 render([]);
 
 export {render as renderGuardianLoadouts};
+export {isSaved,loadoutIdentity};
