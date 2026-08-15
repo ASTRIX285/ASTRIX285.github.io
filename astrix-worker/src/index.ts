@@ -41,8 +41,19 @@ type BungieApiResponse<T> = {
 
 type DestinyItemComponent = { itemHash?: number; itemInstanceId?: string };
 type DestinySocketComponent = { sockets?: Array<{ plugHash?: number }> };
+type DestinyLoadoutItemComponent = { itemInstanceId?: string; plugItemHashes?: number[] };
+type DestinyLoadoutComponent = {
+  colorHash?: number;
+  iconHash?: number;
+  nameHash?: number;
+  items?: DestinyLoadoutItemComponent[];
+  subclassOverrides?: DestinyLoadoutItemComponent[];
+};
 type DestinyProfilePayload = {
   characterEquipment?: { data?: Record<string, { items?: DestinyItemComponent[] }> };
+  characterInventories?: { data?: Record<string, { items?: DestinyItemComponent[] }> };
+  profileInventory?: { data?: { items?: DestinyItemComponent[] } };
+  characterLoadouts?: { data?: Record<string, { loadouts?: DestinyLoadoutComponent[] }> };
   itemComponents?: { sockets?: { data?: Record<string, DestinySocketComponent> } };
   [key: string]: unknown;
 };
@@ -55,8 +66,10 @@ const PROFILE_COMPONENTS = [
   200, // Characters
   201, // CharacterInventories
   202, // CharacterProgressions
-  203, // CharacterRenderData\n  204, // CharacterActivities
-  205, // CharacterEquipment\n  206, // CharacterLoadouts
+  203, // CharacterRenderData
+  204, // CharacterActivities
+  205, // CharacterEquipment
+  206, // CharacterLoadouts
   300, // ItemInstances
   302, // ItemPerks
   304, // ItemStats
@@ -351,7 +364,100 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     membership,
     components: PROFILE_COMPONENTS,
     profile: payload.Response,
-    definitions
+    definitions,
+    gearAssets
+  }));
+}
+
+function allProfileItems(profile: DestinyProfilePayload): DestinyItemComponent[] {
+  const rows: DestinyItemComponent[] = [];
+  rows.push(...(profile.profileInventory?.data?.items || []));
+  for (const inventory of Object.values(profile.characterInventories?.data || {})) rows.push(...(inventory.items || []));
+  for (const equipment of Object.values(profile.characterEquipment?.data || {})) rows.push(...(equipment.items || []));
+  return rows;
+}
+
+async function loadoutRoute(request: Request, env: Env): Promise<Response> {
+  const requestUrl = new URL(request.url);
+  const characterId = requestUrl.searchParams.get("characterId") || "";
+  const index = Number(requestUrl.searchParams.get("index"));
+  if (!characterId || !Number.isInteger(index) || index < 0 || index > 19) {
+    return withCors(request, env, json({ error: "invalid_loadout_selection" }, 400));
+  }
+
+  const sessionId = cookieValue(request, SESSION_COOKIE);
+  if (!sessionId) return withCors(request, env, json({ authenticated: false, error: "authentication_required" }, 401));
+  const storedSession = await getSession(env, sessionId);
+  if (!storedSession || storedSession.absoluteExpiresAt <= Date.now()) {
+    if (storedSession) await deleteSession(env, sessionId);
+    return withCors(request, env, json({ authenticated: false, error: "session_expired" }, 401, { "Set-Cookie": clearSessionCookie() }));
+  }
+  if (!storedSession.activeDestinyMembership) {
+    return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
+  }
+
+  let session: SessionRecord;
+  try {
+    session = await refreshAccessToken(sessionId, storedSession, env);
+  } catch (error) {
+    if (error instanceof Error && error.message === "bungie_reauthentication_required") {
+      await deleteSession(env, sessionId);
+      return withCors(request, env, json({ authenticated: false, error: "bungie_reauthentication_required" }, 401, { "Set-Cookie": clearSessionCookie() }));
+    }
+    throw error;
+  }
+
+  const membership = session.activeDestinyMembership;
+  if (!membership) return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
+  const profileUrl = new URL(`${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Profile/${encodeURIComponent(membership.membershipId)}/`);
+  profileUrl.searchParams.set("components", PROFILE_COMPONENTS.join(","));
+  const response = await fetch(profileUrl, { headers: {
+    Authorization: `Bearer ${session.accessToken}`,
+    "X-API-Key": env.BUNGIE_API_KEY,
+    "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+  }});
+  const payload = await response.json<BungieApiResponse<DestinyProfilePayload>>().catch(() => null);
+  if (!response.ok || !payload?.Response) {
+    return withCors(request, env, json({ error: "bungie_loadout_profile_failed", status: response.status }, 502));
+  }
+
+  const profile = payload.Response;
+  const loadout = profile.characterLoadouts?.data?.[characterId]?.loadouts?.[index];
+  if (!loadout || (!(loadout.items?.length) && !(loadout.subclassOverrides?.length))) {
+    return withCors(request, env, json({ error: "loadout_not_found" }, 404));
+  }
+  const byInstance = new Map(allProfileItems(profile).filter(item => item.itemInstanceId).map(item => [String(item.itemInstanceId), item]));
+  const selectedRows = [...(loadout.items || []), ...(loadout.subclassOverrides || [])];
+  const selectedByInstance = new Map<string, DestinyItemComponent & { plugItemHashes: number[] }>();
+  for (const row of selectedRows) {
+    const id = String(row.itemInstanceId || "");
+    const item = id ? byInstance.get(id) : undefined;
+    if (!item) continue;
+    const prior = selectedByInstance.get(id);
+    selectedByInstance.set(id, { ...item, plugItemHashes: row.plugItemHashes?.length ? row.plugItemHashes : (prior?.plugItemHashes || []) });
+  }
+  const selectedItems = [...selectedByInstance.values()];
+  const definitionHashes = new Set<number>();
+  for (const item of selectedItems) {
+    if (Number.isInteger(item.itemHash)) definitionHashes.add(Number(item.itemHash));
+    for (const plugHash of item.plugItemHashes) if (Number.isInteger(plugHash)) definitionHashes.add(Number(plugHash));
+  }
+  const hashes = [...definitionHashes];
+  const [definitions, gearAssets] = await Promise.all([
+    fetchInventoryDefinitions(hashes, session.accessToken, env),
+    fetchGearAssetDefinitions(selectedItems.map(item => Number(item.itemHash)).filter(Number.isInteger), session.accessToken, env)
+  ]);
+  await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
+  return withCors(request, env, json({
+    authenticated: true,
+    membership,
+    characterId,
+    index,
+    loadout,
+    selectedItems,
+    profile,
+    definitions,
+    gearAssets
   }));
 }
 
@@ -455,6 +561,9 @@ export default {
       if (request.method === "GET" && url.pathname === "/session") return sessionRoute(request, env);
       if (request.method === "GET" && (url.pathname === "/bungie/profile" || url.pathname === "/v1/destiny/profile")) {
         return profileRoute(request, env);
+      }
+      if (request.method === "GET" && (url.pathname === "/bungie/loadout" || url.pathname === "/v1/destiny/loadout")) {
+        return loadoutRoute(request, env);
       }
       if (request.method === "POST" && url.pathname === "/logout") return logoutRoute(request, env);
       return json({ error: "not_found" }, 404);
