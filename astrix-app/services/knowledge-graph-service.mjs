@@ -1,7 +1,15 @@
-const DEFAULT_RELATIONSHIPS_URL = './data/knowledge-relationships.json';
+/**
+ * ASTRIX PARADOX - KNOWLEDGE GRAPH SERVICE
+ * Graph evaluation service for build synergy tracking, component interactions,
+ * ability-loop traversal, and condition checking.
+ */
+
+export const KNOWLEDGE_GRAPH_SERVICE_VERSION = '1.1.0';
+export const DEFAULT_RELATIONSHIPS_URL = '../../data/knowledge-relationships.json';
 
 function keyOf(ref) {
-  return `${ref.namespace}:${ref.id}`;
+  if (!ref || typeof ref !== 'object') return 'unknown:unknown';
+  return `${ref.namespace || 'global'}:${ref.id || 'unresolved'}`;
 }
 
 function clone(value) {
@@ -15,14 +23,22 @@ export class KnowledgeGraphService {
     this.url = options.url ?? DEFAULT_RELATIONSHIPS_URL;
     this.fetchImplementation = options.fetchImplementation ?? globalThis.fetch;
     this.catalogue = null;
+    this.loaded = false;
     this.byId = new Map();
     this.outgoing = new Map();
     this.incoming = new Map();
   }
 
   async load(options = {}) {
-    const response = await this.fetchImplementation(options.url ?? this.url, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`Unable to load knowledge relationships: ${response.status} ${response.statusText}`);
+    const url = options.url ?? this.url;
+    if (this.loaded && !options.forceReload) return this.catalogue;
+    if (typeof this.fetchImplementation !== 'function') {
+      throw new Error('KnowledgeGraphService requires fetch.');
+    }
+    const response = await this.fetchImplementation(url, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Unable to load knowledge relationships: ${response.status} ${response.statusText}`);
+    }
     return this.setCatalogue(await response.json());
   }
 
@@ -36,33 +52,51 @@ export class KnowledgeGraphService {
     this.incoming.clear();
 
     for (const edge of catalogue.relationships) {
-      if (this.byId.has(edge.id)) throw new Error(`Duplicate relationship id: ${edge.id}`);
+      if (!edge || !edge.id) continue;
+      if (this.byId.has(edge.id)) {
+        console.warn(`[KnowledgeGraphService] Duplicate relationship id detected: ${edge.id}`);
+      }
       this.byId.set(edge.id, edge);
+
       const fromKey = keyOf(edge.from);
       const toKey = keyOf(edge.to);
+
       if (!this.outgoing.has(fromKey)) this.outgoing.set(fromKey, []);
       if (!this.incoming.has(toKey)) this.incoming.set(toKey, []);
+
       this.outgoing.get(fromKey).push(edge);
       this.incoming.get(toKey).push(edge);
     }
+
+    this.loaded = true;
     return catalogue;
   }
 
+  ensureLoaded() {
+    if (!this.loaded || !this.catalogue) {
+      throw new Error('Knowledge relationship catalogue has not been loaded.');
+    }
+  }
+
   getRelationship(id) {
+    this.ensureLoaded();
     return this.byId.get(id) ?? null;
   }
 
   getOutgoing(ref, relation = null) {
+    this.ensureLoaded();
     const edges = this.outgoing.get(keyOf(ref)) ?? [];
     return clone(relation ? edges.filter((edge) => edge.relation === relation) : edges);
   }
 
   getIncoming(ref, relation = null) {
+    this.ensureLoaded();
     const edges = this.incoming.get(keyOf(ref)) ?? [];
     return clone(relation ? edges.filter((edge) => edge.relation === relation) : edges);
   }
 
   neighbours(ref, options = {}) {
+    this.ensureLoaded();
     const direction = options.direction ?? 'both';
     const relation = options.relation ?? null;
     const edges = [];
@@ -72,6 +106,7 @@ export class KnowledgeGraphService {
   }
 
   trace(startRef, options = {}) {
+    this.ensureLoaded();
     const maxDepth = Number.isInteger(options.maxDepth) ? options.maxDepth : 4;
     const allowedRelations = options.relations ? new Set(options.relations) : null;
     const queue = [{ ref: startRef, depth: 0, path: [] }];
@@ -97,6 +132,7 @@ export class KnowledgeGraphService {
   }
 
   explainPath(path) {
+    if (!Array.isArray(path)) return [];
     return path.map((edge) => ({
       relationshipId: edge.id,
       from: edge.from,
@@ -110,3 +146,4 @@ export class KnowledgeGraphService {
 }
 
 export const knowledgeGraphService = new KnowledgeGraphService();
+export const createKnowledgeGraphService = (options = {}) => new KnowledgeGraphService(options);
