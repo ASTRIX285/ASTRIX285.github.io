@@ -1,9 +1,18 @@
+/* ==========================================================================
+   ASTRIX PARADOX - GUARDIAN WORKSPACE RUNTIME AUTHORITY
+   Single-contract runtime coordinator for live Bungie equipment ingestion,
+   socket/mod/trait extraction, and responsive workspace state mapping.
+   ========================================================================== */
+
 const PLAYER_POWER_CAP = 550;
 const STAT_CAP = 200;
 
 const ART = {
   crest: "https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png",
-  super: { name: "Shadowshot: Moebius Quiver", icon: "https://www.bungie.net/common/destiny2_content/icons/986e8f2dd0699371d605a331bb63742a.png" },
+  super: {
+    name: "Shadowshot: Moebius Quiver",
+    icon: "https://www.bungie.net/common/destiny2_content/icons/986e8f2dd0699371d605a331bb63742a.png"
+  },
   aspects: [
     { name: "Stylish Executioner", icon: "https://www.bungie.net/common/destiny2_content/icons/ed7f8c49b77fa46f4eec87a3c167c4b1.jpg" },
     { name: "Trapper's Ambush", icon: "https://www.bungie.net/common/destiny2_content/icons/e91760df2b81d191da9e2c62cb3fcda7.jpg" }
@@ -32,304 +41,435 @@ const abilities = [
   { label: "MELEE", name: "Smoke Bomb", icon: "" },
   { label: "GRENADE", name: "Vortex Grenade", icon: "" }
 ];
-const previewStats = [["Mobility",100],["Resilience",42],["Recovery",70],["Discipline",101],["Intellect",28],["Strength",38]];
-const VALID_CLASSES = ["hunter","titan","warlock"];
-const VALID_SUBCLASSES = ["void","solar","arc","stasis","strand","prismatic"];
-const byId = id => document.getElementById(id);
-const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[character]);
 
-function loadBetaStyles(){
-  ["guardian-background-beta.css","guardian-workspace-v2-beta.css"].forEach(href=>{
-    if(document.querySelector(`link[href="./${href}"]`)) return;
-    const link=document.createElement("link");link.rel="stylesheet";link.href=`./${href}`;document.head.appendChild(link);
+const previewStats = [
+  ["Mobility", 100],
+  ["Resilience", 42],
+  ["Recovery", 70],
+  ["Discipline", 101],
+  ["Intellect", 28],
+  ["Strength", 38]
+];
+
+const VALID_CLASSES = ["hunter", "titan", "warlock"];
+const VALID_SUBCLASSES = ["void", "solar", "arc", "stasis", "strand", "prismatic"];
+const byId = id => document.getElementById(id);
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+
+function loadBetaStyles() {
+  ["guardian-background-beta.css", "guardian-workspace-v2-beta.css"].forEach(href => {
+    if (document.querySelector(`link[href="./${href}"]`)) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `./${href}`;
+    document.head.appendChild(link);
   });
 }
 
-function iconMarkup(url,alt){return url?`<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" onerror="this.style.display='none'">`:'<span class="ph-glyph">◆</span>'}
+function iconMarkup(url, alt) {
+  return url
+    ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" onerror="this.style.display='none'">`
+    : '<span class="ph-glyph">◆</span>';
+}
 
-function renderVerifiedPreview(){
-  byId("scCrest").src=ART.crest;
-  byId("abilityList").innerHTML=abilities.map(a=>`<div class="ability-row"><span class="ico-badge ${a.super?"super":""}">${iconMarkup(a.icon,a.name)}</span><div class="meta"><small>${escapeHtml(a.label)}</small><b>${escapeHtml(a.name)}</b></div></div>`).join("");
-  byId("aspectList").innerHTML=ART.aspects.map(a=>`<div class="slot"><span class="ico-badge">${iconMarkup(a.icon,a.name)}</span><span class="nm">${escapeHtml(a.name)}</span><span class="cfg">⚙</span></div>`).join("");
-  byId("fragList").innerHTML=ART.fragments.map(f=>`<div class="slot"><span class="ico-badge">${iconMarkup(f.icon,f.name)}</span><span class="nm">${escapeHtml(f.name)}</span></div>`).join("");
-  byId("artName").textContent=ART.artifact.name;byId("artIcon").src=ART.artifact.icon;
-  byId("artPerks").innerHTML=ART.artifact.perks.map(p=>`<img src="${escapeHtml(p.icon)}" alt="${escapeHtml(p.name)}" title="${escapeHtml(p.name)}" onerror="this.style.display='none'">`).join("");
+function renderVerifiedPreview() {
+  const crest = byId("scCrest");
+  if (crest) crest.src = ART.crest;
+
+  const abList = byId("abilityList");
+  if (abList) {
+    abList.innerHTML = abilities.map(a => `
+      <div class="ability-row">
+        <span class="ico-badge ${a.super ? "super" : ""}">${iconMarkup(a.icon, a.name)}</span>
+        <div class="meta">
+          <small>${escapeHtml(a.label)}</small>
+          <b>${escapeHtml(a.name)}</b>
+        </div>
+      </div>`).join("");
+  }
+
+  const aspList = byId("aspectList");
+  if (aspList) {
+    aspList.innerHTML = ART.aspects.map(a => `
+      <div class="slot">
+        <span class="ico-badge">${iconMarkup(a.icon, a.name)}</span>
+        <span class="nm">${escapeHtml(a.name)}</span>
+        <span class="cfg">⚙</span>
+      </div>`).join("");
+  }
+
+  const fragList = byId("fragList");
+  if (fragList) {
+    fragList.innerHTML = ART.fragments.map(f => `
+      <div class="slot">
+        <span class="ico-badge">${iconMarkup(f.icon, f.name)}</span>
+        <span class="nm">${escapeHtml(f.name)}</span>
+      </div>`).join("");
+  }
+
+  const artName = byId("artName");
+  const artIcon = byId("artIcon");
+  const artPerks = byId("artPerks");
+  if (artName) artName.textContent = ART.artifact.name;
+  if (artIcon) artIcon.src = ART.artifact.icon;
+  if (artPerks) {
+    artPerks.innerHTML = ART.artifact.perks.map(p => `
+      <img src="${escapeHtml(p.icon)}" alt="${escapeHtml(p.name)}" title="${escapeHtml(p.name)}" onerror="this.style.display='none'">`).join("");
+  }
+
   renderStats(previewStats);
-  byId("modsGrid").innerHTML=Array.from({length:9},()=>`<div class="mod ph" title="Awaiting verified armour-mod plug data"><span class="ph-glyph">◆</span></div>`).join("");
-  document.querySelectorAll("[data-power-cap]").forEach(el=>el.textContent=PLAYER_POWER_CAP);
+
+  const modsGrid = byId("modsGrid");
+  if (modsGrid) {
+    modsGrid.innerHTML = Array.from({ length: 9 }, () => `
+      <div class="mod ph" title="Awaiting verified armour-mod plug data">
+        <span class="ph-glyph">◆</span>
+      </div>`).join("");
+  }
+
+  document.querySelectorAll("[data-power-cap]").forEach(el => el.textContent = PLAYER_POWER_CAP);
 }
 
-function renderStats(stats){
-  const values=Array.isArray(stats)&&stats.length?stats:previewStats;
-  const total=values.reduce((sum,[,value])=>sum+Number(value||0),0);
-  byId("statsRow").innerHTML=values.map(([name,value])=>`<div class="st"><span class="nm">${escapeHtml(name)}</span><span class="bar"><i style="width:${Math.min(100,(Number(value||0)/STAT_CAP)*100)}%"></i></span><span class="v">${Number(value||0)}</span></div>`).join("")+`<div class="st total"><span class="nm">Total</span><span></span><span class="v">${total}</span></div>`;
+function renderStats(stats) {
+  const statsRow = byId("statsRow");
+  if (!statsRow) return;
+  const values = Array.isArray(stats) && stats.length ? stats : previewStats;
+  const total = values.reduce((sum, [, value]) => sum + Number(value || 0), 0);
+  statsRow.innerHTML = values.map(([name, value]) => `
+    <div class="st">
+      <span class="nm">${escapeHtml(name)}</span>
+      <span class="bar"><i style="width:${Math.min(100, (Number(value || 0) / STAT_CAP) * 100)}%"></i></span>
+      <span class="v">${Number(value || 0)}</span>
+    </div>`).join("") + `
+    <div class="st total">
+      <span class="nm">Total</span>
+      <span></span>
+      <span class="v">${total}</span>
+    </div>`;
 }
 
-const PLATFORM_MARKUP=`<svg class="gp-defs" aria-hidden="true"><filter id="gp-smoke" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" seed="7" stitchTiles="stitch" result="noise"><animate attributeName="seed" from="0" to="60" dur="70s" repeatCount="indefinite"/></feTurbulence><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.25 -0.46" result="alpha"/><feComposite in="SourceGraphic" in2="alpha" operator="in" result="tinted"/><feGaussianBlur in="tinted" stdDeviation="6"/></filter></svg><svg class="mist mist-back" viewBox="0 0 300 240" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="240"/></svg><div class="frontglow"></div><div class="deck"><i class="aura"></i><i class="step"></i><i class="wall"></i><i class="face"></i><i class="grain"></i><i class="cast"></i><i class="frame"></i><i class="sigil"></i><i class="hub"></i><i class="ring ring-outer"></i><i class="ring ring-mid"></i><i class="ring ring-inner"></i><i class="depth"></i></div><svg class="mist mist-front" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="130"/></svg>`;
+const PLATFORM_MARKUP = `
+  <svg class="gp-defs" aria-hidden="true">
+    <filter id="gp-smoke" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" seed="7" stitchTiles="stitch" result="noise">
+        <animate attributeName="seed" from="0" to="60" dur="70s" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.25 -0.46" result="alpha"/>
+      <feComposite in="SourceGraphic" in2="alpha" operator="in" result="tinted"/>
+      <feGaussianBlur in="tinted" stdDeviation="6"/>
+    </filter>
+  </svg>
+  <svg class="mist mist-back" viewBox="0 0 300 240" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="240"/></svg>
+  <div class="frontglow"></div>
+  <div class="deck">
+    <i class="aura"></i><i class="step"></i><i class="wall"></i><i class="face"></i><i class="grain"></i><i class="cast"></i>
+    <i class="frame"></i><i class="sigil"></i><i class="hub"></i><i class="ring ring-outer"></i><i class="ring ring-mid"></i>
+    <i class="ring ring-inner"></i><i class="depth"></i>
+  </div>
+  <svg class="mist mist-front" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="130"/></svg>`;
 
-const workspaceState={characterId:null,characterClass:"hunter",subclass:"void",renderUrl:null,power:PLAYER_POWER_CAP,stats:null,weapons:[],armour:[],emblem:null,ghost:null,shader:null,ornaments:[]};
+const workspaceState = {
+  characterId: null,
+  characterClass: "hunter",
+  subclass: "void",
+  superAbility: null,
+  abilities: [],
+  aspects: [],
+  fragments: [],
+  power: PLAYER_POWER_CAP,
+  stats: null,
+  weapons: [],
+  armour: [],
+  emblem: null,
+  ghost: null,
+  shader: null,
+  ornaments: []
+};
 
-function normaliseSelection(detail={}){
-  const characterClass=String(detail.characterClass??detail.className??detail.classType??workspaceState.characterClass).toLowerCase();
-  const subclass=String(detail.subclass??workspaceState.subclass).toLowerCase();
-  if(!VALID_CLASSES.includes(characterClass)||!VALID_SUBCLASSES.includes(subclass)) return null;
-  return {...workspaceState,...detail,characterClass,subclass};
+function normaliseSelection(detail = {}) {
+  const characterClass = String(detail.characterClass ?? detail.className ?? detail.classType ?? workspaceState.characterClass).toLowerCase();
+  const subclass = String(detail.subclass ?? workspaceState.subclass).toLowerCase();
+  if (!VALID_CLASSES.includes(characterClass) || !VALID_SUBCLASSES.includes(subclass)) return null;
+  return { ...workspaceState, ...detail, characterClass, subclass };
 }
 
-function setStageState(state,message=""){
-  const stage=document.querySelector(".stage");if(!stage)return;stage.dataset.state=state||"ready";
-  let overlay=stage.querySelector(".stage-state");
-  if(!overlay){overlay=document.createElement("div");overlay.className="stage-state";overlay.innerHTML='<div class="stage-state-card"></div>';stage.appendChild(overlay)}
-  overlay.querySelector(".stage-state-card").textContent=message||"Loading Guardian data…";
+function setStageState(state, message = "") {
+  const stage = document.querySelector(".stage");
+  if (!stage) return;
+  stage.dataset.state = state || "ready";
+  let overlay = stage.querySelector(".stage-state");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.className = "stage-state";
+    overlay.innerHTML = '<div class="stage-state-card"></div>';
+    stage.appendChild(overlay);
+  }
+  const textNode = overlay.querySelector(".stage-state-card");
+  if (textNode) {
+    textNode.textContent = message || (state === "ready" ? "BUILD INTELLIGENCE ACTIVE" : "Loading Guardian data…");
+  }
+  if (state === "ready") {
+    overlay.style.display = "none";
+  } else {
+    overlay.style.display = "grid";
+  }
 }
 
-function applyGuardianSelection(detail){
-  const next=normaliseSelection(detail);if(!next)return;
-  Object.assign(workspaceState,next);
-  const stage=document.querySelector(".stage");const platform=byId("guardianPlatform");if(!stage||!platform)return;
-  stage.dataset.class=next.characterClass;stage.dataset.subclass=next.subclass;
-  platform.classList.remove(...VALID_SUBCLASSES);platform.classList.add(next.subclass);
-  const render=byId("guardianRender");
-  if(next.renderUrl){setStageState("loading","Loading selected Guardian…");render.onload=()=>setStageState("ready");render.onerror=()=>{render.style.display="none";setStageState("error","Guardian render could not be loaded.")};render.style.display="block";render.src=next.renderUrl}
-  if(next.power!=null) document.querySelectorAll("[data-power-cap]").forEach(el=>el.textContent=next.power);
-  if(next.stats) renderStats(next.stats);
-  if(Array.isArray(next.weapons)) renderWeapons(next.weapons);
-  if(Array.isArray(next.armour)) bindArmourSlots(next.armour);
+function applyGuardianSelection(detail) {
+  const next = normaliseSelection(detail);
+  if (!next) return;
+  Object.assign(workspaceState, next);
+
+  const stage = document.querySelector(".stage");
+  const platform = byId("guardianPlatform");
+  if (stage) {
+    stage.dataset.class = next.characterClass;
+    stage.dataset.subclass = next.subclass;
+  }
+  if (platform) {
+    platform.classList.remove(...VALID_SUBCLASSES);
+    platform.classList.add(next.subclass);
+  }
+
+  if (next.power != null) {
+    document.querySelectorAll("[data-power-cap]").forEach(el => el.textContent = next.power);
+  }
+  if (next.stats) renderStats(next.stats);
+  if (Array.isArray(next.weapons)) renderWeapons(next.weapons);
+  if (Array.isArray(next.armour)) bindArmourSlots(next.armour);
+  if (Array.isArray(next.aspects) || Array.isArray(next.fragments) || Array.isArray(next.abilities)) {
+    renderLiveSubclassData(next);
+  }
+
   updateIdentityCosmetics(next);
+  setStageState("ready");
 }
 
-function updateIdentityCosmetics(data){
-  const shader=document.querySelector(".cos .sw.shader")?.nextElementSibling?.querySelector("b");if(shader)shader.textContent=data.shader?.name||data.shader||"Awaiting live data";
-  const ghost=document.querySelector(".cos .sw.ghost")?.nextElementSibling?.querySelector("b");if(ghost)ghost.textContent=data.ghost?.name||data.ghost||"Awaiting live data";
+function renderLiveSubclassData(data) {
+  if (Array.isArray(data.abilities) && data.abilities.length) {
+    const abList = byId("abilityList");
+    if (abList) {
+      abList.innerHTML = data.abilities.map(a => `
+        <div class="ability-row">
+          <span class="ico-badge ${a.super ? "super" : ""}">${iconMarkup(a.icon, a.name)}</span>
+          <div class="meta">
+            <small>${escapeHtml(a.label || "ABILITY")}</small>
+            <b>${escapeHtml(a.name || "Equipped")}</b>
+          </div>
+        </div>`).join("");
+    }
+  }
+
+  if (Array.isArray(data.aspects) && data.aspects.length) {
+    const aspList = byId("aspectList");
+    if (aspList) {
+      aspList.innerHTML = data.aspects.map(a => `
+        <div class="slot">
+          <span class="ico-badge">${iconMarkup(a.icon, a.name)}</span>
+          <span class="nm">${escapeHtml(a.name)}</span>
+          <span class="cfg">⚙</span>
+        </div>`).join("");
+    }
+  }
+
+  if (Array.isArray(data.fragments) && data.fragments.length) {
+    const fragList = byId("fragList");
+    if (fragList) {
+      fragList.innerHTML = data.fragments.map(f => `
+        <div class="slot">
+          <span class="ico-badge">${iconMarkup(f.icon, f.name)}</span>
+          <span class="nm">${escapeHtml(f.name)}</span>
+        </div>`).join("");
+    }
+  }
 }
 
-function initialiseGuardianPlatform(){const platform=document.querySelector(".stage > .guardian-platform");if(!platform)return;platform.innerHTML=PLATFORM_MARKUP;platform.id="guardianPlatform";platform.classList.add(workspaceState.subclass);const stage=document.querySelector(".stage");stage.dataset.class=workspaceState.characterClass;stage.dataset.subclass=workspaceState.subclass}
-
-function createArmourDrawer(){
-  if(byId("armourDrawer"))return;
-  document.body.insertAdjacentHTML("beforeend",`<div class="armour-drawer-backdrop" data-close-drawer></div><aside class="armour-drawer" id="armourDrawer" aria-hidden="true"><div class="armour-drawer-head"><div><small class="eyebrow">ARMOUR INSPECTOR</small><h2 id="armourDrawerTitle">Armour slot</h2></div><button class="armour-drawer-close" type="button" data-close-drawer aria-label="Close armour inspector">✕</button></div><div class="armour-drawer-tabs" role="tablist"><button class="armour-tab" data-tab="build" aria-selected="true">BUILD</button><button class="armour-tab" data-tab="appearance" aria-selected="false">APPEARANCE</button><button class="armour-tab" data-tab="mods" aria-selected="false">MODS</button></div><section class="armour-panel active" data-panel="build"></section><section class="armour-panel" data-panel="appearance"></section><section class="armour-panel" data-panel="mods"></section></aside>`);
-  document.querySelectorAll("[data-close-drawer]").forEach(el=>el.addEventListener("click",closeArmourDrawer));
-  document.querySelectorAll(".armour-tab").forEach(tab=>tab.addEventListener("click",()=>{document.querySelectorAll(".armour-tab").forEach(t=>t.setAttribute("aria-selected",String(t===tab)));document.querySelectorAll(".armour-panel").forEach(p=>p.classList.toggle("active",p.dataset.panel===tab.dataset.tab))}));
-  document.addEventListener("keydown",event=>{if(event.key==="Escape")closeArmourDrawer()});
+function updateIdentityCosmetics(data) {
+  const shader = document.querySelector(".cos .sw.shader")?.nextElementSibling?.querySelector("b");
+  if (shader) shader.textContent = data.shader?.name || data.shader || "Awaiting live data";
+  const ghost = document.querySelector(".cos .sw.ghost")?.nextElementSibling?.querySelector("b");
+  if (ghost) ghost.textContent = data.ghost?.name || data.ghost || "Awaiting live data";
 }
 
+function initialiseGuardianPlatform() {
+  const platform = document.querySelector(".stage > .guardian-platform");
+  if (!platform) return;
+  platform.innerHTML = PLATFORM_MARKUP;
+  platform.id = "guardianPlatform";
+  platform.classList.add(workspaceState.subclass);
+  const stage = document.querySelector(".stage");
+  if (stage) {
+    stage.dataset.class = workspaceState.characterClass;
+    stage.dataset.subclass = workspaceState.subclass;
+  }
+}
 
-function renderWeapons(weapons=[]){
-  const cards=Array.from(
-    document.querySelectorAll(".weap-grid .weap")
+function createArmourDrawer() {
+  if (byId("armourDrawer")) return;
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<div class="armour-drawer-backdrop" data-close-drawer></div>
+     <aside class="armour-drawer" id="armourDrawer" aria-hidden="true">
+       <div class="armour-drawer-head">
+         <div>
+           <small class="eyebrow">ARMOUR INSPECTOR</small>
+           <h2 id="armourDrawerTitle">Armour slot</h2>
+         </div>
+         <button class="armour-drawer-close" type="button" data-close-drawer aria-label="Close armour inspector">✕</button>
+       </div>
+       <div class="armour-drawer-tabs" role="tablist">
+         <button class="armour-tab" data-tab="build" aria-selected="true">BUILD</button>
+         <button class="armour-tab" data-tab="appearance" aria-selected="false">APPEARANCE</button>
+         <button class="armour-tab" data-tab="mods" aria-selected="false">MODS</button>
+       </div>
+       <section class="armour-panel active" data-panel="build"></section>
+       <section class="armour-panel" data-panel="appearance"></section>
+       <section class="armour-panel" data-panel="mods"></section>
+     </aside>`
   );
 
-  if(!cards.length)return;
+  document.querySelectorAll("[data-close-drawer]").forEach(el => el.addEventListener("click", closeArmourDrawer));
+  document.querySelectorAll(".armour-tab").forEach(tab =>
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".armour-tab").forEach(t => t.setAttribute("aria-selected", String(t === tab)));
+      document.querySelectorAll(".armour-panel").forEach(p => p.classList.toggle("active", p.dataset.panel === tab.dataset.tab));
+    })
+  );
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeArmourDrawer();
+  });
+}
 
-  const slotOrder={
-    Kinetic:0,
-    Special:0,
-    Primary:1,
-    Energy:1,
-    Power:2,
-    Heavy:2
+function renderWeapons(weapons = []) {
+  const cards = Array.from(document.querySelectorAll(".weap-grid .weap"));
+  if (!cards.length) return;
+
+  const slotOrder = {
+    Kinetic: 0,
+    Special: 0,
+    Primary: 1,
+    Energy: 1,
+    Power: 2,
+    Heavy: 2
   };
 
-  const ordered=[null,null,null];
+  const ordered = [null, null, null];
 
-  weapons.forEach((weapon,index)=>{
-    const ammo=String(
-      weapon?.ammoType??""
-    );
-
-    let slot=slotOrder[ammo];
-
-    if(!Number.isInteger(slot)){
-      slot=Math.min(index,2);
+  weapons.forEach((weapon, index) => {
+    const ammo = String(weapon?.ammoType ?? "");
+    let slot = slotOrder[ammo];
+    if (!Number.isInteger(slot)) {
+      slot = Math.min(index, 2);
     }
-
-    while(
-      slot<3
-      && ordered[slot]
-    ){
+    while (slot < 3 && ordered[slot]) {
       slot++;
     }
-
-    if(slot<3){
-      ordered[slot]=weapon;
+    if (slot < 3) {
+      ordered[slot] = weapon;
     }
   });
 
-  cards.forEach((card,index)=>{
-    const weapon=ordered[index];
+  cards.forEach((card, index) => {
+    const weapon = ordered[index];
+    const art = card.querySelector(".art");
+    const name = card.querySelector(".cap b");
+    const meta = card.querySelector(".cap small");
 
-    const art=card.querySelector(".art");
-    const name=card.querySelector(".cap b");
-    const meta=card.querySelector(".cap small");
-
-    if(!weapon){
-      if(art){
+    if (!weapon) {
+      if (art) {
         art.classList.add("ph");
-        art.innerHTML=
-          '<span class="pw">—</span>'
-          +'<span class="ph-glyph">⌖</span>';
+        art.innerHTML = '<span class="pw">—</span><span class="ph-glyph">⌖</span>';
       }
-
-      if(meta){
-        meta.textContent="awaiting build data";
-      }
-
+      if (meta) meta.textContent = "awaiting build data";
       return;
     }
 
-    if(art){
+    if (art) {
       art.classList.remove("ph");
-
-      const icon=weapon.icon
-        ? `<img src="${escapeHtml(weapon.icon)}" `
-          +`alt="${escapeHtml(weapon.name||"Weapon")}" `
-          +`onerror="this.style.display='none'">`
+      const icon = weapon.icon
+        ? `<img src="${escapeHtml(weapon.icon)}" alt="${escapeHtml(weapon.name || "Weapon")}" onerror="this.style.display='none'">`
         : '<span class="ph-glyph">⌖</span>';
-
-      art.innerHTML=
-        `<span class="pw">${escapeHtml(
-          String(weapon.power??"")
-        )}</span>${icon}`;
+      art.innerHTML = `<span class="pw">${escapeHtml(String(weapon.power ?? ""))}</span>${icon}`;
     }
 
-    if(name){
-      name.textContent=
-        weapon.name
-        || "Unknown weapon";
+    if (name) name.textContent = weapon.name || "Unknown weapon";
+
+    if (meta) {
+      const details = [weapon.weaponType, weapon.element, weapon.ammoType].filter(Boolean);
+      meta.textContent = details.join(" · ") || "Bungie identity resolved";
     }
 
-    if(meta){
-      const details=[
-        weapon.weaponType,
-        weapon.element,
-        weapon.ammoType
-      ].filter(Boolean);
-
-      meta.textContent=
-        details.join(" · ")
-        || "Bungie identity resolved";
-    }
-
-    card.title=[
-      weapon.name,
-      weapon.weaponType,
-      weapon.element,
-      weapon.ammoType
-    ].filter(Boolean).join(" — ");
+    card.title = [weapon.name, weapon.weaponType, weapon.element, weapon.ammoType].filter(Boolean).join(" — ");
   });
 }
 
-function renderArmourFunctionalSlots(armour=[]){
-  const cards=[
-    ...document.querySelectorAll(".arm-grid .arm")
-  ];
+function renderArmourFunctionalSlots(armour = []) {
+  const cards = [...document.querySelectorAll(".arm-grid .arm")];
 
-  cards.forEach((card,index)=>{
-    const item=armour[index]??null;
+  cards.forEach((card, index) => {
+    const item = armour[index] ?? null;
 
     card.querySelector(".pf-mod-grid")?.remove();
     card.querySelector(".pf-exotic-trait")?.remove();
     card.classList.remove("pf-exotic-armour");
 
-    const previousPrimary=
-      card.querySelector(".pf-primary-armour-image");
+    const previousPrimary = card.querySelector(".pf-primary-armour-image");
+    if (previousPrimary) previousPrimary.classList.remove("pf-primary-armour-image");
 
-    if(previousPrimary){
-      previousPrimary.classList.remove(
-        "pf-primary-armour-image"
-      );
-    }
+    if (!item) return;
 
-    if(!item)return;
+    const trait = item?.intrinsicTrait ?? null;
+    const isExotic = Boolean(trait);
+    const slotCount = isExotic ? 5 : 6;
 
-    const trait=item?.intrinsicTrait??null;
-    const isExotic=Boolean(trait);
-    const slotCount=isExotic?5:6;
+    const primaryImage = card.querySelector("img");
+    if (primaryImage) primaryImage.classList.add("pf-primary-armour-image");
 
-    const primaryImage=card.querySelector("img");
-
-    if(primaryImage){
-      primaryImage.classList.add(
-        "pf-primary-armour-image"
-      );
-    }
-
-    if(isExotic){
+    if (isExotic) {
       card.classList.add("pf-exotic-armour");
+      const name = trait.name ?? "Exotic intrinsic trait";
+      const description = trait.description ?? "";
+      const hash = trait.bungieHash ?? trait.hash ?? "";
 
-      const name=
-        trait.name
-        ??"Exotic intrinsic trait";
+      const traitButton = document.createElement("button");
+      traitButton.type = "button";
+      traitButton.className = "pf-exotic-trait";
+      traitButton.title = [name, description, hash ? `Bungie hash: ${hash}` : ""].filter(Boolean).join(" — ");
+      traitButton.setAttribute("aria-label", description ? `${name}. ${description}` : name);
 
-      const description=
-        trait.description
-        ??"";
-
-      const hash=
-        trait.bungieHash
-        ??trait.hash
-        ??"";
-
-      const traitButton=
-        document.createElement("button");
-
-      traitButton.type="button";
-      traitButton.className="pf-exotic-trait";
-      traitButton.title=[
-        name,
-        description,
-        hash?`Bungie hash: ${hash}`:""
-      ].filter(Boolean).join(" — ");
-
-      traitButton.setAttribute(
-        "aria-label",
-        description
-          ?`${name}. ${description}`
-          :name
-      );
-
-      if(trait.icon){
-        const img=
-          document.createElement("img");
-
-        img.src=trait.icon;
-        img.alt=name;
-        img.onerror=()=>{
-          img.style.display="none";
-        };
-
+      if (trait.icon) {
+        const img = document.createElement("img");
+        img.src = trait.icon;
+        img.alt = name;
+        img.onerror = () => { img.style.display = "none"; };
         traitButton.appendChild(img);
-      }else{
-        traitButton.textContent="✦";
+      } else {
+        traitButton.textContent = "✦";
       }
 
       card.appendChild(traitButton);
     }
 
-    const grid=
-      document.createElement("div");
+    const grid = document.createElement("div");
+    grid.className = `pf-mod-grid ${isExotic ? "pf-mod-grid-exotic" : "pf-mod-grid-legendary"}`;
+    grid.setAttribute("aria-label", `${slotCount} armour mod slots`);
 
-    grid.className=
-      `pf-mod-grid ${
-        isExotic
-          ?"pf-mod-grid-exotic"
-          :"pf-mod-grid-legendary"
-      }`;
+    const equippedMods = Array.isArray(item.mods) ? item.mods : [];
 
-    grid.setAttribute(
-      "aria-label",
-      `${slotCount} armour mod slots`
-    );
+    for (let i = 0; i < slotCount; i++) {
+      const slot = document.createElement("div");
+      slot.className = "pf-mod-slot";
+      const mod = equippedMods[i];
 
-    for(let i=0;i<slotCount;i+=1){
-      const slot=
-        document.createElement("div");
-
-      slot.className="pf-mod-slot";
-      slot.title=`Armour mod slot ${i+1}`;
-      slot.innerHTML=
-        '<span aria-hidden="true">◇</span>';
-
+      if (mod && (mod.icon || mod.name)) {
+        slot.title = mod.name || `Armour mod slot ${i + 1}`;
+        slot.innerHTML = mod.icon
+          ? `<img src="${escapeHtml(mod.icon)}" alt="${escapeHtml(mod.name || "Mod")}" onerror="this.src='';this.innerText='◇'">`
+          : '<span aria-hidden="true">◆</span>';
+      } else {
+        slot.title = `Armour mod slot ${i + 1}`;
+        slot.innerHTML = '<span aria-hidden="true">◇</span>';
+      }
       grid.appendChild(slot);
     }
 
@@ -337,28 +477,85 @@ function renderArmourFunctionalSlots(armour=[]){
   });
 }
 
-function bindArmourSlots(armour=[]){
+function bindArmourSlots(armour = []) {
   renderArmourFunctionalSlots(armour);
-  const slots=[...document.querySelectorAll(".arm-grid .arm")];
-  slots.forEach((slot,index)=>{slot.tabIndex=0;slot.setAttribute("role","button");slot.dataset.slotIndex=String(index);slot.onclick=()=>openArmourDrawer(index,armour[index]);slot.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openArmourDrawer(index,armour[index])}}});
+  const slots = [...document.querySelectorAll(".arm-grid .arm")];
+  slots.forEach((slot, index) => {
+    slot.tabIndex = 0;
+    slot.setAttribute("role", "button");
+    slot.dataset.slotIndex = String(index);
+    slot.onclick = () => openArmourDrawer(index, armour[index]);
+    slot.onkeydown = e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openArmourDrawer(index, armour[index]);
+      }
+    };
+  });
 }
 
-function openArmourDrawer(index,item){
-  const names=["Helmet","Gauntlets","Chest Armour","Leg Armour","Class Item"];const resolved=item||null;
-  byId("armourDrawerTitle").textContent=resolved?.name||names[index]||"Armour";
-  const fallback='<div class="inspector-empty">Awaiting Bungie character and inventory data. No equipment, mods, shader or ornament has been invented for this slot.</div>';
-  const field=(label,value)=>`<div class="inspector-field"><small>${escapeHtml(label)}</small><b>${escapeHtml(value??"Awaiting live data")}</b></div>`;
-  document.querySelector('[data-panel="build"]').innerHTML=resolved?`<div class="inspector-grid">${field("Power",resolved.power)}${field("Energy",resolved.energy?.type||resolved.energy)}${field("Tier",resolved.tier)}${field("Manifest hash",resolved.hash)}</div>`:fallback;
-  document.querySelector('[data-panel="appearance"]').innerHTML=resolved?`<div class="inspector-grid">${field("Shader",resolved.shader?.name||resolved.shader)}${field("Ornament",resolved.ornament?.name||resolved.ornament)}${field("Default appearance",resolved.defaultAppearance||"Available from manifest")}${field("Cosmetic state",resolved.cosmeticState)}</div>`:fallback;
-  document.querySelector('[data-panel="mods"]').innerHTML=resolved?.mods?.length?(resolved.intrinsicTrait?field("Exotic trait",resolved.intrinsicTrait.name||"Intrinsic trait"): "")+resolved.mods.map(mod=>field("Armour mod",mod.name||mod)).join(""):fallback;
-  document.body.classList.add("armour-drawer-open");byId("armourDrawer").setAttribute("aria-hidden","false");
+function openArmourDrawer(index, item) {
+  const names = ["Helmet", "Gauntlets", "Chest Armour", "Leg Armour", "Class Item"];
+  const resolved = item || null;
+  byId("armourDrawerTitle").textContent = resolved?.name || names[index] || "Armour";
+  const fallback = '<div class="inspector-empty">Awaiting Bungie character and inventory data. No equipment, mods, shader or ornament has been resolved for this slot.</div>';
+  const field = (label, value) => `<div class="inspector-field"><small>${escapeHtml(label)}</small><b>${escapeHtml(value ?? "Awaiting live data")}</b></div>`;
+
+  const buildPanel = document.querySelector('[data-panel="build"]');
+  if (buildPanel) {
+    buildPanel.innerHTML = resolved
+      ? `<div class="inspector-grid">
+           ${field("Power", resolved.power)}
+           ${field("Energy", resolved.energy?.type || resolved.energy)}
+           ${field("Tier", resolved.tier)}
+           ${field("Manifest hash", resolved.hash)}
+         </div>`
+      : fallback;
+  }
+
+  const appPanel = document.querySelector('[data-panel="appearance"]');
+  if (appPanel) {
+    appPanel.innerHTML = resolved
+      ? `<div class="inspector-grid">
+           ${field("Shader", resolved.shader?.name || resolved.shader)}
+           ${field("Ornament", resolved.ornament?.name || resolved.ornament)}
+           ${field("Default appearance", resolved.defaultAppearance || "Available from manifest")}
+           ${field("Cosmetic state", resolved.cosmeticState)}
+         </div>`
+      : fallback;
+  }
+
+  const modsPanel = document.querySelector('[data-panel="mods"]');
+  if (modsPanel) {
+    modsPanel.innerHTML = resolved?.mods?.length
+      ? (resolved.intrinsicTrait ? field("Exotic trait", resolved.intrinsicTrait.name || "Intrinsic trait") : "") +
+        resolved.mods.map(mod => field("Armour mod", mod.name || mod)).join("")
+      : fallback;
+  }
+
+  document.body.classList.add("armour-drawer-open");
+  byId("armourDrawer")?.setAttribute("aria-hidden", "false");
 }
-function closeArmourDrawer(){document.body.classList.remove("armour-drawer-open");byId("armourDrawer")?.setAttribute("aria-hidden","true")}
 
-/* Single UI integration contract. Dispatch only after the user selects/loads a character. */
-document.addEventListener("astrix:guardian-selection-changed",event=>applyGuardianSelection(event.detail));
-document.addEventListener("astrix:guardian-loading",()=>setStageState("loading","Loading Guardian data…"));
-document.addEventListener("astrix:guardian-error",event=>setStageState("error",event.detail?.message||"Guardian data could not be loaded."));
+function closeArmourDrawer() {
+  document.body.classList.remove("armour-drawer-open");
+  byId("armourDrawer")?.setAttribute("aria-hidden", "true");
+}
 
-loadBetaStyles();initialiseGuardianPlatform();createArmourDrawer();renderVerifiedPreview();bindArmourSlots([]);setStageState("ready");
-document.dispatchEvent(new CustomEvent("astrix:guardian-workspace-ready",{detail:{version:"0.1.0-beta",selectionEvent:"astrix:guardian-selection-changed"}}));
+/* Single UI integration contract */
+document.addEventListener("astrix:guardian-selection-changed", event => applyGuardianSelection(event.detail));
+document.addEventListener("astrix:guardian-loading", () => setStageState("loading", "Loading Guardian data…"));
+document.addEventListener("astrix:guardian-error", event => setStageState("error", event.detail?.message || "Guardian data could not be loaded."));
+
+loadBetaStyles();
+initialiseGuardianPlatform();
+createArmourDrawer();
+renderVerifiedPreview();
+bindArmourSlots([]);
+setStageState("ready");
+
+document.dispatchEvent(
+  new CustomEvent("astrix:guardian-workspace-ready", {
+    detail: { version: "0.2.0-beta", selectionEvent: "astrix:guardian-selection-changed" }
+  })
+);

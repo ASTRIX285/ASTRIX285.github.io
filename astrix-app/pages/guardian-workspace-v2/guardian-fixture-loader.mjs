@@ -1,362 +1,433 @@
-const FIXTURE_URL="../../data/paradox-forge/beta/ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json";
-const IDENTITY_URL="../../data/paradox-forge/beta/beta-component-identities.json";
-const MANIFEST_URL="../../data/paradox-forge/beta/beta-bungie-manifest-cache.json";
-const DEFAULT_FIXTURE_ID="PF-BETA-03";
-const BUNGIE_ROOT="https://www.bungie.net";
+/* ==========================================================================
+   ASTRIX PARADOX - BETA FIXTURE LOADER & MANIFEST MAPPER
+   Normalizes Bungie manifest identities, maps subclass abilities, aspects,
+   and fragments, and binds DIM armor mod pools into the runtime event stream.
+   ========================================================================== */
 
-let fixtures=null;
-let identities=null;
-let manifest=null;
-let byHash=new Map();
-let manifestByHash=new Map();
-let activeFixtureId=DEFAULT_FIXTURE_ID;
+const FIXTURE_URL = "../../data/paradox-forge/beta/ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json";
+const IDENTITY_URL = "../../data/paradox-forge/beta/beta-component-identities.json";
+const MANIFEST_URL = "../../data/paradox-forge/beta/beta-bungie-manifest-cache.json";
+const DEFAULT_FIXTURE_ID = "PF-BETA-03";
+const BUNGIE_ROOT = "https://www.bungie.net";
 
-const absIcon=v=>{
-  const s=String(v??"").trim();
-  return !s?"":s.startsWith("http")?s:`${BUNGIE_ROOT}${s}`;
+let fixtures = null;
+let identities = null;
+let manifest = null;
+let byHash = new Map();
+let manifestByHash = new Map();
+let activeFixtureId = DEFAULT_FIXTURE_ID;
+
+const absIcon = v => {
+  const s = String(v ?? "").trim();
+  return !s ? "" : s.startsWith("http") ? s : `${BUNGIE_ROOT}${s}`;
 };
 
-function inferSourceKind(row){
-  const itemType=Number(row?.itemType);
-  if(itemType===3)return "weapon";
-  if(itemType===2)return "armor";
+function inferSourceKind(row) {
+  const itemType = Number(row?.itemType);
+  if (itemType === 3) return "weapon";
+  if (itemType === 2) return "armor";
   return "gameComponent";
 }
 
-function manifestIdentity(hash){
-  const h=Number(hash);
-  const row=manifestByHash.get(String(h));
-  if(!row)return null;
+function inferComponentType(row) {
+  const typeName = String(row?.itemTypeDisplayName ?? "").toLowerCase();
+  const subType = Number(row?.itemSubType);
+  const traitIds = (row?.traitIds || []).map(t => String(t).toLowerCase());
+
+  if (traitIds.some(t => t.includes("aspect")) || typeName.includes("aspect")) return "aspect";
+  if (traitIds.some(t => t.includes("fragment")) || typeName.includes("fragment")) return "fragment";
+  if (typeName.includes("super")) return "super";
+  if (typeName.includes("grenade")) return "grenade";
+  if (typeName.includes("melee")) return "melee";
+  if (typeName.includes("movement") || typeName.includes("jump")) return "movementAbility";
+  if (typeName.includes("class ability") || typeName.includes("dodge") || typeName.includes("rift") || typeName.includes("barricade")) return "classAbility";
+
+  return "gameComponent";
+}
+
+function manifestIdentity(hash) {
+  const h = Number(hash);
+  const row = manifestByHash.get(String(h));
+  if (!row) return null;
 
   return {
-    hash:h,
-    bungieHash:h,
-    name:row.display?.name||`Destiny item ${h}`,
-    description:row.display?.description||"",
-    icon:absIcon(row.display?.icon),
-    itemType:row.itemType,
-    itemSubType:row.itemSubType,
-    itemTypeDisplayName:row.itemTypeDisplayName||"",
-    classType:row.classType,
-    itemCategoryHashes:row.itemCategoryHashes||[],
-    traitIds:row.traitIds||[],
-    equipmentSlotTypeHash:row.equippingBlock?.equipmentSlotTypeHash??null,
-    ammoTypeCode:row.equippingBlock?.ammoType??null,
-    uniqueLabelHash:row.equippingBlock?.uniqueLabelHash??null,
-    intrinsicPlugHashes:row.intrinsicPlugHashes||[],
-    sourceKind:inferSourceKind(row),
-    identitySource:"bungie-current-manifest"
+    hash: h,
+    bungieHash: h,
+    name: row.display?.name || `Destiny item ${h}`,
+    description: row.display?.description || "",
+    icon: absIcon(row.display?.icon),
+    itemType: row.itemType,
+    itemSubType: row.itemSubType,
+    itemTypeDisplayName: row.itemTypeDisplayName || "",
+    componentType: inferComponentType(row),
+    classType: row.classType,
+    itemCategoryHashes: row.itemCategoryHashes || [],
+    traitIds: row.traitIds || [],
+    equipmentSlotTypeHash: row.equippingBlock?.equipmentSlotTypeHash ?? null,
+    ammoTypeCode: row.equippingBlock?.ammoType ?? null,
+    uniqueLabelHash: row.equippingBlock?.uniqueLabelHash ?? null,
+    intrinsicPlugHashes: row.intrinsicPlugHashes || [],
+    sourceKind: inferSourceKind(row),
+    identitySource: "bungie-current-manifest"
   };
 }
 
-const resolve=hash=>{
-  const h=Number(hash);
-  const legacy=byHash.get(String(h))??null;
-  const official=manifestIdentity(h);
+const resolve = hash => {
+  const h = Number(hash);
+  const legacy = byHash.get(String(h)) ?? null;
+  const official = manifestIdentity(h);
 
-  if(legacy&&official){
+  if (legacy && official) {
     return {
       ...legacy,
       ...official,
-      sourceKind:legacy.sourceKind??official.sourceKind
+      componentType: legacy.componentType || official.componentType,
+      sourceKind: legacy.sourceKind ?? official.sourceKind
     };
   }
 
-  if(official)return official;
-  if(legacy)return legacy;
+  if (official) return official;
+  if (legacy) return legacy;
 
   return {
-    bungieHash:h,
-    hash:h,
-    name:`Unresolved Destiny item ${h}`,
-    icon:"",
-    unresolved:true
+    bungieHash: h,
+    hash: h,
+    name: `Unresolved Destiny item ${h}`,
+    icon: "",
+    componentType: "gameComponent",
+    unresolved: true
   };
 };
 
-async function ensureData(){
-  if(fixtures&&identities&&manifest)return;
+async function ensureData() {
+  if (fixtures && identities && manifest) return;
 
-  const [fr,ir,mr]=await Promise.all([
-    fetch(FIXTURE_URL,{cache:"no-store"}),
-    fetch(IDENTITY_URL,{cache:"no-store"}),
-    fetch(MANIFEST_URL,{cache:"no-store"})
+  const [fr, ir, mr] = await Promise.all([
+    fetch(FIXTURE_URL, { cache: "no-store" }),
+    fetch(IDENTITY_URL, { cache: "no-store" }),
+    fetch(MANIFEST_URL, { cache: "no-store" })
   ]);
 
-  if(!fr.ok)throw new Error(`Fixture load failed: ${fr.status}`);
-  if(!ir.ok)throw new Error(`Identity load failed: ${ir.status}`);
-  if(!mr.ok)throw new Error(`Manifest cache load failed: ${mr.status}`);
+  if (!fr.ok) throw new Error(`Fixture load failed: ${fr.status}`);
+  if (!ir.ok) throw new Error(`Identity load failed: ${ir.status}`);
+  if (!mr.ok) throw new Error(`Manifest cache load failed: ${mr.status}`);
 
-  fixtures=await fr.json();
-  identities=await ir.json();
-  manifest=await mr.json();
+  fixtures = await fr.json();
+  identities = await ir.json();
+  manifest = await mr.json();
 
-  byHash=new Map(
-    (identities.identities??[]).map(row=>{
-      const h=Number(row.bungieHash);
-      return [String(h),{
-        ...row,
-        hash:h,
-        bungieHash:h,
-        name:row.name??row.displayName??`Destiny item ${h}`,
-        icon:absIcon(row.icon)
-      }];
+  byHash = new Map(
+    (identities.identities ?? []).map(row => {
+      const h = Number(row.bungieHash);
+      return [
+        String(h),
+        {
+          ...row,
+          hash: h,
+          bungieHash: h,
+          name: row.name ?? row.displayName ?? `Destiny item ${h}`,
+          icon: absIcon(row.icon)
+        }
+      ];
     })
   );
 
-  manifestByHash=new Map(
-    Object.entries(manifest.inventoryItems??{}).map(([hash,row])=>[String(hash),row])
+  manifestByHash = new Map(
+    Object.entries(manifest.inventoryItems ?? {}).map(([hash, row]) => [String(hash), row])
   );
 }
 
-function subclassParts(fixture){
-  const subclassItem=(fixture.rawDim?.equipped??[])
-    .find(x=>Number(x.hash)===Number(fixture.subclassHash));
+function subclassParts(fixture) {
+  const subclassItem = (fixture.rawDim?.equipped ?? []).find(
+    x => Number(x.hash) === Number(fixture.subclassHash)
+  );
 
-  const socketHashes=Object.values(subclassItem?.socketOverrides??{});
-  const parts=socketHashes.map(resolve);
+  const socketHashes = Object.values(subclassItem?.socketOverrides ?? {});
+  const parts = socketHashes.map(resolve);
 
-  const out={
-    super:null,
-    classAbility:null,
-    movement:null,
-    melee:null,
-    grenade:null,
-    aspects:[],
-    fragments:[]
+  const out = {
+    super: null,
+    classAbility: null,
+    movement: null,
+    melee: null,
+    grenade: null,
+    aspects: [],
+    fragments: []
   };
 
-  for(const item of parts){
-    switch(item.componentType){
-      case "super": out.super=item; break;
-      case "classAbility": out.classAbility=item; break;
-      case "movementAbility": out.movement=item; break;
-      case "melee": out.melee=item; break;
-      case "grenade": out.grenade=item; break;
-      case "aspect": out.aspects.push(item); break;
-      case "fragment": out.fragments.push(item); break;
+  for (const item of parts) {
+    const compType = item.componentType;
+    switch (compType) {
+      case "super":
+        out.super = item;
+        break;
+      case "classAbility":
+        out.classAbility = item;
+        break;
+      case "movementAbility":
+        out.movement = item;
+        break;
+      case "melee":
+        out.melee = item;
+        break;
+      case "grenade":
+        out.grenade = item;
+        break;
+      case "aspect":
+        out.aspects.push(item);
+        break;
+      case "fragment":
+        out.fragments.push(item);
+        break;
+      default:
+        break;
     }
   }
 
   return out;
 }
 
-function bucketName(hash){
-  return manifest?.support?.buckets?.[String(hash)]?.display?.name??"";
+function bucketName(hash) {
+  return manifest?.support?.buckets?.[String(hash)]?.display?.name ?? "";
 }
 
-function packedDisplayMods(modPool,index){
+function packedDisplayMods(modPool, index) {
   return modPool
-    .slice(index*5,index*5+5)
-    .map((mod,slotIndex)=>({
+    .slice(index * 5, index * 5 + 5)
+    .map((mod, slotIndex) => ({
       ...mod,
-      displayPlacement:"dim-loadout-mod-pool",
-      displaySlot:slotIndex,
-      assignmentVerified:false,
-      assignmentNote:"DIM stores loadout mods separately from armour. This beta fixture displays the real DIM mod pool in source order; exact armour socket assignment requires live Bungie instance socket data."
+      displayPlacement: "dim-loadout-mod-pool",
+      displaySlot: slotIndex,
+      assignmentVerified: false,
+      assignmentNote:
+        "DIM stores loadout mods separately from armour. This beta fixture displays the real DIM mod pool in source order; exact armour socket assignment requires live Bungie instance socket data."
     }));
 }
 
-function enrichArmourItem(item,fixture,displayMods=[]){
-  const official=manifestByHash.get(String(item.hash))??null;
+function enrichArmourItem(item, fixture, displayMods = []) {
+  const official = manifestByHash.get(String(item.hash)) ?? null;
 
-  const bucketHash=
-    official?.equippingBlock?.equipmentSlotTypeHash
-    ??item.equipmentSlotTypeHash
-    ??null;
+  const bucketHash =
+    official?.equippingBlock?.equipmentSlotTypeHash ??
+    item.equipmentSlotTypeHash ??
+    null;
 
-  /* DIM fixture appearance plugs are bucket-specific and remain separate from functional mods. */
-  const appearanceByBucket=fixture.rawDim?.parameters?.modsByBucket??{};
-  const appearanceHashes=
-    bucketHash!=null
-      ?(appearanceByBucket[String(bucketHash)]??[])
-      :[];
+  const appearanceByBucket = fixture.rawDim?.parameters?.modsByBucket ?? {};
+  const appearanceHashes =
+    bucketHash != null ? appearanceByBucket[String(bucketHash)] ?? [] : [];
 
-  const rarityText=String(item.rarity??item.tier??"").toLowerCase();
-  const isExotic=
-    item.isExotic===true
-    ||rarityText.includes("exotic")
-    ||Boolean(official?.equippingBlock?.uniqueLabelHash);
+  const rarityText = String(item.rarity ?? item.tier ?? "").toLowerCase();
+  const isExotic =
+    item.isExotic === true ||
+    rarityText.includes("exotic") ||
+    Boolean(official?.equippingBlock?.uniqueLabelHash);
 
-  const intrinsicHashes=isExotic
-    ?(official?.intrinsicPlugHashes??[])
-    :[];
-
-  const intrinsicTraits=intrinsicHashes.map(resolve).filter(Boolean);
+  const intrinsicHashes = isExotic ? official?.intrinsicPlugHashes ?? [] : [];
+  const intrinsicTraits = intrinsicHashes.map(resolve).filter(Boolean);
 
   return {
     ...item,
-    equipmentSlotTypeHash:bucketHash,
-    armorSlot:bucketName(bucketHash)||item.armorSlot||"",
-    appearancePlugs:appearanceHashes.map(resolve),
-    mods:displayMods,
-    modAssignmentVerified:false,
-    modDisplaySource:"dim-loadout-mod-pool",
+    equipmentSlotTypeHash: bucketHash,
+    armorSlot: bucketName(bucketHash) || item.armorSlot || "",
+    appearancePlugs: appearanceHashes.map(resolve),
+    mods: displayMods,
+    modAssignmentVerified: false,
+    modDisplaySource: "dim-loadout-mod-pool",
     isExotic,
     intrinsicTraits,
-    intrinsicTrait:isExotic?(intrinsicTraits[0]??null):null,
-    rarity:item.rarity??(isExotic?"Exotic":null)
+    intrinsicTrait: isExotic ? intrinsicTraits[0] ?? null : null,
+    rarity: item.rarity ?? (isExotic ? "Exotic" : null)
   };
 }
 
-function normalizeFixture(fixture){
-  const equipped=(fixture.rawDim?.equipped??[])
-    .map(item=>({
-      ...resolve(item.hash),
-      socketOverrides:item.socketOverrides??null
-    }));
+function normalizeFixture(fixture) {
+  const equipped = (fixture.rawDim?.equipped ?? []).map(item => ({
+    ...resolve(item.hash),
+    socketOverrides: item.socketOverrides ?? null
+  }));
 
-  const subclass=subclassParts(fixture);
-  const weapons=equipped.filter(x=>x.sourceKind==="weapon");
-  const modPool=(fixture.rawDim?.parameters?.mods??[]).map(resolve);
+  const subclass = subclassParts(fixture);
+  const weapons = equipped.filter(x => x.sourceKind === "weapon");
+  const modPool = (fixture.rawDim?.parameters?.mods ?? []).map(resolve);
 
-  const armour=equipped
-    .filter(x=>x.sourceKind==="armor")
-    .map((item,index)=>enrichArmourItem(item,fixture,packedDisplayMods(modPool,index)));
+  const armour = equipped
+    .filter(x => x.sourceKind === "armor")
+    .map((item, index) =>
+      enrichArmourItem(item, fixture, packedDisplayMods(modPool, index))
+    );
 
-  const artifactUnlocks=fixture.rawDim?.parameters?.artifactUnlocks??null;
+  const artifactUnlocks = fixture.rawDim?.parameters?.artifactUnlocks ?? null;
+  const artifact = artifactUnlocks
+    ? {
+        seasonNumber: artifactUnlocks.seasonNumber ?? fixture.artifactSeason ?? null,
+        perks: (artifactUnlocks.unlockedItemHashes ?? []).map(resolve)
+      }
+    : null;
 
-  const artifact=artifactUnlocks?{
-    seasonNumber:artifactUnlocks.seasonNumber??fixture.artifactSeason??null,
-    perks:(artifactUnlocks.unlockedItemHashes??[]).map(resolve)
-  }:null;
+  const unresolvedHashes = (fixture.allDestinyHashes ?? []).filter(
+    h => !manifestByHash.has(String(h)) && !byHash.has(String(h))
+  );
 
-  const unresolvedHashes=(fixture.allDestinyHashes??[])
-    .filter(h=>!manifestByHash.has(String(h))&&!byHash.has(String(h)));
+  const abilitiesList = [
+    subclass.super
+      ? { label: "SUPER", name: subclass.super.name, icon: subclass.super.icon, super: true }
+      : null,
+    subclass.classAbility
+      ? { label: "CLASS ABILITY", name: subclass.classAbility.name, icon: subclass.classAbility.icon }
+      : null,
+    subclass.movement
+      ? { label: "MOVEMENT", name: subclass.movement.name, icon: subclass.movement.icon }
+      : null,
+    subclass.melee
+      ? { label: "MELEE", name: subclass.melee.name, icon: subclass.melee.icon }
+      : null,
+    subclass.grenade
+      ? { label: "GRENADE", name: subclass.grenade.name, icon: subclass.grenade.icon }
+      : null
+  ].filter(Boolean);
 
   return {
-    source:"paradox-beta-fixture",
-    fixtureId:fixture.fixtureId,
-    dimId:fixture.dimId,
-    characterId:fixture.fixtureId,
-    displayName:fixture.displayName,
-    classType:fixture.classType,
-    className:fixture.className,
-    characterClass:String(fixture.className??"").toLowerCase(),
-    subclass:String(fixture.element??"").toLowerCase(),
-    subclassName:fixture.subclassName,
-    subclassHash:fixture.subclassHash,
-    subclassIdentity:resolve(fixture.subclassHash),
-    subclassIcon:resolve(fixture.subclassHash)?.icon??"",
-    super:subclass.super,
-    classAbility:subclass.classAbility,
-    movement:subclass.movement,
-    melee:subclass.melee,
-    grenade:subclass.grenade,
-    abilities:[subclass.classAbility,subclass.movement,subclass.melee,subclass.grenade].filter(Boolean),
-    aspects:subclass.aspects,
-    fragments:subclass.fragments,
+    source: "paradox-beta-fixture",
+    fixtureId: fixture.fixtureId,
+    dimId: fixture.dimId,
+    characterId: fixture.fixtureId,
+    displayName: fixture.displayName,
+    classType: fixture.classType,
+    className: fixture.className,
+    characterClass: String(fixture.className ?? "").toLowerCase(),
+    subclass: String(fixture.element ?? "").toLowerCase(),
+    subclassName: fixture.subclassName,
+    subclassHash: fixture.subclassHash,
+    subclassIdentity: resolve(fixture.subclassHash),
+    subclassIcon: resolve(fixture.subclassHash)?.icon ?? "",
+    super: subclass.super,
+    classAbility: subclass.classAbility,
+    movement: subclass.movement,
+    melee: subclass.melee,
+    grenade: subclass.grenade,
+    abilities: abilitiesList,
+    aspects: subclass.aspects,
+    fragments: subclass.fragments,
     artifact,
     weapons,
     armour,
-    armourModPool:modPool,
-    modAssignmentVerified:false,
-    beta:{
-      evidenceStatus:fixture.evidenceStatus,
-      resolved:(fixture.allDestinyHashes?.length??0)-unresolvedHashes.length,
-      unresolved:unresolvedHashes.length,
+    armourModPool: modPool,
+    modAssignmentVerified: false,
+    beta: {
+      evidenceStatus: fixture.evidenceStatus,
+      resolved: (fixture.allDestinyHashes?.length ?? 0) - unresolvedHashes.length,
+      unresolved: unresolvedHashes.length,
       unresolvedHashes
     }
   };
 }
 
-function syncFixturePicker(detail){
-  const select=document.getElementById("astrixBetaFixtureSelect");
-  if(select)select.value=detail.fixtureId;
+function syncFixturePicker(detail) {
+  const select = document.getElementById("astrixBetaFixtureSelect");
+  if (select) select.value = detail.fixtureId;
 
-  const classLabel=document.querySelector(".char-switch b");
-  if(classLabel)classLabel.textContent=`${detail.className} ▾`;
+  const classLabel = document.querySelector(".char-switch b");
+  if (classLabel) classLabel.textContent = `${detail.className} ▾`;
 }
 
-function installFixturePicker(){
-  const host=document.querySelector(".char-switch");
-  if(!host||document.getElementById("astrixBetaFixtureSelect"))return;
+function installFixturePicker() {
+  const host = document.querySelector(".char-switch");
+  if (!host || document.getElementById("astrixBetaFixtureSelect")) return;
 
-  host.style.position="relative";
-  host.style.cursor="pointer";
+  host.style.position = "relative";
+  host.style.cursor = "pointer";
 
-  const select=document.createElement("select");
-  select.id="astrixBetaFixtureSelect";
-  select.setAttribute("aria-label","Select Paradox Forge beta loadout");
-  select.style.cssText="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5";
+  const select = document.createElement("select");
+  select.id = "astrixBetaFixtureSelect";
+  select.setAttribute("aria-label", "Select Paradox Forge beta loadout");
+  select.style.cssText =
+    "position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5";
 
-  for(const f of fixtures.fixtures??[]){
-    const option=document.createElement("option");
-    option.value=f.fixtureId;
-    option.textContent=`${f.fixtureId} · ${f.displayName} · ${f.className} · ${f.subclassName}`;
+  for (const f of fixtures.fixtures ?? []) {
+    const option = document.createElement("option");
+    option.value = f.fixtureId;
+    option.textContent = `${f.fixtureId} · ${f.displayName} · ${f.className} · ${f.subclassName}`;
     select.appendChild(option);
   }
 
-  select.value=activeFixtureId;
-  select.addEventListener("change",()=>{
-    loadBetaFixture(select.value).catch(error=>{
-      console.error("[Paradox beta fixture selector]",error);
+  select.value = activeFixtureId;
+  select.addEventListener("change", () => {
+    loadBetaFixture(select.value).catch(error => {
+      console.error("[Paradox beta fixture selector]", error);
     });
   });
 
   host.appendChild(select);
 }
 
-export async function loadBetaFixture(id=DEFAULT_FIXTURE_ID){
+export async function loadBetaFixture(id = DEFAULT_FIXTURE_ID) {
   await ensureData();
   installFixturePicker();
 
-  const fixture=(fixtures.fixtures??[]).find(
-    f=>f.fixtureId===id||f.displayName===id
+  const fixture = (fixtures.fixtures ?? []).find(
+    f => f.fixtureId === id || f.displayName === id
   );
 
-  if(!fixture)throw new Error(`Unknown beta fixture: ${id}`);
+  if (!fixture) throw new Error(`Unknown beta fixture: ${id}`);
 
-  activeFixtureId=fixture.fixtureId;
-  const detail=normalizeFixture(fixture);
+  activeFixtureId = fixture.fixtureId;
+  const detail = normalizeFixture(fixture);
   syncFixturePicker(detail);
 
-  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
-  document.dispatchEvent(new CustomEvent("astrix:beta-fixture-loaded",{detail}));
+  document.dispatchEvent(
+    new CustomEvent("astrix:guardian-selection-changed", { detail })
+  );
+  document.dispatchEvent(
+    new CustomEvent("astrix:beta-fixture-loaded", { detail })
+  );
 
   return detail;
 }
 
-export async function listBetaFixtures(){
+export async function listBetaFixtures() {
   await ensureData();
 
-  return (fixtures.fixtures??[]).map(f=>({
-    fixtureId:f.fixtureId,
-    displayName:f.displayName,
-    className:f.className,
-    subclassName:f.subclassName,
-    element:f.element
+  return (fixtures.fixtures ?? []).map(f => ({
+    fixtureId: f.fixtureId,
+    displayName: f.displayName,
+    className: f.className,
+    subclassName: f.subclassName,
+    element: f.element
   }));
 }
 
-async function start(){
-  try{
+async function start() {
+  try {
     await ensureData();
     installFixturePicker();
     await loadBetaFixture(DEFAULT_FIXTURE_ID);
-  }catch(error){
-    console.error("[Paradox beta fixture loader]",error);
+  } catch (error) {
+    console.error("[Paradox beta fixture loader]", error);
   }
 }
 
-let started=false;
+let started = false;
 
-function startOnce(){
-  if(started)return;
-  started=true;
+function startOnce() {
+  if (started) return;
+  started = true;
   start();
 }
 
-document.addEventListener("astrix:guardian-workspace-ready",startOnce,{once:true});
+document.addEventListener("astrix:guardian-workspace-ready", startOnce, {
+  once: true
+});
 
-if(document.readyState==="loading"){
-  document.addEventListener("DOMContentLoaded",()=>setTimeout(startOnce,0),{once:true});
-}else{
-  setTimeout(startOnce,0);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => setTimeout(startOnce, 0), {
+    once: true
+  });
+} else {
+  setTimeout(startOnce, 0);
 }
 
-globalThis.ASTRIXBetaFixtures={
-  load:loadBetaFixture,
-  list:listBetaFixtures,
-  current:()=>activeFixtureId
+globalThis.ASTRIXBetaFixtures = {
+  load: loadBetaFixture,
+  list: listBetaFixtures,
+  current: () => activeFixtureId
 };
