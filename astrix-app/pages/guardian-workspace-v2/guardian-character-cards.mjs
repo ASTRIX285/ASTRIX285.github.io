@@ -107,7 +107,11 @@ function render(nextCharacters = characters, nextSelectedId = selectedCharacterI
       });
       selectedCharacterId = characterId;
 
+      // Preserve the immediate UI selection event, then route the selected
+      // character into the Bungie profile module so it can publish the full
+      // live Guardian payload (equipment, subclass, stats and loadouts).
       document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed", { detail: { characterId, characterClass, className: classLabel(characterClass) } }));
+      document.dispatchEvent(new CustomEvent("astrix:character-selected", { detail: { characterId, characterClass, className: classLabel(characterClass) } }));
     })
   );
 }
