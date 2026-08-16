@@ -46,10 +46,10 @@
 
 .gear-slot-divider{height:1px;background:var(--line);margin:3px 0 clamp(4px,.5vh,8px)}
 
-/* Armour 3.0 supports six functional slots. Stack them 3 × 2 so every armour
-   tier, including T5 and Exotic, has room for the additional socket. */
-.gear-mods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,auto);gap:clamp(2px,.2vw,4px);justify-content:center}
-.gear-mod{position:relative;aspect-ratio:1;border-radius:8px;border:1px solid var(--line-2);background:rgba(139,92,246,.055);display:grid;place-items:center;overflow:hidden;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+/* Armour 3.0 supports six functional slots. Keep them in the intended
+   2-column x 3-row (2-2-2 vertical) matrix and match Fragment socket size. */
+.gear-mods{display:grid;grid-template-columns:repeat(2,var(--pf-mod-size,36px));grid-template-rows:repeat(3,var(--pf-mod-size,36px));gap:4px;justify-content:center;align-content:start}
+.gear-mod{position:relative;width:var(--pf-mod-size,36px);height:var(--pf-mod-size,36px);aspect-ratio:1;border-radius:8px;border:1px solid var(--line-2);background:rgba(139,92,246,.055);display:grid;place-items:center;overflow:hidden;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
 .gear-mod:hover,.gear-mod:focus-visible{transform:translateY(-2px);border-color:var(--stage-accent);box-shadow:0 0 15px var(--stage-accent-soft);outline:none}
 .gear-mod img{width:88%;height:88%;object-fit:contain}
 .gear-mod .ph-glyph{font-size:.72rem;opacity:.42}
