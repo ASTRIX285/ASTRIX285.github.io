@@ -346,6 +346,7 @@ async function loadLiveProfile(session,{background=false}={}){
   liveProfilePayload=payload;
   liveProfileSession=session;
   document.documentElement.dataset.guardianSource="bungie-live";
+  document.documentElement.dataset.isEquippedProfile="true";
   setRenderStatus("BUILD INTELLIGENCE","Live profile data ready","Equipment and loadout analysis active");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   publishCharacterRoster(payload,detail.characterId);
