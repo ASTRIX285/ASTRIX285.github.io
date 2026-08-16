@@ -15,9 +15,9 @@ function syncModSizeToArtifact() {
   if (!mod || !slot) return;
 
   const fragment = document.querySelector("#fragList .ico-badge");
-  const fragmentSize = fragment?.getBoundingClientRect().width || 52;
+  const fragmentSize = fragment?.getBoundingClientRect().width || 36;
   const available = slot.clientWidth - 12;
-  const maximumFit = Math.floor((available - 6) / 3);
+  const maximumFit = Math.floor((available - 4) / 2);
   const target = Math.max(30, Math.min(fragmentSize, maximumFit));
   document.documentElement.style.setProperty("--pf-mod-size", `${target}px`);
 }
