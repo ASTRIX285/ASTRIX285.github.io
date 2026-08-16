@@ -146,14 +146,27 @@ function subclassConfiguration(profile,definitions,item){
   const movement=find(/movement|jump|lift|glide/);
   const melee=find(/melee/);
   const grenade=find(/grenade/);
+  
   const socketStates=profile?.itemComponents?.sockets?.data?.[item?.itemInstanceId]?.sockets||[];
   const superSocketIndex=superItem?socketStates.findIndex(socket=>Number(socket.plugHash)===Number(superItem.hash)):-1;
   const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item?.itemInstanceId]?.plugs||{};
   const reusableRows=superSocketIndex>=0?(reusable[String(superSocketIndex)]||reusable[superSocketIndex]||[]):[];
+  
+  // Also parse manifest socket entries for any static super definitions
+  const itemDef=definitions?.[String(item?.itemHash)]||{};
+  const manifestSockets=itemDef.sockets?.socketEntries||[];
+  const manifestSupers=manifestSockets
+    .flatMap(entry=>[entry.singleInitialItemHash,...(entry.reusablePlugItems||[]).map(p=>p.plugItemHash)])
+    .filter(Boolean)
+    .map(hash=>displayItem(definitions,hash))
+    .filter(row=>row.definition&&/(^|\W)super(\W|$)/.test(plugType(row)));
+
   const superOptions=[
     superItem,
-    ...reusableRows.map(row=>displayItem(definitions,row.plugItemHash??row.plugHash)).filter(row=>row.definition&&/(^|\W)super(\W|$)/.test(plugType(row)))
+    ...reusableRows.map(row=>displayItem(definitions,row.plugItemHash??row.plugHash)).filter(row=>row.definition&&/(^|\W)super(\W|$)/.test(plugType(row))),
+    ...manifestSupers
   ].filter((row,index,rows)=>row&&rows.findIndex(other=>Number(other.hash)===Number(row.hash))===index);
+
   return {
     super:superItem,
     superOptions,
@@ -199,7 +212,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
-  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem):{super:null,classAbility:null,movement:null,melee:null,grenade:null,abilities:[],aspects:[],fragments:[],socketsAvailable:false};
+  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],aspects:[],fragments:[],socketsAvailable:false};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character);
   const artifact=currentArtifact(profile,definitions);
   const characterLoadouts=profile?.characterLoadouts?.data?.[character.characterId];
@@ -326,9 +339,12 @@ async function loadSelectedLoadout(selection){
   payload.profile=profileWithSelectedLoadout(payload);
   const detail={...normaliseLiveProfile(payload,null,characterId),selectedLoadoutIndex:index,loadoutSource:"bungie-live"};
   detail.coverage=loadoutCoverage(detail);
+  
+  // Non-fatal warning: never crash the stage if a loadout has an empty slot
   if(!detail.coverage.complete){
-    throw new Error(`Bungie loadout ${index+1} is incomplete: ${detail.coverage.missing.join(", ")}.`);
+    console.warn(`[ASTRIX] Bungie loadout ${index+1} partial: ${detail.coverage.missing.join(", ")}`);
   }
+  
   loadoutCache.set(cacheKey,detail);
   document.documentElement.dataset.guardianSource="bungie-loadout";
   setRenderStatus("BUILD INTELLIGENCE",`Bungie loadout ${index+1} ready`,"Saved build loaded for analysis");
@@ -346,11 +362,11 @@ async function loadLiveProfile(session,{background=false}={}){
   liveProfilePayload=payload;
   liveProfileSession=session;
   document.documentElement.dataset.guardianSource="bungie-live";
-  document.documentElement.dataset.isEquippedProfile="true";
+  document.documentElement.dataset.equippedActive="true";
   setRenderStatus("BUILD INTELLIGENCE","Live profile data ready","Equipment and loadout analysis active");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
-  publishCharacterRoster(payload,detail.characterId);
   document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail}));
+  publishCharacterRoster(payload,detail.characterId);
   return detail;
 }
 
@@ -358,6 +374,7 @@ function selectLiveCharacter(characterId){
   if(!liveProfilePayload)return null;
   const detail=normaliseLiveProfile(liveProfilePayload,liveProfileSession,characterId);
   document.documentElement.dataset.guardianSource="bungie-live";
+  document.documentElement.dataset.equippedActive="true";
   setRenderStatus("BUILD INTELLIGENCE",`${detail.characterClass} profile ready`,"Live equipment and saved loadouts selected");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   publishCharacterRoster(liveProfilePayload,detail.characterId);
@@ -419,8 +436,6 @@ document.addEventListener("astrix:character-selected",event=>{
   catch(error){reportProfileError(error);}
 });
 
-/* Start the protected profile request beside the session check. Returning
-   authenticated users therefore pay one network wait instead of two. */
 ensureLiveProfile(globalThis.ASTRIX_BUNGIE_SESSION||null,{background:true,silent:true});
 getBungieSession().then(handleAuthenticatedSession);
 
