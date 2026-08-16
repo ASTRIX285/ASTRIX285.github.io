@@ -1,350 +1,151 @@
 /* ASTRIX PARADOX adaptive layout authority.
- * Loaded last so legacy fixed-width passes cannot fight browser zoom or
- * container resizing. Components respond to the space they actually own. */
+ * Loaded last so legacy fixed-width passes cannot fight container resizing.
+ * Components respond to the space they actually own. */
 
-:root {
-  --workspace-gap: clamp(8px, 0.7vw, 16px);
-  --workspace-edge: clamp(8px, 1vw, 20px);
+:root{
+  --workspace-gap:clamp(8px,.7vw,16px);
+  --workspace-edge:clamp(8px,1vw,20px);
 }
 
 .workspace,
-.workspace > * {
-  min-width: 0;
-}
+.workspace>*{min-width:0}
+.workspace>.left,
+.workspace>.stage,
+.workspace>.right,
+.workspace>.equip{container-type:inline-size}
 
-.workspace > .left,
-.workspace > .stage,
-.workspace > .right,
-.workspace > .equip {
-  container-type: inline-size;
-}
-
-/* ==========================================================================
-   WORKSPACE GRID BREAKPOINTS
-   ========================================================================== */
-
-@media (min-width: 1500px) {
-  .workspace {
-    width: calc(100vw - (var(--workspace-edge) * 2)) !important;
-    max-width: none !important;
+@media (min-width:1500px){
+  .workspace{
+    width:calc(100vw - (var(--workspace-edge) * 2))!important;
+    max-width:none!important;
     grid-template-columns:
-      clamp(300px, 17vw, 420px)
-      minmax(0, 1fr)
-      clamp(420px, 30vw, 600px) !important;
-    grid-template-areas: "left stage right" "equip equip right" !important;
-    gap: var(--workspace-gap) !important;
+      clamp(300px,17vw,420px)
+      minmax(0,1fr)
+      clamp(420px,30vw,600px)!important;
+    grid-template-areas:"left stage right" "equip equip right"!important;
+    gap:var(--workspace-gap)!important;
   }
 }
 
-@media (min-width: 1281px) and (max-width: 1499px) {
-  .workspace {
-    width: calc(100vw - (var(--workspace-edge) * 2)) !important;
-    max-width: none !important;
+@media (min-width:1281px) and (max-width:1499px){
+  .workspace{
+    width:calc(100vw - (var(--workspace-edge) * 2))!important;
+    max-width:none!important;
     grid-template-columns:
-      clamp(286px, 17vw, 390px)
-      minmax(520px, 1fr)
-      clamp(360px, 25vw, 560px) !important;
-    grid-template-areas: "left stage right" "equip equip right" !important;
-    gap: var(--workspace-gap) !important;
+      clamp(286px,17vw,390px)
+      minmax(520px,1fr)
+      clamp(360px,25vw,560px)!important;
+    grid-template-areas:"left stage right" "equip equip right"!important;
+    gap:var(--workspace-gap)!important;
   }
 }
 
-/* Browser zoom and compact desktop: preserve all three primary regions in
- * the top row. Analysis continues down the right rail beside equipment. */
-@media (min-width: 981px) and (max-width: 1280px) {
-  html,
-  body {
-    height: auto !important;
-    overflow: auto !important;
-  }
-  .workspace {
-    width: calc(100vw - (var(--workspace-edge) * 2)) !important;
-    height: auto !important;
+/* Compact desktop: preserve all three primary regions in the top row.
+ * Analysis continues down the right rail beside equipment. */
+@media (min-width:981px) and (max-width:1280px){
+  html,body{height:auto!important;overflow:auto!important}
+  .workspace{
+    width:calc(100vw - (var(--workspace-edge) * 2))!important;
+    height:auto!important;
     grid-template-columns:
-      clamp(248px, 25vw, 310px)
-      minmax(0, 1fr)
-      clamp(280px, 28vw, 340px) !important;
-    grid-template-rows: minmax(570px, 68vh) auto !important;
-    grid-template-areas: "left stage right" "equip equip right" !important;
-    gap: var(--workspace-gap) !important;
+      clamp(248px,25vw,310px)
+      minmax(0,1fr)
+      clamp(280px,28vw,340px)!important;
+    grid-template-rows:minmax(570px,68vh) auto!important;
+    grid-template-areas:"left stage right" "equip equip right"!important;
+    gap:var(--workspace-gap)!important;
   }
-  .workspace > .left,
-  .workspace > .stage {
-    height: 100% !important;
-    max-height: none !important;
-  }
-  .workspace > .right,
-  .workspace > .equip {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-  .equip.gear-layout-active {
-    grid-template-columns: minmax(220px, 270px) minmax(0, 1fr) !important;
-  }
-  .right .mini-grid,
-  .right .sw-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-  .actionbar {
-    position: static !important;
-  }
+  .workspace>.left,.workspace>.stage{height:100%!important;max-height:none!important}
+  .workspace>.right,.workspace>.equip{height:auto!important;max-height:none!important;overflow:visible!important}
+  .equip.gear-layout-active{grid-template-columns:minmax(220px,270px) minmax(0,1fr)!important}
+  .right .mini-grid,.right .sw-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .actionbar{position:static!important}
 }
 
 /* All stacked widths use one reading order: build, Guardian, analysis, gear. */
-@media (max-width: 980px) {
-  html,
-  body {
-    height: auto !important;
-    overflow: auto !important;
+@media (max-width:980px){
+  html,body{height:auto!important;overflow:auto!important}
+  .workspace{
+    display:grid!important;
+    width:calc(100vw - (var(--workspace-edge) * 2))!important;
+    height:auto!important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto!important;
+    grid-template-areas:"left" "stage" "right" "equip"!important;
+    gap:var(--workspace-gap)!important;
   }
-  .workspace {
-    display: grid !important;
-    width: calc(100vw - (var(--workspace-edge) * 2)) !important;
-    height: auto !important;
-    grid-template-columns: 1fr !important;
-    grid-template-rows: auto !important;
-    grid-template-areas: "left" "stage" "right" "equip" !important;
-    gap: var(--workspace-gap) !important;
-  }
-  .workspace > * {
-    width: 100% !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-  .workspace > .stage {
-    height: clamp(570px, 72vh, 720px) !important;
-    overflow: hidden !important;
-  }
-  .workspace > .left {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.72fr) !important;
-    align-items: start !important;
-  }
-  .workspace > .left > .class-super-row,
-  .workspace > .left > .guardian-loadouts-panel {
-    grid-column: 1 / -1;
-  }
-  .equip.gear-layout-active {
-    grid-template-columns: 1fr !important;
-  }
-  .equip.gear-layout-active > .gear-weapons,
-  .equip.gear-layout-active > .gear-combined {
-    grid-column: 1 !important;
-  }
-  .actionbar {
-    position: static !important;
-  }
+  .workspace>*{width:100%!important;height:auto!important;max-height:none!important;overflow:visible!important}
+  .workspace>.stage{height:clamp(570px,72vh,720px)!important;overflow:hidden!important}
+  .workspace>.left{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(260px,.72fr)!important;align-items:start!important}
+  .workspace>.left>.class-super-row,.workspace>.left>.guardian-loadouts-panel{grid-column:1/-1}
+  .equip.gear-layout-active{grid-template-columns:1fr!important}
+  .equip.gear-layout-active>.gear-weapons,.equip.gear-layout-active>.gear-combined{grid-column:1!important}
+  .actionbar{position:static!important}
 }
 
-@media (max-width: 860px) {
-  .workspace > .left {
-    display: flex !important;
-    flex-direction: column !important;
+/* Character selector responds to the hero, not the browser. */
+@container (max-width:780px){
+  .guardian-character-cards{
+    left:14px!important;
+    right:64px!important;
+    display:flex!important;
+    gap:8px!important;
+    overflow-x:auto!important;
+    padding-bottom:6px!important;
+    scroll-snap-type:x proximity;
   }
-  .workspace > .stage {
-    height: clamp(560px, 145vw, 680px) !important;
-  }
-  .gear-columns {
-    grid-template-columns: 1fr !important;
-  }
+  .guardian-character-card{flex:0 0 clamp(238px,62cqw,310px);scroll-snap-align:start}
 }
 
-/* ==========================================================================
-   CHARACTER CARDS & HERO STAGE
-   ========================================================================== */
-
-.character-cards-ribbon,
-.character-cards-row,
-.guardian-character-cards {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: flex-start !important;
-  align-items: stretch !important;
-  gap: 12px !important;
-  width: 100% !important;
-  overflow-x: auto !important;
-  padding-bottom: 4px;
+@container (max-width:560px){
+  .guardian-character-cards{right:14px!important}
+  .guardian-character-card{flex-basis:min(84cqw,290px)}
+  .view3d{top:150px!important}
 }
 
-.character-card {
-  flex: 0 0 320px !important;
-  min-width: 280px !important;
-  max-width: 340px !important;
-  box-sizing: border-box !important;
+/* Left rail: class and Supers remain side by side. The equipped Super sits
+ * forward in the lower diamond while the other valid Supers recede behind. */
+@container (max-width:340px){
+  .class-super-row{grid-template-columns:minmax(110px,.88fr) minmax(0,1.12fr)!important;padding:5px!important}
+  .class-super-row .subclass-hero{grid-template-columns:36px minmax(0,1fr);padding:4px 6px 4px 3px!important}
+  .class-super-row .subclass-hero .crest,.class-super-row .subclass-hero .crest-fb{width:36px!important;height:36px!important;flex-basis:36px!important}
+  .class-super-row .super-focus{padding:2px 3px!important}
+  .class-super-row .super-options{width:min(116px,100%);height:56px}
+  .class-super-row .super-focus{grid-template-rows:auto 56px auto}
+  .class-super-row .super-option{width:34px;height:34px;padding:4px}
+  .class-super-row .super-option.is-active{top:16px}
+  .class-super-row .super-option .ico-badge{width:23px!important;height:23px!important;min-width:23px!important}
 }
 
-.character-card .stats-row,
-.character-card .stat-pills {
-  display: grid !important;
-  grid-template-columns: repeat(6, 1fr) !important;
-  gap: 4px !important;
+/* Armour cards keep five columns while space permits, then reflow without
+ * crushing their 3 x 2 mod grids. */
+.gear-combined{container-type:inline-size}
+.gear-columns{grid-template-columns:repeat(5,minmax(128px,1fr))!important}
+
+@container (max-width:900px){
+  .gear-columns{grid-template-columns:repeat(3,minmax(150px,1fr))!important}
 }
 
-@container (max-width: 780px) {
-  .guardian-character-cards {
-    left: 14px !important;
-    right: 64px !important;
-    display: flex !important;
-    gap: 8px !important;
-    overflow-x: auto !important;
-    padding-bottom: 6px !important;
-    scroll-snap-type: x proximity;
-  }
-  .guardian-character-card {
-    flex: 0 0 clamp(238px, 62cqw, 310px);
-    scroll-snap-align: start;
-  }
+@container (max-width:580px){
+  .gear-columns{grid-template-columns:repeat(2,minmax(145px,1fr))!important}
 }
 
-@container (max-width: 560px) {
-  .guardian-character-cards {
-    right: 14px !important;
-  }
-  .guardian-character-card {
-    flex-basis: min(84cqw, 290px);
-  }
-  .view3d {
-    top: 150px !important;
-  }
+@container (max-width:340px){
+  .gear-columns{grid-template-columns:1fr!important}
 }
 
-/* ==========================================================================
-   LEFT RAIL: CLASS, SUPERS, ABILITIES & LOADOUTS
-   ========================================================================== */
+/* Analysis copy and cards wrap rather than generating horizontal overflow. */
+.right :is(.health-card,.focus-row,.mini,.sw-card,.activity,.improve){min-width:0}
+.right :is(p,small,b,li,.verdict){overflow-wrap:anywhere}
 
-@container (max-width: 340px) {
-  .class-super-row {
-    grid-template-columns: minmax(110px, 0.88fr) minmax(0, 1.12fr) !important;
-    padding: 5px !important;
-  }
-  .class-super-row .subclass-hero {
-    grid-template-columns: 36px minmax(0, 1fr);
-    padding: 4px 6px 4px 3px !important;
-  }
-  .class-super-row .subclass-hero .crest,
-  .class-super-row .subclass-hero .crest-fb {
-    width: 36px !important;
-    height: 36px !important;
-    flex-basis: 36px !important;
-  }
-  .class-super-row .super-focus {
-    padding: 2px 3px !important;
-    grid-template-rows: auto 56px auto;
-  }
-  .class-super-row .super-options {
-    width: min(116px, 100%);
-    height: 56px;
-  }
-  .class-super-row .super-option {
-    width: 34px;
-    height: 34px;
-    padding: 4px;
-  }
-  .class-super-row .super-option.is-active {
-    top: 16px;
-  }
-  .class-super-row .super-option .ico-badge {
-    width: 23px !important;
-    height: 23px !important;
-    min-width: 23px !important;
-  }
+@container (max-width:520px){
+  .right .health-card{grid-template-columns:82px minmax(0,1fr)!important}
+  .right .ring{width:82px!important;height:82px!important;flex-basis:82px!important}
+  .right .mini-grid,.right .sw-grid{grid-template-columns:1fr!important}
 }
 
-/* Natural Icon Wrapping */
-.abilities-grid,
-.abilities-row,
-.fragments-grid,
-.fragments-row,
-.aspects-grid {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 8px !important;
-  align-items: center !important;
-  width: 100% !important;
-}
-
-.ability-slot,
-.ability-icon,
-.aspect-slot,
-.fragment-slot {
-  flex: 0 0 52px !important;
-  width: 52px !important;
-  height: 52px !important;
-  box-sizing: border-box !important;
-}
-
-/* In-Game Loadouts (Slots 1-20) */
-.loadouts-grid,
-.in-game-loadouts-grid,
-.loadout-slots-container {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)) !important;
-  gap: 6px !important;
-  width: 100% !important;
-}
-
-.loadout-slot {
-  aspect-ratio: 1 / 1 !important;
-  min-width: 44px !important;
-  max-width: 54px !important;
-  box-sizing: border-box !important;
-}
-
-/* ==========================================================================
-   EQUIPMENT & GEAR REFLOW
-   ========================================================================== */
-
-.gear-combined {
-  container-type: inline-size;
-}
-
-.gear-columns {
-  grid-template-columns: repeat(5, minmax(128px, 1fr)) !important;
-}
-
-@container (max-width: 900px) {
-  .gear-columns {
-    grid-template-columns: repeat(3, minmax(150px, 1fr)) !important;
-  }
-}
-
-@container (max-width: 580px) {
-  .gear-columns {
-    grid-template-columns: repeat(2, minmax(145px, 1fr)) !important;
-  }
-}
-
-@container (max-width: 340px) {
-  .gear-columns {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* ==========================================================================
-   RIGHT RAIL / ANALYSIS
-   ========================================================================== */
-
-.right :is(.health-card, .focus-row, .mini, .sw-card, .activity, .improve) {
-  min-width: 0;
-}
-
-.right :is(p, small, b, li, .verdict) {
-  overflow-wrap: anywhere;
-}
-
-@container (max-width: 520px) {
-  .right .health-card {
-    grid-template-columns: 82px minmax(0, 1fr) !important;
-  }
-  .right .ring {
-    width: 82px !important;
-    height: 82px !important;
-    flex-basis: 82px !important;
-  }
-  .right .mini-grid,
-  .right .sw-grid {
-    grid-template-columns: 1fr !important;
-  }
+@media (max-width:860px){
+  .workspace>.left{display:flex!important;flex-direction:column!important}
+  .workspace>.stage{height:clamp(560px,145vw,680px)!important}
+  .gear-columns{grid-template-columns:1fr!important}
 }

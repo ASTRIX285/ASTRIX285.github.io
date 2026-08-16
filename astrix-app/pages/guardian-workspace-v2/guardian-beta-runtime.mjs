@@ -148,26 +148,6 @@ function renderStats(stats) {
     </div>`;
 }
 
-const PLATFORM_MARKUP = `
-  <svg class="gp-defs" aria-hidden="true">
-    <filter id="gp-smoke" x="-20%" y="-20%" width="140%" height="140%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" seed="7" stitchTiles="stitch" result="noise">
-        <animate attributeName="seed" from="0" to="60" dur="70s" repeatCount="indefinite"/>
-      </feTurbulence>
-      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.25 -0.46" result="alpha"/>
-      <feComposite in="SourceGraphic" in2="alpha" operator="in" result="tinted"/>
-      <feGaussianBlur in="tinted" stdDeviation="6"/>
-    </filter>
-  </svg>
-  <svg class="mist mist-back" viewBox="0 0 300 240" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="240"/></svg>
-  <div class="frontglow"></div>
-  <div class="deck">
-    <i class="aura"></i><i class="step"></i><i class="wall"></i><i class="face"></i><i class="grain"></i><i class="cast"></i>
-    <i class="frame"></i><i class="sigil"></i><i class="hub"></i><i class="ring ring-outer"></i><i class="ring ring-mid"></i>
-    <i class="ring ring-inner"></i><i class="depth"></i>
-  </div>
-  <svg class="mist mist-front" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="130"/></svg>`;
-
 const workspaceState = {
   characterId: null,
   characterClass: "hunter",
@@ -197,22 +177,6 @@ function setStageState(state, message = "") {
   const stage = document.querySelector(".stage");
   if (!stage) return;
   stage.dataset.state = state || "ready";
-  let overlay = stage.querySelector(".stage-state");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.className = "stage-state";
-    overlay.innerHTML = '<div class="stage-state-card"></div>';
-    stage.appendChild(overlay);
-  }
-  const textNode = overlay.querySelector(".stage-state-card");
-  if (textNode) {
-    textNode.textContent = message || (state === "ready" ? "BUILD INTELLIGENCE ACTIVE" : "Loading Guardian data…");
-  }
-  if (state === "ready") {
-    overlay.style.display = "none";
-  } else {
-    overlay.style.display = "grid";
-  }
 }
 
 function applyGuardianSelection(detail) {
@@ -221,14 +185,9 @@ function applyGuardianSelection(detail) {
   Object.assign(workspaceState, next);
 
   const stage = document.querySelector(".stage");
-  const platform = byId("guardianPlatform");
   if (stage) {
     stage.dataset.class = next.characterClass;
     stage.dataset.subclass = next.subclass;
-  }
-  if (platform) {
-    platform.classList.remove(...VALID_SUBCLASSES);
-    platform.classList.add(next.subclass);
   }
 
   if (next.power != null) {
@@ -291,19 +250,6 @@ function updateIdentityCosmetics(data) {
   if (ghost) ghost.textContent = data.ghost?.name || data.ghost || "Awaiting live data";
 }
 
-function initialiseGuardianPlatform() {
-  const platform = document.querySelector(".stage > .guardian-platform");
-  if (!platform) return;
-  platform.innerHTML = PLATFORM_MARKUP;
-  platform.id = "guardianPlatform";
-  platform.classList.add(workspaceState.subclass);
-  const stage = document.querySelector(".stage");
-  if (stage) {
-    stage.dataset.class = workspaceState.characterClass;
-    stage.dataset.subclass = workspaceState.subclass;
-  }
-}
-
 function createArmourDrawer() {
   if (byId("armourDrawer")) return;
   document.body.insertAdjacentHTML(
@@ -344,15 +290,7 @@ function renderWeapons(weapons = []) {
   const cards = Array.from(document.querySelectorAll(".weap-grid .weap"));
   if (!cards.length) return;
 
-  const slotOrder = {
-    Kinetic: 0,
-    Special: 0,
-    Primary: 1,
-    Energy: 1,
-    Power: 2,
-    Heavy: 2
-  };
-
+  const slotOrder = { Kinetic: 0, Special: 0, Primary: 1, Energy: 1, Power: 2, Heavy: 2 };
   const ordered = [null, null, null];
 
   weapons.forEach((weapon, index) => {
@@ -393,7 +331,6 @@ function renderWeapons(weapons = []) {
     }
 
     if (name) name.textContent = weapon.name || "Unknown weapon";
-
     if (meta) {
       const details = [weapon.weaponType, weapon.element, weapon.ammoType].filter(Boolean);
       meta.textContent = details.join(" · ") || "Bungie identity resolved";
@@ -542,13 +479,12 @@ function closeArmourDrawer() {
   byId("armourDrawer")?.setAttribute("aria-hidden", "true");
 }
 
-/* Single UI integration contract */
+/* UI integration contracts */
 document.addEventListener("astrix:guardian-selection-changed", event => applyGuardianSelection(event.detail));
-document.addEventListener("astrix:guardian-loading", () => setStageState("loading", "Loading Guardian data…"));
-document.addEventListener("astrix:guardian-error", event => setStageState("error", event.detail?.message || "Guardian data could not be loaded."));
+document.addEventListener("astrix:guardian-loading", () => setStageState("loading"));
+document.addEventListener("astrix:guardian-error", () => setStageState("error"));
 
 loadBetaStyles();
-initialiseGuardianPlatform();
 createArmourDrawer();
 renderVerifiedPreview();
 bindArmourSlots([]);

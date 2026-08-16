@@ -8,8 +8,7 @@
    Principle:
    - workspace columns respond to the effective CSS viewport
    - left-rail children respond to the LEFT PANEL, not monitor resolution
-   - Guardian + platform respond to the HERO STAGE, not monitor resolution
-   - Guardian and platform share one 3D centreline and one ground plane
+   - centre-stage content responds to the HERO STAGE, not monitor resolution
    ====================================================================== */
 
 :root{
@@ -134,7 +133,7 @@
   .artifact-row .perks .artifact-perk:nth-child(7){grid-column:4!important;grid-row:2!important}
 }
 
-/* ---------- HERO STAGE: one shared coordinate system ---------- */
+/* ---------- HERO STAGE: one contained coordinate system ---------- */
 .stage{
   --stage-anchor-x:69%;
   --stage-ground-y:clamp(42px,6.5cqh,68px);

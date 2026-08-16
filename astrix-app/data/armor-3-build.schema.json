@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://app.astrixparadox.com/data/armor-3-build.schema.json",
+  "title": "ASTRIX Armor 3.0 public build catalogue",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "sandbox", "builds"],
+  "properties": {
+    "schemaVersion": {"type": "string"},
+    "generatedAt": {"type": "string", "format": "date"},
+    "sandbox": {
+      "type": "object",
+      "required": ["name", "gameVersion", "verifiedThrough"],
+      "properties": {
+        "name": {"type": "string"},
+        "gameVersion": {"type": "string"},
+        "verifiedThrough": {"type": "string", "format": "date"},
+        "notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "builds": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/build"}
+    }
+  },
+  "$defs": {
+    "verification": {
+      "type": "object",
+      "required": ["verified"],
+      "properties": {"verified": {"type": "boolean"}}
+    },
+    "statTargets": {
+      "type": "object",
+      "required": ["Weapons", "Health", "Class", "Grenade", "Super", "Melee"],
+      "properties": {
+        "Weapons": {"type": "integer", "minimum": 0, "maximum": 200},
+        "Health": {"type": "integer", "minimum": 0, "maximum": 200},
+        "Class": {"type": "integer", "minimum": 0, "maximum": 200},
+        "Grenade": {"type": "integer", "minimum": 0, "maximum": 200},
+        "Super": {"type": "integer", "minimum": 0, "maximum": 200},
+        "Melee": {"type": "integer", "minimum": 0, "maximum": 200}
+      },
+      "additionalProperties": false
+    },
+    "build": {
+      "type": "object",
+      "required": ["id", "name", "class", "subclass", "role", "activityTags", "summary", "exoticArmor", "armor3", "subclassSetup", "mods", "artifact", "weapons", "gameplayLoop", "sources", "verified", "reviewNotes"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "name": {"type": "string"},
+        "class": {"enum": ["Hunter", "Titan", "Warlock"]},
+        "subclass": {"enum": ["Arc", "Solar", "Void", "Stasis", "Strand", "Prismatic"]},
+        "role": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "activityTags": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "difficultyTags": {"type": "array", "items": {"type": "string"}},
+        "summary": {"type": "string"},
+        "exoticArmor": {
+          "type": "object",
+          "required": ["name", "reason", "verified"],
+          "properties": {"name": {"type": "string"}, "reason": {"type": "string"}, "verified": {"type": "boolean"}},
+          "additionalProperties": false
+        },
+        "armor3": {
+          "type": "object",
+          "required": ["statTargets", "preferredArchetypes", "minimumGearTier", "setBonuses", "verified"],
+          "properties": {
+            "statTargets": {"$ref": "#/$defs/statTargets"},
+            "preferredArchetypes": {"type": "array", "items": {"type": "string"}},
+            "minimumGearTier": {"type": "integer", "minimum": 1, "maximum": 5},
+            "setBonuses": {"type": "array", "items": {"type": "string"}},
+            "setBonusNotes": {"type": "string"},
+            "verified": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "subclassSetup": {
+          "type": "object",
+          "required": ["super", "classAbility", "movement", "melee", "grenade", "aspects", "fragments", "verified"],
+          "properties": {
+            "super": {"type": "string"},
+            "classAbility": {"type": "string"},
+            "movement": {"type": "string"},
+            "melee": {"type": "string"},
+            "grenade": {"type": "string"},
+            "aspects": {"type": "array", "items": {"type": "string"}},
+            "aspectIds": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^aspect-[a-z0-9-]+$"},
+              "uniqueItems": true
+            },
+            "fragments": {"type": "array", "items": {"type": "string"}},
+            "notes": {"type": "string"},
+            "verified": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "mods": {
+          "type": "object",
+          "required": ["helmet", "arms", "chest", "legs", "classItem", "verified"],
+          "properties": {
+            "helmet": {"type": "array", "items": {"type": "string"}},
+            "arms": {"type": "array", "items": {"type": "string"}},
+            "chest": {"type": "array", "items": {"type": "string"}},
+            "legs": {"type": "array", "items": {"type": "string"}},
+            "classItem": {"type": "array", "items": {"type": "string"}},
+            "notes": {"type": "string"},
+            "verified": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "artifact": {
+          "type": "object",
+          "required": ["required", "perks", "verified"],
+          "properties": {
+            "required": {"type": "boolean"},
+            "perks": {"type": "array", "items": {"type": "string"}},
+            "notes": {"type": "string"},
+            "verified": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "weapons": {
+          "type": "object",
+          "required": ["requirements", "examples", "verified"],
+          "properties": {
+            "requirements": {"type": "array", "items": {"type": "string"}},
+            "examples": {"type": "array", "items": {"type": "string"}},
+            "verified": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "gameplayLoop": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["title", "publisher", "date"],
+            "properties": {"title": {"type": "string"}, "publisher": {"type": "string"}, "date": {"type": "string", "format": "date"}},
+            "additionalProperties": false
+          }
+        },
+        "verified": {"type": "boolean"},
+        "reviewNotes": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

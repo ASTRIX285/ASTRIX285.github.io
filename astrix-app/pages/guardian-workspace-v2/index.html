@@ -14,11 +14,8 @@
   <link rel="stylesheet" href="./guardian-workspace-v2-compact.css">
   <link rel="stylesheet" href="./guardian-workspace-v2-stage.css">
   <link rel="stylesheet" href="./guardian-background.css">
-  <link rel="stylesheet" href="./guardian-platform.css">
-  <link rel="stylesheet" href="./guardian-hero.css">
   <link rel="stylesheet" href="./guardian-advisor-layer.css">
   <link rel="stylesheet" href="./guardian-left-panel-tune.css">
-  <link rel="stylesheet" href="./guardian-hero-fluid.css">
   <link rel="stylesheet" href="./guardian-typography.css">
   <link rel="stylesheet" href="./guardian-layout-feedback.css">
   <link rel="stylesheet" href="./guardian-character-cards.css">
@@ -91,22 +88,11 @@
       </div>
     </aside>
 
-    <!-- CENTER STAGE: HERO PLATFORM, CHARACTER RIBBON & BUILD INTELLIGENCE -->
-    <section class="stage" aria-label="Guardian hero stage">
+    <!-- CENTER STAGE: CHARACTER RIBBON & WORKSPACE TELEMETRY -->
+    <section class="stage" aria-label="Guardian stage">
       <div class="stage-backdrop" aria-hidden="true"></div>
-      <div class="stage-particles" aria-hidden="true"></div>
-      <div class="guardian-platform" id="guardianPlatform" aria-hidden="true"></div>
-
       <div class="guardian-character-cards" id="guardianCharacterCards" aria-label="Bungie characters">
         <div class="guardian-character-cards__status" role="status">CONNECT BUNGIE TO LOAD CHARACTERS</div>
-      </div>
-
-      <div class="guardian-hero guardian-render-status" id="guardianHero" role="status" aria-live="polite">
-        <img id="guardianRender" class="guardian-render" alt="Guardian 2D render" style="display:none">
-        <span class="guardian-render-status__icon" aria-hidden="true">⬡</span>
-        <strong>BUILD INTELLIGENCE</strong>
-        <span>Live profile and loadout data</span>
-        <small>Analysis canvas active</small>
       </div>
     </section>
 
@@ -254,7 +240,7 @@
     </div>
   </div>
 
-  <!-- RUNTIME SCRIPTS (MATCHED TO ACTUAL WORKSPACE REPO FILES) -->
+  <!-- RUNTIME SCRIPTS -->
   <script type="module" src="./guardian-workspace-v2.mjs"></script>
   <script type="module" src="./guardian-fixture-loader.mjs"></script>
   <script type="module" src="./guardian-beta-selection.mjs"></script>

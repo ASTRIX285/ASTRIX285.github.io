@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0.0",
+  "purpose": "Additive Bungie description evidence used only to establish direction for trait-associated effects when the fixture-scoped identity cache has empty free-text descriptions. No ASTRIX-authored gameplay inference.",
+  "sourceRoute": "Official Bungie Arc 3.0 documentation",
+  "additionalItemCount": 2,
+  "items": [
+    {
+      "bungieHash": 4194622037,
+      "name": "Tempest Strike",
+      "sourceKind": "gameComponent",
+      "componentType": "aspect",
+      "officialDescription": "Allows the Hunter to perform a sliding melee that launches an Arc wave along the ground, dealing significant damage and jolting enemies in its path.",
+      "source": "https://www.bungie.net/7/en/News/article/51678/n/undefined"
+    },
+    {
+      "bungieHash": 4194622036,
+      "name": "Flow State",
+      "sourceKind": "gameComponent",
+      "componentType": "aspect",
+      "officialDescription": "Defeating a jolted opponent causes you to become amplified. When amplified, the Hunter's dodge will recharge faster and make you more resistant to damage, and you have quicker reload times.",
+      "source": "https://www.bungie.net/7/en/News/article/51678/n/undefined"
+    }
+  ]
+}

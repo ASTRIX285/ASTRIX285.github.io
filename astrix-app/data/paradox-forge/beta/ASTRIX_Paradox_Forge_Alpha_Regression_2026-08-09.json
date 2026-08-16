@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "runDate": "2026-08-09",
+  "phase": "ALPHA",
+  "scope": "23 existing fixtures only",
+  "status": "BLOCKED_BEFORE_DATA_MUTATION",
+  "engineModified": false,
+  "fixtureJsonModified": false,
+  "summary": "The requested curated-reasoning regression cannot be executed through the existing event-driven path because guardian-fixture-loader.mjs does not propagate the curated fixture fields into normalized build detail, and guardian-paradox-engine.mjs does not consume those curated fields when computing buildLoop/strengths/weakLinks/weaponContribution/recommendations. Writing curated data now would make it present in source JSON but invisible to the requested regression.",
+  "blockingFindings": [
+    {
+      "id": "CURATED_FIELDS_NOT_PROPAGATED",
+      "file": "astrix-app/pages/guardian-workspace-v2/guardian-fixture-loader.mjs",
+      "detail": "normalizeFixture() returns the normalized Guardian build but omits buildFocus, synergyChains, weaponContribution, activityProfile, knownStrengths, knownWeakLinks, and mutationCases from the source fixture."
+    },
+    {
+      "id": "CURATED_FIELDS_NOT_CONSUMED",
+      "file": "astrix-app/pages/guardian-workspace-v2/guardian-paradox-engine.mjs",
+      "detail": "analyzeGuardianBuild() derives buildLoop from buildEvidenceNodes(build) and makeLoop(nodes); strengths from strengthsFromLoop(buildLoop); weak links from missing runtime inputs/unresolved items/weapon evidence gaps; and recommendations from those weak links. It does not merge or read buildFocus, synergyChains, curated weaponContribution, knownStrengths, knownWeakLinks, or mutationCases. activityCounters() can read build.activityProfile, but that field is currently dropped by normalizeFixture()."
+    }
+  ],
+  "regressionIntegrityDecision": "Do not populate the 23 fixtures and then claim curated evidence affected regression output when the current runtime path cannot see that evidence. This would violate the Alpha requirement that reported before/after behavior be real and traceable.",
+  "fixtures": [
+    {"fixtureId":"PF-BETA-01","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-02","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-03","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-04","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-05","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-06","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-07","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-08","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-09","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-10","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-11","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-12","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-13","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-14","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-15","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-16","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-17","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-18","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-19","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-20","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-21","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-22","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"},
+    {"fixtureId":"PF-BETA-23","confidenceLevel":null,"buildLoopCount":null,"mutationTest":"NOT_RUN","reason":"curated evidence unreachable through required event path"}
+  ],
+  "requiredResolution": "A separate code task must make the loader propagate the curated fields and make the engine merge curated evidence into its deterministic evidence pool. No such code change was made in this task because the user explicitly prohibited modifying guardian-paradox-engine.mjs and defined this as a data-only task."
+}

@@ -1,38 +1,76 @@
 @import url('./guardian-platform-component.css');
 
-/* Guardian Workspace integration only.
-   The platform shares the exact same stage centreline as the Guardian hero. */
+/* Guardian Workspace Hero refinement.
+   No layout redesign. This file is already linked by index.html and acts as a
+   targeted presentation override for pedestal removal, floor grounding and
+   subclass-responsive atmosphere. */
+
+/* Never render the pedestal/platform in the refined Hero. */
 .stage > .guardian-platform{
-  --size:clamp(360px,34cqw,620px);
-  --tilt:70deg;
+  display:none !important;
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+
+/* Runtime subclass atmosphere. Neutral fallback if no subclass is resolved. */
+.stage{--stage-accent-rgb:150,120,180 !important}
+.stage[data-subclass="void"]{--stage-accent-rgb:158,96,255 !important}
+.stage[data-subclass="solar"]{--stage-accent-rgb:255,140,40 !important}
+.stage[data-subclass="arc"]{--stage-accent-rgb:70,170,255 !important}
+.stage[data-subclass="stasis"]{--stage-accent-rgb:120,196,255 !important}
+.stage[data-subclass="strand"]{--stage-accent-rgb:70,220,130 !important}
+.stage[data-subclass="prismatic"]{--stage-accent-rgb:190,120,235 !important}
+
+/* Keep the environment mostly charcoal. Element colour is atmospheric, not a wash. */
+body .stage .stage-backdrop{
+  background:
+    radial-gradient(48% 46% at 70% 43%,rgba(var(--stage-accent-rgb),.075),transparent 66%),
+    radial-gradient(72% 34% at 70% 103%,rgba(var(--stage-accent-rgb),.045),transparent 70%),
+    linear-gradient(180deg,#0a0b0d 0%,#14171b 60%,#1c2027 100%) !important;
+}
+body .stage .stage-backdrop::before{display:none !important}
+body .stage .stage-backdrop::after{
+  background:
+    radial-gradient(ellipse at 70% 43%,rgba(var(--stage-accent-rgb),.065),transparent 38%),
+    linear-gradient(90deg,rgba(8,9,11,.95) 0%,rgba(8,9,11,.62) 30%,rgba(8,9,11,.06) 56%,rgba(8,9,11,.42) 100%) !important;
+  box-shadow:inset 0 -70px 130px -34px rgba(0,0,0,.72),inset 0 0 120px rgba(0,0,0,.5) !important;
+}
+
+/* Subtle environmental particles only. */
+body .stage .stage-particles{opacity:.22 !important}
+
+/* Ground the Guardian with a soft floor/contact shadow rather than a disc. */
+body .stage .guardian-hero::before{
+  content:"";
   position:absolute;
-  left:var(--guardian-stage-x,68%);
-  bottom:-1.5%;
+  left:50%;
+  bottom:1.2%;
+  width:52%;
+  height:7%;
   transform:translateX(-50%);
-  transform-origin:50% 50%;
-  z-index:3;
+  background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.72) 0%,rgba(0,0,0,.46) 36%,rgba(var(--stage-accent-rgb),.055) 56%,transparent 76%);
+  filter:blur(10px);
+  z-index:-1;
+  pointer-events:none;
 }
 
-/* Lower effective viewport: platform contracts with the hero instead of drifting away from it. */
-@media (min-width:1221px) and (max-height:1150px){
-  .stage > .guardian-platform{
-    --size:clamp(320px,33cqw,520px);
-    bottom:-1%;
-  }
+/* The Guardian gets restrained subclass rim light while armour remains readable. */
+body .stage .guardian-hero img{
+  filter:drop-shadow(0 18px 32px rgba(0,0,0,.72)) drop-shadow(0 0 26px rgba(var(--stage-accent-rgb),.22)) !important;
 }
 
-/* Extra-short effective viewport caused by OS/browser scaling. */
-@media (min-width:1221px) and (max-height:900px){
-  .stage > .guardian-platform{
-    --size:clamp(290px,32cqw,470px);
-    bottom:-.5%;
-  }
+/* Hero-left rhythm only. No page/column/layout changes. */
+body .stage .id-head .rank{margin-top:clamp(4px,.8cqh,7px) !important}
+body .stage .id-metrics{
+  margin-top:clamp(15px,2.5cqh,30px) !important;
+  gap:clamp(12px,2.1cqh,26px) !important;
+}
+body .stage .id-cosmetics{
+  margin-top:clamp(17px,2.7cqh,32px) !important;
+  gap:clamp(8px,1.3cqh,15px) !important;
 }
 
-/* Larger desktop / 1440p+: increase presence while preserving the same 3D centreline. */
-@media (min-width:2200px) and (min-height:1200px){
-  .stage > .guardian-platform{
-    --size:clamp(480px,34cqw,700px);
-    bottom:-1.75%;
-  }
+@media(prefers-reduced-motion:reduce){
+  body .stage .stage-backdrop{transition:none !important}
 }

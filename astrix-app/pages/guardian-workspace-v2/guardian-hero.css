@@ -1,6 +1,5 @@
-/* Guardian hero only. OAuth later replaces #guardianRender.src without changing layout.
-   The Guardian and platform now share one stage anchor so the character remains centred
-   over the platform as viewport size, Windows scaling and browser zoom change. */
+/* Stable centre-stage content boundary. Live Bungie data updates the status copy without
+   changing the stage geometry. */
 .stage{
   container-type:size;
 }
@@ -37,7 +36,7 @@
 
 .guardian-hero[hidden],.guardian-hero img[hidden]{display:none!important}
 
-/* Live Guardian image is intentionally withheld until the Bungie appearance renderer is complete. */
+/* The centre is a build-intelligence canvas; it does not promise a 3D character renderer. */
 .guardian-render-status{
   left:50%!important;
   bottom:auto!important;

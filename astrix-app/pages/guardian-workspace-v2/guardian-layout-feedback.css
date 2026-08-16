@@ -43,7 +43,7 @@ html{font-size:clamp(16px,.52vw,22px)}
 }
 
 /* Large desktop and 4K displays: the grid already expands, so lift the old
-   component caps as well. This keeps the page readable without browser zoom. */
+   component caps as well. This keeps the page readable at native scale. */
 @media (min-width:2400px) and (min-height:1100px){
   .topbar{height:clamp(64px,4.2vh,84px)!important}
   .workspace{

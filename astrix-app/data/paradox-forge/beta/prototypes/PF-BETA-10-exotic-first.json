@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "1.0",
+  "purpose": "PF-BETA-10 Exotic-first prototype overlay. Ownership candidates only; gameplay claims require explicit Bungie or manifest evidence.",
+  "fixtureId": "PF-BETA-10",
+  "displayName": "Starfire Protocal",
+  "subclass": {"name":"Dawnblade","damageType":"Solar"},
+  "exotic": {
+    "hash": 599049453,
+    "name": "Starfire Protocol",
+    "type": "armor",
+    "armorSlot": "Chest",
+    "className": "Warlock",
+    "currentDefinitionHash": 2782999717
+  },
+  "anchorEvidence": {
+    "buildFocus": "Fusion Grenade cycling: Starfire Protocol adds a Fusion Grenade charge, empowered weapon damage recharges Fusion Grenades, and Fusion Grenade defeats grant Rift energy.",
+    "synergyChains": [
+      {
+        "from": {"hash":599049453,"name":"Starfire Protocol","type":"armor"},
+        "to": {"hash":1013086087,"name":"Fusion Grenade","type":"grenade"},
+        "output": "additional-fusion-grenade-charge",
+        "input": "fusion-grenade-charge",
+        "evidence": "Bungie current Starfire Protocol DestinyInventoryItemDefinition describes Fusion Harness: Fusion Grenades have an additional charge and recharge from empowered weapon damage, with empowered weapon final blows granting more energy. Defeating targets with Fusion Grenades grant Rift energy."
+      },
+      {
+        "from": {"hash":1013086087,"name":"Fusion Grenade","type":"grenade"},
+        "to": {"hash":599049453,"name":"Starfire Protocol","type":"armor"},
+        "output": "solar-grenade-final-blow",
+        "input": "fusion-grenade-final-blow",
+        "evidence": "Bungie current Starfire Protocol Fusion Harness states that defeating targets with Fusion Grenades grants Rift energy. Bungie Solar 3.0 documentation classifies Fusion Grenade as a Solar grenade; Destiny manifest API ID 1013086087 resolves Fusion Grenade as a Solar Grenade."
+      }
+    ]
+  },
+  "vaultPool": [
+    {
+      "hash":3556999246,
+      "name":"Pleiades Corrector",
+      "type":"weapon",
+      "weaponType":"Scout Rifle",
+      "damageType":"Solar",
+      "ownedRoll":[{"name":"Demolitionist","description":"Kills with this weapon generate grenade energy. Activating your grenade ability reloads this weapon from reserves."}],
+      "evidence":"Bungie DestinyInventoryItemDefinition/3556999246 lists Pleiades Corrector as a Solar Legendary Scout Rifle with Demolitionist and the stated grenade-energy description."
+    },
+    {
+      "hash":1820994983,
+      "name":"The Summoner",
+      "type":"weapon",
+      "weaponType":"Auto Rifle",
+      "damageType":"Solar",
+      "ownedRoll":[{"name":"Golden Tricorn","description":"Final blows with this weapon grant bonus damage. While this buff is active, grenade or melee kills of the same damage type greatly increase its damage and duration."}],
+      "evidence":"Bungie DestinyInventoryItemDefinition/1820994983 lists The Summoner as a Solar Legendary Auto Rifle with Golden Tricorn and the stated matching-damage grenade/melee trigger."
+    },
+    {
+      "hash":3588934839,
+      "name":"Le Monarque",
+      "type":"weapon",
+      "weaponType":"Combat Bow",
+      "damageType":"Void",
+      "exotic":true,
+      "ownedRoll":[{"name":"Poison Arrows","description":"Arrows fired while perfectly drawn become poison arrows. Precision hits with poison arrows stun the combatant and spread poison to nearby ones."}],
+      "evidence":"Existing additive Bungie evidence identifies Le Monarque and Poison Arrows; its supplied perk evidence has no Fusion Grenade, grenade-energy, empowered-weapon, or Rift producer/consumer relationship."
+    },
+    {
+      "hash":821154603,
+      "name":"Gnawing Hunger",
+      "type":"weapon",
+      "weaponType":"Auto Rifle",
+      "damageType":"Void",
+      "ownedRoll":[
+        {"name":"Tap the Trigger","description":"Grants a short period of increased stability and accuracy on initial trigger pull."},
+        {"name":"Rampage","description":"Kills with this weapon temporarily grant increased damage. Stacks 3x."}
+      ],
+      "evidence":"Existing additive Bungie evidence identifies this Gnawing Hunger roll with Tap the Trigger and Rampage; neither supplied perk participates in the Starfire Fusion Grenade loop."
+    },
+    {
+      "hash":1862800747,
+      "name":"Sunbracers",
+      "type":"armor",
+      "armorSlot":"Gauntlets",
+      "className":"Warlock",
+      "exotic":true,
+      "intrinsic":{"name":"Helium Spirals","description":"Increases the duration of Solar Grenades. Solar melee kills grant unlimited Solar Grenade energy for a brief time."},
+      "evidence":"Bungie DestinyInventoryItemDefinition/1862800747 lists Sunbracers and Helium Spirals. It is genuine Solar grenade armor but cannot be equipped with the anchor Exotic Starfire Protocol."
+    },
+    {
+      "hash":3488362707,
+      "name":"Phoenix Protocol",
+      "type":"armor",
+      "armorSlot":"Chest",
+      "className":"Warlock",
+      "exotic":true,
+      "intrinsic":{"name":"Battle-Hearth","description":"Kills and assists you make while standing in your Well of Radiance return Super energy."},
+      "evidence":"Bungie DestinyInventoryItemDefinition/3488362707 lists Phoenix Protocol and Battle-Hearth. It is a Warlock Exotic chest piece but cannot be equipped with the anchor Exotic Starfire Protocol."
+    }
+  ]
+}

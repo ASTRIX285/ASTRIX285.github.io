@@ -10,20 +10,38 @@
     "schemaVersion": {"const": "1.0.0"},
     "generatedAt": {"type": "string", "format": "date"},
     "scope": {"const": "Paradox Forge knowledge graph"},
-    "relationships": {"type": "array", "items": {"$ref": "#/$defs/relationship"}}
+    "relationships": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/relationship"}
+    }
   },
   "$defs": {
     "nodeRef": {
-      "type": "object", "additionalProperties": false, "required": ["namespace", "id"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "id"],
       "properties": {
-        "namespace": {"enum": ["component", "gameComponent", "weapon", "armor", "build", "counterRule", "effect", "encounter"]},
+        "namespace": {
+          "enum": [
+            "component",
+            "gameComponent",
+            "weapon",
+            "armor",
+            "build",
+            "counterRule",
+            "effect",
+            "encounter"
+          ]
+        },
         "id": {"type": "string", "minLength": 1},
         "bungieHash": {"type": "integer", "minimum": 1},
         "label": {"type": "string", "minLength": 1}
       }
     },
     "source": {
-      "type": "object", "additionalProperties": false, "required": ["title", "publisher", "date"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "publisher", "date"],
       "properties": {
         "title": {"type": "string", "minLength": 1},
         "publisher": {"type": "string", "minLength": 1},
@@ -32,29 +50,98 @@
       }
     },
     "condition": {
-      "type": "object", "additionalProperties": false, "required": ["kind", "value"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
       "properties": {
-        "kind": {"enum": ["class", "subclass", "element", "activity", "modifier", "equipped", "owned", "trigger", "state"]},
+        "kind": {
+          "enum": [
+            "class",
+            "subclass",
+            "element",
+            "activity",
+            "modifier",
+            "equipped",
+            "owned",
+            "trigger",
+            "state"
+          ]
+        },
         "value": {"type": "string", "minLength": 1},
         "note": {"type": "string"}
       }
     },
     "relationship": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "from", "relation", "to", "mechanism", "direction", "verified", "sources"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "from",
+        "relation",
+        "to",
+        "mechanism",
+        "direction",
+        "verified",
+        "sources"
+      ],
       "properties": {
-        "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
         "from": {"$ref": "#/$defs/nodeRef"},
-        "relation": {"enum": ["produces", "applies", "grants", "restores", "reducesCooldownOf", "extendsDurationOf", "amplifies", "consumes", "requires", "enables", "triggers", "feeds", "convertsTo", "counters", "matches", "belongsTo", "equips", "recommends", "limits", "conflictsWith"]},
+        "relation": {
+          "enum": [
+            "produces",
+            "applies",
+            "grants",
+            "restores",
+            "reducesCooldownOf",
+            "extendsDurationOf",
+            "amplifies",
+            "consumes",
+            "requires",
+            "enables",
+            "triggers",
+            "feeds",
+            "convertsTo",
+            "counters",
+            "matches",
+            "belongsTo",
+            "equips",
+            "recommends",
+            "limits",
+            "conflictsWith"
+          ]
+        },
         "to": {"$ref": "#/$defs/nodeRef"},
         "mechanism": {"type": "string", "minLength": 1},
         "direction": {"const": "from-to"},
-        "conditions": {"type": "array", "items": {"$ref": "#/$defs/condition"}},
-        "strength": {"enum": ["required", "primary", "secondary", "situational"]},
+        "conditions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/condition"}
+        },
+        "strength": {
+          "enum": ["required", "primary", "secondary", "situational"]
+        },
         "verified": {"const": true},
-        "sources": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/source"}},
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/source"}
+        },
         "notes": {"type": "string"}
-      }
+      },
+      "allOf": [
+        {
+          "not": {
+            "properties": {
+              "from": {"const": {"namespace": "effect", "id": "unknown"}},
+              "to": {"const": {"namespace": "effect", "id": "unknown"}}
+            }
+          }
+        }
+      ]
     }
   }
 }

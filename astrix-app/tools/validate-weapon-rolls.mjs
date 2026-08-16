@@ -1,0 +1,165 @@
+// Deterministic validation for authored weapon rollPerks + engine integrity.
+// Runs the same loader/engine the app uses, then asserts invariants that no AI
+// reviewer is trusted to check by eye. Exits non-zero on any violation.
+//
+// Usage (from repo root):
+//   node astrix-app/tools/validate-weapon-rolls.mjs
+//   node astrix-app/tools/validate-weapon-rolls.mjs --base /tmp/base-fixtures.json
+//
+// --base <path> enables the scoped-diff check: asserts the only change vs the
+// base fixture file is the ADDITION of rollPerks on equipped weapon entries.
+
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const root = process.cwd();
+const dataRoot = path.join(root, 'astrix-app/data/paradox-forge/beta');
+const pageRoot = path.join(root, 'astrix-app/pages/guardian-workspace-v2');
+const FIXTURE_FILE = 'ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json';
+const CACHE_FILE = 'beta-bungie-manifest-cache.json';
+const files = [FIXTURE_FILE, 'beta-component-identities.json', CACHE_FILE,
+  'beta-bungie-manifest-cache-trait-direction-extension.json'];
+const routes = new Map(files.map(n => [n, path.join(dataRoot, n)]));
+
+// The one real verified weapon role that must never regress (Prometheus Lens / PF-BETA-13).
+const KNOWN_VERIFIED_WEAPON = 19024058;
+
+const failures = [];
+const fail = m => failures.push(m);
+
+// ---- DOM/fetch stubs so the browser modules run headless ----
+globalThis.document = { readyState: 'complete', addEventListener() {}, dispatchEvent() { return true; },
+  getElementById() { return null; }, querySelector() { return null; },
+  createElement() { return { setAttribute() {}, appendChild() {}, style: {}, addEventListener() {} }; } };
+globalThis.CustomEvent = class { constructor(t, i = {}) { this.type = t; this.detail = i.detail; } };
+globalThis.fetch = async input => {
+  const s = String(input), n = [...routes.keys()].find(k => s.endsWith(k));
+  if (!n) return { ok: false, status: 404, json: async () => ({}) };
+  const txt = await fs.readFile(routes.get(n), 'utf8');
+  return { ok: true, status: 200, json: async () => JSON.parse(txt) };
+};
+
+const loader = await import(pathToFileURL(path.join(pageRoot, 'guardian-fixture-loader.mjs')).href + '?v=' + Date.now());
+const engine = await import(pathToFileURL(path.join(pageRoot, 'guardian-paradox-engine.mjs')).href + '?v=' + Date.now());
+const rawFixtures = JSON.parse(await fs.readFile(routes.get(FIXTURE_FILE), 'utf8'));
+const cache = JSON.parse(await fs.readFile(routes.get(CACHE_FILE), 'utf8'));
+const perkResolves = h => Boolean(cache.inventoryItems && cache.inventoryItems[String(h)]);
+
+// ============================================================
+// CHECK 1 — Self-test invariants (synthetic, real Voltshot text)
+// ============================================================
+try {
+  const volt = cache.inventoryItems['2173046394'];
+  if (!volt) throw new Error('Voltshot 2173046394 missing from manifest cache');
+  const consumer = { hash: 4194622036, bungieHash: 4194622036, name: 'Flow State', componentType: 'aspect',
+    description: 'Defeating a jolted target makes you amplified.', traitIds: ['keywords.debuffs.arc.jolt'] };
+  const weapon = { hash: 900000001, bungieHash: 900000001, name: 'Synthetic owned Arc weapon', sourceKind: 'weapon',
+    description: '', rollPerks: [{ perkHash: 2173046394, socket: 'trait2' }],
+    resolvedPerks: [{ perkHash: 2173046394, socket: 'trait2', definition: { hash: 2173046394, bungieHash: 2173046394,
+      name: volt.display.name, description: volt.display.description, traitIds: volt.traitIds ?? [], sourceKind: 'gameComponent' } }] };
+  const before = { source: 'paradox-beta-fixture', fixtureId: 'VALIDATE-SELFTEST', aspects: [consumer], weapons: [weapon], synergyChains: [] };
+  const after = { ...before, weapons: [{ hash: 900000002, bungieHash: 900000002, name: 'Swapped', sourceKind: 'weapon', description: '' }] };
+  const ba = engine.analyzeGuardianBuild(before), aa = engine.analyzeGuardianBuild(after);
+  const link = ba.buildLoop.find(x => x.from.hash === 900000001 && x.output === 'jolt' && x.to.hash === 4194622036);
+  if (!link) fail('C1: self-test weapon->jolt->consumer link did not form');
+  else if (link.source !== 'runtime-weapon-perk-parsing') fail('C1: weapon link missing runtime-weapon-perk-parsing source');
+  if (aa.buildLoop.some(x => x.from.hash === 900000001 || x.to.hash === 900000001)) fail('C1: stale weapon link survived swap (mutation staleness broken)');
+  const wc = ba.weaponContribution.find(x => x.hash === 900000001);
+  if (!wc || wc.status !== 'verified-loop-contributor' || !wc.contributions?.some(x => x.roleType === 'verb-applicator'))
+    fail('C1: expected verb-applicator verified weapon contribution');
+} catch (e) { fail('C1: self-test threw: ' + e.message); }
+
+// ============================================================
+// CHECK 2 — Debuff-guardrail invariant
+// A perk whose ONLY evidence is a debuff traitId (no description direction)
+// must NOT emit that debuff as a weapon output on its own.
+// ============================================================
+try {
+  const consumer = { hash: 4194622036, bungieHash: 4194622036, name: 'Flow State', componentType: 'aspect',
+    description: 'Defeating a jolted target makes you amplified.', traitIds: ['keywords.debuffs.arc.jolt'] };
+  const weapon = { hash: 900000101, bungieHash: 900000101, name: 'Debuff-tag-only weapon', sourceKind: 'weapon', description: '',
+    rollPerks: [{ perkHash: 999000001, socket: 'trait2' }],
+    resolvedPerks: [{ perkHash: 999000001, socket: 'trait2', definition: { hash: 999000001, name: 'Tag Only',
+      description: '', traitIds: ['keywords.debuffs.arc.jolt'], sourceKind: 'gameComponent' } }] };
+  const b = { source: 'paradox-beta-fixture', fixtureId: 'VALIDATE-GUARDRAIL', aspects: [consumer], weapons: [weapon], synergyChains: [] };
+  const a = engine.analyzeGuardianBuild(b);
+  if (a.buildLoop.some(x => x.from.hash === 900000101 && x.output === 'jolt'))
+    fail('C2: debuff-tag-only perk produced a weapon emit (guardrail breached)');
+} catch (e) { fail('C2: guardrail test threw: ' + e.message); }
+
+// ============================================================
+// CHECK 3 — rollPerks resolution gate (no manufactured perks)
+// Every authored rollPerks perkHash must resolve in the manifest cache.
+// ============================================================
+for (const fx of rawFixtures.fixtures) {
+  for (const eq of (fx.rawDim?.equipped ?? [])) {
+    for (const rp of (eq.rollPerks ?? [])) {
+      if (!perkResolves(rp.perkHash))
+        fail(`C3: ${fx.fixtureId} weapon ${eq.hash} rollPerks perkHash ${rp.perkHash} does not resolve in manifest cache`);
+      if (rp.socket == null)
+        fail(`C3: ${fx.fixtureId} weapon ${eq.hash} rollPerks entry missing socket`);
+    }
+  }
+}
+
+// ============================================================
+// CHECK 4 — Engine analysis integrity across every fixture
+//  - known verified weapon (19024058) must stay verified (no regression)
+//  - any weapon that is verified-loop-contributor must be that one OR carry rollPerks
+//    (catches a fabricated role with no authored evidence)
+// ============================================================
+let sawKnownVerified = false;
+for (const fx of rawFixtures.fixtures) {
+  let build;
+  try { build = await loader.loadBetaFixture(fx.fixtureId); }
+  catch (e) { fail(`C4: ${fx.fixtureId} failed to load: ${e.message}`); continue; }
+  const analysis = engine.analyzeGuardianBuild(build);
+  const rollByHash = new Map();
+  for (const eq of (fx.rawDim?.equipped ?? [])) if ((eq.rollPerks ?? []).length) rollByHash.set(Number(eq.hash), eq.rollPerks);
+  for (const w of analysis.weaponContribution) {
+    if (Number(w.hash) === KNOWN_VERIFIED_WEAPON && w.status === 'verified-loop-contributor') sawKnownVerified = true;
+    if (w.status === 'verified-loop-contributor' && Number(w.hash) !== KNOWN_VERIFIED_WEAPON && !rollByHash.has(Number(w.hash)))
+      fail(`C4: ${fx.fixtureId} weapon ${w.hash} is verified-loop-contributor with NO authored rollPerks (fabricated role)`);
+  }
+}
+if (!sawKnownVerified) fail(`C4: known verified weapon ${KNOWN_VERIFIED_WEAPON} (PF-BETA-13) regressed — no longer verified`);
+
+// ============================================================
+// CHECK 5 — Hardcoding scan of the engine source
+// No fixture-ID literals and no exotic/item hash literals baked into logic.
+// ============================================================
+try {
+  const src = await fs.readFile(path.join(pageRoot, 'guardian-paradox-engine.mjs'), 'utf8');
+  const fixtureLits = src.match(/PF-(BETA|COMM)-\d+/g);
+  if (fixtureLits) fail(`C5: engine contains fixture-ID literal(s): ${[...new Set(fixtureLits)].join(', ')}`);
+  // long bare numeric literals (>=6 digits) in engine logic are suspicious item/perk hashes
+  const codeOnly = src.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  const hashLits = (codeOnly.match(/\b\d{6,}\b/g) || []).filter(n => n !== '200'); // 200 = stat cap, not a hash anyway
+  if (hashLits.length) fail(`C5: engine contains bare numeric hash-like literal(s) in logic: ${[...new Set(hashLits)].join(', ')}`);
+} catch (e) { fail('C5: hardcoding scan threw: ' + e.message); }
+
+// ============================================================
+// CHECK 6 (optional) — scoped diff vs base: only rollPerks added
+// ============================================================
+const baseIdx = process.argv.indexOf('--base');
+if (baseIdx !== -1 && process.argv[baseIdx + 1]) {
+  try {
+    const base = JSON.parse(await fs.readFile(process.argv[baseIdx + 1], 'utf8'));
+    const strip = fixObj => {
+      const c = JSON.parse(JSON.stringify(fixObj));
+      for (const fx of c.fixtures) for (const eq of (fx.rawDim?.equipped ?? [])) delete eq.rollPerks;
+      return c;
+    };
+    if (JSON.stringify(strip(base)) !== JSON.stringify(strip(rawFixtures)))
+      fail('C6: fixture file changed OUTSIDE weapon rollPerks (scoped-diff violation)');
+  } catch (e) { fail('C6: base-diff threw: ' + e.message); }
+}
+
+// ---- report ----
+if (failures.length) {
+  console.error('WEAPON-ROLL VALIDATION FAILED:');
+  for (const f of failures) console.error('  ✗ ' + f);
+  process.exit(1);
+}
+console.log('WEAPON-ROLL VALIDATION PASSED (all mechanical checks green).');

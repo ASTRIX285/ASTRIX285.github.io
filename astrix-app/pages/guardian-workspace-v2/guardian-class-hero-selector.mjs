@@ -1,14 +1,8 @@
 /* ==========================================================================
    ASTRIX PARADOX - GUARDIAN CLASS HERO & LOADOUT PICKER
-   Manages class switching (Hunter, Titan, Warlock), updates hero stage artwork,
-   and provides modal build selection across available beta fixtures.
+   Manages class switching (Hunter, Titan, Warlock) and provides modal build
+   selection across available beta fixtures without hero 2D/3D canvas overhead.
    ========================================================================== */
-
-const HERO_BY_CLASS = {
-  hunter: './Hunter-hero-transparent.png',
-  titan: './titan-hero-transparent.png',
-  warlock: './Warlock-hero-transparent.png'
-};
 
 const CLASS_ORDER = ['hunter', 'titan', 'warlock'];
 const qs = (s, r = document) => r.querySelector(s);
@@ -31,16 +25,6 @@ function installStyles() {
   const style = document.createElement('style');
   style.id = 'astrix-class-selector-style';
   style.textContent = `
-    .stage[data-class="hunter"] { --class-hero-footline: 6.7%; --class-hero-height: 82%; }
-    .stage[data-class="titan"] { --class-hero-footline: 6.5%; --class-hero-height: 82%; }
-    .stage[data-class="warlock"] { --class-hero-footline: 11.5%; --class-hero-height: 84%; }
-    .stage[data-class] .guardian-hero {
-      bottom: var(--class-hero-footline, var(--guardian-footline)) !important;
-      height: var(--class-hero-height, var(--guardian-max-h)) !important;
-    }
-    .stage[data-class="warlock"] .guardian-hero img {
-      filter: drop-shadow(0 26px 46px rgba(0,0,0,.72)) drop-shadow(0 0 42px rgba(139,92,246,.38));
-    }
     .char-switch { cursor: pointer !important; }
     .pf-class-picker-backdrop {
       position: fixed;
@@ -157,17 +141,7 @@ function applyHero(detail = {}) {
   const cls = className(detail.characterClass ?? detail.className ?? activeClass);
   activeClass = cls;
   const stage = qs('.stage');
-  const image = qs('#guardianRender');
   if (stage) stage.dataset.class = cls;
-
-  if (image) {
-    const src = HERO_BY_CLASS[cls];
-    if (src && image.getAttribute('src') !== src) {
-      image.style.display = 'block';
-      image.src = src;
-    }
-    image.alt = `${cls.charAt(0).toUpperCase() + cls.slice(1)} Guardian beta render`;
-  }
 
   const label = qs('.char-switch b');
   if (label) label.textContent = `${cls.charAt(0).toUpperCase() + cls.slice(1)} ▾`;

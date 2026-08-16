@@ -12,9 +12,9 @@ on:
       - 'astrix-app/data/armor-3-components.json'
       - 'astrix-app/data/armor-3-builds.json'
       - 'astrix-app/data/counter-rules.json'
-      - 'astrix-app/data/game-components.json'
-      - 'astrix-app/data/weapon-information.json'
-      - 'astrix-app/data/armor-information.json'
+      - 'astrix-app/data/game-components.catalogue.json'
+      - 'astrix-app/data/weapon-information.catalogue.json'
+      - 'astrix-app/data/armor-information.catalogue.json'
 
 permissions:
   contents: write
