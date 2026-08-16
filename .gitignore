@@ -6,3 +6,4 @@ astrix-app/data/game-components.json
 # Temporary catalogue paths
 astrix-app/data/*.raw.json
 astrix-app/.tmp/
+astrix-worker/node_modules/
