@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Reviews | ASTRIX PARADOX</title>
+  <link rel="stylesheet" href="../css/style.css">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="../img/favicon/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="../img/favicon/android-chrome-512x512.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="icon" href="../img/favicon/favicon.ico">
+
+  <style>
+    .reviews-hero {
+      padding: calc(var(--nav-height) + 60px) 40px 60px;
+      background: var(--dark-2); border-bottom: 1px solid rgba(139,0,0,0.2);
+      position: relative; overflow: hidden;
+    }
+    .reviews-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 0% 50%, rgba(139,0,0,0.15) 0%, transparent 60%);
+    }
+    .review-card {
+      background: var(--dark-2); border: 1px solid rgba(139,0,0,0.2);
+      margin-bottom: 2px; overflow: hidden;
+      transition: border-color 0.3s; position: relative;
+    }
+    .review-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(to right, var(--crimson), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .review-card:hover { border-color: rgba(139,0,0,0.5); }
+    .review-card:hover::before { opacity: 1; }
+    .review-card-header { display: grid; grid-template-columns: 280px 1fr; }
+    .review-img {
+      background: var(--dark-3); min-height: 200px;
+      position: relative; overflow: hidden;
+    }
+    .review-img img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; display: block; }
+    .review-header-body { padding: 32px; }
+    .review-meta { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 20px; }
+    .review-score {
+      width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; color: var(--white);
+    }
+    .review-score.gold   { background: var(--gold); color: var(--dark); box-shadow: 0 0 20px rgba(201,168,76,0.4); }
+    .review-score.crimson { background: var(--crimson); box-shadow: 0 0 20px rgba(139,0,0,0.5); }
+    .review-score.grey   { background: #555; }
+    .review-title-wrap { flex: 1; }
+    .review-title {
+      font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 700;
+      color: var(--white); letter-spacing: 1px; margin-bottom: 8px;
+    }
+    .review-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .review-tag {
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+      color: var(--grey-dark); border: 1px solid var(--dark-4); padding: 3px 10px; text-transform: uppercase;
+    }
+    .review-intro { color: var(--grey); line-height: 1.8; font-size: 15px; }
+    .review-body { padding: 0 32px 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .review-section-title {
+      font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 3px;
+      text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid;
+    }
+    .review-section-title.highs { color: var(--gold); border-color: rgba(201,168,76,0.2); }
+    .review-section-title.lows  { color: var(--crimson-mid); border-color: rgba(139,0,0,0.2); }
+    .review-section-title.final { color: var(--grey); border-color: rgba(255,255,255,0.1); }
+    .review-section-text { color: var(--grey); line-height: 1.8; font-size: 14px; }
+    .review-final   { padding: 0 32px 24px; }
+    .review-actions { padding: 0 32px 32px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .featured-banner {
+      background: linear-gradient(to right, var(--crimson-dark), transparent);
+      border-left: 3px solid var(--crimson-glow);
+      padding: 6px 16px; margin-bottom: 16px; display: inline-block;
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 3px;
+      color: var(--crimson-glow); text-transform: uppercase;
+    }
+    .trailer-modal {
+      display:none; position:fixed; inset:0; z-index:9999;
+      background:rgba(0,0,0,0.93); align-items:center; justify-content:center;
+    }
+    .trailer-modal.open { display:flex; }
+    .trailer-modal-inner { position:relative; width:90vw; max-width:1000px; }
+    .trailer-modal-close {
+      position:absolute; top:-40px; right:0;
+      font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px;
+      color:var(--grey); background:none; border:none; cursor:pointer; text-transform:uppercase;
+    }
+    .trailer-modal-close:hover { color:var(--white); }
+    .trailer-frame { position:relative; padding-top:56.25%; background:#000; }
+    .trailer-frame iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+    .trailer-modal-label {
+      font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px;
+      color:var(--grey); text-align:center; margin-top:14px; text-transform:uppercase;
+    }
+    @media (max-width: 768px) {
+      .reviews-hero { padding: calc(var(--nav-height) + 40px) 20px 40px; }
+      .review-card-header { grid-template-columns: 1fr; }
+      .review-img { min-height: 180px; }
+      .review-header-body { padding: 20px; }
+      .review-body { grid-template-columns: 1fr; padding: 0 20px 20px; }
+      .review-final { padding: 0 20px 16px; }
+      .review-actions { padding: 0 20px 20px; }
+      .review-title { font-size: 16px; }
+      .review-score { width: 52px; height: 52px; font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="../img/logo.png" alt="ASTRIX PARADOX">
+   <span>ASTRIX<span class="accent"> PARADOX</span></span>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links">
+    <a href="../index.html">Home</a>
+    <a href="reviews.html" class="active">Reviews</a>
+    <a href="news.html">News</a>
+    <a href="clips.html">Clips</a>
+    <a href="games.html">Universes</a>
+    <a href="join.html">Join Us</a>
+  </div>
+  <div class="nav-live">
+    <div class="nav-live-dot" id="navDot"></div>
+    <span class="nav-live-text" id="navText">OFFLINE</span>
+  </div>
+</nav>
+
+<div class="reviews-hero">
+  <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1;">
+    <div class="section-eyebrow" style="animation:fadeUp 0.8s ease 0.2s both;">Game Reviews</div>
+    <h1 class="section-title" style="animation:fadeUp 0.8s ease 0.4s both;">Honest Takes.<br><span class="accent">No Fluff.</span></h1>
+    <p style="color:var(--grey);max-width:500px;margin-top:16px;animation:fadeUp 0.8s ease 0.6s both;">
+      Real reviews from someone who actually plays. No sponsored content, no corporate spin. Just gameplay, honest reactions, and community.
+    </p>
+  </div>
+</div>
+
+<div class="gold-line"></div>
+
+<section class="section" style="background:var(--dark);">
+  <div style="max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:3px;" id="reviewsContainer">
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-social">
+    <a href="https://x.com/ASTRIX285" target="_blank">X / Twitter</a>
+    <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank">Discord</a>
+    <a href="https://www.twitch.tv/astrix285x" target="_blank">Twitch</a>
+    <a href="https://www.facebook.com/xASTRIX285x" target="_blank">Facebook</a>
+    <a href="https://www.youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>
+  </div>
+  <div class="gold-line" style="margin-bottom:20px;"></div>
+  <div class="footer-copy">© 2025 ASTRIX PARADOX — Built for the community, powered by gaming passion and history.</div>
+  <div class="footer-disclaimer">All images featured on this site are official wallpapers sourced from the respective publishers and developers' websites. They remain the property of their rightful owners and are used here for fan and review purposes only.</div>
+</footer>
+
+<div class="trailer-modal" id="trailerModal">
+  <div class="trailer-modal-inner">
+    <button class="trailer-modal-close" onclick="closeTrailer()">✕ Close</button>
+    <div class="trailer-frame"><iframe id="trailerFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>
+    <div class="trailer-modal-label" id="trailerLabel"></div>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script src="../js/reviews-data.js"></script>
+<script>
+function buildHighLows(items, type) {
+  return items.map(function(item) {
+    return '<strong style="color:var(--white);">' + item.title + '</strong><br>' + item.desc;
+  }).join('<br><br>');
+}
+
+function buildReviewCard(review, index) {
+  var delayClass = index === 0 ? '' : index === 1 ? ' reveal-delay-1' : ' reveal-delay-2';
+  var featuredBanner = review.featured ? '<div class="featured-banner">★ Currently Playing</div>' : '';
+  var borderStyle = review.featured ? 'style="border-color:rgba(139,0,0,0.5);"' : '';
+  var tags = review.tags.map(function(t) { return '<span class="review-tag">' + t + '</span>'; }).join('');
+
+  return '<div class="review-card reveal' + delayClass + '" ' + borderStyle + '>' +
+    '<div class="review-card-header">' +
+      '<div class="review-img"><img src="' + review.image + '" alt="' + review.title + '"></div>' +
+      '<div class="review-header-body">' +
+        featuredBanner +
+        '<div class="review-meta">' +
+          '<div class="review-score ' + (review.scoreStyle || 'crimson') + '">' + review.rating + '</div>' +
+          '<div class="review-title-wrap">' +
+            '<div class="review-title">' + review.title + '</div>' +
+            '<div class="review-tags">' + tags + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<p class="review-intro">' + review.intro + '</p>' +
+      '</div>' +
+    '</div>' +
+    '<div class="review-body">' +
+      '<div class="review-section">' +
+        '<div class="review-section-title highs">The Highs</div>' +
+        '<div class="review-section-text">' + buildHighLows(review.highs) + '</div>' +
+      '</div>' +
+      '<div class="review-section">' +
+        '<div class="review-section-title lows">The Lows</div>' +
+        '<div class="review-section-text">' + buildHighLows(review.lows) + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="review-final">' +
+      '<div class="review-section-title final">Final Thoughts</div>' +
+      '<p class="review-section-text">' + review.finalThoughts + '</p>' +
+    '</div>' +
+    '<div class="review-actions">' +
+      '<button class="btn-primary" style="padding:10px 24px;font-size:10px;" onclick="openTrailer(\'' + review.trailerId + '\',\'' + review.title + ' — Official Trailer\')">▶ Watch Trailer</button>' +
+      '<a href="' + review.studioLink + '" target="_blank" class="btn-secondary" style="padding:10px 24px;font-size:10px;">Visit Game ↗</a>' +
+    '</div>' +
+  '</div>';
+}
+
+// Render all reviews
+var container = document.getElementById('reviewsContainer');
+REVIEWS_DATA.forEach(function(review, index) {
+  container.innerHTML += buildReviewCard(review, index);
+});
+
+// Re-run scroll reveal on dynamically added cards
+if (typeof setupReveal === 'function') setupReveal();
+
+function openTrailer(id, title) {
+  document.getElementById('trailerFrame').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
+  document.getElementById('trailerLabel').textContent = title;
+  document.getElementById('trailerModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTrailer() {
+  document.getElementById('trailerFrame').src = '';
+  document.getElementById('trailerModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('trailerModal').addEventListener('click', function(e) { if (e.target === this) closeTrailer(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeTrailer(); });
+</script>
+</body>
+</html>

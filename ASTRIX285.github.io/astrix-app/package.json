@@ -1,0 +1,19 @@
+{
+  "name": "astrix-destiny-public-v1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Development-only validation tooling for the ASTRIX PARADOX static Armor 3.0 build catalogue.",
+  "type": "module",
+  "scripts": {
+    "validate": "node tools/validate-builds.mjs && node tools/demo-synergy-engine.mjs && node tools/demo-build-composer.mjs && node --check build-rules.js && node --check subclass-filter-ui.js && node --check aspect-linkage.mjs && node --check synergy-ui.js && node --check build-composer.mjs",
+    "demo:synergy": "node tools/demo-synergy-engine.mjs",
+    "demo:composer": "node tools/demo-build-composer.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

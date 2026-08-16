@@ -1,0 +1,213 @@
+name: Update ASTRIX Weapon Information
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 4 * * 1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: astrix-weapon-information-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update-weapon-information:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout workflow branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install validation dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install "jsonschema[format]>=4.23,<5"
+
+      - name: Generate raw weapon catalogue
+        id: weapons
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+        run: |
+          python3 astrix-app/tools/import-weapon-information.py
+
+      - name: Extract committed curated weapon catalogue
+        run: |
+          python3 astrix-app/tools/extract-curated-catalogue.py \
+            --kind weapon \
+            --input astrix-app/data/weapon-information.json \
+            --output astrix-app/data/weapon-information.catalogue.json
+
+      - name: Validate curated weapon catalogue
+        run: |
+          python3 - << 'PYEOF'
+          import json
+          from pathlib import Path
+
+          from jsonschema import Draft202012Validator
+          from jsonschema import FormatChecker
+
+          catalogue_path = Path(
+              "astrix-app/data/weapon-information.catalogue.json"
+          )
+
+          schema_path = Path(
+              "astrix-app/data/weapon-information.schema.json"
+          )
+
+          catalogue = json.loads(
+              catalogue_path.read_text(encoding="utf-8")
+          )
+
+          schema = json.loads(
+              schema_path.read_text(encoding="utf-8")
+          )
+
+          validator = Draft202012Validator(
+              schema,
+              format_checker=FormatChecker(),
+          )
+
+          errors = sorted(
+              validator.iter_errors(catalogue),
+              key=lambda error: list(error.absolute_path),
+          )
+
+          if errors:
+              for error in errors:
+                  print(
+                      f"{list(error.absolute_path)}: "
+                      f"{error.message}"
+                  )
+
+              raise SystemExit(
+                  f"{len(errors)} schema validation error(s)"
+              )
+
+          ids = set()
+          hashes = set()
+
+          for index, weapon in enumerate(
+              catalogue["weapons"]
+          ):
+              weapon_id = weapon["id"]
+              bungie_hash = weapon["bungieHash"]
+              expected_id = f"weapon-{bungie_hash}"
+
+              if weapon_id != expected_id:
+                  raise SystemExit(
+                      f"Invalid id at weapons[{index}]: "
+                      f"expected {expected_id}"
+                  )
+
+              if weapon_id in ids:
+                  raise SystemExit(
+                      f"Duplicate weapon id: {weapon_id}"
+                  )
+
+              if bungie_hash in hashes:
+                  raise SystemExit(
+                      f"Duplicate weapon hash: {bungie_hash}"
+                  )
+
+              if (
+                  weapon.get("verified") is not True
+                  and not any(
+                      bool(value)
+                      for value in (
+                          weapon.get("curated") or {}
+                      ).values()
+                  )
+              ):
+                  raise SystemExit(
+                      f"Uncurated weapon leaked into "
+                      f"served catalogue: {weapon_id}"
+                  )
+
+              ids.add(weapon_id)
+              hashes.add(bungie_hash)
+
+          print(
+              json.dumps(
+                  {
+                      "manifestVersion": catalogue[
+                          "manifestVersion"
+                      ],
+                      "servedWeaponRecords": len(
+                          catalogue["weapons"]
+                      ),
+                      "fileBytes": (
+                          catalogue_path.stat().st_size
+                      ),
+                  },
+                  indent=2,
+              )
+          )
+          PYEOF
+
+      - name: Check curated catalogue change
+        id: generated
+        run: |
+          if [ -n "$(git status --porcelain -- astrix-app/data/weapon-information.catalogue.json)" ]
+          then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit curated weapon catalogue
+        if: steps.generated.outputs.changed == 'true'
+        env:
+          MANIFEST_VERSION: ${{ steps.weapons.outputs.manifest_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            astrix-app/data/weapon-information.catalogue.json
+
+          git diff --cached --quiet && exit 0
+
+          git commit -m \
+            "Update curated weapon catalogue for Bungie manifest ${MANIFEST_VERSION}"
+
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Remove raw weapon catalogue
+        if: always()
+        run: |
+          rm -f astrix-app/data/weapon-information.json
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          MANIFEST_VERSION: ${{ steps.weapons.outputs.manifest_version }}
+          WEAPONS: ${{ steps.weapons.outputs.weapons }}
+          CURATED: ${{ steps.weapons.outputs.curated }}
+          MATCHED: ${{ steps.weapons.outputs.matched }}
+          UNRESOLVED: ${{ steps.weapons.outputs.unresolved }}
+          AMBIGUOUS: ${{ steps.weapons.outputs.ambiguous }}
+          FILE_CHANGED: ${{ steps.generated.outputs.changed }}
+        run: |
+          {
+            echo "## ASTRIX weapon information update"
+            echo
+            echo "- Manifest version: ${MANIFEST_VERSION:-unavailable}"
+            echo "- Raw official records generated: ${WEAPONS:-0}"
+            echo "- Curated source rows: ${CURATED:-0}"
+            echo "- Curated rows matched: ${MATCHED:-0}"
+            echo "- Unresolved curated rows: ${UNRESOLVED:-0}"
+            echo "- Ambiguous curated rows: ${AMBIGUOUS:-0}"
+            echo "- Served catalogue changed: ${FILE_CHANGED:-false}"
+            echo "- Raw catalogue retained: no"
+          } >> "$GITHUB_STEP_SUMMARY"

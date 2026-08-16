@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Games | ASTRIX PARADOX</title>
+  <link rel="stylesheet" href="../css/style.css">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="../img/favicon/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="../img/favicon/android-chrome-512x512.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="icon" href="../img/favicon/favicon.ico">
+
+  <style>
+    .games-hero {
+      padding: calc(var(--nav-height) + 60px) 40px 60px;
+      background: var(--dark-2); border-bottom: 1px solid rgba(139,0,0,0.2);
+      position: relative; overflow: hidden;
+    }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .game-card {
+      position: relative; aspect-ratio: 16/9; overflow: hidden;
+      border: 1px solid rgba(139,0,0,0.15);
+      transition: border-color 0.3s; cursor: pointer;
+      background: var(--dark-3);
+    }
+    .game-card:hover { border-color: rgba(201,168,76,0.4); }
+    .game-card-bg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      transition: transform 0.5s;
+    }
+    .game-card:hover .game-card-bg { transform: scale(1.05); }
+    .game-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 30%, rgba(0,0,0,0.2) 100%);
+      transition: background 0.3s;
+    }
+    .game-card:hover .game-card-overlay {
+      background: linear-gradient(to top, rgba(0,0,0,0.97) 40%, rgba(0,0,0,0.35) 100%);
+    }
+    .game-card-content {
+      position: absolute; bottom: 0; left: 0; right: 0; padding: 24px;
+    }
+    .game-card-tag {
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 3px;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 8px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .game-card:hover .game-card-tag { opacity: 1; transform: translateY(0); }
+    .game-card-title {
+      font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 700;
+      color: var(--white); letter-spacing: 1px; margin-bottom: 12px; line-height: 1.2;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+    }
+    .game-card-desc {
+      font-size: 13px; color: var(--grey); line-height: 1.6;
+      margin-bottom: 16px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s 0.05s, transform 0.3s 0.05s;
+    }
+    .game-card:hover .game-card-desc { opacity: 1; transform: translateY(0); }
+    .game-card-actions {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 12px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s 0.1s, transform 0.3s 0.1s;
+    }
+    .game-card:hover .game-card-actions { opacity: 1; transform: translateY(0); }
+    .game-card-btn {
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+      padding: 6px 14px; text-transform: uppercase; cursor: pointer;
+      border: none; transition: background 0.2s;
+    }
+    .game-card-btn.trailer { background: var(--crimson); color: var(--white); }
+    .game-card-btn.trailer:hover { background: var(--crimson-mid); }
+    .game-card-btn.review {
+      background: transparent; color: var(--gold);
+      border: 1px solid var(--gold-dim);
+    }
+    .game-card-btn.review:hover { background: rgba(201,168,76,0.1); }
+    .game-card-status {
+      display: inline-block;
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+      padding: 4px 12px; text-transform: uppercase;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s 0.15s, transform 0.3s 0.15s;
+    }
+    .game-card:hover .game-card-status { opacity: 1; transform: translateY(0); }
+    .game-card-status.playing { background: var(--crimson); color: var(--white); }
+    .game-card-status.reviewed { border: 1px solid var(--gold-dim); color: var(--gold); }
+    .game-card-corner-tl {
+      position: absolute; top: 12px; left: 12px;
+      width: 16px; height: 16px;
+      border-top: 2px solid var(--gold); border-left: 2px solid var(--gold);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .game-card-corner-br {
+      position: absolute; bottom: 12px; right: 12px;
+      width: 16px; height: 16px;
+      border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .game-card:hover .game-card-corner-tl,
+    .game-card:hover .game-card-corner-br { opacity: 1; }
+
+    /* ── TRAILER MODAL ── */
+    .trailer-modal {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.93); align-items: center; justify-content: center;
+    }
+    .trailer-modal.open { display: flex; }
+    .trailer-modal-inner { position: relative; width: 90vw; max-width: 1000px; }
+    .trailer-modal-close {
+      position: absolute; top: -40px; right: 0;
+      font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
+      color: var(--grey); background: none; border: none; cursor: pointer; text-transform: uppercase;
+    }
+    .trailer-modal-close:hover { color: var(--white); }
+    .trailer-frame { position: relative; padding-top: 56.25%; background: #000; }
+    .trailer-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+    .trailer-modal-label {
+      font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
+      color: var(--grey); text-align: center; margin-top: 14px; text-transform: uppercase;
+    }
+
+    @media (max-width: 1024px) {
+      .games-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .games-hero { padding: calc(var(--nav-height) + 40px) 20px 40px; }
+      .games-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .games-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── ACTIVE TOOLS ── */
+    .tools-section {
+      background: var(--dark); padding: 60px 40px 40px;
+      position: relative; overflow: hidden;
+    }
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+    }
+    .tool-card {
+      position: relative; overflow: hidden;
+      border: 1px solid rgba(201,168,76,0.2);
+      transition: border-color 0.3s; cursor: pointer;
+      background: var(--dark-3);
+      min-height: 260px;
+      text-decoration: none; display: block;
+    }
+    .tool-card:hover { border-color: rgba(201,168,76,0.55); }
+    .tool-card-bg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      background-size: cover !important; background-position: center !important;
+      background-repeat: no-repeat !important;
+      filter: grayscale(0.15); transition: transform 0.5s, filter 0.3s;
+    }
+    .tool-card:hover .tool-card-bg { transform: scale(1.05); filter: grayscale(0); }
+    .tool-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.94) 25%, rgba(0,0,0,0.25) 100%);
+    }
+    .tool-card-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 28px; }
+    .tool-card-eyebrow {
+      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 3px;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 10px;
+    }
+    .tool-card-title {
+      font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 700;
+      color: var(--white); letter-spacing: 1px; margin-bottom: 10px;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+    }
+    .tool-card-desc {
+      font-size: 13px; color: var(--grey); line-height: 1.6; max-width: 420px;
+      margin-bottom: 16px;
+    }
+    .tool-card-status {
+      display: inline-block;
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
+      padding: 5px 12px; text-transform: uppercase;
+      border: 1px solid var(--gold-dim); color: var(--gold);
+    }
+    .tool-card-corner-tl {
+      position: absolute; top: 14px; left: 14px; width: 18px; height: 18px;
+      border-top: 2px solid var(--gold); border-left: 2px solid var(--gold);
+      opacity: 0.5; transition: opacity 0.3s;
+    }
+    .tool-card-corner-br {
+      position: absolute; bottom: 14px; right: 14px; width: 18px; height: 18px;
+      border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold);
+      opacity: 0.5; transition: opacity 0.3s;
+    }
+    .tool-card:hover .tool-card-corner-tl,
+    .tool-card:hover .tool-card-corner-br { opacity: 1; }
+    .tool-card-empty {
+      display: flex; align-items: center; justify-content: center;
+      border: 1px dashed rgba(201,168,76,0.15);
+      min-height: 260px; background: var(--dark-2);
+      font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
+      color: var(--grey); text-transform: uppercase; text-align: center; padding: 20px;
+    }
+    @media (max-width: 768px) {
+      .tools-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="../img/logo.png" alt="ASTRIX PARADOX">
+    <span>ASTRIX<span class="accent"> PARADOX</span></span>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links">
+    <a href="../index.html">Home</a>
+    <a href="reviews.html">Reviews</a>
+    <a href="news.html">News</a>
+    <a href="clips.html">Clips</a>
+    <a href="games.html" class="active">Universes</a>
+    <a href="join.html">Join Us</a>
+  </div>
+  <div class="nav-live">
+    <div class="nav-live-dot" id="navDot"></div>
+    <span class="nav-live-text" id="navText">OFFLINE</span>
+  </div>
+</nav>
+
+<div class="games-hero">
+  <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1;">
+    <div class="section-eyebrow" style="animation:fadeUp 0.8s ease 0.2s both;">Paradox Forge</div>
+    <h1 class="section-title" style="animation:fadeUp 0.8s ease 0.4s both;">Active <span class="accent">Tools</span></h1>
+    <p style="color:var(--grey);max-width:500px;margin-top:16px;animation:fadeUp 0.8s ease 0.6s both;">
+      Build advisors and Guardian workspaces, built for the games I actually play.
+    </p>
+  </div>
+</div>
+
+<section class="tools-section">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="tools-grid">
+
+      <!-- DESTINY 2 — GUARDIAN WORKSPACE V2 -->
+      <a href="/astrix-app/pages/guardian-workspace-v2/" class="tool-card reveal">
+        <div class="tool-card-bg" style="background:url('../img/games/D2_JB.jpg') center/cover no-repeat;"></div>
+        <div class="tool-card-overlay"></div>
+        <div class="tool-card-corner-tl"></div>
+        <div class="tool-card-corner-br"></div>
+        <div class="tool-card-content">
+          <div class="tool-card-eyebrow">Destiny 2</div>
+          <div class="tool-card-title">Guardian Workspace</div>
+          <div class="tool-card-desc">Source-traced build advice for your Guardian — synergy explained, not just scored.</div>
+          <span class="tool-card-status">Live Workspace</span>
+        </div>
+      </a>
+
+      <!-- NEXT UP -->
+      <div class="tool-card-empty">More Universes,<br>More Workspaces —<br>Coming Soon</div>
+
+    </div>
+  </div>
+</section>
+
+<div class="gold-line"></div>
+
+<section class="section" style="background:var(--dark);padding-top:40px;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-eyebrow" style="margin-bottom:8px;">The Arsenal</div>
+    <h2 class="section-title" style="margin-bottom:32px;">Games I <span class="accent">Play</span></h2>
+    <div class="games-grid">
+
+      <!-- CRIMSON DESERT -->
+      <div class="game-card reveal">
+        <div class="game-card-bg" style="background:url('../img/games/crimsondesert.jpg') center/cover no-repeat;"></div>
+        <div class="game-card-overlay"></div>
+        <div class="game-card-corner-tl"></div>
+        <div class="game-card-corner-br"></div>
+        <div class="game-card-content">
+          <div class="game-card-tag">Currently Playing</div>
+          <div class="game-card-title">Crimson Desert</div>
+          <div class="game-card-desc">Pearl Abyss's brutal open-world action RPG. The world I live in right now.</div>
+          <div class="game-card-actions">
+            <button class="game-card-btn trailer" onclick="openTrailer('ZdmoGYg8tB0','Crimson Desert — Official Trailer');event.stopPropagation();">▶ Trailer</button>
+            <a href="reviews.html" class="game-card-btn review" onclick="event.stopPropagation();">Read Review</a>
+          </div>
+          <span class="game-card-status playing">Active</span>
+        </div>
+      </div>
+
+      <!-- WARFRAME -->
+      <div class="game-card reveal reveal-delay-1">
+        <div class="game-card-bg" style="background:url('../img/games/warframe.jpg') center/cover no-repeat;"></div>
+        <div class="game-card-overlay"></div>
+        <div class="game-card-corner-tl"></div>
+        <div class="game-card-corner-br"></div>
+        <div class="game-card-content">
+          <div class="game-card-tag">11+ Years</div>
+          <div class="game-card-title">Warframe</div>
+          <div class="game-card-desc">Still one of the best free-to-play experiences out there. The parkour never gets old.</div>
+          <div class="game-card-actions">
+            <button class="game-card-btn trailer" onclick="openTrailer('CdQU5fzkXwA','Warframe — Official Trailer');event.stopPropagation();">▶ Trailer</button>
+            <a href="reviews.html" class="game-card-btn review" onclick="event.stopPropagation();">Read Review</a>
+          </div>
+          <span class="game-card-status reviewed">Reviewed — 9.2</span>
+        </div>
+      </div>
+
+      <!-- BORDERLANDS 4 -->
+      <div class="game-card reveal reveal-delay-2">
+        <div class="game-card-bg" style="background:url('../img/games/borderlands4.jpg') center/cover no-repeat;"></div>
+        <div class="game-card-overlay"></div>
+        <div class="game-card-corner-tl"></div>
+        <div class="game-card-corner-br"></div>
+        <div class="game-card-content">
+          <div class="game-card-tag">Looter Shooter</div>
+          <div class="game-card-title">Borderlands 4</div>
+          <div class="game-card-desc">Bigger worlds, more guns, same chaotic energy. The franchise at its most ambitious.</div>
+          <div class="game-card-actions">
+            <button class="game-card-btn trailer" onclick="openTrailer('zlEZzjpEbko','Borderlands 4 — Official Trailer');event.stopPropagation();">▶ Trailer</button>
+            <a href="reviews.html" class="game-card-btn review" onclick="event.stopPropagation();">Read Review</a>
+          </div>
+          <span class="game-card-status reviewed">Reviewed — 8.5</span>
+        </div>
+      </div>
+
+      <!-- DESTINY 2 -->
+      <div class="game-card reveal">
+        <div class="game-card-bg" style="background:url('../img/games/D2_JB.jpg') center/cover no-repeat;"></div>
+        <div class="game-card-overlay"></div>
+        <div class="game-card-corner-tl"></div>
+        <div class="game-card-corner-br"></div>
+        <div class="game-card-content">
+          <div class="game-card-tag">Looter Shooter</div>
+          <div class="game-card-title">Destiny 2</div>
+          <div class="game-card-desc">The Final Shape changed everything. Still one of the best gunplay experiences in gaming.</div>
+          <div class="game-card-actions">
+            <button class="game-card-btn trailer" onclick="openTrailer('ZSWN-VP0lD8','Destiny 2 — Official Trailer');event.stopPropagation();">▶ Trailer</button>
+            <a href="reviews.html" class="game-card-btn review" onclick="event.stopPropagation();">Read Review</a>
+          </div>
+          <span class="game-card-status reviewed">In Rotation</span>
+        </div>
+      </div>
+
+      <!-- BLACK MYTH: WUKONG -->
+      <div class="game-card reveal">
+        <div class="game-card-bg" style="background:url('../img/games/black-myth-wukong.png') center/cover no-repeat;"></div>
+        <div class="game-card-overlay"></div>
+        <div class="game-card-corner-tl"></div>
+        <div class="game-card-corner-br"></div>
+        <div class="game-card-content">
+          <div class="game-card-tag">Action RPG</div>
+          <div class="game-card-title">Black Myth: Wukong</div>
+          <div class="game-card-desc">Game Science delivers a breathtaking journey through Chinese mythology. A masterclass in combat and spectacle.</div>
+          <div class="game-card-actions">
+            <button class="game-card-btn trailer" onclick="openTrailer('pnSsgRJmsCc','Black Myth: Wukong — Official Trailer');event.stopPropagation();">▶ Trailer</button>
+          </div>
+          <span class="game-card-status reviewed">In Rotation</span>
+        </div>
+      </div>
+
+      <!-- GOD OF WAR -->
+      <div class="game-card reveal reveal-delay-1">
+        <div class="game-card-bg" style="background:url('../img/games/god-of-war.jpg') center/cover no-repeat;"></div>
+        <div class="game-card-overlay"></div>
+        <div class="game-card-corner-tl"></div>
+        <div class="game-card-corner-br"></div>
+        <div class="game-card-content">
+          <div class="game-card-tag">Action Adventure</div>
+          <div class="game-card-title">God of War</div>
+          <div class="game-card-desc">Kratos and Atreus redefine what a father-son story can be. Santa Monica Studio at their absolute peak.</div>
+          <div class="game-card-actions">
+            <button class="game-card-btn trailer" onclick="openTrailer('hfJ4Km46A-0','God of War — Official Trailer');event.stopPropagation();">▶ Trailer</button>
+          </div>
+          <span class="game-card-status reviewed">In Rotation</span>
+        </div>
+      </div>
+
+      <!-- BATTLEFIELD -->
+      <div class="game-card reveal reveal-delay-1">
+        <div class="game-card-bg" style="background:url('../img/games/battlefield.jpg') center/cover no-repeat;"></div>
+        <div class="game-card-overlay"></div>
+        <div class="game-card-corner-tl"></div>
+        <div class="game-card-corner-br"></div>
+        <div class="game-card-content">
+          <div class="game-card-tag">FPS</div>
+          <div class="game-card-title">Battlefield</div>
+          <div class="game-card-desc">Large scale warfare at its finest. Squad up and take the objective.</div>
+          <div class="game-card-actions">
+            <button class="game-card-btn trailer" onclick="openTrailer('mJntSVa4OBE','Battlefield — Official Trailer');event.stopPropagation();">▶ Trailer</button>
+          </div>
+          <span class="game-card-status reviewed">In Rotation</span>
+        </div>
+      </div>
+
+      <!-- WARHAMMER 40K -->
+      <div class="game-card reveal reveal-delay-2">
+        <div class="game-card-bg" style="background:url('../img/games/warhammer-40k-space.jpg') center/cover no-repeat;"></div>
+        <div class="game-card-overlay"></div>
+        <div class="game-card-corner-tl"></div>
+        <div class="game-card-corner-br"></div>
+        <div class="game-card-content">
+          <div class="game-card-tag">Action</div>
+          <div class="game-card-title">Warhammer 40K</div>
+          <div class="game-card-desc">For the Emperor. The grimdark universe brought to life in brutal, satisfying detail.</div>
+          <div class="game-card-actions">
+            <button class="game-card-btn trailer" onclick="openTrailer('pgNCgJG0vnY','Warhammer 40K — Official Trailer');event.stopPropagation();">▶ Trailer</button>
+          </div>
+          <span class="game-card-status reviewed">In Rotation</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-social">
+    <a href="https://x.com/ASTRIX285" target="_blank">X / Twitter</a>
+    <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank">Discord</a>
+    <a href="https://www.twitch.tv/astrix285x" target="_blank">Twitch</a>
+    <a href="https://www.facebook.com/xASTRIX285x" target="_blank">Facebook</a>
+    <a href="https://www.youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>
+  </div>
+  <div class="gold-line" style="margin-bottom:20px;"></div>
+  <div class="footer-copy">© 2025 ASTRIX PARADOX — Built for the community, powered by gaming passion and history.</div>
+</footer>
+
+<!-- TRAILER MODAL -->
+<div class="trailer-modal" id="trailerModal">
+  <div class="trailer-modal-inner">
+    <button class="trailer-modal-close" onclick="closeTrailer()">✕ Close</button>
+    <div class="trailer-frame">
+      <iframe id="trailerFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+    <div class="trailer-modal-label" id="trailerLabel"></div>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+function openTrailer(id, title) {
+  document.getElementById('trailerFrame').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
+  document.getElementById('trailerLabel').textContent = title;
+  document.getElementById('trailerModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTrailer() {
+  document.getElementById('trailerFrame').src = '';
+  document.getElementById('trailerModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('trailerModal').addEventListener('click', function(e) {
+  if (e.target === this) closeTrailer();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeTrailer();
+});
+</script>
+</body>
+</html>

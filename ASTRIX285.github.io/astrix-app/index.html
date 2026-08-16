@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ASTRIX Destiny public build library using Armor 3.0 static data">
+  <title>ASTRIX PARADOX — Destiny Builds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="mechanics.css">
+  <link rel="stylesheet" href="synergy-ui.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="ASTRIX PARADOX home">
+        <span class="brand-mark">A</span>
+        <span class="brand-copy"><strong>ASTRIX PARADOX</strong><small>DESTINY INTELLIGENCE</small></span>
+      </a>
+      <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
+        <button class="nav-tab active" data-view="home">Home</button>
+        <button class="nav-tab" data-view="guardian">Guardian</button>
+        <button class="nav-tab" data-view="builds">Builds</button>
+        <button class="nav-tab" data-view="inventory">Inventory</button>
+        <button class="nav-tab" data-view="activities">Activities</button>
+        <button class="nav-tab nav-ai" data-view="ai">ASTRIX AI</button>
+      </nav>
+      <div class="prototype-badge">Public v1</div>
+    </header>
+
+    <main>
+      <section class="hero" id="home">
+        <div class="hero-copy">
+          <p class="eyebrow">Public Armor 3.0 build library</p>
+          <h1>Choose a build with <span>clear evidence.</span></h1>
+          <p class="hero-text">Browse static, inspectable Destiny 2 builds by class, subclass, activity, role and difficulty. Every unconfirmed detail is clearly marked for human review.</p>
+          <div class="hero-actions">
+            <button class="button primary" type="button" data-jump="builds">Explore builds</button>
+            <button class="button secondary" type="button" data-jump="guardian">View model</button>
+          </div>
+          <div class="prototype-note"><strong>Public static version.</strong> No Bungie login, backend, secrets, live API calls or account data. Build content comes from committed JSON.</div>
+        </div>
+        <aside class="guardian-card glass-panel">
+          <div class="guardian-card-top">
+            <div><span class="micro-label">Sandbox baseline</span><h2>Armor 3.0</h2><p>Monument of Triumph · Static catalogue</p></div>
+            <div class="power-orb"><span>Stat cap</span><strong>200</strong></div>
+          </div>
+          <div class="guardian-visual" aria-hidden="true"><div class="guardian-silhouette"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div></div>
+          <div class="guardian-stats">
+            <div><span>Stats</span><strong>Six current</strong></div>
+            <div><span>Selection</span><strong>Rules-based</strong></div>
+            <div><span>Data</span><strong>Committed JSON</strong></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="content-section" id="guardian">
+        <div class="section-heading"><div><p class="eyebrow">Armor 3.0 model</p><h2>Current stats only.</h2></div><p>Weapons, Health, Class, Grenade, Super and Melee. Targets never exceed 200.</p></div>
+        <div class="overview-grid">
+          <article class="feature-card large-card"><div class="card-heading"><span class="icon-chip">✦</span><div><small>Data contract</small><h3>Three-stat armor archetypes</h3></div></div><p>Build records store preferred archetypes, gear tiers, set bonuses, subclass setup, mods, Artifact notes and verification flags.</p><div class="progress-row"><span>Presentation source</span><strong>Static JSON</strong></div><div class="progress-track"><span style="width:100%"></span></div></article>
+          <article class="feature-card"><span class="micro-label">Stat cap</span><strong class="metric">200</strong><p>Maximum accepted target for each current stat.</p></article>
+          <article class="feature-card"><span class="micro-label">Gear tiers</span><strong class="metric">1–5</strong><p>Minimum tier can be recorded per build.</p></article>
+          <article class="feature-card"><span class="micro-label">Verification</span><strong class="metric metric-text">Visible</strong><p>Unconfirmed records are never presented as certain.</p></article>
+        </div>
+      </section>
+
+      <section class="content-section" id="builds">
+        <div class="section-heading">
+          <div><p class="eyebrow">Build library</p><h2>Purpose-built loadouts.</h2></div>
+          <p data-build-status aria-live="polite">Loading committed build data…</p>
+        </div>
+        <div class="build-filters" aria-label="Build filters">
+          <label>Class <select data-filter-class><option>Loading…</option></select></label>
+          <label>Subclass <select data-filter-subclass><option>Loading…</option></select></label>
+          <label>Activity <select data-filter-activity><option>Loading…</option></select></label>
+          <label>Role <select data-filter-role><option>Loading…</option></select></label>
+          <label>Difficulty <select data-filter-difficulty><option>Loading…</option></select></label>
+          <button class="filter-reset" type="button" data-filter-reset>Clear filters</button>
+        </div>
+        <div class="build-grid" data-build-grid></div>
+        <div class="build-empty" data-build-empty hidden>
+          <h3>No matching builds</h3>
+          <p>The three current seed records do not match this exact combination. Clear one or more filters to widen the results.</p>
+          <button class="button secondary" type="button" data-empty-reset>Clear filters</button>
+        </div>
+      </section>
+
+      <section class="content-section split-section" id="inventory">
+        <div class="inventory-panel glass-panel">
+          <div class="section-heading compact"><div><p class="eyebrow">Public data status</p><h2>Clear limits.</h2></div><span class="offline-pill">No login</span></div>
+          <div class="inventory-list">
+            <div class="inventory-row"><div class="item-icon exotic">J</div><div><strong>Build catalogue</strong><span>Committed JSON records</span></div><span class="row-status">Static</span></div>
+            <div class="inventory-row"><div class="item-icon weapon">R</div><div><strong>Selection rules</strong><span>Five visible deterministic filters</span></div><span class="row-status">Inspectable</span></div>
+            <div class="inventory-row"><div class="item-icon armour">A</div><div><strong>Account inventory</strong><span>Requires future OAuth backend</span></div><span class="row-status warning">Not connected</span></div>
+          </div>
+        </div>
+        <div class="ai-panel" id="ai">
+          <div class="ai-glow"></div><p class="eyebrow">ASTRIX rules</p><h2>Inspectable, not opaque.</h2>
+          <p>Public v1 filters build records through plain JavaScript rules. It does not use machine learning or claim personalized account analysis.</p>
+          <div class="prompt-preview"><span>Choose Solar + dungeon</span><button type="button" data-jump="builds" aria-label="Open build filters">→</button></div>
+          <small>Personalized reasoning remains outside this static release.</small>
+        </div>
+      </section>
+
+      <section class="content-section" id="activities">
+        <div class="section-heading"><div><p class="eyebrow">Activity planning</p><h2>Filter by the job.</h2></div><p>Activity tags map directly to relevant build records without hidden scoring.</p></div>
+        <div class="activity-grid">
+          <article><span class="activity-number">01</span><h3>Grandmaster</h3><p>Surface builds tagged for high-difficulty team play.</p><button type="button" data-activity-filter="grandmaster">Browse builds</button></article>
+          <article><span class="activity-number">02</span><h3>Raid</h3><p>Surface builds tagged for raid roles and damage phases.</p><button type="button" data-activity-filter="raid">Browse builds</button></article>
+          <article><span class="activity-number">03</span><h3>Dungeon</h3><p>Surface builds tagged for dungeon survival and damage.</p><button type="button" data-activity-filter="dungeon">Browse builds</button></article>
+        </div>
+      </section>
+    </main>
+
+    <footer><span>ASTRIX Destiny public v1</span><span>Static JSON · Armor 3.0 · No Bungie authentication</span></footer>
+  </div>
+
+  <dialog class="build-dialog" data-build-dialog aria-labelledby="build-detail-title">
+    <div class="build-dialog-shell">
+      <button class="dialog-close" type="button" data-dialog-close aria-label="Close build details">×</button>
+      <div data-build-detail></div>
+    </div>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+  <script type="module" src="subclass-filter-ui.js"></script>
+  <script type="module" src="synergy-ui.js"></script>
+</body>
+</html>

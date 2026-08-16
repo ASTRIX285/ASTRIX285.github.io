@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "1.1.0",
+  "mode": "preview",
+  "gameId": "destiny-2",
+  "notice": "Verified interface preview. No Bungie account is connected and no personal recommendation has been generated.",
+  "player": {
+    "displayName": "ASTRIX285",
+    "membershipCode": "5438",
+    "seasonLabel": "Season Preview"
+  },
+  "character": {
+    "id": "preview-hunter",
+    "className": "Hunter",
+    "raceName": "Exo",
+    "power": 2043,
+    "title": "Godslayer",
+    "renderUrl": null,
+    "emblemUrl": null
+  },
+  "subclass": {
+    "name": "Nightstalker",
+    "aspectCapacity": 3,
+    "fragmentCapacity": 5,
+    "element": {
+      "name": "Void",
+      "accent": "#9f64ff",
+      "accentRgb": "159,100,255",
+      "crestUrl": "https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png"
+    },
+    "supers": [
+      {"id":"super-deadfall","name":"Shadowshot: Deadfall","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":true,"unlocked":true,"description":"Equipped Super preview."},
+      {"id":"super-moebius","name":"Shadowshot: Moebius Quiver","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":false,"unlocked":true,"description":"Available Super preview."},
+      {"id":"super-spectral","name":"Spectral Blades","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png","equipped":false,"unlocked":true,"description":"Available Super preview."}
+    ],
+    "abilities": [
+      {"id":"ability-class","slot":"Class Ability","name":"Gambler's Dodge","equipped":true,"unlocked":true,"description":"Equipped class ability preview."},
+      {"id":"ability-movement","slot":"Movement","name":"Triple Jump","equipped":true,"unlocked":true,"description":"Equipped movement ability preview."},
+      {"id":"ability-melee","slot":"Melee","name":"Snare Bomb","equipped":true,"unlocked":true,"description":"Equipped melee ability preview."},
+      {"id":"ability-grenade","slot":"Grenade","name":"Vortex Grenade","equipped":true,"unlocked":true,"description":"Equipped grenade preview."}
+    ],
+    "aspects": [
+      {"id":"aspect-stylish","name":"Stylish Executioner","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg","equipped":true,"unlocked":true,"fragmentSlots":2,"description":"Equipped Aspect preview. Relationship claims remain unverified until curated graph evidence is connected."},
+      {"id":"aspect-vanishing","name":"Vanishing Step","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg","equipped":true,"unlocked":true,"fragmentSlots":2,"description":"Equipped Aspect preview."},
+      {"id":"aspect-trappers","name":"Trapper's Ambush","iconUrl":"https://www.bungie.net/common/destiny2_content/icons/9afb3b5fb819f4427122736712c5dab6.jpg","equipped":false,"unlocked":true,"fragmentSlots":2,"description":"Available Aspect preview."}
+    ],
+    "fragments": [
+      {"id":"fragment-persistence","name":"Echo of Persistence","equipped":true,"unlocked":true,"statText":"Void buff duration","description":"Equipped Fragment preview."},
+      {"id":"fragment-starvation","name":"Echo of Starvation","equipped":true,"unlocked":true,"statText":"Orb interaction","description":"Equipped Fragment preview."},
+      {"id":"fragment-obscurity","name":"Echo of Obscurity","equipped":true,"unlocked":true,"statText":"Finisher interaction","description":"Equipped Fragment preview."},
+      {"id":"fragment-undermining","name":"Echo of Undermining","equipped":true,"unlocked":true,"statText":"Grenade interaction","description":"Equipped Fragment preview."},
+      {"id":"fragment-leeching","name":"Echo of Leeching","equipped":false,"unlocked":true,"statText":"Melee interaction","description":"Available Fragment preview."}
+    ],
+    "artifact": {
+      "name": "Seasonal Artifact Preview",
+      "unlockedCount": 12,
+      "perks": [
+        {"id":"artifact-barrier","name":"Anti-Barrier Support","unlocked":true,"active":true,"description":"Preview counter support."},
+        {"id":"artifact-overload","name":"Overload Support","unlocked":true,"active":false,"description":"Preview counter support."},
+        {"id":"artifact-unstoppable","name":"Unstoppable Support","unlocked":true,"active":true,"description":"Preview counter support."},
+        {"id":"artifact-void","name":"Void Activity Support","unlocked":true,"active":true,"description":"Preview element support."},
+        {"id":"artifact-loop","name":"Ability Support","unlocked":true,"active":false,"description":"Preview seasonal support."},
+        {"id":"artifact-flex","name":"Flex Perk","unlocked":false,"active":false,"description":"Locked preview perk."}
+      ]
+    }
+  },
+  "equipment": {
+    "weapons": [
+      {"id":"weapon-the-call","slot":"Kinetic Weapon","name":"The Call","type":"Sidearm","power":2010,"iconUrl":"","equipped":true,"description":"Preview weapon slot. Live instance and perk data require Bungie authentication."},
+      {"id":"weapon-funnelweb","slot":"Energy Weapon","name":"Funnelweb","type":"Submachine Gun","power":2012,"iconUrl":"","equipped":true,"description":"Preview weapon slot. Live instance and perk data require Bungie authentication."},
+      {"id":"weapon-cataclysmic","slot":"Power Weapon","name":"Cataclysmic","type":"Linear Fusion Rifle","power":2010,"iconUrl":"","equipped":true,"description":"Preview weapon slot. Live instance and perk data require Bungie authentication."}
+    ],
+    "armour": [
+      {"id":"armour-helmet","slot":"Helmet","name":"Preview Helmet","power":2039,"equipped":true},
+      {"id":"armour-gauntlets","slot":"Gauntlets","name":"Preview Gauntlets","power":2038,"equipped":true},
+      {"id":"armour-chest","slot":"Chest","name":"Preview Chest","power":2042,"equipped":true},
+      {"id":"armour-legs","slot":"Legs","name":"Preview Legs","power":2041,"equipped":true},
+      {"id":"armour-class","slot":"Class Item","name":"Preview Cloak","power":2037,"equipped":true}
+    ],
+    "mods": [
+      {"id":"mod-1","name":"Helmet Mod","symbol":"◇"},{"id":"mod-2","name":"Arms Mod","symbol":"◈"},{"id":"mod-3","name":"Chest Mod","symbol":"✦"},{"id":"mod-4","name":"Leg Mod","symbol":"◎"},{"id":"mod-5","name":"Class Mod","symbol":"△"},{"id":"mod-6","name":"Stat Mod","symbol":"○"},{"id":"mod-7","name":"Surge Mod","symbol":"◆"},{"id":"mod-8","name":"Flex Mod","symbol":"□"}
+    ],
+    "stats": [
+      {"name":"Mobility","value":100},{"name":"Resilience","value":65},{"name":"Recovery","value":45},{"name":"Discipline","value":100},{"name":"Intellect","value":36},{"name":"Strength","value":70}
+    ]
+  },
+  "cosmetics": {},
+  "activity": {
+    "name": "Grandmaster Nightfall Preview",
+    "location": "Activity context demonstration",
+    "champions": ["Barrier","Unstoppable"],
+    "surge": "Void",
+    "modifiers": []
+  },
+  "analysis": {
+    "score": 95,
+    "summary": "This is an interface demonstration of how a verified directed build loop will be displayed. It is not yet a live personal assessment.",
+    "measures": [
+      {"id":"loop","label":"Loop Strength","value":97,"status":"preview"},
+      {"id":"survival","label":"Survivability","value":92,"status":"preview"},
+      {"id":"control","label":"Crowd Control","value":93,"status":"preview"},
+      {"id":"clear","label":"Add Clear","value":95,"status":"preview"},
+      {"id":"boss","label":"Boss Damage","value":88,"status":"preview"},
+      {"id":"uptime","label":"Ability Uptime","value":90,"status":"preview"}
+    ],
+    "coverage": {
+      "champions": [
+        {"name":"Barrier","covered":true},{"name":"Unstoppable","covered":true},{"name":"Overload","covered":false}
+      ],
+      "elementMatch": "Void Surge"
+    },
+    "primaryLoop": {
+      "label": "Illustrative evidence path",
+      "verified": false,
+      "nodes": [
+        {"label":"Dodge","symbol":"↻"},{"label":"Aspect","symbol":"◇"},{"label":"Invisible","symbol":"◉"},{"label":"Persistence","symbol":"◌"},{"label":"Safer play","symbol":"♥"}
+      ]
+    },
+    "gaps": ["Preview data cannot confirm live ownership or equipped state."],
+    "recommendations": [
+      {"id":"preview-connect","title":"Connect Bungie for verified analysis","reason":"Live identity, inventory and activity state are required before Paradox Forge can make a personal recommendation.","tradeOff":"Preview mode remains read-only.","verified":true},
+      {"id":"preview-counter","title":"Counter coverage demonstration","reason":"The activity panel shows how missing encounter coverage will be surfaced.","tradeOff":"This is illustrative until live build data is connected.","verified":false},
+      {"id":"preview-surge","title":"Element match demonstration","reason":"Void is shown matching the selected activity surge.","tradeOff":"No live activity has been selected.","verified":false}
+    ]
+  }
+}

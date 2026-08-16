@@ -1,0 +1,322 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-08-03",
+  "scope": "Paradox Forge knowledge graph",
+  "relationships": [
+    {
+      "id": "champion-barrier-counters-champion-barrier",
+      "from": {
+        "namespace": "counterRule",
+        "id": "champion-barrier",
+        "label": "Barrier"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "champion-barrier",
+        "label": "Barrier champion"
+      },
+      "mechanism": "In Monument of Triumph (Anti-Champion 2.0), Barrier stuns are intrinsic to weapon frames: bring a Barrier-stunning Legendary frame or a confirmed anti-Barrier exotic. The pre-MoT path of stunning Barriers with Radiant or Volatile Rounds was removed; those buffs now only add champion damage, so a build relying on them will fail to stun.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Destiny 2 Monument of Triumph Complete Walkthrough & Roadmap",
+          "publisher": "Grindout",
+          "date": "2026-06-11",
+          "url": "https://grindout.com/destiny-2/guides/monument-of-triumph"
+        },
+        {
+          "title": "Destiny 2: Artifacts & Champions",
+          "publisher": "Shattered Vault",
+          "date": "2026-07-12",
+          "url": "https://shatteredvault.com/kb/artifacts-champions/"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "champion-overload-counters-champion-overload",
+      "from": {
+        "namespace": "counterRule",
+        "id": "champion-overload",
+        "label": "Overload"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "champion-overload",
+        "label": "Overload champion"
+      },
+      "mechanism": "Under Anti-Champion 2.0, the reliable Overload counter is a weapon frame with an intrinsic Overload stun. Certain subclass verbs (historically Jolt, Suppress, Slow) also disrupted Overloads pre-MoT, but that mapping must be re-verified against the current sandbox before it can be trusted.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Destiny 2 Monument of Triumph Complete Walkthrough & Roadmap",
+          "publisher": "Grindout",
+          "date": "2026-06-11",
+          "url": "https://grindout.com/destiny-2/guides/monument-of-triumph"
+        },
+        {
+          "title": "Destiny 2: Artifacts & Champions",
+          "publisher": "Shattered Vault",
+          "date": "2026-07-12",
+          "url": "https://shatteredvault.com/kb/artifacts-champions/"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "champion-unstoppable-counters-champion-unstoppable",
+      "from": {
+        "namespace": "counterRule",
+        "id": "champion-unstoppable",
+        "label": "Unstoppable"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "champion-unstoppable",
+        "label": "Unstoppable champion"
+      },
+      "mechanism": "Under Anti-Champion 2.0, the reliable Unstoppable counter is a weapon frame with an intrinsic Unstoppable stun. Several subclass verbs (historically Ignite, Blind, Shatter, Suspend) also stunned Unstoppables pre-MoT; that mapping is unconfirmed for the current sandbox and must be re-verified before use.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Destiny 2 Monument of Triumph Complete Walkthrough & Roadmap",
+          "publisher": "Grindout",
+          "date": "2026-06-11",
+          "url": "https://grindout.com/destiny-2/guides/monument-of-triumph"
+        },
+        {
+          "title": "Destiny 2: Artifacts & Champions",
+          "publisher": "Shattered Vault",
+          "date": "2026-07-12",
+          "url": "https://shatteredvault.com/kb/artifacts-champions/"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "shield-arc-counters-shield-arc",
+      "from": {
+        "namespace": "counterRule",
+        "id": "shield-arc",
+        "label": "Arc"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "shield-arc",
+        "label": "Arc shield"
+      },
+      "mechanism": "Arc combatant shields take reduced damage from off-element sources and burst when hit with matching Arc damage. Under the Match Game challenge modifier this becomes decisive: non-matching damage is heavily reduced, so an Arc answer (weapon or ability) is needed to break the shield at all.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Match Game is Still a Thing in Destiny 2, You Just Need to Find It",
+          "publisher": "Game Rant",
+          "date": "2026-06-22",
+          "url": "https://gamerant.com/destiny-2-d2-how-enable-the-match-game-modifier/"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "shield-solar-counters-shield-solar",
+      "from": {
+        "namespace": "counterRule",
+        "id": "shield-solar",
+        "label": "Solar"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "shield-solar",
+        "label": "Solar shield"
+      },
+      "mechanism": "Solar combatant shields take reduced damage from off-element sources and burst when hit with matching Solar damage. Under Match Game, a Solar answer is required to break the shield efficiently.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Match Game is Still a Thing in Destiny 2, You Just Need to Find It",
+          "publisher": "Game Rant",
+          "date": "2026-06-22",
+          "url": "https://gamerant.com/destiny-2-d2-how-enable-the-match-game-modifier/"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "shield-void-counters-shield-void",
+      "from": {
+        "namespace": "counterRule",
+        "id": "shield-void",
+        "label": "Void"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "shield-void",
+        "label": "Void shield"
+      },
+      "mechanism": "Void combatant shields take reduced damage from off-element sources and burst when hit with matching Void damage. Under Match Game, a Void answer is required to break the shield efficiently.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "Match Game is Still a Thing in Destiny 2, You Just Need to Find It",
+          "publisher": "Game Rant",
+          "date": "2026-06-22",
+          "url": "https://gamerant.com/destiny-2-d2-how-enable-the-match-game-modifier/"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "surge-arc-counters-surge-arc",
+      "from": {
+        "namespace": "counterRule",
+        "id": "surge-arc",
+        "label": "Arc"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "surge-arc",
+        "label": "Arc surge"
+      },
+      "mechanism": "A surge boosts outgoing damage of its element. When Arc surge is active, prioritise Arc weapons and, where the build allows, an Arc subclass to convert the surge into real damage. Note: in MoT the fixed weekly GM surge strip was removed; surges now appear as activity/launch-card modifiers rather than a guaranteed weekly element.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "GM Nightfalls 2026: Rewards, Loadouts & This Era's Meta",
+          "publisher": "LFCarry",
+          "date": "2026-07-15",
+          "url": "https://lfcarry.com/guides/destiny-2-grandmaster-nightfall-guide"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "surge-solar-counters-surge-solar",
+      "from": {
+        "namespace": "counterRule",
+        "id": "surge-solar",
+        "label": "Solar"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "surge-solar",
+        "label": "Solar surge"
+      },
+      "mechanism": "A surge boosts outgoing damage of its element. When Solar surge is active, prioritise Solar weapons and, where the build allows, a Solar subclass. In MoT the fixed weekly GM surge strip was removed; surges now appear as activity/launch-card modifiers.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "GM Nightfalls 2026: Rewards, Loadouts & This Era's Meta",
+          "publisher": "LFCarry",
+          "date": "2026-07-15",
+          "url": "https://lfcarry.com/guides/destiny-2-grandmaster-nightfall-guide"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "surge-stasis-counters-surge-stasis",
+      "from": {
+        "namespace": "counterRule",
+        "id": "surge-stasis",
+        "label": "Stasis"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "surge-stasis",
+        "label": "Stasis surge"
+      },
+      "mechanism": "A surge boosts outgoing damage of its element. When Stasis surge is active, prioritise Stasis weapons and, where the build allows, a Stasis subclass. In MoT the fixed weekly GM surge strip was removed; surges now appear as activity/launch-card modifiers.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "GM Nightfalls 2026: Rewards, Loadouts & This Era's Meta",
+          "publisher": "LFCarry",
+          "date": "2026-07-15",
+          "url": "https://lfcarry.com/guides/destiny-2-grandmaster-nightfall-guide"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "surge-strand-counters-surge-strand",
+      "from": {
+        "namespace": "counterRule",
+        "id": "surge-strand",
+        "label": "Strand"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "surge-strand",
+        "label": "Strand surge"
+      },
+      "mechanism": "A surge boosts outgoing damage of its element. When Strand surge is active, prioritise Strand weapons and, where the build allows, a Strand subclass. In MoT the fixed weekly GM surge strip was removed; surges now appear as activity/launch-card modifiers.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "GM Nightfalls 2026: Rewards, Loadouts & This Era's Meta",
+          "publisher": "LFCarry",
+          "date": "2026-07-15",
+          "url": "https://lfcarry.com/guides/destiny-2-grandmaster-nightfall-guide"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    },
+    {
+      "id": "surge-void-counters-surge-void",
+      "from": {
+        "namespace": "counterRule",
+        "id": "surge-void",
+        "label": "Void"
+      },
+      "relation": "counters",
+      "to": {
+        "namespace": "encounter",
+        "id": "surge-void",
+        "label": "Void surge"
+      },
+      "mechanism": "A surge boosts outgoing damage of its element. When Void surge is active, prioritise Void weapons and, where the build allows, a Void subclass. In MoT the fixed weekly GM surge strip was removed; surges now appear as activity/launch-card modifiers.",
+      "direction": "from-to",
+      "strength": "primary",
+      "verified": true,
+      "sources": [
+        {
+          "title": "GM Nightfalls 2026: Rewards, Loadouts & This Era's Meta",
+          "publisher": "LFCarry",
+          "date": "2026-07-15",
+          "url": "https://lfcarry.com/guides/destiny-2-grandmaster-nightfall-guide"
+        }
+      ],
+      "notes": "Generated only from an explicitly verified counter rule; no synergy inference was performed."
+    }
+  ]
+}

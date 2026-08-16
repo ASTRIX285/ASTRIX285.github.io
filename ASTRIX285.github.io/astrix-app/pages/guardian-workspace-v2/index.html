@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guardian Workspace V2 | ASTRIX PARADOX</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #06050a;
+      --panel: #0d0a14;
+      --panel-elevated: #130f1e;
+      --card-border: rgba(178, 34, 34, 0.35);
+      --accent: #9f66ff;
+      --accent-rgb: 159, 102, 255;
+      --red: #df2935;
+      --gold: #d6ad35;
+      --cyan: #4ddcff;
+      --text: #f1edf7;
+      --muted: #8e8799;
+      --success: #22c55e;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--bg); color-scheme: dark; }
+    body {
+      background: radial-gradient(circle at 50% 10%, rgba(var(--accent-rgb), 0.12), transparent 45%),
+                  linear-gradient(180deg, #090710, #040307 85%);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      padding: 0 24px;
+      background: rgba(10, 8, 16, 0.9);
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { width: 32px; height: 32px; object-fit: contain; }
+    .brand-title { font: 800 16px/1 'Orbitron', sans-serif; letter-spacing: 1.5px; }
+    .brand-title span { color: var(--red); }
+    
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .btn-connect {
+      background: linear-gradient(135deg, #e52b37, #9e101a);
+      border: 1px solid #f43d49;
+      color: #fff;
+      font: 700 10px 'Orbitron', monospace;
+      letter-spacing: 1.5px;
+      padding: 8px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 0 20px rgba(223, 41, 53, 0.35);
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .btn-connect:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+    /* WORKSPACE GRID CONTAINER */
+    .workspace-wrapper {
+      max-width: 1560px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 24px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+
+    /* 3-COLUMN MAIN STAGE */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr 380px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1200px) {
+      .stage-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 18px;
+      position: relative;
+    }
+
+    .panel-header {
+      font: 700 11px 'Orbitron', monospace;
+      letter-spacing: 2px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* LEFT: SUBCLASS MATRIX */
+    .subclass-matrix { display: flex; flex-direction: column; gap: 14px; }
+    .matrix-section label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; display: block; font-family: 'Orbitron'; }
+    .matrix-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .matrix-btn {
+      aspect-ratio: 1;
+      background: var(--panel-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      padding: 4px;
+    }
+    .matrix-btn:hover, .matrix-btn.is-equipped {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.4);
+    }
+    .matrix-btn img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* CENTER: HERO & WEAPONS STAGE */
+    .center-stage { display: flex; flex-direction: column; gap: 16px; }
+    .guardian-identity-card {
+      background: linear-gradient(145deg, rgba(25, 20, 36, 0.9), rgba(10, 8, 16, 0.95));
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .identity-main h2 { font: 800 24px 'Orbitron', sans-serif; }
+    .identity-main span { color: var(--accent); font-weight: 600; font-size: 13px; }
+    .power-badge {
+      font: 900 28px/1 'Orbitron', sans-serif;
+      color: var(--gold);
+      text-align: right;
+    }
+    .power-badge small { display: block; font-size: 9px; letter-spacing: 2px; color: var(--muted); }
+
+    /* STATS ROW */
+    .stats-table {
+      background: var(--panel);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .stat-row { display: grid; grid-template-columns: 80px 1fr 30px; align-items: center; gap: 12px; font-size: 11px; }
+    .stat-track { height: 6px; background: rgba(255, 255, 255, 0.06); border-radius: 3px; overflow: hidden; }
+    .stat-bar { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; transition: width 0.3s ease; }
+
+    /* WEAPONS GRID */
+    .weapons-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .weapon-card {
+      background: var(--panel-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .weapon-card img { width: 44px; height: 44px; object-fit: contain; border-radius: 4px; background: rgba(0,0,0,0.4); }
+    .weapon-card strong { display: block; font-size: 12px; }
+    .weapon-card small { font-size: 10px; color: var(--muted); }
+
+    /* RIGHT: PARADOX ANALYSIS */
+    .analysis-panel { display: flex; flex-direction: column; gap: 16px; }
+    .health-grade-box {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .grade-badge {
+      font: 900 24px 'Orbitron';
+      color: var(--success);
+      width: 44px;
+      height: 44px;
+      border: 2px solid var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .analysis-section { font-size: 12px; line-height: 1.5; color: var(--muted); }
+    .analysis-section b { color: #fff; display: block; margin-bottom: 4px; font-family: 'Orbitron'; font-size: 11px; }
+
+    /* BOTTOM: FULL 5-SLOT ARMOUR & MOD MATRIX */
+    .armour-panel {
+      background: var(--panel);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+    .armour-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 900px) {
+      .armour-grid { grid-template-columns: 1fr; }
+    }
+    .armour-slot {
+      background: var(--panel-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .armour-head { display: flex; align-items: center; gap: 10px; }
+    .armour-head img { width: 38px; height: 38px; object-fit: contain; border-radius: 4px; }
+    .armour-mods-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .mod-socket {
+      aspect-ratio: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .mod-socket img { width: 100%; height: 100%; object-fit: contain; }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="../../../img/logo.png" alt="ASTRIX PARADOX" onerror="this.style.display='none'">
+      <div class="brand-title">ASTRIX <span>PARADOX</span></div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-connect" id="btnConnect">CONNECT BUNGIE</button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="workspace-wrapper">
+
+    <!-- 3-COLUMN UPPER STAGE -->
+    <div class="stage-grid">
+
+      <!-- LEFT: SUBCLASS MATRIX -->
+      <section class="panel subclass-matrix">
+        <div class="panel-header">
+          <span>Subclass</span>
+          <span id="txtElement" style="color: var(--accent);">VOID</span>
+        </div>
+
+        <div class="matrix-section">
+          <label>Super Ability</label>
+          <div class="matrix-grid" id="gridSuper">
+            <button class="matrix-btn is-equipped" title="Equipped Super"><img src="https://www.bungie.net/common/destiny2_content/icons/9e782be17db0694f58c70fa563df4d18.png" alt="Super"></button>
+          </div>
+        </div>
+
+        <div class="matrix-section">
+          <label>Abilities</label>
+          <div class="matrix-grid" id="gridAbilities">
+            <button class="matrix-btn is-equipped" title="Class Ability"><img src="https://www.bungie.net/common/destiny2_content/icons/87eb9fce0e88383e2003c94f1c9dfca4.png" alt=""></button>
+            <button class="matrix-btn is-equipped" title="Jump"><img src="https://www.bungie.net/common/destiny2_content/icons/f49bdfdae9fa344e45d554a9fc96f997.png" alt=""></button>
+            <button class="matrix-btn is-equipped" title="Melee"><img src="https://www.bungie.net/common/destiny2_content/icons/cf645511dc4788c42b0c3fa1a6344583.png" alt=""></button>
+            <button class="matrix-btn is-equipped" title="Grenade"><img src="https://www.bungie.net/common/destiny2_content/icons/e033a1e4c7ba905e3f1ca0b2ff937e06.png" alt=""></button>
+          </div>
+        </div>
+
+        <div class="matrix-section">
+          <label>Aspects</label>
+          <div class="matrix-grid" id="gridAspects">
+            <button class="matrix-btn is-equipped" title="Aspect 1"><img src="https://www.bungie.net/common/destiny2_content/icons/0c629ad1ef2944ea5f68b3f275e533b6.png" alt=""></button>
+            <button class="matrix-btn is-equipped" title="Aspect 2"><img src="https://www.bungie.net/common/destiny2_content/icons/5c23ebbc6cb8b22a01490212002f23d8.png" alt=""></button>
+          </div>
+        </div>
+
+        <div class="matrix-section">
+          <label>Fragments</label>
+          <div class="matrix-grid" id="gridFragments">
+            <button class="matrix-btn is-equipped"><img src="https://www.bungie.net/common/destiny2_content/icons/00c06baecf16efeaee9957388cf411c5.png" alt=""></button>
+            <button class="matrix-btn is-equipped"><img src="https://www.bungie.net/common/destiny2_content/icons/683510e1634bda7d353da3cbbf2c28ca.png" alt=""></button>
+            <button class="matrix-btn is-equipped"><img src="https://www.bungie.net/common/destiny2_content/icons/bf41b804d9b400965a3717df3fa32cb5.png" alt=""></button>
+            <button class="matrix-btn is-equipped"><img src="https://www.bungie.net/common/destiny2_content/icons/cfbb174c86b24cb476c59d95f87b8f9e.png" alt=""></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CENTER: HERO IDENTITY, STATS, WEAPONS -->
+      <section class="center-stage">
+        <div class="guardian-identity-card">
+          <div class="identity-main">
+            <h2 id="txtGuardianName">Hunter</h2>
+            <span id="txtSubclassName">Nightstalker · Void Subclass</span>
+          </div>
+          <div class="power-badge">
+            <div id="txtPower">2010</div>
+            <small>POWER LEVEL</small>
+          </div>
+        </div>
+
+        <div class="stats-table">
+          <div class="stat-row"><span>Mobility</span><div class="stat-track"><div class="stat-bar" style="width: 100%;"></div></div><b>100</b></div>
+          <div class="stat-row"><span>Resilience</span><div class="stat-track"><div class="stat-bar" style="width: 42%;"></div></div><b>42</b></div>
+          <div class="stat-row"><span>Recovery</span><div class="stat-track"><div class="stat-bar" style="width: 78%;"></div></div><b>78</b></div>
+          <div class="stat-row"><span>Discipline</span><div class="stat-track"><div class="stat-bar" style="width: 100%;"></div></div><b>101</b></div>
+          <div class="stat-row"><span>Intellect</span><div class="stat-track"><div class="stat-bar" style="width: 28%;"></div></div><b>28</b></div>
+          <div class="stat-row"><span>Strength</span><div class="stat-track"><div class="stat-bar" style="width: 30%;"></div></div><b>30</b></div>
+        </div>
+
+        <div class="weapons-grid">
+          <div class="weapon-card">
+            <img src="https://www.bungie.net/common/destiny2_content/icons/78ebf63f356eb51375d272d7f8dcfc9a.jpg" alt="">
+            <div><strong>Kinetic Slot</strong><small>Hand Cannon</small></div>
+          </div>
+          <div class="weapon-card">
+            <img src="https://www.bungie.net/common/destiny2_content/icons/c64883fbb36f0113f892c90226dfd154.jpg" alt="">
+            <div><strong>Energy Slot</strong><small>IKELOS_SMG_v1.0.3</small></div>
+          </div>
+          <div class="weapon-card">
+            <img src="https://www.bungie.net/common/destiny2_content/icons/9bbdcde3fae88a0914101e405e608098.jpg" alt="">
+            <div><strong>Heavy Slot</strong><small>Linear Fusion</small></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: PARADOX ANALYSIS -->
+      <section class="panel analysis-panel">
+        <div class="panel-header">Paradox Analysis</div>
+        
+        <div class="health-grade-box">
+          <div class="grade-badge">A</div>
+          <div>
+            <strong style="color: #fff; font-size: 13px;">EXCELLENT SYNERGY</strong>
+            <p style="font-size: 11px; color: var(--muted);">Build is highly effective for Grandmaster & Raid encounters.</p>
+          </div>
+        </div>
+
+        <div class="analysis-section">
+          <b>Primary Gameplay Loop</b>
+          <p>Tether debuff → Void Invisibility on dodge → Devour orb trigger ensures near-constant grenade energy uptime.</p>
+        </div>
+
+        <div class="analysis-section">
+          <b>Key Strengths</b>
+          <p>• 100% Invisibility loop uptime<br>• High crowd control and suppression<br>• Excellent team damage amplifications</p>
+        </div>
+
+        <div class="analysis-section">
+          <b>Recommended Focus</b>
+          <p>Increase Resilience to 70+ for improved high-tier damage mitigation.</p>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- BOTTOM: FULL 5-SLOT ARMOUR & MOD MATRIX -->
+    <section class="armour-panel">
+      <div class="panel-header">Equipped Armour & Mod Matrix</div>
+      
+      <div class="armour-grid">
+        <!-- Helmet -->
+        <div class="armour-slot">
+          <div class="armour-head">
+            <img src="https://www.bungie.net/common/destiny2_content/icons/8c823023fb13fa36cb12b5003bf47883.jpg" alt="">
+            <div><strong>Helmet</strong><small style="color:var(--muted); font-size:10px;">Masterworked</small></div>
+          </div>
+          <div class="armour-mods-row">
+            <div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div>
+          </div>
+        </div>
+
+        <!-- Gauntlets -->
+        <div class="armour-slot">
+          <div class="armour-head">
+            <img src="https://www.bungie.net/common/destiny2_content/icons/2aa60bf03e839e55e8c7cbe22ea67c0f.jpg" alt="">
+            <div><strong>Gauntlets</strong><small style="color:var(--muted); font-size:10px;">Exotic</small></div>
+          </div>
+          <div class="armour-mods-row">
+            <div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div>
+          </div>
+        </div>
+
+        <!-- Chest -->
+        <div class="armour-slot">
+          <div class="armour-head">
+            <img src="https://www.bungie.net/common/destiny2_content/icons/4fbc681bca6f2d2dfab61fa828b6dca5.jpg" alt="">
+            <div><strong>Chest</strong><small style="color:var(--muted); font-size:10px;">Masterworked</small></div>
+          </div>
+          <div class="armour-mods-row">
+            <div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div>
+          </div>
+        </div>
+
+        <!-- Leg -->
+        <div class="armour-slot">
+          <div class="armour-head">
+            <img src="https://www.bungie.net/common/destiny2_content/icons/28448ec8cce06c9a8db618e77516d2b3.jpg" alt="">
+            <div><strong>Leg Armor</strong><small style="color:var(--muted); font-size:10px;">Masterworked</small></div>
+          </div>
+          <div class="armour-mods-row">
+            <div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div>
+          </div>
+        </div>
+
+        <!-- Class Item -->
+        <div class="armour-slot">
+          <div class="armour-head">
+            <img src="https://www.bungie.net/common/destiny2_content/icons/769b76c8ba265a7d6517e4bb02f6a623.jpg" alt="">
+            <div><strong>Class Item</strong><small style="color:var(--muted); font-size:10px;">Masterworked</small></div>
+          </div>
+          <div class="armour-mods-row">
+            <div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div><div class="mod-socket">◇</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- LIVE BUNGIE OAUTH SCRIPT -->
+  <script>
+    const AUTH_ORIGIN = "https://astrix-worker.astrix285.workers.dev";
+
+    function startBungieAuth() {
+      const returnTarget = window.location.href;
+      window.location.href = `${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(returnTarget)}`;
+    }
+
+    function checkAuthCode() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      if (code) {
+        document.getElementById("btnConnect").textContent = "SYNCHRONIZING...";
+        // Strip code parameter from address bar cleanly
+        params.delete("code");
+        const cleanUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }
+
+    document.getElementById("btnConnect").addEventListener("click", startBungieAuth);
+    checkAuthCode();
+  </script>
+
+</body>
+</html>

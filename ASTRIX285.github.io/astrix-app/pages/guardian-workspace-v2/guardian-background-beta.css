@@ -1,0 +1,111 @@
+/* Guardian Workspace hero atmosphere.
+ * Digital Growth is the feature background.
+ * Two web-safe MP4 clips crossfade before either reaches a hard loop point. */
+.stage{
+  --stage-accent:#9e60ff;
+  --stage-accent-rgb:158,96,255;
+}
+
+.stage-backdrop{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+  background:#05070b;
+}
+
+.stage-paradox-video{
+  position:absolute;
+  inset:-2%;
+  width:104%;
+  height:104%;
+  object-fit:cover;
+  object-position:left center;
+  opacity:0;
+  filter:saturate(.62) brightness(.66) contrast(1.08);
+  transform:scale(1.015) translateX(-1.5%);
+  transition:opacity 2.6s ease-in-out,transform 14s linear;
+  will-change:opacity,transform;
+}
+.stage-paradox-video.is-active{
+  opacity:.11;
+  transform:scale(1.03) translateX(1.5%);
+}
+.stage-paradox-video.is-fading{
+  opacity:0;
+}
+
+/* Subclass tint only. The motion and geometry come from Digital Growth itself. */
+.stage-backdrop::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:3;
+  background:
+    radial-gradient(ellipse 52% 66% at 68% 48%,rgba(var(--stage-accent-rgb),.58),rgba(var(--stage-accent-rgb),.38) 58%,rgba(var(--stage-accent-rgb),.24)),
+    linear-gradient(rgba(var(--stage-accent-rgb),.28),rgba(var(--stage-accent-rgb),.28));
+  mix-blend-mode:color;
+  opacity:.38;
+  transition:background .4s ease,opacity .4s ease;
+}
+
+/* guardian-platform.css previously hid this pseudo-element with !important.
+ * Restore it here so subclass colour reaches the Digital Growth footage while
+ * the Guardian, which sits above the backdrop, remains colour-neutral. */
+body .stage .stage-backdrop::before{
+  display:block!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  aspect-ratio:auto!important;
+  background-position:0 0!important;
+  background-size:100% 100%!important;
+  background-repeat:no-repeat!important;
+  filter:none!important;
+}
+
+/* Dark focus mask keeps identity text and Guardian dominant. */
+.stage-backdrop::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:4;
+  background:
+    linear-gradient(90deg,rgba(3,4,8,.84) 0%,rgba(3,4,8,.50) 30%,rgba(3,4,8,.14) 58%,rgba(3,4,8,.25) 100%),
+    linear-gradient(180deg,rgba(2,3,7,.18),transparent 40%,rgba(2,3,7,.38));
+  box-shadow:inset 0 0 80px rgba(0,0,0,.54);
+}
+
+/* Explicitly disable the previous generated particle / sweep layer. */
+.stage-particles{
+  display:none!important;
+  background:none!important;
+  animation:none!important;
+  filter:none!important;
+  opacity:0!important;
+}
+
+.stage[data-subclass="void"]{--stage-accent:#9e60ff;--stage-accent-rgb:158,96,255!important}
+.stage[data-subclass="solar"]{--stage-accent:#ff8c28;--stage-accent-rgb:255,140,40!important}
+.stage[data-subclass="arc"]{--stage-accent:#46aaff;--stage-accent-rgb:70,170,255!important}
+.stage[data-subclass="stasis"]{--stage-accent:#78c4ff;--stage-accent-rgb:120,196,255!important}
+.stage[data-subclass="strand"]{--stage-accent:#46dc82;--stage-accent-rgb:70,220,130!important}
+.stage[data-subclass="prismatic"]{--stage-accent:#ff50dc;--stage-accent-rgb:255,80,220!important}
+
+/* Prismatic uses a violet/magenta spectrum rather than exposing the cyan baked
+ * into the source footage. Keep it behind the Guardian, not across the armour. */
+body .stage[data-subclass="prismatic"] .stage-backdrop::before{
+  background:
+    radial-gradient(ellipse 50% 64% at 68% 48%,rgba(255,72,218,.58),rgba(168,78,255,.46) 72%),
+    linear-gradient(122deg,rgba(105,55,210,.40),rgba(255,68,210,.52) 58%,rgba(148,82,255,.40))!important;
+  mix-blend-mode:color!important;
+  opacity:.42;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .stage-paradox-video{display:none}
+  .stage-backdrop{background:
+    radial-gradient(60% 58% at 70% 48%,rgba(var(--stage-accent-rgb),.14),transparent 70%),
+    #05070b}
+}

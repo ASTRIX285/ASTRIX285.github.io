@@ -1,0 +1,8 @@
+ASTRIX PARADOX component readiness report
+========================================
+Set-bonus source table available: false
+Seed note: The names-only set-bonus table was not available in the conversation uploads or repository. The component array is intentionally empty. No set names, bonus names, effects, verification states or sources have been invented.
+
+No component records are present.
+- The names-only set-bonus table is still required before set records can be seeded.
+- No names, effects, verification states or sources were invented.

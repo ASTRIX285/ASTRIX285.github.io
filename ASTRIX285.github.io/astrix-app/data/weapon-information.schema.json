@@ -1,0 +1,357 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astrixparadox.com/astrix-app/data/weapon-information.schema.json",
+  "title": "ASTRIX Paradox Forge Weapon Information",
+  "description": "Generated weapon catalogue combining official Bungie manifest data with separate curated ASTRIX information. Rankings and tiers are forbidden.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "manifestVersion",
+    "curatedDigest",
+    "weapons"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "2.0.0"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "manifestVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "curatedDigest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "weapons": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/weapon"
+      }
+    }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "nullableNumber": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "title",
+        "publisher",
+        "date"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publisher": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recommendedConfiguration": {
+      "type": "object",
+      "properties": {
+        "barrel": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "magazine": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "battery": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "blade": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "guard": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "masterwork": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "perk1": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "perk2": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "originTrait": {
+          "$ref": "#/$defs/stringArray"
+        }
+      },
+      "additionalProperties": false
+    },
+    "official": {
+      "type": "object",
+      "required": [
+        "itemType",
+        "itemSubType",
+        "itemCategoryHashes",
+        "defaultDamageTypeHash",
+        "equippingBlock",
+        "sockets"
+      ],
+      "properties": {
+        "itemType": {
+          "type": "integer"
+        },
+        "itemSubType": {
+          "type": "integer"
+        },
+        "itemCategoryHashes": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "defaultDamageTypeHash": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "equippingBlock": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "sockets": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "curated": {
+      "type": "object",
+      "required": [
+        "recommendedConfiguration",
+        "usageNotes",
+        "loopContribution",
+        "stunValue",
+        "ammoValue",
+        "shieldValue",
+        "chargeValue",
+        "impactValue",
+        "sources"
+      ],
+      "properties": {
+        "recommendedConfiguration": {
+          "$ref": "#/$defs/recommendedConfiguration"
+        },
+        "usageNotes": {
+          "type": "string"
+        },
+        "loopContribution": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "uniqueItems": true
+        },
+        "stunValue": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "ammoValue": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "shieldValue": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "chargeValue": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "impactValue": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source"
+          }
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "rank"
+            ]
+          },
+          {
+            "required": [
+              "ranking"
+            ]
+          },
+          {
+            "required": [
+              "tier"
+            ]
+          },
+          {
+            "required": [
+              "score"
+            ]
+          },
+          {
+            "required": [
+              "position"
+            ]
+          }
+        ]
+      },
+      "additionalProperties": false
+    },
+    "weapon": {
+      "type": "object",
+      "required": [
+        "id",
+        "bungieHash",
+        "name",
+        "icon",
+        "watermark",
+        "weaponType",
+        "frame",
+        "element",
+        "ammoType",
+        "season",
+        "source",
+        "officialDescription",
+        "official",
+        "curated",
+        "verified"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^weapon-[0-9]+$"
+        },
+        "bungieHash": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "icon": {
+          "type": "string"
+        },
+        "watermark": {
+          "type": "string"
+        },
+        "weaponType": {
+          "type": "string"
+        },
+        "frame": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "element": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ammoType": {
+          "enum": [
+            "Primary",
+            "Special",
+            "Power",
+            "Unknown"
+          ]
+        },
+        "season": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "officialDescription": {
+          "type": "string"
+        },
+        "official": {
+          "$ref": "#/$defs/official"
+        },
+        "curated": {
+          "$ref": "#/$defs/curated"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "rank"
+            ]
+          },
+          {
+            "required": [
+              "ranking"
+            ]
+          },
+          {
+            "required": [
+              "tier"
+            ]
+          },
+          {
+            "required": [
+              "score"
+            ]
+          },
+          {
+            "required": [
+              "position"
+            ]
+          }
+        ]
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

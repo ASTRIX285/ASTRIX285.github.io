@@ -1,0 +1,150 @@
+/* ==========================================================================
+   ASTRIX PARADOX - DATA-FIRST WORKSPACE STAGE
+   Telemetry canvas with 3-character ribbon and zero 2D/3D platform overhead.
+   ========================================================================== */
+
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: radial-gradient(circle at 50% 35%, rgba(45, 20, 80, 0.35), rgba(7, 5, 14, 0.95) 75%);
+  border: 1px solid rgba(158, 96, 255, 0.18);
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.stage::before,
+.stage::after,
+.stage-backdrop,
+.stage-particles,
+.guardian-platform,
+.guardian-hero,
+.gp-defs,
+.mist,
+.frontglow,
+.deck {
+  display: none !important;
+}
+
+/* Character Ribbon at the Top of Stage */
+.guardian-character-cards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  z-index: 10;
+}
+
+.guardian-character-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(22, 16, 36, 0.85);
+  border: 1px solid rgba(158, 96, 255, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  color: #fff;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.guardian-character-card:hover,
+.guardian-character-card.is-selected {
+  border-color: #9e60ff;
+  background: rgba(35, 22, 58, 0.95);
+  box-shadow: 0 0 16px rgba(158, 96, 255, 0.25);
+}
+
+.guardian-character-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.guardian-character-card__head strong {
+  display: block;
+  font: 700 13px Orbitron, sans-serif;
+  letter-spacing: 0.08em;
+  color: #fff;
+}
+
+.guardian-character-card__head small {
+  display: block;
+  font: 500 9px Inter, sans-serif;
+  color: #8e7bb0;
+}
+
+.guardian-character-card__power {
+  font: 800 13px Orbitron, sans-serif;
+  color: #f5c842;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.guardian-character-card__stats {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.guardian-character-card__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font: 600 11px Inter, sans-serif;
+  color: #d1c4e9;
+}
+
+.guardian-character-card__stat i {
+  font-size: 8px;
+  color: #7a6899;
+  font-style: normal;
+}
+
+/* Center Stage Telemetry Message Card */
+.stage-state-container {
+  margin: auto;
+  width: 100%;
+  max-width: 460px;
+  z-index: 5;
+}
+
+.stage-state-card {
+  padding: 24px 28px;
+  background: rgba(16, 11, 28, 0.88);
+  border: 1px solid rgba(158, 96, 255, 0.32);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  text-align: center;
+}
+
+.stage-state-card .icon {
+  display: inline-flex;
+  margin-bottom: 12px;
+  font-size: 26px;
+  color: #9e60ff;
+}
+
+.stage-state-card h3 {
+  margin: 0 0 8px;
+  font: 700 14px Orbitron, sans-serif;
+  letter-spacing: 0.1em;
+  color: #fff;
+}
+
+.stage-state-card p {
+  margin: 0;
+  font: 400 12px Inter, sans-serif;
+  line-height: 1.5;
+  color: #a493c4;
+}

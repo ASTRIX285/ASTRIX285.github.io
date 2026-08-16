@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Home -->
+  <url>
+    <loc>https://astrixparadox.com/</loc>
+    <lastmod>2025-05-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Reviews -->
+  <url>
+    <loc>https://astrixparadox.com/pages/reviews.html</loc>
+    <lastmod>2025-05-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- News -->
+  <url>
+    <loc>https://astrixparadox.com/pages/news.html</loc>
+    <lastmod>2025-05-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Universes / Games -->
+  <url>
+    <loc>https://astrixparadox.com/pages/games.html</loc>
+    <lastmod>2025-05-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Join Us -->
+  <url>
+    <loc>https://astrixparadox.com/pages/join.html</loc>
+    <lastmod>2025-05-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>

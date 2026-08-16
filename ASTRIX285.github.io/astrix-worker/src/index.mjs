@@ -1,7 +1,7 @@
 /**
  * ASTRIX PARADOX - CLOUDFLARE EDGE WORKER
- * Handles CORS preflight, Bungie API proxying, OAuth 2.0 token management,
- * and KV-backed manifest edge caching.
+ * Handles CORS preflight, Bungie OAuth start & callback routing with return-URL preservation,
+ * API proxying, token lifecycle, and KV-backed manifest edge caching.
  */
 
 const CORS_HEADERS = {
@@ -36,10 +36,51 @@ export default {
     const pathname = url.pathname;
 
     try {
+      // Health Check
       if (pathname === "/api/health" || pathname === "/health") {
-        return jsonResponse({ status: "healthy", service: "astrix-worker", environment: env.ENVIRONMENT || "production" });
+        return jsonResponse({
+          status: "healthy",
+          service: "astrix-worker",
+          environment: env.ENVIRONMENT || "production"
+        });
       }
 
+      // Step 1: OAuth Start — Encapsulate exact Alpha return target into state
+      if (pathname === "/bungie/start" || pathname === "/auth/start") {
+        const defaultAlphaUrl = "https://astrixparadox.com/astrix-app/pages/guardian-workspace-v2/?verify=20260816";
+        const returnUrl = url.searchParams.get("return") || defaultAlphaUrl;
+        const stateKey = encodeURIComponent(returnUrl);
+
+        const bungieAuthUrl = `https://www.bungie.net/en/OAuth/Authorize?client_id=${env.BUNGIE_CLIENT_ID}&response_type=code&state=${stateKey}`;
+        return Response.redirect(bungieAuthUrl, 302);
+      }
+
+      // Step 2: OAuth Callback — Unpack state and return directly to Alpha Workspace
+      if (pathname === "/bungie/callback" || pathname === "/auth/callback") {
+        const code = url.searchParams.get("code");
+        const rawState = url.searchParams.get("state");
+
+        let returnTarget = "https://astrixparadox.com/astrix-app/pages/guardian-workspace-v2/?verify=20260816";
+
+        if (rawState) {
+          try {
+            returnTarget = decodeURIComponent(rawState);
+          } catch (e) {
+            console.warn("Could not decode rawState return URL:", e);
+          }
+        }
+
+        const destination = new URL(returnTarget);
+        if (code) {
+          destination.searchParams.set("code", code);
+        } else {
+          destination.searchParams.set("error", "missing_code");
+        }
+
+        return Response.redirect(destination.toString(), 302);
+      }
+
+      // OAuth Direct Exchanges
       if (pathname === "/auth/token" && request.method === "POST") {
         return handleOAuthToken(request, env);
       }
@@ -48,10 +89,12 @@ export default {
         return handleOAuthRefresh(request, env);
       }
 
+      // Manifest Edge Cache
       if (pathname.startsWith("/manifest/cache/")) {
         return handleManifestCache(pathname, request, env, ctx);
       }
 
+      // Bungie Platform API Proxy
       if (pathname.startsWith("/api/bungie/")) {
         return handleBungieProxy(pathname, request, env);
       }
@@ -82,9 +125,7 @@ async function handleOAuthToken(request, env) {
 
   const response = await fetch(tokenUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params.toString()
   });
 
@@ -111,9 +152,7 @@ async function handleOAuthRefresh(request, env) {
 
   const response = await fetch(tokenUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params.toString()
   });
 

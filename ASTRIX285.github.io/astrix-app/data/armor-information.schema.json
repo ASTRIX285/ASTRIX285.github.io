@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astrixparadox.com/astrix-app/data/armor-information.schema.json",
+  "title": "ASTRIX Paradox Forge Armor Information",
+  "description": "Generated armour catalogue combining official Bungie manifest data with separate curated ASTRIX information.",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "manifestVersion", "curatedDigest", "armor"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "manifestVersion": {"type": "string", "minLength": 1},
+    "curatedDigest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "armor": {"type": "array", "items": {"$ref": "#/$defs/armorItem"}}
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["title", "publisher", "date"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "publisher": {"type": "string", "minLength": 1},
+        "date": {"type": "string", "format": "date"},
+        "url": {"type": "string", "format": "uri"}
+      },
+      "additionalProperties": false
+    },
+    "stat": {
+      "type": "object",
+      "required": ["statTypeHash", "name", "value", "isConditionallyActive"],
+      "properties": {
+        "statTypeHash": {"type": "integer", "minimum": 1},
+        "name": {"type": ["string", "null"]},
+        "value": {"type": "number"},
+        "isConditionallyActive": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "curated": {
+      "type": "object",
+      "required": ["setName", "setTags", "usageNotes", "sources"],
+      "properties": {
+        "setName": {"type": ["string", "null"]},
+        "setTags": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}, "uniqueItems": true},
+        "usageNotes": {"type": "string"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      },
+      "additionalProperties": false
+    },
+    "official": {
+      "type": "object",
+      "required": ["itemType", "itemSubType", "itemCategoryHashes", "classType", "equippingBlock", "sockets", "investmentStats", "stats"],
+      "properties": {
+        "itemType": {"type": "integer"},
+        "itemSubType": {"type": "integer"},
+        "itemCategoryHashes": {"type": "array", "items": {"type": "integer"}},
+        "classType": {"type": "integer"},
+        "equippingBlock": {"type": ["object", "null"]},
+        "sockets": {"type": ["object", "null"]},
+        "investmentStats": {"type": "array", "items": {"$ref": "#/$defs/stat"}},
+        "stats": {"type": ["object", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "armorItem": {
+      "type": "object",
+      "required": ["id", "bungieHash", "name", "icon", "watermark", "armorSlot", "className", "rarity", "officialDescription", "official", "curated", "verified"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^armor-[0-9]+$"},
+        "bungieHash": {"type": "integer", "minimum": 1},
+        "name": {"type": "string", "minLength": 1},
+        "icon": {"type": "string"},
+        "watermark": {"type": "string"},
+        "armorSlot": {"type": "string"},
+        "className": {"enum": ["Titan", "Hunter", "Warlock", "Any", "Unknown"]},
+        "rarity": {"type": "string"},
+        "officialDescription": {"type": "string"},
+        "official": {"$ref": "#/$defs/official"},
+        "curated": {"$ref": "#/$defs/curated"},
+        "verified": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

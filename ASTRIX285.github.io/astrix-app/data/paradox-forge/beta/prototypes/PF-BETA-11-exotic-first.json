@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "1.0",
+  "purpose": "PF-BETA-11 Exotic-first prototype overlay. Ownership candidates only; rawDim remains the literal extracted DIM payload. Gameplay claims require explicit evidence.",
+  "fixtureId": "PF-BETA-11",
+  "displayName": "Manacle Mayhem 2.0",
+  "exotic": {
+    "hash": 3982932616,
+    "name": "Nothing Manacles",
+    "type": "armor"
+  },
+  "anchorEvidence": {
+    "buildFocus": "Void grenade pressure and Devour sustain: Chaos Accelerant enhances Scatter Grenade, whose Void ability final blows can activate Feed the Void.",
+    "synergyChains": [
+      {
+        "from": {"hash": 2321824285, "name": "Chaos Accelerant", "type": "aspect"},
+        "to": {"hash": 1514173218, "name": "Scatter Grenade", "type": "grenade"},
+        "output": "enhanced-scatter-grenade",
+        "input": "scatter-grenade",
+        "evidence": "Bungie Update 8.0.0.1: Chaos Accelerant Scatter Grenade increased submunition tracking consistency and tracking duration, confirming that the equipped Chaos Accelerant aspect directly enhances the equipped Scatter Grenade."
+      },
+      {
+        "from": {"hash": 1514173218, "name": "Scatter Grenade", "type": "grenade"},
+        "to": {"hash": 2321824284, "name": "Feed the Void", "type": "aspect"},
+        "output": "void-ability-final-blow",
+        "input": "void-ability-final-blow",
+        "evidence": "Manifest-derived Scatter Grenade hash 1514173218 is the equipped Void grenade ability. Bungie Update 3.4.0: Feed the Void grants Devour on any Void ability kill. Therefore a Scatter Grenade final blow is a qualifying producer for Feed the Void."
+      }
+    ],
+    "mutationCases": [
+      {
+        "id": "PF-BETA-11-M1",
+        "change": {"componentType": "grenade", "fromHash": 1514173218, "toHash": 1547656727},
+        "expected": {"removedChain": {"fromHash": 2321824285, "output": "enhanced-scatter-grenade", "toHash": 1514173218}},
+        "evidence": "Magnetic Grenade hash 1547656727 occurs inside the Alpha library and its manifest description is a grenade that attaches and explodes twice. It is not Scatter Grenade, so replacing Scatter Grenade removes the Chaos Accelerant -> enhanced Scatter Grenade chain asserted for hash 1514173218."
+      }
+    ]
+  },
+  "vaultPool": [
+    {
+      "hash": 1496419775,
+      "name": "Bane of Sorrow",
+      "type": "weapon",
+      "weaponType": "Machine Gun",
+      "damageType": "Void",
+      "ownedRoll": [{"name": "Demolitionist", "description": "Kills with this weapon generate grenade energy. Activating your grenade ability reloads this weapon from reserves."}],
+      "evidence": "Bungie DestinyInventoryItemDefinition/1496419775 lists Bane of Sorrow as a Void Legendary Machine Gun with Demolitionist and the stated grenade-energy description."
+    },
+    {
+      "hash": 1028582252,
+      "name": "The Comedian",
+      "type": "weapon",
+      "weaponType": "Shotgun",
+      "damageType": "Void",
+      "ownedRoll": [{"name": "Adrenaline Junkie", "description": "This weapon gains increased damage and handling from final blows with grenades or this weapon."}],
+      "evidence": "Bungie DestinyInventoryItemDefinition/1028582252 lists The Comedian as a Void Legendary Shotgun with Adrenaline Junkie and the stated grenade-final-blow trigger."
+    },
+    {
+      "hash": 4164201232,
+      "name": "1000 Yard Stare",
+      "type": "weapon",
+      "weaponType": "Sniper Rifle",
+      "damageType": "Void",
+      "ownedRoll": [{"name": "Golden Tricorn", "description": "Final blows with this weapon grant bonus damage. While this buff is active, grenade or melee kills of the same damage type greatly increase its damage and duration."}],
+      "evidence": "Bungie DestinyInventoryItemDefinition/4164201232 lists 1000 Yard Stare as a Void Legendary Sniper Rifle with Golden Tricorn and the stated matching-damage grenade/melee trigger."
+    },
+    {
+      "hash": 3886719505,
+      "name": "Buried Bloodline",
+      "type": "weapon",
+      "weaponType": "Sidearm",
+      "damageType": "Void",
+      "exotic": true,
+      "ownedRoll": [{"name": "Violent Reanimation", "description": "Multiple final blows with this weapon grant Devour to the wielder."}],
+      "evidence": "Bungie DestinyInventoryItemDefinition/3886719505 lists Buried Bloodline as a Void Exotic Sidearm; Violent Reanimation grants Devour after multiple final blows."
+    },
+    {
+      "hash": 3588934839,
+      "name": "Le Monarque",
+      "type": "weapon",
+      "weaponType": "Combat Bow",
+      "damageType": "Void",
+      "exotic": true,
+      "ownedRoll": [{"name": "Poison Arrows", "description": "Arrows fired while perfectly drawn become poison arrows. Precision hits with poison arrows stun the combatant and spread poison to nearby ones."}],
+      "evidence": "Bungie DestinyInventoryItemDefinition/3588934839 lists Le Monarque and Poison Arrows; its description contains no grenade-energy, grenade-final-blow, Devour-consumer, or Scatter Grenade relationship."
+    },
+    {
+      "hash": 821154603,
+      "name": "Gnawing Hunger",
+      "type": "weapon",
+      "weaponType": "Auto Rifle",
+      "damageType": "Void",
+      "ownedRoll": [
+        {"name": "Tap the Trigger", "description": "Grants a short period of increased stability and accuracy on initial trigger pull."},
+        {"name": "Rampage", "description": "Kills with this weapon temporarily grant increased damage. Stacks 3x."}
+      ],
+      "evidence": "Bungie DestinyInventoryItemDefinition/821154603 lists this Gnawing Hunger roll with Tap the Trigger and Rampage; neither perk supplies or consumes the Nothing Manacles/Scatter Grenade/Feed the Void loop state."
+    },
+    {
+      "hash": 2389062558,
+      "name": "Contraverse Hold",
+      "type": "armor",
+      "armorSlot": "Gauntlets",
+      "className": "Warlock",
+      "exotic": true,
+      "intrinsic": {"name": "Chaotic Exchanger", "description": "Resist incoming damage while charging your Void grenade with Chaos Accelerant. Charged Void grenades return grenade energy on a hit and apply Weaken."},
+      "evidence": "Bungie DestinyInventoryItemDefinition/2389062558 lists Contraverse Hold and Chaotic Exchanger. It has genuine Chaos Accelerant/Void-grenade synergy but cannot be equipped together with the anchor Exotic gauntlets Nothing Manacles."
+    },
+    {
+      "hash": 2897117448,
+      "name": "Verity's Brow",
+      "type": "armor",
+      "armorSlot": "Helmet",
+      "className": "Warlock",
+      "exotic": true,
+      "intrinsic": {"name": "The Fourth Magic", "description": "Weapon final blows with a damage type matching your grenade grant Death Throes, which provide a grenade damage bonus and grant you grenade energy."},
+      "evidence": "Bungie DestinyInventoryItemDefinition/2897117448 lists Verity's Brow and The Fourth Magic. Bungie also documents its matching-grenade-damage trigger; it cannot be equipped together with the anchor Exotic Nothing Manacles."
+    }
+  ]
+}
