@@ -89,7 +89,7 @@
     height:100%!important;
     min-height:0!important;
     padding:clamp(10px,.7vw,14px)!important;
-    padding-top:clamp(94px,7vw,112px)!important;
+    padding-top:112px!important;
   }
 
   .workspace>.equip{
@@ -112,8 +112,6 @@
     overflow-x:hidden!important;
   }
 
-  /* The approved concept keeps stats inside the hero and activity outside the
-   * equipped strip. Keep the bottom centre clean: weapons + armour only. */
   .workspace>.equip>.stats-block,
   .workspace>.equip>.activity{
     display:none!important;
@@ -121,9 +119,9 @@
 
   .equip.gear-layout-active{
     display:grid!important;
-    grid-template-columns:minmax(235px,31%) minmax(0,1fr)!important;
+    grid-template-columns:340px minmax(0,1fr)!important;
     grid-template-rows:1fr!important;
-    gap:clamp(8px,.7vw,14px)!important;
+    gap:12px!important;
     align-items:stretch!important;
   }
 
@@ -142,114 +140,209 @@
     height:100%!important;
     min-width:0!important;
     align-self:stretch!important;
+    overflow:hidden!important;
   }
 
   .gear-weapons .weap-grid{
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    gap:clamp(5px,.42vw,8px)!important;
-    width:100%!important;
+    grid-template-columns:repeat(3,92px)!important;
+    gap:8px!important;
+    width:max-content!important;
   }
-
-  .gear-weapons .weap{
-    width:100%!important;
-    max-width:none!important;
-  }
-
+  .gear-weapons .weap,
   .gear-weapons .weap .art{
-    width:100%!important;
-    height:auto!important;
+    width:92px!important;
+    max-width:92px!important;
+  }
+  .gear-weapons .weap .art{
+    height:92px!important;
     aspect-ratio:1/1!important;
   }
 
-  /* Character cards become a compact rectangular ribbon above the hero. */
+  /* Armour cards are a designed component, not elastic columns. Keeping them
+   * fixed removes the large empty gutters seen on high-resolution monitors. */
+  .gear-combined .gear-columns{
+    display:grid!important;
+    grid-template-columns:repeat(5,142px)!important;
+    gap:8px!important;
+    justify-content:start!important;
+    align-content:start!important;
+    width:max-content!important;
+    max-width:100%!important;
+  }
+  .gear-combined .gear-slot{
+    width:142px!important;
+    min-width:142px!important;
+    max-width:142px!important;
+    padding:8px!important;
+  }
+  .gear-combined .gear-arm-row{min-height:82px!important}
+  .gear-combined .gear-arm-anchor .arm{width:72px!important;height:72px!important}
+  .gear-combined .gear-intrinsic{width:42px!important;height:42px!important}
+  .gear-combined .gear-mods{
+    grid-template-columns:repeat(2,34px)!important;
+    grid-template-rows:repeat(3,34px)!important;
+    gap:4px!important;
+  }
+  .gear-combined .gear-mod{width:34px!important;height:34px!important}
+
+  /* Character selector is a fixed-size ribbon on every desktop resolution.
+   * It no longer stretches on 4K or collapses into a very shallow strip. */
   .stage>.guardian-character-cards{
     position:absolute!important;
-    top:clamp(10px,.65vw,14px)!important;
-    left:clamp(12px,.75vw,16px)!important;
-    right:clamp(12px,.75vw,16px)!important;
+    top:12px!important;
+    left:50%!important;
+    right:auto!important;
     width:auto!important;
     display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    gap:clamp(7px,.55vw,11px)!important;
+    grid-template-columns:repeat(3,300px)!important;
+    gap:10px!important;
+    justify-content:center!important;
     overflow:visible!important;
     padding:0!important;
+    transform:translateX(-50%)!important;
     z-index:20!important;
   }
 
   .guardian-character-card{
-    min-height:72px!important;
-    max-height:82px!important;
-    padding:7px 9px!important;
+    width:300px!important;
+    min-width:300px!important;
+    max-width:300px!important;
+    height:88px!important;
+    min-height:88px!important;
+    max-height:88px!important;
+    padding:8px 10px!important;
     gap:5px!important;
-    border-radius:4px!important;
+    border-radius:5px!important;
     box-shadow:0 7px 18px rgba(0,0,0,.3)!important;
   }
 
   .guardian-character-card__head{
-    grid-template-columns:28px minmax(0,1fr) auto!important;
+    grid-template-columns:30px minmax(0,1fr) auto!important;
     gap:7px!important;
   }
-
-  .guardian-character-card__emblem{
-    width:28px!important;
-    height:28px!important;
-    border-radius:3px!important;
-  }
-
-  .guardian-character-card__head strong{
-    font-size:clamp(.69rem,.57vw,.82rem)!important;
-    letter-spacing:.035em!important;
-  }
-
-  .guardian-character-card__head small{
-    margin-top:1px!important;
-    font-size:clamp(.46rem,.4vw,.56rem)!important;
-  }
-
-  .guardian-character-card__power{
-    color:var(--gold,#e3b23c)!important;
-    font-size:clamp(.68rem,.56vw,.8rem)!important;
-  }
-
-  .guardian-character-card__stats{
-    grid-template-columns:repeat(6,minmax(0,1fr))!important;
-    gap:3px!important;
-  }
-
+  .guardian-character-card__emblem{width:30px!important;height:30px!important;border-radius:3px!important}
+  .guardian-character-card__head strong{font-size:.78rem!important;letter-spacing:.035em!important}
+  .guardian-character-card__head small{margin-top:1px!important;font-size:.52rem!important}
+  .guardian-character-card__power{color:var(--gold,#e3b23c)!important;font-size:.75rem!important}
+  .guardian-character-card__stats{grid-template-columns:repeat(6,42px)!important;gap:4px!important;justify-content:start!important}
   .guardian-character-card__stat{
-    min-height:24px!important;
-    padding:2px 1px!important;
+    width:42px!important;
+    min-width:42px!important;
+    height:28px!important;
+    min-height:28px!important;
+    padding:2px!important;
     gap:3px!important;
-    border-color:rgba(227,178,60,.22)!important;
-    background:rgba(227,178,60,.055)!important;
+    border-color:rgba(227,178,60,.28)!important;
+    background:rgba(227,178,60,.06)!important;
     border-radius:3px!important;
   }
-
   .guardian-character-card__stat i{
     width:16px!important;
     height:16px!important;
     flex:0 0 16px!important;
     color:var(--gold,#e3b23c)!important;
-    background:rgba(227,178,60,.11)!important;
+    background:rgba(227,178,60,.13)!important;
     border-radius:2px!important;
-    font-size:.66rem!important;
+    font-size:.7rem!important;
   }
+  .guardian-character-card__stat b{color:#fff!important;font-size:.67rem!important}
 
-  .guardian-character-card__stat b{
-    color:#fff!important;
-    font-size:clamp(.58rem,.49vw,.7rem)!important;
+  /* Left-rail frame is now deliberately reserved before the remaining Bungie
+   * binding work is completed. Empty runtime containers still hold their place. */
+  .workspace>.left{
+    display:flex!important;
+    flex-direction:column!important;
   }
-
-  /* Keep all twenty Bungie loadouts reachable in the full-height rail. */
-  .guardian-loadouts-panel{
-    min-height:0!important;
-    margin-top:auto!important;
+  .workspace>.left>.class-super-row{
+    flex:0 0 auto!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:6px!important;
+    min-height:196px!important;
+    padding:8px!important;
   }
-
-  .guardian-loadouts-grid{
+  .class-super-row .subclass-hero{
+    min-height:62px!important;
+    width:100%!important;
+    border-right:0!important;
+    border-bottom:1px solid rgba(227,178,60,.16)!important;
+  }
+  .class-super-row .super-focus{
+    min-height:118px!important;
+    display:grid!important;
+    grid-template-rows:auto 96px auto!important;
+    justify-items:center!important;
+    padding:2px 6px 4px!important;
+  }
+  .class-super-row .super-options{
+    position:relative!important;
+    width:170px!important;
+    height:96px!important;
     overflow:visible!important;
-    max-height:none!important;
   }
+  .class-super-row .super-option{
+    position:absolute!important;
+    width:42px!important;
+    height:42px!important;
+    padding:5px!important;
+    border-radius:2px!important;
+    transform:translate(-50%,-50%) rotate(45deg)!important;
+  }
+  /* Active Super is the visual anchor in the centre of the diamond. */
+  .class-super-row .super-option.is-active{
+    left:50%!important;
+    top:50%!important;
+    z-index:5!important;
+    width:48px!important;
+    height:48px!important;
+    opacity:1!important;
+  }
+  /* Valid alternatives orbit the equipped Super. */
+  .class-super-row .super-option.is-inactive:nth-child(1){left:24%!important;top:50%!important}
+  .class-super-row .super-option.is-inactive:nth-child(2){left:76%!important;top:50%!important}
+  .class-super-row .super-option.is-inactive:nth-child(3){left:50%!important;top:18%!important}
+  .class-super-row .super-option.is-inactive:nth-child(4){left:50%!important;top:82%!important}
+  .class-super-row .super-option.is-inactive:nth-child(5){left:24%!important;top:82%!important}
+  .class-super-row .super-option .ico-badge{
+    width:28px!important;
+    height:28px!important;
+    min-width:28px!important;
+    transform:rotate(-45deg)!important;
+  }
+  .class-super-row .super-option.is-active .ico-badge{
+    width:32px!important;
+    height:32px!important;
+    min-width:32px!important;
+  }
+
+  /* Keep the unresolved data groups visibly framed and in their final order so
+   * wiring the Supers/abilities/aspects later does not force another layout pass. */
+  .workspace>.left>.grp{flex:0 0 auto!important}
+  #abilityList{
+    min-height:54px!important;
+    grid-template-columns:repeat(4,46px)!important;
+    gap:7px!important;
+    align-content:center!important;
+  }
+  #aspectList{
+    min-height:54px!important;
+    grid-template-columns:repeat(2,54px)!important;
+    gap:8px!important;
+    align-content:center!important;
+  }
+  #fragList{
+    min-height:54px!important;
+    grid-template-columns:repeat(5,46px)!important;
+    gap:6px!important;
+    align-content:center!important;
+  }
+  #abilityList .ability-row,
+  #abilityList .ico-badge{width:46px!important;height:46px!important}
+  #aspectList .slot,#aspectList .ico-badge{width:54px!important;height:54px!important}
+  #fragList .slot,#fragList .ico-badge{width:46px!important;height:46px!important}
+
+  .guardian-loadouts-panel{min-height:0!important;margin-top:auto!important}
+  .guardian-loadouts-grid{overflow:visible!important;max-height:none!important}
 }
 
 /* All stacked widths use one reading order: build, Guardian, analysis, gear. */
@@ -273,11 +366,12 @@
   .actionbar{position:static!important}
 }
 
-/* Character selector responds to the hero, not the browser. */
+/* Character selector responds to the hero only below desktop width. */
 @container (max-width:780px){
   .guardian-character-cards{
     left:14px!important;
     right:64px!important;
+    transform:none!important;
     display:flex!important;
     gap:8px!important;
     overflow-x:auto!important;
@@ -293,33 +387,15 @@
   .view3d{top:150px!important}
 }
 
-/* Left rail: class and Supers remain side by side. The equipped Super sits
- * forward in the lower diamond while the other valid Supers recede behind. */
-@container (max-width:340px){
-  .class-super-row{grid-template-columns:minmax(110px,.88fr) minmax(0,1.12fr)!important;padding:5px!important}
-  .class-super-row .subclass-hero{grid-template-columns:36px minmax(0,1fr);padding:4px 6px 4px 3px!important}
-  .class-super-row .subclass-hero .crest,.class-super-row .subclass-hero .crest-fb{width:36px!important;height:36px!important;flex-basis:36px!important}
-  .class-super-row .super-focus{padding:2px 3px!important}
-  .class-super-row .super-options{width:min(116px,100%);height:56px}
-  .class-super-row .super-focus{grid-template-rows:auto 56px auto}
-  .class-super-row .super-option{width:34px;height:34px;padding:4px}
-  .class-super-row .super-option.is-active{top:16px}
-  .class-super-row .super-option .ico-badge{width:23px!important;height:23px!important;min-width:23px!important}
-}
-
 /* Armour cards keep five columns while space permits, then reflow without
  * crushing their 3 x 2 mod grids. */
 .gear-combined{container-type:inline-size}
-.gear-columns{grid-template-columns:repeat(5,minmax(128px,1fr))!important}
-
 @container (max-width:900px){
   .gear-columns{grid-template-columns:repeat(3,minmax(150px,1fr))!important}
 }
-
 @container (max-width:580px){
   .gear-columns{grid-template-columns:repeat(2,minmax(145px,1fr))!important}
 }
-
 @container (max-width:340px){
   .gear-columns{grid-template-columns:1fr!important}
 }
