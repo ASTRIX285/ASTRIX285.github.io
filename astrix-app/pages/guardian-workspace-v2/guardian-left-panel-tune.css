@@ -46,7 +46,6 @@
   .grp .lbl,#abilityList::before{font-size:.4rem!important;margin-bottom:1px!important}.artifact-row .perks{padding-top:2px!important}
 }
 
-
 .guardian-loadouts-panel{padding-top:clamp(6px,.8vh,10px)!important}
 .guardian-loadouts-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:clamp(4px,.55vh,7px)}
 .guardian-loadouts-head .lbl{margin:0!important}
@@ -68,3 +67,173 @@
 .guardian-loadout-slot.is-saved small{color:#f1eef8}
 .guardian-loadout-slot.is-active{border-color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.52),0 0 12px rgba(255,255,255,.22),inset 0 -2px 0 rgba(255,255,255,.8)}
 .guardian-loadout-slot:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+/* ========================================================================
+   FINAL LEFT-PANEL / CHARACTER-RIBBON FRAMING
+   High-specificity overrides intentionally beat the final adaptive sheet.
+   Runtime/data binding remains untouched.
+   ======================================================================== */
+@media (min-width:1221px){
+  /* Character ribbon: stat icon sits LEFT of value, no six mini containers. */
+  html body .workspace .stage .guardian-character-card__stats{
+    display:grid!important;
+    grid-template-columns:repeat(6,38px)!important;
+    gap:5px!important;
+    justify-content:start!important;
+    padding-top:2px!important;
+    border-top:0!important;
+  }
+  html body .workspace .stage .guardian-character-card__stat{
+    display:grid!important;
+    grid-template-columns:14px 1fr!important;
+    align-items:center!important;
+    justify-content:start!important;
+    width:38px!important;
+    min-width:38px!important;
+    height:20px!important;
+    min-height:20px!important;
+    padding:0!important;
+    gap:3px!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  html body .workspace .stage .guardian-character-card__stat i{
+    display:grid!important;
+    place-items:center!important;
+    width:14px!important;
+    height:14px!important;
+    min-width:14px!important;
+    flex:0 0 14px!important;
+    padding:0!important;
+    color:var(--gold,#e3b23c)!important;
+    background:transparent!important;
+    border:0!important;
+    border-radius:0!important;
+    font-size:.64rem!important;
+  }
+  html body .workspace .stage .guardian-character-card__stat b{
+    font-size:.66rem!important;
+    line-height:1!important;
+    color:#fff!important;
+  }
+
+  /* Left rail top is SUBCLASS identity. The runtime class name can remain
+     until Bungie subclass binding lands; the visual contract is now correct. */
+  html body .workspace .left .class-super-row{
+    min-height:218px!important;
+    padding:6px 8px 8px!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  html body .workspace .left .class-super-row .subclass-hero{
+    min-height:56px!important;
+    padding:4px 6px!important;
+    border:0!important;
+    border-bottom:1px solid rgba(227,178,60,.13)!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  html body .workspace .left .class-super-row .subclass-hero::before{
+    content:"SUBCLASS"!important;
+    color:rgba(227,178,60,.66)!important;
+  }
+
+  /* Destiny-style Super formation: active centre, alternate Supers around it. */
+  html body .workspace .left .class-super-row .super-focus{
+    position:relative!important;
+    min-height:148px!important;
+    grid-template-rows:18px 118px 12px!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  html body .workspace .left .class-super-row .super-focus-copy small::after{
+    content:"  ·  SUBCLASS SUPER";
+  }
+  html body .workspace .left .class-super-row .super-options{
+    position:relative!important;
+    width:190px!important;
+    height:118px!important;
+    overflow:visible!important;
+  }
+  html body .workspace .left .class-super-row .super-option{
+    position:absolute!important;
+    width:44px!important;
+    height:44px!important;
+    min-width:44px!important;
+    padding:6px!important;
+    border:1px solid rgba(227,178,60,.34)!important;
+    border-radius:2px!important;
+    background:rgba(227,178,60,.045)!important;
+    transform:translate(-50%,-50%) rotate(45deg)!important;
+  }
+  html body .workspace .left .class-super-row .super-option.is-active{
+    left:50%!important;
+    top:50%!important;
+    width:58px!important;
+    height:58px!important;
+    min-width:58px!important;
+    z-index:5!important;
+    border-color:rgba(227,178,60,.78)!important;
+    background:rgba(227,178,60,.11)!important;
+    box-shadow:0 0 18px rgba(227,178,60,.14)!important;
+  }
+  html body .workspace .left .class-super-row .super-option.is-inactive:nth-child(1){left:20%!important;top:50%!important}
+  html body .workspace .left .class-super-row .super-option.is-inactive:nth-child(2){left:80%!important;top:50%!important}
+  html body .workspace .left .class-super-row .super-option.is-inactive:nth-child(3){left:50%!important;top:17%!important}
+  html body .workspace .left .class-super-row .super-option.is-inactive:nth-child(4){left:50%!important;top:83%!important}
+  html body .workspace .left .class-super-row .super-option.is-inactive:nth-child(5){left:20%!important;top:83%!important}
+
+  /* Empty runtime groups still present their final deployment frames.
+     When real items arrive these background skeletons automatically disappear. */
+  html body .workspace .left #abilityList,
+  html body .workspace .left #aspectList,
+  html body .workspace .left #fragList{
+    position:relative!important;
+    align-content:start!important;
+    min-height:58px!important;
+  }
+  html body .workspace .left #abilityList:empty::after,
+  html body .workspace .left #aspectList:empty::after{
+    content:"";
+    display:block;
+    height:48px;
+    opacity:.7;
+    background-repeat:no-repeat;
+  }
+  html body .workspace .left #abilityList:empty::after{
+    width:220px;
+    background-image:
+      linear-gradient(45deg,transparent 47%,rgba(227,178,60,.22) 48% 52%,transparent 53%),
+      linear-gradient(-45deg,transparent 47%,rgba(227,178,60,.22) 48% 52%,transparent 53%),
+      linear-gradient(45deg,transparent 47%,rgba(227,178,60,.22) 48% 52%,transparent 53%),
+      linear-gradient(-45deg,transparent 47%,rgba(227,178,60,.22) 48% 52%,transparent 53%);
+    background-size:46px 46px,46px 46px,46px 46px,46px 46px;
+    background-position:0 0,55px 0,110px 0,165px 0;
+  }
+  html body .workspace .left #aspectList:empty::after{
+    width:120px;
+    background-image:
+      linear-gradient(45deg,transparent 47%,rgba(227,178,60,.22) 48% 52%,transparent 53%),
+      linear-gradient(-45deg,transparent 47%,rgba(227,178,60,.22) 48% 52%,transparent 53%);
+    background-size:52px 52px,52px 52px;
+    background-position:0 0,62px 0;
+  }
+
+  /* Actual abilities/aspects use the same diamond visual language once bound. */
+  html body .workspace .left #abilityList .ability-row,
+  html body .workspace .left #aspectList .slot{
+    border-radius:2px!important;
+    transform:rotate(45deg)!important;
+    border-color:rgba(227,178,60,.3)!important;
+    background:rgba(227,178,60,.045)!important;
+  }
+  html body .workspace .left #abilityList .ability-row > *,
+  html body .workspace .left #aspectList .slot > *{
+    transform:rotate(-45deg)!important;
+  }
+}
