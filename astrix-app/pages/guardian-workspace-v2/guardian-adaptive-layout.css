@@ -22,7 +22,7 @@
       clamp(300px,17vw,420px)
       minmax(0,1fr)
       clamp(420px,30vw,600px)!important;
-    grid-template-areas:"left stage right" "equip equip right"!important;
+    grid-template-areas:"left stage right" "left equip right"!important;
     gap:var(--workspace-gap)!important;
   }
 }
@@ -35,13 +35,14 @@
       clamp(286px,17vw,390px)
       minmax(520px,1fr)
       clamp(360px,25vw,560px)!important;
-    grid-template-areas:"left stage right" "equip equip right"!important;
+    grid-template-areas:"left stage right" "left equip right"!important;
     gap:var(--workspace-gap)!important;
   }
 }
 
 /* Compact desktop: preserve all three primary regions in the top row.
- * Analysis continues down the right rail beside equipment. */
+ * Left and analysis rails remain full-height while equipment stays locked
+ * directly beneath the hero at exactly the hero width. */
 @media (min-width:981px) and (max-width:1280px){
   html,body{height:auto!important;overflow:auto!important}
   .workspace{
@@ -52,7 +53,7 @@
       minmax(0,1fr)
       clamp(280px,28vw,340px)!important;
     grid-template-rows:minmax(570px,68vh) auto!important;
-    grid-template-areas:"left stage right" "equip equip right"!important;
+    grid-template-areas:"left stage right" "left equip right"!important;
     gap:var(--workspace-gap)!important;
   }
   .workspace>.left,.workspace>.stage{height:100%!important;max-height:none!important}
@@ -60,6 +61,195 @@
   .equip.gear-layout-active{grid-template-columns:minmax(220px,270px) minmax(0,1fr)!important}
   .right .mini-grid,.right .sw-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .actionbar{position:static!important}
+}
+
+/* Approved desktop composition: left rail and analysis rail frame a single
+ * centre column. Hero is above, equipped weapons + armour are directly below.
+ * This is intentionally layout-only; the hero artwork is handled separately. */
+@media (min-width:1221px){
+  .workspace{
+    grid-template-areas:"left stage right" "left equip right"!important;
+    grid-template-rows:minmax(0,61fr) minmax(0,39fr)!important;
+  }
+
+  .workspace>.left{
+    grid-area:left!important;
+    grid-row:1 / 3!important;
+    height:100%!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+  }
+
+  .workspace>.stage{
+    grid-area:stage!important;
+    grid-column:2!important;
+    grid-row:1!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    padding:clamp(10px,.7vw,14px)!important;
+    padding-top:clamp(94px,7vw,112px)!important;
+  }
+
+  .workspace>.equip{
+    grid-area:equip!important;
+    grid-column:2!important;
+    grid-row:2!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    align-self:stretch!important;
+  }
+
+  .workspace>.right{
+    grid-area:right!important;
+    grid-row:1 / 3!important;
+    height:100%!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+  }
+
+  /* The approved concept keeps stats inside the hero and activity outside the
+   * equipped strip. Keep the bottom centre clean: weapons + armour only. */
+  .workspace>.equip>.stats-block,
+  .workspace>.equip>.activity{
+    display:none!important;
+  }
+
+  .equip.gear-layout-active{
+    display:grid!important;
+    grid-template-columns:minmax(235px,31%) minmax(0,1fr)!important;
+    grid-template-rows:1fr!important;
+    gap:clamp(8px,.7vw,14px)!important;
+    align-items:stretch!important;
+  }
+
+  .equip.gear-layout-active>.gear-weapons{
+    grid-column:1!important;
+    grid-row:1!important;
+    width:100%!important;
+    height:100%!important;
+    align-self:stretch!important;
+  }
+
+  .equip.gear-layout-active>.gear-combined{
+    grid-column:2!important;
+    grid-row:1!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    align-self:stretch!important;
+  }
+
+  .gear-weapons .weap-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:clamp(5px,.42vw,8px)!important;
+    width:100%!important;
+  }
+
+  .gear-weapons .weap{
+    width:100%!important;
+    max-width:none!important;
+  }
+
+  .gear-weapons .weap .art{
+    width:100%!important;
+    height:auto!important;
+    aspect-ratio:1/1!important;
+  }
+
+  /* Character cards become a compact rectangular ribbon above the hero. */
+  .stage>.guardian-character-cards{
+    position:absolute!important;
+    top:clamp(10px,.65vw,14px)!important;
+    left:clamp(12px,.75vw,16px)!important;
+    right:clamp(12px,.75vw,16px)!important;
+    width:auto!important;
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:clamp(7px,.55vw,11px)!important;
+    overflow:visible!important;
+    padding:0!important;
+    z-index:20!important;
+  }
+
+  .guardian-character-card{
+    min-height:72px!important;
+    max-height:82px!important;
+    padding:7px 9px!important;
+    gap:5px!important;
+    border-radius:4px!important;
+    box-shadow:0 7px 18px rgba(0,0,0,.3)!important;
+  }
+
+  .guardian-character-card__head{
+    grid-template-columns:28px minmax(0,1fr) auto!important;
+    gap:7px!important;
+  }
+
+  .guardian-character-card__emblem{
+    width:28px!important;
+    height:28px!important;
+    border-radius:3px!important;
+  }
+
+  .guardian-character-card__head strong{
+    font-size:clamp(.69rem,.57vw,.82rem)!important;
+    letter-spacing:.035em!important;
+  }
+
+  .guardian-character-card__head small{
+    margin-top:1px!important;
+    font-size:clamp(.46rem,.4vw,.56rem)!important;
+  }
+
+  .guardian-character-card__power{
+    color:var(--gold,#e3b23c)!important;
+    font-size:clamp(.68rem,.56vw,.8rem)!important;
+  }
+
+  .guardian-character-card__stats{
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:3px!important;
+  }
+
+  .guardian-character-card__stat{
+    min-height:24px!important;
+    padding:2px 1px!important;
+    gap:3px!important;
+    border-color:rgba(227,178,60,.22)!important;
+    background:rgba(227,178,60,.055)!important;
+    border-radius:3px!important;
+  }
+
+  .guardian-character-card__stat i{
+    width:16px!important;
+    height:16px!important;
+    flex:0 0 16px!important;
+    color:var(--gold,#e3b23c)!important;
+    background:rgba(227,178,60,.11)!important;
+    border-radius:2px!important;
+    font-size:.66rem!important;
+  }
+
+  .guardian-character-card__stat b{
+    color:#fff!important;
+    font-size:clamp(.58rem,.49vw,.7rem)!important;
+  }
+
+  /* Keep all twenty Bungie loadouts reachable in the full-height rail. */
+  .guardian-loadouts-panel{
+    min-height:0!important;
+    margin-top:auto!important;
+  }
+
+  .guardian-loadouts-grid{
+    overflow:visible!important;
+    max-height:none!important;
+  }
 }
 
 /* All stacked widths use one reading order: build, Guardian, analysis, gear. */
