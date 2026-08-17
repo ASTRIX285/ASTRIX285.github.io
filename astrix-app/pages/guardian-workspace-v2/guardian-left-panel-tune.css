@@ -61,10 +61,10 @@
 .guardian-loadout-slot.is-empty::before,.guardian-loadout-slot.is-empty::after{content:"";position:absolute;width:72%;height:1px;background:rgba(181,174,199,.28);transform:rotate(45deg)}
 .guardian-loadout-slot.is-empty::after{transform:rotate(-45deg)}
 .guardian-loadout-empty-label{position:relative;z-index:1;padding:2px 3px;border-radius:3px;background:#0b0910;color:#8b8499;font:700 clamp(.3rem,.48vh,.38rem) Inter,sans-serif;letter-spacing:.05em}
-.guardian-loadout-slot.is-saved{cursor:pointer;border-color:rgba(255,255,255,.2);background-image:linear-gradient(145deg,rgba(6,6,10,.1),rgba(6,6,10,.5)),var(--loadout-color-image,linear-gradient(145deg,#181521,#0c0a11));background-position:center;background-size:cover;box-shadow:inset 0 -2px 0 rgba(255,255,255,.25)}
-.guardian-loadout-icon{width:56%;height:56%;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.82))}
+.guardian-loadout-slot.is-saved{cursor:pointer;border-color:rgba(255,255,255,.28);background-image:var(--loadout-color-image,linear-gradient(145deg,#181521,#0c0a11));background-position:center;background-size:cover;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -2px 0 rgba(255,255,255,.32)}
+.guardian-loadout-icon{width:100%;height:100%;object-fit:contain;transform:scale(1.08);filter:drop-shadow(0 1px 2px rgba(0,0,0,.58))}
 .guardian-loadout-icon-fallback{font-size:clamp(.72rem,1.25vh,1rem);color:#d0cadb}
 .guardian-loadout-name{position:absolute;left:3px;right:12px;bottom:2px;overflow:hidden;color:#fff;font:700 clamp(.28rem,.46vh,.36rem) Inter,sans-serif;line-height:1;text-align:left;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px #000}
 .guardian-loadout-slot.is-saved small{color:#f1eef8}
-.guardian-loadout-slot.is-active{border-color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.42),0 0 16px rgba(150,116,255,.42),inset 0 -2px 0 rgba(255,255,255,.8)}
+.guardian-loadout-slot.is-active{border-color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.52),0 0 12px rgba(255,255,255,.22),inset 0 -2px 0 rgba(255,255,255,.8)}
 .guardian-loadout-slot:focus-visible{outline:2px solid #fff;outline-offset:2px}
