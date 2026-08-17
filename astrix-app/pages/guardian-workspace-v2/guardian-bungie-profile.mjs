@@ -8,7 +8,6 @@ const ARMOUR_ORDER=[BUCKETS.helmet,BUCKETS.gauntlets,BUCKETS.chest,BUCKETS.legs,
 const WEAPON_ORDER=[BUCKETS.kinetic,BUCKETS.energy,BUCKETS.power];
 const STAT_ORDER=[["Weapons",2996146975],["Health",392767087],["Class",1943323491],["Grenade",1735777505],["Super",144602215],["Melee",4244567218]];
 const loadoutCache=new Map();
-const definitionFetchCache=new Map();
 let liveProfilePayload=null;
 let liveProfileSession=null;
 
@@ -29,7 +28,7 @@ async function fetchJsonWithTimeout(url,timeoutMs=15000){
   try{
     const response=await fetch(url,{credentials:"include",headers:{Accept:"application/json"},signal:controller.signal});
     const payload=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(payload.error||payload.message||`Bungie request failed (${response.status}).`);
+    if(!response.ok)throw new Error(payload.error||`Bungie request failed (${response.status}).`);
     return payload;
   }catch(error){
     if(error?.name==="AbortError")throw new Error("Bungie profile request timed out. Refresh or reconnect Bungie.");
@@ -37,70 +36,6 @@ async function fetchJsonWithTimeout(url,timeoutMs=15000){
   }finally{
     clearTimeout(timer);
   }
-}
-
-function collectSocketDefinitionHashes(payload){
-  const hashes=new Set();
-  const socketsData=payload?.profile?.itemComponents?.sockets?.data||{};
-  Object.values(socketsData).forEach(row=>{
-    (row?.sockets||[]).forEach(socket=>{
-      const hash=Number(socket?.plugHash);
-      if(Number.isFinite(hash)&&hash>0)hashes.add(hash);
-    });
-  });
-  const reusableData=payload?.profile?.itemComponents?.reusablePlugs?.data||{};
-  Object.values(reusableData).forEach(row=>{
-    Object.values(row?.plugs||{}).forEach(entries=>{
-      (Array.isArray(entries)?entries:[]).forEach(entry=>{
-        const hash=Number(entry?.plugItemHash??entry?.plugHash);
-        if(Number.isFinite(hash)&&hash>0)hashes.add(hash);
-      });
-    });
-  });
-  (payload?.selectedItems||[]).forEach(item=>{
-    (item?.plugItemHashes||[]).forEach(value=>{
-      const hash=Number(value);
-      if(Number.isFinite(hash)&&hash>0)hashes.add(hash);
-    });
-  });
-  return [...hashes];
-}
-
-async function fetchInventoryDefinition(hash){
-  const key=String(Number(hash));
-  if(definitionFetchCache.has(key))return definitionFetchCache.get(key);
-  const promise=(async()=>{
-    const url=`${AUTH_ORIGIN}/api/bungie/Destiny2/Manifest/DestinyInventoryItemDefinition/${encodeURIComponent(key)}/`;
-    const payload=await fetchJsonWithTimeout(url,10000);
-    const row=payload?.Response??payload?.response??null;
-    return row?.displayProperties?row:null;
-  })().catch(error=>{
-    console.warn(`[ASTRIX] Could not resolve Bungie definition ${key}`,error);
-    return null;
-  });
-  definitionFetchCache.set(key,promise);
-  return promise;
-}
-
-async function enrichMissingSocketDefinitions(payload){
-  payload.definitions=payload.definitions||{};
-  const missing=collectSocketDefinitionHashes(payload).filter(hash=>!payload.definitions[String(hash)]);
-  if(!missing.length)return payload;
-  let resolved=0;
-  const batchSize=8;
-  for(let index=0;index<missing.length;index+=batchSize){
-    const batch=missing.slice(index,index+batchSize);
-    const rows=await Promise.all(batch.map(async hash=>[hash,await fetchInventoryDefinition(hash)]));
-    rows.forEach(([hash,row])=>{
-      if(!row)return;
-      payload.definitions[String(hash)]=row;
-      resolved+=1;
-    });
-  }
-  if(resolved||missing.length){
-    console.info(`[ASTRIX] Socket definition recovery: ${resolved}/${missing.length} missing definitions resolved.`);
-  }
-  return payload;
 }
 
 const absoluteIcon=path=>path?new URL(path,BUNGIE_ORIGIN).toString():"";
@@ -217,6 +152,7 @@ function subclassConfiguration(profile,definitions,item){
   const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item?.itemInstanceId]?.plugs||{};
   const reusableRows=superSocketIndex>=0?(reusable[String(superSocketIndex)]||reusable[superSocketIndex]||[]):[];
   
+  // Also parse manifest socket entries for any static super definitions
   const itemDef=definitions?.[String(item?.itemHash)]||{};
   const manifestSockets=itemDef.sockets?.socketEntries||[];
   const manifestSupers=manifestSockets
@@ -400,11 +336,11 @@ async function loadSelectedLoadout(selection){
   url.searchParams.set("characterId",characterId);
   url.searchParams.set("index",String(index));
   const payload=mergeLoadoutContext(await fetchJsonWithTimeout(url));
-  await enrichMissingSocketDefinitions(payload);
   payload.profile=profileWithSelectedLoadout(payload);
   const detail={...normaliseLiveProfile(payload,null,characterId),selectedLoadoutIndex:index,loadoutSource:"bungie-live"};
   detail.coverage=loadoutCoverage(detail);
   
+  // Non-fatal warning: never crash the stage if a loadout has an empty slot
   if(!detail.coverage.complete){
     console.warn(`[ASTRIX] Bungie loadout ${index+1} partial: ${detail.coverage.missing.join(", ")}`);
   }
@@ -422,7 +358,6 @@ async function loadLiveProfile(session,{background=false}={}){
     document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
   }
   const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
-  await enrichMissingSocketDefinitions(payload);
   const detail=normaliseLiveProfile(payload,session);
   liveProfilePayload=payload;
   liveProfileSession=session;
