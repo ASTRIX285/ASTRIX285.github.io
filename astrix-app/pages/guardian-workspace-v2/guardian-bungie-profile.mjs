@@ -159,6 +159,7 @@ function normaliseItem(profile,definitions,item){
 function subclassConfiguration(profile,definitions,item){
   const plugs=socketPlugs(profile,definitions,item);
   const superItem=plugs.find(isSuperPlug)||null;
+  console.log("[TRACE super] subclassItem:", item?.itemHash, "instance:", item?.itemInstanceId, "→ super:", superItem?.hash, superItem?.name, "| cat:", superItem?.definition?.plug?.plugCategoryIdentifier);
   const classAbility=plugs.find(isClassAbilityPlug)||null;
   const movement=plugs.find(isMovementPlug)||null;
   const melee=plugs.find(isMeleePlug)||null;
@@ -221,6 +222,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const profile=payload.profile||{};
   const definitions=payload.definitions||{};
   const character=(preferredCharacterId&&profile?.characters?.data?.[preferredCharacterId])||activeCharacter(profile);
+  console.log("[TRACE resolve] preferred:", preferredCharacterId, "→ resolved:", character?.characterId, "class:", character?.classType);
   if(!character?.characterId)throw new Error("No Destiny character was returned for this membership.");
   const equipment=profile?.characterEquipment?.data?.[character.characterId]?.items||[];
   const byBucket=hash=>equipment.find(item=>definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===hash)||null;
@@ -386,6 +388,7 @@ async function loadLiveProfile(session,{background=false}={}){
 }
 
 function selectLiveCharacter(characterId){
+  console.log("[TRACE select] clicked id:", characterId, "| exists in profile?", !!liveProfilePayload?.profile?.characters?.data?.[characterId]);
   if(!liveProfilePayload)return null;
   const detail=normaliseLiveProfile(liveProfilePayload,liveProfileSession,characterId);
   document.documentElement.dataset.guardianSource="bungie-live";
