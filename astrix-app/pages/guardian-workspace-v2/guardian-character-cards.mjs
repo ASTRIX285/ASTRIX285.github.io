@@ -1,4 +1,4 @@
-/* ==========================================================================
+/* ========================================================================== 
    ASTRIX PARADOX - GUARDIAN CHARACTER CARDS
    Renders the 3-character top ribbon (Hunter, Warlock, Titan) from either
    live Bungie roster events or loaded Paradox beta fixtures.
@@ -15,7 +15,7 @@ const DEFAULT_CARDS = [
     title: "TITLE DATA PENDING",
     power: 550,
     stats: [["Weapons", 100], ["Health", 65], ["Class", 105], ["Grenade", 100], ["Super", 40], ["Melee", 45]],
-    selected: true
+    selected: false
   },
   {
     characterId: "warlock-beta",
@@ -35,8 +35,8 @@ const DEFAULT_CARDS = [
   }
 ];
 
-let characters = DEFAULT_CARDS;
-let selectedCharacterId = "hunter-beta";
+let characters = [];
+let selectedCharacterId = "";
 
 const escapeHtml = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
@@ -68,12 +68,20 @@ function render(nextCharacters = characters, nextSelectedId = selectedCharacterI
   const target = host();
   if (!target) return;
 
-  characters = Array.isArray(nextCharacters) && nextCharacters.length ? nextCharacters.slice(0, MAX_CHARACTERS) : DEFAULT_CARDS;
-  selectedCharacterId = String(nextSelectedId || selectedCharacterId);
+  const supplied = Array.isArray(nextCharacters) ? nextCharacters.slice(0, MAX_CHARACTERS) : [];
+  if (!supplied.length) {
+    characters = [];
+    selectedCharacterId = "";
+    renderStatus("LOADING BUNGIE CHARACTERS", "pending");
+    return;
+  }
+
+  characters = supplied;
+  selectedCharacterId = String(nextSelectedId || "");
 
   target.innerHTML = characters
     .map((character) => {
-      const selected = String(character.characterId) === selectedCharacterId || character.selected === true;
+      const selected = Boolean(selectedCharacterId) && String(character.characterId) === selectedCharacterId;
       const emblem = character.emblem?.icon
         ? `<img src="${escapeHtml(character.emblem.icon)}" alt="" loading="eager" decoding="async">`
         : `<span aria-hidden="true">◆</span>`;
@@ -97,8 +105,8 @@ function render(nextCharacters = characters, nextSelectedId = selectedCharacterI
   target.querySelectorAll("[data-character-id]").forEach((button) =>
     button.addEventListener("click", () => {
       const characterId = String(button.dataset.characterId || "");
-      const characterClass = String(button.dataset.class || "hunter");
-      if (!characterId) return;
+      const characterClass = String(button.dataset.class || "");
+      if (!characterId || !characterClass) return;
 
       target.querySelectorAll("[data-character-id]").forEach((card) => {
         const active = String(card.dataset.characterId) === characterId;
@@ -107,11 +115,6 @@ function render(nextCharacters = characters, nextSelectedId = selectedCharacterI
       });
       selectedCharacterId = characterId;
 
-      // IMPORTANT: do not publish a partial guardian-selection-changed payload
-      // here. The Bungie profile module owns that event and publishes it only
-      // after it has resolved the selected character's equipment, subclass,
-      // Super, abilities, aspects and fragments. Publishing a class-only event
-      // allowed state from the previously selected Guardian to leak forward.
       document.dispatchEvent(new CustomEvent("astrix:character-selected", { detail: { characterId, characterClass, className: classLabel(characterClass) } }));
     })
   );
@@ -120,19 +123,20 @@ function render(nextCharacters = characters, nextSelectedId = selectedCharacterI
 document.addEventListener("astrix:bungie-character-roster", (event) => render(event.detail?.characters || [], event.detail?.selectedCharacterId));
 
 document.addEventListener("astrix:guardian-selection-changed", (event) => {
-  const chosenClass = String(event.detail?.characterClass ?? event.detail?.className ?? "").toLowerCase();
-  if (!chosenClass) return;
+  const chosenId = String(event.detail?.characterId || "");
+  if (!chosenId) return;
 
   const target = host();
   if (!target) return;
 
   target.querySelectorAll("[data-character-id]").forEach((card) => {
-    const matches = card.dataset.class === chosenClass;
+    const matches = String(card.dataset.characterId) === chosenId;
     card.classList.toggle("is-selected", matches);
     card.setAttribute("aria-pressed", String(matches));
   });
+  selectedCharacterId = chosenId;
 });
 
-render(DEFAULT_CARDS, "hunter-beta");
+renderStatus("LOADING BUNGIE CHARACTERS", "pending");
 
 export { render as renderGuardianCharacterCards, renderStatus as renderGuardianCharacterCardStatus };
