@@ -1,6 +1,8 @@
 /* ASTRIX PARADOX left-rail Super feature frame.
  * Presentation only. No Bungie/runtime binding is changed here. */
 @media (min-width:981px){
+  .left{--rail-slot:54px;--rail-slot-gap:8px}
+
   .left .subclass-hero{
     min-height:58px!important;
     margin:8px 8px 0!important;
@@ -11,69 +13,75 @@
     background:transparent!important;
   }
 
+  /* Compact feature block: large equipped Super remains the visual anchor. */
   .left .super-feature{
-    flex:0 0 236px;
-    min-height:236px;
+    flex:0 0 196px!important;
+    min-height:196px!important;
     display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:flex-start;
-    padding:5px 8px 8px;
+    padding:5px 8px 6px!important;
     border-bottom:1px solid rgba(227,178,60,.16);
     overflow:visible;
   }
-  .left .super-feature__label{align-self:flex-start;margin:0 0 3px;color:rgba(255,255,255,.48);font-size:.56rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
-  .left .super-feature__name{min-height:18px;margin-bottom:3px;color:#fff;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-  .left .super-feature__cluster{position:relative;width:244px;height:188px;overflow:visible}
+  .left .super-feature__label{display:none!important}
+  .left .super-feature__name{
+    min-height:16px;
+    margin:0 0 2px!important;
+    color:rgba(255,255,255,.82);
+    font-size:.62rem;
+    font-weight:800;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+  }
+  .left .super-feature__cluster{position:relative;width:244px;height:172px;overflow:visible}
   .left .super-diamond{position:absolute;left:50%;display:grid;place-items:center;aspect-ratio:1;transform:translateX(-50%) rotate(45deg);border:1px solid rgba(255,255,255,.42);background:rgba(75,40,112,.13);box-shadow:inset 0 0 18px rgba(116,69,170,.08)}
   .left .super-diamond::after{content:"";position:absolute;inset:6px;border:1px solid rgba(255,255,255,.12)}
   .left .super-diamond>span{transform:rotate(-45deg);color:rgba(255,255,255,.35);font-size:1rem;font-weight:700}
-  .left .super-diamond--equipped{top:4px;width:112px;border-color:rgba(255,255,255,.88);background:linear-gradient(135deg,rgba(126,75,180,.42),rgba(56,29,91,.20));box-shadow:0 0 24px rgba(128,72,190,.26),inset 0 0 28px rgba(168,104,226,.18);z-index:3}
+  .left .super-diamond--equipped{top:5px;width:112px;border-color:rgba(255,255,255,.88);background:linear-gradient(135deg,rgba(126,75,180,.42),rgba(56,29,91,.20));box-shadow:0 0 24px rgba(128,72,190,.26),inset 0 0 28px rgba(168,104,226,.18);z-index:3}
   .left .super-diamond--equipped>span{color:rgba(255,255,255,.72);font-size:1.55rem}
-  .left .super-diamond--alt{top:130px;width:58px;opacity:.42;background:rgba(65,45,82,.10)}
+  .left .super-diamond--alt{top:122px;width:54px;opacity:.42;background:rgba(65,45,82,.10)}
   .left .super-diamond--alt1{left:29%}.left .super-diamond--alt2{left:50%}.left .super-diamond--alt3{left:71%}
 
-  .left .grp--abilities,.left .grp--aspects{flex:0 0 auto!important;min-height:76px!important;padding-top:6px!important}
+  /* Abilities and aspects use exactly the same clean square footprint as the
+   * rest of the left-rail icon system. No decorative chevrons/placeholders. */
+  .left .grp--abilities,.left .grp--aspects{
+    flex:0 0 auto!important;
+    min-height:70px!important;
+    padding-top:6px!important;
+  }
   .left .grp--abilities .lbl,.left .grp--aspects .lbl{margin-bottom:6px!important}
-
-  /* Standard left-rail deployment slot. Abilities, aspects, fragments and
-   * artifact perk cells all use the same footprint as the existing artifact
-   * cells so the rail reads as one coherent Destiny equipment system. */
-  .left{--rail-slot:54px;--rail-slot-gap:8px}
   #abilityList,#aspectList,#fragList{
-    min-height:58px!important;
+    min-height:54px!important;
     display:grid!important;
     grid-auto-flow:row!important;
     grid-template-columns:repeat(4,var(--rail-slot))!important;
     gap:var(--rail-slot-gap)!important;
-    align-items:center!important;
+    align-items:start!important;
     justify-content:start!important;
   }
   #abilityList .ability-row,#abilityList .slot,#abilityList .ico-badge,
   #aspectList .slot,#aspectList .ico-badge,
   #fragList .slot,#fragList .ico-badge{
-    width:var(--rail-slot)!important;
-    min-width:var(--rail-slot)!important;
-    max-width:var(--rail-slot)!important;
-    height:var(--rail-slot)!important;
-    min-height:var(--rail-slot)!important;
-    max-height:var(--rail-slot)!important;
+    width:var(--rail-slot)!important;min-width:var(--rail-slot)!important;max-width:var(--rail-slot)!important;
+    height:var(--rail-slot)!important;min-height:var(--rail-slot)!important;max-height:var(--rail-slot)!important;
     box-sizing:border-box!important;
   }
-  .left .artifact-row .perks{
-    display:grid!important;
-    grid-template-columns:repeat(4,var(--rail-slot))!important;
-    gap:var(--rail-slot-gap)!important;
-  }
-  .left .artifact-row .perks>*{
-    width:var(--rail-slot)!important;
-    min-width:var(--rail-slot)!important;
-    height:var(--rail-slot)!important;
-    min-height:var(--rail-slot)!important;
-    box-sizing:border-box!important;
-  }
-
+  #abilityList:empty,#aspectList:empty{position:relative!important}
   #abilityList:empty::before,#aspectList:empty::before{
-    content:"";display:block;width:var(--rail-slot);height:var(--rail-slot);border:1px solid rgba(227,178,60,.10);background:rgba(255,255,255,.012);box-sizing:border-box
+    content:""!important;
+    display:block!important;
+    width:var(--rail-slot)!important;
+    height:var(--rail-slot)!important;
+    border:1px solid rgba(227,178,60,.14)!important;
+    border-radius:7px!important;
+    background:rgba(255,255,255,.012)!important;
+    box-sizing:border-box!important;
+    transform:none!important;
   }
+  #abilityList:empty::after,#aspectList:empty::after{content:none!important;display:none!important}
+
+  .left .artifact-row .perks{display:grid!important;grid-template-columns:repeat(4,var(--rail-slot))!important;gap:var(--rail-slot-gap)!important}
+  .left .artifact-row .perks>*{width:var(--rail-slot)!important;min-width:var(--rail-slot)!important;height:var(--rail-slot)!important;min-height:var(--rail-slot)!important;box-sizing:border-box!important}
 }
