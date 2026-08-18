@@ -1,0 +1,96 @@
+name: Refresh Live Destiny Activity Data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 17 * * *'
+    - cron: '45 17 * * 2'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: astrix-live-activity-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  refresh-live-activity-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Refresh Bungie public milestones and activities
+        id: refresh
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+        run: python3 astrix-app/tools/refresh-live-activity-data.py
+
+      - name: Validate live activity snapshot
+        if: steps.refresh.outputs.changed == 'true'
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          from pathlib import Path
+
+          path = Path('astrix-app/data/paradox-forge/live/destiny-live-activity-snapshot.json')
+          data = json.loads(path.read_text(encoding='utf-8'))
+          required = {'schemaVersion', 'source', 'manifestVersion', 'generatedAt', 'milestoneCount', 'milestones'}
+          missing = required.difference(data)
+          if missing:
+              raise SystemExit(f'Missing live activity fields: {sorted(missing)}')
+          if data['milestoneCount'] != len(data['milestones']):
+              raise SystemExit('milestoneCount does not match milestones length')
+          for milestone in data['milestones']:
+              if not isinstance(milestone.get('milestoneHash'), int):
+                  raise SystemExit('milestoneHash must be an integer')
+              if not isinstance(milestone.get('activities'), list):
+                  raise SystemExit('activities must be a list')
+              for activity in milestone['activities']:
+                  if not isinstance(activity.get('activityHash'), int):
+                      raise SystemExit('activityHash must be an integer')
+          print(json.dumps({
+              'manifestVersion': data['manifestVersion'],
+              'milestones': data['milestoneCount'],
+          }, indent=2))
+          PYEOF
+
+      - name: Commit live activity snapshot when state changes
+        if: steps.refresh.outputs.changed == 'true'
+        env:
+          MANIFEST_VERSION: ${{ steps.refresh.outputs.manifest_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add astrix-app/data/paradox-forge/live/destiny-live-activity-snapshot.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Refresh live Destiny activity data (${MANIFEST_VERSION})"
+          git push origin HEAD:main
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          CHANGED: ${{ steps.refresh.outputs.changed }}
+          MANIFEST_VERSION: ${{ steps.refresh.outputs.manifest_version }}
+          MILESTONES: ${{ steps.refresh.outputs.milestones }}
+          ACTIVITIES: ${{ steps.refresh.outputs.activities }}
+        run: |
+          {
+            echo "## Live Destiny activity refresh"
+            echo
+            echo "- Bungie manifest: ${MANIFEST_VERSION:-unavailable}"
+            echo "- Live state changed: ${CHANGED:-unknown}"
+            echo "- Public milestones: ${MILESTONES:-unknown}"
+            echo "- Unique activities resolved: ${ACTIVITIES:-unknown}"
+            echo
+            echo "Curated Paradox activity intelligence is not modified by this workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
