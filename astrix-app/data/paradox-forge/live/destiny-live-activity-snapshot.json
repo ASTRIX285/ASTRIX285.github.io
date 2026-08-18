@@ -1,0 +1,1518 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": "bungie-public-milestones+current-manifest",
+  "manifestVersion": "244213.26.06.29.2000-1-bnet.65583",
+  "milestoneCount": 12,
+  "milestones": [
+    {
+      "milestoneHash": 3281608164,
+      "name": "Purification",
+      "description": "Complete a Cyst.",
+      "icon": "/common/destiny2_content/icons/4943a19db9d75131c7b1d13165f48c19.png",
+      "isInGameMilestone": true,
+      "startDate": null,
+      "endDate": null,
+      "order": 46,
+      "activities": [],
+      "live": {
+        "milestoneHash": 3281608164,
+        "availableQuests": [
+          {
+            "questItemHash": 1276528297
+          }
+        ],
+        "order": 46
+      }
+    },
+    {
+      "milestoneHash": 4253138191,
+      "name": "Weekly Clan Engrams",
+      "description": "Help your clan earn rewards by completing activities as a group.",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_640c1c6f00fe2d7bb0cd6030c294d655.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 3000,
+      "activities": [],
+      "live": {
+        "milestoneHash": 4253138191,
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 3000
+      }
+    },
+    {
+      "milestoneHash": 3022338715,
+      "name": "The Desert Perpetual",
+      "description": "Step across the threshold of the infinite.",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_0e7324ac0c8ef8f2253e0951004238af.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 7777,
+      "activities": [
+        {
+          "activityHash": 1044919065,
+          "name": "The Desert Perpetual: Standard",
+          "description": "Step across the threshold of the infinite.",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [],
+          "activityModeTypes": [],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            3825969510,
+            1783825372
+          ],
+          "modifiers": [
+            {
+              "hash": 3825969510,
+              "name": "Exotic Drop Rate Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:2591713611}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            },
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 3022338715,
+        "activities": [
+          {
+            "activityHash": 1044919065,
+            "challengeObjectiveHashes": [
+              2620817143
+            ],
+            "modifierHashes": [
+              3825969510,
+              1783825372
+            ],
+            "phaseHashes": [
+              3286837323,
+              3641922583,
+              2881201792,
+              2480815324
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 7777
+      }
+    },
+    {
+      "milestoneHash": 4196566271,
+      "name": "Salvation's Edge",
+      "description": "Free the Light.",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_329a6f8ba06cf48f5831b92c7777b16b.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 7995,
+      "activities": [
+        {
+          "activityHash": 4129614942,
+          "name": "Salvation's Edge: Master",
+          "description": "Free the Light.",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            3958417570,
+            1377274412,
+            3621023005,
+            1204802854,
+            1553052482,
+            2821522136,
+            1315424373,
+            3076996298,
+            4087563963,
+            2006149364,
+            4038464106,
+            2626834038,
+            426976067,
+            3810297122
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 3958417570,
+              "name": "Shielded Foes",
+              "description": "You will face combatants with [Solar] Solar and [Void] Void shields.\n\nActivity modifiers may add more shield types.",
+              "icon": "/common/destiny2_content/icons/2904065e47d928496d45e61f08c0a957.png"
+            },
+            {
+              "hash": 1377274412,
+              "name": "Shielded Foes",
+              "description": "[Solar] Solar and [Void] Void Shields",
+              "icon": "/common/destiny2_content/icons/2904065e47d928496d45e61f08c0a957.png"
+            },
+            {
+              "hash": 3621023005,
+              "name": "Scenic Route Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 1204802854,
+              "name": "At Capacity Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 1553052482,
+              "name": "Balanced Diet Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 2821522136,
+              "name": "Varied Geometry Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 1315424373,
+              "name": "Coordinated Efforts Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 3076996298,
+              "name": "Exotic Drop Rate Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:3177264920}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            },
+            {
+              "hash": 4087563963,
+              "name": "Master Modifiers",
+              "description": "Extra Champions\nExtra Shields",
+              "icon": "/common/destiny2_content/icons/e6507058cbddfc8b72dde057674e792a.png"
+            },
+            {
+              "hash": 2006149364,
+              "name": "Champion Foes",
+              "description": "You will face [Shield-Piercing] Barrier, [Disruption] Overload, and [Stagger] Unstoppable Champions.\n\nVisit the Character or Mod Customization screen to view your active anti-Champion perks.",
+              "icon": "/common/destiny2_content/icons/70c843c68353be08b99389e2e910cb02.png"
+            },
+            {
+              "hash": 4038464106,
+              "name": "Champion Foes",
+              "description": "You will face [Shield-Piercing] Barrier, [Disruption] Overload, and [Stagger] Unstoppable Champions.",
+              "icon": "/common/destiny2_content/icons/70c843c68353be08b99389e2e910cb02.png"
+            },
+            {
+              "hash": 2626834038,
+              "name": "Overcharged Fusion Rifle",
+              "description": "{var:1027206613}% bonus to Fusion Rifle damage.",
+              "icon": "/common/destiny2_content/icons/b1db6bd79264f6ed90647eec71146a63.png"
+            },
+            {
+              "hash": 426976067,
+              "name": "Solar Surge",
+              "description": "{var:2189146210}% bonus to outgoing Solar damage.",
+              "icon": "/common/destiny2_content/icons/1f27bdc178bf645944119d6481f33656.png"
+            },
+            {
+              "hash": 3810297122,
+              "name": "Strand Surge",
+              "description": "{var:2189146210}% bonus to outgoing Strand damage.",
+              "icon": "/common/destiny2_content/icons/e8ab8ba72b54125d2750e943ba6c824d.png"
+            }
+          ]
+        },
+        {
+          "activityHash": 1541433876,
+          "name": "Salvation's Edge: Standard",
+          "description": "Free the Light.",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            3958417570,
+            1377274412,
+            3621023005,
+            1204802854,
+            1553052482,
+            2821522136,
+            1315424373,
+            3076996298
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 3958417570,
+              "name": "Shielded Foes",
+              "description": "You will face combatants with [Solar] Solar and [Void] Void shields.\n\nActivity modifiers may add more shield types.",
+              "icon": "/common/destiny2_content/icons/2904065e47d928496d45e61f08c0a957.png"
+            },
+            {
+              "hash": 1377274412,
+              "name": "Shielded Foes",
+              "description": "[Solar] Solar and [Void] Void Shields",
+              "icon": "/common/destiny2_content/icons/2904065e47d928496d45e61f08c0a957.png"
+            },
+            {
+              "hash": 3621023005,
+              "name": "Scenic Route Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 1204802854,
+              "name": "At Capacity Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 1553052482,
+              "name": "Balanced Diet Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 2821522136,
+              "name": "Varied Geometry Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 1315424373,
+              "name": "Coordinated Efforts Challenge",
+              "description": "\"Salvation's Edge\" raid challenge modes.",
+              "icon": "/common/destiny2_content/icons/10eb0f19b91d49c7b3e983cf8e32094f.png"
+            },
+            {
+              "hash": 3076996298,
+              "name": "Exotic Drop Rate Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:3177264920}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 4196566271,
+        "activities": [
+          {
+            "activityHash": 1541433876,
+            "challengeObjectiveHashes": [],
+            "modifierHashes": [
+              1783825372,
+              3958417570,
+              1377274412,
+              3621023005,
+              1204802854,
+              1553052482,
+              2821522136,
+              1315424373,
+              3076996298
+            ],
+            "phaseHashes": [
+              2761002327,
+              193978048,
+              1727550020,
+              637313410,
+              4077323831
+            ]
+          },
+          {
+            "activityHash": 4129614942,
+            "challengeObjectiveHashes": [],
+            "modifierHashes": [
+              1783825372,
+              3958417570,
+              1377274412,
+              3621023005,
+              1204802854,
+              1553052482,
+              2821522136,
+              1315424373,
+              3076996298,
+              4087563963,
+              2006149364,
+              4038464106,
+              2626834038,
+              426976067,
+              3810297122
+            ],
+            "phaseHashes": [
+              2761002327,
+              193978048,
+              1727550020,
+              637313410,
+              4077323831
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 7995
+      }
+    },
+    {
+      "milestoneHash": 540415767,
+      "name": "Crota's End",
+      "description": "He waits in the dark below.",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_2c5b645accc12584f882c472deb30017.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 7998,
+      "activities": [
+        {
+          "activityHash": 107319834,
+          "name": "Crota's End: Standard",
+          "description": "He waits in the dark below.",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            3230561446,
+            3119632620,
+            3636591526,
+            2768385440,
+            732074628,
+            3523029182
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 3230561446,
+              "name": "Shielded Foes",
+              "description": "You will face combatants with [Arc] Arc and [Solar] Solar shields.\n\nActivity modifiers may add more shield types.",
+              "icon": "/common/destiny2_content/icons/50f19e0cf1b9864d47a9f0538440b916.png"
+            },
+            {
+              "hash": 3119632620,
+              "name": "Shielded Foes",
+              "description": "[Arc] Arc and [Solar] Solar Shields",
+              "icon": "/common/destiny2_content/icons/50f19e0cf1b9864d47a9f0538440b916.png"
+            },
+            {
+              "hash": 3636591526,
+              "name": "Conservation of Energy",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/5e9b55c6e24cc842479aeddf80068fd0.png"
+            },
+            {
+              "hash": 2768385440,
+              "name": "Precarious Balance",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/5e9b55c6e24cc842479aeddf80068fd0.png"
+            },
+            {
+              "hash": 732074628,
+              "name": "Equal Vessels",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/5e9b55c6e24cc842479aeddf80068fd0.png"
+            },
+            {
+              "hash": 3523029182,
+              "name": "All for One",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/5e9b55c6e24cc842479aeddf80068fd0.png"
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 540415767,
+        "activities": [
+          {
+            "activityHash": 107319834,
+            "challengeObjectiveHashes": [],
+            "modifierHashes": [
+              1783825372,
+              3230561446,
+              3119632620,
+              3636591526,
+              2768385440,
+              732074628,
+              3523029182
+            ],
+            "phaseHashes": [
+              2890972472,
+              3768812794,
+              1463700798,
+              4240994016
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 7998
+      }
+    },
+    {
+      "milestoneHash": 1888320892,
+      "name": "Vault of Glass",
+      "description": "Beneath Venus, evil stirs…",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_44a010ae763cd975d56c632ff72c48a1.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 8000,
+      "activities": [
+        {
+          "activityHash": 3881495763,
+          "name": "Vault of Glass: Standard",
+          "description": "Beneath Venus, evil stirs…",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            3135466059,
+            274420331,
+            2814846409,
+            3212721586,
+            1572570117,
+            4075903438
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 3135466059,
+              "name": "Wait For It…",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/75155c6d06a82303493cca1f29b622b2.png"
+            },
+            {
+              "hash": 274420331,
+              "name": "The Only Oracle For You",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/75155c6d06a82303493cca1f29b622b2.png"
+            },
+            {
+              "hash": 2814846409,
+              "name": "Out of Its Way",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/75155c6d06a82303493cca1f29b622b2.png"
+            },
+            {
+              "hash": 3212721586,
+              "name": "Strangers in Time",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/75155c6d06a82303493cca1f29b622b2.png"
+            },
+            {
+              "hash": 1572570117,
+              "name": "Ensemble's Refrain",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/75155c6d06a82303493cca1f29b622b2.png"
+            },
+            {
+              "hash": 4075903438,
+              "name": "Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:3027371367}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 1888320892,
+        "activities": [
+          {
+            "activityHash": 3881495763,
+            "challengeObjectiveHashes": [],
+            "modifierHashes": [
+              1783825372,
+              3135466059,
+              274420331,
+              2814846409,
+              3212721586,
+              1572570117,
+              4075903438
+            ],
+            "phaseHashes": [
+              1327839050,
+              1327839048,
+              1327839049,
+              3793779770,
+              3793779769
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 8000
+      }
+    },
+    {
+      "milestoneHash": 292102995,
+      "name": "King's Fall",
+      "description": "Long live the King…",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_58109af839b023d7bf44c7b734818e47.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 8001,
+      "activities": [
+        {
+          "activityHash": 3257594522,
+          "name": "King's Fall: Master",
+          "description": "Long live the King…",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            3282103678,
+            1783825372,
+            3577304467,
+            2159250954,
+            2890753840,
+            2936050162,
+            4152669757,
+            3230561446,
+            3119632620,
+            4087563963,
+            2006149364,
+            4038464106,
+            1282934989,
+            426976067,
+            3810297122
+          ],
+          "modifiers": [
+            {
+              "hash": 3282103678,
+              "name": "Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:2223847550}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            },
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 3577304467,
+              "name": "The Grass Is Always Greener",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 2159250954,
+              "name": "Devious Thievery",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 2890753840,
+              "name": "Gaze Amaze",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 2936050162,
+              "name": "Under Construction",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 4152669757,
+              "name": "Hands Off",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 3230561446,
+              "name": "Shielded Foes",
+              "description": "You will face combatants with [Arc] Arc and [Solar] Solar shields.\n\nActivity modifiers may add more shield types.",
+              "icon": "/common/destiny2_content/icons/50f19e0cf1b9864d47a9f0538440b916.png"
+            },
+            {
+              "hash": 3119632620,
+              "name": "Shielded Foes",
+              "description": "[Arc] Arc and [Solar] Solar Shields",
+              "icon": "/common/destiny2_content/icons/50f19e0cf1b9864d47a9f0538440b916.png"
+            },
+            {
+              "hash": 4087563963,
+              "name": "Master Modifiers",
+              "description": "Extra Champions\nExtra Shields",
+              "icon": "/common/destiny2_content/icons/e6507058cbddfc8b72dde057674e792a.png"
+            },
+            {
+              "hash": 2006149364,
+              "name": "Champion Foes",
+              "description": "You will face [Shield-Piercing] Barrier, [Disruption] Overload, and [Stagger] Unstoppable Champions.\n\nVisit the Character or Mod Customization screen to view your active anti-Champion perks.",
+              "icon": "/common/destiny2_content/icons/70c843c68353be08b99389e2e910cb02.png"
+            },
+            {
+              "hash": 4038464106,
+              "name": "Champion Foes",
+              "description": "You will face [Shield-Piercing] Barrier, [Disruption] Overload, and [Stagger] Unstoppable Champions.",
+              "icon": "/common/destiny2_content/icons/70c843c68353be08b99389e2e910cb02.png"
+            },
+            {
+              "hash": 1282934989,
+              "name": "Overcharged Sniper Rifle",
+              "description": "{var:1027206613}% bonus to Sniper Rifle damage.",
+              "icon": "/common/destiny2_content/icons/42ee3b4d0e96fb29e45a17402d764cac.png"
+            },
+            {
+              "hash": 426976067,
+              "name": "Solar Surge",
+              "description": "{var:2189146210}% bonus to outgoing Solar damage.",
+              "icon": "/common/destiny2_content/icons/1f27bdc178bf645944119d6481f33656.png"
+            },
+            {
+              "hash": 3810297122,
+              "name": "Strand Surge",
+              "description": "{var:2189146210}% bonus to outgoing Strand damage.",
+              "icon": "/common/destiny2_content/icons/e8ab8ba72b54125d2750e943ba6c824d.png"
+            }
+          ]
+        },
+        {
+          "activityHash": 1374392663,
+          "name": "King's Fall: Standard",
+          "description": "Long live the King…",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            3577304467,
+            2159250954,
+            2890753840,
+            2936050162,
+            4152669757,
+            3282103678
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 3577304467,
+              "name": "The Grass Is Always Greener",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 2159250954,
+              "name": "Devious Thievery",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 2890753840,
+              "name": "Gaze Amaze",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 2936050162,
+              "name": "Under Construction",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 4152669757,
+              "name": "Hands Off",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/0e11e2552752554039b129908859487a.png"
+            },
+            {
+              "hash": 3282103678,
+              "name": "Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:2223847550}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 292102995,
+        "activities": [
+          {
+            "activityHash": 1374392663,
+            "challengeObjectiveHashes": [
+              406803827
+            ],
+            "modifierHashes": [
+              1783825372,
+              3577304467,
+              2159250954,
+              2890753840,
+              2936050162,
+              4152669757,
+              3282103678
+            ],
+            "phaseHashes": [
+              1406613360,
+              2115142089,
+              3738629258,
+              2951654489,
+              1089000747
+            ]
+          },
+          {
+            "activityHash": 3257594522,
+            "challengeObjectiveHashes": [
+              406803827
+            ],
+            "modifierHashes": [
+              3282103678,
+              1783825372,
+              3577304467,
+              2159250954,
+              2890753840,
+              2936050162,
+              4152669757,
+              3230561446,
+              3119632620,
+              4087563963,
+              2006149364,
+              4038464106,
+              1282934989,
+              426976067,
+              3810297122
+            ],
+            "phaseHashes": [
+              1406613360,
+              2115142089,
+              3738629258,
+              2951654489,
+              1089000747
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 8001
+      }
+    },
+    {
+      "milestoneHash": 3699252268,
+      "name": "Root of Nightmares",
+      "description": "A sinister threat has taken root.",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_d3dc8747ee63f991c6a56ac7908047ba.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 8001,
+      "activities": [
+        {
+          "activityHash": 2381413764,
+          "name": "Root of Nightmares: Standard",
+          "description": "A sinister threat has taken root.",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            766975360,
+            138641527,
+            2070303007,
+            1616571513,
+            1172122584
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 766975360,
+              "name": "Illuminated Torment Challenge",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/86291d01b1b39aa815adbeff3295aa43.png"
+            },
+            {
+              "hash": 138641527,
+              "name": "Crossfire Challenge",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/86291d01b1b39aa815adbeff3295aa43.png"
+            },
+            {
+              "hash": 2070303007,
+              "name": "Cosmic Equilibrium Challenge",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/86291d01b1b39aa815adbeff3295aa43.png"
+            },
+            {
+              "hash": 1616571513,
+              "name": "All Hands Challenge",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/86291d01b1b39aa815adbeff3295aa43.png"
+            },
+            {
+              "hash": 1172122584,
+              "name": "Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:2935433793}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 3699252268,
+        "activities": [
+          {
+            "activityHash": 2381413764,
+            "challengeObjectiveHashes": [],
+            "modifierHashes": [
+              1783825372,
+              766975360,
+              138641527,
+              2070303007,
+              1616571513,
+              1172122584
+            ],
+            "phaseHashes": [
+              3172054256,
+              2224793617,
+              2184227225,
+              2779782231
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 8001
+      }
+    },
+    {
+      "milestoneHash": 2136320298,
+      "name": "Vow of the Disciple",
+      "description": "The disciple beckons…",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_bc5d4a8377955b809dbbe0fb71645e6e.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 8002,
+      "activities": [
+        {
+          "activityHash": 3889634515,
+          "name": "Vow of the Disciple: Master",
+          "description": "The disciple beckons…",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1834872958,
+            2672226122,
+            3425521520,
+            2255984700,
+            2098788044,
+            1783825372,
+            1651706850,
+            2288210988,
+            4087563963,
+            3307318061,
+            40182179,
+            2626834038,
+            426976067,
+            3810297122
+          ],
+          "modifiers": [
+            {
+              "hash": 1834872958,
+              "name": "Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:1968703538}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            },
+            {
+              "hash": 2672226122,
+              "name": "Swift Destruction",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/2d2330c849610269af5c58934840b329.png"
+            },
+            {
+              "hash": 3425521520,
+              "name": "Base Information",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/2d2330c849610269af5c58934840b329.png"
+            },
+            {
+              "hash": 2255984700,
+              "name": "Defenses Down",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/2d2330c849610269af5c58934840b329.png"
+            },
+            {
+              "hash": 2098788044,
+              "name": "Looping Catalyst",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/2d2330c849610269af5c58934840b329.png"
+            },
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 1651706850,
+              "name": "Shielded Foes",
+              "description": "You will face combatants with [Arc] Arc, [Solar] Solar, and [Void] Void shields.",
+              "icon": "/common/destiny2_content/icons/73cb7124116c4fca5c873cfd06e7de1a.png"
+            },
+            {
+              "hash": 2288210988,
+              "name": "Shielded Foes",
+              "description": "[Arc] Arc, [Solar] Solar, and [Void] Void Shields",
+              "icon": "/common/destiny2_content/icons/73cb7124116c4fca5c873cfd06e7de1a.png"
+            },
+            {
+              "hash": 4087563963,
+              "name": "Master Modifiers",
+              "description": "Extra Champions\nExtra Shields",
+              "icon": "/common/destiny2_content/icons/e6507058cbddfc8b72dde057674e792a.png"
+            },
+            {
+              "hash": 3307318061,
+              "name": "Champion Foes",
+              "description": "You will face [Disruption] Overload and [Stagger] Unstoppable Champions.\n\nVisit the Character or Mod Customization screen to view your active anti-Champion perks.",
+              "icon": "/common/destiny2_content/icons/168464ee469b5ba09149e84cb39d334e.png"
+            },
+            {
+              "hash": 40182179,
+              "name": "Champion Foes",
+              "description": "You will face [Disruption] Overload and [Stagger] Unstoppable Champions.",
+              "icon": "/common/destiny2_content/icons/168464ee469b5ba09149e84cb39d334e.png"
+            },
+            {
+              "hash": 2626834038,
+              "name": "Overcharged Fusion Rifle",
+              "description": "{var:1027206613}% bonus to Fusion Rifle damage.",
+              "icon": "/common/destiny2_content/icons/b1db6bd79264f6ed90647eec71146a63.png"
+            },
+            {
+              "hash": 426976067,
+              "name": "Solar Surge",
+              "description": "{var:2189146210}% bonus to outgoing Solar damage.",
+              "icon": "/common/destiny2_content/icons/1f27bdc178bf645944119d6481f33656.png"
+            },
+            {
+              "hash": 3810297122,
+              "name": "Strand Surge",
+              "description": "{var:2189146210}% bonus to outgoing Strand damage.",
+              "icon": "/common/destiny2_content/icons/e8ab8ba72b54125d2750e943ba6c824d.png"
+            }
+          ]
+        },
+        {
+          "activityHash": 1441982566,
+          "name": "Vow of the Disciple: Standard",
+          "description": "The disciple beckons…",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            2672226122,
+            3425521520,
+            2255984700,
+            2098788044,
+            1834872958
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 2672226122,
+              "name": "Swift Destruction",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/2d2330c849610269af5c58934840b329.png"
+            },
+            {
+              "hash": 3425521520,
+              "name": "Base Information",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/2d2330c849610269af5c58934840b329.png"
+            },
+            {
+              "hash": 2255984700,
+              "name": "Defenses Down",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/2d2330c849610269af5c58934840b329.png"
+            },
+            {
+              "hash": 2098788044,
+              "name": "Looping Catalyst",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/2d2330c849610269af5c58934840b329.png"
+            },
+            {
+              "hash": 1834872958,
+              "name": "Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:1968703538}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 2136320298,
+        "activities": [
+          {
+            "activityHash": 1441982566,
+            "challengeObjectiveHashes": [],
+            "modifierHashes": [
+              1783825372,
+              2672226122,
+              3425521520,
+              2255984700,
+              2098788044,
+              1834872958
+            ],
+            "phaseHashes": [
+              580855089,
+              1942966197,
+              196663595,
+              3840791265
+            ]
+          },
+          {
+            "activityHash": 3889634515,
+            "challengeObjectiveHashes": [],
+            "modifierHashes": [
+              1834872958,
+              2672226122,
+              3425521520,
+              2255984700,
+              2098788044,
+              1783825372,
+              1651706850,
+              2288210988,
+              4087563963,
+              3307318061,
+              40182179,
+              2626834038,
+              426976067,
+              3810297122
+            ],
+            "phaseHashes": [
+              580855089,
+              1942966197,
+              196663595,
+              3840791265
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 8002
+      }
+    },
+    {
+      "milestoneHash": 3181387331,
+      "name": "Last Wish",
+      "description": "\"The opportunity of a lifetime.\"",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_56d1f52f0cb40248a990408d7ac84bd3.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 9200,
+      "activities": [
+        {
+          "activityHash": 2122313384,
+          "name": "Last Wish: Standard",
+          "description": "\"The opportunity of a lifetime.\"",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            2834033523,
+            217815700,
+            3632655552,
+            1741733430,
+            1498263100,
+            1874523520
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 2834033523,
+              "name": "Summoning Ritual",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 217815700,
+              "name": "Which Witch",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 3632655552,
+              "name": "Forever Fight",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 1741733430,
+              "name": "Keep Out",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 1498263100,
+              "name": "Strength of Memory",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 1874523520,
+              "name": "Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:1641349362}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 3181387331,
+        "activities": [
+          {
+            "activityHash": 2122313384,
+            "challengeObjectiveHashes": [],
+            "modifierHashes": [
+              1783825372,
+              2834033523,
+              217815700,
+              3632655552,
+              1741733430,
+              1498263100,
+              1874523520
+            ],
+            "phaseHashes": [
+              1126840038,
+              1040714588,
+              4249034918,
+              436847112,
+              2392610624
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 9200
+      }
+    },
+    {
+      "milestoneHash": 541780856,
+      "name": "Deep Stone Crypt",
+      "description": "The chains of legacy must be broken.",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_427561ad3d02d80a76a9cce7802c1323.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 9300,
+      "activities": [
+        {
+          "activityHash": 910380154,
+          "name": "Deep Stone Crypt",
+          "description": "The chains of legacy must be broken.",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            4023623132,
+            3361897360,
+            201968501,
+            191124900,
+            3901838854
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 4023623132,
+              "name": "Red Rover",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 3361897360,
+              "name": "Copies of Copies",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 201968501,
+              "name": "Of All Trades",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 191124900,
+              "name": "The Core Four",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 3901838854,
+              "name": "Boosts Gained",
+              "description": "Initial Exotic drop rate boosts: {var:733308108}",
+              "icon": "/common/destiny2_content/icons/e8b3345969eca43c46bfc13c0964f267.png"
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 541780856,
+        "activities": [
+          {
+            "activityHash": 910380154,
+            "challengeObjectiveHashes": [],
+            "modifierHashes": [
+              1783825372,
+              4023623132,
+              3361897360,
+              201968501,
+              191124900,
+              3901838854
+            ],
+            "phaseHashes": [
+              2776463390,
+              416127450,
+              1858926029,
+              4035296150
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 9300
+      }
+    },
+    {
+      "milestoneHash": 2712317338,
+      "name": "Garden of Salvation",
+      "description": "Defeat the Sanctified Mind.",
+      "icon": "/common/destiny2_content/icons/DestinyMilestoneDefinition_eb9f4e265e29cb5e50559b6bf814a9c9.png",
+      "isInGameMilestone": false,
+      "startDate": "2026-08-18T17:00:00Z",
+      "endDate": "2026-08-25T17:00:00Z",
+      "order": 9300,
+      "activities": [
+        {
+          "activityHash": 1042180643,
+          "name": "Garden of Salvation",
+          "description": "\"The Garden calls out to you.\"",
+          "icon": "/common/destiny2_content/icons/bd7a1fc995f87be96698263bc16698e7.png",
+          "activityModeHashes": [
+            2043403989,
+            1164760493
+          ],
+          "activityModeTypes": [
+            4,
+            7
+          ],
+          "isPvP": false,
+          "recommendedLight": null,
+          "modifierHashes": [
+            1783825372,
+            584466411,
+            787678752,
+            2626004713,
+            4073197101
+          ],
+          "modifiers": [
+            {
+              "hash": 1783825372,
+              "name": "",
+              "description": "",
+              "icon": ""
+            },
+            {
+              "hash": 584466411,
+              "name": "Leftovers",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 787678752,
+              "name": "A Link to the Chain",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 2626004713,
+              "name": "To the Top",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            },
+            {
+              "hash": 4073197101,
+              "name": "Zero to One Hundred",
+              "description": "A challenge awaits…",
+              "icon": "/common/destiny2_content/icons/135816ebe386fca59bd2e65769f821e9.png"
+            }
+          ]
+        }
+      ],
+      "live": {
+        "milestoneHash": 2712317338,
+        "activities": [
+          {
+            "activityHash": 1042180643,
+            "challengeObjectiveHashes": [
+              2398860795
+            ],
+            "modifierHashes": [
+              1783825372,
+              584466411,
+              787678752,
+              2626004713,
+              4073197101
+            ],
+            "phaseHashes": [
+              2158557525,
+              3736477924,
+              1024471091,
+              523815399
+            ]
+          }
+        ],
+        "startDate": "2026-08-18T17:00:00Z",
+        "endDate": "2026-08-25T17:00:00Z",
+        "order": 9300
+      }
+    }
+  ],
+  "generatedAt": "2026-08-18T23:50:59Z"
+}
