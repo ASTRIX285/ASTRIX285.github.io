@@ -7,6 +7,7 @@ const BUCKETS={kinetic:1498876634,energy:2465295065,power:953998645,helmet:34482
 const ARMOUR_ORDER=[BUCKETS.helmet,BUCKETS.gauntlets,BUCKETS.chest,BUCKETS.legs,BUCKETS.classItem];
 const WEAPON_ORDER=[BUCKETS.kinetic,BUCKETS.energy,BUCKETS.power];
 const STAT_ORDER=[["Weapons",2996146975],["Health",392767087],["Class",1943323491],["Grenade",1735777505],["Super",144602215],["Melee",4244567218]];
+const SELECTED_CHARACTER_KEY="astrix:selected-character-id";
 const loadoutCache=new Map();
 let liveProfilePayload=null;
 let liveProfileSession=null;
@@ -54,6 +55,20 @@ function classifySubclass(item){
 function activeCharacter(profile){
   const rows=Object.values(profile?.characters?.data||{});
   return rows.sort((a,b)=>String(b.dateLastPlayed||"").localeCompare(String(a.dateLastPlayed||"")))[0]||null;
+}
+
+function rememberedCharacterId(profile){
+  try{
+    const id=String(sessionStorage.getItem(SELECTED_CHARACTER_KEY)||"");
+    return id&&profile?.characters?.data?.[id]?id:"";
+  }catch{
+    return "";
+  }
+}
+
+function rememberCharacterId(characterId){
+  try{sessionStorage.setItem(SELECTED_CHARACTER_KEY,String(characterId||""));}
+  catch{}
 }
 
 function guardianRank(profile){
@@ -221,8 +236,10 @@ function identityCosmetics(profile,definitions,equipment,character){
 function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const profile=payload.profile||{};
   const definitions=payload.definitions||{};
-  const character=(preferredCharacterId&&profile?.characters?.data?.[preferredCharacterId])||activeCharacter(profile);
+  const explicitCharacterId=String(preferredCharacterId||"");
+  const character=explicitCharacterId?profile?.characters?.data?.[explicitCharacterId]:activeCharacter(profile);
   console.log("[TRACE resolve] preferred:", preferredCharacterId, "→ resolved:", character?.characterId, "class:", character?.classType);
+  if(explicitCharacterId&&!character)throw new Error(`Selected Bungie character was not found: ${explicitCharacterId}`);
   if(!character?.characterId)throw new Error("No Destiny character was returned for this membership.");
   const equipment=profile?.characterEquipment?.data?.[character.characterId]?.items||[];
   const byBucket=hash=>equipment.find(item=>definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===hash)||null;
@@ -375,15 +392,24 @@ async function loadLiveProfile(session,{background=false}={}){
     document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
   }
   const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
-  const detail=normaliseLiveProfile(payload,session);
   liveProfilePayload=payload;
   liveProfileSession=session;
+  const selectedCharacterId=rememberedCharacterId(payload.profile);
+  publishCharacterRoster(payload,selectedCharacterId);
+
   document.documentElement.dataset.guardianSource="bungie-live";
   document.documentElement.dataset.equippedActive="true";
+
+  if(!selectedCharacterId){
+    setRenderStatus("SELECT GUARDIAN","Choose Hunter, Warlock or Titan","Waiting for an explicit Bungie character selection");
+    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{source:"bungie-live",pendingSelection:true,characterId:""}}));
+    return null;
+  }
+
+  const detail=normaliseLiveProfile(payload,session,selectedCharacterId);
   setRenderStatus("BUILD INTELLIGENCE","Live profile data ready","Equipment and loadout analysis active");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail}));
-  publishCharacterRoster(payload,detail.characterId);
   return detail;
 }
 
@@ -391,6 +417,7 @@ function selectLiveCharacter(characterId){
   console.log("[TRACE select] clicked id:", characterId, "| exists in profile?", !!liveProfilePayload?.profile?.characters?.data?.[characterId]);
   if(!liveProfilePayload)return null;
   const detail=normaliseLiveProfile(liveProfilePayload,liveProfileSession,characterId);
+  rememberCharacterId(detail.characterId);
   document.documentElement.dataset.guardianSource="bungie-live";
   document.documentElement.dataset.equippedActive="true";
   setRenderStatus("BUILD INTELLIGENCE",`${detail.characterClass} profile ready`,"Live equipment and saved loadouts selected");
