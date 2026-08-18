@@ -21,7 +21,6 @@ const escapeHtml = value =>
     "'": "&#39;"
   }[character]));
 
-// Prepend Bungie CDN domain to any relative asset path
 const bungieUrl = path => {
   if (!path) return "";
   return path.startsWith("http") ? path : `https://www.bungie.net${path}`;
@@ -33,6 +32,9 @@ const iconMarkup = (icon, name) => {
     ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(name || '')}" loading="lazy" decoding="async" onerror="this.style.opacity=0">`
     : `<span class="ico-fb">◆</span>`;
 };
+
+const emptyRailSlot = () => `<span class="rail-empty-slot" aria-hidden="true"></span>`;
+const padRailSlots = (markup, filled, target) => `${markup}${Array.from({ length: Math.max(0, target - filled) }, emptyRailSlot).join("")}`;
 
 const workspaceState = {
   characterId: null,
@@ -55,32 +57,22 @@ let stageLoadingTimer = 0;
 
 function setStageState(state, message = "") {
   const stage = document.querySelector(".stage");
-  if (stage) {
-    stage.dataset.state = state || "ready";
-  }
+  if (stage) stage.dataset.state = state || "ready";
   clearTimeout(stageLoadingTimer);
 
   const titleNode = byId("stageStateTitle");
   const msgNode = byId("stageStateMessage");
 
   if (titleNode) {
-    if (state === "loading") {
-      titleNode.textContent = "SYNCING TELEMETRY";
-    } else if (state === "error") {
-      titleNode.textContent = "TELEMETRY UNAVAILABLE";
-    } else {
-      titleNode.textContent = "GUARDIAN TELEMETRY";
-    }
+    if (state === "loading") titleNode.textContent = "SYNCING TELEMETRY";
+    else if (state === "error") titleNode.textContent = "TELEMETRY UNAVAILABLE";
+    else titleNode.textContent = "GUARDIAN TELEMETRY";
   }
 
   if (msgNode) {
-    if (state === "loading") {
-      msgNode.textContent = message || "Loading Guardian profile from Bungie API…";
-    } else if (state === "error") {
-      msgNode.textContent = message || "Guardian data could not be resolved.";
-    } else {
-      msgNode.textContent = message || "Select a character or loadout to inspect live data metrics.";
-    }
+    if (state === "loading") msgNode.textContent = message || "Loading Guardian profile from Bungie API…";
+    else if (state === "error") msgNode.textContent = message || "Guardian data could not be resolved.";
+    else msgNode.textContent = message || "Select a character or loadout to inspect live data metrics.";
   }
 
   if (state === "loading") {
@@ -110,29 +102,7 @@ function renderVerifiedPreview(data = {}) {
 }
 
 function renderSubclassBuild(build = {}, subclassName = "Subclass") {
-  const crest = byId("scCrest");
-  const scNameEl = byId("scSubclassName");
-  const scClassEl = byId("scClassLabel");
-  const clusterHost = byId("destinySuperCluster");
-
-  if (crest && workspaceState.subclassIcon) {
-    crest.src = bungieUrl(workspaceState.subclassIcon);
-    crest.style.display = "block";
-    crest.style.opacity = "1";
-  }
-
-  if (scNameEl) {
-    scNameEl.textContent = (subclassName || workspaceState.subclassName || "SUBCLASS").toUpperCase();
-  }
-
-  if (scClassEl) {
-    scClassEl.textContent = `${(workspaceState.characterClass || "GUARDIAN").toUpperCase()} SUBCLASS ▾`;
-  }
-
   const activeElement = (workspaceState.subclass || "arc").toLowerCase();
-  if (clusterHost) {
-    clusterHost.dataset.subclass = activeElement;
-  }
   document.documentElement.dataset.subclass = activeElement;
 
   const activeSuper = build.super;
@@ -140,110 +110,80 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
     ? build.superOptions
     : (activeSuper ? [activeSuper] : []);
 
-  // Main Super Diamond
-  const mainIcon = byId("superMainIcon");
-  const superMainContainer = byId("superMain");
-  if (mainIcon && activeSuper) {
-    mainIcon.src = bungieUrl(activeSuper.icon);
-    mainIcon.style.opacity = "1";
-    if (superMainContainer) {
-      superMainContainer.title = `Active Super: ${activeSuper.name || "Equipped"}`;
-    }
-  }
-
-  // Variant Diamonds
   const alternates = superOptions.filter(opt => Number(opt.hash) !== Number(activeSuper?.hash));
-
-  const sub0 = byId("superSub0");
-  const sub0Icon = byId("superSub0Icon");
-  if (sub0Icon) {
-    if (alternates[0]) {
-      sub0Icon.src = bungieUrl(alternates[0].icon);
-      sub0Icon.style.opacity = "1";
-      if (sub0) sub0.title = alternates[0].name || "Super Variant";
-    } else {
-      sub0Icon.style.opacity = "0";
-    }
+  const featureHost = byId("superFeatureCluster");
+  if (featureHost) {
+    const slots = [activeSuper, alternates[0] || null, alternates[1] || null, alternates[2] || null];
+    featureHost.querySelectorAll("[data-super-slot]").forEach((slot, index) => {
+      const item = slots[index];
+      const holder = slot.querySelector("span");
+      if (!holder) return;
+      if (item?.icon) {
+        holder.innerHTML = iconMarkup(item.icon, item.name);
+        slot.classList.add("has-live-icon");
+        slot.title = item.name || (index === 0 ? "Equipped Super" : "Alternate Super");
+      } else {
+        holder.innerHTML = "◆";
+        slot.classList.remove("has-live-icon");
+        slot.removeAttribute("title");
+      }
+    });
   }
 
-  const sub1 = byId("superSub1");
-  const sub1Icon = byId("superSub1Icon");
-  if (sub1Icon) {
-    if (alternates[1]) {
-      sub1Icon.src = bungieUrl(alternates[1].icon);
-      sub1Icon.style.opacity = "1";
-      if (sub1) sub1.title = alternates[1].name || "Super Variant";
-    } else {
-      sub1Icon.style.opacity = "0";
-    }
-  }
+  const subclassNameNode = byId("subclassName");
+  if (subclassNameNode) subclassNameNode.textContent = activeSuper?.name || subclassName || "SELECTED SUPER";
 
-  const sub2 = byId("superSub2");
-  const sub2Icon = byId("superSub2Icon");
-  if (sub2Icon && activeSuper) {
-    sub2Icon.src = bungieUrl(activeSuper.icon);
-    sub2Icon.style.opacity = "0.4";
-    if (sub2) sub2.title = `${activeSuper.name || "Active Super"} (Equipped)`;
-  }
-
-  // Abilities List
-  const abilities = Array.isArray(build.abilities) ? build.abilities : [];
+  const abilities = Array.isArray(build.abilities) ? build.abilities.slice(0, 4) : [];
   const abilityHost = byId("abilityList");
   if (abilityHost) {
-    if (abilities.length) {
-      abilityHost.innerHTML = abilities.map(item => `
-        <div class="ability-row">
-          <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
-          <div class="meta">
-            <small>${escapeHtml(item.itemTypeDisplayName || subclassName)}</small>
-            <b>${escapeHtml(item.name)}</b>
-          </div>
-        </div>
-      `).join("");
-    } else {
-      abilityHost.innerHTML = "";
-    }
+    const markup = abilities.map(item => `
+      <div class="ability-row" title="${escapeHtml(item.name)}">
+        <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
+        <div class="meta"><small>${escapeHtml(item.itemTypeDisplayName || subclassName)}</small><b>${escapeHtml(item.name)}</b></div>
+      </div>
+    `).join("");
+    abilityHost.innerHTML = padRailSlots(markup, abilities.length, 4);
   }
 
-  // Aspects List
-  const aspects = Array.isArray(build.aspects) ? build.aspects : [];
+  const aspects = Array.isArray(build.aspects) ? build.aspects.slice(0, 2) : [];
   const aspectHost = byId("aspectList");
   if (aspectHost) {
-    if (aspects.length) {
-      aspectHost.innerHTML = aspects.map(item => `
-        <div class="slot">
-          <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
-          <span class="nm">${escapeHtml(item.name)}</span>
-        </div>
-      `).join("");
-    } else {
-      aspectHost.innerHTML = "";
-    }
+    const markup = aspects.map(item => `
+      <div class="slot" title="${escapeHtml(item.name)}">
+        <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
+        <span class="nm">${escapeHtml(item.name)}</span>
+      </div>
+    `).join("");
+    aspectHost.innerHTML = padRailSlots(markup, aspects.length, 2);
   }
 
-  // Fragments List
-  const fragments = Array.isArray(build.fragments) ? build.fragments : [];
+  const fragments = Array.isArray(build.fragments) ? build.fragments.slice(0, 5) : [];
   const fragmentHost = byId("fragList");
   if (fragmentHost) {
-    if (fragments.length) {
-      fragmentHost.innerHTML = fragments.map(item => `
-        <div class="slot">
-          <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
-          <span class="nm">${escapeHtml(item.name)}</span>
-        </div>
-      `).join("");
-    } else {
-      fragmentHost.innerHTML = "";
-    }
+    const markup = fragments.map(item => `
+      <div class="slot" title="${escapeHtml(item.name)}">
+        <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
+        <span class="nm">${escapeHtml(item.name)}</span>
+      </div>
+    `).join("");
+    fragmentHost.innerHTML = padRailSlots(markup, fragments.length, 5);
   }
 
-  // Seasonal Artifact
   const artIcon = byId("artIcon");
   const artName = byId("artName");
   if (build.artifact) {
     if (artIcon && build.artifact.icon) artIcon.src = bungieUrl(build.artifact.icon);
     if (artName && build.artifact.name) artName.textContent = build.artifact.name.toUpperCase();
   }
+}
+
+function ensureLayoutPlaceholders() {
+  const targets = [["abilityList",4],["aspectList",2],["fragList",5],["artPerks",7]];
+  targets.forEach(([id,count]) => {
+    const host = byId(id);
+    if (!host || host.children.length) return;
+    host.innerHTML = Array.from({ length: count }, emptyRailSlot).join("");
+  });
 }
 
 function renderWeapons(weapons = []) {
@@ -316,6 +256,7 @@ function applyGuardianSelection(detail) {
   document.documentElement.dataset.subclass = (next.subclass || "arc").toLowerCase();
 
   if (next.subclassBuild) renderSubclassBuild(next.subclassBuild, next.subclassName);
+  else ensureLayoutPlaceholders();
   if (Array.isArray(next.weapons)) renderWeapons(next.weapons);
   if (Array.isArray(next.armour)) bindArmourSlots(next.armour);
   if (Array.isArray(next.stats)) renderStats(next.stats);
@@ -339,6 +280,7 @@ document.addEventListener("astrix:guardian-error", event =>
 );
 
 bindArmourSlots([]);
+ensureLayoutPlaceholders();
 setStageState("ready");
 
 export { renderSubclassBuild, renderWeapons, bindArmourSlots, renderStats, renderVerifiedPreview };
