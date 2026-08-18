@@ -21,40 +21,49 @@
   <link rel="stylesheet" href="./guardian-adaptive-layout.css">
   <link rel="stylesheet" href="./guardian-left-panel-super-feature.css">
   <link rel="stylesheet" href="./guardian-mobile.css">
+  <link rel="stylesheet" href="./guardian-layout-final.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand"><img class="brand-logo" src="../../../img/logo.png" alt="ASTRIX PARADOX logo"><div><div class="nm">ASTRIX <span class="brand-accent">PARADOX</span></div><div class="sub">AI GAMING INTELLIGENCE</div></div></div>
     <div class="ws-label">GUARDIAN WORKSPACE</div>
-    <div style="display:flex;align-items:center;gap:10px"><div class="top-icons"><button class="ib" aria-label="Notifications">🔔<span class="badge">3</span></button><button class="ib" aria-label="Settings">⚙</button><button class="ib" aria-label="Help">?</button></div></div>
+    <div class="guardian-character-cards" id="guardianCharacterCards" aria-label="Bungie characters"><div class="guardian-character-cards__status" role="status">CONNECT BUNGIE TO LOAD CHARACTERS</div></div>
+    <div class="topbar-actions"><div class="top-icons"><button class="ib" aria-label="Notifications">🔔<span class="badge">3</span></button><button class="ib" aria-label="Settings">⚙</button><button class="ib" aria-label="Help">?</button></div></div>
   </header>
 
   <div class="workspace">
     <aside class="panel left">
-      <div class="subclass-hero char-switch" tabindex="0" role="button" aria-label="Select Guardian Class">
-        <img class="crest" id="scCrest" alt="Subclass crest" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
-        <span class="crest-fb" style="display:none">◆</span><b>GUARDIAN ▾</b><span class="wisp"></span>
-      </div>
-
-      <section class="super-feature" aria-label="Subclass Supers">
-        <p class="super-feature__label">Supers</p>
-        <div class="super-feature__name" id="subclassName">Subclass</div>
-        <div class="super-feature__cluster" id="superFeatureCluster">
-          <div class="super-diamond super-diamond--equipped" data-super-slot="equipped"><span>◆</span></div>
-          <div class="super-diamond super-diamond--alt super-diamond--alt1" data-super-slot="alternate-1"><span>◆</span></div>
-          <div class="super-diamond super-diamond--alt super-diamond--alt2" data-super-slot="alternate-2"><span>◆</span></div>
-          <div class="super-diamond super-diamond--alt super-diamond--alt3" data-super-slot="alternate-3"><span>◆</span></div>
+      <section class="subclass-super-shell" aria-label="Subclass and Super selection">
+        <div class="subclass-rail" aria-label="Subclass elements">
+          <p class="subclass-rail__label">SUBCLASS</p>
+          <button type="button" class="subclass-option" data-subclass-option="arc" aria-label="Arc subclass" title="Arc"><span class="subclass-option__diamond"><span>AR</span></span></button>
+          <button type="button" class="subclass-option" data-subclass-option="solar" aria-label="Solar subclass" title="Solar"><span class="subclass-option__diamond"><span>SO</span></span></button>
+          <button type="button" class="subclass-option" data-subclass-option="void" aria-label="Void subclass" title="Void"><span class="subclass-option__diamond"><span>VO</span></span></button>
+          <button type="button" class="subclass-option" data-subclass-option="stasis" aria-label="Stasis subclass" title="Stasis"><span class="subclass-option__diamond"><span>ST</span></span></button>
+          <button type="button" class="subclass-option" data-subclass-option="strand" aria-label="Strand subclass" title="Strand"><span class="subclass-option__diamond"><span>SR</span></span></button>
+          <button type="button" class="subclass-option" data-subclass-option="prismatic" aria-label="Prismatic subclass" title="Prismatic"><span class="subclass-option__diamond"><span>PR</span></span></button>
         </div>
+
+        <section class="super-feature" aria-label="Subclass Supers">
+          <p class="super-feature__label">SUPERS</p>
+          <div class="super-feature__name" id="subclassName">SELECTED SUPER</div>
+          <div class="super-feature__cluster" id="superFeatureCluster">
+            <div class="super-diamond super-diamond--equipped" data-super-slot="equipped"><span>◆</span></div>
+            <div class="super-diamond super-diamond--alt super-diamond--alt1" data-super-slot="alternate-1"><span>◆</span></div>
+            <div class="super-diamond super-diamond--alt super-diamond--alt2" data-super-slot="alternate-2"><span>◆</span></div>
+            <div class="super-diamond super-diamond--alt super-diamond--alt3" data-super-slot="alternate-3"><span>◆</span></div>
+          </div>
+        </section>
       </section>
 
       <div class="grp grp--abilities"><p class="lbl">Abilities</p><div id="abilityList"></div></div>
       <div class="grp grp--aspects"><p class="lbl">Aspects</p><div class="slot-list" id="aspectList"></div></div>
-      <div class="grp"><p class="lbl">Fragments</p><div class="slot-list frag-list" id="fragList"></div></div>
-      <div class="grp"><p class="lbl">Artifact</p><div class="artifact-row" tabindex="0" role="button" aria-label="Configure Artifact beta loadout"><span class="art"><img id="artIcon" alt="Seasonal artifact" onerror="this.style.opacity=0"></span><div><b>ARTIFACT</b><small id="artName">Seasonal Artifact</small></div><div class="perks" id="artPerks"></div></div></div>
+      <div class="grp grp--fragments"><p class="lbl">Fragments</p><div class="slot-list frag-list" id="fragList"></div></div>
+      <div class="grp grp--artifact"><p class="lbl">Artifact</p><div class="artifact-row" tabindex="0" role="button" aria-label="Configure Artifact"><span class="art"><img id="artIcon" alt="Seasonal artifact" onerror="this.style.opacity=0"></span><div class="artifact-copy"><b>ARTIFACT</b><small id="artName">Seasonal Artifact</small></div><div class="perks" id="artPerks"><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span></div></div></div>
       <div class="grp guardian-loadouts-panel"><div class="guardian-loadouts-head"><p class="lbl">In-game Loadouts</p><small>BUNGIE · 1–20</small></div><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div>
     </aside>
 
-    <section class="stage" aria-label="Guardian stage"><div class="guardian-character-cards" id="guardianCharacterCards" aria-label="Bungie characters"><div class="guardian-character-cards__status" role="status">CONNECT BUNGIE TO LOAD CHARACTERS</div></div><div class="stage-state-container" id="stageStateContainer"><div class="stage-state-card"><div class="icon">⬡</div><h3 id="stageStateTitle">GUARDIAN TELEMETRY</h3><p id="stageStateMessage">Select a Bungie character or loadout to inspect live data metrics.</p></div></div></section>
+    <section class="stage" aria-label="Guardian stage"><div class="stage-state-container" id="stageStateContainer"><div class="stage-state-card"><div class="icon">⬡</div><h3 id="stageStateTitle">GUARDIAN TELEMETRY</h3><p id="stageStateMessage">Select a Bungie character or loadout to inspect live data metrics.</p></div></div></section>
 
     <aside class="panel right">
       <div class="ra-head"><h2>PARADOX ANALYSIS</h2><span class="upd">Last updated: 2 min ago ↻</span></div>
