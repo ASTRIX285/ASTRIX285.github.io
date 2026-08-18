@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0.0",
+  "purpose": "ASTRIX-authored Paradox Forge intelligence for Destiny activities and events. This file is never overwritten by Bungie live-data refresh jobs.",
+  "sourcePolicy": {
+    "liveState": "astrix-app/data/paradox-forge/live/destiny-live-activity-snapshot.json",
+    "curatedReasoning": "manual-verified-only",
+    "manifestRefreshMayModifyThisFile": false
+  },
+  "activities": {},
+  "events": {},
+  "modifierIntelligence": {},
+  "notes": []
+}
