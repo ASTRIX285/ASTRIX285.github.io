@@ -109,19 +109,77 @@ const payload = await response.json().catch(() => null);
 
 The resolver should continue to log `definition_response_missing` when Bungie returns a JSON body without `Response`, and should retain the existing seven-day `astrix-bungie-definitions` cache.
 
-## Recommended diagnostic response
+## ASTRIX game-data fallback for missing plug definitions
 
-In `profileRoute()`, after `definitions` resolves, add:
+Bungie remains the source of truth for **live state**: selected character, equipped subclass item instance, socket state and equipped `plugHash` values. The ASTRIX game-components dataset may be used only to fill definition records that Bungie definition hydration did not return.
 
-```js
-const definitionCoverage = {
-  requested: equippedHashes.length,
-  resolved: Object.keys(definitions).length,
-  missing: equippedHashes.filter((hash) => !definitions[String(hash)])
-};
+The fallback implementation lives in:
+
+```text
+astrix-destiny-backend/game-component-resolver.mjs
 ```
 
-and include `definitionCoverage` in the `/bungie/profile` JSON response. The frontend ignores unknown fields, so this is non-breaking and makes DevTools verification deterministic.
+Import it into the production Worker source:
+
+```js
+import { hydrateMissingDefinitionsFromAstrix } from "./game-component-resolver.mjs";
+```
+
+Then, after Bungie definition hydration in `profileRoute()`:
+
+```js
+const bungieDefinitions = await fetchInventoryDefinitions(
+  equippedHashes,
+  session.accessToken,
+  env,
+  equippedHashes.length
+);
+
+const localHydration = await hydrateMissingDefinitionsFromAstrix(
+  equippedHashes,
+  bungieDefinitions,
+  env
+);
+
+const definitions = localHydration.definitions;
+const definitionCoverage = localHydration.coverage;
+```
+
+Return the merged `definitions` object and `definitionCoverage` in the existing `/bungie/profile` payload.
+
+Apply the same merge in `loadoutRoute()` after collecting item hashes and `plugItemHashes` for the selected saved loadout.
+
+The resolver obeys these rules:
+
+1. Existing Bungie definitions always win.
+2. Only unresolved Bungie hashes are looked up in `game-components.json`.
+3. The lookup key is the component's verified `bungieHash`.
+4. A local component is converted to the Bungie-like definition shape already consumed by `guardian-bungie-profile.mjs`.
+5. ASTRIX `componentType` is mapped to a stable plug category (`supers`, `grenades`, `melee`, `class_abilities`, `movement`, `aspects`, `fragments`, etc.).
+6. If the local data endpoint cannot be loaded, the Worker returns the Bungie definitions unchanged rather than failing the profile request.
+
+The dataset URL defaults to:
+
+```text
+https://astrixparadox.com/astrix-app/data/game-components.json
+```
+
+and can be overridden with the Worker environment variable `ASTRIX_GAME_COMPONENTS_URL`.
+
+## Recommended diagnostic response
+
+In `profileRoute()`, include `definitionCoverage` in the `/bungie/profile` JSON response. With the local fallback enabled it has this shape:
+
+```js
+{
+  requested: 123,
+  bungieResolved: 118,
+  astrixResolved: 4,
+  unresolved: [123456789]
+}
+```
+
+The frontend ignores unknown fields, so this is non-breaking and makes DevTools verification deterministic.
 
 ## Expected recovery after deployment
 
