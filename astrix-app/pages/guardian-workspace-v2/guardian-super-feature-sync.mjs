@@ -1,12 +1,17 @@
 /* ASTRIX PARADOX — bridge the existing live Super renderer into the new
  * Destiny-style feature frame. No Bungie fetch logic is changed here.
  * Important: this bridge is intentionally idempotent so it cannot observe
- * and continuously rebuild its own destination DOM. */
+ * and continuously rebuild its own destination DOM.
+ *
+ * Live-data rule: never copy legacy/default Super state during page startup.
+ * The bridge activates only after a resolved Guardian selection arrives.
+ */
 
 const cluster = () => document.getElementById('superFeatureCluster');
 let syncQueued = false;
 let legacyObserver = null;
 let observedLegacy = null;
+let liveSelectionSeen = false;
 
 function sourceData(source, fallbackTitle = '') {
   const img = source?.querySelector('img');
@@ -25,8 +30,6 @@ function setDiamond(diamond, source, fallbackTitle = '') {
   const previousSrc = diamond.dataset.liveIconSrc || '';
   const previousLabel = diamond.dataset.liveIconLabel || '';
 
-  /* Nothing changed: do not touch the DOM. This is what prevents Safari
-   * from being forced into repeated layout/repaint work. */
   if (src === previousSrc && label === previousLabel) return;
 
   diamond.dataset.liveIconSrc = src;
@@ -56,6 +59,8 @@ function setDiamond(diamond, source, fallbackTitle = '') {
 
 function syncFromLegacySuperRenderer() {
   syncQueued = false;
+  if (!liveSelectionSeen) return;
+
   const host = cluster();
   const legacy = document.getElementById('superFocus');
   if (!host || !legacy) return;
@@ -79,21 +84,19 @@ function syncFromLegacySuperRenderer() {
 }
 
 function syncSoon() {
-  if (syncQueued) return;
+  if (!liveSelectionSeen || syncQueued) return;
   syncQueued = true;
   requestAnimationFrame(syncFromLegacySuperRenderer);
 }
 
 function bindLegacyObserver() {
+  if (!liveSelectionSeen) return;
   const legacy = document.getElementById('superFocus');
   if (!legacy || legacy === observedLegacy) return;
 
   legacyObserver?.disconnect();
   observedLegacy = legacy;
   legacyObserver = new MutationObserver(syncSoon);
-
-  /* Observe ONLY the old Super data source. Never observe .left or the new
-   * feature frame, otherwise our own icon writes feed back into the observer. */
   legacyObserver.observe(legacy, {
     subtree: true,
     childList: true,
@@ -102,9 +105,12 @@ function bindLegacyObserver() {
   });
 }
 
-document.addEventListener('astrix:guardian-selection-changed', syncSoon);
-document.addEventListener('astrix:artifact-recommendations-changed', syncSoon);
-document.addEventListener('DOMContentLoaded', syncSoon, { once: true });
+document.addEventListener('astrix:guardian-selection-changed', () => {
+  liveSelectionSeen = true;
+  bindLegacyObserver();
+  syncSoon();
+});
 
-bindLegacyObserver();
-syncSoon();
+document.addEventListener('astrix:artifact-recommendations-changed', () => {
+  if (liveSelectionSeen) syncSoon();
+});
