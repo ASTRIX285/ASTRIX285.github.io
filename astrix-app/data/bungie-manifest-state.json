@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "manifestVersion": "244213.26.06.29.2000-1-bnet.65583",
+  "previousManifestVersion": null,
+  "refreshedAt": "2026-08-18T23:31:14.413129Z",
+  "source": "Bungie GetDestinyManifest",
+  "generatedTargets": [
+    "astrix-app/data/component-icons.json",
+    "astrix-app/data/paradox-forge/beta/beta-bungie-manifest-cache.json",
+    "astrix-app/pages/guardian-workspace-v2/guardian-loadout-definitions.mjs"
+  ],
+  "validation": {
+    "componentIconsVersion": "244213.26.06.29.2000-1-bnet.65583",
+    "componentIconCount": 584,
+    "betaCacheVersion": "244213.26.06.29.2000-1-bnet.65583",
+    "betaResolvedInventoryCount": 949,
+    "betaUnresolvedInventoryCount": 0,
+    "loadoutDefinitionsVersion": "244213.26.06.29.2000-1-bnet.65583"
+  },
+  "curatedDataModified": false
+}
