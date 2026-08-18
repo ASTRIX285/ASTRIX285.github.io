@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """Build the small, official Bungie identity cache used by loadout cards.
 
-The player profile stores nameHash, iconHash and colorHash.  Those values are
+The player profile stores nameHash, iconHash and colorHash. Those values are
 only displayable after resolving them against Bungie's matching manifest
-definitions.  This script downloads those three definition tables and writes
+definitions. This script downloads those three definition tables and writes
 an ES module so the browser never invents a loadout name, icon or colour.
+
+Transient Bungie/API failures are retried with exponential backoff so the
+scheduled manifest refresh does not fail on a single temporary HTTP 5xx.
 """
 
 from __future__ import annotations
 
 import json
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -29,15 +34,38 @@ COMPONENTS = {
     "icons": "DestinyLoadoutIconDefinition",
     "colors": "DestinyLoadoutColorDefinition",
 }
+RETRYABLE_HTTP_CODES = {429, 500, 502, 503, 504}
+MAX_ATTEMPTS = 5
 
 
 def fetch_json(url: str) -> dict[str, Any]:
-    request = urllib.request.Request(url, headers=USER_AGENT)
-    with urllib.request.urlopen(request, timeout=60) as response:
-        payload = json.loads(response.read().decode("utf-8"))
-    if isinstance(payload, dict) and payload.get("ErrorCode") not in (None, 1):
-        raise RuntimeError(payload.get("Message") or "Bungie API error")
-    return payload
+    last_error: Exception | None = None
+
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        request = urllib.request.Request(url, headers=USER_AGENT)
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            if isinstance(payload, dict) and payload.get("ErrorCode") not in (None, 1):
+                raise RuntimeError(payload.get("Message") or "Bungie API error")
+            return payload
+        except urllib.error.HTTPError as error:
+            last_error = error
+            if error.code not in RETRYABLE_HTTP_CODES or attempt == MAX_ATTEMPTS:
+                raise
+        except (urllib.error.URLError, TimeoutError) as error:
+            last_error = error
+            if attempt == MAX_ATTEMPTS:
+                raise
+
+        delay = 2 ** (attempt - 1)
+        print(
+            f"Bungie request failed (attempt {attempt}/{MAX_ATTEMPTS}): "
+            f"{last_error}. Retrying in {delay}s..."
+        )
+        time.sleep(delay)
+
+    raise RuntimeError(f"Unable to fetch Bungie data from {url}: {last_error}")
 
 
 def compact(component: str, rows: dict[str, Any]) -> dict[str, Any]:
