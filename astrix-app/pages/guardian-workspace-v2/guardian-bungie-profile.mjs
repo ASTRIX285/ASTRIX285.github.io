@@ -109,6 +109,24 @@ function plugType(plug){
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
+/* Bungie subclass plugs use stable category identifiers such as "supers",
+ * "class_abilities", "movement", "melee", "grenades", "aspects" and
+ * "fragments". Do not require the display text to contain an exact singular
+ * English word: that caused valid equipped Supers to be missed. */
+const plugCategory=plug=>String(plug?.definition?.plug?.plugCategoryIdentifier||"").toLowerCase();
+const matchesCategory=(plug,categoryWords,textPattern)=>{
+  const category=plugCategory(plug);
+  if(categoryWords.some(word=>category===word||category.includes(word)))return true;
+  return textPattern.test(plugType(plug));
+};
+const isSuperPlug=plug=>matchesCategory(plug,["super","supers"],/(^|[\W_])supers?([\W_]|$)|super ability|super_ability/);
+const isClassAbilityPlug=plug=>matchesCategory(plug,["class_abilit","classabilit"],/class ability|class_ability/);
+const isMovementPlug=plug=>matchesCategory(plug,["movement","jump","lift","glide"],/movement|jump|lift|glide/);
+const isMeleePlug=plug=>matchesCategory(plug,["melee"],/melee/);
+const isGrenadePlug=plug=>matchesCategory(plug,["grenade"],/grenade/);
+const isAspectPlug=plug=>matchesCategory(plug,["aspect"],/aspect/);
+const isFragmentPlug=plug=>matchesCategory(plug,["fragment"],/fragment/);
+
 function normaliseItem(profile,definitions,item){
   const base=displayItem(definitions,item.itemHash);
   const instance=item.itemInstanceId?profile?.itemComponents?.instances?.data?.[item.itemInstanceId]:null;
@@ -119,7 +137,7 @@ function normaliseItem(profile,definitions,item){
   const mods=plugs.filter(plug=>{
     const type=plugType(plug);
     const isAppearance=/shader|skin|ornament/.test(type);
-    const isSubclass=/super|class ability|movement|melee|grenade|aspect|fragment/.test(type);
+    const isSubclass=isSuperPlug(plug)||isClassAbilityPlug(plug)||isMovementPlug(plug)||isMeleePlug(plug)||isGrenadePlug(plug)||isAspectPlug(plug)||isFragmentPlug(plug);
     return !isAppearance&&!isSubclass&&intrinsicTrait?.hash!==plug.hash&&(
       /mod|enhancement|armour\.mods|armor\.mods/.test(type)
       ||Number(plug.definition?.itemType)===19
@@ -140,30 +158,28 @@ function normaliseItem(profile,definitions,item){
 
 function subclassConfiguration(profile,definitions,item){
   const plugs=socketPlugs(profile,definitions,item);
-  const find=pattern=>plugs.find(plug=>pattern.test(plugType(plug)))||null;
-  const superItem=find(/(^|\W)super(\W|$)/);
-  const classAbility=find(/class ability|class_ability/);
-  const movement=find(/movement|jump|lift|glide/);
-  const melee=find(/melee/);
-  const grenade=find(/grenade/);
-  
+  const superItem=plugs.find(isSuperPlug)||null;
+  const classAbility=plugs.find(isClassAbilityPlug)||null;
+  const movement=plugs.find(isMovementPlug)||null;
+  const melee=plugs.find(isMeleePlug)||null;
+  const grenade=plugs.find(isGrenadePlug)||null;
+
   const socketStates=profile?.itemComponents?.sockets?.data?.[item?.itemInstanceId]?.sockets||[];
   const superSocketIndex=superItem?socketStates.findIndex(socket=>Number(socket.plugHash)===Number(superItem.hash)):-1;
   const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item?.itemInstanceId]?.plugs||{};
   const reusableRows=superSocketIndex>=0?(reusable[String(superSocketIndex)]||reusable[superSocketIndex]||[]):[];
-  
-  // Also parse manifest socket entries for any static super definitions
+
   const itemDef=definitions?.[String(item?.itemHash)]||{};
   const manifestSockets=itemDef.sockets?.socketEntries||[];
   const manifestSupers=manifestSockets
     .flatMap(entry=>[entry.singleInitialItemHash,...(entry.reusablePlugItems||[]).map(p=>p.plugItemHash)])
     .filter(Boolean)
     .map(hash=>displayItem(definitions,hash))
-    .filter(row=>row.definition&&/(^|\W)super(\W|$)/.test(plugType(row)));
+    .filter(row=>row.definition&&isSuperPlug(row));
 
   const superOptions=[
     superItem,
-    ...reusableRows.map(row=>displayItem(definitions,row.plugItemHash??row.plugHash)).filter(row=>row.definition&&/(^|\W)super(\W|$)/.test(plugType(row))),
+    ...reusableRows.map(row=>displayItem(definitions,row.plugItemHash??row.plugHash)).filter(row=>row.definition&&isSuperPlug(row)),
     ...manifestSupers
   ].filter((row,index,rows)=>row&&rows.findIndex(other=>Number(other.hash)===Number(row.hash))===index);
 
@@ -175,8 +191,8 @@ function subclassConfiguration(profile,definitions,item){
     melee,
     grenade,
     abilities:[classAbility,movement,melee,grenade].filter(Boolean),
-    aspects:plugs.filter(plug=>/aspect/.test(plugType(plug))),
-    fragments:plugs.filter(plug=>/fragment/.test(plugType(plug))),
+    aspects:plugs.filter(isAspectPlug),
+    fragments:plugs.filter(isFragmentPlug),
     socketsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]),
     reusablePlugsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId])
   };
@@ -212,7 +228,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
-  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],aspects:[],fragments:[],socketsAvailable:false};
+  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],aspects:[],fragments:[],socketsAvailable:false,reusablePlugsAvailable:false};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character);
   const artifact=currentArtifact(profile,definitions);
   const characterLoadouts=profile?.characterLoadouts?.data?.[character.characterId];
@@ -339,12 +355,11 @@ async function loadSelectedLoadout(selection){
   payload.profile=profileWithSelectedLoadout(payload);
   const detail={...normaliseLiveProfile(payload,null,characterId),selectedLoadoutIndex:index,loadoutSource:"bungie-live"};
   detail.coverage=loadoutCoverage(detail);
-  
-  // Non-fatal warning: never crash the stage if a loadout has an empty slot
+
   if(!detail.coverage.complete){
     console.warn(`[ASTRIX] Bungie loadout ${index+1} partial: ${detail.coverage.missing.join(", ")}`);
   }
-  
+
   loadoutCache.set(cacheKey,detail);
   document.documentElement.dataset.guardianSource="bungie-loadout";
   setRenderStatus("BUILD INTELLIGENCE",`Bungie loadout ${index+1} ready`,"Saved build loaded for analysis");
