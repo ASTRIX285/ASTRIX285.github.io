@@ -13,75 +13,56 @@
     background:transparent!important;
   }
 
-  /* Compact feature block: large equipped Super remains the visual anchor. */
+  /* Old live Super renderer stays in the DOM as the data source only. */
+  .left #superFocus{display:none!important}
+
   .left .super-feature{
-    flex:0 0 196px!important;
-    min-height:196px!important;
+    flex:0 0 188px!important;
+    min-height:188px!important;
     display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:flex-start;
-    padding:5px 8px 6px!important;
+    padding:0 8px 6px!important;
+    margin-top:-2px!important;
     border-bottom:1px solid rgba(227,178,60,.16);
     overflow:visible;
   }
   .left .super-feature__label{display:none!important}
   .left .super-feature__name{
-    min-height:16px;
-    margin:0 0 2px!important;
+    min-height:15px;
+    margin:0 0 -1px!important;
     color:rgba(255,255,255,.82);
     font-size:.62rem;
     font-weight:800;
     letter-spacing:.10em;
     text-transform:uppercase;
   }
-  .left .super-feature__cluster{position:relative;width:244px;height:172px;overflow:visible}
+  .left .super-feature__cluster{position:relative;width:244px;height:170px;overflow:visible}
   .left .super-diamond{position:absolute;left:50%;display:grid;place-items:center;aspect-ratio:1;transform:translateX(-50%) rotate(45deg);border:1px solid rgba(255,255,255,.42);background:rgba(75,40,112,.13);box-shadow:inset 0 0 18px rgba(116,69,170,.08)}
-  .left .super-diamond::after{content:"";position:absolute;inset:6px;border:1px solid rgba(255,255,255,.12)}
-  .left .super-diamond>span{transform:rotate(-45deg);color:rgba(255,255,255,.35);font-size:1rem;font-weight:700}
-  .left .super-diamond--equipped{top:5px;width:112px;border-color:rgba(255,255,255,.88);background:linear-gradient(135deg,rgba(126,75,180,.42),rgba(56,29,91,.20));box-shadow:0 0 24px rgba(128,72,190,.26),inset 0 0 28px rgba(168,104,226,.18);z-index:3}
-  .left .super-diamond--equipped>span{color:rgba(255,255,255,.72);font-size:1.55rem}
-  .left .super-diamond--alt{top:122px;width:54px;opacity:.42;background:rgba(65,45,82,.10)}
-  .left .super-diamond--alt1{left:29%}.left .super-diamond--alt2{left:50%}.left .super-diamond--alt3{left:71%}
+  .left .super-diamond::after{content:"";position:absolute;inset:6px;border:1px solid rgba(255,255,255,.12);pointer-events:none}
+  .left .super-diamond>span{width:72%;height:72%;display:grid;place-items:center;transform:rotate(-45deg);color:rgba(255,255,255,.35);font-size:1rem;font-weight:700}
+  .left .super-feature__icon{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 7px rgba(255,255,255,.18))}
 
-  /* Abilities and aspects use exactly the same clean square footprint as the
-   * rest of the left-rail icon system. No decorative chevrons/placeholders. */
-  .left .grp--abilities,.left .grp--aspects{
-    flex:0 0 auto!important;
-    min-height:70px!important;
-    padding-top:6px!important;
-  }
+  /* Equipped Super: raised and dominant. */
+  .left .super-diamond--equipped{top:-4px;width:112px;border-color:rgba(255,255,255,.88);background:linear-gradient(135deg,rgba(126,75,180,.42),rgba(56,29,91,.20));box-shadow:0 0 24px rgba(128,72,190,.26),inset 0 0 28px rgba(168,104,226,.18);z-index:3}
+  .left .super-diamond--equipped>span{width:68%;height:68%;color:rgba(255,255,255,.72);font-size:1.55rem}
+
+  /* Destiny-style three-diamond cluster: left/right descend diagonally from
+   * the main diamond and the centre option sits one step lower. */
+  .left .super-diamond--alt{width:54px;opacity:.44;background:rgba(65,45,82,.10)}
+  .left .super-diamond--alt1{left:31%!important;top:105px!important}
+  .left .super-diamond--alt2{left:50%!important;top:128px!important}
+  .left .super-diamond--alt3{left:69%!important;top:105px!important}
+  .left .super-diamond--alt.has-live-icon{opacity:.60}
+
+  .left .grp--abilities,.left .grp--aspects{flex:0 0 auto!important;min-height:70px!important;padding-top:6px!important}
   .left .grp--abilities .lbl,.left .grp--aspects .lbl{margin-bottom:6px!important}
-  #abilityList,#aspectList,#fragList{
-    min-height:54px!important;
-    display:grid!important;
-    grid-auto-flow:row!important;
-    grid-template-columns:repeat(4,var(--rail-slot))!important;
-    gap:var(--rail-slot-gap)!important;
-    align-items:start!important;
-    justify-content:start!important;
-  }
-  #abilityList .ability-row,#abilityList .slot,#abilityList .ico-badge,
-  #aspectList .slot,#aspectList .ico-badge,
-  #fragList .slot,#fragList .ico-badge{
-    width:var(--rail-slot)!important;min-width:var(--rail-slot)!important;max-width:var(--rail-slot)!important;
-    height:var(--rail-slot)!important;min-height:var(--rail-slot)!important;max-height:var(--rail-slot)!important;
-    box-sizing:border-box!important;
-  }
+  #abilityList,#aspectList,#fragList{min-height:54px!important;display:grid!important;grid-auto-flow:row!important;grid-template-columns:repeat(4,var(--rail-slot))!important;gap:var(--rail-slot-gap)!important;align-items:start!important;justify-content:start!important}
+  #abilityList .ability-row,#abilityList .slot,#abilityList .ico-badge,#aspectList .slot,#aspectList .ico-badge,#fragList .slot,#fragList .ico-badge{width:var(--rail-slot)!important;min-width:var(--rail-slot)!important;max-width:var(--rail-slot)!important;height:var(--rail-slot)!important;min-height:var(--rail-slot)!important;max-height:var(--rail-slot)!important;box-sizing:border-box!important}
   #abilityList:empty,#aspectList:empty{position:relative!important}
-  #abilityList:empty::before,#aspectList:empty::before{
-    content:""!important;
-    display:block!important;
-    width:var(--rail-slot)!important;
-    height:var(--rail-slot)!important;
-    border:1px solid rgba(227,178,60,.14)!important;
-    border-radius:7px!important;
-    background:rgba(255,255,255,.012)!important;
-    box-sizing:border-box!important;
-    transform:none!important;
-  }
+  #abilityList:empty::before,#aspectList:empty::before{content:""!important;display:block!important;width:var(--rail-slot)!important;height:var(--rail-slot)!important;border:1px solid rgba(227,178,60,.14)!important;border-radius:7px!important;background:rgba(255,255,255,.012)!important;box-sizing:border-box!important;transform:none!important}
   #abilityList:empty::after,#aspectList:empty::after{content:none!important;display:none!important}
-
   .left .artifact-row .perks{display:grid!important;grid-template-columns:repeat(4,var(--rail-slot))!important;gap:var(--rail-slot-gap)!important}
   .left .artifact-row .perks>*{width:var(--rail-slot)!important;min-width:var(--rail-slot)!important;height:var(--rail-slot)!important;min-height:var(--rail-slot)!important;box-sizing:border-box!important}
 }
