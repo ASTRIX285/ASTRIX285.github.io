@@ -68,12 +68,12 @@ html[data-subclass="void"] body .workspace>.left .subclass-option[data-subclass-
 html[data-subclass="stasis"] body .workspace>.left .subclass-option[data-subclass-option="stasis"] .subclass-option__diamond,
 html[data-subclass="strand"] body .workspace>.left .subclass-option[data-subclass-option="strand"] .subclass-option__diamond,
 html[data-subclass="prismatic"] body .workspace>.left .subclass-option[data-subclass-option="prismatic"] .subclass-option__diamond{
-  border-color:rgba(var(--subclass-accent),.96)!important;
-  background:radial-gradient(circle at 50% 50%,rgba(var(--subclass-accent),.30),rgba(var(--subclass-accent),.08) 58%,rgba(11,9,15,.72) 100%)!important;
-  box-shadow:0 0 0 1px rgba(var(--subclass-accent),.24),0 0 16px rgba(var(--subclass-accent),.48),inset 0 0 15px rgba(var(--subclass-accent),.18)!important;
+  border-color:rgba(227,178,60,.98)!important;
+  background:linear-gradient(135deg,rgba(142,34,48,.92) 0%,rgba(142,34,48,.74) 43%,rgba(227,178,60,.34) 100%)!important;
+  box-shadow:0 0 0 1px rgba(227,178,60,.30),0 0 12px rgba(142,34,48,.70),0 0 22px rgba(var(--subclass-accent),.45),inset 0 0 16px rgba(227,178,60,.14)!important;
 }
 html body .workspace>.left .subclass-option.is-active .subclass-option__icon{
-  filter:saturate(1.15) brightness(1.22) drop-shadow(0 0 7px rgba(var(--subclass-accent),.70))!important;
+  filter:saturate(1.2) brightness(1.28) drop-shadow(0 0 7px rgba(var(--subclass-accent),.82))!important;
 }
 
 /* ------------------------------------------------------------------
@@ -81,13 +81,13 @@ html body .workspace>.left .subclass-option.is-active .subclass-option__icon{
    Large selected diamond is the oversized top socket in one four-diamond grid.
    ------------------------------------------------------------------ */
 html body .workspace>.left .super-feature__name{
-  margin:-4px 0 0!important;
-  transform:translateY(-2px)!important;
+  margin:-6px 0 0!important;
+  transform:translateY(-3px)!important;
 }
 html body .workspace>.left .super-feature__cluster{
   width:230px!important;
-  height:214px!important;
-  margin-top:-5px!important;
+  height:190px!important;
+  margin-top:-6px!important;
 }
 html body .workspace>.left .super-diamond--equipped{
   left:50%!important;
@@ -97,25 +97,35 @@ html body .workspace>.left .super-diamond--equipped{
 html body .workspace>.left .super-diamond--alt{
   width:48px!important;
 }
-/* Centre-to-centre delta is 40px on both axes. The upper small pair now rises
-   into the lower footprint of the large diamond so it reads as one mould. */
+/* The two upper alternates sit directly under the large diamond. The lower
+   centre alternate is the datum: 38px down and 38px in from either side,
+   preserving a true 45-degree formation with one consistent visual gap. */
 html body .workspace>.left .super-diamond--alt1{
-  left:calc(50% - 40px)!important;
-  top:126px!important;
+  left:calc(50% - 38px)!important;
+  top:108px!important;
 }
 html body .workspace>.left .super-diamond--alt2{
-  left:calc(50% + 40px)!important;
-  top:126px!important;
+  left:calc(50% + 38px)!important;
+  top:108px!important;
 }
 html body .workspace>.left .super-diamond--alt3{
   left:50%!important;
-  top:166px!important;
+  top:146px!important;
 }
 
 /* ------------------------------------------------------------------
    ABILITIES / ASPECTS / FRAGMENTS
    Hard reset the old diamond skeletons. All sockets are rounded squares.
    ------------------------------------------------------------------ */
+html body .workspace>.left .grp--abilities{
+  overflow:hidden!important;
+  padding-bottom:10px!important;
+}
+html body .workspace>.left .grp--aspects,
+html body .workspace>.left .grp--fragments{
+  overflow:hidden!important;
+  padding-bottom:8px!important;
+}
 html body .workspace>.left #abilityList,
 html body .workspace>.left #aspectList,
 html body .workspace>.left #fragList{
@@ -126,8 +136,10 @@ html body .workspace>.left #fragList{
   gap:var(--pf-gap)!important;
   min-height:var(--pf-slot)!important;
   transform:none!important;
+  rotate:0deg!important;
   clip-path:none!important;
   background:none!important;
+  overflow:hidden!important;
 }
 html body .workspace>.left #abilityList{grid-template-columns:repeat(4,var(--pf-slot))!important}
 html body .workspace>.left #aspectList{grid-template-columns:repeat(2,var(--pf-slot))!important}
@@ -164,6 +176,7 @@ html body .workspace>.left #fragList>*{
   transform:none!important;
   rotate:0deg!important;
   clip-path:none!important;
+  box-sizing:border-box!important;
 }
 html body .workspace>.left #abilityList>*::before,
 html body .workspace>.left #abilityList>*::after,
@@ -201,12 +214,12 @@ html body .workspace>.left .artifact-row .perks{
   display:grid!important;
   grid-template-columns:repeat(4,var(--pf-art-slot))!important;
   grid-template-rows:repeat(2,var(--pf-art-slot))!important;
-  column-gap:8px!important;
+  column-gap:9px!important;
   row-gap:var(--pf-art-row-gap)!important;
   width:max-content!important;
   max-width:100%!important;
   min-height:calc((var(--pf-art-slot) * 2) + var(--pf-art-row-gap))!important;
-  padding-top:4px!important;
+  padding-top:5px!important;
   overflow:visible!important;
 }
 html body .workspace>.left .artifact-row .perks>*{
@@ -221,3 +234,37 @@ html body .workspace>.left .artifact-row .perks>*{
 html body .workspace>.left .artifact-row .perks>*:nth-child(5){grid-column:1!important;grid-row:2!important}
 html body .workspace>.left .artifact-row .perks>*:nth-child(6){grid-column:2!important;grid-row:2!important}
 html body .workspace>.left .artifact-row .perks>*:nth-child(7){grid-column:3!important;grid-row:2!important}
+
+/* ------------------------------------------------------------------
+   IN-GAME LOADOUT EMPTY / MISSING-ICON STATE
+   Empty slots and saved slots whose Bungie icon cannot resolve both use the
+   same subtle diagonal X instead of the legacy diamond fallback.
+   ------------------------------------------------------------------ */
+html body .workspace .guardian-loadout-slot.is-empty::before,
+html body .workspace .guardian-loadout-slot.is-empty::after,
+html body .workspace .guardian-loadout-icon-fallback::before,
+html body .workspace .guardian-loadout-icon-fallback::after{
+  content:""!important;
+  position:absolute!important;
+  left:16%!important;
+  top:50%!important;
+  width:68%!important;
+  height:1px!important;
+  background:rgba(227,178,60,.28)!important;
+  transform:rotate(45deg)!important;
+  transform-origin:center!important;
+  z-index:2!important;
+}
+html body .workspace .guardian-loadout-slot.is-empty::after,
+html body .workspace .guardian-loadout-icon-fallback::after{
+  transform:rotate(-45deg)!important;
+}
+html body .workspace .guardian-loadout-icon-fallback{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  font-size:0!important;
+  color:transparent!important;
+}
