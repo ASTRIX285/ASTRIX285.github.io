@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0.0",
+  "purpose": "Hand-verified Paradox Forge intelligence for contextual weapon-roll evaluation. Bungie-derived facts and selectable perk hashes are supplied separately at runtime.",
+  "policy": {
+    "curatedOnly": true,
+    "doNotInferMissingEffects": true,
+    "doNotTreatCommunityGodRollAsUniversal": true,
+    "scoreAgainstCurrentBuild": true
+  },
+  "tokenVocabulary": {
+    "subclassVerbs": ["blind", "devour", "freeze", "ignite", "jolt", "radiant", "restoration", "scorch", "sever", "slow", "suspend", "suppression", "unravel", "volatile", "weaken"],
+    "entitiesAndPickups": ["ionic-trace", "stasis-crystal", "stasis-shard", "tangle", "threadling", "orb-of-power"],
+    "abilityEnergy": ["grenade-energy", "melee-energy", "class-ability-energy", "super-energy"],
+    "weaponConditions": ["precision-final-blow", "rapid-final-blow", "weapon-final-blow", "reload", "stow-ready", "matching-element"]
+  },
+  "perks": {},
+  "notes": [
+    "Keys in perks should be Bungie plug hashes as strings.",
+    "Each curated perk may declare emits, consumes, conditions, roles, strengths, limitations and evidence.",
+    "This file is intentionally not modified by Bungie manifest refresh workflows."
+  ]
+}
