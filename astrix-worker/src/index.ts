@@ -411,10 +411,15 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   }
 
   const equippedHashes = activeCharacterDefinitionHashes(payload.Response);
-  // The current workspace presents character rendering as in development.
-  // Avoid gear-asset fan-out here and reserve the request budget for the
-  // equipment, subclass and socket definitions required by the live UI.
-  const definitions = await fetchInventoryDefinitions(equippedHashes, session.accessToken, env, 18);
+  // Keep the resolver bounded, but use its established safe budget rather than
+  // the old 18-definition throttle that starved subclass socket definitions.
+  const requestedDefinitionHashes = equippedHashes.slice(0, 34);
+  const definitions = await fetchInventoryDefinitions(requestedDefinitionHashes, session.accessToken, env, 34);
+  const definitionCoverage = {
+    requested: requestedDefinitionHashes.length,
+    resolved: Object.keys(definitions).length,
+    unresolved: requestedDefinitionHashes.filter(hash => !definitions[String(hash)])
+  };
   const gearAssets: Record<string, Record<string, unknown>> = {};
   const updatedSession = { ...session, lastUsedAt: Date.now() };
   await putSession(env, sessionId, updatedSession);
@@ -424,6 +429,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     components: PROFILE_COMPONENTS,
     profile: payload.Response,
     definitions,
+    definitionCoverage,
     gearAssets
   }));
 }
