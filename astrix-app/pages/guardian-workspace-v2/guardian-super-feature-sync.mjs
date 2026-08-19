@@ -7,6 +7,14 @@
  * The bridge activates only after a resolved Guardian selection arrives.
  */
 
+if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = './guardian-left-panel-lock.css';
+  link.dataset.astrixLeftPanelLock = 'true';
+  document.head.appendChild(link);
+}
+
 const cluster = () => document.getElementById('superFeatureCluster');
 let syncQueued = false;
 let legacyObserver = null;
