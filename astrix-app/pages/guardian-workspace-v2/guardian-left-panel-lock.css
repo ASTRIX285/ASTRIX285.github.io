@@ -18,17 +18,40 @@ html[data-subclass="prismatic"]{--subclass-accent:237,99,255}
 
 /* ------------------------------------------------------------------
    SUBCLASS RAIL
+   Final authority: one label row plus a strict 2-column x 3-row selector.
    ------------------------------------------------------------------ */
 html body .workspace>.left .subclass-rail{
-  width:104px!important;
-  min-width:104px!important;
-  gap:7px!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,58px)!important;
+  grid-template-rows:auto repeat(3,48px)!important;
+  grid-auto-flow:row!important;
+  column-gap:10px!important;
+  row-gap:7px!important;
+  width:126px!important;
+  min-width:126px!important;
+  max-width:126px!important;
+  align-items:center!important;
+  justify-items:center!important;
+  align-content:start!important;
+}
+html body .workspace>.left .subclass-rail__label{
+  grid-column:1/-1!important;
+  grid-row:1!important;
+  justify-self:start!important;
+  width:100%!important;
+  margin:0 0 1px!important;
 }
 html body .workspace>.left .subclass-option{
+  display:grid!important;
+  place-items:center!important;
   width:58px!important;
   min-width:58px!important;
+  max-width:58px!important;
   height:48px!important;
   min-height:48px!important;
+  max-height:48px!important;
+  margin:0!important;
+  padding:0!important;
   opacity:.34!important;
   filter:saturate(.45) brightness(.68)!important;
 }
@@ -42,6 +65,8 @@ html body .workspace>.left .subclass-option__diamond{
 html body .workspace>.left .subclass-option__diamond>span{
   width:100%!important;
   height:100%!important;
+  display:grid!important;
+  place-items:center!important;
   overflow:hidden!important;
 }
 html body .workspace>.left .subclass-option__icon{
@@ -78,16 +103,27 @@ html body .workspace>.left .subclass-option.is-active .subclass-option__icon{
 
 /* ------------------------------------------------------------------
    SUPER FORMATION
-   Large selected diamond is the oversized top socket in one four-diamond grid.
+   Diamond geometry is locked. Only flow order changes: cluster first, then
+   equipped Super name below it so the label can never cross the diamonds.
    ------------------------------------------------------------------ */
-html body .workspace>.left .super-feature__name{
-  margin:-6px 0 0!important;
-  transform:translateY(-3px)!important;
+html body .workspace>.left .super-feature{
+  flex-basis:224px!important;
+  min-height:224px!important;
 }
 html body .workspace>.left .super-feature__cluster{
+  order:1!important;
   width:230px!important;
   height:190px!important;
   margin-top:-6px!important;
+  margin-bottom:0!important;
+}
+html body .workspace>.left .super-feature__name{
+  order:2!important;
+  min-height:16px!important;
+  margin:5px 0 0!important;
+  transform:none!important;
+  text-align:center!important;
+  white-space:nowrap!important;
 }
 html body .workspace>.left .super-diamond--equipped{
   left:50%!important;
