@@ -21,6 +21,14 @@ let legacyObserver = null;
 let observedLegacy = null;
 let liveSelectionSeen = false;
 const subclassIconCache = new Map();
+const SUBCLASS_LABELS = Object.freeze({
+  arc: 'AR',
+  solar: 'SO',
+  void: 'VO',
+  stasis: 'ST',
+  strand: 'SR',
+  prismatic: 'PR'
+});
 
 function sourceData(source, fallbackTitle = '') {
   const img = source?.querySelector('img');
@@ -66,18 +74,34 @@ function setDiamond(diamond, source, fallbackTitle = '') {
   }
 }
 
+function normaliseClass(detail = {}) {
+  return String(detail.characterClass || detail.className || '').trim().toLowerCase();
+}
+
+function subclassCacheKey(characterClass, element) {
+  return `${characterClass || 'unknown'}:${element}`;
+}
+
 function syncSubclassRail(detail = {}) {
-  const element = String(detail.subclass || '').toLowerCase();
-  const icon = detail.subclassIcon || '';
-  if (element && icon) subclassIconCache.set(element, icon);
+  const element = String(detail.subclass || '').trim().toLowerCase();
+  const characterClass = normaliseClass(detail);
+  const icon = String(detail.subclassIcon || '').trim();
+
+  if (characterClass && element && icon) {
+    subclassIconCache.set(subclassCacheKey(characterClass, element), icon);
+  }
 
   document.querySelectorAll('[data-subclass-option]').forEach(button => {
-    const key = String(button.dataset.subclassOption || '').toLowerCase();
+    const key = String(button.dataset.subclassOption || '').trim().toLowerCase();
     const holder = button.querySelector('.subclass-option__diamond > span');
     if (!holder) return;
-    const cachedIcon = subclassIconCache.get(key) || '';
+
+    const cachedIcon = characterClass
+      ? subclassIconCache.get(subclassCacheKey(characterClass, key)) || ''
+      : '';
     const isActive = key === element;
     button.classList.toggle('is-active', isActive);
+
     if (cachedIcon) {
       let img = holder.querySelector('img.subclass-option__icon');
       if (!img) {
@@ -88,8 +112,16 @@ function syncSubclassRail(detail = {}) {
       }
       const absolute = cachedIcon.startsWith('http') ? cachedIcon : `https://www.bungie.net${cachedIcon}`;
       if (img.src !== absolute) img.src = absolute;
-      img.alt = `${key} subclass`;
+      img.alt = `${characterClass} ${key} subclass`;
+      return;
     }
+
+    /* Never retain an icon learned from a different Guardian class. Until
+     * this class+element definition has been resolved, use the deterministic
+     * element label rather than stale or guessed Bungie artwork. */
+    holder.querySelector('img.subclass-option__icon')?.remove();
+    const fallback = SUBCLASS_LABELS[key] || key.slice(0, 2).toUpperCase();
+    if (holder.textContent !== fallback) holder.textContent = fallback;
   });
 }
 
@@ -112,7 +144,8 @@ function syncFromLegacySuperRenderer() {
   });
 
   const label = document.getElementById('subclassName');
-  if (label && equippedName && label.dataset.superName !== equippedName) {
+  if (label && equippedName) {
+    label.textContent = equippedName;
     label.dataset.superName = equippedName;
   }
 
