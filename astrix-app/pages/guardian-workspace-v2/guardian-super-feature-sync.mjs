@@ -10,7 +10,7 @@
 if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = './guardian-left-panel-lock.css?v=20260819-2125';
+  link.href = './guardian-left-panel-lock.css?v=20260820-0004';
   link.dataset.astrixLeftPanelLock = 'true';
   document.head.appendChild(link);
 }

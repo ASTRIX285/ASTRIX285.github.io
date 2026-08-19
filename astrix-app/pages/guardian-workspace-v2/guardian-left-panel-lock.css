@@ -68,9 +68,9 @@ html body .workspace>.left .subclass-option__diamond>span{
 }
 html body .workspace>.left .subclass-option__icon{
   display:block!important;
-  width:112%!important;
+  width:124%!important;
   max-width:none!important;
-  height:112%!important;
+  height:124%!important;
   max-height:none!important;
   object-fit:cover!important;
   object-position:center!important;
