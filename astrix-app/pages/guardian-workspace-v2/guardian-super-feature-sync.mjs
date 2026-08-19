@@ -21,6 +21,7 @@ let legacyObserver = null;
 let observedLegacy = null;
 let liveSelectionSeen = false;
 const subclassIconCache = new Map();
+const slotObservers = new Map();
 const SUBCLASS_LABELS = Object.freeze({
   arc: 'AR',
   solar: 'SO',
@@ -29,6 +30,36 @@ const SUBCLASS_LABELS = Object.freeze({
   strand: 'SR',
   prismatic: 'PR'
 });
+const LEFT_PANEL_SLOT_TARGETS = Object.freeze({
+  abilityList: 4,
+  aspectList: 2,
+  fragList: 5,
+  artPerks: 7
+});
+
+function makeEmptyRailSlot() {
+  const slot = document.createElement('span');
+  slot.className = 'rail-empty-slot';
+  slot.setAttribute('aria-hidden', 'true');
+  return slot;
+}
+
+function enforceSlotCount(id, target) {
+  const host = document.getElementById(id);
+  if (!host) return;
+  while (host.children.length < target) host.appendChild(makeEmptyRailSlot());
+}
+
+function enforceLeftPanelSlots() {
+  Object.entries(LEFT_PANEL_SLOT_TARGETS).forEach(([id, target]) => {
+    enforceSlotCount(id, target);
+    const host = document.getElementById(id);
+    if (!host || slotObservers.has(id)) return;
+    const observer = new MutationObserver(() => enforceSlotCount(id, target));
+    observer.observe(host, { childList: true });
+    slotObservers.set(id, observer);
+  });
+}
 
 function sourceData(source, fallbackTitle = '') {
   const img = source?.querySelector('img');
@@ -116,9 +147,6 @@ function syncSubclassRail(detail = {}) {
       return;
     }
 
-    /* Never retain an icon learned from a different Guardian class. Until
-     * this class+element definition has been resolved, use the deterministic
-     * element label rather than stale or guessed Bungie artwork. */
     holder.querySelector('img.subclass-option__icon')?.remove();
     const fallback = SUBCLASS_LABELS[key] || key.slice(0, 2).toUpperCase();
     if (holder.textContent !== fallback) holder.textContent = fallback;
@@ -177,10 +205,14 @@ function bindLegacyObserver() {
 document.addEventListener('astrix:guardian-selection-changed', event => {
   liveSelectionSeen = true;
   syncSubclassRail(event.detail || {});
+  enforceLeftPanelSlots();
   bindLegacyObserver();
   syncSoon();
 });
 
 document.addEventListener('astrix:artifact-recommendations-changed', () => {
+  enforceLeftPanelSlots();
   if (liveSelectionSeen) syncSoon();
 });
+
+enforceLeftPanelSlots();
