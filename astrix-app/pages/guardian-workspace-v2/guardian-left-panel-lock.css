@@ -5,8 +5,8 @@
 :root{
   --pf-slot:52px;
   --pf-gap:8px;
-  --pf-art-slot:56px;
-  --pf-art-row-gap:12px;
+  --pf-art-slot:52px;
+  --pf-art-row-gap:10px;
   --subclass-accent:137,92,246;
 }
 html[data-subclass="arc"]{--subclass-accent:90,214,255}
@@ -17,8 +17,7 @@ html[data-subclass="strand"]{--subclass-accent:73,226,145}
 html[data-subclass="prismatic"]{--subclass-accent:237,99,255}
 
 /* ------------------------------------------------------------------
-   SUBCLASS RAIL
-   Final authority: one label row plus a strict 2-column x 3-row selector.
+   SUBCLASS RAIL — strict 2 columns x 3 rows.
    ------------------------------------------------------------------ */
 html body .workspace>.left .subclass-rail{
   display:grid!important;
@@ -102,9 +101,7 @@ html body .workspace>.left .subclass-option.is-active .subclass-option__icon{
 }
 
 /* ------------------------------------------------------------------
-   SUPER FORMATION
-   Diamond geometry is locked. Only flow order changes: cluster first, then
-   equipped Super name below it so the label can never cross the diamonds.
+   SUPER FORMATION — diamond coordinates stay locked.
    ------------------------------------------------------------------ */
 html body .workspace>.left .super-feature{
   flex-basis:224px!important;
@@ -118,7 +115,15 @@ html body .workspace>.left .super-feature__cluster{
   margin-bottom:0!important;
 }
 html body .workspace>.left .super-feature__name{
+  position:static!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
   order:2!important;
+  display:block!important;
+  width:100%!important;
+  max-width:230px!important;
   min-height:16px!important;
   margin:5px 0 0!important;
   transform:none!important;
@@ -133,9 +138,6 @@ html body .workspace>.left .super-diamond--equipped{
 html body .workspace>.left .super-diamond--alt{
   width:48px!important;
 }
-/* The two upper alternates sit directly under the large diamond. The lower
-   centre alternate is the datum: 38px down and 38px in from either side,
-   preserving a true 45-degree formation with one consistent visual gap. */
 html body .workspace>.left .super-diamond--alt1{
   left:calc(50% - 38px)!important;
   top:108px!important;
@@ -150,8 +152,7 @@ html body .workspace>.left .super-diamond--alt3{
 }
 
 /* ------------------------------------------------------------------
-   ABILITIES / ASPECTS / FRAGMENTS
-   Hard reset the old diamond skeletons. All sockets are rounded squares.
+   ABILITIES / ASPECTS / FRAGMENTS — fixed visible socket counts.
    ------------------------------------------------------------------ */
 html body .workspace>.left .grp--abilities{
   overflow:hidden!important;
@@ -214,14 +215,18 @@ html body .workspace>.left #fragList>*{
   clip-path:none!important;
   box-sizing:border-box!important;
 }
-html body .workspace>.left #abilityList>*::before,
-html body .workspace>.left #abilityList>*::after,
-html body .workspace>.left #aspectList>*::before,
-html body .workspace>.left #aspectList>*::after,
-html body .workspace>.left #fragList>*::before,
-html body .workspace>.left #fragList>*::after{
-  box-sizing:border-box!important;
+html body .workspace>.left .rail-empty-slot::before,
+html body .workspace>.left .rail-empty-slot::after{
+  content:""!important;
+  position:absolute!important;
+  left:17%!important;
+  top:50%!important;
+  width:66%!important;
+  height:1px!important;
+  background:rgba(227,178,60,.16)!important;
+  transform:rotate(45deg)!important;
 }
+html body .workspace>.left .rail-empty-slot::after{transform:rotate(-45deg)!important}
 html body .workspace>.left #abilityList .ico-badge,
 html body .workspace>.left #aspectList .ico-badge,
 html body .workspace>.left #fragList .ico-badge{
@@ -243,16 +248,16 @@ html body .workspace>.left #fragList .ico-badge{
 }
 
 /* ------------------------------------------------------------------
-   ARTIFACT PERKS — 4 + 3, slightly larger, with a deliberate row gap.
+   ARTIFACT PERKS — always visible 4 + 3 inside the left panel.
    ------------------------------------------------------------------ */
 html body .workspace>.left .artifact-row .perks{
   grid-column:1/-1!important;
   display:grid!important;
   grid-template-columns:repeat(4,var(--pf-art-slot))!important;
   grid-template-rows:repeat(2,var(--pf-art-slot))!important;
-  column-gap:9px!important;
+  column-gap:8px!important;
   row-gap:var(--pf-art-row-gap)!important;
-  width:max-content!important;
+  width:calc((var(--pf-art-slot) * 4) + 24px)!important;
   max-width:100%!important;
   min-height:calc((var(--pf-art-slot) * 2) + var(--pf-art-row-gap))!important;
   padding-top:5px!important;
@@ -266,15 +271,18 @@ html body .workspace>.left .artifact-row .perks>*{
   min-height:var(--pf-art-slot)!important;
   max-height:var(--pf-art-slot)!important;
   border-radius:9px!important;
+  box-sizing:border-box!important;
 }
+html body .workspace>.left .artifact-row .perks>*:nth-child(1){grid-column:1!important;grid-row:1!important}
+html body .workspace>.left .artifact-row .perks>*:nth-child(2){grid-column:2!important;grid-row:1!important}
+html body .workspace>.left .artifact-row .perks>*:nth-child(3){grid-column:3!important;grid-row:1!important}
+html body .workspace>.left .artifact-row .perks>*:nth-child(4){grid-column:4!important;grid-row:1!important}
 html body .workspace>.left .artifact-row .perks>*:nth-child(5){grid-column:1!important;grid-row:2!important}
 html body .workspace>.left .artifact-row .perks>*:nth-child(6){grid-column:2!important;grid-row:2!important}
 html body .workspace>.left .artifact-row .perks>*:nth-child(7){grid-column:3!important;grid-row:2!important}
 
 /* ------------------------------------------------------------------
    IN-GAME LOADOUT EMPTY / MISSING-ICON STATE
-   Empty slots and saved slots whose Bungie icon cannot resolve both use the
-   same subtle diagonal X instead of the legacy diamond fallback.
    ------------------------------------------------------------------ */
 html body .workspace .guardian-loadout-slot.is-empty::before,
 html body .workspace .guardian-loadout-slot.is-empty::after,
