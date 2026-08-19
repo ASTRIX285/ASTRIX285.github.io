@@ -16,9 +16,6 @@ html[data-subclass="stasis"]{--subclass-accent:92,163,255}
 html[data-subclass="strand"]{--subclass-accent:73,226,145}
 html[data-subclass="prismatic"]{--subclass-accent:237,99,255}
 
-/* ------------------------------------------------------------------
-   SUBCLASS RAIL — strict 2 columns x 3 rows.
-   ------------------------------------------------------------------ */
 html body .workspace>.left .subclass-rail{
   display:grid!important;
   grid-template-columns:repeat(2,58px)!important;
@@ -60,6 +57,7 @@ html body .workspace>.left .subclass-option__diamond{
   border-color:rgba(227,178,60,.30)!important;
   background:rgba(14,11,18,.66)!important;
   box-shadow:inset 0 0 12px rgba(0,0,0,.42)!important;
+  overflow:hidden!important;
 }
 html body .workspace>.left .subclass-option__diamond>span{
   width:100%!important;
@@ -70,9 +68,12 @@ html body .workspace>.left .subclass-option__diamond>span{
 }
 html body .workspace>.left .subclass-option__icon{
   display:block!important;
-  width:86%!important;
-  height:86%!important;
-  object-fit:contain!important;
+  width:138%!important;
+  max-width:none!important;
+  height:138%!important;
+  max-height:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
   filter:grayscale(.18) saturate(.7) brightness(.82)!important;
 }
 html body .workspace>.left .subclass-option.is-active,
@@ -100,18 +101,15 @@ html body .workspace>.left .subclass-option.is-active .subclass-option__icon{
   filter:saturate(1.2) brightness(1.28) drop-shadow(0 0 7px rgba(var(--subclass-accent),.82))!important;
 }
 
-/* ------------------------------------------------------------------
-   SUPER FORMATION — diamond coordinates stay locked.
-   ------------------------------------------------------------------ */
 html body .workspace>.left .super-feature{
-  flex-basis:224px!important;
-  min-height:224px!important;
+  flex-basis:252px!important;
+  min-height:252px!important;
 }
 html body .workspace>.left .super-feature__cluster{
   order:1!important;
   width:230px!important;
   height:190px!important;
-  margin-top:-6px!important;
+  margin-top:22px!important;
   margin-bottom:0!important;
 }
 html body .workspace>.left .super-feature__name{
@@ -151,9 +149,6 @@ html body .workspace>.left .super-diamond--alt3{
   top:146px!important;
 }
 
-/* ------------------------------------------------------------------
-   ABILITIES / ASPECTS / FRAGMENTS — fixed visible socket counts.
-   ------------------------------------------------------------------ */
 html body .workspace>.left .grp--abilities{
   overflow:hidden!important;
   padding-bottom:10px!important;
@@ -247,9 +242,6 @@ html body .workspace>.left #fragList .ico-badge{
   clip-path:none!important;
 }
 
-/* ------------------------------------------------------------------
-   ARTIFACT PERKS — always visible 4 + 3 inside the left panel.
-   ------------------------------------------------------------------ */
 html body .workspace>.left .artifact-row .perks{
   grid-column:1/-1!important;
   display:grid!important;
@@ -281,9 +273,6 @@ html body .workspace>.left .artifact-row .perks>*:nth-child(5){grid-column:1!imp
 html body .workspace>.left .artifact-row .perks>*:nth-child(6){grid-column:2!important;grid-row:2!important}
 html body .workspace>.left .artifact-row .perks>*:nth-child(7){grid-column:3!important;grid-row:2!important}
 
-/* ------------------------------------------------------------------
-   IN-GAME LOADOUT EMPTY / MISSING-ICON STATE
-   ------------------------------------------------------------------ */
 html body .workspace .guardian-loadout-slot.is-empty::before,
 html body .workspace .guardian-loadout-slot.is-empty::after,
 html body .workspace .guardian-loadout-icon-fallback::before,
