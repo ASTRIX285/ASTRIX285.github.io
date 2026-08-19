@@ -12,6 +12,7 @@ let syncQueued = false;
 let legacyObserver = null;
 let observedLegacy = null;
 let liveSelectionSeen = false;
+const subclassIconCache = new Map();
 
 function sourceData(source, fallbackTitle = '') {
   const img = source?.querySelector('img');
@@ -55,6 +56,33 @@ function setDiamond(diamond, source, fallbackTitle = '') {
     if (diamond.title !== label) diamond.title = label;
     if (diamond.getAttribute('aria-label') !== label) diamond.setAttribute('aria-label', label);
   }
+}
+
+function syncSubclassRail(detail = {}) {
+  const element = String(detail.subclass || '').toLowerCase();
+  const icon = detail.subclassIcon || '';
+  if (element && icon) subclassIconCache.set(element, icon);
+
+  document.querySelectorAll('[data-subclass-option]').forEach(button => {
+    const key = String(button.dataset.subclassOption || '').toLowerCase();
+    const holder = button.querySelector('.subclass-option__diamond > span');
+    if (!holder) return;
+    const cachedIcon = subclassIconCache.get(key) || '';
+    const isActive = key === element;
+    button.classList.toggle('is-active', isActive);
+    if (cachedIcon) {
+      let img = holder.querySelector('img.subclass-option__icon');
+      if (!img) {
+        holder.textContent = '';
+        img = document.createElement('img');
+        img.className = 'subclass-option__icon';
+        holder.appendChild(img);
+      }
+      const absolute = cachedIcon.startsWith('http') ? cachedIcon : `https://www.bungie.net${cachedIcon}`;
+      if (img.src !== absolute) img.src = absolute;
+      img.alt = `${key} subclass`;
+    }
+  });
 }
 
 function syncFromLegacySuperRenderer() {
@@ -105,8 +133,9 @@ function bindLegacyObserver() {
   });
 }
 
-document.addEventListener('astrix:guardian-selection-changed', () => {
+document.addEventListener('astrix:guardian-selection-changed', event => {
   liveSelectionSeen = true;
+  syncSubclassRail(event.detail || {});
   bindLegacyObserver();
   syncSoon();
 });
