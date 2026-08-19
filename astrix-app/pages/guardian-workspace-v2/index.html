@@ -26,6 +26,8 @@
     /* ================================================================
        LOCKED: SUBCLASS + SUPER PRESENTATION
        Do not alter in later layout passes without explicit approval.
+       Desktop/tablet: subclass beside Super.
+       Phone: subclass above Super.
        Six subclass choices = 2 columns x 3 rows.
        Super order = heading, large equipped diamond, name, three alternates.
        ================================================================ */
@@ -93,43 +95,83 @@
       margin-top:4px!important;
       overflow:visible!important;
     }
-    /* Approved three-small-diamond geometry, translated as one group only. */
     .left .super-diamond--alt1{top:180px!important}
     .left .super-diamond--alt2{top:180px!important}
     .left .super-diamond--alt3{top:220px!important}
 
     @media (max-width:620px){
-      .left .subclass-super-shell{
-        grid-template-columns:118px minmax(0,1fr)!important;
+      /* LOCKED MOBILE GUARDIAN CARDS: one character per row. */
+      .topbar .guardian-character-cards{
+        display:grid!important;
+        grid-template-columns:minmax(0,1fr)!important;
+        width:100%!important;
+        max-width:none!important;
+        overflow:visible!important;
         gap:8px!important;
+        padding:0!important;
+      }
+      .topbar .guardian-character-card{
+        width:100%!important;
+        min-width:0!important;
+        max-width:none!important;
+        height:auto!important;
+        min-height:64px!important;
+        max-height:none!important;
+        flex:none!important;
+      }
+      .topbar .guardian-character-cards__status{grid-column:1!important;width:100%!important}
+
+      /* LOCKED MOBILE SUBCLASS/SUPER: subclass above, Super below. */
+      .left .subclass-super-shell{
+        display:grid!important;
+        grid-template-columns:minmax(0,1fr)!important;
+        grid-template-rows:auto auto!important;
+        gap:18px!important;
+        width:100%!important;
+        min-height:0!important;
       }
       .left .subclass-rail{
-        grid-template-columns:repeat(2,42px)!important;
-        grid-template-rows:auto repeat(3,44px)!important;
-        width:118px!important;
-        min-width:118px!important;
-        column-gap:10px!important;
-        row-gap:7px!important;
+        grid-column:1!important;
+        grid-row:1!important;
+        grid-template-columns:repeat(2,48px)!important;
+        grid-template-rows:auto repeat(3,48px)!important;
+        width:132px!important;
+        min-width:132px!important;
+        justify-self:center!important;
+        column-gap:12px!important;
+        row-gap:8px!important;
       }
       .left .subclass-option{
-        width:42px!important;
-        min-width:42px!important;
-        height:44px!important;
-        min-height:44px!important;
+        width:48px!important;
+        min-width:48px!important;
+        height:48px!important;
+        min-height:48px!important;
       }
-      .left .subclass-option__diamond{width:32px!important;height:32px!important}
-      .left .super-feature{min-height:366px!important}
+      .left .subclass-option__diamond{width:34px!important;height:34px!important}
+
+      .left .super-feature{
+        grid-column:1!important;
+        grid-row:2!important;
+        width:100%!important;
+        min-height:350px!important;
+        justify-self:center!important;
+      }
+      .left .super-feature__label{text-align:center!important}
       .left .super-feature__name{
-        top:166px!important;
-        max-width:180px!important;
+        top:150px!important;
+        max-width:220px!important;
         font-size:.62rem!important;
         line-height:18px!important;
       }
-      .left .super-feature__cluster{height:330px!important}
-      /* Same approved three-point formation, moved down below the name. */
-      .left .super-diamond--alt1{left:30%!important;top:208px!important}
-      .left .super-diamond--alt2{left:50%!important;top:240px!important}
-      .left .super-diamond--alt3{left:70%!important;top:208px!important}
+      .left .super-feature__cluster{
+        width:230px!important;
+        height:314px!important;
+        margin:4px auto 0!important;
+      }
+      /* Preserve the approved three-small-diamond shape; only keep it below the name. */
+      .left .super-diamond--alt1{left:calc(50% - 40px)!important;top:190px!important}
+      .left .super-diamond--alt2{left:calc(50% + 40px)!important;top:190px!important}
+      .left .super-diamond--alt3{left:50%!important;top:230px!important}
     }
   </style>
 </head>
