@@ -272,45 +272,79 @@ async function fetchInventoryDefinitions(
   hashes: number[],
   accessToken: string,
   env: Env,
-  limit = 34
+  limit = hashes.length
 ): Promise<Record<string, Record<string, unknown>>> {
-  // Keep the profile request plus definition lookups below the Worker subrequest budget.
-  // Equipment hashes are inserted before plug hashes, so visible gear resolves first.
-  const entries = await Promise.all(hashes.slice(0, limit).map(async (hash) => {
-    let cache: Cache | null = null;
-    const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/inventory/${hash}`, { method: "GET" });
-    try {
-      cache = await caches.open("astrix-bungie-definitions");
-      const cached = await cache.match(cacheKey);
-      if (cached) {
-        const definition = await cached.json<Record<string, unknown>>().catch(() => null);
-        if (definition) return [String(hash), definition] as const;
-      }
-    } catch (error) {
-      console.warn("definition_cache_read_failed", { hash, error: String(error) });
-    }
-    const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "X-API-Key": env.BUNGIE_API_KEY,
-        "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
-      }
-    });
-    if (!response.ok) return null;
-    const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
-    if (!payload?.Response) return null;
-    if (cache) {
+  const requested = hashes.slice(0, limit);
+  const entries: Array<readonly [string, Record<string, unknown>]> = [];
+
+  for (let start = 0; start < requested.length; start += 6) {
+    const batch = requested.slice(start, start + 6);
+    const resolved = await Promise.all(batch.map(async (hash) => {
+      let cache: Cache | null = null;
+      const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/inventory/${hash}`, { method: "GET" });
       try {
-        await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
-          headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
-        }));
+        cache = await caches.open("astrix-bungie-definitions");
+        const cached = await cache.match(cacheKey);
+        if (cached) {
+          const definition = await cached.json<Record<string, unknown>>().catch(() => null);
+          if (definition) return [String(hash), definition] as const;
+        }
       } catch (error) {
-        console.warn("definition_cache_write_failed", { hash, error: String(error) });
+        console.warn("definition_cache_read_failed", { hash, error: String(error) });
       }
-    }
-    return [String(hash), payload.Response] as const;
-  }));
-  return Object.fromEntries(entries.filter((entry): entry is readonly [string, Record<string, unknown>] => entry !== null));
+
+      let response: Response | null = null;
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-API-Key": env.BUNGIE_API_KEY,
+            "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+          }
+        });
+
+        if (response.ok) break;
+
+        const retryable = response.status === 429 || response.status >= 500;
+        if (!retryable || attempt === 3) {
+          const body = await response.text().catch(() => "");
+          console.warn("definition_fetch_failed", {
+            hash,
+            status: response.status,
+            attempt,
+            body
+          });
+          return null;
+        }
+
+        const retryAfter = Number(response.headers.get("Retry-After"));
+        const delayMs = Number.isFinite(retryAfter) && retryAfter > 0
+          ? retryAfter * 1000
+          : 250 * 2 ** (attempt - 1);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+
+      if (!response?.ok) return null;
+      const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+      if (!payload?.Response) {
+        console.warn("definition_response_missing", { hash });
+        return null;
+      }
+      if (cache) {
+        try {
+          await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
+            headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
+          }));
+        } catch (error) {
+          console.warn("definition_cache_write_failed", { hash, error: String(error) });
+        }
+      }
+      return [String(hash), payload.Response] as const;
+    }));
+    entries.push(...resolved.filter((entry): entry is readonly [string, Record<string, unknown>] => entry !== null));
+  }
+
+  return Object.fromEntries(entries);
 }
 
 async function fetchGearAssetDefinitions(
@@ -410,11 +444,11 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  const equippedHashes = activeCharacterDefinitionHashes(payload.Response);
+  const equippedHashes = equippedDefinitionHashes(payload.Response);
   // The current workspace presents character rendering as in development.
   // Avoid gear-asset fan-out here and reserve the request budget for the
   // equipment, subclass and socket definitions required by the live UI.
-  const definitions = await fetchInventoryDefinitions(equippedHashes, session.accessToken, env, 18);
+  const definitions = await fetchInventoryDefinitions(equippedHashes, session.accessToken, env, equippedHashes.length);
   const gearAssets: Record<string, Record<string, unknown>> = {};
   const updatedSession = { ...session, lastUsedAt: Date.now() };
   await putSession(env, sessionId, updatedSession);
@@ -509,7 +543,7 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
     }
   }
   const hashes = [...definitionHashes];
-  const definitions = await fetchInventoryDefinitions(hashes, session.accessToken, env, 24);
+  const definitions = await fetchInventoryDefinitions(hashes, session.accessToken, env, hashes.length);
   const gearAssets: Record<string, Record<string, unknown>> = {};
   await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
   return withCors(request, env, json({
