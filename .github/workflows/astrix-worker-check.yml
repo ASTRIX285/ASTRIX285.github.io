@@ -1,17 +1,17 @@
-name: ASTRIX Worker Check
+name: ASTRIX Destiny Auth Worker Check
 
 on:
   pull_request:
     branches:
       - main
     paths:
-      - 'astrix-worker/**'
+      - 'astrix-auth-worker/**'
       - '.github/workflows/astrix-worker-check.yml'
   push:
     branches:
       - main
     paths:
-      - 'astrix-worker/**'
+      - 'astrix-auth-worker/**'
       - '.github/workflows/astrix-worker-check.yml'
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: astrix-worker
+        working-directory: astrix-auth-worker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
