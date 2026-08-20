@@ -1,15 +1,16 @@
 {
-  "name": "astrix-worker",
-  "version": "1.0.0",
-  "type": "module",
-  "description": "ASTRIX Cloudflare Worker edge proxy for Bungie API, OAuth lifecycle, and manifest caching",
-  "main": "src/index.mjs",
+  "name": "astrix-destiny-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Worker backend for ASTRIX Destiny authentication and API access.",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "tail": "wrangler tail"
+    "check": "tsc --noEmit && wrangler deploy --dry-run",
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
-    "wrangler": "^3.50.0"
+    "@cloudflare/workers-types": "5.20260729.1",
+    "typescript": "^5.9.0",
+    "wrangler": "4.114.0"
   }
 }
