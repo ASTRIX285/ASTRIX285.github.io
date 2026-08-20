@@ -1,0 +1,182 @@
+name: Apply Guardian hash-resolution patch
+
+on:
+  push:
+    branches:
+      - fix/guardian-hash-resolution
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/guardian-hash-resolution
+          fetch-depth: 0
+
+      - name: Patch Worker definition resolution
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('astrix-worker/src/index.ts')
+          text = path.read_text(encoding='utf-8')
+
+          start = text.index('async function fetchInventoryDefinitions(')
+          end = text.index('\nasync function fetchGearAssetDefinitions(', start)
+          replacement = '''async function fetchInventoryDefinitions(
+            hashes: number[],
+            accessToken: string,
+            env: Env
+          ): Promise<Record<string, Record<string, unknown>>> {
+            const uniqueHashes = [...new Set(hashes.filter(hash => Number.isInteger(hash)))];
+            const definitions: Record<string, Record<string, unknown>> = {};
+            let cache: Cache | null = null;
+
+            try {
+              cache = await caches.open("astrix-bungie-definitions");
+            } catch (error) {
+              console.warn("definition_cache_open_failed", { error: String(error) });
+            }
+
+            // Workers Paid supports far more subrequests than the old Free-plan resolver.
+            // Keep outbound Bungie work at six concurrent requests, matching Cloudflare's
+            // simultaneous outgoing-connection limit, while resolving every required hash.
+            const batchSize = 6;
+            for (let offset = 0; offset < uniqueHashes.length; offset += batchSize) {
+              const batch = uniqueHashes.slice(offset, offset + batchSize);
+              const entries = await Promise.all(batch.map(async (hash) => {
+                const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/inventory/${hash}`, { method: "GET" });
+                if (cache) {
+                  try {
+                    const cached = await cache.match(cacheKey);
+                    if (cached) {
+                      const definition = await cached.json<Record<string, unknown>>().catch(() => null);
+                      if (definition) return [String(hash), definition] as const;
+                    }
+                  } catch (error) {
+                    console.warn("definition_cache_read_failed", { hash, error: String(error) });
+                  }
+                }
+
+                const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "X-API-Key": env.BUNGIE_API_KEY,
+                    "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+                  }
+                });
+                if (!response.ok) return null;
+                const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+                if (!payload?.Response) return null;
+
+                if (cache) {
+                  try {
+                    await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
+                      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
+                    }));
+                  } catch (error) {
+                    console.warn("definition_cache_write_failed", { hash, error: String(error) });
+                  }
+                }
+                return [String(hash), payload.Response] as const;
+              }));
+
+              for (const entry of entries) {
+                if (entry) definitions[entry[0]] = entry[1];
+              }
+            }
+
+            return definitions;
+          }
+          '''
+          text = text[:start] + replacement + text[end:]
+
+          old_profile = '''  const equippedHashes = activeCharacterDefinitionHashes(payload.Response);
+            // Keep the resolver bounded, but use its established safe budget rather than
+            // the old 18-definition throttle that starved subclass socket definitions.
+            const requestedDefinitionHashes = equippedHashes.slice(0, 34);
+            const definitions = await fetchInventoryDefinitions(requestedDefinitionHashes, session.accessToken, env, 34);
+            const definitionCoverage = {
+              requested: requestedDefinitionHashes.length,
+              resolved: Object.keys(definitions).length,
+              unresolved: requestedDefinitionHashes.filter(hash => !definitions[String(hash)])
+            };'''
+          new_profile = '''  const requestedDefinitionHashes = equippedDefinitionHashes(payload.Response);
+            const definitions = await fetchInventoryDefinitions(requestedDefinitionHashes, session.accessToken, env);
+            const unresolvedDefinitionHashes = requestedDefinitionHashes.filter(hash => !definitions[String(hash)]);
+            const definitionCoverage = {
+              requested: requestedDefinitionHashes.length,
+              resolved: Object.keys(definitions).length,
+              unresolved: unresolvedDefinitionHashes,
+              complete: unresolvedDefinitionHashes.length === 0,
+              characterCount: Object.keys(payload.Response.characterEquipment?.data || {}).length
+            };'''
+          if old_profile not in text:
+            raise SystemExit('profile resolver block did not match expected source')
+          text = text.replace(old_profile, new_profile, 1)
+
+          old_loadout = '''  const hashes = [...definitionHashes];
+            const definitions = await fetchInventoryDefinitions(hashes, session.accessToken, env, 24);
+            const gearAssets: Record<string, Record<string, unknown>> = {};
+            await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
+            return withCors(request, env, json({
+              authenticated: true,
+              membership,
+              characterId,
+              index,
+              loadout,
+              selectedItems,
+              profile,
+              definitions,
+              gearAssets
+            }));'''
+          new_loadout = '''  const hashes = [...definitionHashes];
+            const definitions = await fetchInventoryDefinitions(hashes, session.accessToken, env);
+            const unresolvedDefinitionHashes = hashes.filter(hash => !definitions[String(hash)]);
+            const definitionCoverage = {
+              requested: hashes.length,
+              resolved: Object.keys(definitions).length,
+              unresolved: unresolvedDefinitionHashes,
+              complete: unresolvedDefinitionHashes.length === 0
+            };
+            const gearAssets: Record<string, Record<string, unknown>> = {};
+            await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
+            return withCors(request, env, json({
+              authenticated: true,
+              membership,
+              characterId,
+              index,
+              loadout,
+              selectedItems,
+              profile,
+              definitions,
+              definitionCoverage,
+              gearAssets
+            }));'''
+          if old_loadout not in text:
+            raise SystemExit('loadout resolver block did not match expected source')
+          text = text.replace(old_loadout, new_loadout, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate Worker
+        working-directory: astrix-worker
+        run: |
+          npm ci
+          npm run check
+
+      - name: Commit patch and remove one-shot workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/apply-guardian-hash-resolution.yml
+          git add astrix-worker/src/index.ts
+          git diff --cached --check
+          git commit -m "Resolve all live Guardian definition hashes"
+          git push origin HEAD:fix/guardian-hash-resolution
