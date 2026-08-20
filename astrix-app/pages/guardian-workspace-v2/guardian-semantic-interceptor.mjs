@@ -1,3 +1,4 @@
+import "./guardian-paradox-live-adapter.mjs";
 import {
   normaliseArmourSemantics,
   normaliseWeaponSemantics,
