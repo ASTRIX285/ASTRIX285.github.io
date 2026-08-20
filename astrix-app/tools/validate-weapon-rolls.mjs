@@ -42,6 +42,7 @@ globalThis.fetch = async input => {
 
 const loader = await import(pathToFileURL(path.join(pageRoot, 'guardian-fixture-loader.mjs')).href + '?v=' + Date.now());
 const engine = await import(pathToFileURL(path.join(pageRoot, 'guardian-paradox-engine.mjs')).href + '?v=' + Date.now());
+const semantics = await import(pathToFileURL(path.join(pageRoot, 'guardian-semantic-resolver.mjs')).href + '?v=' + Date.now());
 const rawFixtures = JSON.parse(await fs.readFile(routes.get(FIXTURE_FILE), 'utf8'));
 const cache = JSON.parse(await fs.readFile(routes.get(CACHE_FILE), 'utf8'));
 const perkResolves = h => Boolean(cache.inventoryItems && cache.inventoryItems[String(h)]);
@@ -72,8 +73,6 @@ try {
 
 // ============================================================
 // CHECK 2 — Debuff-guardrail invariant
-// A perk whose ONLY evidence is a debuff traitId (no description direction)
-// must NOT emit that debuff as a weapon output on its own.
 // ============================================================
 try {
   const consumer = { hash: 4194622036, bungieHash: 4194622036, name: 'Flow State', componentType: 'aspect',
@@ -90,7 +89,6 @@ try {
 
 // ============================================================
 // CHECK 3 — rollPerks resolution gate (no manufactured perks)
-// Every authored rollPerks perkHash must resolve in the manifest cache.
 // ============================================================
 for (const fx of rawFixtures.fixtures) {
   for (const eq of (fx.rawDim?.equipped ?? [])) {
@@ -105,9 +103,6 @@ for (const fx of rawFixtures.fixtures) {
 
 // ============================================================
 // CHECK 4 — Engine analysis integrity across every fixture
-//  - known verified weapon (19024058) must stay verified (no regression)
-//  - any weapon that is verified-loop-contributor must be that one OR carry rollPerks
-//    (catches a fabricated role with no authored evidence)
 // ============================================================
 let sawKnownVerified = false;
 for (const fx of rawFixtures.fixtures) {
@@ -127,20 +122,95 @@ if (!sawKnownVerified) fail(`C4: known verified weapon ${KNOWN_VERIFIED_WEAPON} 
 
 // ============================================================
 // CHECK 5 — Hardcoding scan of the engine source
-// No fixture-ID literals and no exotic/item hash literals baked into logic.
 // ============================================================
 try {
   const src = await fs.readFile(path.join(pageRoot, 'guardian-paradox-engine.mjs'), 'utf8');
   const fixtureLits = src.match(/PF-(BETA|COMM)-\d+/g);
   if (fixtureLits) fail(`C5: engine contains fixture-ID literal(s): ${[...new Set(fixtureLits)].join(', ')}`);
-  // long bare numeric literals (>=6 digits) in engine logic are suspicious item/perk hashes
   const codeOnly = src.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-  const hashLits = (codeOnly.match(/\b\d{6,}\b/g) || []).filter(n => n !== '200'); // 200 = stat cap, not a hash anyway
+  const hashLits = (codeOnly.match(/\b\d{6,}\b/g) || []).filter(n => n !== '200');
   if (hashLits.length) fail(`C5: engine contains bare numeric hash-like literal(s) in logic: ${[...new Set(hashLits)].join(', ')}`);
 } catch (e) { fail('C5: hardcoding scan threw: ' + e.message); }
 
 // ============================================================
-// CHECK 6 (optional) — scoped diff vs base: only rollPerks added
+// CHECK 6 — Guardian armour semantic contract
+// ============================================================
+try {
+  const plug=(hash,name,category,description='')=>({hash,name,description,definition:{plug:{plugCategoryIdentifier:category}}});
+  const armour=semantics.normaliseArmourSemantics({
+    instance:{gearTier:5,energy:{energyType:1,energyTypeHash:123,energyCapacity:10,energyUsed:7}},
+    stats:{stats:{health:{value:20}}},
+    plugs:[
+      plug(1,'Infuse','armor.infusion'),
+      plug(2,'Armour Masterwork Level 5','armor.masterworks'),
+      plug(3,'General Mod','armor.mods.general'),
+      plug(4,'General Mod 2','armor.mods.general'),
+      plug(5,'Helmet Mod','armor.mods.helmet'),
+      plug(6,'Bulwark Armour Archetype','armor.archetype'),
+      plug(7,'Close Enough Exotic Armour Perk','armor.exotic.perk'),
+      plug(8,'Ionic Overclock 2 Piece','armor.set_bonus'),
+      plug(9,'Shock and Clear 4 Piece','armor.set_bonus')
+    ]
+  });
+  if (armour.tier !== 5) fail('C6: armour gearTier did not normalize');
+  if (armour.energy?.capacity !== 10 || armour.energy?.used !== 7) fail('C6: armour energy did not normalize');
+  if (armour.generalMods.length !== 2 || armour.slotMods.length !== 1) fail('C6: armour mod families were not separated');
+  if (!armour.masterwork || !armour.archetype || !armour.exoticPerk) fail('C6: armour intrinsic semantic families missing');
+  if (!armour.set.twoPiece || !armour.set.fourPiece) fail('C6: armour set 2/4 piece split failed');
+  if (!armour.discarded.some(x => x.semanticRole === 'infuse')) fail('C6: Infuse was not explicitly discarded');
+  if (armour.unknownPlugs.length) fail('C6: known synthetic armour plugs became unknown');
+} catch (e) { fail('C6: armour semantic contract threw: ' + e.message); }
+
+// ============================================================
+// CHECK 7 — Weapon/catalyst/champion semantic contract
+// ============================================================
+try {
+  const plug=(hash,name,category,extra={})=>({hash,name,definition:{plug:{plugCategoryIdentifier:category}},isEnabled:true,...extra});
+  const catalyst=plug(22,'Test Catalyst','weapon.catalyst');
+  const profile={itemComponents:{plugObjectives:{data:{abc:{objectivesPerPlug:{'22':[{complete:false,progress:3,completionValue:100}]}}}}}};
+  const weapon=semantics.normaliseWeaponSemantics({
+    profile,
+    item:{itemInstanceId:'abc'},
+    instance:{breakerType:2,breakerTypeHash:456},
+    stats:{stats:{range:{value:80}}},
+    plugs:[
+      plug(20,'Adaptive Frame','intrinsics'),
+      plug(21,'Weapon Masterwork Level 10','weapon.masterworks'),
+      catalyst,
+      plug(23,'Weapon Mod','weapon.mods'),
+      plug(24,'Trait Perk','traits')
+    ]
+  });
+  if (!weapon.intrinsic || !weapon.masterwork || !weapon.mod || !weapon.catalyst) fail('C7: weapon semantic families missing');
+  if (weapon.selectedPerks.length !== 1) fail('C7: weapon selected perk classification failed');
+  if (weapon.champion?.source !== 'bungie-item-instance') fail('C7: champion capability lacks direct Bungie instance source');
+  if (weapon.catalyst.progress?.completed !== false || weapon.catalyst.progress?.active !== false) fail('C7: incomplete catalyst incorrectly became active');
+} catch (e) { fail('C7: weapon semantic contract threw: ' + e.message); }
+
+// ============================================================
+// CHECK 8 — Guardian stat threshold + Artifact applied-perk integrity
+// ============================================================
+try {
+  const stats=semantics.normaliseGuardianStats([['Grenade',110],['Weapons',105],['Health',100],['Class',95]]);
+  if (!stats.Grenade.enhancedThresholdReached || !stats.Weapons.enhancedThresholdReached) fail('C8: >100 enhanced stat threshold failed');
+  if (stats.Health.enhancedThresholdReached || stats.Class.enhancedThresholdReached) fail('C8: <=100 stat incorrectly marked enhanced');
+  const activePerks=Array.from({length:7},(_,i)=>({hash:1000+i}));
+  const artifact=semantics.validateArtifact({activePerks});
+  if (artifact.activeCount !== 7 || artifact.uniqueActiveCount !== 7 || !artifact.noDuplicateActiveHashes) fail('C8: Artifact 7/7 integrity failed');
+} catch (e) { fail('C8: stat/Artifact contract threw: ' + e.message); }
+
+// ============================================================
+// CHECK 9 — Semantic safety: unknowns cannot silently become mods/evidence
+// ============================================================
+try {
+  const unknown={hash:999,name:'Mystery Socket',description:'',definition:{plug:{plugCategoryIdentifier:'unknown.future.system'}}};
+  const armour=semantics.normaliseArmourSemantics({plugs:[unknown]});
+  if (armour.generalMods.length || armour.slotMods.length) fail('C9: unknown armour plug was manufactured into a mod');
+  if (armour.complete || armour.unknownPlugs.length !== 1) fail('C9: unknown armour plug was not surfaced explicitly');
+} catch (e) { fail('C9: semantic safety check threw: ' + e.message); }
+
+// ============================================================
+// CHECK 10 (optional) — scoped diff vs base: only rollPerks added
 // ============================================================
 const baseIdx = process.argv.indexOf('--base');
 if (baseIdx !== -1 && process.argv[baseIdx + 1]) {
@@ -152,14 +222,14 @@ if (baseIdx !== -1 && process.argv[baseIdx + 1]) {
       return c;
     };
     if (JSON.stringify(strip(base)) !== JSON.stringify(strip(rawFixtures)))
-      fail('C6: fixture file changed OUTSIDE weapon rollPerks (scoped-diff violation)');
-  } catch (e) { fail('C6: base-diff threw: ' + e.message); }
+      fail('C10: fixture file changed OUTSIDE weapon rollPerks (scoped-diff violation)');
+  } catch (e) { fail('C10: base-diff threw: ' + e.message); }
 }
 
 // ---- report ----
 if (failures.length) {
-  console.error('WEAPON-ROLL VALIDATION FAILED:');
+  console.error('PARADOX VALIDATION FAILED:');
   for (const f of failures) console.error('  ✗ ' + f);
   process.exit(1);
 }
-console.log('WEAPON-ROLL VALIDATION PASSED (all mechanical checks green).');
+console.log('PARADOX VALIDATION PASSED (weapon + Guardian semantic checks green).');
