@@ -1,5 +1,5 @@
 name = "astrix-destiny-backend"
-main = "src/index.ts"
+main = "src/semantic-wrapper.ts"
 compatibility_date = "2026-08-13"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
