@@ -1,12 +1,11 @@
-name: Deploy ASTRIX Destiny Worker
+name: Deploy ASTRIX Destiny Auth Worker
 
-# Production deploys only from canonical main after PR validation.
 on:
   push:
     branches:
       - main
     paths:
-      - 'astrix-worker/**'
+      - 'astrix-auth-worker/**'
       - '.github/workflows/deploy-astrix-worker.yml'
   workflow_dispatch:
 
@@ -22,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: astrix-worker
+        working-directory: astrix-auth-worker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,7 +38,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: astrix-worker
+          workingDirectory: astrix-auth-worker
           command: deploy
       - name: Paradox Validator — live health
         run: |
