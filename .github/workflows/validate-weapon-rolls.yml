@@ -1,18 +1,17 @@
-name: Validate weapon rolls
-
-# Deterministic guardrails for authored weapon rollPerks + engine integrity.
-# Runs on every PR into the working branch and on manual dispatch.
-# This is the mechanical half of validation — it can't rationalise and never
-# hits an AI usage limit. Judgement-level review happens separately.
+name: Validate Paradox Guardian evidence
 
 on:
   pull_request:
-    branches: [feature/astrix-multigame-platform]
+    branches: [main]
     paths:
       - 'astrix-app/data/paradox-forge/beta/**'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-paradox-engine.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-fixture-loader.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-semantic-resolver.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-semantic-interceptor.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-paradox-live-adapter.mjs'
       - 'astrix-app/tools/**'
+      - '.github/workflows/validate-weapon-rolls.yml'
   workflow_dispatch:
 
 jobs:
@@ -22,14 +21,12 @@ jobs:
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # need base commit for the scoped-diff check
-
+          fetch-depth: 0
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Extract base fixture (for scoped-diff check)
+      - name: Extract base fixture
         id: base
         run: |
           FIX=astrix-app/data/paradox-forge/beta/ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json
@@ -40,12 +37,9 @@ jobs:
           else
             echo "have_base=false" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Run self-test (engine executes for real)
+      - name: Run engine self-test
         run: node astrix-app/tools/test-weapon-roll-nodes.mjs > /tmp/selftest.out
-        # non-zero exit fails the job; the assertions live inside the test file
-
-      - name: Run mechanical validation
+      - name: Run Paradox deterministic validation
         run: |
           if [ "${{ steps.base.outputs.have_base }}" = "true" ]; then
             node astrix-app/tools/validate-weapon-rolls.mjs --base /tmp/base-fixtures.json
