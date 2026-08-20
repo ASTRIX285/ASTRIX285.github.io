@@ -10,6 +10,7 @@ on:
       - 'astrix-app/pages/guardian-workspace-v2/guardian-semantic-resolver.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-semantic-interceptor.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-paradox-live-adapter.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-armour-set-resolver.mjs'
       - 'astrix-app/tools/**'
       - '.github/workflows/validate-weapon-rolls.yml'
   workflow_dispatch:
@@ -39,10 +40,12 @@ jobs:
           fi
       - name: Run engine self-test
         run: node astrix-app/tools/test-weapon-roll-nodes.mjs > /tmp/selftest.out
-      - name: Run Paradox deterministic validation
+      - name: Run weapon and engine validation
         run: |
           if [ "${{ steps.base.outputs.have_base }}" = "true" ]; then
             node astrix-app/tools/validate-weapon-rolls.mjs --base /tmp/base-fixtures.json
           else
             node astrix-app/tools/validate-weapon-rolls.mjs
           fi
+      - name: Run Guardian semantic validation
+        run: node astrix-app/tools/validate-guardian-semantics.mjs
