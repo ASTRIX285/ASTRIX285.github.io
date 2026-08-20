@@ -41,6 +41,10 @@ type BungieApiResponse<T> = {
 
 type DestinyItemComponent = { itemHash?: number; itemInstanceId?: string };
 type DestinySocketComponent = { sockets?: Array<{ plugHash?: number }> };
+type DestinyReusablePlugComponent = { plugs?: Record<string, Array<{ plugItemHash?: number; plugHash?: number }>> };
+type DestinyArtifactProfileScoped = { artifactHash?: number };
+type DestinyArtifactTierItem = { itemHash?: number; isActive?: boolean; isVisible?: boolean };
+type DestinyArtifactCharacterScoped = { tiers?: Array<{ items?: DestinyArtifactTierItem[] }> };
 type DestinyLoadoutItemComponent = { itemInstanceId?: string; plugItemHashes?: number[] };
 type DestinyLoadoutComponent = {
   colorHash?: number;
@@ -54,7 +58,12 @@ type DestinyProfilePayload = {
   characterInventories?: { data?: Record<string, { items?: DestinyItemComponent[] }> };
   profileInventory?: { data?: { items?: DestinyItemComponent[] } };
   characterLoadouts?: { data?: Record<string, { loadouts?: DestinyLoadoutComponent[] }> };
-  itemComponents?: { sockets?: { data?: Record<string, DestinySocketComponent> } };
+  profileProgression?: { data?: { seasonalArtifact?: DestinyArtifactProfileScoped } };
+  characterProgressions?: { data?: Record<string, { seasonalArtifact?: DestinyArtifactCharacterScoped }> };
+  itemComponents?: {
+    sockets?: { data?: Record<string, DestinySocketComponent> };
+    reusablePlugs?: { data?: Record<string, DestinyReusablePlugComponent> };
+  };
   [key: string]: unknown;
 };
 
@@ -228,30 +237,6 @@ async function refreshAccessToken(sessionId: string, session: SessionRecord, env
   return refreshed;
 }
 
-function activeCharacterDefinitionHashes(profile: DestinyProfilePayload): number[] {
-  const characterData = (profile.characters as {
-    data?: Record<string, { characterId?: string; dateLastPlayed?: string }>;
-  } | undefined)?.data || {};
-  const characters = Object.values(characterData).sort((a, b) =>
-    String(b.dateLastPlayed || "").localeCompare(String(a.dateLastPlayed || ""))
-  );
-  const characterId = String(characters[0]?.characterId || "");
-  const items = profile.characterEquipment?.data?.[characterId]?.items || [];
-  const hashes = new Set<number>();
-  // Base equipment first so every visible slot can resolve before optional plugs.
-  for (const item of items) {
-    if (Number.isInteger(item.itemHash)) hashes.add(Number(item.itemHash));
-  }
-  for (const item of items) {
-    if (!item.itemInstanceId) continue;
-    const socketData = profile.itemComponents?.sockets?.data?.[item.itemInstanceId];
-    for (const socket of socketData?.sockets || []) {
-      if (Number.isInteger(socket.plugHash)) hashes.add(Number(socket.plugHash));
-    }
-  }
-  return [...hashes];
-}
-
 function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
   const hashes = new Set<number>();
   const equipment = profile.characterEquipment?.data || {};
@@ -262,6 +247,48 @@ function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
       const socketData = profile.itemComponents?.sockets?.data?.[item.itemInstanceId];
       for (const socket of socketData?.sockets || []) {
         if (Number.isInteger(socket.plugHash)) hashes.add(Number(socket.plugHash));
+      }
+    }
+  }
+  return [...hashes];
+}
+
+function artifactPerkHashes(profile: DestinyProfilePayload): number[] {
+  const hashes = new Set<number>();
+  for (const progression of Object.values(profile.characterProgressions?.data || {})) {
+    for (const tier of progression.seasonalArtifact?.tiers || []) {
+      for (const item of tier.items || []) {
+        if (Number.isInteger(item.itemHash)) hashes.add(Number(item.itemHash));
+      }
+    }
+  }
+  return [...hashes];
+}
+
+function definitionPlugCategory(definition: Record<string, unknown> | undefined): string {
+  const plug = definition?.plug as { plugCategoryIdentifier?: unknown } | undefined;
+  return String(plug?.plugCategoryIdentifier || "").toLowerCase();
+}
+
+function reusableSuperHashes(
+  profile: DestinyProfilePayload,
+  definitions: Record<string, Record<string, unknown>>
+): number[] {
+  const hashes = new Set<number>();
+  for (const character of Object.values(profile.characterEquipment?.data || {})) {
+    for (const item of character.items || []) {
+      if (!item.itemInstanceId) continue;
+      const sockets = profile.itemComponents?.sockets?.data?.[item.itemInstanceId]?.sockets || [];
+      const superSocketIndex = sockets.findIndex(socket => {
+        if (!Number.isInteger(socket.plugHash)) return false;
+        return definitionPlugCategory(definitions[String(socket.plugHash)]).includes("super");
+      });
+      if (superSocketIndex < 0) continue;
+      const reusable = profile.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]?.plugs || {};
+      const rows = reusable[String(superSocketIndex)] || [];
+      for (const row of rows) {
+        const hash = row.plugItemHash ?? row.plugHash;
+        if (Number.isInteger(hash)) hashes.add(Number(hash));
       }
     }
   }
@@ -283,7 +310,6 @@ async function fetchInventoryDefinitions(
     console.warn("definition_cache_open_failed", { error: String(error) });
   }
 
-  // Workers Paid supports far more subrequests than the old Free-plan resolver.
   // Keep outbound Bungie work at six concurrent requests, matching Cloudflare's
   // simultaneous outgoing-connection limit, while resolving every required hash.
   const batchSize = 6;
@@ -334,13 +360,54 @@ async function fetchInventoryDefinitions(
   return definitions;
 }
 
+async function fetchArtifactDefinition(
+  hash: number | null,
+  accessToken: string,
+  env: Env
+): Promise<Record<string, unknown> | null> {
+  if (!Number.isInteger(hash)) return null;
+  let cache: Cache | null = null;
+  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/artifact/${hash}`, { method: "GET" });
+  try {
+    cache = await caches.open("astrix-bungie-definitions");
+    const cached = await cache.match(cacheKey);
+    if (cached) {
+      const definition = await cached.json<Record<string, unknown>>().catch(() => null);
+      if (definition) return definition;
+    }
+  } catch (error) {
+    console.warn("artifact_definition_cache_read_failed", { hash, error: String(error) });
+  }
+
+  const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyArtifactDefinition/${hash}/`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "X-API-Key": env.BUNGIE_API_KEY,
+      "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+    }
+  });
+  if (!response.ok) return null;
+  const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+  if (!payload?.Response) return null;
+
+  if (cache) {
+    try {
+      await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
+        headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
+      }));
+    } catch (error) {
+      console.warn("artifact_definition_cache_write_failed", { hash, error: String(error) });
+    }
+  }
+  return payload.Response;
+}
+
 async function fetchGearAssetDefinitions(
   hashes: number[],
   accessToken: string,
   env: Env
 ): Promise<Record<string, Record<string, unknown>>> {
   // Character assembly needs Bungie's geometry, textures and dye metadata.
-  // Keep the total profile request below the Worker subrequest ceiling.
   const entries = await Promise.all(hashes.slice(0, 12).map(async (hash) => {
     const cache = await caches.open("astrix-bungie-definitions");
     const cacheKey = new Request(`https://astrix-definition-cache.invalid/gear/${hash}`, { method: "GET" });
@@ -431,16 +498,40 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  const requestedDefinitionHashes = equippedDefinitionHashes(payload.Response);
-  const definitions = await fetchInventoryDefinitions(requestedDefinitionHashes, session.accessToken, env);
+  const baseDefinitionHashes = [...new Set([
+    ...equippedDefinitionHashes(payload.Response),
+    ...artifactPerkHashes(payload.Response)
+  ])];
+  const definitions = await fetchInventoryDefinitions(baseDefinitionHashes, session.accessToken, env);
+  const reusableSuperDefinitionHashes = reusableSuperHashes(payload.Response, definitions);
+  const missingReusableSuperHashes = reusableSuperDefinitionHashes.filter(hash => !definitions[String(hash)]);
+  if (missingReusableSuperHashes.length) {
+    Object.assign(definitions, await fetchInventoryDefinitions(missingReusableSuperHashes, session.accessToken, env));
+  }
+
+  const requestedDefinitionHashes = [...new Set([...baseDefinitionHashes, ...reusableSuperDefinitionHashes])];
   const unresolvedDefinitionHashes = requestedDefinitionHashes.filter(hash => !definitions[String(hash)]);
   const definitionCoverage = {
     requested: requestedDefinitionHashes.length,
-    resolved: Object.keys(definitions).length,
+    resolved: requestedDefinitionHashes.length - unresolvedDefinitionHashes.length,
     unresolved: unresolvedDefinitionHashes,
     complete: unresolvedDefinitionHashes.length === 0,
-    characterCount: Object.keys(payload.Response.characterEquipment?.data || {}).length
+    characterCount: Object.keys(payload.Response.characterEquipment?.data || {}).length,
+    reusableSuperRequested: reusableSuperDefinitionHashes.length,
+    artifactPerkRequested: artifactPerkHashes(payload.Response).length
   };
+
+  const artifactHashValue = payload.Response.profileProgression?.data?.seasonalArtifact?.artifactHash;
+  const artifactHash = Number.isInteger(artifactHashValue) ? Number(artifactHashValue) : null;
+  const artifactDefinition = await fetchArtifactDefinition(artifactHash, session.accessToken, env);
+  const artifactCoverage = {
+    hash: artifactHash,
+    definitionResolved: Boolean(artifactDefinition),
+    perkHashes: artifactPerkHashes(payload.Response),
+    unresolvedPerkHashes: artifactPerkHashes(payload.Response).filter(hash => !definitions[String(hash)]),
+    complete: artifactHash === null ? true : Boolean(artifactDefinition)
+  };
+
   const gearAssets: Record<string, Record<string, unknown>> = {};
   const updatedSession = { ...session, lastUsedAt: Date.now() };
   await putSession(env, sessionId, updatedSession);
@@ -451,6 +542,8 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     profile: payload.Response,
     definitions,
     definitionCoverage,
+    artifactDefinition,
+    artifactCoverage,
     gearAssets
   }));
 }
@@ -523,8 +616,6 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
     selectedByInstance.set(id, { ...item, plugItemHashes: row.plugItemHashes?.length ? row.plugItemHashes : (prior?.plugItemHashes || []) });
   }
   const selectedItems = [...selectedByInstance.values()];
-  // Loadout rows provide their selected plug hashes directly. Resolve every
-  // selected item and plug so the frontend can reconstruct the saved build.
   const definitionHashes = new Set<number>();
   for (const item of selectedItems) {
     if (Number.isInteger(item.itemHash)) definitionHashes.add(Number(item.itemHash));
