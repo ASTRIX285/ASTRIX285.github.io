@@ -121,15 +121,17 @@ function renderLiveAnalysis(analysis){
 
 document.addEventListener("astrix:guardian-selection-changed",event=>{
   if(event.detail?.source!=="bungie-live")return;
-  try{
-    const analysis=analyzeLiveGuardian(event.detail);
-    event.detail.paradoxAnalysis=analysis;
-    renderLiveAnalysis(analysis);
-    document.dispatchEvent(new CustomEvent("astrix:paradox-live-analysis-changed",{detail:analysis}));
-  }catch(error){
-    console.error("[Paradox live adapter]",error);
-    document.dispatchEvent(new CustomEvent("astrix:paradox-live-analysis-error",{detail:{message:error?.message||String(error)}}));
-  }
+  queueMicrotask(()=>{
+    try{
+      const analysis=analyzeLiveGuardian(event.detail);
+      event.detail.paradoxAnalysis=analysis;
+      renderLiveAnalysis(analysis);
+      document.dispatchEvent(new CustomEvent("astrix:paradox-live-analysis-changed",{detail:analysis}));
+    }catch(error){
+      console.error("[Paradox live adapter]",error);
+      document.dispatchEvent(new CustomEvent("astrix:paradox-live-analysis-error",{detail:{message:error?.message||String(error)}}));
+    }
+  });
 });
 
 export {adaptLiveGuardian,analyzeLiveGuardian,renderLiveAnalysis};
