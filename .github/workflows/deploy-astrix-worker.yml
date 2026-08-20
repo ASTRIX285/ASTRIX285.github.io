@@ -1,0 +1,48 @@
+name: Deploy ASTRIX Destiny Auth Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'astrix-auth-worker/**'
+      - '.github/workflows/deploy-astrix-worker.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: astrix-destiny-worker-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: astrix-auth-worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Paradox Validator — TypeScript and Wrangler dry-run
+        run: npm run check --if-present
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: astrix-auth-worker
+          command: deploy
+      - name: Paradox Validator — live health
+        run: |
+          node -e "fetch('https://auth.astrixparadox.com/health').then(async r=>{const b=await r.json();if(!r.ok||b.status!=='ready')throw new Error(JSON.stringify(b));console.log('health pass')})"
+      - name: Paradox Validator — authentication guard
+        run: |
+          node -e "fetch('https://auth.astrixparadox.com/bungie/profile').then(async r=>{const b=await r.json();if(r.status!==401||b.error!=='authentication_required')throw new Error(r.status+' '+JSON.stringify(b));console.log('profile guard pass')})"

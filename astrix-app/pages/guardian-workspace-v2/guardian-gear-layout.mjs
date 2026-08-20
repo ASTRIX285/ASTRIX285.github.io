@@ -4,6 +4,7 @@
    with 6 functional mod tiles each without tearing down sibling DOM blocks.
    ========================================================================== */
 
+import "./guardian-semantic-ui.mjs";
 import { openArmourDrawer } from "./guardian-beta-runtime.mjs";
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);

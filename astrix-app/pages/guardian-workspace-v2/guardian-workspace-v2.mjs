@@ -1,3 +1,4 @@
+import "./guardian-semantic-interceptor.mjs";
 import {
   normaliseLiveProfile,
   loadSelectedLoadout,
