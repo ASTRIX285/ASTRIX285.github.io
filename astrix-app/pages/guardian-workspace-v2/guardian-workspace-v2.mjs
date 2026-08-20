@@ -169,11 +169,30 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
     fragmentHost.innerHTML = padRailSlots(markup, fragments.length, 5);
   }
 
+  const artifact = build.artifact || null;
   const artIcon = byId("artIcon");
   const artName = byId("artName");
-  if (build.artifact) {
-    if (artIcon && build.artifact.icon) artIcon.src = bungieUrl(build.artifact.icon);
-    if (artName && build.artifact.name) artName.textContent = build.artifact.name.toUpperCase();
+  if (artifact) {
+    if (artIcon) {
+      if (artifact.icon) artIcon.src = bungieUrl(artifact.icon);
+      artIcon.alt = artifact.name || "Seasonal Artifact";
+    }
+    if (artName) artName.textContent = String(artifact.name || "SEASONAL ARTIFACT").toUpperCase();
+  }
+
+  const artifactPerks = Array.isArray(artifact?.activePerks) && artifact.activePerks.length
+    ? artifact.activePerks
+    : (Array.isArray(artifact?.perks) ? artifact.perks.filter(item => item?.isVisible !== false) : []);
+  const artifactHost = byId("artPerks");
+  if (artifactHost) {
+    const visiblePerks = artifactPerks.slice(0, 7);
+    const markup = visiblePerks.map(item => `
+      <div class="slot" title="${escapeHtml(item.name)}">
+        <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
+        <span class="nm">${escapeHtml(item.name)}</span>
+      </div>
+    `).join("");
+    artifactHost.innerHTML = padRailSlots(markup, visiblePerks.length, 7);
   }
 }
 
@@ -255,7 +274,7 @@ function applyGuardianSelection(detail) {
 
   document.documentElement.dataset.subclass = (next.subclass || "arc").toLowerCase();
 
-  if (next.subclassBuild) renderSubclassBuild(next.subclassBuild, next.subclassName);
+  if (next.subclassBuild) renderSubclassBuild({...next.subclassBuild,artifact:next.artifact||null}, next.subclassName);
   else ensureLayoutPlaceholders();
   if (Array.isArray(next.weapons)) renderWeapons(next.weapons);
   if (Array.isArray(next.armour)) bindArmourSlots(next.armour);
