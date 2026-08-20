@@ -11,6 +11,10 @@ on:
       - 'astrix-app/pages/guardian-workspace-v2/guardian-semantic-interceptor.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-paradox-live-adapter.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-armour-set-resolver.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-semantic-ui.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-gear-layout.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-workspace-v2.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/index.html'
       - 'astrix-app/tools/**'
       - '.github/workflows/validate-weapon-rolls.yml'
   workflow_dispatch:
