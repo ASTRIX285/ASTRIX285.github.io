@@ -3,6 +3,7 @@ import { manifestDefinition, enrichEquipableSets } from "./manifest-semantics";
 export { AuthRecord };
 
 const SUBCLASS_BUCKET_HASH = 3284755031;
+const WEAPON_BUCKETS = new Set([1498876634, 2465295065, 953998645]);
 
 function definitionCategory(definition: Record<string, any> | undefined): string {
   return String(definition?.plug?.plugCategoryIdentifier || "").toLowerCase();
@@ -13,9 +14,59 @@ function isSuperDefinition(definition: Record<string, any> | undefined): boolean
   return category === "super" || category === "supers" || category.includes("super");
 }
 
+async function resolveMissingInventoryDefinitions(payload: any, hashes: Iterable<number>, env: Env): Promise<number[]> {
+  const definitions: Record<string, Record<string, any>> = payload.definitions || (payload.definitions = {});
+  const unique = [...new Set([...hashes].map(Number).filter(Number.isInteger))];
+  const missing = unique.filter(hash => !definitions[String(hash)]);
+  const rows = await Promise.all(missing.map(async hash => [
+    hash,
+    await manifestDefinition("DestinyInventoryItemDefinition", hash, env)
+  ] as const));
+  for (const [hash, definition] of rows) if (definition) definitions[String(hash)] = definition;
+  return missing.filter(hash => !definitions[String(hash)]);
+}
+
+function equippedRows(payload: any): any[] {
+  return Object.values(payload?.profile?.characterEquipment?.data || {}).flatMap((row: any) => row?.items || []);
+}
+
+async function enrichWeaponReusablePlugs(payload: any, env: Env): Promise<any> {
+  const profile = payload?.profile;
+  if (!profile) return payload;
+  const definitions: Record<string, Record<string, any>> = payload.definitions || (payload.definitions = {});
+  const reusableData = profile?.itemComponents?.reusablePlugs?.data || {};
+  const weaponRows = equippedRows(payload).filter((item: any) => {
+    const definition = definitions[String(item?.itemHash)];
+    return WEAPON_BUCKETS.has(Number(definition?.inventory?.bucketTypeHash));
+  });
+  const requested = new Set<number>();
+  const byInstance: Record<string, Record<string, number[]>> = {};
+  for (const item of weaponRows) {
+    if (!item?.itemInstanceId) continue;
+    const plugs = reusableData[item.itemInstanceId]?.plugs || {};
+    const socketMap: Record<string, number[]> = {};
+    for (const [socketIndex, rows] of Object.entries(plugs)) {
+      const hashes = (rows as any[]).map(row => Number(row?.plugItemHash ?? row?.plugHash)).filter(Number.isInteger);
+      if (!hashes.length) continue;
+      socketMap[String(socketIndex)] = [...new Set(hashes)];
+      hashes.forEach(hash => requested.add(hash));
+    }
+    byInstance[String(item.itemInstanceId)] = socketMap;
+  }
+  const unresolved = await resolveMissingInventoryDefinitions(payload, requested, env);
+  payload.weaponReusablePlugs = byInstance;
+  payload.weaponReusableCoverage = {
+    requested: [...requested],
+    resolved: [...requested].filter(hash => Boolean(definitions[String(hash)])),
+    unresolved,
+    complete: unresolved.length === 0
+  };
+  return payload;
+}
+
 async function enrichLoadoutSupers(payload: any, env: Env): Promise<any> {
   if (!payload?.profile || !Array.isArray(payload?.selectedItems)) return payload;
-  const definitions: Record<string, Record<string, any>> = { ...(payload.definitions || {}) };
+  const definitions: Record<string, Record<string, any>> = payload.definitions || (payload.definitions = {});
   const subclass = payload.selectedItems.find((item: any) => {
     const definition = definitions[String(item?.itemHash)];
     return Number(definition?.inventory?.bucketTypeHash) === SUBCLASS_BUCKET_HASH;
@@ -33,13 +84,11 @@ async function enrichLoadoutSupers(payload: any, env: Env): Promise<any> {
   const candidateHashes = new Set<number>();
   const equippedHash = selectedHashes[superSocketIndex];
   if (Number.isInteger(equippedHash)) candidateHashes.add(equippedHash);
-
   const reusable = payload.profile?.itemComponents?.reusablePlugs?.data?.[subclass.itemInstanceId]?.plugs || {};
   for (const row of reusable[String(superSocketIndex)] || reusable[superSocketIndex] || []) {
     const hash = Number(row?.plugItemHash ?? row?.plugHash);
     if (Number.isInteger(hash)) candidateHashes.add(hash);
   }
-
   const subclassDefinition = definitions[String(subclass.itemHash)] || {};
   const manifestSocket = subclassDefinition?.sockets?.socketEntries?.[superSocketIndex];
   const initialHash = Number(manifestSocket?.singleInitialItemHash);
@@ -49,31 +98,15 @@ async function enrichLoadoutSupers(payload: any, env: Env): Promise<any> {
     if (Number.isInteger(hash)) candidateHashes.add(hash);
   }
 
-  const missing = [...candidateHashes].filter(hash => !definitions[String(hash)]);
-  const resolved = await Promise.all(missing.map(async hash => [
-    hash,
-    await manifestDefinition("DestinyInventoryItemDefinition", hash, env)
-  ] as const));
-  for (const [hash, definition] of resolved) if (definition) definitions[String(hash)] = definition;
-
-  payload.definitions = definitions;
-  payload.definitionCoverage = payload.definitionCoverage || {};
-  payload.definitionCoverage.requested = Number(payload.definitionCoverage.requested || 0) + missing.length;
-  payload.definitionCoverage.resolved = Number(payload.definitionCoverage.resolved || 0) + resolved.filter(([, definition]) => Boolean(definition)).length;
-  const existingUnresolved = Array.isArray(payload.definitionCoverage.unresolved) ? payload.definitionCoverage.unresolved.map(Number) : [];
-  payload.definitionCoverage.unresolved = [...new Set([
-    ...existingUnresolved,
-    ...missing.filter(hash => !definitions[String(hash)])
-  ])];
-  payload.definitionCoverage.complete = payload.definitionCoverage.unresolved.length === 0;
+  const unresolved = await resolveMissingInventoryDefinitions(payload, candidateHashes, env);
   payload.loadoutSuperCoverage = {
     subclassItemHash: Number(subclass.itemHash),
     subclassInstanceId: String(subclass.itemInstanceId),
     superSocketIndex,
     requested: [...candidateHashes],
     resolved: [...candidateHashes].filter(hash => isSuperDefinition(definitions[String(hash)])),
-    unresolved: [...candidateHashes].filter(hash => !definitions[String(hash)]),
-    complete: [...candidateHashes].every(hash => Boolean(definitions[String(hash)]))
+    unresolved,
+    complete: unresolved.length === 0
   };
   return payload;
 }
@@ -95,20 +128,22 @@ export default {
     const path = new URL(request.url).pathname;
     try {
       if (request.method === "GET" && (path === "/bungie/profile" || path === "/v1/destiny/profile")) {
-        return await rewriteJsonResponse(response, payload => enrichEquipableSets(payload, env));
+        return await rewriteJsonResponse(response, async payload => {
+          await enrichEquipableSets(payload, env);
+          await enrichWeaponReusablePlugs(payload, env);
+          return payload;
+        });
       }
       if (request.method === "GET" && (path === "/bungie/loadout" || path === "/v1/destiny/loadout")) {
         return await rewriteJsonResponse(response, async payload => {
           await enrichLoadoutSupers(payload, env);
           await enrichEquipableSets(payload, env);
+          await enrichWeaponReusablePlugs(payload, env);
           return payload;
         });
       }
     } catch (error) {
-      console.error("semantic_enrichment_failed", {
-        path,
-        message: error instanceof Error ? error.message : String(error)
-      });
+      console.error("semantic_enrichment_failed", { path, message: error instanceof Error ? error.message : String(error) });
     }
     return response;
   }
