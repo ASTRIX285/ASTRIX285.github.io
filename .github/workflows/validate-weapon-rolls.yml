@@ -42,6 +42,18 @@ jobs:
           else
             echo "have_base=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: Hydrate canonical weapon perk evidence
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs/promises';
+          const basePath='astrix-app/data/paradox-forge/beta/beta-bungie-manifest-cache.json';
+          const extPath='astrix-app/data/paradox-forge/beta/beta-bungie-manifest-cache-weapon-perk-extension.json';
+          const base=JSON.parse(await fs.readFile(basePath,'utf8'));
+          const ext=JSON.parse(await fs.readFile(extPath,'utf8'));
+          base.inventoryItems={...(base.inventoryItems||{}),...(ext.inventoryItems||{})};
+          await fs.writeFile(basePath,JSON.stringify(base));
+          console.log(`Hydrated ${Object.keys(ext.inventoryItems||{}).length} canonical weapon perk definitions`);
+          NODE
       - name: Run engine self-test
         run: node astrix-app/tools/test-weapon-roll-nodes.mjs > /tmp/selftest.out
       - name: Run weapon and engine validation
