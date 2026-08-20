@@ -1,7 +1,7 @@
 import worker, { AuthRecord } from "./index";
+import { manifestDefinition, enrichEquipableSets } from "./manifest-semantics";
 export { AuthRecord };
 
-const BUNGIE_PLATFORM = "https://www.bungie.net/Platform";
 const SUBCLASS_BUCKET_HASH = 3284755031;
 
 function definitionCategory(definition: Record<string, any> | undefined): string {
@@ -13,54 +13,22 @@ function isSuperDefinition(definition: Record<string, any> | undefined): boolean
   return category === "super" || category === "supers" || category.includes("super");
 }
 
-async function fetchDefinition(hash: number, env: Env): Promise<Record<string, unknown> | null> {
-  let cache: Cache | null = null;
-  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/inventory/${hash}`, { method: "GET" });
-  try {
-    cache = await caches.open("astrix-bungie-definitions");
-    const cached = await cache.match(cacheKey);
-    if (cached) return cached.json<Record<string, unknown>>().catch(() => null);
-  } catch {}
-
-  const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
-    headers: {
-      "X-API-Key": env.BUNGIE_API_KEY,
-      "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
-    }
-  });
-  if (!response.ok) return null;
-  const payload = await response.json<{ Response?: Record<string, unknown> }>().catch(() => null);
-  const definition = payload?.Response || null;
-  if (definition && cache) {
-    try {
-      await cache.put(cacheKey, new Response(JSON.stringify(definition), {
-        headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
-      }));
-    } catch {}
-  }
-  return definition;
-}
-
-async function enrichLoadoutResponse(response: Response, env: Env): Promise<Response> {
-  if (!response.ok) return response;
-  const payload = await response.clone().json<any>().catch(() => null);
-  if (!payload?.profile || !Array.isArray(payload?.selectedItems)) return response;
-
+async function enrichLoadoutSupers(payload: any, env: Env): Promise<any> {
+  if (!payload?.profile || !Array.isArray(payload?.selectedItems)) return payload;
   const definitions: Record<string, Record<string, any>> = { ...(payload.definitions || {}) };
   const subclass = payload.selectedItems.find((item: any) => {
     const definition = definitions[String(item?.itemHash)];
     return Number(definition?.inventory?.bucketTypeHash) === SUBCLASS_BUCKET_HASH;
   });
-  if (!subclass?.itemInstanceId) return response;
+  if (!subclass?.itemInstanceId) return payload;
 
   const selectedHashes = Array.isArray(subclass.plugItemHashes) ? subclass.plugItemHashes.map(Number) : [];
   let superSocketIndex = selectedHashes.findIndex((hash: number) => isSuperDefinition(definitions[String(hash)]));
-
   if (superSocketIndex < 0) {
     const currentSockets = payload.profile?.itemComponents?.sockets?.data?.[subclass.itemInstanceId]?.sockets || [];
     superSocketIndex = currentSockets.findIndex((socket: any) => isSuperDefinition(definitions[String(socket?.plugHash)]));
   }
-  if (superSocketIndex < 0) return response;
+  if (superSocketIndex < 0) return payload;
 
   const candidateHashes = new Set<number>();
   const equippedHash = selectedHashes[superSocketIndex];
@@ -82,10 +50,12 @@ async function enrichLoadoutResponse(response: Response, env: Env): Promise<Resp
   }
 
   const missing = [...candidateHashes].filter(hash => !definitions[String(hash)]);
-  const resolved = await Promise.all(missing.map(async hash => [hash, await fetchDefinition(hash, env)] as const));
-  for (const [hash, definition] of resolved) if (definition) definitions[String(hash)] = definition as Record<string, any>;
+  const resolved = await Promise.all(missing.map(async hash => [
+    hash,
+    await manifestDefinition("DestinyInventoryItemDefinition", hash, env)
+  ] as const));
+  for (const [hash, definition] of resolved) if (definition) definitions[String(hash)] = definition;
 
-  const superHashes = [...candidateHashes].filter(hash => isSuperDefinition(definitions[String(hash)]));
   payload.definitions = definitions;
   payload.definitionCoverage = payload.definitionCoverage || {};
   payload.definitionCoverage.requested = Number(payload.definitionCoverage.requested || 0) + missing.length;
@@ -101,27 +71,44 @@ async function enrichLoadoutResponse(response: Response, env: Env): Promise<Resp
     subclassInstanceId: String(subclass.itemInstanceId),
     superSocketIndex,
     requested: [...candidateHashes],
-    resolved: superHashes,
+    resolved: [...candidateHashes].filter(hash => isSuperDefinition(definitions[String(hash)])),
     unresolved: [...candidateHashes].filter(hash => !definitions[String(hash)]),
     complete: [...candidateHashes].every(hash => Boolean(definitions[String(hash)]))
   };
+  return payload;
+}
 
+async function rewriteJsonResponse(response: Response, transform: (payload: any) => Promise<any>): Promise<Response> {
+  if (!response.ok) return response;
+  const payload = await response.clone().json<any>().catch(() => null);
+  if (!payload) return response;
+  const updated = await transform(payload);
   const headers = new Headers(response.headers);
   headers.set("Content-Type", "application/json");
   headers.set("Cache-Control", "no-store");
-  return new Response(JSON.stringify(payload), { status: response.status, statusText: response.statusText, headers });
+  return new Response(JSON.stringify(updated), { status: response.status, statusText: response.statusText, headers });
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const response = await worker.fetch(request, env);
     const path = new URL(request.url).pathname;
-    if (request.method === "GET" && (path === "/bungie/loadout" || path === "/v1/destiny/loadout")) {
-      try { return await enrichLoadoutResponse(response, env); }
-      catch (error) {
-        console.error("loadout_semantic_enrichment_failed", { message: error instanceof Error ? error.message : String(error) });
-        return response;
+    try {
+      if (request.method === "GET" && (path === "/bungie/profile" || path === "/v1/destiny/profile")) {
+        return await rewriteJsonResponse(response, payload => enrichEquipableSets(payload, env));
       }
+      if (request.method === "GET" && (path === "/bungie/loadout" || path === "/v1/destiny/loadout")) {
+        return await rewriteJsonResponse(response, async payload => {
+          await enrichLoadoutSupers(payload, env);
+          await enrichEquipableSets(payload, env);
+          return payload;
+        });
+      }
+    } catch (error) {
+      console.error("semantic_enrichment_failed", {
+        path,
+        message: error instanceof Error ? error.message : String(error)
+      });
     }
     return response;
   }
