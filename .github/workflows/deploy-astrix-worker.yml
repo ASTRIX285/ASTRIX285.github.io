@@ -1,10 +1,10 @@
 name: Deploy ASTRIX Destiny Worker
 
-# Deployment is intentionally driven from GitHub Actions using repository-scoped Cloudflare credentials.
+# Production deploys only from canonical main after PR validation.
 on:
   push:
     branches:
-      - feature/astrix-backend
+      - main
     paths:
       - 'astrix-worker/**'
       - '.github/workflows/deploy-astrix-worker.yml'
@@ -26,18 +26,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Install dependencies
         run: npm install
-
-      - name: Paradox Validator — TypeScript
+      - name: Paradox Validator — TypeScript and Wrangler dry-run
         run: npm run check --if-present
-
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:
@@ -45,11 +41,9 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: astrix-worker
           command: deploy
-
       - name: Paradox Validator — live health
         run: |
           node -e "fetch('https://auth.astrixparadox.com/health').then(async r=>{const b=await r.json();if(!r.ok||b.status!=='ready')throw new Error(JSON.stringify(b));console.log('health pass')})"
-
       - name: Paradox Validator — authentication guard
         run: |
           node -e "fetch('https://auth.astrixparadox.com/bungie/profile').then(async r=>{const b=await r.json();if(r.status!==401||b.error!=='authentication_required')throw new Error(r.status+' '+JSON.stringify(b));console.log('profile guard pass')})"
