@@ -1,0 +1,29 @@
+name: Guardian Semantic Validation
+
+on:
+  pull_request:
+    paths:
+      - 'astrix-app/pages/guardian-workspace-v2/**'
+      - 'astrix-app/tools/validate-guardian-*.mjs'
+      - 'astrix-app/package.json'
+      - '.github/workflows/guardian-semantic-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  paradox-validator:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: astrix-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: astrix-app/package-lock.json
+      - run: npm ci
+      - name: Run Paradox Validator
+        run: npm run validate
+      - name: Validate complete Guardian contract
+        run: python3 tools/validate-guardian-complete-loadout.py
