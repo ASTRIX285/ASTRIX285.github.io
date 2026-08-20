@@ -1,40 +1,17 @@
-name = "astrix-destiny-backend"
-main = "src/semantic-wrapper.ts"
-compatibility_date = "2026-08-13"
+name = "astrix-worker"
+main = "src/index.mjs"
+compatibility_date = "2024-04-01"
 compatibility_flags = ["nodejs_compat"]
-workers_dev = true
 
 [vars]
 ENVIRONMENT = "production"
-APP_ORIGINS = "https://astrixparadox.com,https://app.astrixparadox.com"
-OAUTH_REDIRECT_URI = "https://auth.astrixparadox.com/bungie/callback"
-DEFAULT_RETURN_URL = "https://astrixparadox.com"
+BUNGIE_API_ROOT = "https://www.bungie.net/Platform"
+OAUTH_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/"
 
-[secrets]
-required = ["BUNGIE_API_KEY", "BUNGIE_CLIENT_ID", "BUNGIE_CLIENT_SECRET"]
+[[kv_namespaces]]
+binding = "ASTRIX_CACHE"
+id = "astrix_manifest_cache_prod"
+preview_id = "astrix_manifest_cache_preview"
 
-[[routes]]
-pattern = "auth.astrixparadox.com"
-custom_domain = true
-
-[[durable_objects.bindings]]
-name = "AUTH_RECORDS"
-class_name = "AuthRecord"
-
-[exports.AuthRecord]
-type = "durable-object"
-storage = "sqlite"
-
-[observability]
-enabled = true
-head_sampling_rate = 1.0
-
-# Production custom domains are attached after the Worker is deployed and
-# astrixparadox.com is confirmed active in the owning Cloudflare account:
-# auth.astrixparadox.com
-# api.astrixparadox.com
-#
-# Required encrypted Worker secrets (never commit values here):
-# BUNGIE_API_KEY
-# BUNGIE_CLIENT_ID
-# BUNGIE_CLIENT_SECRET
+[env.development]
+vars = { ENVIRONMENT = "development" }
