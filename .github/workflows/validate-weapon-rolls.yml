@@ -31,6 +31,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Check Guardian UI module syntax
+        run: |
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-semantic-ui.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-gear-layout.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-workspace-v2.mjs
       - name: Extract base fixture
         id: base
         run: |
