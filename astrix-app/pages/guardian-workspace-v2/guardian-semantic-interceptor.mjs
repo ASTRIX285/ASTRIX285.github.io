@@ -1,4 +1,5 @@
 import "./guardian-paradox-live-adapter.mjs";
+import { resolveArmourSet } from "./guardian-armour-set-resolver.mjs";
 import {
   normaliseArmourSemantics,
   normaliseWeaponSemantics,
@@ -108,7 +109,7 @@ function armourEvidence(item){
       semanticRole:role,
       description:source.description||"",
       verified:Boolean(source.definition&&Object.keys(source.definition).length),
-      active:source.isEnabled!==false
+      active:source.active!==false&&source.isEnabled!==false
     });
   };
   add(semantic.exoticPerk,"exotic-perk");
@@ -121,6 +122,7 @@ function armourEvidence(item){
 }
 
 function enrichArmour(detail,payload,profile,rows){
+  const equippedArmour=(detail.armour||[]).filter(Boolean);
   detail.armour=(detail.armour||[]).map(item=>{
     if(!item)return item;
     const rawItem=rawItemFor(item,rows,payload);
@@ -130,6 +132,8 @@ function enrichArmour(detail,payload,profile,rows){
       instance:instanceData(profile,rawItem),
       stats:statData(profile,rawItem)
     });
+    const exactSet=resolveArmourSet(payload,item,equippedArmour);
+    if(exactSet)armourSemantics.set=exactSet;
     return {
       ...item,
       itemInstanceId:rawItem?.itemInstanceId||null,
@@ -186,6 +190,7 @@ function aggregateCoverage(items=[]){
     unresolved.push(...(item.socketCoverage?.unresolved||[]));
     const semantics=item.armourSemantics||item.weaponSemantics;
     semanticUnknown.push(...(semantics?.unknownPlugs||[]).map(plug=>Number(plug.hash)).filter(Number.isFinite));
+    if(semantics?.set?.unresolved&&Number.isInteger(Number(semantics.set.hash)))semanticUnknown.push(Number(semantics.set.hash));
   }
   return {
     requested:[...new Set(requested.map(Number))],
@@ -209,6 +214,7 @@ function enrich(detail){
   detail.hashCoverage=detail.hashCoverage||{};
   detail.hashCoverage.armour=aggregateCoverage(detail.armour);
   detail.hashCoverage.weapons=aggregateCoverage(detail.weapons);
+  detail.hashCoverage.armourSets=payload.armourSetCoverage||null;
   detail.paradoxEvidence=detail.paradoxEvidence||{};
   detail.paradoxEvidence.armour=detail.armour.flatMap(armourEvidence).filter(row=>row.active&&row.verified);
   detail.paradoxEvidence.artifact=(detail.artifact?.activePerks||[]).map(perk=>({
