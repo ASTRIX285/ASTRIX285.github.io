@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0.0",
+  "purpose": "Official Bungie weapon perk definitions required by Paradox deterministic validation. These definitions extend, not replace, the generated beta manifest cache.",
+  "inventoryItems": {
+    "2173046394": {
+      "bungieHash": 2173046394,
+      "display": {
+        "description": "Reloading this weapon after defeating a target overcharges this weapon for a short period of time, causing it to jolt on its next hit.",
+        "name": "Voltshot",
+        "icon": "/common/destiny2_content/icons/a71ffb1cb221ea64fa77ab473f8a3a61.png",
+        "iconHash": 2173046394,
+        "iconSequences": [
+          {"frames": ["/common/destiny2_content/icons/a71ffb1cb221ea64fa77ab473f8a3a61.png"]},
+          {"frames": ["/common/destiny2_content/icons/25d772024a1c35e2a1b0c9d6fe511c5a.png"]}
+        ],
+        "hasIcon": true
+      },
+      "itemType": 19,
+      "itemSubType": 0,
+      "itemTypeDisplayName": "Trait",
+      "classType": 3,
+      "itemCategoryHashes": [59, 3708671066, 610365472],
+      "traitIds": [],
+      "equippingBlock": {},
+      "intrinsicPlugHashes": [],
+      "source": "bungie-canonical-paradox-cache-extension"
+    }
+  }
+}
