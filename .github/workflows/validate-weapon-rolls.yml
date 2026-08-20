@@ -1,8 +1,5 @@
 name: Validate Paradox Guardian evidence
 
-# Deterministic guardrails for weapon rolls, Guardian semantics and live evidence adaptation.
-# Runs on every PR into main that changes the Paradox evidence path.
-
 on:
   pull_request:
     branches: [main]
@@ -13,6 +10,7 @@ on:
       - 'astrix-app/pages/guardian-workspace-v2/guardian-semantic-resolver.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-semantic-interceptor.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-paradox-live-adapter.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-armour-set-resolver.mjs'
       - 'astrix-app/tools/**'
       - '.github/workflows/validate-weapon-rolls.yml'
   workflow_dispatch:
@@ -25,12 +23,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
       - name: Extract base fixture
         id: base
         run: |
@@ -42,14 +38,14 @@ jobs:
           else
             echo "have_base=false" >> "$GITHUB_OUTPUT"
           fi
-
       - name: Run engine self-test
         run: node astrix-app/tools/test-weapon-roll-nodes.mjs > /tmp/selftest.out
-
-      - name: Run Paradox deterministic validation
+      - name: Run weapon and engine validation
         run: |
           if [ "${{ steps.base.outputs.have_base }}" = "true" ]; then
             node astrix-app/tools/validate-weapon-rolls.mjs --base /tmp/base-fixtures.json
           else
             node astrix-app/tools/validate-weapon-rolls.mjs
           fi
+      - name: Run Guardian semantic validation
+        run: node astrix-app/tools/validate-guardian-semantics.mjs
