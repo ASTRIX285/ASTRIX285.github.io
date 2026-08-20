@@ -1,9 +1,15 @@
 name: ASTRIX Worker Check
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'astrix-worker/**'
+      - '.github/workflows/astrix-worker-check.yml'
   push:
     branches:
-      - feature/astrix-backend
+      - main
     paths:
       - 'astrix-worker/**'
       - '.github/workflows/astrix-worker-check.yml'
