@@ -113,8 +113,8 @@ async function enrichLoadoutResponse(response: Response, env: Env): Promise<Resp
 }
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const response = await worker.fetch(request, env, ctx);
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const response = await worker.fetch(request, env);
     const path = new URL(request.url).pathname;
     if (request.method === "GET" && (path === "/bungie/loadout" || path === "/v1/destiny/loadout")) {
       try { return await enrichLoadoutResponse(response, env); }
