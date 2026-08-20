@@ -271,46 +271,67 @@ function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
 async function fetchInventoryDefinitions(
   hashes: number[],
   accessToken: string,
-  env: Env,
-  limit = 34
+  env: Env
 ): Promise<Record<string, Record<string, unknown>>> {
-  // Keep the profile request plus definition lookups below the Worker subrequest budget.
-  // Equipment hashes are inserted before plug hashes, so visible gear resolves first.
-  const entries = await Promise.all(hashes.slice(0, limit).map(async (hash) => {
-    let cache: Cache | null = null;
-    const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/inventory/${hash}`, { method: "GET" });
-    try {
-      cache = await caches.open("astrix-bungie-definitions");
-      const cached = await cache.match(cacheKey);
-      if (cached) {
-        const definition = await cached.json<Record<string, unknown>>().catch(() => null);
-        if (definition) return [String(hash), definition] as const;
+  const uniqueHashes = [...new Set(hashes.filter(hash => Number.isInteger(hash)))];
+  const definitions: Record<string, Record<string, unknown>> = {};
+  let cache: Cache | null = null;
+
+  try {
+    cache = await caches.open("astrix-bungie-definitions");
+  } catch (error) {
+    console.warn("definition_cache_open_failed", { error: String(error) });
+  }
+
+  // Workers Paid supports far more subrequests than the old Free-plan resolver.
+  // Keep outbound Bungie work at six concurrent requests, matching Cloudflare's
+  // simultaneous outgoing-connection limit, while resolving every required hash.
+  const batchSize = 6;
+  for (let offset = 0; offset < uniqueHashes.length; offset += batchSize) {
+    const batch = uniqueHashes.slice(offset, offset + batchSize);
+    const entries = await Promise.all(batch.map(async (hash) => {
+      const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/inventory/${hash}`, { method: "GET" });
+      if (cache) {
+        try {
+          const cached = await cache.match(cacheKey);
+          if (cached) {
+            const definition = await cached.json<Record<string, unknown>>().catch(() => null);
+            if (definition) return [String(hash), definition] as const;
+          }
+        } catch (error) {
+          console.warn("definition_cache_read_failed", { hash, error: String(error) });
+        }
       }
-    } catch (error) {
-      console.warn("definition_cache_read_failed", { hash, error: String(error) });
+
+      const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "X-API-Key": env.BUNGIE_API_KEY,
+          "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+        }
+      });
+      if (!response.ok) return null;
+      const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+      if (!payload?.Response) return null;
+
+      if (cache) {
+        try {
+          await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
+            headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
+          }));
+        } catch (error) {
+          console.warn("definition_cache_write_failed", { hash, error: String(error) });
+        }
+      }
+      return [String(hash), payload.Response] as const;
+    }));
+
+    for (const entry of entries) {
+      if (entry) definitions[entry[0]] = entry[1];
     }
-    const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "X-API-Key": env.BUNGIE_API_KEY,
-        "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
-      }
-    });
-    if (!response.ok) return null;
-    const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
-    if (!payload?.Response) return null;
-    if (cache) {
-      try {
-        await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
-          headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
-        }));
-      } catch (error) {
-        console.warn("definition_cache_write_failed", { hash, error: String(error) });
-      }
-    }
-    return [String(hash), payload.Response] as const;
-  }));
-  return Object.fromEntries(entries.filter((entry): entry is readonly [string, Record<string, unknown>] => entry !== null));
+  }
+
+  return definitions;
 }
 
 async function fetchGearAssetDefinitions(
@@ -410,15 +431,15 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  const equippedHashes = activeCharacterDefinitionHashes(payload.Response);
-  // Keep the resolver bounded, but use its established safe budget rather than
-  // the old 18-definition throttle that starved subclass socket definitions.
-  const requestedDefinitionHashes = equippedHashes.slice(0, 34);
-  const definitions = await fetchInventoryDefinitions(requestedDefinitionHashes, session.accessToken, env, 34);
+  const requestedDefinitionHashes = equippedDefinitionHashes(payload.Response);
+  const definitions = await fetchInventoryDefinitions(requestedDefinitionHashes, session.accessToken, env);
+  const unresolvedDefinitionHashes = requestedDefinitionHashes.filter(hash => !definitions[String(hash)]);
   const definitionCoverage = {
     requested: requestedDefinitionHashes.length,
     resolved: Object.keys(definitions).length,
-    unresolved: requestedDefinitionHashes.filter(hash => !definitions[String(hash)])
+    unresolved: unresolvedDefinitionHashes,
+    complete: unresolvedDefinitionHashes.length === 0,
+    characterCount: Object.keys(payload.Response.characterEquipment?.data || {}).length
   };
   const gearAssets: Record<string, Record<string, unknown>> = {};
   const updatedSession = { ...session, lastUsedAt: Date.now() };
@@ -502,9 +523,8 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
     selectedByInstance.set(id, { ...item, plugItemHashes: row.plugItemHashes?.length ? row.plugItemHashes : (prior?.plugItemHashes || []) });
   }
   const selectedItems = [...selectedByInstance.values()];
-  // Prioritise the visible equipment definitions, then subclass/mod plugs.
-  // The character renderer is intentionally a placeholder, so loadout selection
-  // does not need the expensive gear-asset requests.
+  // Loadout rows provide their selected plug hashes directly. Resolve every
+  // selected item and plug so the frontend can reconstruct the saved build.
   const definitionHashes = new Set<number>();
   for (const item of selectedItems) {
     if (Number.isInteger(item.itemHash)) definitionHashes.add(Number(item.itemHash));
@@ -515,7 +535,14 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
     }
   }
   const hashes = [...definitionHashes];
-  const definitions = await fetchInventoryDefinitions(hashes, session.accessToken, env, 24);
+  const definitions = await fetchInventoryDefinitions(hashes, session.accessToken, env);
+  const unresolvedDefinitionHashes = hashes.filter(hash => !definitions[String(hash)]);
+  const definitionCoverage = {
+    requested: hashes.length,
+    resolved: Object.keys(definitions).length,
+    unresolved: unresolvedDefinitionHashes,
+    complete: unresolvedDefinitionHashes.length === 0
+  };
   const gearAssets: Record<string, Record<string, unknown>> = {};
   await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
   return withCors(request, env, json({
@@ -527,6 +554,7 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
     selectedItems,
     profile,
     definitions,
+    definitionCoverage,
     gearAssets
   }));
 }
