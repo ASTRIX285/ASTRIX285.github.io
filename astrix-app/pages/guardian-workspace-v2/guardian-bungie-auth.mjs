@@ -1,4 +1,5 @@
 import "./guardian-armour-semantics.mjs";
+import "./guardian-artifact-semantics.mjs";
 
 const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
 
