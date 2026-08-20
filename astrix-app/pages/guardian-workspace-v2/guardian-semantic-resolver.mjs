@@ -27,7 +27,7 @@ function classifyArmourPlug(plug){
   if(category.includes("archetype")||/armou?r archetype/.test(text))return "archetype";
   if(category.includes("set_bonus")||category.includes("setbonus")||/\b[24][ -]?piece\b|set bonus/.test(text))return "set-bonus";
   if(category.includes("exotic")&&(category.includes("intrinsic")||category.includes("perk"))||/exotic (armou?r )?(intrinsic|perk)/.test(text))return "exotic-perk";
-  if(category.includes("armou?r.mods.general")||category.includes("armor.mods.general")||category.includes("armour.mods.general")||/general armou?r mod/.test(text))return "general-mod";
+  if(category.includes("armor.mods.general")||category.includes("armour.mods.general")||/general armou?r mod/.test(text))return "general-mod";
   if((category.includes("armor.mods")||category.includes("armour.mods")||/armou?r mod/.test(text))&&!/general armou?r mod/.test(text))return "slot-mod";
   return "unknown";
 }
