@@ -1,22 +1,16 @@
 /* guardian-artifact.mjs — Paradox Forge Artifact ownership.
  *
- * A DIM build export does NOT preserve Artifact perk selections, so Paradox
- * owns Artifact state here. On each fixture load this reads that build's
- * DIM-unlocked perks (when present) as a starting point, renders the real
- * manifest artifact, and lets the tester open a picker to edit the selection.
- * Nothing is invented: perks the manifest cache cannot resolve are shown
- * honestly as "Unresolved perk <hash>" rather than faked.
- *
- * Loaded LAST in index.html so it is the single owner of #artName / #artIcon /
- * #artPerks and overrides the static preview and the advisor layer for those
- * nodes. It does not touch class, hero, weapons, armour or stats.
+ * Fixture mode keeps the editable Paradox-owned Artifact workflow used by beta
+ * fixtures. Live Bungie selections are read-only here: their Artifact identity
+ * and active perk hashes come from guardian-bungie-profile.mjs and must never be
+ * overwritten by the beta manifest cache or fixture-local overrides.
  */
 
 const MANIFEST_URL = '../../data/paradox-forge/beta/beta-bungie-manifest-cache.json';
 const BUNGIE_ROOT  = 'https://www.bungie.net';
-const MAX_PERKS     = 12;   // Artifact unlock columns available in the beta
-const PANEL_ICONS   = 6;    // how many perk icons to show inline before "+N"
-const OVERRIDE_KEY  = 'astrix-paradox-artifact-overrides'; // { [fixtureId]: number[] }
+const MAX_PERKS     = 12;
+const PANEL_ICONS   = 6;
+const OVERRIDE_KEY  = 'astrix-paradox-artifact-overrides';
 
 const qs  = (s, r = document) => r.querySelector(s);
 const qsa = (s, r = document) => [...r.querySelectorAll(s)];
@@ -26,7 +20,10 @@ const absIcon = v => { const s = String(v ?? '').trim(); return !s ? '' : (s.sta
 let manifest = null;
 let artifactDef = null;
 let currentFixtureId = null;
-let selected = [];          // array of perk hashes (numbers) for the current build
+let selected = [];
+let liveMode = false;
+let liveArtifact = null;
+let livePerksByHash = new Map();
 
 /* ---------- data ---------- */
 
@@ -39,12 +36,28 @@ async function ensureManifest() {
 }
 
 function perkIdentity(hash) {
-  const row = manifest?.inventoryItems?.[String(hash)] ?? null;
+  const numericHash = Number(hash);
+  if (liveMode) {
+    const live = livePerksByHash.get(numericHash);
+    if (live) {
+      return {
+        hash: numericHash,
+        name: live.name || `Unresolved perk ${numericHash}`,
+        description: live.description || '',
+        icon: absIcon(live.icon),
+        unresolved: !live.name || !live.icon,
+        isActive: Boolean(live.isActive),
+        isVisible: live.isVisible !== false
+      };
+    }
+  }
+
+  const row = manifest?.inventoryItems?.[String(numericHash)] ?? null;
   if (!row || !row.display?.name) {
-    return { hash: Number(hash), name: `Unresolved perk ${hash}`, description: '', icon: '', unresolved: true };
+    return { hash: numericHash, name: `Unresolved perk ${numericHash}`, description: '', icon: '', unresolved: true };
   }
   return {
-    hash: Number(hash),
+    hash: numericHash,
     name: row.display.name,
     description: row.display.description || '',
     icon: absIcon(row.display.icon),
@@ -53,6 +66,16 @@ function perkIdentity(hash) {
 }
 
 function artifactIdentity() {
+  if (liveMode) {
+    if (!liveArtifact) return null;
+    return {
+      hash: Number(liveArtifact.hash ?? liveArtifact.bungieHash ?? 0),
+      name: liveArtifact.name || 'Seasonal Artifact',
+      description: liveArtifact.description || '',
+      icon: absIcon(liveArtifact.icon)
+    };
+  }
+
   if (!artifactDef) return null;
   return {
     hash: Number(artifactDef.bungieHash ?? artifactDef.hash ?? 0),
@@ -69,6 +92,10 @@ function tierList() {
   }));
 }
 
+function isLiveSelection(detail) {
+  return detail?.source === 'bungie-live' || detail?.loadoutSource === 'bungie-live';
+}
+
 /* ---------- persistence ---------- */
 
 function loadOverrides() {
@@ -83,8 +110,6 @@ function saveOverride(fixtureId, hashes) {
   try { localStorage.setItem(OVERRIDE_KEY, JSON.stringify(all)); } catch { /* storage may be blocked */ }
 }
 
-/* current selection = tester override for this build if it exists,
- * otherwise the build's own DIM-unlocked perks, otherwise empty. */
 function selectionForFixture(detail) {
   const overrides = loadOverrides();
   if (currentFixtureId && Array.isArray(overrides[currentFixtureId])) {
@@ -97,7 +122,41 @@ function selectionForFixture(detail) {
   return [];
 }
 
+function selectionForLive(detail) {
+  const artifact = detail?.artifact || null;
+  const allPerks = Array.isArray(artifact?.perks) ? artifact.perks : [];
+  liveArtifact = artifact;
+  livePerksByHash = new Map(
+    allPerks
+      .map(perk => [Number(perk?.hash ?? perk?.bungieHash), perk])
+      .filter(([hash]) => Number.isFinite(hash))
+  );
+
+  const active = Array.isArray(artifact?.activePerks)
+    ? artifact.activePerks
+    : allPerks.filter(perk => perk?.isActive);
+  return active
+    .map(perk => Number(perk?.hash ?? perk?.bungieHash))
+    .filter(Number.isFinite);
+}
+
 /* ---------- rendering ---------- */
+
+function syncRowInteractivity() {
+  const row = qs('.artifact-row');
+  if (!row) return;
+  if (liveMode) {
+    row.tabIndex = -1;
+    row.removeAttribute('role');
+    row.setAttribute('aria-label', 'Live Bungie Artifact');
+    row.dataset.artifactMode = 'bungie-live';
+  } else {
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-label', 'Configure Artifact perks');
+    row.dataset.artifactMode = 'fixture';
+  }
+}
 
 function renderArtifactDisplay() {
   const id = artifactIdentity();
@@ -116,7 +175,9 @@ function renderArtifactDisplay() {
 
   if (perksEl) {
     if (!selected.length) {
-      perksEl.innerHTML = '<button type="button" class="art-empty" tabindex="-1">Choose Artifact perks</button>';
+      perksEl.innerHTML = liveMode
+        ? '<span class="art-empty" aria-label="No active Artifact perks">No active Artifact perks</span>'
+        : '<button type="button" class="art-empty" tabindex="-1">Choose Artifact perks</button>';
     } else {
       const perks = selected.map(perkIdentity);
       const shown = perks.slice(0, PANEL_ICONS);
@@ -128,8 +189,14 @@ function renderArtifactDisplay() {
     }
   }
 
+  syncRowInteractivity();
   document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed', {
-    detail: { artifact: id, perks: selected.map(perkIdentity), fixtureId: currentFixtureId, source: 'paradox-artifact' }
+    detail: {
+      artifact: id,
+      perks: selected.map(perkIdentity),
+      fixtureId: liveMode ? null : currentFixtureId,
+      source: liveMode ? 'bungie-live' : 'paradox-artifact'
+    }
   }));
 }
 
@@ -138,6 +205,7 @@ function renderArtifactDisplay() {
 function closePicker() { qs('#astrixArtifactModal')?.remove(); }
 
 function openPicker() {
+  if (liveMode) return;
   const tiers = tierList();
   if (!tiers.length) return;
 
@@ -216,13 +284,12 @@ function wireRow() {
   const row = qs('.artifact-row');
   if (!row || row.dataset.artifactWired) return;
   row.dataset.artifactWired = '1';
-  row.tabIndex = 0;
-  row.setAttribute('role', 'button');
-  row.setAttribute('aria-label', 'Configure Artifact perks');
   row.addEventListener('click', openPicker);
   row.addEventListener('keydown', e => {
+    if (liveMode) return;
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
   });
+  syncRowInteractivity();
 }
 
 function installStyles() {
@@ -230,9 +297,11 @@ function installStyles() {
   const style = document.createElement('style');
   style.id = 'astrixArtifactStyles';
   style.textContent = `
-    .artifact-row{cursor:pointer}
+    .artifact-row[data-artifact-mode="fixture"]{cursor:pointer}
+    .artifact-row[data-artifact-mode="bungie-live"]{cursor:default}
     .artifact-row:focus-visible{outline:1px solid #9e60ff;outline-offset:4px;border-radius:8px}
-    #artPerks .art-empty{padding:5px 9px;border:1px dashed rgba(158,96,255,.5);border-radius:7px;background:transparent;color:#9e60ff;font:600 10px Rajdhani;letter-spacing:.04em;cursor:pointer}
+    #artPerks .art-empty{padding:5px 9px;border:1px dashed rgba(158,96,255,.5);border-radius:7px;background:transparent;color:#9e60ff;font:600 10px Rajdhani;letter-spacing:.04em}
+    #artPerks button.art-empty{cursor:pointer}
     #artPerks .art-more{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 6px;border:1px solid rgba(255,255,255,.14);border-radius:7px;color:#cbb6ff;font:700 10px Orbitron}
     .beta-artifact-modal{width:min(980px,95vw)!important}
     .beta-artifact-summary{display:flex;justify-content:space-between;align-items:center;margin:4px 0 16px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:8px}
@@ -256,6 +325,18 @@ function installStyles() {
 /* ---------- lifecycle ---------- */
 
 async function onSelection(detail) {
+  if (isLiveSelection(detail)) {
+    liveMode = true;
+    currentFixtureId = null;
+    selected = selectionForLive(detail);
+    renderArtifactDisplay();
+    wireRow();
+    return;
+  }
+
+  liveMode = false;
+  liveArtifact = null;
+  livePerksByHash = new Map();
   try { await ensureManifest(); } catch (err) { console.error('[Paradox artifact]', err); return; }
   currentFixtureId = detail?.fixtureId ?? currentFixtureId;
   selected = selectionForFixture(detail);
