@@ -1,13 +1,10 @@
+import {clone,createBuildState} from './paradox-build-space/paradox-build-state.mjs';
+
 const BUILD_SPACE_KEY = 'astrix:paradox-build-space:v1';
 const LAST_LOADOUT_KEY = 'astrix:paradox-last-bungie-loadout:v1';
 
 let latestGuardian = null;
 let latestExplicitLoadout = null;
-
-function clone(value) {
-  try { return structuredClone(value); }
-  catch { return JSON.parse(JSON.stringify(value ?? null)); }
-}
 
 function safeStore(key, value) {
   try { sessionStorage.setItem(key, JSON.stringify(value)); } catch {}
@@ -36,7 +33,11 @@ function compactBuild(detail = {}) {
     armour: clone(detail.armour || []),
     stats: clone(detail.stats || []),
     hashCoverage: clone(detail.hashCoverage || null),
-    coverage: clone(detail.coverage || null)
+    semanticCoverage: clone(detail.semanticCoverage || null),
+    coverage: clone(detail.coverage || null),
+    locks: {},
+    objective: null,
+    activityContext: null
   };
 }
 
@@ -70,11 +71,13 @@ function openBuildSpace(event) {
   event.stopImmediatePropagation();
 
   const source = resolveBuildSource();
-  if (source) safeStore(BUILD_SPACE_KEY, {
-    originalBuild: source,
-    workingBuild: clone(source),
-    sourcePriority: source.source === 'bungie-loadout' ? 'selected-or-last-bungie-loadout' : 'current-equipped-guardian'
-  });
+  if (source) {
+    const state = createBuildState(source);
+    state.sourcePriority = source.source === 'bungie-loadout'
+      ? 'selected-or-last-bungie-loadout'
+      : 'current-equipped-guardian';
+    safeStore(BUILD_SPACE_KEY, state);
+  }
 
   location.href = './paradox-build-space/';
 }
