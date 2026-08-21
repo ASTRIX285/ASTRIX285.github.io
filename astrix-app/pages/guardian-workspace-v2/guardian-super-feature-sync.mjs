@@ -4,6 +4,7 @@
  */
 
 import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs';
+import './paradox-build-space-handoff.mjs';
 
 if (!document.querySelector('link[data-astrix-subclass-super-polish]')) {
   const link = document.createElement('link');
