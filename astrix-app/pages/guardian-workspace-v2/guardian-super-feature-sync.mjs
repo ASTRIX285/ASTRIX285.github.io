@@ -5,6 +5,14 @@
 
 import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs';
 
+if (!document.querySelector('link[data-astrix-subclass-super-polish]')) {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = './guardian-subclass-super-polish.css?v=20260821-bungie-icons';
+  link.dataset.astrixSubclassSuperPolish = 'true';
+  document.head.appendChild(link);
+}
+
 if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
