@@ -1,15 +1,19 @@
-name: Live Artifact Validation
+name: Forge Vertical Slice Validation
 
 on:
   pull_request:
     paths:
       - 'astrix-app/pages/guardian-workspace-v2/guardian-artifact*.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-super-feature-sync.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space/**'
       - 'astrix-app/tools/validate-live-artifact-contract.mjs'
+      - 'astrix-app/tools/validate-paradox-build-space.mjs'
       - '.github/workflows/live-artifact-validation.yml'
   workflow_dispatch:
 
 jobs:
-  artifact-contract:
+  forge-contract:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,8 +23,14 @@ jobs:
       - name: Validate live Artifact ownership
         working-directory: astrix-app
         run: node tools/validate-live-artifact-contract.mjs
-      - name: Syntax check Artifact modules
+      - name: Validate Build Space state
+        working-directory: astrix-app
+        run: node tools/validate-paradox-build-space.mjs
+      - name: Syntax check Forge modules
         working-directory: astrix-app
         run: |
           node --check pages/guardian-workspace-v2/guardian-artifact-state.mjs
           node --check pages/guardian-workspace-v2/guardian-artifact.mjs
+          node --check pages/guardian-workspace-v2/paradox-build-space-handoff.mjs
+          node --check pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs
+          node --check pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs
