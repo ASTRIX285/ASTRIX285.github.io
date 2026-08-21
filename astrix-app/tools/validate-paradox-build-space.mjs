@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import {createBuildState,diffBuilds,createValidationRecord,VALIDATION_STATUS} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
+import {analyzeScenario,normalizeScenario} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-intelligence-contract.mjs';
 
 const item=(hash,name)=>({hash,bungieHash:hash,name});
 const source={
@@ -43,7 +44,36 @@ assert.equal(test.objective,'survivability');
 assert.equal(test.buildIntegrity,'unverified');
 assert.equal(Object.isFrozen(test.buildSnapshot),true,'Validation build snapshot must be immutable');
 
+const scenario=normalizeScenario({
+  scenarioId:'PF-INT-001',
+  buildSource:'bungie-loadout',
+  objective:'ability-uptime',
+  activityType:'vanguard-master-operation',
+  champions:['unstoppable'],
+  locks:{weapons:{2:true}},
+  evidenceNodes:[
+    {id:'grenade',componentType:'ability',name:'Grenade',emits:['scorch'],verified:true,sources:['bungie']},
+    {id:'fragment',componentType:'fragment',name:'Fragment',consumes:['scorch'],emits:['grenade-energy'],verified:true,sources:['verified-fixture']},
+    {id:'weapon',componentType:'weapon',name:'Weapon',consumes:['grenade-energy'],triggers:['weapon-final-blow'],verified:false,sources:[]}
+  ]
+});
+assert.equal(scenario.objective,'ability-uptime');
+assert.equal(scenario.activity.type,'vanguard-master-operation');
+assert.equal(scenario.locks.weapons[2],true);
+
+const analysis=analyzeScenario(scenario);
+assert.deepEqual(analysis.edges.map(edge=>[edge.from,edge.to,edge.token]),[['grenade','fragment','scorch'],['fragment','weapon','grenade-energy']]);
+assert.equal(analysis.edges[0].verified,true);
+assert.equal(analysis.edges[1].verified,false);
+assert.deepEqual(analysis.isolated,[]);
+assert.equal(analysis.unverifiedEdges.length,1);
+
+assert.throws(()=>normalizeScenario({evidenceNodes:[{id:'bad',emits:['invented-token']}]}),/unknown Paradox token/,'Unknown reasoning tokens must fail closed');
+
 console.log('PARADOX_BUILD_SPACE_STATE=PASS');
 console.log('ORIGINAL_WORKING_ISOLATION=PASS');
 console.log('DETERMINISTIC_BUILD_DIFF=PASS');
 console.log('VANGUARD_VALIDATION_RECORD=PASS');
+console.log('PARADOX_SCENARIO_CONTRACT=PASS');
+console.log('DIRECTED_SYNERGY_EDGES=PASS');
+console.log('UNKNOWN_TOKEN_FAIL_CLOSED=PASS');
