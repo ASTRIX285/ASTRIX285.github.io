@@ -1,8 +1,17 @@
 /* ASTRIX PARADOX — resolved subclass / Super presentation bridge.
- * The six subclass icons stay fixed. Live Guardian data only selects one.
- * The Super chain is populated directly from event.detail.subclassBuild so the
- * legacy #superFocus renderer cannot discard resolved alternate Supers.
+ * Subclass positions stay fixed. Bungie data only supplies artwork + active state.
+ * Super chain is populated directly from event.detail.subclassBuild.
  */
+
+import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs';
+
+if (!document.querySelector('link[data-astrix-subclass-super-polish]')) {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = './guardian-subclass-super-polish.css?v=20260821-bungie-icons';
+  link.dataset.astrixSubclassSuperPolish = 'true';
+  document.head.appendChild(link);
+}
 
 if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
   const link = document.createElement('link');
@@ -13,7 +22,27 @@ if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
 }
 
 const slotObservers = new Map();
+const subclassIconCache = new Map();
 const LEFT_PANEL_SLOT_TARGETS = Object.freeze({ abilityList:4, aspectList:2, fragList:5, artPerks:7 });
+const SUBCLASS_KEYS = Object.freeze(['arc','solar','void','stasis','strand','prismatic']);
+const SUBCLASS_CACHE_KEY = 'astrix:bungie-subclass-icons-v1';
+
+function loadSubclassIconCache() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(SUBCLASS_CACHE_KEY) || '{}');
+    Object.entries(saved).forEach(([key, value]) => {
+      if (typeof value === 'string' && value) subclassIconCache.set(key, value);
+    });
+  } catch {}
+}
+
+function persistSubclassIconCache() {
+  try {
+    sessionStorage.setItem(SUBCLASS_CACHE_KEY, JSON.stringify(Object.fromEntries(subclassIconCache)));
+  } catch {}
+}
+
+loadSubclassIconCache();
 
 function makeEmptyRailSlot() {
   const slot = document.createElement('span');
@@ -39,16 +68,6 @@ function enforceLeftPanelSlots() {
   });
 }
 
-function syncSubclassRail(detail = {}) {
-  const activeElement = String(detail.subclass || '').trim().toLowerCase();
-  document.querySelectorAll('[data-subclass-option]').forEach(button => {
-    const key = String(button.dataset.subclassOption || '').trim().toLowerCase();
-    const active = Boolean(activeElement) && key === activeElement;
-    button.classList.toggle('is-active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-}
-
 function resolvedDisplayIcon(item) {
   if (!item) return '';
   const display = item?.definition?.displayProperties || item?.displayProperties || {};
@@ -61,6 +80,65 @@ function resolvedDisplayIcon(item) {
 function bungieUrl(path) {
   if (!path) return '';
   return path.startsWith('http') ? path : `https://www.bungie.net${path}`;
+}
+
+function subclassCacheId(characterClass, element) {
+  return `${String(characterClass || 'unknown').toLowerCase()}:${String(element || '').toLowerCase()}`;
+}
+
+function cacheSubclassIcon(characterClass, element, icon) {
+  const src = bungieUrl(icon);
+  if (!src || !SUBCLASS_KEYS.includes(element)) return;
+  subclassIconCache.set(subclassCacheId(characterClass, element), src);
+  persistSubclassIconCache();
+}
+
+function ingestSubclassCatalog(detail = {}) {
+  const characterClass = String(detail.characterClass || '').toLowerCase();
+  const catalog = Array.isArray(detail.subclassCatalog) ? detail.subclassCatalog : [];
+  catalog.forEach(item => {
+    const element = String(item?.element || item?.subclass || '').toLowerCase();
+    cacheSubclassIcon(characterClass, element, resolvedDisplayIcon(item));
+  });
+
+  const activeElement = String(detail.subclass || '').trim().toLowerCase();
+  if (activeElement && detail.subclassIcon) cacheSubclassIcon(characterClass, activeElement, detail.subclassIcon);
+}
+
+function setSubclassDiamondIcon(button, src, element) {
+  const holder = button?.querySelector('.subclass-option__diamond>span');
+  if (!holder) return;
+  if (!src) {
+    if (!holder.querySelector('img')) holder.textContent = element.slice(0, 2).toUpperCase();
+    button.classList.remove('has-bungie-subclass-icon');
+    return;
+  }
+
+  let img = holder.querySelector('img.subclass-option__icon');
+  if (!img) {
+    holder.textContent = '';
+    img = document.createElement('img');
+    img.className = 'subclass-option__icon';
+    holder.appendChild(img);
+  }
+  img.alt = `${element} subclass`;
+  img.src = src;
+  button.classList.add('has-bungie-subclass-icon');
+}
+
+function syncSubclassRail(detail = {}) {
+  ingestSubclassCatalog(detail);
+  const activeElement = String(detail.subclass || '').trim().toLowerCase();
+  const characterClass = String(detail.characterClass || '').toLowerCase();
+
+  document.querySelectorAll('[data-subclass-option]').forEach(button => {
+    const key = String(button.dataset.subclassOption || '').trim().toLowerCase();
+    const active = Boolean(activeElement) && key === activeElement;
+    const cached = subclassIconCache.get(subclassCacheId(characterClass, key)) || '';
+    setSubclassDiamondIcon(button, cached, key);
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
 }
 
 function setDiamondFromItem(diamond, item, fallbackTitle = '') {
@@ -80,9 +158,9 @@ function setDiamondFromItem(diamond, item, fallbackTitle = '') {
       img.className = 'super-feature__icon';
       holder.appendChild(img);
     }
-    if (img.src !== src) img.src = src;
     img.alt = title;
     diamond.classList.add('has-live-icon');
+    void cleanImageElement(img, src);
   } else {
     holder.textContent = '◆';
     diamond.classList.remove('has-live-icon');
