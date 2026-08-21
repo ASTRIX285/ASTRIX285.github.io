@@ -1,10 +1,8 @@
 /* ASTRIX PARADOX — bridge the existing live Super renderer into the new
  * Destiny-style feature frame. No Bungie fetch logic is changed here.
- * Important: this bridge is intentionally idempotent so it cannot observe
- * and continuously rebuild its own destination DOM.
  *
- * Live-data rule: never copy legacy/default Super state during page startup.
- * The bridge activates only after a resolved Guardian selection arrives.
+ * Subclass rule: the six subclass icons/positions are static presentation.
+ * Live Bungie data only toggles which fixed subclass button is active.
  */
 
 if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
@@ -20,15 +18,7 @@ let syncQueued = false;
 let legacyObserver = null;
 let observedLegacy = null;
 let liveSelectionSeen = false;
-let subclassManifestPromise = null;
-const subclassIconCache = new Map();
 const slotObservers = new Map();
-const SUBCLASS_LABELS = Object.freeze({ arc:'AR', solar:'SO', void:'VO', stasis:'ST', strand:'SR', prismatic:'PR' });
-const SUBCLASS_NAMES = Object.freeze({
-  hunter:{ arc:'Arcstrider', solar:'Gunslinger', void:'Nightstalker', stasis:'Revenant', strand:'Threadrunner', prismatic:'Prismatic Hunter' },
-  titan:{ arc:'Striker', solar:'Sunbreaker', void:'Sentinel', stasis:'Behemoth', strand:'Berserker', prismatic:'Prismatic Titan' },
-  warlock:{ arc:'Stormcaller', solar:'Dawnblade', void:'Voidwalker', stasis:'Shadebinder', strand:'Broodweaver', prismatic:'Prismatic Warlock' }
-});
 const LEFT_PANEL_SLOT_TARGETS = Object.freeze({ abilityList:4, aspectList:2, fragList:5, artPerks:7 });
 
 function makeEmptyRailSlot() {
@@ -91,74 +81,14 @@ function setDiamond(diamond, source, fallbackTitle = '') {
   }
 }
 
-function normaliseClass(detail = {}) {
-  return String(detail.characterClass || detail.className || '').trim().toLowerCase();
-}
-
-function subclassCacheKey(characterClass, element) {
-  return `${characterClass || 'unknown'}:${element}`;
-}
-
-async function preloadSubclassManifestIcons() {
-  if (subclassManifestPromise) return subclassManifestPromise;
-  subclassManifestPromise = fetch('../../data/paradox-forge/beta/beta-bungie-identities.json', { cache:'force-cache' })
-    .then(response => {
-      if (!response.ok) throw new Error(`subclass_identity_cache_${response.status}`);
-      return response.json();
-    })
-    .then(payload => {
-      const identities = Array.isArray(payload?.identities) ? payload.identities : [];
-      const byName = new Map(identities.filter(row => row?.name && row?.icon).map(row => [String(row.name), String(row.icon)]));
-      Object.entries(SUBCLASS_NAMES).forEach(([characterClass, elements]) => {
-        Object.entries(elements).forEach(([element, name]) => {
-          const icon = byName.get(name) || '';
-          if (icon) subclassIconCache.set(subclassCacheKey(characterClass, element), icon);
-        });
-      });
-      return true;
-    })
-    .catch(error => {
-      console.warn('[ASTRIX subclass icons]', error);
-      return false;
-    });
-  return subclassManifestPromise;
-}
-
-function paintSubclassRail(characterClass, element) {
+function syncSubclassRail(detail = {}) {
+  const activeElement = String(detail.subclass || '').trim().toLowerCase();
   document.querySelectorAll('[data-subclass-option]').forEach(button => {
     const key = String(button.dataset.subclassOption || '').trim().toLowerCase();
-    const holder = button.querySelector('.subclass-option__diamond > span');
-    if (!holder) return;
-    const cachedIcon = characterClass ? subclassIconCache.get(subclassCacheKey(characterClass, key)) || '' : '';
-    button.classList.toggle('is-active', key === element);
-    if (cachedIcon) {
-      let img = holder.querySelector('img.subclass-option__icon');
-      if (!img) {
-        holder.textContent = '';
-        img = document.createElement('img');
-        img.className = 'subclass-option__icon';
-        holder.appendChild(img);
-      }
-      const absolute = cachedIcon.startsWith('http') ? cachedIcon : `https://www.bungie.net${cachedIcon}`;
-      if (img.src !== absolute) img.src = absolute;
-      img.alt = `${SUBCLASS_NAMES[characterClass]?.[key] || key} subclass`;
-      button.title = SUBCLASS_NAMES[characterClass]?.[key] || key;
-      return;
-    }
-    holder.querySelector('img.subclass-option__icon')?.remove();
-    const fallback = SUBCLASS_LABELS[key] || key.slice(0,2).toUpperCase();
-    if (holder.textContent !== fallback) holder.textContent = fallback;
+    const active = Boolean(activeElement) && key === activeElement;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
   });
-}
-
-async function syncSubclassRail(detail = {}) {
-  const element = String(detail.subclass || '').trim().toLowerCase();
-  const characterClass = normaliseClass(detail);
-  const icon = String(detail.subclassIcon || '').trim();
-  if (characterClass && element && icon) subclassIconCache.set(subclassCacheKey(characterClass, element), icon);
-  paintSubclassRail(characterClass, element);
-  await preloadSubclassManifestIcons();
-  paintSubclassRail(characterClass, element);
 }
 
 function syncFromLegacySuperRenderer() {
@@ -199,7 +129,7 @@ function bindLegacyObserver() {
 
 document.addEventListener('astrix:guardian-selection-changed', event => {
   liveSelectionSeen = true;
-  void syncSubclassRail(event.detail || {});
+  syncSubclassRail(event.detail || {});
   enforceLeftPanelSlots();
   bindLegacyObserver();
   syncSoon();
@@ -210,5 +140,4 @@ document.addEventListener('astrix:artifact-recommendations-changed', () => {
   if (liveSelectionSeen) syncSoon();
 });
 
-void preloadSubclassManifestIcons();
 enforceLeftPanelSlots();
