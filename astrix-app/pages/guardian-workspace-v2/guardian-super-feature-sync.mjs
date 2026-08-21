@@ -1,8 +1,7 @@
-/* ASTRIX PARADOX — bridge the existing live Super renderer into the new
- * Destiny-style feature frame. No Bungie fetch logic is changed here.
- *
- * Subclass rule: the six subclass icons/positions are static presentation.
- * Live Bungie data only toggles which fixed subclass button is active.
+/* ASTRIX PARADOX — resolved subclass / Super presentation bridge.
+ * The six subclass icons stay fixed. Live Guardian data only selects one.
+ * The Super chain is populated directly from event.detail.subclassBuild so the
+ * legacy #superFocus renderer cannot discard resolved alternate Supers.
  */
 
 if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
@@ -13,11 +12,6 @@ if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
   document.head.appendChild(link);
 }
 
-const cluster = () => document.getElementById('superFeatureCluster');
-let syncQueued = false;
-let legacyObserver = null;
-let observedLegacy = null;
-let liveSelectionSeen = false;
 const slotObservers = new Map();
 const LEFT_PANEL_SLOT_TARGETS = Object.freeze({ abilityList:4, aspectList:2, fragList:5, artPerks:7 });
 
@@ -45,42 +39,6 @@ function enforceLeftPanelSlots() {
   });
 }
 
-function sourceData(source, fallbackTitle = '') {
-  const img = source?.querySelector('img');
-  return { src: img?.currentSrc || img?.src || '', label: source?.getAttribute('aria-label') || source?.getAttribute('title') || fallbackTitle };
-}
-
-function setDiamond(diamond, source, fallbackTitle = '') {
-  if (!diamond) return;
-  const holder = diamond.querySelector('span');
-  if (!holder) return;
-  const { src, label } = sourceData(source, fallbackTitle);
-  const previousSrc = diamond.dataset.liveIconSrc || '';
-  const previousLabel = diamond.dataset.liveIconLabel || '';
-  if (src === previousSrc && label === previousLabel) return;
-  diamond.dataset.liveIconSrc = src;
-  diamond.dataset.liveIconLabel = label;
-  if (src) {
-    let img = holder.querySelector('img.super-feature__icon');
-    if (!img) {
-      holder.textContent = '';
-      img = document.createElement('img');
-      img.className = 'super-feature__icon';
-      holder.appendChild(img);
-    }
-    if (img.src !== src) img.src = src;
-    img.alt = label || '';
-    diamond.classList.add('has-live-icon');
-  } else {
-    if (holder.textContent !== '◆' || holder.children.length) holder.textContent = '◆';
-    diamond.classList.remove('has-live-icon');
-  }
-  if (label) {
-    if (diamond.title !== label) diamond.title = label;
-    if (diamond.getAttribute('aria-label') !== label) diamond.setAttribute('aria-label', label);
-  }
-}
-
 function syncSubclassRail(detail = {}) {
   const activeElement = String(detail.subclass || '').trim().toLowerCase();
   document.querySelectorAll('[data-subclass-option]').forEach(button => {
@@ -91,30 +49,71 @@ function syncSubclassRail(detail = {}) {
   });
 }
 
-function syncFromLegacySuperRenderer() {
-  syncQueued = false;
-  if (!liveSelectionSeen) return;
-  const host = cluster();
-  const legacy = document.getElementById('superFocus');
-  if (!host || !legacy) return;
+function resolvedDisplayIcon(item) {
+  if (!item) return '';
+  const display = item?.definition?.displayProperties || item?.displayProperties || {};
+  const sequenceFrame = Array.isArray(display?.iconSequences)
+    ? display.iconSequences.flatMap(sequence => Array.isArray(sequence?.frames) ? sequence.frames : []).find(Boolean)
+    : '';
+  return item.icon || display.icon || display.highResIcon || sequenceFrame || item?.definition?.secondaryIcon || item?.secondaryIcon || '';
+}
 
-  const options = [...legacy.querySelectorAll('.super-option')];
-  const active = legacy.querySelector('.super-option.is-active') || options[0];
-  const inactive = options.filter(option => option !== active).slice(0, 2);
-  const equippedName = legacy.querySelector('.super-equipped-name')?.textContent?.trim();
+function bungieUrl(path) {
+  if (!path) return '';
+  return path.startsWith('http') ? path : `https://www.bungie.net${path}`;
+}
 
-  const equippedSlot = host.querySelector('[data-super-slot="equipped"]');
+function setDiamondFromItem(diamond, item, fallbackTitle = '') {
+  if (!diamond) return;
+  const holder = diamond.querySelector('span');
+  if (!holder) return;
+
+  const icon = resolvedDisplayIcon(item);
+  const title = String(item?.name || fallbackTitle || '').trim();
+  const src = bungieUrl(icon);
+
+  if (src) {
+    let img = holder.querySelector('img.super-feature__icon');
+    if (!img) {
+      holder.textContent = '';
+      img = document.createElement('img');
+      img.className = 'super-feature__icon';
+      holder.appendChild(img);
+    }
+    if (img.src !== src) img.src = src;
+    img.alt = title;
+    diamond.classList.add('has-live-icon');
+  } else {
+    holder.textContent = '◆';
+    diamond.classList.remove('has-live-icon');
+  }
+
+  diamond.title = title || fallbackTitle;
+  diamond.setAttribute('aria-label', title || fallbackTitle);
+}
+
+function populateSuperChain(detail = {}) {
+  const host = document.getElementById('superFeatureCluster');
+  const build = detail?.subclassBuild || {};
+  if (!host || !build) return;
+
+  const active = build.super || null;
+  const options = Array.isArray(build.superOptions) ? build.superOptions.filter(Boolean) : [];
+  const activeHash = Number(active?.hash);
+  const alternates = options.filter(option => Number(option?.hash) !== activeHash).slice(0, 2);
+
+  const equipped = host.querySelector('[data-super-slot="equipped"]');
   const alt1 = host.querySelector('[data-super-slot="alternate-1"]');
   const alt2 = host.querySelector('[data-super-slot="alternate-2"]');
-  const selectedChainSlot = host.querySelector('[data-super-slot="alternate-3"]');
+  const bottom = host.querySelector('[data-super-slot="alternate-3"]');
 
-  setDiamond(equippedSlot, active, equippedName || 'Equipped Super');
-  setDiamond(alt1, inactive[0], 'Alternate Super');
-  setDiamond(alt2, inactive[1], 'Alternate Super');
-  setDiamond(selectedChainSlot, active, equippedName || 'Selected Super');
+  setDiamondFromItem(equipped, active, 'Equipped Super');
+  setDiamondFromItem(alt1, alternates[0] || null, 'Alternate Super');
+  setDiamondFromItem(alt2, alternates[1] || null, 'Alternate Super');
+  setDiamondFromItem(bottom, active, 'Selected Super');
 
   host.querySelectorAll('.super-diamond--alt').forEach(slot => {
-    const selected = slot === selectedChainSlot;
+    const selected = slot === bottom;
     slot.classList.toggle('is-selected-super', selected);
     slot.setAttribute('aria-selected', String(selected));
     if (selected) slot.setAttribute('aria-current', 'true');
@@ -122,40 +121,19 @@ function syncFromLegacySuperRenderer() {
   });
 
   const label = document.getElementById('subclassName');
-  if (label && equippedName) {
-    label.textContent = equippedName;
-    label.dataset.superName = equippedName;
+  if (label && active?.name) {
+    label.textContent = active.name;
+    label.dataset.superName = active.name;
   }
-  bindLegacyObserver();
-}
-
-function syncSoon() {
-  if (!liveSelectionSeen || syncQueued) return;
-  syncQueued = true;
-  requestAnimationFrame(syncFromLegacySuperRenderer);
-}
-
-function bindLegacyObserver() {
-  if (!liveSelectionSeen) return;
-  const legacy = document.getElementById('superFocus');
-  if (!legacy || legacy === observedLegacy) return;
-  legacyObserver?.disconnect();
-  observedLegacy = legacy;
-  legacyObserver = new MutationObserver(syncSoon);
-  legacyObserver.observe(legacy, { subtree:true, childList:true, attributes:true, attributeFilter:['src','class','aria-label','title'] });
 }
 
 document.addEventListener('astrix:guardian-selection-changed', event => {
-  liveSelectionSeen = true;
-  syncSubclassRail(event.detail || {});
+  const detail = event.detail || {};
+  syncSubclassRail(detail);
   enforceLeftPanelSlots();
-  bindLegacyObserver();
-  syncSoon();
+  queueMicrotask(() => populateSuperChain(detail));
 });
 
-document.addEventListener('astrix:artifact-recommendations-changed', () => {
-  enforceLeftPanelSlots();
-  if (liveSelectionSeen) syncSoon();
-});
+document.addEventListener('astrix:artifact-recommendations-changed', enforceLeftPanelSlots);
 
 enforceLeftPanelSlots();
