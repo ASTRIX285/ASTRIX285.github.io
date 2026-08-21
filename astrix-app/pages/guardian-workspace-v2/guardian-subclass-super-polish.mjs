@@ -1,10 +1,11 @@
-const STYLE_HREF="./guardian-subclass-super-polish.css";
-if(!document.querySelector(`link[href="${STYLE_HREF}"]`)){
+const STYLE_HREFS=["./guardian-subclass-super-polish.css","./guardian-diamond-formation-final.css"];
+STYLE_HREFS.forEach(href=>{
+  if(document.querySelector(`link[href="${href}"]`))return;
   const link=document.createElement("link");
   link.rel="stylesheet";
-  link.href=STYLE_HREF;
+  link.href=href;
   document.head.append(link);
-}
+});
 
 const ICONS={
   arc:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 9.8 8.4 4 6l4.5 5.2L3 15l6.7.5L12 22l2.3-6.5L21 15l-5.5-3.8L20 6l-5.8 2.4Z"/></svg>',
