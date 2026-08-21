@@ -1,0 +1,26 @@
+name: Live Artifact Validation
+
+on:
+  pull_request:
+    paths:
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-artifact*.mjs'
+      - 'astrix-app/tools/validate-live-artifact-contract.mjs'
+      - '.github/workflows/live-artifact-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  artifact-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate live Artifact ownership
+        working-directory: astrix-app
+        run: node tools/validate-live-artifact-contract.mjs
+      - name: Syntax check Artifact modules
+        working-directory: astrix-app
+        run: |
+          node --check pages/guardian-workspace-v2/guardian-artifact-state.mjs
+          node --check pages/guardian-workspace-v2/guardian-artifact.mjs
