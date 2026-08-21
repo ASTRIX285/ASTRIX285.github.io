@@ -37,9 +37,11 @@ function installFinalAuthorityStyle(){
   if(!style){
     style=document.createElement("style");
     style.id=FINAL_STYLE_ID;
+    style.textContent=FINAL_STYLE;
     document.head.append(style);
+    return;
   }
-  style.textContent=FINAL_STYLE;
+  if(style.textContent!==FINAL_STYLE)style.textContent=FINAL_STYLE;
 }
 installFinalAuthorityStyle();
 
