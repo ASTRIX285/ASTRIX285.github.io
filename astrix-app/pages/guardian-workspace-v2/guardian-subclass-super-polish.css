@@ -1,0 +1,43 @@
+/* ASTRIX PARADOX — approved subclass/Super presentation.
+   Presentation only: preserves the established formation and live Bungie data binding. */
+.left .subclass-option__diamond{overflow:hidden!important;isolation:isolate!important}
+.left .subclass-option__diamond>span{width:100%!important;height:100%!important;display:grid!important;place-items:center!important}
+.left .subclass-option__diamond svg{width:76%!important;height:76%!important;display:block!important;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px currentColor)}
+.left .subclass-option[data-subclass-option="arc"]{--subclass-glyph:#8feaff}
+.left .subclass-option[data-subclass-option="solar"]{--subclass-glyph:#ffb05f}
+.left .subclass-option[data-subclass-option="void"]{--subclass-glyph:#b58cff}
+.left .subclass-option[data-subclass-option="stasis"]{--subclass-glyph:#8bd5ff}
+.left .subclass-option[data-subclass-option="strand"]{--subclass-glyph:#70e98c}
+.left .subclass-option[data-subclass-option="prismatic"]{--subclass-glyph:#ef8cff}
+.left .subclass-option__diamond>span{color:var(--subclass-glyph,rgba(255,245,220,.78))!important}
+.left .subclass-option[aria-pressed="true"] .subclass-option__diamond{border-color:rgba(227,178,60,.98)!important;box-shadow:0 0 0 1px rgba(142,34,48,.4),0 0 18px rgba(227,178,60,.30),inset 0 0 16px rgba(255,255,255,.05)!important}
+.left .subclass-option[aria-pressed="true"] .subclass-option__diamond svg{filter:drop-shadow(0 0 6px currentColor)!important}
+
+.left .super-feature{padding-bottom:20px!important}
+.left .super-feature__cluster{overflow:visible!important}
+.left .super-diamond{cursor:pointer!important;overflow:hidden!important;transition:opacity .16s ease,filter .16s ease,box-shadow .16s ease,border-color .16s ease!important}
+.left .super-diamond>span{overflow:hidden!important}
+.left .super-diamond>span img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important}
+.left .super-diamond--equipped>span{width:100%!important;height:100%!important;padding:0!important}
+.left .super-diamond--equipped>span img{width:100%!important;height:100%!important;object-fit:cover!important;filter:brightness(.78) saturate(.92) contrast(1.04)!important}
+.left .super-diamond--equipped.has-live-icon{opacity:1!important}
+.left .super-diamond--alt>span{width:88%!important;height:88%!important}
+.left .super-diamond--alt>span img{object-fit:cover!important;filter:brightness(.96) saturate(.95)!important}
+.left .super-diamond--alt.has-live-icon{opacity:.88!important}
+.left .super-diamond--alt:hover{opacity:1!important;filter:brightness(1.08)!important;border-color:rgba(227,178,60,.74)!important}
+
+/* Name sits beneath the complete three-diamond alternate cluster. */
+.left .super-feature__name{display:block!important;position:absolute!important;z-index:8!important;left:50%!important;transform:translateX(-50%)!important;top:246px!important;width:100%!important;max-width:220px!important;min-height:18px!important;margin:0!important;color:rgba(255,255,255,.92)!important;font:800 .62rem/18px Inter,sans-serif!important;letter-spacing:.09em!important;text-align:center!important;text-transform:uppercase!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;pointer-events:none!important}
+.left .super-feature{position:relative!important;min-height:306px!important}
+
+@media (max-width:860px){
+  .left .subclass-option__diamond svg{width:78%!important;height:78%!important}
+  html body .workspace .left .super-feature{min-height:326px!important;padding-bottom:24px!important}
+  html body .workspace .left .super-feature__name{top:278px!important;max-width:230px!important;font-size:.64rem!important}
+  html body .workspace .left .super-diamond--equipped>span{width:100%!important;height:100%!important}
+  html body .workspace .left .super-diamond--alt>span{width:90%!important;height:90%!important}
+}
+@media (max-width:620px){
+  html body .workspace .left .super-feature{min-height:326px!important}
+  html body .workspace .left .super-feature__name{top:272px!important;width:200px!important;max-width:96%!important}
+}
