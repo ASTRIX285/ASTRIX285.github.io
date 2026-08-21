@@ -97,12 +97,30 @@ function syncFromLegacySuperRenderer() {
   const host = cluster();
   const legacy = document.getElementById('superFocus');
   if (!host || !legacy) return;
+
   const options = [...legacy.querySelectorAll('.super-option')];
   const active = legacy.querySelector('.super-option.is-active') || options[0];
-  const inactive = options.filter(option => option !== active).slice(0,3);
+  const inactive = options.filter(option => option !== active).slice(0, 2);
   const equippedName = legacy.querySelector('.super-equipped-name')?.textContent?.trim();
-  setDiamond(host.querySelector('[data-super-slot="equipped"]'), active, equippedName || 'Equipped Super');
-  ['alternate-1','alternate-2','alternate-3'].forEach((slot,index) => setDiamond(host.querySelector(`[data-super-slot="${slot}"]`), inactive[index], 'Alternate Super'));
+
+  const equippedSlot = host.querySelector('[data-super-slot="equipped"]');
+  const alt1 = host.querySelector('[data-super-slot="alternate-1"]');
+  const alt2 = host.querySelector('[data-super-slot="alternate-2"]');
+  const selectedChainSlot = host.querySelector('[data-super-slot="alternate-3"]');
+
+  setDiamond(equippedSlot, active, equippedName || 'Equipped Super');
+  setDiamond(alt1, inactive[0], 'Alternate Super');
+  setDiamond(alt2, inactive[1], 'Alternate Super');
+  setDiamond(selectedChainSlot, active, equippedName || 'Selected Super');
+
+  host.querySelectorAll('.super-diamond--alt').forEach(slot => {
+    const selected = slot === selectedChainSlot;
+    slot.classList.toggle('is-selected-super', selected);
+    slot.setAttribute('aria-selected', String(selected));
+    if (selected) slot.setAttribute('aria-current', 'true');
+    else slot.removeAttribute('aria-current');
+  });
+
   const label = document.getElementById('subclassName');
   if (label && equippedName) {
     label.textContent = equippedName;
