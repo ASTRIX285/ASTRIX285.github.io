@@ -1,4 +1,4 @@
-const STYLE_HREFS=["./guardian-subclass-super-polish.css","./guardian-diamond-formation-final.css"];
+const STYLE_HREFS=["./guardian-subclass-super-polish.css?v=20260821-0842"];
 STYLE_HREFS.forEach(href=>{
   if(document.querySelector(`link[href="${href}"]`))return;
   const link=document.createElement("link");
