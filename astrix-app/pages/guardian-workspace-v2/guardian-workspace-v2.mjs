@@ -27,12 +27,23 @@ const bungieUrl = path => {
   return path.startsWith("http") ? path : `https://www.bungie.net${path}`;
 };
 
+function resolvedDisplayIcon(item) {
+  if (!item) return "";
+  const display = item?.definition?.displayProperties || item?.displayProperties || {};
+  const sequenceFrame = Array.isArray(display?.iconSequences)
+    ? display.iconSequences.flatMap(sequence => Array.isArray(sequence?.frames) ? sequence.frames : []).find(Boolean)
+    : "";
+  return item.icon || display.icon || display.highResIcon || sequenceFrame || item?.definition?.secondaryIcon || item?.secondaryIcon || "";
+}
+
 const iconMarkup = (icon, name) => {
   const url = bungieUrl(icon);
   return url
     ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(name || '')}" loading="lazy" decoding="async" onerror="this.style.opacity=0">`
     : `<span class="ico-fb">◆</span>`;
 };
+
+const itemIconMarkup = item => iconMarkup(resolvedDisplayIcon(item), item?.name);
 
 const emptyRailSlot = () => `<span class="rail-empty-slot" aria-hidden="true"></span>`;
 const padRailSlots = (markup, filled, target) => `${markup}${Array.from({ length: Math.max(0, target - filled) }, emptyRailSlot).join("")}`;
@@ -119,14 +130,15 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
       const item = slots[index];
       const holder = slot.querySelector("span");
       if (!holder) return;
-      if (item?.icon) {
-        holder.innerHTML = iconMarkup(item.icon, item.name);
+      const icon = resolvedDisplayIcon(item);
+      if (icon) {
+        holder.innerHTML = iconMarkup(icon, item?.name);
         slot.classList.add("has-live-icon");
-        slot.title = item.name || (index === 0 ? "Equipped Super" : "Alternate Super");
+        slot.title = item?.name || (index === 0 ? "Equipped Super" : "Alternate Super");
       } else {
         holder.innerHTML = "◆";
         slot.classList.remove("has-live-icon");
-        slot.removeAttribute("title");
+        slot.title = item?.name ? `${item.name} · icon unresolved` : (index === 0 ? "Equipped Super icon unresolved" : "Alternate Super unresolved");
       }
     });
   }
@@ -139,7 +151,7 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
   if (abilityHost) {
     const markup = abilities.map(item => `
       <div class="ability-row" title="${escapeHtml(item.name)}">
-        <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
+        <span class="ico-badge">${itemIconMarkup(item)}</span>
         <div class="meta"><small>${escapeHtml(item.itemTypeDisplayName || subclassName)}</small><b>${escapeHtml(item.name)}</b></div>
       </div>
     `).join("");
@@ -151,7 +163,7 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
   if (aspectHost) {
     const markup = aspects.map(item => `
       <div class="slot" title="${escapeHtml(item.name)}">
-        <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
+        <span class="ico-badge">${itemIconMarkup(item)}</span>
         <span class="nm">${escapeHtml(item.name)}</span>
       </div>
     `).join("");
@@ -163,7 +175,7 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
   if (fragmentHost) {
     const markup = fragments.map(item => `
       <div class="slot" title="${escapeHtml(item.name)}">
-        <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
+        <span class="ico-badge">${itemIconMarkup(item)}</span>
         <span class="nm">${escapeHtml(item.name)}</span>
       </div>
     `).join("");
@@ -175,25 +187,31 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
   const artName = byId("artName");
   if (artifact) {
     if (artIcon) {
-      if (artifact.icon) artIcon.src = bungieUrl(artifact.icon);
+      const artifactIcon = resolvedDisplayIcon(artifact);
+      if (artifactIcon) artIcon.src = bungieUrl(artifactIcon);
       artIcon.alt = artifact.name || "Seasonal Artifact";
     }
     if (artName) artName.textContent = String(artifact.name || "SEASONAL ARTIFACT").toUpperCase();
   }
 
-  const artifactPerks = Array.isArray(artifact?.activePerks) && artifact.activePerks.length
-    ? artifact.activePerks
-    : (Array.isArray(artifact?.perks) ? artifact.perks.filter(item => item?.isVisible !== false) : []);
+  // Applied Artifact perks are an active-state contract. A perk being visible in
+  // the seasonal Artifact grid does not mean that the Guardian has applied it.
+  // Never substitute visible tier choices when Bungie reports no active perks.
+  const artifactPerks = Array.isArray(artifact?.activePerks)
+    ? artifact.activePerks.filter(item => item?.isActive === true)
+    : [];
   const artifactHost = byId("artPerks");
   if (artifactHost) {
-    const visiblePerks = artifactPerks.slice(0, 7);
-    const markup = visiblePerks.map(item => `
+    const appliedPerks = artifactPerks.slice(0, 7);
+    const markup = appliedPerks.map(item => `
       <div class="slot" title="${escapeHtml(item.name)}">
-        <span class="ico-badge">${iconMarkup(item.icon, item.name)}</span>
+        <span class="ico-badge">${itemIconMarkup(item)}</span>
         <span class="nm">${escapeHtml(item.name)}</span>
       </div>
     `).join("");
-    artifactHost.innerHTML = padRailSlots(markup, visiblePerks.length, 7);
+    artifactHost.dataset.artifactState = appliedPerks.length ? "active" : "unresolved";
+    artifactHost.title = appliedPerks.length ? `${appliedPerks.length} applied Artifact perk(s)` : "No applied Artifact perks resolved from Bungie live state";
+    artifactHost.innerHTML = padRailSlots(markup, appliedPerks.length, 7);
   }
 }
 
@@ -211,7 +229,7 @@ function renderWeapons(weapons = []) {
   if (!host) return;
   host.innerHTML = weapons.map(w => `
     <div class="slot">
-      <span class="ico-badge">${iconMarkup(w?.icon, w?.name)}</span>
+      <span class="ico-badge">${itemIconMarkup(w)}</span>
       <div class="meta"><small>${escapeHtml(w?.itemTypeDisplayName || "Weapon")}</small><b>${escapeHtml(w?.name || "Empty")}</b></div>
     </div>
   `).join("");
@@ -222,7 +240,7 @@ function bindArmourSlots(armour = []) {
   if (!host) return;
   host.innerHTML = armour.map(a => `
     <div class="slot">
-      <span class="ico-badge">${iconMarkup(a?.icon, a?.name)}</span>
+      <span class="ico-badge">${itemIconMarkup(a)}</span>
       <div class="meta"><small>${escapeHtml(a?.itemTypeDisplayName || "Armor")}</small><b>${escapeHtml(a?.name || "Empty")}</b></div>
     </div>
   `).join("");
@@ -303,4 +321,4 @@ bindArmourSlots([]);
 ensureLayoutPlaceholders();
 setStageState("ready");
 
-export { renderSubclassBuild, renderWeapons, bindArmourSlots, renderStats, renderVerifiedPreview };
+export { renderSubclassBuild, renderWeapons, bindArmourSlots, renderStats, renderVerifiedPreview, resolvedDisplayIcon };
