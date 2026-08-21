@@ -26,15 +26,6 @@
 .left .super-diamond--alt.has-live-icon{opacity:.88!important}
 .left .super-diamond--alt:hover{opacity:1!important;filter:brightness(1.08)!important;border-color:rgba(227,178,60,.74)!important}
 
-/* Name sits beneath the complete three-diamond alternate cluster. */
-.left .super-feature__name{display:block!important;position:absolute!important;z-index:8!important;left:50%!important;transform:translateX(-50%)!important;top:246px!important;width:100%!important;max-width:220px!important;min-height:18px!important;margin:0!important;color:rgba(255,255,255,.92)!important;font:800 .62rem/18px Inter,sans-serif!important;letter-spacing:.09em!important;text-align:center!important;text-transform:uppercase!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;pointer-events:none!important}
-.left .super-feature{position:relative!important;min-height:306px!important}
-
-/* ========================================================================
-   FINAL DIAMOND ART TREATMENT — 2026-08-21
-   Only the diamond owns the gold/crimson stroke. Bungie art has no visible
-   border, outline or box-shadow. The equipped Super fills the inner diamond.
-   ======================================================================== */
 .left .subclass-option__diamond,
 .left .super-diamond{
   border:1px solid rgba(227,178,60,.82)!important;
@@ -52,83 +43,122 @@
   box-shadow:none!important;
 }
 .left .super-diamond img{filter:none!important}
-
-/* Inactive diamonds remain clean and flat: no edge glow. */
 .left .subclass-option:not([aria-pressed="true"]) .subclass-option__diamond,
-.left .super-diamond--alt{
-  box-shadow:inset 0 0 0 1px rgba(142,34,48,.10)!important;
-}
-
-/* Active subclass: gold edge + crimson support + restrained halo. */
+.left .super-diamond--alt{box-shadow:inset 0 0 0 1px rgba(142,34,48,.10)!important}
 .left .subclass-option[aria-pressed="true"] .subclass-option__diamond{
   border-color:#e3b23c!important;
-  box-shadow:
-    0 0 0 1px rgba(142,34,48,.72),
-    0 0 9px rgba(227,178,60,.72),
-    0 0 18px rgba(142,34,48,.34)!important;
+  box-shadow:0 0 0 1px rgba(142,34,48,.72),0 0 9px rgba(227,178,60,.72),0 0 18px rgba(142,34,48,.34)!important;
 }
-
-/* Equipped Super: larger, brighter edge, darker selected art. */
 html body .workspace .left .super-diamond--equipped{
-  width:126px!important;
-  top:2px!important;
   border-color:#e3b23c!important;
   background:rgba(142,34,48,.26)!important;
-  box-shadow:
-    0 0 0 1px rgba(142,34,48,.78),
-    0 0 11px rgba(227,178,60,.72),
-    0 0 23px rgba(142,34,48,.34)!important;
+  box-shadow:0 0 0 1px rgba(142,34,48,.78),0 0 11px rgba(227,178,60,.72),0 0 23px rgba(142,34,48,.34)!important;
 }
-html body .workspace .left .super-diamond--equipped::after{
-  inset:7px!important;
-  border:1px solid rgba(142,34,48,.68)!important;
-}
-html body .workspace .left .super-diamond--equipped>span{
-  position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
-  overflow:hidden!important;
-  transform:rotate(-45deg)!important;
-}
-html body .workspace .left .super-diamond--equipped>span img{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  transform:scale(1.42)!important;
-  transform-origin:center!important;
-  border:0!important;
-  outline:0!important;
-  box-shadow:none!important;
-  filter:brightness(.80) saturate(.94) contrast(1.05)!important;
-}
+html body .workspace .left .super-diamond--equipped::after{inset:7px!important;border:1px solid rgba(142,34,48,.68)!important}
+html body .workspace .left .super-diamond--equipped>span{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;overflow:hidden!important;transform:rotate(-45deg)!important}
+html body .workspace .left .super-diamond--equipped>span img{width:100%!important;height:100%!important;object-fit:cover!important;transform:scale(1.42)!important;transform-origin:center!important;border:0!important;outline:0!important;box-shadow:none!important;filter:brightness(.80) saturate(.94) contrast(1.05)!important}
+html body .workspace .left .super-diamond--alt>span{width:94%!important;height:94%!important}
+html body .workspace .left .super-diamond--alt>span img{width:100%!important;height:100%!important;object-fit:cover!important;transform:scale(1.10)!important;border:0!important;outline:0!important;box-shadow:none!important;filter:brightness(.92) saturate(.92)!important}
 
-/* Alternate Supers stay fully legible but do not compete with the active one. */
-html body .workspace .left .super-diamond--alt>span{
-  width:94%!important;
-  height:94%!important;
+/* FINAL APPROVED FORMATION: keep this in the already-live stylesheet so it cannot be skipped by a secondary loader. */
+html body .workspace .left .subclass-rail{
+  display:grid!important;
+  grid-template-columns:repeat(2,52px)!important;
+  grid-template-rows:auto repeat(3,52px)!important;
+  column-gap:18px!important;
+  row-gap:12px!important;
+  width:140px!important;
+  min-width:140px!important;
+  justify-content:center!important;
+  align-content:start!important;
 }
-html body .workspace .left .super-diamond--alt>span img{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  transform:scale(1.10)!important;
-  border:0!important;
-  outline:0!important;
-  box-shadow:none!important;
-  filter:brightness(.92) saturate(.92)!important;
+html body .workspace .left .subclass-rail__label{grid-column:1/-1!important;margin:0 0 6px!important}
+html body .workspace .left .subclass-option{width:52px!important;min-width:52px!important;height:52px!important;min-height:52px!important;margin:0!important;padding:0!important;transform:none!important}
+html body .workspace .left .subclass-option__diamond{width:38px!important;height:38px!important;margin:0!important;transform:rotate(45deg)!important}
+
+html body .workspace .left .super-feature{position:relative!important;min-height:390px!important;padding-bottom:44px!important}
+html body .workspace .left .super-feature__cluster{position:relative!important;width:250px!important;height:305px!important;margin:4px auto 0!important;overflow:visible!important}
+html body .workspace .left .super-diamond--equipped{left:50%!important;top:4px!important;width:146px!important}
+html body .workspace .left .super-diamond--alt{width:54px!important}
+html body .workspace .left .super-diamond--alt1{left:calc(50% - 43px)!important;top:194px!important}
+html body .workspace .left .super-diamond--alt2{left:calc(50% + 43px)!important;top:194px!important}
+html body .workspace .left .super-diamond--alt3{left:50%!important;top:237px!important}
+
+html body .workspace .left .super-feature::before,
+html body .workspace .left .super-feature::after{
+  content:""!important;
+  position:absolute!important;
+  z-index:7!important;
+  top:323px!important;
+  height:1px!important;
+  width:74px!important;
+  background:linear-gradient(90deg,transparent,rgba(227,178,60,.72))!important;
+  pointer-events:none!important;
+}
+html body .workspace .left .super-feature::before{left:calc(50% - 89px)!important}
+html body .workspace .left .super-feature::after{right:calc(50% - 89px)!important;transform:scaleX(-1)!important}
+html body .workspace .left .super-feature__name{
+  display:block!important;
+  position:absolute!important;
+  z-index:9!important;
+  top:342px!important;
+  left:50%!important;
+  width:230px!important;
+  max-width:94%!important;
+  transform:translateX(-50%)!important;
+  margin:0!important;
+  padding:0!important;
+  color:rgba(255,255,255,.92)!important;
+  font:800 .62rem/18px Inter,sans-serif!important;
+  letter-spacing:.12em!important;
+  text-align:center!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  pointer-events:none!important;
+}
+html body .workspace .left .super-feature__name::before{
+  content:""!important;
+  position:absolute!important;
+  left:50%!important;
+  top:-22px!important;
+  width:8px!important;
+  height:8px!important;
+  transform:translateX(-50%) rotate(45deg)!important;
+  border:1px solid rgba(227,178,60,.92)!important;
+  background:#0b0910!important;
+  box-shadow:0 0 8px rgba(227,178,60,.22)!important;
 }
 
 @media (max-width:860px){
   .left .subclass-option__diamond svg{width:78%!important;height:78%!important}
-  html body .workspace .left .super-feature{min-height:342px!important;padding-bottom:24px!important}
-  html body .workspace .left .super-feature__name{top:292px!important;max-width:230px!important;font-size:.64rem!important}
-  html body .workspace .left .super-diamond--equipped{width:138px!important;top:0!important}
-  html body .workspace .left .super-diamond--equipped>span{width:100%!important;height:100%!important}
+  html body .workspace .left .subclass-rail{grid-template-columns:repeat(2,48px)!important;grid-template-rows:auto repeat(3,48px)!important;column-gap:14px!important;row-gap:10px!important;width:126px!important;min-width:126px!important}
+  html body .workspace .left .subclass-option{width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important}
+  html body .workspace .left .subclass-option__diamond{width:35px!important;height:35px!important}
+  html body .workspace .left .super-feature{min-height:400px!important;padding-bottom:42px!important}
+  html body .workspace .left .super-feature__cluster{width:236px!important;height:318px!important}
+  html body .workspace .left .super-diamond--equipped{width:148px!important;top:2px!important}
   html body .workspace .left .super-diamond--equipped>span img{transform:scale(1.44)!important}
-  html body .workspace .left .super-diamond--alt>span{width:94%!important;height:94%!important}
+  html body .workspace .left .super-diamond--alt1{left:calc(50% - 42px)!important;top:202px!important}
+  html body .workspace .left .super-diamond--alt2{left:calc(50% + 42px)!important;top:202px!important}
+  html body .workspace .left .super-diamond--alt3{left:50%!important;top:244px!important}
+  html body .workspace .left .super-feature::before,html body .workspace .left .super-feature::after{top:335px!important;width:64px!important}
+  html body .workspace .left .super-feature::before{left:calc(50% - 78px)!important}
+  html body .workspace .left .super-feature::after{right:calc(50% - 78px)!important}
+  html body .workspace .left .super-feature__name{top:354px!important;max-width:230px!important;font-size:.64rem!important}
 }
 @media (max-width:620px){
-  html body .workspace .left .super-feature{min-height:342px!important}
-  html body .workspace .left .super-feature__name{top:288px!important;width:200px!important;max-width:96%!important}
+  html body .workspace .left .subclass-super-shell{grid-template-columns:126px minmax(0,1fr)!important;gap:10px!important;min-height:390px!important}
+  html body .workspace .left .super-feature{min-height:382px!important}
+  html body .workspace .left .super-feature__cluster{width:205px!important;height:306px!important}
+  html body .workspace .left .super-diamond--equipped{width:130px!important}
+  html body .workspace .left .super-diamond--alt{width:48px!important}
+  html body .workspace .left .super-diamond--alt1{left:calc(50% - 37px)!important;top:178px!important}
+  html body .workspace .left .super-diamond--alt2{left:calc(50% + 37px)!important;top:178px!important}
+  html body .workspace .left .super-diamond--alt3{left:50%!important;top:215px!important}
+  html body .workspace .left .super-feature::before,html body .workspace .left .super-feature::after{top:292px!important;width:54px!important}
+  html body .workspace .left .super-feature::before{left:calc(50% - 67px)!important}
+  html body .workspace .left .super-feature::after{right:calc(50% - 67px)!important}
+  html body .workspace .left .super-feature__name{top:310px!important;width:190px!important;font-size:.60rem!important}
 }
