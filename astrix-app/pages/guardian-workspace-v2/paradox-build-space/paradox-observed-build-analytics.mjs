@@ -6,7 +6,7 @@
 const ANALYTICS_VERSION='paradox-observed-build-analytics-v1';
 
 const slug=value=>String(value??'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-const itemId=item=>String(item?.bungieHash??item?.hash??item?.itemHash??item?.itemInstanceId??slug(item?.name)||'');
+const itemId=item=>String((item?.bungieHash??item?.hash??item?.itemHash??item?.itemInstanceId??slug(item?.name))||'');
 const itemName=item=>String(item?.name??item?.displayProperties?.name??item?.definition?.displayProperties?.name??'').trim();
 
 function pairKey(a,b){
