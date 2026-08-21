@@ -1,11 +1,10 @@
-const STYLE_HREFS=["./guardian-subclass-super-polish.css?v=20260821-0842"];
-STYLE_HREFS.forEach(href=>{
-  if(document.querySelector(`link[href="${href}"]`))return;
+const STYLE_HREF="./guardian-subclass-super-polish.css?v=20260821-0905";
+if(!document.querySelector(`link[href="${STYLE_HREF}"]`)){
   const link=document.createElement("link");
   link.rel="stylesheet";
-  link.href=href;
+  link.href=STYLE_HREF;
   document.head.append(link);
-});
+}
 
 const ICONS={
   arc:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 9.8 8.4 4 6l4.5 5.2L3 15l6.7.5L12 22l2.3-6.5L21 15l-5.5-3.8L20 6l-5.8 2.4Z"/></svg>',
@@ -55,7 +54,13 @@ function swapSuperSlots(clicked){
 
 function bindSuperSelection(){
   const cluster=document.getElementById("superFeatureCluster");
-  if(!cluster||cluster.dataset.superPolishBound)return;
+  if(!cluster)return;
+  cluster.querySelectorAll(".super-diamond").forEach(slot=>{
+    slot.tabIndex=0;
+    slot.setAttribute("role","option");
+    slot.setAttribute("aria-selected",String(slot.classList.contains("super-diamond--equipped")));
+  });
+  if(cluster.dataset.superPolishBound)return;
   cluster.dataset.superPolishBound="true";
   cluster.addEventListener("click",event=>swapSuperSlots(event.target.closest(".super-diamond")));
   cluster.addEventListener("keydown",event=>{
@@ -65,17 +70,14 @@ function bindSuperSelection(){
     event.preventDefault();
     swapSuperSlots(slot);
   });
-  cluster.querySelectorAll(".super-diamond").forEach(slot=>{
-    slot.tabIndex=0;
-    slot.setAttribute("role","option");
-    slot.setAttribute("aria-selected",String(slot.classList.contains("super-diamond--equipped")));
-  });
 }
 
-const observer=new MutationObserver(()=>{syncSubclassIcons();bindSuperSelection();});
-observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:["data-subclass","class"]});
-queueMicrotask(()=>{syncSubclassIcons();bindSuperSelection();});
+function syncPresentation(){
+  syncSubclassIcons();
+  bindSuperSelection();
+}
 
-document.addEventListener("astrix:guardian-selection-changed",()=>queueMicrotask(syncSubclassIcons));
+queueMicrotask(syncPresentation);
+document.addEventListener("astrix:guardian-selection-changed",()=>queueMicrotask(syncPresentation));
 
-export {syncSubclassIcons,bindSuperSelection};
+export {syncSubclassIcons,bindSuperSelection,syncPresentation};
