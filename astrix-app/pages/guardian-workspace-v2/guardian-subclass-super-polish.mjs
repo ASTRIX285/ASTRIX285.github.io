@@ -1,4 +1,4 @@
-const STYLE_HREF="./guardian-subclass-super-polish.css?v=20260821-1028";
+const STYLE_HREF="./guardian-subclass-super-polish.css?v=20260821-1135";
 if(!document.querySelector(`link[href="${STYLE_HREF}"]`)){
   const link=document.createElement("link");
   link.rel="stylesheet";
@@ -32,28 +32,53 @@ function syncSubclassActiveState(){
   });
 }
 
+function slotSnapshot(slot){
+  const holder=slot?.querySelector("span");
+  return {
+    markup:holder?.innerHTML||"◆",
+    title:slot?.title||"",
+    live:Boolean(slot?.classList.contains("has-live-icon"))
+  };
+}
+
+function applySlotSnapshot(slot,snapshot){
+  if(!slot||!snapshot)return;
+  const holder=slot.querySelector("span");
+  if(!holder)return;
+  holder.innerHTML=snapshot.markup;
+  slot.title=snapshot.title;
+  slot.classList.toggle("has-live-icon",snapshot.live);
+}
+
+function markBottomSelected(cluster){
+  const bottom=cluster?.querySelector(".super-diamond--alt3");
+  cluster?.querySelectorAll(".super-diamond--alt").forEach(slot=>{
+    const selected=slot===bottom;
+    slot.classList.toggle("is-selected-super",selected);
+    slot.setAttribute("aria-selected",String(selected));
+    if(selected)slot.setAttribute("aria-current","true");
+    else slot.removeAttribute("aria-current");
+  });
+}
+
 function swapSuperSlots(clicked){
   const cluster=document.getElementById("superFeatureCluster");
   if(!cluster||!clicked?.classList.contains("super-diamond--alt")||!clicked.classList.contains("has-live-icon"))return;
   const equipped=cluster.querySelector(".super-diamond--equipped");
-  if(!equipped)return;
-  const equippedHolder=equipped.querySelector("span");
-  const clickedHolder=clicked.querySelector("span");
-  if(!equippedHolder||!clickedHolder)return;
+  const bottom=cluster.querySelector(".super-diamond--alt3");
+  if(!equipped||!bottom)return;
+  if(clicked===bottom&&clicked.classList.contains("is-selected-super"))return;
 
-  const oldMarkup=equippedHolder.innerHTML;
-  const oldTitle=equipped.title;
-  const oldLive=equipped.classList.contains("has-live-icon");
-  equippedHolder.innerHTML=clickedHolder.innerHTML;
-  equipped.title=clicked.title;
-  equipped.classList.toggle("has-live-icon",clicked.classList.contains("has-live-icon"));
-  clickedHolder.innerHTML=oldMarkup;
-  clicked.title=oldTitle;
-  clicked.classList.toggle("has-live-icon",oldLive);
+  const previousSelected=slotSnapshot(equipped);
+  const nextSelected=slotSnapshot(clicked);
+
+  applySlotSnapshot(equipped,nextSelected);
+  applySlotSnapshot(bottom,nextSelected);
+  if(clicked!==bottom)applySlotSnapshot(clicked,previousSelected);
 
   const name=document.getElementById("subclassName");
   if(name&&equipped.title)name.textContent=equipped.title.replace(/ · icon unresolved$/i,"");
-  cluster.querySelectorAll(".super-diamond").forEach(slot=>slot.setAttribute("aria-selected",String(slot===equipped)));
+  markBottomSelected(cluster);
 }
 
 function bindSuperSelection(){
@@ -62,8 +87,8 @@ function bindSuperSelection(){
   cluster.querySelectorAll(".super-diamond").forEach(slot=>{
     slot.tabIndex=0;
     slot.setAttribute("role","option");
-    slot.setAttribute("aria-selected",String(slot.classList.contains("super-diamond--equipped")));
   });
+  markBottomSelected(cluster);
   if(cluster.dataset.superPolishBound)return;
   cluster.dataset.superPolishBound="true";
   cluster.addEventListener("click",event=>swapSuperSlots(event.target.closest(".super-diamond")));
