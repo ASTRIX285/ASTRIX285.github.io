@@ -1,0 +1,67 @@
+/* ASTRIX PARADOX — premium Super icon treatment.
+   Keep Bungie artwork official, but prevent square source tiles from reading
+   like pasted cards inside the Destiny-style diamond frame. */
+
+html body .workspace .left .super-diamond--equipped{
+  background:
+    radial-gradient(circle at 50% 46%,rgba(142,34,48,.22),transparent 62%),
+    linear-gradient(135deg,rgba(18,10,14,.98),rgba(54,14,22,.82))!important;
+}
+
+html body .workspace .left .super-diamond--equipped>span{
+  inset:13px!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0!important;
+  transform:rotate(-45deg)!important;
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)!important;
+  background:linear-gradient(135deg,rgba(142,34,48,.34),rgba(12,12,16,.78))!important;
+  box-shadow:inset 0 0 20px rgba(0,0,0,.36)!important;
+}
+
+html body .workspace .left .super-diamond--equipped>span img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  transform:scale(1.08)!important;
+  transform-origin:center!important;
+  opacity:.86!important;
+  filter:brightness(.78) saturate(.72) contrast(1.12)!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+
+html body .workspace .left .super-diamond--equipped::after{
+  inset:8px!important;
+  border:1px solid rgba(142,34,48,.78)!important;
+  box-shadow:inset 0 0 18px rgba(142,34,48,.12)!important;
+}
+
+/* Small chain icons use the same visual language at a lighter touch. */
+html body .workspace .left .super-diamond--alt>span{
+  width:82%!important;
+  height:82%!important;
+  overflow:hidden!important;
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)!important;
+  background:rgba(30,12,18,.58)!important;
+}
+
+html body .workspace .left .super-diamond--alt>span img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  transform:scale(1.04)!important;
+  opacity:.88!important;
+  filter:brightness(.86) saturate(.80) contrast(1.08)!important;
+}
+
+html body .workspace .left .super-diamond--alt3.is-selected-super>span img{
+  opacity:.82!important;
+  filter:brightness(.72) saturate(.82) contrast(1.08)!important;
+}
