@@ -7,6 +7,7 @@ on:
       - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-super-feature-sync.mjs'
       - 'astrix-app/tools/validate-paradox-build-space.mjs'
+      - 'astrix-app/tools/validate-paradox-observed-analytics.mjs'
       - '.github/workflows/paradox-build-space-validation.yml'
   workflow_dispatch:
 
@@ -21,10 +22,14 @@ jobs:
       - name: Validate Paradox Build Space state
         working-directory: astrix-app
         run: node tools/validate-paradox-build-space.mjs
+      - name: Validate Paradox observed analytics
+        working-directory: astrix-app
+        run: node tools/validate-paradox-observed-analytics.mjs
       - name: Syntax-check Build Space modules
         working-directory: astrix-app
         run: |
           node --check pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs
           node --check pages/guardian-workspace-v2/paradox-build-space/paradox-intelligence-contract.mjs
+          node --check pages/guardian-workspace-v2/paradox-build-space/paradox-observed-build-analytics.mjs
           node --check pages/guardian-workspace-v2/paradox-build-space-handoff.mjs
           node --check pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs
