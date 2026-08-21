@@ -1,4 +1,4 @@
-const STYLE_HREF="./guardian-subclass-super-polish.css?v=20260821-0905";
+const STYLE_HREF="./guardian-subclass-super-polish.css?v=20260821-1028";
 if(!document.querySelector(`link[href="${STYLE_HREF}"]`)){
   const link=document.createElement("link");
   link.rel="stylesheet";
@@ -15,16 +15,20 @@ const ICONS={
   prismatic:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 7 10-7 10L5 12Z"/><path d="M12 2v20M5 12h14M8.5 7 15.5 17M15.5 7 8.5 17"/></svg>'
 };
 
-function syncSubclassIcons(){
-  const active=String(document.documentElement.dataset.subclass||"").toLowerCase();
+function installStaticSubclassIcons(){
   document.querySelectorAll(".subclass-option[data-subclass-option]").forEach(button=>{
     const key=String(button.dataset.subclassOption||"").toLowerCase();
     const holder=button.querySelector(".subclass-option__diamond>span");
-    if(holder&&ICONS[key]&&holder.dataset.iconMapped!==key){
-      holder.innerHTML=ICONS[key];
-      holder.dataset.iconMapped=key;
-    }
-    button.setAttribute("aria-pressed",String(key===active));
+    if(!holder||!ICONS[key])return;
+    if(holder.dataset.staticSubclassIcon===key)return;
+    holder.innerHTML=ICONS[key];
+    holder.dataset.staticSubclassIcon=key;
+  });
+}
+
+function syncSubclassActiveState(){
+  document.querySelectorAll(".subclass-option[data-subclass-option]").forEach(button=>{
+    button.setAttribute("aria-pressed",String(button.classList.contains("is-active")));
   });
 }
 
@@ -73,11 +77,12 @@ function bindSuperSelection(){
 }
 
 function syncPresentation(){
-  syncSubclassIcons();
+  installStaticSubclassIcons();
+  syncSubclassActiveState();
   bindSuperSelection();
 }
 
 queueMicrotask(syncPresentation);
 document.addEventListener("astrix:guardian-selection-changed",()=>queueMicrotask(syncPresentation));
 
-export {syncSubclassIcons,bindSuperSelection,syncPresentation};
+export {installStaticSubclassIcons,syncSubclassActiveState,bindSuperSelection,syncPresentation};
