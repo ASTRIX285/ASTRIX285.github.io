@@ -10,7 +10,7 @@ import './paradox-build-space-handoff.mjs';
 if (!document.querySelector('link[data-astrix-subclass-super-polish]')) {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = './guardian-subclass-super-polish.css?v=20260821-bungie-icons';
+  link.href = './guardian-subclass-super-polish.css?v=20260823-main-pass';
   link.dataset.astrixSubclassSuperPolish = 'true';
   document.head.appendChild(link);
 }
