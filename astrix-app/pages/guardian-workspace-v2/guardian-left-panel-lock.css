@@ -107,10 +107,11 @@ html body .workspace>.left .super-feature{
 }
 html body .workspace>.left .super-feature__cluster{
   order:1!important;
-  width:230px!important;
+  width:clamp(140px,calc(100% + 20px),230px)!important;
   height:190px!important;
   margin-top:22px!important;
   margin-bottom:0!important;
+  transform:translateX(-4px)!important;
 }
 html body .workspace>.left .super-feature__name{
   position:static!important;
