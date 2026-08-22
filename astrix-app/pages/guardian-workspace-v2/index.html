@@ -32,36 +32,36 @@
        Super order = heading, large equipped diamond, name, three alternates.
        ================================================================ */
     .left .subclass-super-shell{
-      grid-template-columns:132px minmax(0,1fr)!important;
+      grid-template-columns:144px minmax(0,1fr)!important;
       gap:12px!important;
     }
     .left .subclass-rail{
       display:grid!important;
-      grid-template-columns:repeat(2,48px)!important;
-      grid-template-rows:auto repeat(3,48px)!important;
+      grid-template-columns:repeat(2,56px)!important;
+      grid-template-rows:auto repeat(3,56px)!important;
       justify-content:center!important;
       align-content:start!important;
       column-gap:12px!important;
       row-gap:8px!important;
-      width:132px!important;
-      min-width:132px!important;
+      width:144px!important;
+      min-width:144px!important;
     }
     .left .subclass-rail__label{grid-column:1/-1!important}
     .left .subclass-option{
-      width:48px!important;
-      min-width:48px!important;
-      height:48px!important;
-      min-height:48px!important;
+      width:56px!important;
+      min-width:56px!important;
+      height:56px!important;
+      min-height:56px!important;
     }
     .left .subclass-option__diamond{
-      width:34px!important;
-      height:34px!important;
+      width:46px!important;
+      height:46px!important;
       transform:rotate(45deg)!important;
     }
 
     .left .super-feature{
       position:relative!important;
-      min-height:350px!important;
+      min-height:390px!important;
       overflow:visible!important;
     }
     .left .super-feature__label{
@@ -72,17 +72,17 @@
       display:block!important;
       position:absolute!important;
       z-index:8!important;
-      top:140px!important;
+      top:202px!important;
       left:50%!important;
       transform:translateX(-50%)!important;
       width:100%!important;
-      max-width:210px!important;
+      max-width:230px!important;
       min-height:18px!important;
       margin:0!important;
       color:rgba(255,255,255,.9)!important;
-      font:800 .60rem Inter,sans-serif!important;
+      font:800 .66rem Inter,sans-serif!important;
       letter-spacing:.07em!important;
-      line-height:18px!important;
+      line-height:20px!important;
       text-align:center!important;
       text-transform:uppercase!important;
       white-space:nowrap!important;
@@ -91,13 +91,26 @@
       pointer-events:none!important;
     }
     .left .super-feature__cluster{
-      height:314px!important;
+      height:350px!important;
       margin-top:4px!important;
       overflow:visible!important;
     }
     .left .super-diamond--alt1{top:180px!important}
     .left .super-diamond--alt2{top:180px!important}
     .left .super-diamond--alt3{top:220px!important}
+
+    @media (min-width:981px) and (max-width:1499px){
+      /* Compact/high-browser-scale desktop: enlarge visibly without escaping
+         the narrower left rail or displacing the centre gear rack. */
+      .left .subclass-super-shell{grid-template-columns:128px minmax(0,1fr)!important;gap:8px!important}
+      .left .subclass-rail{width:128px!important;min-width:128px!important;grid-template-columns:repeat(2,52px)!important;grid-template-rows:auto repeat(3,52px)!important;column-gap:10px!important}
+      .left .subclass-option{width:52px!important;min-width:52px!important;height:52px!important;min-height:52px!important}
+      .left .subclass-option__diamond{width:42px!important;height:42px!important}
+      .left .super-diamond--equipped{width:142px!important}
+      .left .super-feature__name{top:174px!important;max-width:180px!important}
+      .left .super-diamond--alt1,.left .super-diamond--alt2{top:214px!important}
+      .left .super-diamond--alt3{top:256px!important}
+    }
 
     @media (max-width:620px){
       /* LOCKED MOBILE GUARDIAN CARDS: one character per row. */

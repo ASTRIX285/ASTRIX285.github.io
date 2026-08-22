@@ -117,6 +117,13 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
   const activeElement = (workspaceState.subclass || "arc").toLowerCase();
   document.documentElement.dataset.subclass = activeElement;
 
+  const subclassButtons = [...document.querySelectorAll("[data-subclass-option]")];
+  subclassButtons.forEach(button => button.classList.toggle("is-active", button.dataset.subclassOption === activeElement));
+  const activeSubclassButton = subclassButtons.find(button => button.dataset.subclassOption === activeElement);
+  const activeSubclassIcon = resolvedDisplayIcon(build.subclassDefinition || build.subclass || workspaceState.subclassDefinition || workspaceState.subclassItem);
+  const activeSubclassHolder = activeSubclassButton?.querySelector(".subclass-option__diamond > span");
+  if (activeSubclassIcon && activeSubclassHolder) activeSubclassHolder.innerHTML = iconMarkup(activeSubclassIcon, subclassName);
+
   const activeSuper = build.super;
   const superOptions = Array.isArray(build.superOptions) && build.superOptions.length
     ? build.superOptions
@@ -128,6 +135,8 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
     const slots = [activeSuper, alternates[0] || null, alternates[1] || null, alternates[2] || null];
     featureHost.querySelectorAll("[data-super-slot]").forEach((slot, index) => {
       const item = slots[index];
+      slot.classList.toggle("is-selected", index === 0);
+      slot.setAttribute("aria-current", index === 0 ? "true" : "false");
       const holder = slot.querySelector("span");
       if (!holder) return;
       const icon = resolvedDisplayIcon(item);
@@ -135,6 +144,16 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
         holder.innerHTML = iconMarkup(icon, item?.name);
         slot.classList.add("has-live-icon");
         slot.title = item?.name || (index === 0 ? "Equipped Super" : "Alternate Super");
+        slot.tabIndex = 0;
+        slot.setAttribute("role", "button");
+        slot.onclick = () => {
+          featureHost.querySelectorAll("[data-super-slot]").forEach(node => {
+            node.classList.toggle("is-selected", node === slot);
+            node.setAttribute("aria-current", node === slot ? "true" : "false");
+          });
+          const nameNode = byId("subclassName");
+          if (nameNode && item?.name) nameNode.textContent = item.name;
+        };
       } else {
         holder.innerHTML = "◆";
         slot.classList.remove("has-live-icon");

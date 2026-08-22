@@ -44,7 +44,6 @@ function armourSetStrip(set) {
   if (!set.identity || set.unresolved) return "";
   const thresholds = [set.twoPiece, set.fourPiece].filter(Boolean);
   return `<div class="armour-set-strip" title="${esc(set.identity.name ?? "Resolved armour set")}">
-    <span class="armour-set-identity"><b>${esc(set.identity.name ?? "Armour set")}</b></span>
     <span class="armour-set-thresholds">${thresholds.map(effect => `<span class="armour-set-threshold ${effect.active ? "is-active" : ""}" title="${esc([`${effect.requiredSetCount}-piece`, effect.name, effect.description].filter(Boolean).join(" — "))}">${effect.icon ? `<img src="${esc(effect.icon)}" alt="${esc(effect.name ?? `${effect.requiredSetCount}-piece set perk`)}">` : ""}</span>`).join("")}</span>
   </div>`;
 }
@@ -77,8 +76,8 @@ export function armourCard(index, item) {
           ${isExotic && traitIcon ? `<span class="armour-exotic-overlay" title="${esc(traitTitle || "Verified exotic armour perk")}"><img src="${esc(traitIcon)}" alt="${esc(trait?.name ?? "Exotic armour perk")}"></span>` : ""}
         </div>
       </div>
+      ${setStrip}
     </div>
-    ${setStrip}
     <div class="gear-slot-divider"></div>
     <div class="gear-mods" data-slot-count="${slotCount}">${Array.from({ length: slotCount }, (_, i) => modTile(mods[i])).join("")}</div>
   </article>`;
