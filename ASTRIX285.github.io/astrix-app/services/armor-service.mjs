@@ -1,4 +1,4 @@
-/** Read-only curated armour catalogue service for Paradox Forge. */
+/** Read-only curated armour catalogue service for Guardian Build Forge. */
 
 export const ARMOR_SERVICE_VERSION = '1.1.0';
 

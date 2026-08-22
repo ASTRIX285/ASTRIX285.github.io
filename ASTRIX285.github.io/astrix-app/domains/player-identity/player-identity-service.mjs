@@ -1,5 +1,5 @@
 /**
- * Paradox Forge Player Identity Service
+ * Guardian Build Forge Player Identity Service
  *
  * Normalises authenticated Bungie profile data into one read-only snapshot.
  * This module does not perform OAuth, store tokens or call Bungie directly.

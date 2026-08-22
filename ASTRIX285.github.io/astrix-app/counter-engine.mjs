@@ -1,6 +1,6 @@
 // counter-engine.mjs
 //
-// The encounter-coverage layer of Paradox Forge.
+// The encounter-coverage layer of Guardian Build Forge.
 //
 // Where synergy-engine.mjs reasons INWARD (does this build's own chain hold
 // together?), the counter engine reasons OUTWARD: given a build and THIS week's

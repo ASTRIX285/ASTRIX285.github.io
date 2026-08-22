@@ -190,7 +190,7 @@ function openSelector() {
     <section class="pf-class-picker" role="dialog" aria-modal="true" aria-label="Choose Guardian class and beta loadout">
       <header>
         <div>
-          <small>PARADOX FORGE BETA</small>
+          <small>GUARDIAN BUILD FORGE BETA</small>
           <h2>SELECT GUARDIAN</h2>
         </div>
         <button type="button" data-close aria-label="Close">✕</button>

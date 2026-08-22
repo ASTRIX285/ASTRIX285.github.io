@@ -5,7 +5,7 @@ export * as PlayerIdentity from '../../domains/player-identity/index.mjs';
 export const DESTINY_GAME_MODULE = Object.freeze({
   id: 'destiny-2',
   name: 'Destiny 2',
-  productName: 'Paradox Forge',
+  productName: 'Guardian Build Forge',
   version: '1.0.0',
   concepts: Object.freeze({
     weapon: 'equipment',

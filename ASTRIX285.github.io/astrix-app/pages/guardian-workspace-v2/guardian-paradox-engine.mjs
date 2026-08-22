@@ -1,4 +1,4 @@
-/* guardian-paradox-engine.mjs — Paradox Forge deterministic Alpha reasoning engine.
+/* guardian-paradox-engine.mjs — Guardian Build Forge deterministic Alpha reasoning engine.
  *
  * ALPHA SCOPE ONLY:
  * - accepts normalized Guardian data from guardian-fixture-loader.mjs

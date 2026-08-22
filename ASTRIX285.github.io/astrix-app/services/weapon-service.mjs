@@ -1,5 +1,5 @@
 /**
- * Paradox Forge Weapon Service
+ * Guardian Build Forge Weapon Service
  *
  * File:
  *   astrix-app/services/weapon-service.mjs

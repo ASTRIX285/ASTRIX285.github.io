@@ -1,5 +1,5 @@
 /**
- * Paradox Forge Cosmetic Service
+ * Guardian Build Forge Cosmetic Service
  *
  * Reads and indexes the generated cosmetic-information.json catalogue.
  * Player ownership remains a separate OAuth-backed overlay.
