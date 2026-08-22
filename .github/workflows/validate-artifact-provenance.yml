@@ -1,0 +1,37 @@
+name: Validate Artifact provenance
+
+on:
+  pull_request:
+    paths:
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-artifact-provenance.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-artifact-state.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-artifact.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space/**'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-fixture-loader.mjs'
+      - 'astrix-app/tools/test-artifact-provenance.mjs'
+      - 'astrix-app/tools/test-artifact-recommender.mjs'
+      - '.github/workflows/validate-artifact-provenance.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Artifact modules
+        run: |
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-artifact-provenance.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-artifact-state.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-artifact.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs
+      - name: Test Artifact provenance and immutable build state
+        run: node astrix-app/tools/test-artifact-provenance.mjs
+      - name: Test Artifact recommendations
+        run: node astrix-app/tools/test-artifact-recommender.mjs
