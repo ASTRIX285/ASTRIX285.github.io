@@ -107,3 +107,34 @@
   html body .workspace .left .super-diamond--alt2{left:calc(50% + 40px)!important;top:190px!important}
   html body .workspace .left .super-diamond--alt3{left:50%!important;top:230px!important}
 }
+
+
+/* Mobile Armour & Mods rack: one complete armour card per horizontal snap. */
+@media (max-width:620px){
+  html body .workspace .gear-combined .gear-columns{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:stretch!important;
+    gap:12px!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:2px 2px 10px!important;
+    scroll-snap-type:x mandatory;
+    scroll-padding-inline:2px;
+    overscroll-behavior-inline:contain;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-x pan-y;
+    scrollbar-width:none;
+  }
+  html body .workspace .gear-combined .gear-columns::-webkit-scrollbar{display:none}
+  html body .workspace .gear-combined .gear-slot{
+    flex:0 0 min(84vw,330px)!important;
+    width:min(84vw,330px)!important;
+    max-width:min(84vw,330px)!important;
+    min-width:min(84vw,330px)!important;
+    scroll-snap-align:start;
+    scroll-snap-stop:always;
+  }
+}
