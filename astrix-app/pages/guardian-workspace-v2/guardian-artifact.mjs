@@ -21,6 +21,7 @@ let artifactDef=null;
 let currentFixtureId=null;
 let selected=[];
 let currentMode='fixture';
+let currentArtifactState='intended';
 let liveArtifact=null;
 let livePerksByHash=new Map();
 
@@ -111,13 +112,14 @@ function renderArtifactDisplay(){
     row.style.cursor=currentMode==='live'?'default':'pointer';
   }
 
-  const perks=selected.map(perkIdentity);
+  const stateUnavailable=currentMode==='live'&&currentArtifactState==='state-unavailable';
+  const perks=stateUnavailable?[]:selected.map(perkIdentity);
   if(perksEl){
-    perksEl.dataset.artifactState=perks.length?'active':'none-active';
-    perksEl.title=perks.length?`${perks.length} active Artifact perk(s) resolved from Bungie`:(currentMode==='live'?'No active Artifact perks resolved from Bungie':'No fixture Artifact perks selected');
+    perksEl.dataset.artifactState=stateUnavailable?'state-unavailable':(perks.length?'active':'none-active');
+    perksEl.title=stateUnavailable?'Live Artifact activation state is unavailable.':(perks.length?`${perks.length} active Artifact perk(s) resolved from Bungie`:(currentMode==='live'?'Bungie reports no active Artifact perks':'No fixture Artifact perks selected'));
     if(!perks.length){
       perksEl.innerHTML=currentMode==='live'
-        ? Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join('')
+        ? (stateUnavailable?'<span class="art-empty">ARTIFACT STATE UNAVAILABLE</span>':Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join(''))
         : '<button type="button" class="art-empty" tabindex="-1">Choose Artifact perks</button>';
     }else{
       const shown=perks.slice(0,PANEL_ICONS);
@@ -127,7 +129,10 @@ function renderArtifactDisplay(){
     }
   }
 
-  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{artifact:id,perks,currentFixtureId,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
+  const artifactConfiguration=currentMode==='live'
+    ?liveArtifact?.artifactConfiguration||null
+    :{schemaVersion:1,artifactHash:Number.isFinite(hashOf(id))?hashOf(id):null,seasonNumber:Number.isFinite(Number(artifactDef?.seasonNumber))?Number(artifactDef.seasonNumber):null,selectedPerkHashes:selected.slice(),source:'fixture-intent',provenance:{provider:'paradox-fixture',fixtureId:currentFixtureId,manifest:'beta-bungie-manifest-cache'}};
+  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{artifact:id,perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
 }
 
 function closePicker(){qs('#astrixArtifactModal')?.remove();}
@@ -169,13 +174,13 @@ async function onSelection(detail={}){
   const liveMode=['bungie-live','bungie-loadout','bungie-selected-loadout'].includes(String(detail?.source||'').toLowerCase());
   if(liveMode){
     const view=resolveArtifactViewState(detail,{});
-    currentMode='live';currentFixtureId=null;liveArtifact=view.artifact;selected=view.selectedHashes;
+    currentMode='live';currentArtifactState=view.state;currentFixtureId=null;liveArtifact=view.artifact;selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];
     livePerksByHash=new Map([...(view.allPerks||[]),...(view.perks||[])].map(item=>[Number(item.hash),item]));
     renderArtifactDisplay();wireRow();return;
   }
 
   try{await ensureManifest();}catch(err){console.error('[Paradox artifact]',err);return;}
-  currentMode='fixture';liveArtifact=null;livePerksByHash=new Map();currentFixtureId=detail?.fixtureId??currentFixtureId;
+  currentMode='fixture';currentArtifactState='intended';liveArtifact=null;livePerksByHash=new Map();currentFixtureId=detail?.fixtureId??currentFixtureId;
   const view=resolveArtifactViewState(detail,{fixtureArtifact:fixtureArtifactIdentity(),fixtureSelected:selectionForFixture(detail)});
   selected=view.selectedHashes;renderArtifactDisplay();wireRow();
 }

@@ -1,4 +1,5 @@
 import {getBungieSession} from "./guardian-bungie-auth.mjs";
+import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
@@ -240,29 +241,7 @@ function subclassConfiguration(profile,definitions,item){
 }
 
 function currentArtifact(payload,characterId){
-  const profile=payload?.profile||{};
-  const definitions=payload?.definitions||{};
-  const artifactHash=Number(profile?.profileProgression?.data?.seasonalArtifact?.artifactHash);
-  const artifactDefinition=payload?.artifactDefinition||null;
-  if(!Number.isFinite(artifactHash)&&!artifactDefinition)return null;
-  const seasonalArtifact=profile?.characterProgressions?.data?.[characterId]?.seasonalArtifact||{};
-  const tierItems=(seasonalArtifact.tiers||[]).flatMap(tier=>tier?.items||[]);
-  const perks=tierItems.map(item=>{
-    const row=displayItem(definitions,item.itemHash);
-    return {...row,isActive:Boolean(item.isActive),isVisible:item.isVisible!==false};
-  });
-  const hash=Number.isFinite(artifactHash)?artifactHash:Number(artifactDefinition?.hash);
-  return {
-    hash,
-    bungieHash:hash,
-    name:artifactDefinition?.displayProperties?.name||`Seasonal Artifact ${hash}`,
-    description:artifactDefinition?.displayProperties?.description||"",
-    icon:absoluteIcon(artifactDefinition?.displayProperties?.icon),
-    definition:artifactDefinition||{},
-    perks,
-    activePerks:perks.filter(item=>item.isActive),
-    coverage:payload?.artifactCoverage||null
-  };
+  return resolveArtifactByProvenance(payload,characterId);
 }
 
 function identityCosmetics(profile,definitions,equipment,character){
@@ -319,6 +298,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     aspects:subclassBuild.aspects,
     fragments:subclassBuild.fragments,
     artifact,
+    artifactConfiguration:artifact?.artifactConfiguration||null,
     hashCoverage,
     power:character.light??null,
     guardianRank:rank,
