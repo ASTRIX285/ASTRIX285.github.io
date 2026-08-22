@@ -3,6 +3,12 @@
 
 const norm=value=>String(value??"").trim().toLowerCase();
 const uniq=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>Number(other?.hash)===Number(row?.hash))===index);
+const uniqSockets=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>{
+  if(Number(other?.hash)!==Number(row?.hash))return false;
+  const rowSocket=Number(row?.socketIndex),otherSocket=Number(other?.socketIndex);
+  if(Number.isInteger(rowSocket)&&Number.isInteger(otherSocket))return rowSocket===otherSocket;
+  return other===row;
+})===index);
 
 function semanticText(item){
   return [item?.name,item?.description,item?.itemTypeDisplayName,item?.definition?.plug?.plugCategoryIdentifier,...(item?.definition?.traitIds||[])].filter(Boolean).join(" ").toLowerCase();
@@ -45,7 +51,7 @@ function normaliseArmourSemantics({plugs=[],instance=null,stats=null}={}){
   return {
     tier,masterwork:buckets.masterwork[0]||null,masterworkCandidates:uniq(buckets.masterwork),
     energy:energy?{type:energy.energyType??null,typeHash:energy.energyTypeHash??null,capacity:Number.isFinite(Number(energy.energyCapacity))?Number(energy.energyCapacity):null,used:Number.isFinite(Number(energy.energyUsed))?Number(energy.energyUsed):null}:null,
-    archetype:buckets.archetype[0]||null,generalMods:uniq(buckets.generalMods),slotMods:uniq(buckets.slotMods),exoticPerk:buckets.exoticPerk[0]||null,
+    archetype:buckets.archetype[0]||null,generalMods:uniqSockets(buckets.generalMods),slotMods:uniqSockets(buckets.slotMods),exoticPerk:buckets.exoticPerk[0]||null,
     set:setEffects(plugs),stats:stats?.stats||stats||null,discarded:uniq(buckets.discarded),unknownPlugs:uniq(buckets.unknown),complete:buckets.unknown.length===0
   };
 }
