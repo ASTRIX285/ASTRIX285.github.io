@@ -1,4 +1,17 @@
 const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
+const CANONICAL_APP_ORIGIN = "https://astrixparadox.com";
+
+function authReturnUrl(){
+  const current=new URL(location.href);
+  current.searchParams.delete("bungie");
+  // OAuth only accepts the production first-party origin. Netlify deploy-preview
+  // origins are intentionally not allow-listed, so preserve the Forge path while
+  // moving the callback destination onto the canonical application origin.
+  if(current.hostname.endsWith(".netlify.app")){
+    return new URL(`${current.pathname}${current.search}${current.hash}`,CANONICAL_APP_ORIGIN);
+  }
+  return current;
+}
 
 function installStyles(){
   if(document.getElementById("guardianBungieAuthStyles")) return;
@@ -29,8 +42,7 @@ function makeControl(){
   button.textContent="CHECKING BUNGIE…";
   button.addEventListener("click",()=>{
     if(button.dataset.state==="connected") return;
-    const returnUrl=new URL(location.href);
-    returnUrl.searchParams.delete("bungie");
+    const returnUrl=authReturnUrl();
     location.href=`${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(returnUrl.toString())}`;
   });
   wrap.appendChild(button);
