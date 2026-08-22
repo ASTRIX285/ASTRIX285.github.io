@@ -56,6 +56,16 @@ function traitTile(trait) {
   }</button>`;
 }
 
+function armourSetStrip(set) {
+  if (!set?.identity || set?.unresolved) return "";
+  const identityIcon = set.identity?.icon ?? "";
+  const thresholds = [set.twoPiece, set.fourPiece].filter(Boolean);
+  return `<div class="armour-set-strip" title="${esc(set.identity.name ?? "Resolved armour set")}">
+    <span class="armour-set-identity">${identityIcon ? `<img src="${esc(identityIcon)}" alt="">` : ""}<b>${esc(set.identity.name ?? "Armour set")}</b><small>${esc(set.equippedCount ?? 0)}pc</small></span>
+    <span class="armour-set-thresholds">${thresholds.map(effect => `<span class="armour-set-threshold ${effect.active ? "is-active" : ""}" title="${esc([effect.name, effect.description].filter(Boolean).join(" — "))}">${effect.icon ? `<img src="${esc(effect.icon)}" alt="">` : ""}<b>${esc(effect.requiredSetCount)}</b></span>`).join("")}</span>
+  </div>`;
+}
+
 function armourCard(index, item) {
   const name = item?.name ?? armourNames[index];
   const icon = item?.icon ?? item?.iconUrl ?? item?.displayProperties?.icon ?? "";
@@ -67,18 +77,20 @@ function armourCard(index, item) {
   const slotCount = 6;
   const armourTier = Number(item?.armourTier ?? item?.armourSemantics?.tier);
   const isTierFive = Number.isFinite(armourTier) && armourTier >= 5;
+  const setStrip = !isExotic ? armourSetStrip(item?.armourSemantics?.set) : "";
 
   return `<article class="gear-slot ${isExotic ? "exotic" : ""} ${isTierFive ? "is-level-gold" : ""}" data-armour-index="${index}">
     <div class="gear-slot-label">${esc(name)}</div>
     <div class="gear-arm-row">
       <div class="gear-arm-anchor">
         <div class="arm ${icon ? "" : "ph"}" tabindex="0" role="button" title="${esc(name)}">
-          <span class="lv">${esc(item?.power ?? "—")}</span>${Number.isFinite(armourTier)?`<span class="item-rank" title="Resolved armour tier">T${esc(armourTier)}</span>`:""}
+          <span class="lv">${esc(item?.power ?? "—")}</span>${Number.isFinite(armourTier) && armourTier < 5 ? `<span class="item-rank" title="Resolved armour tier">T${esc(armourTier)}</span>` : ""}
           ${icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">◇</span>'}
         </div>
       </div>
       ${isExotic && trait ? traitTile(trait) : ""}
     </div>
+    ${setStrip}
     ${appearance.length ? `<div class="gear-appearance-row">${appearance.slice(0, 2).map(appearanceTile).join("")}</div>` : ""}
     <div class="gear-slot-divider"></div>
     <div class="gear-mods" data-slot-count="${slotCount}">${Array.from({ length: slotCount }, (_, i) => modTile(mods[i])).join("")}</div>
