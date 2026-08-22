@@ -32,18 +32,6 @@ function modTile(mod) {
   }</button>`;
 }
 
-function appearanceTile(item) {
-  if (!item) return "";
-  const name = item?.name ?? item?.displayName ?? "Appearance plug";
-  const description = item?.description ?? "";
-  const hash = item?.bungieHash ?? item?.hash ?? "";
-  const icon = item?.icon ?? item?.iconUrl ?? item?.displayProperties?.icon ?? "";
-  const title = [name, description, hash ? `Bungie hash: ${hash}` : ""].filter(Boolean).join(" — ");
-  return `<button class="gear-appearance" type="button" title="${esc(title)}" aria-label="${esc(name)}">${
-    icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">◇</span>'
-  }</button>`;
-}
-
 function traitTile(trait) {
   if (!trait) return "";
   const name = trait?.name ?? "Exotic intrinsic trait";
@@ -57,13 +45,24 @@ function traitTile(trait) {
 }
 
 function armourSetStrip(set) {
-  if (!set?.identity || set?.unresolved) return "";
+  if (!set) return "";
+  if (!set.identity || set.unresolved) return `<div class="armour-set-strip is-unresolved" title="Exact Bungie armour-set definition has not been returned by the backend"><span class="armour-set-unresolved"><b>SET DATA UNRESOLVED</b><small>${set.hash ? `BUNGIE HASH ${esc(set.hash)}` : "AWAITING VERIFIED MANIFEST DATA"}</small></span></div>`;
   const identityIcon = set.identity?.icon ?? "";
   const thresholds = [set.twoPiece, set.fourPiece].filter(Boolean);
   return `<div class="armour-set-strip" title="${esc(set.identity.name ?? "Resolved armour set")}">
     <span class="armour-set-identity">${identityIcon ? `<img src="${esc(identityIcon)}" alt="">` : ""}<b>${esc(set.identity.name ?? "Armour set")}</b><small>${esc(set.equippedCount ?? 0)}pc</small></span>
     <span class="armour-set-thresholds">${thresholds.map(effect => `<span class="armour-set-threshold ${effect.active ? "is-active" : ""}" title="${esc([effect.name, effect.description].filter(Boolean).join(" — "))}">${effect.icon ? `<img src="${esc(effect.icon)}" alt="">` : ""}<b>${esc(effect.requiredSetCount)}</b></span>`).join("")}</span>
   </div>`;
+}
+
+function exoticPerkStrip(trait) {
+  if (!trait) return "";
+  const name = trait?.name ?? "Exotic intrinsic trait";
+  const description = trait?.description ?? "";
+  const hash = trait?.bungieHash ?? trait?.hash ?? "";
+  const icon = trait?.icon ?? "";
+  const title = [name, description, hash ? `Bungie hash: ${hash}` : ""].filter(Boolean).join(" — ");
+  return `<div class="armour-exotic-strip" title="${esc(title)}"><span class="armour-exotic-icon">${icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">✦</span>'}</span><span><small>EXOTIC ARMOUR PERK</small><b>${esc(name)}</b></span></div>`;
 }
 
 function armourCard(index, item) {
@@ -73,11 +72,11 @@ function armourCard(index, item) {
   const isExotic = item?.isExotic === true || rarity.includes("exotic");
   const trait = isExotic ? item?.intrinsicTrait ?? null : null;
   const mods = Array.isArray(item?.mods) ? item.mods : [];
-  const appearance = Array.isArray(item?.appearancePlugs) ? item.appearancePlugs : [];
   const slotCount = 6;
   const armourTier = Number(item?.armourTier ?? item?.armourSemantics?.tier);
   const isTierFive = Number.isFinite(armourTier) && armourTier >= 5;
   const setStrip = !isExotic ? armourSetStrip(item?.armourSemantics?.set) : "";
+  const exoticStrip = isExotic ? exoticPerkStrip(trait) : "";
 
   return `<article class="gear-slot ${isExotic ? "exotic" : ""} ${isTierFive ? "is-level-gold" : ""}" data-armour-index="${index}">
     <div class="gear-slot-label">${esc(name)}</div>
@@ -90,8 +89,8 @@ function armourCard(index, item) {
       </div>
       ${isExotic && trait ? traitTile(trait) : ""}
     </div>
+    ${exoticStrip}
     ${setStrip}
-    ${appearance.length ? `<div class="gear-appearance-row">${appearance.slice(0, 2).map(appearanceTile).join("")}</div>` : ""}
     <div class="gear-slot-divider"></div>
     <div class="gear-mods" data-slot-count="${slotCount}">${Array.from({ length: slotCount }, (_, i) => modTile(mods[i])).join("")}</div>
   </article>`;
