@@ -115,8 +115,8 @@ function createArmourDrawer() {
   if (byId("armourDrawer")) return;
   document.body.insertAdjacentHTML(
     "beforeend",
-    `<div class="armour-drawer-backdrop" data-close-drawer></div>
-     <aside class="armour-drawer" id="armourDrawer" aria-hidden="true">
+    `<div class="armour-drawer-backdrop" data-close-drawer hidden></div>
+     <aside class="armour-drawer" id="armourDrawer" aria-hidden="true" hidden>
        <div class="armour-drawer-head">
          <div><small class="eyebrow">ARMOUR INSPECTOR</small><h2 id="armourDrawerTitle">Armour slot</h2></div>
          <button class="armour-drawer-close" type="button" data-close-drawer aria-label="Close armour inspector">✕</button>
@@ -163,12 +163,16 @@ export function openArmourDrawer(index, item) {
     : fallback;
 
   document.body.classList.add("armour-drawer-open");
+  document.querySelector(".armour-drawer-backdrop")?.removeAttribute("hidden");
+  byId("armourDrawer")?.removeAttribute("hidden");
   byId("armourDrawer")?.setAttribute("aria-hidden", "false");
 }
 
 export function closeArmourDrawer() {
   document.body.classList.remove("armour-drawer-open");
+  document.querySelector(".armour-drawer-backdrop")?.setAttribute("hidden", "");
   byId("armourDrawer")?.setAttribute("aria-hidden", "true");
+  byId("armourDrawer")?.setAttribute("hidden", "");
 }
 
 function applyGuardianSelection(detail) {
