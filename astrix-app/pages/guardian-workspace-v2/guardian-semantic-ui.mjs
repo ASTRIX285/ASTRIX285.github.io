@@ -5,6 +5,30 @@
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const bungieIcon=v=>{const s=String(v??"");return !s?"":s.startsWith("http")?s:`https://www.bungie.net${s}`;};
 const text=v=>String(v?.name??v?.displayName??v??"").trim();
+const WEAPON_STATS=[[4043523819,"Impact"],[1240592695,"Range"],[155624089,"Stability"],[943549884,"Handling"],[4188031367,"Reload Speed"],[1345609583,"Aim Assistance"],[3555269338,"Zoom"],[2715839340,"Airborne Effectiveness"],[4284893193,"Rounds Per Minute"],[3871231066,"Magazine"],[2714457168,"Recoil Direction"]];
+
+function weaponDetailTile(item,label=""){
+  if(!item)return "";
+  const icon=bungieIcon(item.icon??item.displayProperties?.icon);
+  return `<div class="weapon-detail-tile" title="${esc([text(item),item.description].filter(Boolean).join(" — "))}">${icon?`<img src="${esc(icon)}" alt="">`:"◆"}<span>${esc(label||text(item)||"Resolved item")}</span></div>`;
+}
+
+function openWeaponDetail(item){
+  let host=document.getElementById("weaponDetailDrawer");
+  if(!host){
+    document.body.insertAdjacentHTML("beforeend",`<div class="weapon-detail-backdrop" data-close-weapon></div><aside class="weapon-detail-drawer" id="weaponDetailDrawer" aria-hidden="true"><button class="weapon-detail-close" type="button" data-close-weapon aria-label="Close weapon details">✕</button><div class="weapon-detail-content"></div></aside>`);
+    host=document.getElementById("weaponDetailDrawer");
+    document.querySelectorAll("[data-close-weapon]").forEach(node=>node.addEventListener("click",()=>{document.body.classList.remove("weapon-detail-open");host?.setAttribute("aria-hidden","true");}));
+  }
+  const s=item?.weaponSemantics||{};
+  const stats=s.stats||item?.weaponStats||{};
+  const statRows=WEAPON_STATS.map(([hash,name])=>{const raw=stats?.[hash]??stats?.[String(hash)];const value=Number(raw?.value??raw);return Number.isFinite(value)?`<div class="weapon-stat"><span>${esc(name)}</span><i><b style="width:${Math.max(0,Math.min(100,value))}%"></b></i><strong>${esc(value)}</strong></div>`:"";}).join("");
+  const perks=[s.intrinsic,...(s.selectedPerks||[])].filter(Boolean);
+  const mods=[s.masterwork,s.mod,s.catalyst].filter(Boolean);
+  const content=host.querySelector(".weapon-detail-content");
+  if(content)content.innerHTML=`<header class="weapon-detail-head"><div class="weapon-detail-icon"><img src="${esc(bungieIcon(item.icon))}" alt=""></div><div><h2>${esc(item.name||"Weapon")}</h2><p>${esc(item.itemTypeDisplayName||item.weaponType||"Weapon")}</p></div><div class="weapon-detail-power"><small>POWER</small><b>${esc(item.power??"—")}</b></div></header><p class="weapon-flavour">${esc(item.description||"")}</p><div class="weapon-detail-grid"><section><h3>WEAPON PERKS</h3><div class="weapon-detail-tiles">${perks.map(x=>weaponDetailTile(x)).join("")||'<p class="weapon-detail-empty">No resolved perk evidence.</p>'}</div><h3>WEAPON MODS</h3><div class="weapon-detail-tiles">${mods.map(x=>weaponDetailTile(x)).join("")||'<p class="weapon-detail-empty">No resolved mod evidence.</p>'}</div>${s.intrinsic?`<h3>INTRINSIC TRAIT</h3>${weaponDetailTile(s.intrinsic)}`:""}</section><section><h3>WEAPON STATS</h3><div class="weapon-stats">${statRows||'<p class="weapon-detail-empty">Stats unresolved.</p>'}</div></section></div>`;
+  host.setAttribute("aria-hidden","false");document.body.classList.add("weapon-detail-open");
+}
 
 function ensureStyle(){
   if(document.getElementById("guardianSemanticUiStyle"))return;
@@ -75,6 +99,8 @@ function renderWeapons(weapons=[]){
     const item=weapons[index];
     if(!item)return;
     card.classList.add("semantic-live");
+    if(!card.dataset.weaponDetailBound){card.dataset.weaponDetailBound="true";card.tabIndex=0;card.setAttribute("role","button");card.addEventListener("click",()=>{const current=card._astrixWeapon;if(current)openWeaponDetail(current);});card.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&card._astrixWeapon){event.preventDefault();openWeaponDetail(card._astrixWeapon);}});}
+    card._astrixWeapon=item;
     const art=card.querySelector(".art");
     const icon=bungieIcon(item.icon);
     const rank=Number(item.weaponLevel??item.rank??item.itemLevel);
