@@ -50,34 +50,6 @@ function ensureStyle(){
   document.head.appendChild(style);
 }
 
-function chip(label,klass=""){return label?`<span class="semantic-chip ${klass}">${esc(label)}</span>`:"";}
-
-function armourSummary(item){
-  const s=item?.armourSemantics;
-  if(!s)return "";
-  const rows=[];
-  if(s.energy?.capacity!=null)rows.push(chip(`Energy ${s.energy.used??0}/${s.energy.capacity}`));
-  if(s.masterwork)rows.push(chip(text(s.masterwork),"active"));
-  if(s.set?.identity)rows.push(chip(`${text(s.set.identity)} ${s.set.equippedCount??0}pc`));
-  if(s.set?.twoPiece)rows.push(chip(`2pc ${text(s.set.twoPiece)}`,s.set.twoPiece.active?"active":""));
-  if(s.set?.fourPiece)rows.push(chip(`4pc ${text(s.set.fourPiece)}`,s.set.fourPiece.active?"active":""));
-  return `<div class="gear-semantic-summary"><div class="semantic-meta">${rows.join("")}</div></div>`;
-}
-
-function renderArmourSemantics(armour=[]){
-  const columns=document.querySelector(".gear-combined .gear-columns");
-  if(!columns)return;
-  columns.querySelectorAll(".gear-slot").forEach((slot,index)=>{
-    slot.querySelector(".gear-semantic-summary")?.remove();
-    const item=armour[index];
-    const summary=armourSummary(item);
-    if(!summary)return;
-    const divider=slot.querySelector(".gear-slot-divider");
-    if(divider)divider.insertAdjacentHTML("beforebegin",summary);
-    else slot.insertAdjacentHTML("beforeend",summary);
-  });
-}
-
 function weaponSubtitle(item){
   const s=item?.weaponSemantics;
   if(!s)return "Awaiting resolved weapon semantics";
@@ -167,7 +139,6 @@ function render(detail){
   if(!detail||detail.source!=="bungie-live")return;
   ensureStyle();
   requestAnimationFrame(()=>{
-    renderArmourSemantics(detail.armour||[]);
     renderWeapons(detail.weapons||[]);
     renderStats(detail);
     renderArtifactStatus(detail);
