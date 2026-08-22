@@ -125,6 +125,11 @@ function renderWeapons(weapons=[]){
     }
     const cap=card.querySelector(".cap");
     if(cap)cap.innerHTML=`<b>${esc(item.name||"Weapon")}</b><small title="${esc(weaponSubtitle(item))}">${esc(weaponSubtitle(item))}</small>`;
+    let perkStrip=card.querySelector(".weapon-perk-strip");
+    if(!perkStrip){perkStrip=document.createElement("div");perkStrip.className="weapon-perk-strip";perkStrip.setAttribute("aria-label","Resolved weapon perks");card.append(perkStrip);}
+    const selectedPerks=(item.weaponSemantics?.selectedPerks||[]).filter(perk=>bungieIcon(perk?.icon));
+    perkStrip.innerHTML=selectedPerks.map(perk=>`<span class="weapon-perk-icon" title="${esc(perk.name||"Resolved perk")}"><img src="${esc(bungieIcon(perk.icon))}" alt="${esc(perk.name||"")}"></span>`).join("");
+    perkStrip.hidden=selectedPerks.length===0;
   });
 }
 

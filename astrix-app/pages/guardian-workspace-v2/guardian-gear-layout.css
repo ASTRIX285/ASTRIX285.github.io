@@ -17,6 +17,7 @@
 .gear-weapons .weap .cap{padding:5px 2px 0!important;background:transparent!important;border:0!important}
 .gear-weapons .weap .cap b{display:block;font-size:.54rem!important;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gear-weapons .weap .cap small{display:none!important}
+.gear-weapons .weapon-perk-strip{display:flex;flex-wrap:wrap;align-content:flex-start;gap:3px;min-height:20px;margin-top:4px;padding:4px;border:1px solid rgba(255,255,255,.14);border-radius:5px;background:rgba(0,0,0,.42)}.gear-weapons .weapon-perk-strip[hidden]{display:none}.gear-weapons .weapon-perk-icon{width:15px;height:15px;display:grid;place-items:center;border-radius:50%;background:#090909;overflow:hidden}.gear-weapons .weapon-perk-icon img{width:100%!important;height:100%!important;object-fit:contain!important}
 
 .gear-combined{min-width:0;display:flex;flex-direction:column;gap:clamp(5px,.65vh,10px)}
 .gear-combined .eq-head{margin-bottom:2px}
