@@ -58,7 +58,6 @@ function armourSummary(item){
   const rows=[];
   if(s.energy?.capacity!=null)rows.push(chip(`Energy ${s.energy.used??0}/${s.energy.capacity}`));
   if(s.masterwork)rows.push(chip(text(s.masterwork),"active"));
-  if(s.exoticPerk)rows.push(chip(text(s.exoticPerk),"active"));
   if(s.set?.identity)rows.push(chip(`${text(s.set.identity)} ${s.set.equippedCount??0}pc`));
   if(s.set?.twoPiece)rows.push(chip(`2pc ${text(s.set.twoPiece)}`,s.set.twoPiece.active?"active":""));
   if(s.set?.fourPiece)rows.push(chip(`4pc ${text(s.set.fourPiece)}`,s.set.fourPiece.active?"active":""));
