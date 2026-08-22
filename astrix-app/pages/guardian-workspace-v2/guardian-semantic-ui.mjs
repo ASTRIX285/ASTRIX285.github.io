@@ -1,5 +1,5 @@
 /* ASTRIX PARADOX — semantic UI bridge
-   Renders resolved live semantics into the approved Guardian Workspace without
+   Renders resolved live semantics into the approved Guardian Build Forge without
    redesigning its structure. Unknown evidence is shown as unknown, never inferred. */
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));

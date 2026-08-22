@@ -319,3 +319,11 @@ html[data-subclass="prismatic"] .subclass-option[data-subclass-option="prismatic
   .left .subclass-option{width:42px!important;min-width:42px!important;height:44px!important;min-height:44px!important}
   .left .subclass-option__diamond{width:32px!important;height:32px!important}
 }
+/* Main Guardian view owns live equipment only. Full intelligence lives in Guardian Build Forge. */
+.workspace>.right[hidden]{display:none!important}
+@media (min-width:981px){
+  .workspace{grid-template-columns:clamp(320px,22vw,420px) minmax(0,1fr)!important;grid-template-areas:"left stage" "left equip"!important}
+  .workspace>.left{grid-column:1!important;grid-row:1/3!important}
+  .workspace>.stage{grid-column:2!important;grid-row:1!important}
+  .workspace>.equip{grid-column:2!important;grid-row:2!important}
+}

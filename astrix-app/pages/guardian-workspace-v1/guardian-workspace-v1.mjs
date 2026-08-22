@@ -105,7 +105,7 @@ async function init(){
     render(await response.json());
   }catch(error){
     console.error(error);
-    setText('[data-preview-banner]',`Unable to load Guardian Workspace: ${error.message}`);
+    setText('[data-preview-banner]',`Unable to load Guardian Build Forge: ${error.message}`);
   }
 }
 

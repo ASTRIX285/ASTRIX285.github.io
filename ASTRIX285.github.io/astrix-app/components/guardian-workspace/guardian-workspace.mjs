@@ -137,10 +137,10 @@ function renderGuardian(root, state) {
 
 export async function mountGuardianWorkspace(options = {}) {
   const root = options.root ?? document.querySelector('[data-guardian-workspace]');
-  if (!root) throw new Error('Guardian Workspace root not found.');
+  if (!root) throw new Error('Guardian Build Forge root not found.');
   const url = options.previewUrl ?? './guardian-workspace.preview.json';
   const response = await fetch(url, {cache:'no-store'});
-  if (!response.ok) throw new Error(`Unable to load Guardian Workspace state: ${response.status}`);
+  if (!response.ok) throw new Error(`Unable to load Guardian Build Forge state: ${response.status}`);
   const state = await response.json();
   renderGuardian(root, state);
   return {root, state, render(nextState){renderGuardian(root, nextState);}};
