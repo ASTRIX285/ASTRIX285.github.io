@@ -108,33 +108,52 @@
   html body .workspace .left .super-diamond--alt3{left:50%!important;top:230px!important}
 }
 
-
-/* Mobile Armour & Mods rack: one complete armour card per horizontal snap. */
+/* Mobile Armour & Mods: armour cards stack; each card owns a horizontal mod rail. */
 @media (max-width:620px){
   html body .workspace .gear-combined .gear-columns{
     display:flex!important;
-    flex-direction:row!important;
+    flex-direction:column!important;
     align-items:stretch!important;
-    gap:12px!important;
+    gap:10px!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow:visible!important;
+    padding:0!important;
+  }
+  html body .workspace .gear-combined .gear-slot{
+    flex:none!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    scroll-snap-align:none;
+  }
+  html body .workspace .gear-combined .gear-mods{
+    grid-area:mods!important;
+    display:flex!important;
+    flex-flow:row nowrap!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:6px!important;
     width:100%!important;
     max-width:100%!important;
     overflow-x:auto!important;
     overflow-y:hidden!important;
-    padding:2px 2px 10px!important;
-    scroll-snap-type:x mandatory;
-    scroll-padding-inline:2px;
+    padding:2px 0 8px!important;
+    scroll-snap-type:x proximity;
     overscroll-behavior-inline:contain;
     -webkit-overflow-scrolling:touch;
-    touch-action:pan-x pan-y;
+    touch-action:pan-x;
     scrollbar-width:none;
   }
-  html body .workspace .gear-combined .gear-columns::-webkit-scrollbar{display:none}
-  html body .workspace .gear-combined .gear-slot{
-    flex:0 0 min(84vw,330px)!important;
-    width:min(84vw,330px)!important;
-    max-width:min(84vw,330px)!important;
-    min-width:min(84vw,330px)!important;
+  html body .workspace .gear-combined .gear-mods::-webkit-scrollbar{display:none}
+  html body .workspace .gear-combined .gear-mod{
+    flex:0 0 54px!important;
+    width:54px!important;
+    height:54px!important;
+    min-width:54px!important;
+    min-height:54px!important;
+    max-width:54px!important;
+    max-height:54px!important;
     scroll-snap-align:start;
-    scroll-snap-stop:always;
   }
 }
