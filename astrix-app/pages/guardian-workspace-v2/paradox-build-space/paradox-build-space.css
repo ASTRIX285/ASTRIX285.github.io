@@ -65,3 +65,25 @@
   .artifact-selector{grid-template-columns:repeat(2,minmax(0,1fr))}
   .design-canvas .gear-weapons{min-height:0}
 }
+
+
+/* Authenticated Build Design acceptance states */
+.selector-card.is-unavailable{opacity:.42;cursor:not-allowed;border-style:dashed}
+.selector-card.is-unavailable .selector-glyph{display:grid;place-items:center;aspect-ratio:1;font-size:20px;color:#777}
+.selector-card.is-recommended::after{content:"AI";position:absolute;right:4px;top:4px;padding:2px 3px;border-radius:3px;background:#6fe3b6;color:#05100c;font:800 6px Orbitron}
+.super-selector{min-height:126px;grid-template-columns:repeat(3,62px);grid-template-rows:62px 50px;justify-content:center;align-items:center;padding-top:18px}
+.super-selector .selector-card{width:58px;height:58px;transform:rotate(45deg);border-radius:5px;padding:5px}
+.super-selector .selector-card:first-child{grid-column:2;grid-row:1;width:72px;height:72px;margin:-7px}
+.super-selector .selector-card:nth-child(2){grid-column:1;grid-row:2}
+.super-selector .selector-card:nth-child(3){grid-column:2;grid-row:2}
+.super-selector .selector-card:nth-child(4){grid-column:3;grid-row:2}
+.super-selector .selector-card img,.super-selector .selector-card .selector-glyph,.super-selector .selector-card small{transform:rotate(-45deg)}
+.super-selector .selector-card small{position:absolute;left:-12px;right:-12px;bottom:-19px;font-size:6px}
+.design-canvas .weapon-perk-icon{background:rgba(77,177,255,.34)!important;border-color:rgba(113,203,255,.78)!important}
+.design-canvas .weapon-perk-icon.is-enhanced{background:rgba(89,197,255,.5)!important;box-shadow:0 0 0 1px #8ddcff,0 0 10px rgba(81,192,255,.55)!important}
+.design-canvas .weapon-mod-icon,.design-canvas .weapon-masterwork-icon{background:rgba(77,177,255,.2);border:1px solid rgba(113,203,255,.58);border-radius:5px}
+@media(max-width:720px){
+ .super-selector{grid-template-columns:repeat(3,58px);overflow:visible}
+ .super-selector .selector-card{width:54px;height:54px}
+ .super-selector .selector-card:first-child{width:66px;height:66px}
+}
