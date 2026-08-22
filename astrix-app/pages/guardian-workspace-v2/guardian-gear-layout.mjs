@@ -46,7 +46,9 @@ function traitTile(trait) {
 
 function armourSetStrip(set) {
   if (!set) return "";
-  if (!set.identity || set.unresolved) return `<div class="armour-set-strip is-unresolved" title="Exact Bungie armour-set definition has not been returned by the backend"><span class="armour-set-unresolved"><b>SET DATA UNRESOLVED</b><small>${set.hash ? `BUNGIE HASH ${esc(set.hash)}` : "AWAITING VERIFIED MANIFEST DATA"}</small></span></div>`;
+  // Missing definitions are validation telemetry, not a player-facing set bonus.
+  // Render only exact Bungie set identities and perk thresholds.
+  if (!set.identity || set.unresolved) return "";
   const identityIcon = set.identity?.icon ?? "";
   const thresholds = [set.twoPiece, set.fourPiece].filter(Boolean);
   return `<div class="armour-set-strip" title="${esc(set.identity.name ?? "Resolved armour set")}">
