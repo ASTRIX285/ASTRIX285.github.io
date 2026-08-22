@@ -87,7 +87,7 @@ function armourCard(index, item) {
     <div class="gear-arm-row">
       <div class="gear-arm-anchor">
         <div class="arm ${icon ? "" : "ph"}" tabindex="0" role="button" title="${esc(name)}">
-          <span class="lv">${esc(item?.power ?? "—")}</span>${Number.isFinite(armourTier) && armourTier < 5 ? `<span class="item-rank" title="Resolved armour tier">T${esc(armourTier)}</span>` : ""}
+          <span class="lv">${esc(item?.power ?? "—")}</span>${Number.isFinite(armourTier) && armourTier > 0 ? `<span class="armour-tier-rail" title="Verified armour tier ${esc(armourTier)}">${Array.from({ length: Math.min(5, Math.floor(armourTier)) }, () => '<i class="armour-tier-diamond" aria-hidden="true"></i>').join("")}</span>` : ""}
           ${icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">◇</span>'}
           ${archetypeIcon ? `<span class="armour-archetype-icon" title="${esc(archetypeTitle || "Verified armour archetype")}"><img src="${esc(archetypeIcon)}" alt="${esc(archetype?.name ?? "Armour archetype")}"></span>` : ""}
         </div>
