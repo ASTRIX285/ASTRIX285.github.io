@@ -61,7 +61,6 @@ function armourSummary(item){
   if(s.tier!=null&&Number(s.tier)<5)rows.push(chip(`T${s.tier}`));
   if(s.energy?.capacity!=null)rows.push(chip(`Energy ${s.energy.used??0}/${s.energy.capacity}`));
   if(s.masterwork)rows.push(chip(text(s.masterwork),"active"));
-  if(s.archetype)rows.push(chip(text(s.archetype)));
   if(s.exoticPerk)rows.push(chip(text(s.exoticPerk),"active"));
   if(s.set?.identity)rows.push(chip(`${text(s.set.identity)} ${s.set.equippedCount??0}pc`));
   if(s.set?.twoPiece)rows.push(chip(`2pc ${text(s.set.twoPiece)}`,s.set.twoPiece.active?"active":""));
