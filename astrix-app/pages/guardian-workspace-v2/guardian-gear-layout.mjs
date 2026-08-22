@@ -49,11 +49,10 @@ function armourSetStrip(set) {
   // Missing definitions are validation telemetry, not a player-facing set bonus.
   // Render only exact Bungie set identities and perk thresholds.
   if (!set.identity || set.unresolved) return "";
-  const identityIcon = set.identity?.icon ?? "";
   const thresholds = [set.twoPiece, set.fourPiece].filter(Boolean);
   return `<div class="armour-set-strip" title="${esc(set.identity.name ?? "Resolved armour set")}">
-    <span class="armour-set-identity">${identityIcon ? `<img src="${esc(identityIcon)}" alt="">` : ""}<b>${esc(set.identity.name ?? "Armour set")}</b><small>${esc(set.equippedCount ?? 0)}pc</small></span>
-    <span class="armour-set-thresholds">${thresholds.map(effect => `<span class="armour-set-threshold ${effect.active ? "is-active" : ""}" title="${esc([effect.name, effect.description].filter(Boolean).join(" — "))}">${effect.icon ? `<img src="${esc(effect.icon)}" alt="">` : ""}<b>${esc(effect.requiredSetCount)}</b></span>`).join("")}</span>
+    <span class="armour-set-identity"><b>${esc(set.identity.name ?? "Armour set")}</b></span>
+    <span class="armour-set-thresholds">${thresholds.map(effect => `<span class="armour-set-threshold ${effect.active ? "is-active" : ""}" title="${esc([`${effect.requiredSetCount}-piece`, effect.name, effect.description].filter(Boolean).join(" — "))}">${effect.icon ? `<img src="${esc(effect.icon)}" alt="${esc(effect.name ?? `${effect.requiredSetCount}-piece set perk`)}">` : ""}</span>`).join("")}</span>
   </div>`;
 }
 
