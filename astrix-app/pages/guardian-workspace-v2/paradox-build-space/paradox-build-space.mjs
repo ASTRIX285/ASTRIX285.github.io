@@ -14,7 +14,7 @@ const byId=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const abs=path=>path?(String(path).startsWith('http')?path:`${BUNGIE}${path}`):'';
 const iconOf=item=>item?.icon||item?.definition?.displayProperties?.icon||item?.displayProperties?.icon||'';
-function readState(){try{return JSON.parse(sessionStorage.getItem(BUILD_SPACE_KEY)||'null');}catch{return null;}}
+function readState(){for(const store of [sessionStorage,localStorage]){try{const value=JSON.parse(store.getItem(BUILD_SPACE_KEY)||'null');if(value)return value;}catch{}}return null;}
 function tile(item){if(!item)return '<span class="icon-tile empty">◆</span>';const icon=abs(iconOf(item)),name=esc(item.name||'Destiny item');return `<span class="icon-tile" title="${name}">${icon?`<img src="${esc(icon)}" alt="${name}">`:'◆'}</span>`;}
 function weaponCardShell(index){return `<div class="weap"><div class="art ph"><span class="ph-glyph">⌖</span></div><div class="cap"><b>Weapon slot ${index+1}</b><small>Awaiting resolved weapon semantics</small></div></div>`;}
 function gearCard(item,fallback){const index=Math.max(0,(Number(String(fallback).match(/\d+/)?.[0])||1)-1);return String(fallback).startsWith('Weapon')?weaponCardShell(index):armourCard(index,item);}
