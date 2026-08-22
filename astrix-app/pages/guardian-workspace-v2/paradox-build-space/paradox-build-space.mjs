@@ -1,4 +1,8 @@
 import {diffBuilds} from './paradox-build-state.mjs';
+import {mountForgeShell} from '../platform-forge-shell.mjs';
+
+mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
+
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
 const BUNGIE='https://www.bungie.net';
 const byId=id=>document.getElementById(id);
