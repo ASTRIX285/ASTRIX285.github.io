@@ -27,7 +27,7 @@
 }
 
 /* Build Design resolved selection workspace. Scoped: no browser zoom or global scaling. */
-@media (min-width:1101px){
+@media (min-width:1500px){
   .build-space{grid-template-columns:minmax(340px,390px) minmax(680px,1fr) 360px}
 }
 .rail-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
