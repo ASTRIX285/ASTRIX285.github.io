@@ -52,7 +52,7 @@
    * the main diamond and the centre option sits one step lower. */
   .left .super-diamond--alt{width:54px;opacity:.34;background:color-mix(in srgb,var(--subclass-accent) 20%,transparent)}
   .left .super-diamond--alt.has-live-icon{opacity:.58}
-  .left .super-diamond--alt.is-selected{opacity:.82;border-color:var(--subclass-accent);background:color-mix(in srgb,var(--subclass-accent) 34%,rgba(8,8,12,.78))}
+  .left .super-diamond--alt.is-selected-super{opacity:.82;border-color:var(--subclass-accent);background:color-mix(in srgb,var(--subclass-accent) 34%,rgba(8,8,12,.78))}
   .left .super-diamond--alt1{left:31%!important;top:105px!important}
   .left .super-diamond--alt2{left:50%!important;top:128px!important}
   .left .super-diamond--alt3{left:69%!important;top:105px!important}
