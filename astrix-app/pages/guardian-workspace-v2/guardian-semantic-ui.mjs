@@ -77,10 +77,15 @@ function renderWeapons(weapons=[]){
     card.classList.add("semantic-live");
     const art=card.querySelector(".art");
     const icon=bungieIcon(item.icon);
+    const rank=Number(item.weaponLevel??item.rank??item.itemLevel);
+    const hasRank=Number.isFinite(rank)&&rank>0;
+    const seasonIcon=bungieIcon(item.tierIcon??item.definition?.iconWatermark??item.definition?.quality?.displayVersionWatermarkIcons?.[0]);
+    const gearTier=Math.max(0,Math.min(5,Number(item.gearTier)||0));
+    card.classList.toggle("is-level-gold",hasRank&&rank>=10);
     if(art){
       art.classList.toggle("ph",!icon);
       const power=Number(item.power)||"—";
-      art.innerHTML=`<span class="pw">${esc(power)}</span>${icon?`<img src="${esc(icon)}" alt="${esc(item.name||"Weapon")}">`:'<span class="ph-glyph">⌖</span>'}`;
+      art.innerHTML=`<span class="pw">${esc(power)}</span>${seasonIcon||gearTier?`<span class="weapon-tier-rail">${seasonIcon?`<span class="weapon-season-icon" title="Season/source emblem"><img src="${esc(seasonIcon)}" alt=""></span>`:""}${Array.from({length:gearTier},()=>'<i class="weapon-tier-diamond" aria-hidden="true"></i>').join("")}</span>`:""}${hasRank?`<span class="weapon-rank" title="Bungie weapon rank">LVL ${esc(rank)}</span>`:""}${icon?`<img src="${esc(icon)}" alt="${esc(item.name||"Weapon")}">`:'<span class="ph-glyph">⌖</span>'}`;
     }
     const cap=card.querySelector(".cap");
     if(cap)cap.innerHTML=`<b>${esc(item.name||"Weapon")}</b><small title="${esc(weaponSubtitle(item))}">${esc(weaponSubtitle(item))}</small>`;

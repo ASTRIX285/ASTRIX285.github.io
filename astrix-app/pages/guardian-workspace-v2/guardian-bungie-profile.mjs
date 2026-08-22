@@ -43,7 +43,7 @@ const absoluteIcon=path=>path?new URL(path,BUNGIE_ORIGIN).toString():"";
 const definition=(definitions,hash)=>definitions?.[String(hash)]||null;
 const displayItem=(definitions,hash)=>{
   const row=definition(definitions,hash)||{};
-  return {hash:Number(hash),bungieHash:Number(hash),name:row.displayProperties?.name||`Destiny item ${hash}`,description:row.displayProperties?.description||"",icon:absoluteIcon(row.displayProperties?.icon),tier:row.inventory?.tierTypeName||"",itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
+  return {hash:Number(hash),bungieHash:Number(hash),name:row.displayProperties?.name||`Destiny item ${hash}`,description:row.displayProperties?.description||"",icon:absoluteIcon(row.displayProperties?.icon),tier:row.inventory?.tierTypeName||"",tierType:Number(row.inventory?.tierType??0),tierTypeHash:row.inventory?.tierTypeHash??null,tierIcon:absoluteIcon(row.iconWatermark||row.quality?.displayVersionWatermarkIcons?.[0]),itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
 };
 
 function classifySubclass(item){
@@ -171,6 +171,10 @@ function normaliseItem(profile,definitions,item){
   return {
     ...base,
     power:instance?.primaryStat?.value??null,
+    itemLevel:Number.isFinite(Number(instance?.itemLevel))?Number(instance.itemLevel):null,
+    gearTier:Number.isFinite(Number(instance?.gearTier))?Number(instance.gearTier):null,
+    quality:Number.isFinite(Number(instance?.quality))?Number(instance.quality):null,
+    state:Number(item?.state??0),
     isExotic:String(base.tier).toLowerCase()==="exotic",
     shader,
     ornament,

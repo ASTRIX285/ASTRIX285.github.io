@@ -30,9 +30,17 @@
 /* Armour + Exotic intrinsic sit on the same visual row. */
 .gear-arm-row{display:flex;align-items:center;justify-content:center;gap:clamp(6px,.45vw,10px);min-height:clamp(72px,7.8vh,112px)}
 .gear-arm-anchor{display:grid;place-items:center;margin:0}
-.gear-arm-anchor .arm{width:min(100%,clamp(66px,7vh,100px))!important;height:auto!important;aspect-ratio:1;margin:0!important;position:relative}
+.gear-arm-anchor .arm{width:min(100%,clamp(82px,5.4vw,112px))!important;height:auto!important;aspect-ratio:1;margin:0!important;position:relative}
 .gear-arm-anchor .arm img{width:100%;height:100%;object-fit:cover}
 .gear-slot.exotic .gear-arm-anchor{transform:translateX(-4px)}
+.gear-slot.is-level-gold{border-color:#d7aa3c!important;box-shadow:0 0 0 1px rgba(255,211,92,.48),0 0 18px rgba(215,170,60,.16)!important}
+.gear-arm-anchor .arm .lv,.gear-weapons .weap .art .pw{color:#fff!important;font-weight:900!important;text-shadow:0 1px 3px #000,0 0 5px #000!important}
+.gear-arm-anchor .item-rank{position:absolute;left:4px;bottom:4px;z-index:3;padding:2px 4px;border-radius:3px;background:rgba(0,0,0,.78);color:#fff;font:800 .48rem Orbitron,sans-serif;letter-spacing:.04em}
+.gear-weapons .weap.is-level-gold .art{border:2px solid #d7aa3c!important;box-shadow:0 0 0 1px rgba(255,221,120,.45),0 0 18px rgba(215,170,60,.22)!important}
+.gear-weapons .weapon-tier-rail{position:absolute;left:4px;top:4px;z-index:3;width:18px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px;border-radius:3px;background:rgba(0,0,0,.32)}
+.gear-weapons .weapon-season-icon{width:16px;height:16px;display:grid;place-items:center;overflow:hidden}.gear-weapons .weapon-season-icon img{width:100%!important;height:100%!important;object-fit:contain!important;filter:brightness(0) invert(1);opacity:.95}
+.gear-weapons .weapon-tier-diamond{width:7px;height:7px;flex:0 0 7px;transform:rotate(45deg);background:#f0d55e;box-shadow:0 0 4px rgba(255,221,95,.5)}
+.gear-weapons .weapon-rank{position:absolute;left:4px;bottom:4px;z-index:3;padding:2px 4px;border-radius:3px;background:rgba(0,0,0,.78);color:#fff;font:800 .46rem Orbitron,sans-serif;letter-spacing:.03em}
 
 .gear-intrinsic{width:clamp(42px,4.8vh,62px);height:clamp(42px,4.8vh,62px);flex:0 0 auto;display:grid;place-items:center;padding:4px;border:1px solid rgba(227,178,60,.7);border-radius:9px;background:rgba(31,22,7,.72);box-shadow:0 0 16px rgba(227,178,60,.12);cursor:help;overflow:hidden}
 .gear-intrinsic img{width:100%;height:100%;object-fit:contain}

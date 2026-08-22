@@ -158,25 +158,24 @@
     aspect-ratio:1/1!important;
   }
 
-  /* Armour cards are a designed component, not elastic columns. Keeping them
-   * fixed removes the large empty gutters seen on high-resolution monitors. */
+  /* Use the full armour panel while preserving five equal Destiny slots. */
   .gear-combined .gear-columns{
     display:grid!important;
-    grid-template-columns:repeat(5,142px)!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
     gap:8px!important;
-    justify-content:start!important;
+    justify-content:stretch!important;
     align-content:start!important;
-    width:max-content!important;
+    width:100%!important;
     max-width:100%!important;
   }
   .gear-combined .gear-slot{
-    width:142px!important;
-    min-width:142px!important;
-    max-width:142px!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
     padding:8px!important;
   }
   .gear-combined .gear-arm-row{min-height:82px!important}
-  .gear-combined .gear-arm-anchor .arm{width:72px!important;height:72px!important}
+  .gear-combined .gear-arm-anchor .arm{width:clamp(76px,5.2vw,108px)!important;height:auto!important}
   .gear-combined .gear-intrinsic{width:42px!important;height:42px!important}
   .gear-combined .gear-mods{
     grid-template-columns:repeat(2,34px)!important;

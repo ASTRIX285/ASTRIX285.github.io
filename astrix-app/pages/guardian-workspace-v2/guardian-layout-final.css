@@ -261,7 +261,7 @@ html[data-subclass="prismatic"] .subclass-option[data-subclass-option="prismatic
 }
 
 /* -------------------- ARMOUR MODS -------------------- */
-.gear-combined .gear-slot{width:160px!important;min-width:160px!important;max-width:160px!important}
+.gear-combined .gear-slot{width:auto!important;min-width:0!important;max-width:none!important}
 .gear-combined .gear-mods{
   display:grid!important;grid-template-columns:repeat(2,var(--pf-slot))!important;grid-template-rows:repeat(3,var(--pf-slot))!important;
   gap:var(--pf-gap)!important;width:max-content!important;margin:0 auto!important
