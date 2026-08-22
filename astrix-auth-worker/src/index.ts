@@ -728,6 +728,142 @@ async function logoutRoute(request: Request, env: Env): Promise<Response> {
   return withCors(request, env, json({ ok: true }, 200, { "Set-Cookie": clearSessionCookie() }));
 }
 
+async function authenticatedSession(
+  request: Request,
+  env: Env
+): Promise<{ sessionId: string; session: SessionRecord } | Response> {
+  const sessionId = cookieValue(request, SESSION_COOKIE);
+  if (!sessionId) {
+    return withCors(request, env, json({ authenticated: false, error: "authentication_required" }, 401));
+  }
+
+  const storedSession = await getSession(env, sessionId);
+  if (!storedSession || storedSession.absoluteExpiresAt <= Date.now()) {
+    if (storedSession) await deleteSession(env, sessionId);
+    return withCors(request, env, json(
+      { authenticated: false, error: "session_expired" },
+      401,
+      { "Set-Cookie": clearSessionCookie() }
+    ));
+  }
+
+  try {
+    const session = await refreshAccessToken(sessionId, storedSession, env);
+    return { sessionId, session };
+  } catch (error) {
+    if (error instanceof Error && error.message === "bungie_reauthentication_required") {
+      await deleteSession(env, sessionId);
+      return withCors(request, env, json(
+        { authenticated: false, error: "bungie_reauthentication_required" },
+        401,
+        { "Set-Cookie": clearSessionCookie() }
+      ));
+    }
+    throw error;
+  }
+}
+
+function bungieHeaders(session: SessionRecord, env: Env): HeadersInit {
+  return {
+    Authorization: `Bearer ${session.accessToken}`,
+    "X-API-Key": env.BUNGIE_API_KEY,
+    "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+  };
+}
+
+async function activityHistoryRoute(request: Request, env: Env): Promise<Response> {
+  const auth = await authenticatedSession(request, env);
+  if (auth instanceof Response) return auth;
+
+  const membership = auth.session.activeDestinyMembership;
+  if (!membership) {
+    return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
+  }
+
+  const requestUrl = new URL(request.url);
+  const membershipType = Number(requestUrl.searchParams.get("membershipType"));
+  const membershipId = requestUrl.searchParams.get("membershipId")?.trim() || "";
+  const characterId = requestUrl.searchParams.get("characterId")?.trim() || "";
+  const count = Number(requestUrl.searchParams.get("count") ?? 25);
+  const page = Number(requestUrl.searchParams.get("page") ?? 0);
+
+  if (
+    !Number.isInteger(membershipType) ||
+    !/^\d+$/.test(membershipId) ||
+    !/^\d+$/.test(characterId) ||
+    !Number.isInteger(count) ||
+    count < 1 ||
+    count > 25 ||
+    !Number.isInteger(page) ||
+    page < 0
+  ) {
+    return withCors(request, env, json({ error: "invalid_activity_history_request" }, 400));
+  }
+
+  if (
+    membershipType !== membership.membershipType ||
+    membershipId !== membership.membershipId
+  ) {
+    return withCors(request, env, json({ error: "membership_mismatch" }, 403));
+  }
+
+  const bungieUrl = new URL(
+    `${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Account/${encodeURIComponent(membership.membershipId)}/Character/${encodeURIComponent(characterId)}/Stats/Activities/`
+  );
+  bungieUrl.searchParams.set("count", String(count));
+  bungieUrl.searchParams.set("page", String(page));
+
+  const response = await fetch(bungieUrl, { headers: bungieHeaders(auth.session, env) });
+  const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+  if (!response.ok || !payload?.Response) {
+    console.error("bungie_activity_history_failed", {
+      status: response.status,
+      errorCode: payload?.ErrorCode,
+      errorStatus: payload?.ErrorStatus,
+      characterId
+    });
+    return withCors(request, env, json({
+      error: "bungie_activity_history_failed",
+      status: response.status,
+      errorCode: payload?.ErrorCode ?? null,
+      errorStatus: payload?.ErrorStatus ?? null
+    }, response.status >= 400 && response.status < 500 ? response.status : 502));
+  }
+
+  await putSession(env, auth.sessionId, { ...auth.session, lastUsedAt: Date.now() });
+  return withCors(request, env, json(payload as Record<string, unknown>));
+}
+
+async function pgcrRoute(request: Request, env: Env, instanceId: string): Promise<Response> {
+  const auth = await authenticatedSession(request, env);
+  if (auth instanceof Response) return auth;
+
+  if (!/^\d+$/.test(instanceId)) {
+    return withCors(request, env, json({ error: "invalid_activity_instance_id" }, 400));
+  }
+
+  const bungieUrl = `${BUNGIE_PLATFORM}/Destiny2/Stats/PostGameCarnageReport/${encodeURIComponent(instanceId)}/`;
+  const response = await fetch(bungieUrl, { headers: bungieHeaders(auth.session, env) });
+  const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+  if (!response.ok || !payload?.Response) {
+    console.error("bungie_pgcr_failed", {
+      status: response.status,
+      errorCode: payload?.ErrorCode,
+      errorStatus: payload?.ErrorStatus,
+      instanceId
+    });
+    return withCors(request, env, json({
+      error: "bungie_pgcr_failed",
+      status: response.status,
+      errorCode: payload?.ErrorCode ?? null,
+      errorStatus: payload?.ErrorStatus ?? null
+    }, response.status >= 400 && response.status < 500 ? response.status : 502));
+  }
+
+  await putSession(env, auth.sessionId, { ...auth.session, lastUsedAt: Date.now() });
+  return withCors(request, env, json(payload as Record<string, unknown>));
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -754,8 +890,14 @@ export default {
       if (request.method === "GET" && (url.pathname === "/bungie/loadout" || url.pathname === "/v1/destiny/loadout")) {
         return loadoutRoute(request, env);
       }
+      if (request.method === "GET" && url.pathname === "/bungie/activity-history") {
+        return activityHistoryRoute(request, env);
+      }
+      if (request.method === "GET" && url.pathname.startsWith("/bungie/pgcr/")) {
+        return pgcrRoute(request, env, decodeURIComponent(url.pathname.slice("/bungie/pgcr/".length)));
+      }
       if (request.method === "POST" && url.pathname === "/logout") return logoutRoute(request, env);
-      return json({ error: "not_found" }, 404);
+      return withCors(request, env, json({ error: "not_found" }, 404));
     } catch (error) {
       console.error("worker_request_failed", {
         path: url.pathname,
