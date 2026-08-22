@@ -1,5 +1,5 @@
 /**
- * Paradox Forge Destiny Knowledge domain.
+ * Guardian Build Forge Destiny Knowledge domain.
  *
  * Additive facade over the services that already exist. Existing files,
  * imports, workflows and data paths remain unchanged.

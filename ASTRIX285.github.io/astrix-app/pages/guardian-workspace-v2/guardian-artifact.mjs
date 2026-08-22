@@ -1,4 +1,4 @@
-/* guardian-artifact.mjs — Paradox Forge Artifact ownership.
+/* guardian-artifact.mjs — Guardian Build Forge Artifact ownership.
  *
  * A DIM build export does NOT preserve Artifact perk selections, so Paradox
  * owns Artifact state here. On each fixture load this reads that build's
@@ -163,7 +163,7 @@ function openPicker() {
   wrap.innerHTML = `
     <section class="beta-modal beta-artifact-modal" role="dialog" aria-modal="true" aria-label="Artifact perk selection">
       <header>
-        <div><small>PARADOX FORGE BETA</small><h2>${esc(id?.name || 'Seasonal Artifact')}</h2></div>
+        <div><small>GUARDIAN BUILD FORGE BETA</small><h2>${esc(id?.name || 'Seasonal Artifact')}</h2></div>
         <button type="button" data-close aria-label="Close">✕</button>
       </header>
       <div class="beta-modal-body">

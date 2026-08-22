@@ -1,4 +1,4 @@
-/** Read-only service for curated Paradox Forge game components. */
+/** Read-only service for curated Guardian Build Forge game components. */
 
 export const DEFAULT_GAME_COMPONENTS_URL =
   './data/game-components.catalogue.json';
