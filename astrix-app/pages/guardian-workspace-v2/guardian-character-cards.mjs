@@ -1,8 +1,12 @@
+import {mountForgeShell} from './platform-forge-shell.mjs';
+
 /* ========================================================================== 
    ASTRIX PARADOX - GUARDIAN CHARACTER CARDS
    Renders the 3-character top ribbon (Hunter, Warlock, Titan) from either
    live Bungie roster events or loaded Paradox beta fixtures.
    ========================================================================== */
+
+mountForgeShell({rootSelector:'.workspace',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 
 const host = () => document.querySelector("#guardianCharacterCards");
 const MAX_CHARACTERS = 3;
