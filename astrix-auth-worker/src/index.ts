@@ -39,7 +39,7 @@ type BungieApiResponse<T> = {
   Message?: string;
 };
 
-type DestinyItemComponent = { itemHash?: number; itemInstanceId?: string };
+type DestinyItemComponent = { itemHash?: number; itemInstanceId?: string; overrideStyleItemHash?: number; versionNumber?: number; state?: number };
 type DestinySocketComponent = { sockets?: Array<{ plugHash?: number }> };
 type DestinyReusablePlugComponent = { plugs?: Record<string, Array<{ plugItemHash?: number; plugHash?: number }>> };
 type DestinyArtifactProfileScoped = { artifactHash?: number };
@@ -62,6 +62,7 @@ type DestinyProfilePayload = {
   characterProgressions?: { data?: Record<string, { seasonalArtifact?: DestinyArtifactCharacterScoped }> };
   itemComponents?: {
     sockets?: { data?: Record<string, DestinySocketComponent> };
+    instances?: { data?: Record<string, { damageTypeHash?: number; breakerTypeHash?: number; gearTier?: number; itemLevel?: number; quality?: number; primaryStat?: { value?: number } }> };
     reusablePlugs?: { data?: Record<string, DestinyReusablePlugComponent> };
   };
   [key: string]: unknown;
@@ -243,6 +244,7 @@ function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
   for (const character of Object.values(equipment)) {
     for (const item of character.items || []) {
       if (Number.isInteger(item.itemHash)) hashes.add(Number(item.itemHash));
+      if (Number.isInteger(item.overrideStyleItemHash)) hashes.add(Number(item.overrideStyleItemHash));
       if (!item.itemInstanceId) continue;
       const socketData = profile.itemComponents?.sockets?.data?.[item.itemInstanceId];
       for (const socket of socketData?.sockets || []) {
@@ -251,6 +253,18 @@ function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
     }
   }
   return [...hashes];
+}
+
+async function fetchManifestDefinitions(type: string, hashes: number[], accessToken: string, env: Env): Promise<Record<string, Record<string, unknown>>> {
+  const entries = await Promise.all([...new Set(hashes.filter(Number.isInteger))].map(async hash => {
+    const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/${type}/${hash}/`, { headers: { Authorization: `Bearer ${accessToken}`, "X-API-Key": env.BUNGIE_API_KEY, "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)" } });
+    if (!response.ok) return null;
+    const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+    return payload?.Response ? [String(hash), payload.Response] as const : null;
+  }));
+  const definitions: Record<string, Record<string, unknown>> = {};
+  for (const entry of entries) if (entry) definitions[entry[0]] = entry[1];
+  return definitions;
 }
 
 function artifactPerkHashes(profile: DestinyProfilePayload): number[] {
@@ -510,6 +524,12 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   }
 
   const requestedDefinitionHashes = [...new Set([...baseDefinitionHashes, ...reusableSuperDefinitionHashes])];
+  const damageTypeHashes = [...new Set(Object.values(payload.Response.itemComponents?.instances?.data || {}).map(row => Number(row.damageTypeHash)).filter(Number.isInteger))];
+  const breakerTypeHashes = [...new Set([...Object.values(definitions).map(row => Number(row.breakerTypeHash)),...Object.values(payload.Response.itemComponents?.instances?.data || {}).map(row => Number(row.breakerTypeHash))].filter(Number.isInteger))];
+  const [damageDefinitions, breakerDefinitions] = await Promise.all([
+    fetchManifestDefinitions("DestinyDamageTypeDefinition", damageTypeHashes, session.accessToken, env),
+    fetchManifestDefinitions("DestinyBreakerTypeDefinition", breakerTypeHashes, session.accessToken, env)
+  ]);
   const unresolvedDefinitionHashes = requestedDefinitionHashes.filter(hash => !definitions[String(hash)]);
   const definitionCoverage = {
     requested: requestedDefinitionHashes.length,
@@ -541,6 +561,8 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     components: PROFILE_COMPONENTS,
     profile: payload.Response,
     definitions,
+    damageDefinitions,
+    breakerDefinitions,
     definitionCoverage,
     artifactDefinition,
     artifactCoverage,
@@ -619,6 +641,7 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
   const definitionHashes = new Set<number>();
   for (const item of selectedItems) {
     if (Number.isInteger(item.itemHash)) definitionHashes.add(Number(item.itemHash));
+    if (Number.isInteger(item.overrideStyleItemHash)) definitionHashes.add(Number(item.overrideStyleItemHash));
   }
   for (const item of selectedItems) {
     for (const plugHash of item.plugItemHashes) {
@@ -627,6 +650,13 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
   }
   const hashes = [...definitionHashes];
   const definitions = await fetchInventoryDefinitions(hashes, session.accessToken, env);
+  const selectedInstances = selectedItems.map(item => item.itemInstanceId ? profile.itemComponents?.instances?.data?.[item.itemInstanceId] : null).filter(Boolean);
+  const damageTypeHashes = [...new Set(selectedInstances.map(row => Number(row?.damageTypeHash)).filter(Number.isInteger))];
+  const breakerTypeHashes = [...new Set([...Object.values(definitions).map(row => Number(row.breakerTypeHash)),...selectedInstances.map(row => Number(row?.breakerTypeHash))].filter(Number.isInteger))];
+  const [damageDefinitions, breakerDefinitions] = await Promise.all([
+    fetchManifestDefinitions("DestinyDamageTypeDefinition", damageTypeHashes, session.accessToken, env),
+    fetchManifestDefinitions("DestinyBreakerTypeDefinition", breakerTypeHashes, session.accessToken, env)
+  ]);
   const unresolvedDefinitionHashes = hashes.filter(hash => !definitions[String(hash)]);
   const definitionCoverage = {
     requested: hashes.length,
@@ -645,6 +675,8 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
     selectedItems,
     profile,
     definitions,
+    damageDefinitions,
+    breakerDefinitions,
     definitionCoverage,
     gearAssets
   }));
