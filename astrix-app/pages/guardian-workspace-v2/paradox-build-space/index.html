@@ -29,7 +29,14 @@
       <div class="notice"><b>Baseline protected.</b> The build loaded here is stored as the immutable starting point for Paradox recommendations.</div>
       <section class="design-section"><div class="section-title"><h2>WEAPONS</h2><span>WORKING BUILD</span></div><div id="weaponGrid" class="gear-grid weapons"></div></section>
       <section class="design-section"><div class="section-title"><h2>ARMOUR & MODS</h2><span>LIVE BUNGIE STATE</span></div><div id="armourGrid" class="gear-grid armour"></div></section>
-      <section class="design-section test-loop"><div class="section-title"><h2>VALIDATION LOOP</h2><span>FOUNDATION</span></div><div class="test-flow"><span>PARADOX RECOMMENDS</span><i>→</i><span>APPLY BUILD</span><i>→</i><span>VANGUARD MASTER TEST</span><i>→</i><span>PGCR REVIEW</span></div></section>
+      <section class="design-section test-loop">
+        <div class="section-title"><h2>VALIDATION LOOP</h2><span>SHOOTING RANGE</span></div>
+        <div class="test-flow">
+          <span>PARADOX RECOMMENDS</span><i>→</i><span>APPLY BUILD</span><i>→</i><button type="button" class="test-step" id="armRangeTest">ARM SHOOTING RANGE TEST</button><i>→</i><button type="button" class="test-step" id="pullRangeResults" disabled>PULL RESULTS</button>
+        </div>
+        <div class="range-capture-status" id="rangeCaptureStatus" role="status">Arm the test immediately before entering The Last City Shooting Range.</div>
+        <pre class="range-capture-output" id="rangeCaptureOutput" hidden></pre>
+      </section>
     </section>
     <aside class="panel intelligence">
       <div class="panel-head"><div><small>PARADOX INTELLIGENCE</small><h2>ANALYSIS</h2></div><span class="live-dot">LIVE BUILD</span></div>
