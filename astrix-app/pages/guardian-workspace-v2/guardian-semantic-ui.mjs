@@ -85,8 +85,14 @@ function renderWeapons(weapons=[]){
     const seasonIcon=bungieIcon(item.tierIcon??item.definition?.iconWatermark??item.definition?.quality?.displayVersionWatermarkIcons?.[0]);
     const gearTier=Math.max(0,Math.min(5,Number(item.gearTier)||0));
     card.classList.toggle("is-level-gold",hasRank&&rank>=10);
-    const intrinsicIcon=bungieIcon(item.weaponSemantics?.intrinsic?.icon);
+    const semantics=item.weaponSemantics||{};
+    const intrinsicIcon=bungieIcon(semantics.intrinsic?.icon);
     const championIcon=bungieIcon(item.breakerDefinition?.displayProperties?.icon);
+    const equippedMod=semantics.mod||semantics.selectedMod||item.weaponMod||item.mod;
+    const equippedModIcon=bungieIcon(equippedMod?.icon||equippedMod?.displayProperties?.icon);
+    const masterwork=semantics.masterwork;
+    const masterworkIcon=bungieIcon(masterwork?.icon||masterwork?.displayProperties?.icon||masterwork?.definition?.displayProperties?.icon);
+    const masterworkName=text(masterwork)||masterwork?.definition?.displayProperties?.name||"Resolved masterwork";
     const elementIcon=bungieIcon(item.elementDefinition?.displayProperties?.icon||item.elementDefinition?.transparentIconPath);
     if(art){
       art.classList.toggle("ph",!icon);
@@ -97,9 +103,13 @@ function renderWeapons(weapons=[]){
     if(cap)cap.innerHTML=`<b>${esc(item.name||"Weapon")}</b><small title="${esc(weaponSubtitle(item))}">${esc(weaponSubtitle(item))}</small>`;
     let perkStrip=card.querySelector(".weapon-perk-strip");
     if(!perkStrip){perkStrip=document.createElement("div");perkStrip.className="weapon-perk-strip";perkStrip.setAttribute("aria-label","Resolved weapon perks");card.append(perkStrip);}
-    const selectedPerks=(item.weaponSemantics?.selectedPerks||[]).filter(perk=>bungieIcon(perk?.icon));
-    perkStrip.innerHTML=selectedPerks.map(perk=>`<span class="weapon-perk-icon" title="${esc(perk.name||"Resolved perk")}"><img src="${esc(bungieIcon(perk.icon))}" alt="${esc(perk.name||"")}"></span>`).join("");
+    const selectedPerks=(semantics.selectedPerks||[]).filter(perk=>bungieIcon(perk?.icon));
+    perkStrip.innerHTML=selectedPerks.map(perk=>`<span class="weapon-perk-icon ${perk.isEnhanced===true||perk.enhanced===true||perk.definition?.isEnhanced===true?"is-enhanced":""}" title="${esc(perk.name||"Resolved perk")}"><img src="${esc(bungieIcon(perk.icon))}" alt="${esc(perk.name||"")}"></span>`).join("");
     perkStrip.hidden=selectedPerks.length===0;
+    let supportStrip=card.querySelector(".weapon-support-icons");
+    if(!supportStrip){supportStrip=document.createElement("div");supportStrip.className="weapon-support-icons";supportStrip.setAttribute("aria-label","Equipped weapon mod and masterwork");card.append(supportStrip);}
+    supportStrip.innerHTML=`${equippedModIcon?`<span class="weapon-support-icon is-mod" title="${esc(text(equippedMod)||"Equipped weapon mod")}"><img src="${esc(equippedModIcon)}" alt=""></span>`:""}${masterworkIcon?`<span class="weapon-support-icon is-masterwork" title="${esc(masterworkName)}"><img src="${esc(masterworkIcon)}" alt=""></span>`:""}`;
+    supportStrip.hidden=!equippedModIcon&&!masterworkIcon;
   });
 }
 
