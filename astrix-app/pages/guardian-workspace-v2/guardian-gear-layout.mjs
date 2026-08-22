@@ -32,18 +32,6 @@ function modTile(mod) {
   }</button>`;
 }
 
-function traitTile(trait) {
-  if (!trait) return "";
-  const name = trait?.name ?? "Exotic intrinsic trait";
-  const description = trait?.description ?? "";
-  const hash = trait?.bungieHash ?? trait?.hash ?? "";
-  const icon = trait?.icon ?? "";
-  const title = [name, description, hash ? `Bungie hash: ${hash}` : ""].filter(Boolean).join(" — ");
-  return `<button class="gear-intrinsic" type="button" title="${esc(title)}" aria-label="${esc(name)}">${
-    icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">✦</span>'
-  }</button>`;
-}
-
 function armourSetStrip(set) {
   if (!set) return "";
   // Missing definitions are validation telemetry, not a player-facing set bonus.
@@ -54,16 +42,6 @@ function armourSetStrip(set) {
     <span class="armour-set-identity"><b>${esc(set.identity.name ?? "Armour set")}</b></span>
     <span class="armour-set-thresholds">${thresholds.map(effect => `<span class="armour-set-threshold ${effect.active ? "is-active" : ""}" title="${esc([`${effect.requiredSetCount}-piece`, effect.name, effect.description].filter(Boolean).join(" — "))}">${effect.icon ? `<img src="${esc(effect.icon)}" alt="${esc(effect.name ?? `${effect.requiredSetCount}-piece set perk`)}">` : ""}</span>`).join("")}</span>
   </div>`;
-}
-
-function exoticPerkStrip(trait) {
-  if (!trait) return "";
-  const name = trait?.name ?? "Exotic intrinsic trait";
-  const description = trait?.description ?? "";
-  const hash = trait?.bungieHash ?? trait?.hash ?? "";
-  const icon = trait?.icon ?? "";
-  const title = [name, description, hash ? `Bungie hash: ${hash}` : ""].filter(Boolean).join(" — ");
-  return `<div class="armour-exotic-strip" title="${esc(title)}"><span class="armour-exotic-icon">${icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">✦</span>'}</span><span><small>EXOTIC ARMOUR PERK</small><b>${esc(name)}</b></span></div>`;
 }
 
 function armourCard(index, item) {
@@ -80,7 +58,8 @@ function armourCard(index, item) {
   const archetypeIcon = archetype?.icon ?? archetype?.displayProperties?.icon ?? "";
   const archetypeTitle = [archetype?.name ?? archetype?.displayName, archetype?.description].filter(Boolean).join(" — ");
   const setStrip = !isExotic ? armourSetStrip(item?.armourSemantics?.set) : "";
-  const exoticStrip = isExotic ? exoticPerkStrip(trait) : "";
+  const traitIcon = trait?.icon ?? trait?.displayProperties?.icon ?? "";
+  const traitTitle = [trait?.name ?? trait?.displayName, trait?.description].filter(Boolean).join(" — ");
 
   return `<article class="gear-slot ${isExotic ? "exotic" : ""} ${isTierFive ? "is-level-gold" : ""}" data-armour-index="${index}">
     <div class="gear-slot-label">${esc(name)}</div>
@@ -90,11 +69,10 @@ function armourCard(index, item) {
           <span class="lv">${esc(item?.power ?? "—")}</span>${Number.isFinite(armourTier) && armourTier > 0 ? `<span class="armour-tier-rail" title="Verified armour tier ${esc(armourTier)}">${Array.from({ length: Math.min(5, Math.floor(armourTier)) }, () => '<i class="armour-tier-diamond" aria-hidden="true"></i>').join("")}</span>` : ""}
           ${icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">◇</span>'}
           ${archetypeIcon ? `<span class="armour-archetype-icon" title="${esc(archetypeTitle || "Verified armour archetype")}"><img src="${esc(archetypeIcon)}" alt="${esc(archetype?.name ?? "Armour archetype")}"></span>` : ""}
+          ${isExotic && traitIcon ? `<span class="armour-exotic-overlay" title="${esc(traitTitle || "Verified exotic armour perk")}"><img src="${esc(traitIcon)}" alt="${esc(trait?.name ?? "Exotic armour perk")}"></span>` : ""}
         </div>
       </div>
-      ${isExotic && trait ? traitTile(trait) : ""}
     </div>
-    ${exoticStrip}
     ${setStrip}
     <div class="gear-slot-divider"></div>
     <div class="gear-mods" data-slot-count="${slotCount}">${Array.from({ length: slotCount }, (_, i) => modTile(mods[i])).join("")}</div>
