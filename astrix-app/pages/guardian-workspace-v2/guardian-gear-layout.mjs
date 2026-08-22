@@ -49,7 +49,7 @@ function armourSetStrip(set) {
   </div>`;
 }
 
-function armourCard(index, item) {
+export function armourCard(index, item) {
   const name = item?.name ?? armourNames[index];
   const icon = item?.icon ?? item?.iconUrl ?? item?.displayProperties?.icon ?? "";
   const rarity = String(item?.rarity ?? item?.tier ?? "").toLowerCase();
