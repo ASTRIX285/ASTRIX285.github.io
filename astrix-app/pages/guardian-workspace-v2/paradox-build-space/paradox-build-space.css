@@ -25,3 +25,44 @@
   max-height:100%!important;
   object-fit:cover!important;
 }
+
+
+/* Build Design resolved selection workspace. Scoped: no browser zoom or global scaling. */
+@media (min-width:1101px){
+  .build-space{grid-template-columns:minmax(340px,390px) minmax(680px,1fr) 360px}
+}
+.rail-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.rail-heading h3,.rail-section .rail-heading h3{margin:0}
+.expand-btn{width:28px;height:28px;border:1px solid rgba(111,227,182,.38);border-radius:7px;background:rgba(30,106,78,.1);color:#6fe3b6;font:800 18px/1 Inter;cursor:pointer}
+.expand-btn[aria-expanded="true"]{color:#fff;border-color:#9e60ff;background:rgba(96,49,146,.18);transform:rotate(45deg)}
+.manual-label{font:700 7px Orbitron;letter-spacing:.08em;color:#85858d}
+.subclass-selector{display:grid;grid-template-columns:repeat(5,minmax(46px,1fr));gap:8px}
+.super-selector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.selector-card{position:relative;min-width:0;border:1px solid rgba(180,132,45,.36);border-radius:9px;background:#0d0d10;color:#ddd;padding:6px;cursor:pointer;text-align:center}
+.selector-card img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px}
+.selector-card small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:5px;font-size:8px;color:#aaa}
+.selector-card.is-selected{border-color:#6fe3b6;box-shadow:0 0 0 1px rgba(111,227,182,.35),0 0 14px rgba(111,227,182,.12)}
+.super-selector .selector-card.is-selected{border-color:#d8b24b;box-shadow:0 0 14px rgba(216,178,75,.18)}
+.option-panel{display:grid;grid-template-columns:repeat(5,minmax(42px,1fr));gap:8px;margin-top:10px;padding:10px;border:1px solid rgba(158,96,255,.25);border-radius:10px;background:rgba(96,49,146,.06);max-height:270px;overflow:auto}
+.option-panel[hidden]{display:none}
+.option-panel .selector-card{padding:5px}
+.fragment-row{grid-template-columns:repeat(5,minmax(0,1fr))}
+.fragment-options{grid-template-columns:repeat(5,minmax(42px,1fr))}
+.artifact-selector{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.artifact-selector .selector-card small{white-space:normal;min-height:20px}
+.design-canvas .gear-weapons{min-height:220px}
+.design-canvas .gear-weapons .weap{min-height:205px}
+.design-canvas .gear-weapons .weap .cap{min-height:52px}
+.design-canvas .gear-combined .gear-slot .gear-mods{display:grid!important;grid-template-columns:repeat(2,var(--pf-mod-size,34px))!important;grid-auto-flow:row!important;justify-content:center!important;gap:6px!important}
+.working-selection-note{grid-column:1/-1;color:#8f8f98;font-size:10px;line-height:1.4}
+
+@media (max-width:1100px) and (min-width:721px){
+  .build-space{grid-template-columns:minmax(300px,340px) minmax(0,1fr)}
+}
+@media (max-width:720px){
+  .subclass-selector{grid-template-columns:repeat(5,minmax(42px,1fr));overflow-x:auto}
+  .super-selector{grid-template-columns:repeat(3,minmax(64px,1fr))}
+  .option-panel,.fragment-options{grid-template-columns:repeat(4,minmax(54px,1fr));max-height:320px}
+  .artifact-selector{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .design-canvas .gear-weapons{min-height:0}
+}
