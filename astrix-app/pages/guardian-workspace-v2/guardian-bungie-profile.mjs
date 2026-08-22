@@ -450,7 +450,8 @@ async function loadLiveProfile(session,{background=false}={}){
   const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
   liveProfilePayload=payload;
   liveProfileSession=session;
-  const selectedCharacterId=rememberedCharacterId(payload.profile);
+  const selectedCharacterId=rememberedCharacterId(payload.profile)||String(activeCharacter(payload.profile)?.characterId||"");
+  if(selectedCharacterId)rememberCharacterId(selectedCharacterId);
   publishCharacterRoster(payload,selectedCharacterId);
 
   document.documentElement.dataset.guardianSource="bungie-live";
