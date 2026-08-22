@@ -1,0 +1,91 @@
+:root{
+  --astrix-media-rail-width:0px;
+  --astrix-forge-shell-gap:0px;
+}
+
+.astrix-platform-shell{
+  display:grid;
+  grid-template-columns:0 minmax(0,1fr) 0;
+  width:100%;
+  min-width:0;
+  align-items:stretch;
+  background:#050507;
+}
+
+.astrix-forge-viewport{
+  grid-column:2;
+  min-width:0;
+  width:100%;
+  position:relative;
+  z-index:1;
+}
+
+.astrix-forge-viewport>.workspace,
+.astrix-forge-viewport>.build-space{
+  width:100%!important;
+  max-width:none!important;
+  margin-inline:0!important;
+  min-width:0!important;
+}
+
+.developer-media-rail{
+  display:none;
+  position:relative;
+  min-width:0;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 14%,rgba(151,28,43,.10),transparent 42%),
+    linear-gradient(180deg,#08080b 0%,#050507 100%);
+}
+
+.developer-media-rail--left{grid-column:1;border-right:1px solid rgba(201,47,59,.16)}
+.developer-media-rail--right{grid-column:3;border-left:1px solid rgba(201,47,59,.16)}
+
+.developer-media-slot{
+  position:sticky;
+  top:76px;
+  width:100%;
+  min-height:calc(100vh - 76px);
+  overflow:hidden;
+}
+
+.developer-media-slot>img,
+.developer-media-slot>picture,
+.developer-media-slot>video,
+.developer-media-slot>iframe{
+  display:block;
+  width:100%;
+  max-width:100%;
+  height:auto;
+}
+
+.developer-media-slot>video,
+.developer-media-slot>iframe{aspect-ratio:16/9;border:0}
+
+.developer-media-rail[data-media-state="empty"] .developer-media-slot{pointer-events:none}
+
+@media (min-width:1800px){
+  :root{--astrix-media-rail-width:clamp(96px,8vw,180px)}
+  .astrix-platform-shell{
+    grid-template-columns:var(--astrix-media-rail-width) minmax(0,1fr) var(--astrix-media-rail-width);
+  }
+  .developer-media-rail{display:block}
+  .astrix-forge-viewport{box-shadow:0 0 0 1px rgba(223,176,58,.10)}
+  body:has(.astrix-platform-shell)>.actionbar{
+    left:var(--astrix-media-rail-width)!important;
+    right:var(--astrix-media-rail-width)!important;
+    width:auto!important;
+  }
+}
+
+@media (min-width:2400px){
+  :root{--astrix-media-rail-width:clamp(180px,10vw,300px)}
+}
+
+@media (min-width:3000px){
+  :root{--astrix-media-rail-width:clamp(300px,13vw,460px)}
+}
+
+@media (max-width:1799px){
+  .developer-media-rail{display:none!important}
+}
