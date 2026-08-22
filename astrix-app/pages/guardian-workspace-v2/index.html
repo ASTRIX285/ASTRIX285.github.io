@@ -99,6 +99,19 @@
     .left .super-diamond--alt2{top:180px!important}
     .left .super-diamond--alt3{top:220px!important}
 
+    @media (min-width:981px) and (max-width:1499px){
+      /* Compact/high-browser-scale desktop: enlarge visibly without escaping
+         the narrower left rail or displacing the centre gear rack. */
+      .left .subclass-super-shell{grid-template-columns:128px minmax(0,1fr)!important;gap:8px!important}
+      .left .subclass-rail{width:128px!important;min-width:128px!important;grid-template-columns:repeat(2,52px)!important;grid-template-rows:auto repeat(3,52px)!important;column-gap:10px!important}
+      .left .subclass-option{width:52px!important;min-width:52px!important;height:52px!important;min-height:52px!important}
+      .left .subclass-option__diamond{width:42px!important;height:42px!important}
+      .left .super-diamond--equipped{width:142px!important}
+      .left .super-feature__name{top:174px!important;max-width:180px!important}
+      .left .super-diamond--alt1,.left .super-diamond--alt2{top:214px!important}
+      .left .super-diamond--alt3{top:256px!important}
+    }
+
     @media (max-width:620px){
       /* LOCKED MOBILE GUARDIAN CARDS: one character per row. */
       .topbar .guardian-character-cards{
