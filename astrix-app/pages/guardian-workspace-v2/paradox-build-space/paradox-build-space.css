@@ -6,3 +6,22 @@
 :root{--line:rgba(147,35,43,.5);--line-2:rgba(180,132,45,.42);--dim:#85858d;--muted:#999;--stage-accent:#9e60ff;--stage-accent-soft:rgba(158,96,255,.22)}
 .design-canvas .gear-weapons{padding:0;background:none;border:0}.design-canvas .gear-weapons .weap-grid{grid-template-columns:repeat(3,82px)!important}.design-canvas .gear-combined{padding:0;background:none;border:0}.design-canvas .gear-combined .gear-columns{grid-template-columns:repeat(5,minmax(118px,1fr))!important}
 @media(max-width:1100px){.design-canvas .gear-combined .gear-columns{grid-template-columns:repeat(3,minmax(118px,1fr))!important}}@media(max-width:720px){.design-canvas .gear-combined .gear-columns{grid-template-columns:repeat(2,minmax(118px,1fr))!important}}
+
+
+/* Shared Guardian weapon overlays must be contained by their Build Space card. */
+.design-canvas .gear-weapons .weap{position:relative!important}
+.design-canvas .gear-weapons .weap .art{
+  position:relative!important;
+  display:block!important;
+  overflow:hidden!important;
+  contain:layout paint!important;
+}
+.design-canvas .gear-weapons .weap .art .weapon-art-image{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:cover!important;
+}
