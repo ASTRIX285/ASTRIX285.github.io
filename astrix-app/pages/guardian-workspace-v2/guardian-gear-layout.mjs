@@ -76,6 +76,9 @@ function armourCard(index, item) {
   const slotCount = 6;
   const armourTier = Number(item?.armourTier ?? item?.armourSemantics?.tier);
   const isTierFive = Number.isFinite(armourTier) && armourTier >= 5;
+  const archetype = item?.armourSemantics?.archetype ?? item?.archetype ?? null;
+  const archetypeIcon = archetype?.icon ?? archetype?.displayProperties?.icon ?? "";
+  const archetypeTitle = [archetype?.name ?? archetype?.displayName, archetype?.description].filter(Boolean).join(" — ");
   const setStrip = !isExotic ? armourSetStrip(item?.armourSemantics?.set) : "";
   const exoticStrip = isExotic ? exoticPerkStrip(trait) : "";
 
@@ -86,6 +89,7 @@ function armourCard(index, item) {
         <div class="arm ${icon ? "" : "ph"}" tabindex="0" role="button" title="${esc(name)}">
           <span class="lv">${esc(item?.power ?? "—")}</span>${Number.isFinite(armourTier) && armourTier < 5 ? `<span class="item-rank" title="Resolved armour tier">T${esc(armourTier)}</span>` : ""}
           ${icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">◇</span>'}
+          ${archetypeIcon ? `<span class="armour-archetype-icon" title="${esc(archetypeTitle || "Verified armour archetype")}"><img src="${esc(archetypeIcon)}" alt="${esc(archetype?.name ?? "Armour archetype")}"></span>` : ""}
         </div>
       </div>
       ${isExotic && trait ? traitTile(trait) : ""}
