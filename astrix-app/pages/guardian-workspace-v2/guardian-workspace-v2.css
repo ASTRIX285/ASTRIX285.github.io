@@ -21,6 +21,7 @@
   --hero: 64%; /* guardian visual weight */
 
   /* Subclass Accents */
+  --subclass-accent: #79bbea;
   --subclass-accent-fill: linear-gradient(135deg, #74e5f7 0%, #31a4be 100%);
   --subclass-accent-border: #9bf3ff;
   --subclass-accent-glow: rgba(116, 229, 247, 0.6);
@@ -29,6 +30,7 @@
 }
 
 html[data-subclass="void"] {
+  --subclass-accent: #7e5fc6;
   --subclass-accent-fill: linear-gradient(135deg, #a855f7 0%, #6b21a8 100%);
   --subclass-accent-border: #c084fc;
   --subclass-accent-glow: rgba(168, 85, 247, 0.6);
@@ -37,6 +39,7 @@ html[data-subclass="void"] {
 }
 
 html[data-subclass="solar"] {
+  --subclass-accent: #f0631e;
   --subclass-accent-fill: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
   --subclass-accent-border: #fdba74;
   --subclass-accent-glow: rgba(249, 115, 22, 0.6);
@@ -45,6 +48,7 @@ html[data-subclass="solar"] {
 }
 
 html[data-subclass="strand"] {
+  --subclass-accent: #35e366;
   --subclass-accent-fill: linear-gradient(135deg, #34d399 0%, #059669 100%);
   --subclass-accent-border: #6ee7b7;
   --subclass-accent-glow: rgba(52, 211, 153, 0.6);
@@ -53,11 +57,21 @@ html[data-subclass="strand"] {
 }
 
 html[data-subclass="stasis"] {
+  --subclass-accent: #4d88ff;
   --subclass-accent-fill: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
   --subclass-accent-border: #93c5fd;
   --subclass-accent-glow: rgba(96, 165, 250, 0.6);
   --subclass-accent-dark: rgba(12, 24, 45, 0.85);
   --subclass-accent-dark-border: rgba(96, 165, 250, 0.3);
+}
+
+html[data-subclass="prismatic"] {
+  --subclass-accent: #e56adf;
+  --subclass-accent-fill: linear-gradient(135deg, #70d7ff 0%, #e56adf 52%, #f3b45c 100%);
+  --subclass-accent-border: #f0b2ff;
+  --subclass-accent-glow: rgba(229, 106, 223, 0.6);
+  --subclass-accent-dark: rgba(34, 15, 42, 0.85);
+  --subclass-accent-dark-border: rgba(229, 106, 223, 0.3);
 }
 
 * {
