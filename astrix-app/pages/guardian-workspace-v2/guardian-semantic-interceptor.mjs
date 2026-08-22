@@ -75,8 +75,13 @@ function enrichedPlugs(normalised,rawItem,profile){
   const plugs=normalised?.socketCoverage?.plugs||[];
   if(!rawItem?.itemInstanceId)return plugs;
   const states=profile?.itemComponents?.sockets?.data?.[rawItem.itemInstanceId]?.sockets||[];
+  const occurrences=new Map();
   return plugs.map(plug=>{
-    const socketIndex=states.findIndex(state=>Number(state?.plugHash)===Number(plug?.hash));
+    const hash=Number(plug?.hash);
+    const matchingIndexes=states.map((state,index)=>Number(state?.plugHash)===hash?index:-1).filter(index=>index>=0);
+    const occurrence=occurrences.get(hash)||0;
+    const socketIndex=matchingIndexes[occurrence]??-1;
+    occurrences.set(hash,occurrence+1);
     const state=socketIndex>=0?states[socketIndex]:null;
     return {
       ...plug,
