@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {createBuildState,createIntendedArtifactConfiguration} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
+
+const originalConfiguration={schemaVersion:1,artifactHash:999,seasonNumber:28,selectedPerkHashes:[123],source:'fixture-intent',provenance:{provider:'fixture'}};
+const state=createBuildState({characterId:'fixture',artifactConfiguration:originalConfiguration});
+const candidate={hash:1001,seasonNumber:29,source:'verified-catalogue',activePerks:[{hash:501},{hash:502}],artifactConfiguration:{provenance:{provider:'verified-fixture'}}};
+const intended=createIntendedArtifactConfiguration(candidate,state.workingBuild.artifactConfiguration);
+state.workingBuild.artifact=structuredClone(candidate);
+state.workingBuild.artifact.artifactConfiguration=structuredClone(intended);
+state.workingBuild.artifactConfiguration=intended;
+
+assert.deepEqual(state.originalBuild.artifactConfiguration,originalConfiguration);
+assert.equal(state.workingBuild.artifactConfiguration.artifactHash,1001);
+assert.equal(state.workingBuild.artifactConfiguration.seasonNumber,29);
+assert.deepEqual(state.workingBuild.artifactConfiguration.selectedPerkHashes,[501,502]);
+assert.equal(state.workingBuild.artifactConfiguration.source,'paradox-build-space-intended');
+assert.equal(state.workingBuild.artifactConfiguration.provenance.state,'intended');
+assert.equal(state.workingBuild.artifactConfiguration.provenance.upstream.provider,'verified-fixture');
+
+const unavailable=createIntendedArtifactConfiguration({hash:1002,seasonNumber:29,state:'state-unavailable'},null);
+assert.equal(unavailable.selectedPerkHashes,null);
+
+console.log('Build Design Artifact intent tests passed.');
