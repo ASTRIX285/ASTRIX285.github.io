@@ -26,7 +26,10 @@ function syncModSizeToArtifact() {
 function modTile(mod) {
   const name = mod?.name ?? mod?.displayName ?? "Empty mod slot";
   const icon = mod?.icon ?? mod?.iconUrl ?? mod?.displayProperties?.icon ?? "";
-  const cost = mod?.energyCost ?? mod?.cost ?? mod?.definition?.plug?.energyCost ?? mod?.plug?.energyCost ?? "";
+  const rawCost = mod?.energyCost ?? mod?.cost ?? mod?.definition?.plug?.energyCost ?? mod?.plug?.energyCost ?? "";
+  const cost = rawCost && typeof rawCost === "object"
+    ? rawCost.energyCost ?? rawCost.value ?? ""
+    : rawCost;
   const isMasterwork = mod?.semanticRole === "masterwork";
   const isMasterworkGold = isMasterwork && Number(cost) >= 5;
   return `<button class="gear-mod ${isMasterwork ? "is-masterwork" : ""} ${isMasterworkGold ? "is-masterwork-gold" : ""}" type="button" title="${esc(name)}" aria-label="${esc(name)}" ${cost !== "" ? `data-cost="${esc(cost)}"` : ""}>${
