@@ -149,4 +149,4 @@ function render(detail){
 document.addEventListener("astrix:guardian-selection-changed",event=>render(event.detail));
 ensureStyle();
 
-export {render};
+export {render,renderWeapons};
