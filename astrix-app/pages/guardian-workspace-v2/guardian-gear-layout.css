@@ -63,10 +63,11 @@
    2-column x 3-row (2-2-2 vertical) matrix and match Fragment socket size. */
 .gear-mods{display:grid;grid-template-columns:repeat(2,var(--pf-mod-size,36px));grid-template-rows:repeat(3,var(--pf-mod-size,36px));gap:4px;justify-content:center;align-content:start}
 .gear-mod{position:relative;width:var(--pf-mod-size,36px);height:var(--pf-mod-size,36px);aspect-ratio:1;border-radius:8px;border:1px solid var(--line-2);background:rgba(139,92,246,.055);display:grid;place-items:center;overflow:hidden;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+.gear-mod.is-masterwork{border:2px solid rgba(255,255,255,.92);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}.gear-mod.is-masterwork-gold{border:3px solid #d7aa3c;box-shadow:inset 0 0 0 1px rgba(255,234,160,.66),0 0 12px rgba(215,170,60,.25)}
 .gear-mod:hover,.gear-mod:focus-visible{transform:translateY(-2px);border-color:var(--stage-accent);box-shadow:0 0 15px var(--stage-accent-soft);outline:none}
 .gear-mod img{width:88%;height:88%;object-fit:contain}
 .gear-mod .ph-glyph{font-size:.72rem;opacity:.42}
-.gear-mod[data-cost]::after{content:attr(data-cost);position:absolute;right:3px;top:2px;font-family:Rajdhani;font-size:.5rem;color:#fff;text-shadow:0 1px 2px #000}
+.gear-mod[data-cost]::after{content:attr(data-cost);position:absolute;right:3px;top:2px;z-index:2;font-family:Rajdhani;font-size:.62rem;font-weight:800;color:#fff;text-shadow:0 1px 2px #000,0 0 3px #000}
 
 .right .activity{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.018)}
 .right .activity .eq-head{margin-bottom:8px}
