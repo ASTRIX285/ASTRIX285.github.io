@@ -69,7 +69,7 @@
 @media (min-width:1221px){
   .workspace{
     grid-template-areas:"left stage right" "left equip right"!important;
-    grid-template-rows:minmax(0,61fr) minmax(0,39fr)!important;
+    grid-template-rows:minmax(0,55fr) minmax(0,45fr)!important;
   }
 
   .workspace>.left{

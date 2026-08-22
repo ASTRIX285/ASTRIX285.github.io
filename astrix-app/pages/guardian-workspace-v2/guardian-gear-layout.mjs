@@ -46,12 +46,13 @@ function traitTile(trait) {
 
 function armourSetStrip(set) {
   if (!set) return "";
-  if (!set.identity || set.unresolved) return `<div class="armour-set-strip is-unresolved" title="Exact Bungie armour-set definition has not been returned by the backend"><span class="armour-set-unresolved"><b>SET DATA UNRESOLVED</b><small>${set.hash ? `BUNGIE HASH ${esc(set.hash)}` : "AWAITING VERIFIED MANIFEST DATA"}</small></span></div>`;
-  const identityIcon = set.identity?.icon ?? "";
+  // Missing definitions are validation telemetry, not a player-facing set bonus.
+  // Render only exact Bungie set identities and perk thresholds.
+  if (!set.identity || set.unresolved) return "";
   const thresholds = [set.twoPiece, set.fourPiece].filter(Boolean);
   return `<div class="armour-set-strip" title="${esc(set.identity.name ?? "Resolved armour set")}">
-    <span class="armour-set-identity">${identityIcon ? `<img src="${esc(identityIcon)}" alt="">` : ""}<b>${esc(set.identity.name ?? "Armour set")}</b><small>${esc(set.equippedCount ?? 0)}pc</small></span>
-    <span class="armour-set-thresholds">${thresholds.map(effect => `<span class="armour-set-threshold ${effect.active ? "is-active" : ""}" title="${esc([effect.name, effect.description].filter(Boolean).join(" — "))}">${effect.icon ? `<img src="${esc(effect.icon)}" alt="">` : ""}<b>${esc(effect.requiredSetCount)}</b></span>`).join("")}</span>
+    <span class="armour-set-identity"><b>${esc(set.identity.name ?? "Armour set")}</b></span>
+    <span class="armour-set-thresholds">${thresholds.map(effect => `<span class="armour-set-threshold ${effect.active ? "is-active" : ""}" title="${esc([`${effect.requiredSetCount}-piece`, effect.name, effect.description].filter(Boolean).join(" — "))}">${effect.icon ? `<img src="${esc(effect.icon)}" alt="${esc(effect.name ?? `${effect.requiredSetCount}-piece set perk`)}">` : ""}</span>`).join("")}</span>
   </div>`;
 }
 
@@ -75,6 +76,9 @@ function armourCard(index, item) {
   const slotCount = 6;
   const armourTier = Number(item?.armourTier ?? item?.armourSemantics?.tier);
   const isTierFive = Number.isFinite(armourTier) && armourTier >= 5;
+  const archetype = item?.armourSemantics?.archetype ?? item?.archetype ?? null;
+  const archetypeIcon = archetype?.icon ?? archetype?.displayProperties?.icon ?? "";
+  const archetypeTitle = [archetype?.name ?? archetype?.displayName, archetype?.description].filter(Boolean).join(" — ");
   const setStrip = !isExotic ? armourSetStrip(item?.armourSemantics?.set) : "";
   const exoticStrip = isExotic ? exoticPerkStrip(trait) : "";
 
@@ -83,8 +87,9 @@ function armourCard(index, item) {
     <div class="gear-arm-row">
       <div class="gear-arm-anchor">
         <div class="arm ${icon ? "" : "ph"}" tabindex="0" role="button" title="${esc(name)}">
-          <span class="lv">${esc(item?.power ?? "—")}</span>${Number.isFinite(armourTier) && armourTier < 5 ? `<span class="item-rank" title="Resolved armour tier">T${esc(armourTier)}</span>` : ""}
+          <span class="lv">${esc(item?.power ?? "—")}</span>${Number.isFinite(armourTier) && armourTier > 0 ? `<span class="armour-tier-rail" title="Verified armour tier ${esc(armourTier)}">${Array.from({ length: Math.min(5, Math.floor(armourTier)) }, () => '<i class="armour-tier-diamond" aria-hidden="true"></i>').join("")}</span>` : ""}
           ${icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">◇</span>'}
+          ${archetypeIcon ? `<span class="armour-archetype-icon" title="${esc(archetypeTitle || "Verified armour archetype")}"><img src="${esc(archetypeIcon)}" alt="${esc(archetype?.name ?? "Armour archetype")}"></span>` : ""}
         </div>
       </div>
       ${isExotic && trait ? traitTile(trait) : ""}

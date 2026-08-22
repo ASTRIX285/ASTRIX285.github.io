@@ -56,17 +56,12 @@ function armourSummary(item){
   const s=item?.armourSemantics;
   if(!s)return "";
   const rows=[];
-  // Tier 5 is already communicated by the verified gold masterwork frame.
-  // Preserve visible ranks 1-4, but do not duplicate the max-rank state.
-  if(s.tier!=null&&Number(s.tier)<5)rows.push(chip(`T${s.tier}`));
   if(s.energy?.capacity!=null)rows.push(chip(`Energy ${s.energy.used??0}/${s.energy.capacity}`));
   if(s.masterwork)rows.push(chip(text(s.masterwork),"active"));
-  if(s.archetype)rows.push(chip(text(s.archetype)));
   if(s.exoticPerk)rows.push(chip(text(s.exoticPerk),"active"));
   if(s.set?.identity)rows.push(chip(`${text(s.set.identity)} ${s.set.equippedCount??0}pc`));
   if(s.set?.twoPiece)rows.push(chip(`2pc ${text(s.set.twoPiece)}`,s.set.twoPiece.active?"active":""));
   if(s.set?.fourPiece)rows.push(chip(`4pc ${text(s.set.fourPiece)}`,s.set.fourPiece.active?"active":""));
-  if(s.unknownPlugs?.length||s.set?.unresolved)rows.push(chip(`${(s.unknownPlugs?.length||0)+(s.set?.unresolved?1:0)} unknown`,"warn"));
   return `<div class="gear-semantic-summary"><div class="semantic-meta">${rows.join("")}</div></div>`;
 }
 
@@ -165,7 +160,7 @@ function renderCoverage(detail){
   const armour=detail?.hashCoverage?.armour;
   const weapons=detail?.hashCoverage?.weapons;
   const unknown=(armour?.unresolved?.length||0)+(armour?.semanticUnknown?.length||0)+(weapons?.unresolved?.length||0)+(weapons?.semanticUnknown?.length||0);
-  node.textContent=unknown?`${unknown} UNKNOWN`:`EVIDENCE VERIFIED`;
+  node.textContent=unknown?`PARTIAL EVIDENCE`:`EVIDENCE VERIFIED`;
   node.title=unknown?"Unresolved/unclassified evidence is excluded from Paradox claims":"All equipped armour and weapon semantic evidence resolved";
 }
 
