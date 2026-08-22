@@ -30,13 +30,15 @@ try{
       plug(3,'General Mod','armor.mods.general'),
       plug(4,'General Mod 2','armor.mods.general'),
       plug(5,'Helmet Mod','armor.mods.helmet'),
+      {...plug(5,'Helmet Mod','armor.mods.helmet'),socketIndex:5},
+      {...plug(5,'Helmet Mod','armor.mods.helmet'),socketIndex:6},
       plug(6,'Bulwark Armour Archetype','armor.archetype'),
       plug(7,'Close Enough Exotic Armour Perk','armor.exotic.perk')
     ]
   });
   if(result.tier!==5)fail('G1: gear tier not normalized');
   if(result.energy?.capacity!==10||result.energy?.used!==7)fail('G1: energy budget not normalized');
-  if(result.generalMods.length!==2||result.slotMods.length!==1)fail('G1: General/slot mods not separated');
+  if(result.generalMods.length!==2||result.slotMods.length!==3)fail('G1: General/slot mods not separated or stacked socketed mods collapsed');
   if(!result.masterwork||!result.archetype||!result.exoticPerk)fail('G1: armour intrinsic families missing');
   if(result.discarded.length!==1||result.discarded[0].semanticRole!=='infuse')fail('G1: Infuse not excluded explicitly');
 }catch(error){fail(`G1 threw: ${error.message}`);}
