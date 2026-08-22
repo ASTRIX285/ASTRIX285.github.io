@@ -149,6 +149,11 @@ function enrichArmour(detail,payload,profile,rows){
     });
     const exactSet=resolveArmourSet(payload,item,equippedArmour);
     if(exactSet)armourSemantics.set=exactSet;
+    const masterworkSlot=armourSemantics.masterwork?{
+      ...armourSemantics.masterwork,
+      semanticRole:"masterwork",
+      energyCost:armourSemantics.tier
+    }:null;
     return {
       ...item,
       itemInstanceId:rawItem?.itemInstanceId||null,
@@ -161,7 +166,9 @@ function enrichArmour(detail,payload,profile,rows){
       setBonus:armourSemantics.set,
       generalMods:armourSemantics.generalMods,
       slotMods:armourSemantics.slotMods,
-      mods:[...armourSemantics.generalMods,...armourSemantics.slotMods],
+      // Position 1 is permanently reserved for the verified armour upgrade
+      // level. The following five positions retain Bungie's socket order.
+      mods:[masterworkSlot,...armourSemantics.generalMods,...armourSemantics.slotMods].slice(0,6),
       intrinsicTrait:armourSemantics.exoticPerk||item.intrinsicTrait||null
     };
   });
