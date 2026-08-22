@@ -4,8 +4,8 @@ const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
 const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';
 let latestGuardian=null;
 let latestExplicitLoadout=null;
-const safeStore=(key,value)=>{try{sessionStorage.setItem(key,JSON.stringify(value));}catch{}};
-const safeRead=key=>{try{return JSON.parse(sessionStorage.getItem(key)||'null');}catch{return null;}};
+const safeStore=(key,value)=>{const json=JSON.stringify(value);try{sessionStorage.setItem(key,json);}catch{}try{localStorage.setItem(key,json);}catch{}};
+const safeRead=key=>{for(const store of [sessionStorage,localStorage]){try{const value=JSON.parse(store.getItem(key)||'null');if(value)return value;}catch{}}return null;};
 
 function compactBuild(detail={}){
   return {
