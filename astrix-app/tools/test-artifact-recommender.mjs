@@ -3,9 +3,13 @@ import {recommendArtifactPerks,resolveBuildWeapons} from '../pages/guardian-work
 import {resolveArtifactByProvenance} from '../pages/guardian-workspace-v2/guardian-artifact-provenance.mjs';
 const d='astrix-app/data/paradox-forge/beta/';
 const artifact=JSON.parse(await fs.readFile(d+'beta-current-artifact.json','utf8'));
-const manifest=JSON.parse(await fs.readFile(d+'beta-bungie-manifest-cache.json','utf8'));
 const fixtures=JSON.parse(await fs.readFile(d+'ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json','utf8'));
 const hashes=[4019651319,2965080304,17096506];
+const manifest={inventoryItems:{
+  '4019651319':{itemType:3,weaponType:'Hand Cannon',element:'Solar',display:{name:'Test Hand Cannon'}},
+  '2965080304':{itemType:3,weaponType:'Sniper Rifle',element:'Arc',display:{name:'Test Sniper Rifle'}},
+  '17096506':{itemType:3,weaponType:'Machine Gun',element:'Void',display:{name:'Test Machine Gun'}}
+}};
 const resolved=resolveBuildWeapons(hashes,manifest);if(resolved.unresolved.length)throw new Error('unresolved weapons '+resolved.unresolved);
 const build={subclass:{name:'Gunslinger',element:'Solar'},weapons:resolved.weapons};
 const fixtureResult=recommendArtifactPerks(build,artifact,{currentSeasonNumber:28});
