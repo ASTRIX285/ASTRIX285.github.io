@@ -95,5 +95,6 @@ async function refreshAuthState(button){
 installStyles();
 const button=makeControl();
 if(button) refreshAuthState(button);
+if(new URLSearchParams(location.search).has("rangeTest")) import("./guardian-shooting-range-inline.mjs");
 
 export {AUTH_ORIGIN,getBungieSession};
