@@ -208,6 +208,17 @@ function subclassConfiguration(profile,definitions,item){
   const superSocketIndex=superItem?socketStates.findIndex(socket=>Number(socket.plugHash)===Number(superItem.hash)):-1;
   const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item?.itemInstanceId]?.plugs||{};
   const reusableRows=superSocketIndex>=0?(reusable[String(superSocketIndex)]||reusable[superSocketIndex]||[]):[];
+  const reusableItems=Object.values(reusable)
+    .flatMap(rows=>Array.isArray(rows)?rows:[])
+    .map(row=>displayItem(definitions,row.plugItemHash??row.plugHash))
+    .filter(row=>row.definition&&Object.keys(row.definition).length>0);
+  const uniqueResolved=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>Number(other.hash)===Number(row.hash))===index);
+  const availableAbilities=uniqueResolved([
+    ...plugs.filter(row=>isClassAbilityPlug(row)||isMovementPlug(row)||isMeleePlug(row)||isGrenadePlug(row)),
+    ...reusableItems.filter(row=>isClassAbilityPlug(row)||isMovementPlug(row)||isMeleePlug(row)||isGrenadePlug(row))
+  ]);
+  const availableAspects=uniqueResolved([...plugs.filter(isAspectPlug),...reusableItems.filter(isAspectPlug)]);
+  const availableFragments=uniqueResolved([...plugs.filter(isFragmentPlug),...reusableItems.filter(isFragmentPlug)]);
 
   const itemDef=definitions?.[String(item?.itemHash)]||{};
   const manifestSockets=itemDef.sockets?.socketEntries||[];
@@ -233,6 +244,9 @@ function subclassConfiguration(profile,definitions,item){
     abilities:[classAbility,movement,melee,grenade].filter(Boolean),
     aspects:plugs.filter(isAspectPlug),
     fragments:plugs.filter(isFragmentPlug),
+    availableAbilities,
+    availableAspects,
+    availableFragments,
     socketsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]),
     reusablePlugsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]),
     socketCoverage
