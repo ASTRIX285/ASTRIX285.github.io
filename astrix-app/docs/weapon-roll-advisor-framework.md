@@ -55,7 +55,7 @@ The engine returns the highest-scoring valid combination, up to three alternativ
 
 ## Equipment safety
 
-The first implementation is recommendation-only. `remotePerkMutationSupported` is deliberately `false` until a Bungie API action is explicitly verified for the relevant item/action. The UI may later expose an Apply action only where the platform genuinely supports it; otherwise Paradox shows the exact perk combination to select in game.
+Bungie's official `InsertSocketPlugFree` action supports free and reversible socket changes, including selectable perks, while the character is offline, in orbit or in a social space. Paradox stages only plugs returned for the exact owned item instance and socket. The frontend capability remains disabled until the authenticated Worker route confirms support. Even after that capability is enabled, the plan remains `confirm-required` and cannot execute before explicit user confirmation.
 
 ## Next integration step
 
