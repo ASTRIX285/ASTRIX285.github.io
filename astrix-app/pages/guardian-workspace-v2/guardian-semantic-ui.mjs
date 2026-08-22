@@ -66,7 +66,6 @@ function armourSummary(item){
   if(s.set?.identity)rows.push(chip(`${text(s.set.identity)} ${s.set.equippedCount??0}pc`));
   if(s.set?.twoPiece)rows.push(chip(`2pc ${text(s.set.twoPiece)}`,s.set.twoPiece.active?"active":""));
   if(s.set?.fourPiece)rows.push(chip(`4pc ${text(s.set.fourPiece)}`,s.set.fourPiece.active?"active":""));
-  if(s.unknownPlugs?.length||s.set?.unresolved)rows.push(chip(`${(s.unknownPlugs?.length||0)+(s.set?.unresolved?1:0)} unknown`,"warn"));
   return `<div class="gear-semantic-summary"><div class="semantic-meta">${rows.join("")}</div></div>`;
 }
 
@@ -165,7 +164,7 @@ function renderCoverage(detail){
   const armour=detail?.hashCoverage?.armour;
   const weapons=detail?.hashCoverage?.weapons;
   const unknown=(armour?.unresolved?.length||0)+(armour?.semanticUnknown?.length||0)+(weapons?.unresolved?.length||0)+(weapons?.semanticUnknown?.length||0);
-  node.textContent=unknown?`${unknown} UNKNOWN`:`EVIDENCE VERIFIED`;
+  node.textContent=unknown?`PARTIAL EVIDENCE`:`EVIDENCE VERIFIED`;
   node.title=unknown?"Unresolved/unclassified evidence is excluded from Paradox claims":"All equipped armour and weapon semantic evidence resolved";
 }
 
