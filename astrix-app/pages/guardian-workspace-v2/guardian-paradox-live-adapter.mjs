@@ -89,7 +89,7 @@ function renderList(host,rows,empty){
 
 function renderLiveAnalysis(analysis){
   if(!analysis)return;
-  const panel=document.querySelector(".panel.right");
+  const panel=document.querySelector("[data-paradox-analysis], .panel.right");
   if(!panel)return;
   panel.dataset.analysisSource="bungie-live";
   const updated=panel.querySelector(".ra-head .upd");

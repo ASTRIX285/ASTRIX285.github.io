@@ -179,7 +179,7 @@ function accessGate(){
   return new Promise(resolve=>{
     const gate=document.createElement('div');
     gate.className='beta-access-gate';
-    gate.innerHTML=`<div class="beta-access-card"><small>ASTRIX PARADOX</small><h1>GUARDIAN WORKSPACE ALPHA</h1><p>Enter the tester access code.</p><form><input type="password" autocomplete="off" aria-label="Alpha access code" placeholder="ACCESS CODE"><button type="submit">ENTER ALPHA</button><div class="beta-access-error"></div></form></div>`;
+    gate.innerHTML=`<div class="beta-access-card"><small>ASTRIX PARADOX</small><h1>GUARDIAN BUILD FORGE ALPHA</h1><p>Enter the tester access code.</p><form><input type="password" autocomplete="off" aria-label="Alpha access code" placeholder="ACCESS CODE"><button type="submit">ENTER ALPHA</button><div class="beta-access-error"></div></form></div>`;
     document.body.appendChild(gate);
     const form=qs('form',gate),input=qs('input',gate),error=qs('.beta-access-error',gate);
     form.addEventListener('submit',e=>{

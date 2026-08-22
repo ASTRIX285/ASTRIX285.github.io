@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ASTRIX PARADOX - GUARDIAN WORKSPACE V1 RUNTIME
+   ASTRIX PARADOX - GUARDIAN BUILD FORGE V1 RUNTIME
    Handles UI telemetry rendering, preview fixture state hydration, 
    interactive inspect bindings, and Cloudflare Worker OAuth loop.
    ========================================================================== */
@@ -312,7 +312,7 @@ async function init() {
     handleIncomingAuth();
   } catch (error) {
     console.error(error);
-    setText("[data-preview-banner]", `Unable to load Guardian Workspace: ${error.message}`);
+    setText("[data-preview-banner]", `Unable to load Guardian Build Forge: ${error.message}`);
   }
 }
 
