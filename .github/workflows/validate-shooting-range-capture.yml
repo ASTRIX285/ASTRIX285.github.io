@@ -1,0 +1,28 @@
+name: Validate Shooting Range capture
+
+on:
+  pull_request:
+    paths:
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/shooting-range-test/**'
+      - '.github/workflows/validate-shooting-range-capture.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check capture module
+        run: node --check astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
+      - name: Validate evidence-first contract
+        run: |
+          grep -q "backend-route-missing" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
+          grep -q "baselineInstanceIds" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
+          grep -q "rawPgcr" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
+          if grep -q "activityName:'Shooting Range'" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs; then
+            echo 'Capture module must not invent a Shooting Range activity identity.'
+            exit 1
+          fi
