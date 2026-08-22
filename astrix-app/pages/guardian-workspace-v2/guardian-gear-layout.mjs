@@ -65,13 +65,15 @@ function armourCard(index, item) {
   const mods = Array.isArray(item?.mods) ? item.mods : [];
   const appearance = Array.isArray(item?.appearancePlugs) ? item.appearancePlugs : [];
   const slotCount = 6;
+  const armourTier = Number(item?.armourTier ?? item?.armourSemantics?.tier);
+  const isTierFive = Number.isFinite(armourTier) && armourTier >= 5;
 
-  return `<article class="gear-slot ${isExotic ? "exotic" : ""}" data-armour-index="${index}">
+  return `<article class="gear-slot ${isExotic ? "exotic" : ""} ${isTierFive ? "is-level-gold" : ""}" data-armour-index="${index}">
     <div class="gear-slot-label">${esc(name)}</div>
     <div class="gear-arm-row">
       <div class="gear-arm-anchor">
         <div class="arm ${icon ? "" : "ph"}" tabindex="0" role="button" title="${esc(name)}">
-          <span class="lv">${esc(item?.power ?? "—")}</span>
+          <span class="lv">${esc(item?.power ?? "—")}</span>${Number.isFinite(armourTier)?`<span class="item-rank" title="Resolved armour tier">T${esc(armourTier)}</span>`:""}
           ${icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">◇</span>'}
         </div>
       </div>
