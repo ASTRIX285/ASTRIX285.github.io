@@ -135,8 +135,6 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
     const slots = [activeSuper, alternates[0] || null, alternates[1] || null, alternates[2] || null];
     featureHost.querySelectorAll("[data-super-slot]").forEach((slot, index) => {
       const item = slots[index];
-      slot.classList.toggle("is-selected", index === 0);
-      slot.setAttribute("aria-current", index === 0 ? "true" : "false");
       const holder = slot.querySelector("span");
       if (!holder) return;
       const icon = resolvedDisplayIcon(item);
@@ -144,16 +142,6 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
         holder.innerHTML = iconMarkup(icon, item?.name);
         slot.classList.add("has-live-icon");
         slot.title = item?.name || (index === 0 ? "Equipped Super" : "Alternate Super");
-        slot.tabIndex = 0;
-        slot.setAttribute("role", "button");
-        slot.onclick = () => {
-          featureHost.querySelectorAll("[data-super-slot]").forEach(node => {
-            node.classList.toggle("is-selected", node === slot);
-            node.setAttribute("aria-current", node === slot ? "true" : "false");
-          });
-          const nameNode = byId("subclassName");
-          if (nameNode && item?.name) nameNode.textContent = item.name;
-        };
       } else {
         holder.innerHTML = "◆";
         slot.classList.remove("has-live-icon");
