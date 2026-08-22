@@ -22,11 +22,13 @@ function compactBuild(detail={}){
 function rememberGuardian(detail={}){if(detail?.characterId)latestGuardian=compactBuild(detail);}
 function rememberExplicitLoadout(detail={}){if(!detail?.characterId||!Number.isInteger(detail.selectedLoadoutIndex))return;latestExplicitLoadout=compactBuild(detail);safeStore(LAST_LOADOUT_KEY,latestExplicitLoadout);}
 function rememberAnalysis(analysis={}){const matches=build=>build&&String(build.characterId)===String(analysis.characterId)&&Number(build.selectedLoadoutIndex??-1)===Number(analysis.selectedLoadoutIndex??-1);if(matches(latestGuardian))latestGuardian.paradoxAnalysis=clone(analysis);if(matches(latestExplicitLoadout)){latestExplicitLoadout.paradoxAnalysis=clone(analysis);safeStore(LAST_LOADOUT_KEY,latestExplicitLoadout);}}
+function rememberWeaponAdvice(advice={}){for(const build of [latestGuardian,latestExplicitLoadout]){if(!build)continue;build.weaponRollAdvice=clone(advice);for(const row of advice.recommendations||[]){const weapon=build.weapons?.find(item=>String(item?.itemInstanceId||"")===String(row.itemInstanceId||""));if(weapon)weapon.weaponRollAdvice=clone(row);}}if(latestExplicitLoadout)safeStore(LAST_LOADOUT_KEY,latestExplicitLoadout);}
 function resolveBuildSource(){if(latestExplicitLoadout)return clone(latestExplicitLoadout);const remembered=safeRead(LAST_LOADOUT_KEY);if(remembered?.characterId)return remembered;if(latestGuardian)return clone(latestGuardian);return null;}
 function openBuildSpace(event){const button=event.target?.closest?.('.improve-cta');if(!button)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();const source=resolveBuildSource();if(source){const state=createBuildState(source);state.sourcePriority=source.source==='bungie-loadout'?'selected-or-last-bungie-loadout':'current-equipped-guardian';safeStore(BUILD_SPACE_KEY,state);}location.href='./paradox-build-space/';}
 
 document.addEventListener('astrix:guardian-selection-changed',e=>rememberGuardian(e.detail||{}));
 document.addEventListener('astrix:bungie-loadout-loaded',e=>rememberExplicitLoadout(e.detail||{}));
 document.addEventListener('astrix:paradox-live-analysis-changed',e=>rememberAnalysis(e.detail||{}));
+document.addEventListener('astrix:weapon-roll-advice-changed',e=>rememberWeaponAdvice(e.detail||{}));
 document.addEventListener('click',openBuildSpace,true);
 export {compactBuild,resolveBuildSource,BUILD_SPACE_KEY,LAST_LOADOUT_KEY};

@@ -50,7 +50,7 @@ function scoreCombination(perks,context={}){
   return {score,directEdges,supportedInputs,roleMatches,reasons,emits,consumes,roles};
 }
 
-function adviseWeaponRoll({weapon,intelligence,context={}}={}){
+function adviseWeaponRoll({weapon,intelligence,context={},capabilities={}}={}){
   const columns=Array.isArray(weapon?.perkColumns)?weapon.perkColumns:[];
   const selectableColumns=columns
     .map(column=>(Array.isArray(column?.options)?column.options:[])
@@ -66,7 +66,7 @@ function adviseWeaponRoll({weapon,intelligence,context={}}={}){
     const curated=options.map(option=>option.intelligence).filter(Boolean);
     const assessment=scoreCombination(curated,context);
     return {
-      options:options.map(option=>({hash:option.hash,name:option.name||option.intelligence?.name||""})),
+      options:options.map(option=>({hash:option.hash,name:option.name||option.intelligence?.name||"",socketIndex:Number.isInteger(Number(option.socketIndex))?Number(option.socketIndex):null})),
       curatedCoverage:curated.length,
       ...assessment
     };
@@ -75,8 +75,12 @@ function adviseWeaponRoll({weapon,intelligence,context={}}={}){
   combinations.sort((a,b)=>b.score-a.score||b.curatedCoverage-a.curatedCoverage);
   const best=combinations[0]||null;
   const currentHashes=unique(weapon?.selectedPerkHashes||[]);
+  const currentBySocket=new Map((weapon?.selectedPerks||[]).filter(row=>Number.isInteger(Number(row?.socketIndex))).map(row=>[Number(row.socketIndex),String(row.hash??row.plugHash??"")]));
   const recommendedHashes=best?best.options.map(option=>option.hash):[];
-  const alreadySelected=best&&currentHashes.length===recommendedHashes.length&&recommendedHashes.every(hash=>currentHashes.includes(hash));
+  const alreadySelected=best&&best.options.every(option=>option.socketIndex!=null?currentBySocket.get(option.socketIndex)===option.hash:currentHashes.includes(option.hash));
+  const hasVerifiedRecommendation=Boolean(best&&best.score>0&&best.curatedCoverage>0);
+  const stagedChanges=hasVerifiedRecommendation&&!alreadySelected?best.options.filter(option=>option.socketIndex!=null&&currentBySocket.get(option.socketIndex)!==option.hash).map(option=>({itemInstanceId:String(weapon?.itemInstanceId||""),socketIndex:option.socketIndex,currentPlugHash:currentBySocket.get(option.socketIndex)||null,plugHash:option.hash,source:"bungie-reusable-plugs",reversible:true,confirmed:false})).filter(change=>change.itemInstanceId):[];
+  const remotePerkMutationSupported=Boolean(capabilities?.insertSocketPlugFree===true);
 
   return {
     weaponHash:weapon?.itemHash??weapon?.hash??null,
@@ -86,10 +90,13 @@ function adviseWeaponRoll({weapon,intelligence,context={}}={}){
     best,
     alternatives:combinations.slice(1,4),
     alreadySelected:Boolean(alreadySelected),
+    hasVerifiedRecommendation,
+    stagedChanges,
     action:{
-      mode:"recommend-only",
-      remotePerkMutationSupported:false,
-      label:alreadySelected?"Current roll already matches this build":"Use recommended perk combination"
+      mode:remotePerkMutationSupported&&stagedChanges.length?"confirm-required":"recommend-only",
+      remotePerkMutationSupported,
+      requiresUserConfirmation:true,
+      label:alreadySelected?"Current roll already matches this build":hasVerifiedRecommendation?(remotePerkMutationSupported?"Review and apply perk changes":"Use recommended perk combination"):"No verified perk match"
     },
     warnings:[
       ...(selectableColumns.length?[]:["No selectable perk columns were supplied for this weapon instance."]),

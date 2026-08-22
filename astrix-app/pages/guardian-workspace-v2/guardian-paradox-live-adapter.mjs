@@ -1,4 +1,5 @@
 import { analyzeGuardianBuild } from "./guardian-paradox-engine.mjs";
+import { adviseLiveWeaponRolls } from "./guardian-weapon-roll-advisor.mjs";
 
 const clone=v=>v==null?v:structuredClone(v);
 
@@ -127,6 +128,7 @@ document.addEventListener("astrix:guardian-selection-changed",event=>{
       event.detail.paradoxAnalysis=analysis;
       renderLiveAnalysis(analysis);
       document.dispatchEvent(new CustomEvent("astrix:paradox-live-analysis-changed",{detail:analysis}));
+      adviseLiveWeaponRolls(event.detail,analysis,{insertSocketPlugFree:false}).catch(error=>console.warn("[ASTRIX weapon advisor]",String(error)));
     }catch(error){
       console.error("[Paradox live adapter]",error);
       document.dispatchEvent(new CustomEvent("astrix:paradox-live-analysis-error",{detail:{message:error?.message||String(error)}}));

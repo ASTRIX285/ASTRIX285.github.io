@@ -87,6 +87,20 @@ function enrichedPlugs(normalised,rawItem,profile){
   });
 }
 
+function alternativeColumnsFor(rawItem,profile,payload){
+  if(!rawItem?.itemInstanceId)return {};
+  const reusable=profile?.itemComponents?.reusablePlugs?.data?.[rawItem.itemInstanceId]?.plugs||{};
+  return Object.fromEntries(Object.entries(reusable).map(([socketIndex,rows])=>[
+    socketIndex,
+    (rows||[]).filter(row=>row?.canInsert!==false).map(row=>{
+      const hash=Number(row?.plugItemHash??row?.plugHash);
+      const definition=definitionFor(payload,hash);
+      if(!Number.isInteger(hash)||!definition)return null;
+      return {hash,bungieHash:hash,name:definition.displayProperties?.name||`Destiny perk ${hash}`,description:definition.displayProperties?.description||"",icon:definition.displayProperties?.icon||"",definition,socketIndex:Number(socketIndex),canInsert:true};
+    }).filter(Boolean)
+  ]).filter(([,rows])=>rows.length));
+}
+
 function instanceData(profile,rawItem){
   if(!rawItem?.itemInstanceId)return null;
   return profile?.itemComponents?.instances?.data?.[rawItem.itemInstanceId]||null;
@@ -163,7 +177,8 @@ function enrichWeapons(detail,payload,profile,rows){
       item:rawItem,
       plugs,
       instance:instanceData(profile,rawItem),
-      stats:statData(profile,rawItem)
+      stats:statData(profile,rawItem),
+      alternativeColumns:alternativeColumnsFor(rawItem,profile,payload)
     });
     return {
       ...item,
