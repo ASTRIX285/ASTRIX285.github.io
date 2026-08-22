@@ -56,9 +56,6 @@ function armourSummary(item){
   const s=item?.armourSemantics;
   if(!s)return "";
   const rows=[];
-  // Tier 5 is already communicated by the verified gold masterwork frame.
-  // Preserve visible ranks 1-4, but do not duplicate the max-rank state.
-  if(s.tier!=null&&Number(s.tier)<5)rows.push(chip(`T${s.tier}`));
   if(s.energy?.capacity!=null)rows.push(chip(`Energy ${s.energy.used??0}/${s.energy.capacity}`));
   if(s.masterwork)rows.push(chip(text(s.masterwork),"active"));
   if(s.exoticPerk)rows.push(chip(text(s.exoticPerk),"active"));
