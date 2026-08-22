@@ -93,6 +93,13 @@ function weaponSubtitle(item){
   return parts.filter(Boolean).join(" · ")||"No active perk evidence resolved";
 }
 
+function weaponMasterworkRank(item){
+  if(item?.isExotic)return 10;
+  const plug=item?.weaponSemantics?.masterwork;
+  const values=(plug?.definition?.investmentStats||[]).map(row=>Math.abs(Number(row?.value))).filter(Number.isFinite);
+  return values.length?Math.max(0,Math.min(10,values[0])):null;
+}
+
 function renderWeapons(weapons=[]){
   const cards=[...document.querySelectorAll(".gear-weapons .weap-grid .weap")];
   cards.forEach((card,index)=>{
@@ -103,15 +110,18 @@ function renderWeapons(weapons=[]){
     card._astrixWeapon=item;
     const art=card.querySelector(".art");
     const icon=bungieIcon(item.icon);
-    const rank=Number(item.weaponLevel??item.rank??item.itemLevel);
+    const rank=weaponMasterworkRank(item);
     const hasRank=Number.isFinite(rank)&&rank>0;
     const seasonIcon=bungieIcon(item.tierIcon??item.definition?.iconWatermark??item.definition?.quality?.displayVersionWatermarkIcons?.[0]);
     const gearTier=Math.max(0,Math.min(5,Number(item.gearTier)||0));
     card.classList.toggle("is-level-gold",hasRank&&rank>=10);
+    const intrinsicIcon=bungieIcon(item.weaponSemantics?.intrinsic?.icon);
+    const championIcon=bungieIcon(item.breakerDefinition?.displayProperties?.icon);
+    const elementIcon=bungieIcon(item.elementDefinition?.displayProperties?.icon||item.elementDefinition?.transparentIconPath);
     if(art){
       art.classList.toggle("ph",!icon);
       const power=Number(item.power)||"—";
-      art.innerHTML=`<span class="pw">${esc(power)}</span>${seasonIcon||gearTier?`<span class="weapon-tier-rail">${seasonIcon?`<span class="weapon-season-icon" title="Season/source emblem"><img src="${esc(seasonIcon)}" alt=""></span>`:""}${Array.from({length:gearTier},()=>'<i class="weapon-tier-diamond" aria-hidden="true"></i>').join("")}</span>`:""}${hasRank?`<span class="weapon-rank" title="Bungie weapon rank">LVL ${esc(rank)}</span>`:""}${icon?`<img src="${esc(icon)}" alt="${esc(item.name||"Weapon")}">`:'<span class="ph-glyph">⌖</span>'}`;
+      art.innerHTML=`${icon?`<img class="weapon-art-image" src="${esc(icon)}" alt="${esc(item.name||"Weapon")}">`:'<span class="ph-glyph">⌖</span>'}${seasonIcon||gearTier?`<span class="weapon-tier-rail">${seasonIcon?`<span class="weapon-season-icon" title="Season/source emblem"><img src="${esc(seasonIcon)}" alt=""></span>`:""}${Array.from({length:gearTier},()=>'<i class="weapon-tier-diamond" aria-hidden="true"></i>').join("")}</span>`:""}<span class="weapon-right-rail">${intrinsicIcon?`<span class="weapon-corner-icon" title="Intrinsic trait"><img src="${esc(intrinsicIcon)}" alt=""></span>`:""}${championIcon?`<span class="weapon-corner-icon" title="Champion capability"><img src="${esc(championIcon)}" alt=""></span>`:""}</span>${hasRank?`<span class="weapon-rank" title="Weapon mod rank">LVL ${esc(rank)}</span>`:""}<span class="weapon-power">${elementIcon?`<img src="${esc(elementIcon)}" alt="">`:""}<b>${esc(power)}</b></span>`;
     }
     const cap=card.querySelector(".cap");
     if(cap)cap.innerHTML=`<b>${esc(item.name||"Weapon")}</b><small title="${esc(weaponSubtitle(item))}">${esc(weaponSubtitle(item))}</small>`;

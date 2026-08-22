@@ -151,8 +151,9 @@ const isGrenadePlug=plug=>matchesCategory(plug,["grenade"],/grenade/);
 const isAspectPlug=plug=>matchesCategory(plug,["aspect"],/aspect/);
 const isFragmentPlug=plug=>matchesCategory(plug,["fragment"],/fragment/);
 
-function normaliseItem(profile,definitions,item){
+function normaliseItem(profile,definitions,item,payload={}){
   const base=displayItem(definitions,item.itemHash);
+  const override=Number.isInteger(Number(item?.overrideStyleItemHash))?displayItem(definitions,Number(item.overrideStyleItemHash)):null;
   const instance=item.itemInstanceId?profile?.itemComponents?.instances?.data?.[item.itemInstanceId]:null;
   const socketCoverage=socketResolution(profile,definitions,item);
   const plugs=socketCoverage.plugs;
@@ -170,11 +171,18 @@ function normaliseItem(profile,definitions,item){
   });
   return {
     ...base,
+    icon:override?.definition&&Object.keys(override.definition).length?override.icon:base.icon,
+    exactStyleHash:override?.definition&&Object.keys(override.definition).length?Number(item.overrideStyleItemHash):null,
+    isHolofoil:Boolean((override?.definition||base.definition)?.isHolofoil),
+    versionNumber:Number.isInteger(Number(item?.versionNumber))?Number(item.versionNumber):null,
     power:instance?.primaryStat?.value??null,
     itemLevel:Number.isFinite(Number(instance?.itemLevel))?Number(instance.itemLevel):null,
     gearTier:Number.isFinite(Number(instance?.gearTier))?Number(instance.gearTier):null,
     quality:Number.isFinite(Number(instance?.quality))?Number(instance.quality):null,
     state:Number(item?.state??0),
+    damageTypeHash:instance?.damageTypeHash??base.definition?.defaultDamageTypeHash??null,
+    elementDefinition:payload?.damageDefinitions?.[String(instance?.damageTypeHash??base.definition?.defaultDamageTypeHash)]||null,
+    breakerDefinition:payload?.breakerDefinitions?.[String(instance?.breakerTypeHash??base.definition?.breakerTypeHash)]||null,
     isExotic:String(base.tier).toLowerCase()==="exotic",
     shader,
     ornament,
@@ -274,8 +282,8 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   if(!character?.characterId)throw new Error("No Destiny character was returned for this membership.");
   const equipment=profile?.characterEquipment?.data?.[character.characterId]?.items||[];
   const byBucket=hash=>equipment.find(item=>definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===hash)||null;
-  const weapons=WEAPON_ORDER.map(hash=>byBucket(hash)).filter(Boolean).map(item=>normaliseItem(profile,definitions,item));
-  const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item):null);
+  const weapons=WEAPON_ORDER.map(hash=>byBucket(hash)).filter(Boolean).map(item=>normaliseItem(profile,definitions,item,payload));
+  const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
   const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],aspects:[],fragments:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
@@ -374,6 +382,8 @@ function mergeLoadoutContext(payload){
     }
   };
   payload.definitions={...(live.definitions||{}),...(payload.definitions||{})};
+  payload.damageDefinitions={...(live.damageDefinitions||{}),...(payload.damageDefinitions||{})};
+  payload.breakerDefinitions={...(live.breakerDefinitions||{}),...(payload.breakerDefinitions||{})};
   payload.recordDefinitions={...(live.recordDefinitions||{}),...(payload.recordDefinitions||{})};
   payload.gearAssets={...(live.gearAssets||{}),...(payload.gearAssets||{})};
   payload.artifactDefinition=payload.artifactDefinition||live.artifactDefinition||null;
