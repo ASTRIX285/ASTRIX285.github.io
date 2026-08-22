@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-evidence.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space/**'
+      - 'astrix-app/tools/test-shooting-range-evidence.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/shooting-range-test/**'
       - '.github/workflows/validate-shooting-range-capture.yml'
 
@@ -16,12 +19,18 @@ jobs:
         with:
           node-version: '22'
       - name: Syntax check capture module
-        run: node --check astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
+        run: |
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-evidence.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs
+      - name: Test candidate and evidence classification
+        run: node astrix-app/tools/test-shooting-range-evidence.mjs
       - name: Validate evidence-first contract
         run: |
           grep -q "backend-route-missing" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
           grep -q "baselineInstanceIds" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
           grep -q "rawPgcr" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
+          grep -q "shootingRangeIdentification:'unverified'" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-evidence.mjs
           if grep -q "activityName:'Shooting Range'" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs; then
             echo 'Capture module must not invent a Shooting Range activity identity.'
             exit 1

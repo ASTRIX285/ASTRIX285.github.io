@@ -1,4 +1,5 @@
 import {AUTH_ORIGIN,getBungieSession} from './guardian-bungie-auth.mjs';
+import {selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence} from './guardian-shooting-range-evidence.mjs';
 
 const CAPTURE_KEY='astrix:shooting-range-capture:v1';
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
@@ -196,32 +197,40 @@ async function armShootingRangeCapture({characterId=null,buildSnapshot=null}={})
   return saveCapture(capture);
 }
 
-function isAfterArmed(activity,armedAt){
-  const period=Date.parse(activity?.period||'');
-  const armed=Date.parse(armedAt||'');
-  return Number.isFinite(period)&&Number.isFinite(armed)?period>=armed:false;
-}
-
 async function collectShootingRangeResults({maxCandidates=5}={}){
   const capture=readCapture();
   if(!capture)throw new Error('No Shooting Range capture is armed.');
   const session=await getBungieSession();
   const history=await pullActivityHistory({session,characterId:capture.characterId,count:25,page:0});
-  const baseline=new Set(capture.baselineInstanceIds||[]);
-  const candidates=history.activities
-    .filter(row=>!baseline.has(row.instanceId)||isAfterArmed(row,capture.armedAt))
+  const baselineAvailable=!capture.baselineError;
+  const candidates=selectCandidateActivities({
+    activities:history.activities,
+    baselineInstanceIds:capture.baselineInstanceIds||[],
+    armedAt:capture.armedAt,
+    baselineAvailable
+  })
     .sort((a,b)=>String(b.period).localeCompare(String(a.period)))
     .slice(0,Math.max(1,Number(maxCandidates)||5));
   const results=[];
   for(const candidate of candidates){
     try{
       const pulled=await pullPgcr(candidate.instanceId);
-      results.push({activity:candidate,pgcr:summarizePgcr(pulled.pgcr,{membershipId:history.membership.membershipId,characterId:capture.characterId}),rawPgcr:pulled.payload,pgcrEndpoint:pulled.endpoint});
+      const pgcr=summarizePgcr(pulled.pgcr,{membershipId:history.membership.membershipId,characterId:capture.characterId});
+      results.push({activity:candidate,pgcr,evidence:classifyCandidateEvidence({activity:candidate,pgcr}),rawPgcr:pulled.payload,pgcrEndpoint:pulled.endpoint});
     }catch(error){
-      results.push({activity:candidate,pgcr:null,error:{message:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null}});
+      const failure={message:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null};
+      results.push({activity:candidate,pgcr:null,evidence:classifyCandidateEvidence({activity:candidate,error:failure}),error:failure});
     }
   }
-  const completed={...capture,status:'collected',collectedAt:new Date().toISOString(),historyEndpoint:history.endpoint,candidates:results};
+  const completed={
+    ...capture,
+    status:'collected',
+    collectedAt:new Date().toISOString(),
+    historyEndpoint:history.endpoint,
+    baselineStatus:baselineAvailable?'available':'unavailable',
+    candidates:results,
+    evidenceSummary:summarizeCaptureEvidence(results)
+  };
   saveCapture(completed);
   return completed;
 }
