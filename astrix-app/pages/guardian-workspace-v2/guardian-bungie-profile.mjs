@@ -1,4 +1,5 @@
 import {getBungieSession} from "./guardian-bungie-auth.mjs";
+import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
@@ -43,7 +44,7 @@ const absoluteIcon=path=>path?new URL(path,BUNGIE_ORIGIN).toString():"";
 const definition=(definitions,hash)=>definitions?.[String(hash)]||null;
 const displayItem=(definitions,hash)=>{
   const row=definition(definitions,hash)||{};
-  return {hash:Number(hash),bungieHash:Number(hash),name:row.displayProperties?.name||`Destiny item ${hash}`,description:row.displayProperties?.description||"",icon:absoluteIcon(row.displayProperties?.icon),tier:row.inventory?.tierTypeName||"",itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
+  return {hash:Number(hash),bungieHash:Number(hash),name:row.displayProperties?.name||`Destiny item ${hash}`,description:row.displayProperties?.description||"",icon:absoluteIcon(row.displayProperties?.icon),tier:row.inventory?.tierTypeName||"",tierType:Number(row.inventory?.tierType??0),tierTypeHash:row.inventory?.tierTypeHash??null,tierIcon:absoluteIcon(row.iconWatermark||row.quality?.displayVersionWatermarkIcons?.[0]),itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
 };
 
 function classifySubclass(item){
@@ -151,8 +152,9 @@ const isGrenadePlug=plug=>matchesCategory(plug,["grenade"],/grenade/);
 const isAspectPlug=plug=>matchesCategory(plug,["aspect"],/aspect/);
 const isFragmentPlug=plug=>matchesCategory(plug,["fragment"],/fragment/);
 
-function normaliseItem(profile,definitions,item){
+function normaliseItem(profile,definitions,item,payload={}){
   const base=displayItem(definitions,item.itemHash);
+  const override=Number.isInteger(Number(item?.overrideStyleItemHash))?displayItem(definitions,Number(item.overrideStyleItemHash)):null;
   const instance=item.itemInstanceId?profile?.itemComponents?.instances?.data?.[item.itemInstanceId]:null;
   const socketCoverage=socketResolution(profile,definitions,item);
   const plugs=socketCoverage.plugs;
@@ -170,7 +172,18 @@ function normaliseItem(profile,definitions,item){
   });
   return {
     ...base,
+    icon:override?.definition&&Object.keys(override.definition).length?override.icon:base.icon,
+    exactStyleHash:override?.definition&&Object.keys(override.definition).length?Number(item.overrideStyleItemHash):null,
+    isHolofoil:Boolean((override?.definition||base.definition)?.isHolofoil),
+    versionNumber:Number.isInteger(Number(item?.versionNumber))?Number(item.versionNumber):null,
     power:instance?.primaryStat?.value??null,
+    itemLevel:Number.isFinite(Number(instance?.itemLevel))?Number(instance.itemLevel):null,
+    gearTier:Number.isFinite(Number(instance?.gearTier))?Number(instance.gearTier):null,
+    quality:Number.isFinite(Number(instance?.quality))?Number(instance.quality):null,
+    state:Number(item?.state??0),
+    damageTypeHash:instance?.damageTypeHash??base.definition?.defaultDamageTypeHash??null,
+    elementDefinition:payload?.damageDefinitions?.[String(instance?.damageTypeHash??base.definition?.defaultDamageTypeHash)]||null,
+    breakerDefinition:payload?.breakerDefinitions?.[String(instance?.breakerTypeHash??base.definition?.breakerTypeHash)]||null,
     isExotic:String(base.tier).toLowerCase()==="exotic",
     shader,
     ornament,
@@ -228,29 +241,7 @@ function subclassConfiguration(profile,definitions,item){
 }
 
 function currentArtifact(payload,characterId){
-  const profile=payload?.profile||{};
-  const definitions=payload?.definitions||{};
-  const artifactHash=Number(profile?.profileProgression?.data?.seasonalArtifact?.artifactHash);
-  const artifactDefinition=payload?.artifactDefinition||null;
-  if(!Number.isFinite(artifactHash)&&!artifactDefinition)return null;
-  const seasonalArtifact=profile?.characterProgressions?.data?.[characterId]?.seasonalArtifact||{};
-  const tierItems=(seasonalArtifact.tiers||[]).flatMap(tier=>tier?.items||[]);
-  const perks=tierItems.map(item=>{
-    const row=displayItem(definitions,item.itemHash);
-    return {...row,isActive:Boolean(item.isActive),isVisible:item.isVisible!==false};
-  });
-  const hash=Number.isFinite(artifactHash)?artifactHash:Number(artifactDefinition?.hash);
-  return {
-    hash,
-    bungieHash:hash,
-    name:artifactDefinition?.displayProperties?.name||`Seasonal Artifact ${hash}`,
-    description:artifactDefinition?.displayProperties?.description||"",
-    icon:absoluteIcon(artifactDefinition?.displayProperties?.icon),
-    definition:artifactDefinition||{},
-    perks,
-    activePerks:perks.filter(item=>item.isActive),
-    coverage:payload?.artifactCoverage||null
-  };
+  return resolveArtifactByProvenance(payload,characterId);
 }
 
 function identityCosmetics(profile,definitions,equipment,character){
@@ -270,8 +261,8 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   if(!character?.characterId)throw new Error("No Destiny character was returned for this membership.");
   const equipment=profile?.characterEquipment?.data?.[character.characterId]?.items||[];
   const byBucket=hash=>equipment.find(item=>definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===hash)||null;
-  const weapons=WEAPON_ORDER.map(hash=>byBucket(hash)).filter(Boolean).map(item=>normaliseItem(profile,definitions,item));
-  const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item):null);
+  const weapons=WEAPON_ORDER.map(hash=>byBucket(hash)).filter(Boolean).map(item=>normaliseItem(profile,definitions,item,payload));
+  const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
   const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],aspects:[],fragments:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
@@ -307,6 +298,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     aspects:subclassBuild.aspects,
     fragments:subclassBuild.fragments,
     artifact,
+    artifactConfiguration:artifact?.artifactConfiguration||null,
     hashCoverage,
     power:character.light??null,
     guardianRank:rank,
@@ -370,6 +362,8 @@ function mergeLoadoutContext(payload){
     }
   };
   payload.definitions={...(live.definitions||{}),...(payload.definitions||{})};
+  payload.damageDefinitions={...(live.damageDefinitions||{}),...(payload.damageDefinitions||{})};
+  payload.breakerDefinitions={...(live.breakerDefinitions||{}),...(payload.breakerDefinitions||{})};
   payload.recordDefinitions={...(live.recordDefinitions||{}),...(payload.recordDefinitions||{})};
   payload.gearAssets={...(live.gearAssets||{}),...(payload.gearAssets||{})};
   payload.artifactDefinition=payload.artifactDefinition||live.artifactDefinition||null;
@@ -436,7 +430,8 @@ async function loadLiveProfile(session,{background=false}={}){
   const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
   liveProfilePayload=payload;
   liveProfileSession=session;
-  const selectedCharacterId=rememberedCharacterId(payload.profile);
+  const selectedCharacterId=rememberedCharacterId(payload.profile)||String(activeCharacter(payload.profile)?.characterId||"");
+  if(selectedCharacterId)rememberCharacterId(selectedCharacterId);
   publishCharacterRoster(payload,selectedCharacterId);
 
   document.documentElement.dataset.guardianSource="bungie-live";

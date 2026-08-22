@@ -1,4 +1,4 @@
-/* guardian-artifact.mjs — Paradox Forge Artifact ownership.
+/* guardian-artifact.mjs — Guardian Build Forge Artifact ownership.
  * Live Bungie state is authoritative for live Guardians/loadouts.
  * Fixture/DIM test builds fall back to the beta manifest picker.
  */
@@ -21,6 +21,7 @@ let artifactDef=null;
 let currentFixtureId=null;
 let selected=[];
 let currentMode='fixture';
+let currentArtifactState='intended';
 let liveArtifact=null;
 let livePerksByHash=new Map();
 
@@ -111,13 +112,14 @@ function renderArtifactDisplay(){
     row.style.cursor=currentMode==='live'?'default':'pointer';
   }
 
-  const perks=selected.map(perkIdentity);
+  const stateUnavailable=currentMode==='live'&&currentArtifactState==='state-unavailable';
+  const perks=stateUnavailable?[]:selected.map(perkIdentity);
   if(perksEl){
-    perksEl.dataset.artifactState=perks.length?'active':'none-active';
-    perksEl.title=perks.length?`${perks.length} active Artifact perk(s) resolved from Bungie`:(currentMode==='live'?'No active Artifact perks resolved from Bungie':'No fixture Artifact perks selected');
+    perksEl.dataset.artifactState=stateUnavailable?'state-unavailable':(perks.length?'active':'none-active');
+    perksEl.title=stateUnavailable?'Live Artifact activation state is unavailable.':(perks.length?`${perks.length} active Artifact perk(s) resolved from Bungie`:(currentMode==='live'?'Bungie reports no active Artifact perks':'No fixture Artifact perks selected'));
     if(!perks.length){
       perksEl.innerHTML=currentMode==='live'
-        ? Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join('')
+        ? (stateUnavailable?'<span class="art-empty">ARTIFACT STATE UNAVAILABLE</span>':Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join(''))
         : '<button type="button" class="art-empty" tabindex="-1">Choose Artifact perks</button>';
     }else{
       const shown=perks.slice(0,PANEL_ICONS);
@@ -127,7 +129,10 @@ function renderArtifactDisplay(){
     }
   }
 
-  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{artifact:id,perks,currentFixtureId,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
+  const artifactConfiguration=currentMode==='live'
+    ?liveArtifact?.artifactConfiguration||null
+    :{schemaVersion:1,artifactHash:Number.isFinite(hashOf(id))?hashOf(id):null,seasonNumber:Number.isFinite(Number(artifactDef?.seasonNumber))?Number(artifactDef.seasonNumber):null,selectedPerkHashes:selected.slice(),source:'fixture-intent',provenance:{provider:'paradox-fixture',fixtureId:currentFixtureId,manifest:'beta-bungie-manifest-cache'}};
+  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{artifact:id,perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
 }
 
 function closePicker(){qs('#astrixArtifactModal')?.remove();}
@@ -140,7 +145,7 @@ function openPicker(){
   const tiersHtml=tiers.map(t=>`<section class="beta-artifact-tier"><h3>TIER ${t.tier}</h3><div class="beta-artifact-grid">${t.perks.map(p=>`<button type="button" class="beta-artifact-choice ${draft.includes(p.hash)?'selected':''} ${p.unresolved?'unresolved':''}" data-perk-hash="${p.hash}" title="${esc([p.name,p.description].filter(Boolean).join(' — '))}"><span class="beta-artifact-icon">${p.icon?`<img src="${esc(p.icon)}" alt="">`:'◆'}</span><b>${esc(p.name)}</b></button>`).join('')}</div></section>`).join('');
   const wrap=document.createElement('div');
   wrap.id='astrixArtifactModal';wrap.className='beta-modal-backdrop';
-  wrap.innerHTML=`<section class="beta-modal beta-artifact-modal" role="dialog" aria-modal="true"><header><div><small>PARADOX FORGE BETA</small><h2>${esc(id?.name||'Seasonal Artifact')}</h2></div><button type="button" data-close>✕</button></header><div class="beta-modal-body"><p class="beta-note">Fixture/DIM builds can supply Artifact selections here. Live Bungie Guardians are read-only and always use Bungie's active state.</p><div class="beta-artifact-summary"><b>${esc(id?.name||'Seasonal Artifact')}</b><span id="artifactCount">${draft.length}/${MAX_PERKS} selected</span></div><div class="beta-artifact-tiers">${tiersHtml}</div></div><footer><button type="button" class="beta-menu-item" data-artifact-clear>CLEAR</button><button type="button" class="beta-primary" data-artifact-apply>APPLY ARTIFACT</button></footer></section>`;
+  wrap.innerHTML=`<section class="beta-modal beta-artifact-modal" role="dialog" aria-modal="true"><header><div><small>GUARDIAN BUILD FORGE BETA</small><h2>${esc(id?.name||'Seasonal Artifact')}</h2></div><button type="button" data-close>✕</button></header><div class="beta-modal-body"><p class="beta-note">Fixture/DIM builds can supply Artifact selections here. Live Bungie Guardians are read-only and always use Bungie's active state.</p><div class="beta-artifact-summary"><b>${esc(id?.name||'Seasonal Artifact')}</b><span id="artifactCount">${draft.length}/${MAX_PERKS} selected</span></div><div class="beta-artifact-tiers">${tiersHtml}</div></div><footer><button type="button" class="beta-menu-item" data-artifact-clear>CLEAR</button><button type="button" class="beta-primary" data-artifact-apply>APPLY ARTIFACT</button></footer></section>`;
   closePicker();document.body.appendChild(wrap);
   wrap.addEventListener('click',e=>{if(e.target===wrap||e.target.closest('[data-close]'))closePicker();});
   qsa('[data-perk-hash]',wrap).forEach(btn=>btn.addEventListener('click',()=>{const hash=Number(btn.dataset.perkHash);const at=draft.indexOf(hash);if(at>=0){draft.splice(at,1);btn.classList.remove('selected');}else if(draft.length<MAX_PERKS){draft.push(hash);btn.classList.add('selected');}const c=qs('#artifactCount',wrap);if(c)c.textContent=`${draft.length}/${MAX_PERKS} selected`;}));
@@ -169,13 +174,13 @@ async function onSelection(detail={}){
   const liveMode=['bungie-live','bungie-loadout','bungie-selected-loadout'].includes(String(detail?.source||'').toLowerCase());
   if(liveMode){
     const view=resolveArtifactViewState(detail,{});
-    currentMode='live';currentFixtureId=null;liveArtifact=view.artifact;selected=view.selectedHashes;
+    currentMode='live';currentArtifactState=view.state;currentFixtureId=null;liveArtifact=view.artifact;selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];
     livePerksByHash=new Map([...(view.allPerks||[]),...(view.perks||[])].map(item=>[Number(item.hash),item]));
     renderArtifactDisplay();wireRow();return;
   }
 
   try{await ensureManifest();}catch(err){console.error('[Paradox artifact]',err);return;}
-  currentMode='fixture';liveArtifact=null;livePerksByHash=new Map();currentFixtureId=detail?.fixtureId??currentFixtureId;
+  currentMode='fixture';currentArtifactState='intended';liveArtifact=null;livePerksByHash=new Map();currentFixtureId=detail?.fixtureId??currentFixtureId;
   const view=resolveArtifactViewState(detail,{fixtureArtifact:fixtureArtifactIdentity(),fixtureSelected:selectionForFixture(detail)});
   selected=view.selectedHashes;renderArtifactDisplay();wireRow();
 }
