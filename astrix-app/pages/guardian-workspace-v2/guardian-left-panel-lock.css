@@ -383,3 +383,16 @@ html body .workspace>.left .super-feature__name{
   html body .workspace>.left .super-diamond--alt2{left:calc(50% + 40px)!important;top:150px!important}
   html body .workspace>.left .super-diamond--alt3{top:188px!important}
 }
+
+
+/* Preserve the approved large Super without clipping it against the desktop rail. */
+@media (min-width:981px) and (max-width:1499px){
+  html body .workspace{
+    grid-template-columns:clamp(360px,25vw,380px) minmax(0,1fr)!important;
+  }
+}
+@media (min-width:1500px){
+  html body .workspace{
+    grid-template-columns:clamp(400px,22vw,420px) minmax(0,1fr)!important;
+  }
+}
