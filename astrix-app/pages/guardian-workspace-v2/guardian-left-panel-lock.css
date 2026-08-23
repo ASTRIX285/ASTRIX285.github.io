@@ -483,3 +483,16 @@ html body .workspace>.left .prismatic-transcendence__slot img{
   html body .workspace>.left .prismatic-transcendence{top:20px!important;right:0!important}
   html body .workspace>.left .prismatic-transcendence__slot{width:30px!important;height:30px!important}
 }
+
+
+/* Final formation containment after the approved size pass. */
+@media (min-width:1500px){
+  html body .workspace>.left .super-feature__cluster{transform:translateX(-47px)!important}
+}
+@media (min-width:721px) and (max-width:1499px){
+  html body .workspace>.left .super-feature__cluster{transform:translateX(-40px)!important}
+  html body .workspace>.left .super-diamond--equipped{width:142px!important}
+}
+@media (max-width:720px){
+  html body .workspace>.left .super-feature__cluster{transform:none!important}
+}
