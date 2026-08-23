@@ -1,6 +1,12 @@
 const asString=value=>String(value??'').trim();
 const positiveHash=value=>Number.isInteger(Number(value))&&Number(value)>0?Number(value):null;
 
+function captureMatchesCharacter(capture,characterId){
+  const capturedCharacterId=asString(capture?.characterId);
+  const currentCharacterId=asString(characterId);
+  return Boolean(capturedCharacterId&&currentCharacterId&&capturedCharacterId===currentCharacterId);
+}
+
 function periodAtOrAfterArmed(period,armedAt){
   const periodMs=Date.parse(asString(period));
   const armedMs=Date.parse(asString(armedAt));
@@ -64,4 +70,4 @@ function summarizeCaptureEvidence(results=[]){
   };
 }
 
-export {periodAtOrAfterArmed,selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence};
+export {captureMatchesCharacter,periodAtOrAfterArmed,selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence};
