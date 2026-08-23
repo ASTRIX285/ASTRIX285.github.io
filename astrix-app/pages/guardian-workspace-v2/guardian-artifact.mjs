@@ -24,6 +24,7 @@ let currentMode='fixture';
 let currentArtifactState='intended';
 let liveArtifact=null;
 let livePerksByHash=new Map();
+let currentSelectionContext={characterId:'',selectedLoadoutIndex:null};
 
 async function ensureManifest(){
   if(manifest)return;
@@ -132,7 +133,7 @@ function renderArtifactDisplay(){
   const artifactConfiguration=currentMode==='live'
     ?liveArtifact?.artifactConfiguration||null
     :{schemaVersion:1,artifactHash:Number.isFinite(hashOf(id))?hashOf(id):null,seasonNumber:Number.isFinite(Number(artifactDef?.seasonNumber))?Number(artifactDef.seasonNumber):null,selectedPerkHashes:selected.slice(),source:'fixture-intent',provenance:{provider:'paradox-fixture',fixtureId:currentFixtureId,manifest:'beta-bungie-manifest-cache'}};
-  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{artifact:id,perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
+  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{...currentSelectionContext,artifact:id,perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
 }
 
 function closePicker(){qs('#astrixArtifactModal')?.remove();}
@@ -171,6 +172,7 @@ function installStyles(){
 }
 
 async function onSelection(detail={}){
+  currentSelectionContext={characterId:String(detail?.characterId||''),selectedLoadoutIndex:Number.isInteger(detail?.selectedLoadoutIndex)?detail.selectedLoadoutIndex:null};
   const liveMode=['bungie-live','bungie-loadout','bungie-selected-loadout'].includes(String(detail?.source||'').toLowerCase());
   if(liveMode){
     const view=resolveArtifactViewState(detail,{});
