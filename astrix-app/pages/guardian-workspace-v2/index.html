@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="./guardian-adaptive-layout.css?v=20260822-3">
   <link rel="stylesheet" href="./guardian-left-panel-super-feature.css">
   <link rel="stylesheet" href="./guardian-mobile.css?v=20260822-3">
-  <link rel="stylesheet" href="./guardian-layout-final.css">
+  <link rel="stylesheet" href="./guardian-layout-final.css">\n  <link rel="stylesheet" href="./astrix-build-loading-gate.css?v=20260823-1">
   <style>
     /* ================================================================
        LOCKED: SUBCLASS + SUPER PRESENTATION
@@ -188,7 +188,7 @@
     }
   </style>
 </head>
-<body>
+<body class="is-build-loading">\n  <div class="build-loading-gate" id="buildLoadingGate" role="dialog" aria-modal="true" aria-labelledby="buildLoadingStage" aria-describedby="buildLoadingMessage" data-status="loading">\n    <div class="build-loading-gate__panel">\n      <div class="build-loading-gate__donut" role="progressbar" aria-label="Guardian data loading progress" aria-valuemin="0" aria-valuemax="100"><span class="build-loading-gate__value" id="buildLoadingProgress">20%</span></div>\n      <img class="build-loading-gate__brand" id="buildLoadingBrand" src="../../../img/logo.png" alt="ASTRIX PARADOX">\n      <p class="build-loading-gate__stage" id="buildLoadingStage">Preparing Build Forge</p>\n      <p class="build-loading-gate__message" id="buildLoadingMessage">Restoring the current workspace before Bungie data is resolved.</p>\n      <button type="button" class="build-loading-gate__action" id="buildLoadingAction" hidden>Try again</button>\n    </div>\n  </div>
   <header class="topbar">
     <div class="brand"><img class="brand-logo" src="../../../img/logo.png" alt="ASTRIX PARADOX logo"><div><div class="nm">ASTRIX <span class="brand-accent">PARADOX</span></div><div class="sub">AI GAMING INTELLIGENCE</div></div></div>
     <div class="ws-label">GUARDIAN BUILD FORGE</div>
@@ -249,12 +249,12 @@
 
   <div class="actionbar"><div class="grp"><button class="ab-btn">▤ LOADOUTS</button><button class="ab-btn">⤬ COMPARE</button></div><button class="improve-cta">✦ IMPROVE MY GUARDIAN</button><div class="grp"><button class="ab-btn">🖫 SAVE LOADOUT</button><button class="ab-btn">⤴ SHARE</button><button class="ab-btn">•••</button></div></div>
 
-  <script type="module" src="./guardian-workspace-v2.mjs?v=20260822-2"></script>
+  <script type="module" src="./astrix-build-loading-gate.mjs?v=20260823-1"></script>\n  <script type="module" src="./guardian-workspace-v2.mjs?v=20260822-2"></script>
   <script type="module" src="./guardian-character-cards.mjs"></script>
   <script type="module" src="./guardian-gear-layout.mjs"></script>
   <script type="module" src="./guardian-beta-armour-layout.mjs"></script>
   <script type="module" src="./guardian-advisor-layer.mjs"></script>
-  <script type="module" src="./guardian-super-feature-sync.mjs?v=20260823-main-pass-4"></script>
+  <script type="module" src="./guardian-super-feature-sync.mjs?v=20260823-main-pass-5"></script>
   <script type="module" src="./guardian-beta-readiness.mjs"></script>
   <script type="module" src="./guardian-beta-runtime.mjs?v=20260822-2"></script>
   <script type="module" src="./paradox-build-space-handoff.mjs?v=20260822-1"></script>
