@@ -396,3 +396,90 @@ html body .workspace>.left .super-feature__name{
     grid-template-columns:clamp(400px,22vw,420px) minmax(0,1fr)!important;
   }
 }
+
+
+/* Prismatic-only Super geometry. Satellite identity is set only from verified data. */
+html body .workspace>.left .super-feature__cluster.is-prismatic{
+  width:286px!important;
+  height:306px!important;
+  background:radial-gradient(circle at 50% 42%,rgba(229,106,223,.18),transparent 67%)!important;
+}
+html body .workspace>.left .super-feature__cluster.is-prismatic .super-diamond--equipped{
+  top:10px!important;
+  width:176px!important;
+  border-color:#e56adf!important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.16),0 0 25px rgba(229,106,223,.48),inset 0 0 20px rgba(126,95,198,.28)!important;
+}
+html body .workspace>.left .super-diamond--prismatic-satellite{
+  position:absolute!important;
+  width:54px!important;
+  aspect-ratio:1!important;
+  transform:translate(-50%,-50%) rotate(45deg)!important;
+  border:1px solid color-mix(in srgb,var(--satellite-colour,#e56adf) 82%,#fff 18%)!important;
+  background:color-mix(in srgb,var(--satellite-colour,#e56adf) 34%,#0d0912 66%)!important;
+  box-shadow:0 0 13px color-mix(in srgb,var(--satellite-colour,#e56adf) 45%,transparent)!important;
+  overflow:hidden!important;
+}
+html body .workspace>.left .super-diamond--prismatic-satellite>span{
+  transform:rotate(-45deg)!important;
+}
+html body .workspace>.left .super-diamond--prismatic-satellite[data-element="arc"]{--satellite-colour:#79bbea}
+html body .workspace>.left .super-diamond--prismatic-satellite[data-element="solar"]{--satellite-colour:#f0631e}
+html body .workspace>.left .super-diamond--prismatic-satellite[data-element="void"]{--satellite-colour:#7e5fc6}
+html body .workspace>.left .super-diamond--prismatic-satellite[data-element="stasis"]{--satellite-colour:#4d88ff}
+html body .workspace>.left .super-diamond--prismatic-satellite[data-element="strand"]{--satellite-colour:#35e366}
+html body .workspace>.left .super-diamond--prismatic-1{left:13%!important;top:57%!important}
+html body .workspace>.left .super-diamond--prismatic-2{left:87%!important;top:57%!important}
+html body .workspace>.left .super-diamond--prismatic-3{left:25%!important;top:82%!important}
+html body .workspace>.left .super-diamond--prismatic-4{left:50%!important;top:91%!important}
+html body .workspace>.left .super-diamond--prismatic-5{left:75%!important;top:82%!important}
+html body .workspace>.left .prismatic-transcendence{
+  position:absolute!important;
+  z-index:4!important;
+  top:22px!important;
+  right:2px!important;
+  display:grid!important;
+  justify-items:center!important;
+  gap:5px!important;
+}
+html body .workspace>.left .prismatic-transcendence__label{
+  color:#e56adf!important;
+  font-size:7px!important;
+  letter-spacing:.08em!important;
+}
+html body .workspace>.left .prismatic-transcendence__slots{
+  display:flex!important;
+  gap:7px!important;
+}
+html body .workspace>.left .prismatic-transcendence__slot{
+  display:grid!important;
+  place-items:center!important;
+  width:34px!important;
+  height:34px!important;
+  padding:0!important;
+  border:1px solid rgba(229,106,223,.76)!important;
+  border-radius:6px!important;
+  background:rgba(25,12,31,.88)!important;
+  overflow:hidden!important;
+}
+html body .workspace>.left .prismatic-transcendence__slot.is-equipped{
+  box-shadow:0 0 13px rgba(229,106,223,.62)!important;
+  background:rgba(126,95,198,.48)!important;
+}
+html body .workspace>.left .prismatic-transcendence__slot img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+}
+@media (min-width:721px) and (max-width:1499px){
+  html body .workspace>.left .super-feature__cluster.is-prismatic{width:250px!important;height:274px!important}
+  html body .workspace>.left .super-feature__cluster.is-prismatic .super-diamond--equipped{width:150px!important}
+  html body .workspace>.left .super-diamond--prismatic-satellite{width:48px!important}
+}
+@media (max-width:720px){
+  html body .workspace>.left .super-feature__cluster.is-prismatic{width:226px!important;height:252px!important}
+  html body .workspace>.left .super-feature__cluster.is-prismatic .super-diamond--equipped{width:136px!important}
+  html body .workspace>.left .super-diamond--prismatic-satellite{width:44px!important}
+  html body .workspace>.left .prismatic-transcendence{top:20px!important;right:0!important}
+  html body .workspace>.left .prismatic-transcendence__slot{width:30px!important;height:30px!important}
+}
