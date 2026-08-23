@@ -195,7 +195,7 @@ function normaliseItem(profile,definitions,item,payload={}){
   };
 }
 
-function subclassConfiguration(profile,definitions,item){
+function subclassConfiguration(profile,definitions,item,payload={}){
   const socketCoverage=socketResolution(profile,definitions,item);
   const plugs=socketCoverage.plugs;
   const superItem=plugs.find(isSuperPlug)||null;
@@ -222,11 +222,18 @@ function subclassConfiguration(profile,definitions,item){
     superItem,
     ...reusableRows.map(row=>displayItem(definitions,row.plugItemHash??row.plugHash)).filter(row=>row.definition&&Object.keys(row.definition).length>0&&isSuperPlug(row)),
     ...manifestSupers
-  ].filter((row,index,rows)=>row&&rows.findIndex(other=>Number(other.hash)===Number(row.hash))===index);
+  ].filter((row,index,rows)=>row&&rows.findIndex(other=>Number(other.hash)===Number(row.hash))===index)
+    .map(row=>{
+      const damageHash=Number(row?.damageTypeHash??row?.definition?.defaultDamageTypeHash??row?.definition?.damageTypeHashes?.[0]);
+      const elementDefinition=Number.isFinite(damageHash)?payload?.damageDefinitions?.[String(damageHash)]||null:null;
+      return {...row,damageTypeHash:Number.isFinite(damageHash)?damageHash:null,elementDefinition};
+    });
+  const transcendenceOptions=plugs.filter(row=>String(row?.definition?.plug?.plugCategoryIdentifier||row?.plugCategoryIdentifier||'').toLowerCase().includes('transcend'));
 
   return {
     super:superItem,
     superOptions,
+    transcendenceOptions,
     classAbility,
     movement,
     melee,
@@ -265,7 +272,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
-  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],aspects:[],fragments:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
+  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem,payload):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],aspects:[],fragments:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character);
   const artifact=currentArtifact(payload,character.characterId);
   const characterLoadouts=profile?.characterLoadouts?.data?.[character.characterId];

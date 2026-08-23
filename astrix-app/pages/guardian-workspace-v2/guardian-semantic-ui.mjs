@@ -63,6 +63,13 @@ function weaponSubtitle(item){
   return parts.filter(Boolean).join(" · ")||"No active perk evidence resolved";
 }
 
+function isEnhancedPerk(perk){
+  if(perk?.isEnhanced===true||perk?.enhanced===true||perk?.definition?.isEnhanced===true)return true;
+  const category=String(perk?.definition?.plug?.plugCategoryIdentifier||perk?.plugCategoryIdentifier||"").toLowerCase();
+  const traits=[...(perk?.definition?.traitIds||[]),...(perk?.traitIds||[])].map(value=>String(value).toLowerCase());
+  return category.includes("enhanced")||traits.some(value=>value.includes("enhanced"))||/^enhanced\b/i.test(String(perk?.name||perk?.displayProperties?.name||""));
+}
+
 function weaponMasterworkRank(item){
   if(item?.isExotic)return 10;
   const plug=item?.weaponSemantics?.masterwork;
@@ -104,7 +111,7 @@ function renderWeapons(weapons=[]){
     let perkStrip=card.querySelector(".weapon-perk-strip");
     if(!perkStrip){perkStrip=document.createElement("div");perkStrip.className="weapon-perk-strip";perkStrip.setAttribute("aria-label","Resolved weapon perks");card.append(perkStrip);}
     const selectedPerks=(semantics.selectedPerks||[]).filter(perk=>bungieIcon(perk?.icon));
-    perkStrip.innerHTML=selectedPerks.map(perk=>`<span class="weapon-perk-icon ${perk.isEnhanced===true||perk.enhanced===true||perk.definition?.isEnhanced===true?"is-enhanced":""}" title="${esc(perk.name||"Resolved perk")}"><img src="${esc(bungieIcon(perk.icon))}" alt="${esc(perk.name||"")}"></span>`).join("");
+    perkStrip.innerHTML=selectedPerks.map(perk=>`<span class="weapon-perk-icon ${isEnhancedPerk(perk)?"is-enhanced":""}" title="${esc(perk.name||"Resolved perk")}"><img src="${esc(bungieIcon(perk.icon))}" alt="${esc(perk.name||"")}"></span>`).join("");
     perkStrip.hidden=selectedPerks.length===0;
     let supportStrip=card.querySelector(".weapon-support-icons");
     if(!supportStrip){supportStrip=document.createElement("div");supportStrip.className="weapon-support-icons";supportStrip.setAttribute("aria-label","Equipped weapon mod and masterwork");card.append(supportStrip);}
