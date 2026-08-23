@@ -1,0 +1,89 @@
+/* Main workspace mobile corrections: evidence-safe Prismatic layout and compact state-only stage. */
+html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-satellite{
+  position:absolute!important;width:46px!important;height:46px!important;
+  border-color:color-mix(in srgb,var(--satellite-colour,var(--subclass-accent)) 68%,white)!important;
+  background:color-mix(in srgb,var(--satellite-colour,var(--subclass-accent)) 25%,rgba(8,8,10,.88))!important;
+  box-shadow:0 0 10px color-mix(in srgb,var(--satellite-colour,var(--subclass-accent)) 32%,transparent)!important
+}
+html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-satellite>span{
+  width:94%!important;height:94%!important;display:grid!important;place-items:center!important;overflow:hidden!important
+}
+html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-satellite img{
+  width:82%!important;height:82%!important;object-fit:contain!important;transform:none!important
+}
+html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-satellite.is-unresolved{
+  border-style:dashed!important;border-color:rgba(240,178,255,.34)!important;
+  background:rgba(35,20,43,.42)!important;box-shadow:none!important;opacity:.52!important
+}
+html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-1{left:calc(50% - 82px)!important;top:166px!important}
+html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-2{left:calc(50% - 41px)!important;top:202px!important}
+html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-3{left:50%!important;top:218px!important}
+html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-4{left:calc(50% + 41px)!important;top:202px!important}
+html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-5{left:calc(50% + 82px)!important;top:166px!important}
+
+html body .workspace .left .prismatic-transcendence{
+  position:absolute;z-index:12;right:2px;top:16px;display:grid;gap:5px;justify-items:center;
+  color:#efb5ff;font:700 .48rem Orbitron,sans-serif;letter-spacing:.12em
+}
+html body .workspace .left .prismatic-transcendence__slots{display:flex;gap:5px}
+html body .workspace .left .prismatic-transcendence__slot{
+  width:34px;height:34px;padding:0;display:grid;place-items:center;overflow:hidden;
+  border:1px solid rgba(240,178,255,.65);border-radius:7px;background:rgba(52,22,61,.76)
+}
+html body .workspace .left .prismatic-transcendence__slot>span{width:100%;height:100%;display:grid;place-items:center}
+html body .workspace .left .prismatic-transcendence__slot img{width:88%;height:88%;object-fit:contain}
+html body .workspace .left .prismatic-transcendence__slot.is-unresolved{
+  border-style:dashed;opacity:.52;background:rgba(28,20,34,.62)
+}
+
+@media(max-width:620px){
+  html body .workspace .left .subclass-super-shell{
+    grid-template-columns:126px minmax(0,1fr)!important;grid-template-rows:auto!important;
+    gap:10px!important;min-height:304px!important
+  }
+  html body .workspace .left .subclass-rail{grid-column:1!important;grid-row:1!important}
+  html body .workspace .left .super-feature{
+    grid-column:2!important;grid-row:1!important;min-height:304px!important;
+    height:304px!important;padding-bottom:34px!important
+  }
+  html body .workspace .left .super-feature__cluster{
+    width:210px!important;height:248px!important;margin-top:2px!important
+  }
+  html body .workspace .left .super-diamond--equipped{width:140px!important;top:2px!important}
+  html body .workspace .left .super-diamond--alt{width:46px!important}
+  html body .workspace .left .super-diamond--alt1{left:calc(50% - 38px)!important;top:156px!important}
+  html body .workspace .left .super-diamond--alt2{left:calc(50% + 38px)!important;top:156px!important}
+  html body .workspace .left .super-diamond--alt3{left:50%!important;top:192px!important}
+  html body .workspace .left .super-feature::before,
+  html body .workspace .left .super-feature::after{top:247px!important;width:44px!important}
+  html body .workspace .left .super-feature::before{left:calc(50% - 57px)!important}
+  html body .workspace .left .super-feature::after{right:calc(50% - 57px)!important}
+  html body .workspace .left .super-feature__name{
+    top:260px!important;width:196px!important;max-width:96%!important;
+    min-height:27px!important;padding:6px 12px!important;line-height:15px!important;
+    white-space:normal!important;display:grid!important;place-items:center!important
+  }
+  html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-satellite{
+    width:42px!important;height:42px!important
+  }
+  html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-1{left:calc(50% - 78px)!important;top:151px!important}
+  html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-2{left:calc(50% - 40px)!important;top:184px!important}
+  html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-3{left:50%!important;top:198px!important}
+  html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-4{left:calc(50% + 40px)!important;top:184px!important}
+  html body .workspace .left .super-feature__cluster.is-prismatic .super-diamond--prismatic-5{left:calc(50% + 78px)!important;top:151px!important}
+  html body .workspace .left .prismatic-transcendence{right:0;top:12px}
+  html body .workspace .left .prismatic-transcendence__label{font-size:.42rem}
+  html body .workspace .left .prismatic-transcendence__slot{width:30px;height:30px}
+
+  /* The current stage is a state card, not a renderer. Compact only while that
+     verified state container is present; future render hosts remain unrestricted. */
+  html body .workspace .stage:has(> .stage-state-container){
+    min-height:300px!important;height:clamp(300px,48vh,390px)!important;max-height:390px!important;
+    padding:14px!important;justify-content:center!important
+  }
+  html body .workspace .stage:has(> .stage-state-container) .stage-state-container{margin:auto!important}
+  html body .workspace .stage:has(> .stage-state-container) .stage-state-card{padding:20px 18px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body .workspace .left .super-diamond{transition:none!important}
+}
