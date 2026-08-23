@@ -1,6 +1,20 @@
 const asString=value=>String(value??'').trim();
 const positiveHash=value=>Number.isInteger(Number(value))&&Number(value)>0?Number(value):null;
 
+function captureMatchesCharacter(capture,characterId){
+  const capturedCharacterId=asString(capture?.characterId);
+  const currentCharacterId=asString(characterId);
+  return Boolean(capturedCharacterId&&currentCharacterId&&capturedCharacterId===currentCharacterId);
+}
+
+function mergeCaptureArchive(archive=[],capture=null,limit=5){
+  const max=Math.max(1,Number(limit)||5);
+  const testId=asString(capture?.testId);
+  const previous=(Array.isArray(archive)?archive:[]).filter(row=>asString(row?.testId));
+  if(!testId)return previous.slice(0,max);
+  return [{...capture},...previous.filter(row=>asString(row.testId)!==testId)].slice(0,max);
+}
+
 function periodAtOrAfterArmed(period,armedAt){
   const periodMs=Date.parse(asString(period));
   const armedMs=Date.parse(asString(armedAt));
@@ -20,6 +34,33 @@ function selectCandidateActivities({activities=[],baselineInstanceIds=[],armedAt
       candidateBasis:baselineAvailable?'new-instance-after-baseline':'timestamp-only-baseline-unavailable',
       candidateConfidence:baselineAvailable?'corroborated':'limited'
     }));
+}
+
+function activityMatchesExpectation(activity,expectation={}){
+  const expected={
+    activityHash:positiveHash(expectation.activityHash),
+    activityTypeHash:positiveHash(expectation.activityTypeHash),
+    mode:positiveHash(expectation.mode)
+  };
+  const hasExpectation=Object.values(expected).some(Boolean);
+  if(!hasExpectation)return false;
+  const activityModes=new Set([positiveHash(activity?.mode),...(activity?.modes||[]).map(positiveHash)].filter(Boolean));
+  return (!expected.activityHash||expected.activityHash===positiveHash(activity?.referenceId)||expected.activityHash===positiveHash(activity?.directorActivityHash))&&
+    (!expected.activityTypeHash||expected.activityTypeHash===positiveHash(activity?.activityTypeHash))&&
+    (!expected.mode||activityModes.has(expected.mode));
+}
+
+function chooseCandidateActivity(candidates=[],expectation={}){
+  const rows=Array.isArray(candidates)?candidates:[];
+  const exact=rows.filter(row=>activityMatchesExpectation(row?.activity||row,expectation));
+  if(exact.length===1)return {status:'auto-selected-exact-match',selectedInstanceId:asString(exact[0]?.activity?.instanceId||exact[0]?.instanceId),requiresUserConfirmation:false,choices:rows};
+  return {
+    status:rows.length?'user-confirmation-required':'no-candidate',
+    selectedInstanceId:null,
+    requiresUserConfirmation:rows.length>0,
+    choices:rows,
+    exactMatchCount:exact.length
+  };
 }
 
 function classifyCandidateEvidence({activity=null,pgcr=null,error=null}={}){
@@ -64,4 +105,4 @@ function summarizeCaptureEvidence(results=[]){
   };
 }
 
-export {periodAtOrAfterArmed,selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence};
+export {captureMatchesCharacter,mergeCaptureArchive,periodAtOrAfterArmed,selectCandidateActivities,activityMatchesExpectation,chooseCandidateActivity,classifyCandidateEvidence,summarizeCaptureEvidence};

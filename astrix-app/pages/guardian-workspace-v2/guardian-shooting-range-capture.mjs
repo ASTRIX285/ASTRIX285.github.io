@@ -1,7 +1,8 @@
 import {AUTH_ORIGIN,getBungieSession} from './guardian-bungie-auth.mjs';
-import {selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence} from './guardian-shooting-range-evidence.mjs';
+import {captureMatchesCharacter,mergeCaptureArchive,selectCandidateActivities,chooseCandidateActivity,classifyCandidateEvidence,summarizeCaptureEvidence} from './guardian-shooting-range-evidence.mjs';
 
 const CAPTURE_KEY='astrix:shooting-range-capture:v1';
+const CAPTURE_ARCHIVE_KEY='astrix:shooting-range-capture-archive:v1';
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
 
@@ -24,7 +25,24 @@ function readCapture(){
   try{return JSON.parse(sessionStorage.getItem(CAPTURE_KEY)||'null');}catch{return null;}
 }
 
-function saveCapture(capture){
+function readCaptureArchive(){
+  try{
+    const archive=JSON.parse(sessionStorage.getItem(CAPTURE_ARCHIVE_KEY)||'[]');
+    return Array.isArray(archive)?archive:[];
+  }catch{return [];}
+}
+
+function archiveCapture(capture){
+  const archive=mergeCaptureArchive(readCaptureArchive(),capture,5);
+  sessionStorage.setItem(CAPTURE_ARCHIVE_KEY,JSON.stringify(archive));
+  return archive;
+}
+
+function saveCapture(capture,{archivePrevious=false}={}){
+  if(archivePrevious){
+    const previous=readCapture();
+    if(previous?.testId&&previous.testId!==capture?.testId)archiveCapture(previous);
+  }
   sessionStorage.setItem(CAPTURE_KEY,JSON.stringify(capture));
   return capture;
 }
@@ -95,14 +113,17 @@ function periodOf(activity){
 
 function activityIdentity(activity){
   const details=activity?.activityDetails||{};
+  const completedValue=activity?.values?.completed?.basic?.value??activity?.values?.completed?.value??activity?.completed;
   return {
     instanceId:instanceIdOf(activity),
     period:periodOf(activity),
     referenceId:asNumber(details.referenceId),
     directorActivityHash:asNumber(details.directorActivityHash),
+    activityTypeHash:asNumber(details.activityTypeHash||activity?.activityTypeHash),
     mode:asNumber(details.mode),
     modes:Array.isArray(details.modes)?details.modes.map(asNumber).filter(value=>value!==null):[],
     isPrivate:Boolean(details.isPrivate),
+    completed:Number.isFinite(Number(completedValue))?Number(completedValue)===1:null,
     raw:clone(activity)
   };
 }
@@ -148,6 +169,8 @@ function summarizePgcr(pgcr,{membershipId='',characterId=''}={}){
     const value=statValue(row);
     if(value!==null)stats[key]=value;
   }
+  const factualMetricKeys=['completed','completionReason','standing','score','teamScore','kills','deaths','assists','efficiency','killsDeathsRatio','killsDeathsAssists','activityDurationSeconds','timePlayedSeconds'];
+  const claimMetrics=Object.fromEntries(factualMetricKeys.filter(key=>Object.hasOwn(stats,key)).map(key=>[key,stats[key]]));
   return {
     activityDetails:clone(pgcr?.activityDetails||null),
     period:asString(pgcr?.period),
@@ -164,17 +187,26 @@ function summarizePgcr(pgcr,{membershipId='',characterId=''}={}){
       lightLevel:asNumber(target?.player?.lightLevel)
     },
     stats,
+    claimMetrics,
+    claimScope:{factual:'Bungie PGCR activity, completion, player, team, score and exposed performance metrics only.',causalPerkActivation:'inference-only',uptime:'inference-only'},
     rawEntry:clone(target)
   };
 }
 
 async function armShootingRangeCapture({characterId=null,buildSnapshot=null}={}){
+  return armBuildTest({characterId,buildSnapshot,testDomain:'pve',calibrationType:'shooting-range'});
+}
+
+async function armBuildTest({characterId=null,buildSnapshot=null,testDomain='pve',calibrationType=null,expectedActivity=null}={}){
   const session=await getBungieSession();
-  if(!session?.authenticated)throw new Error('Connect Bungie before arming a Shooting Range test.');
+  if(!session?.authenticated)throw new Error('Connect Bungie before arming a Build Test.');
   const membership=membershipFromSession(session);
   if(!membership)throw new Error('Active Destiny membership is unavailable.');
   const cid=asString(characterId||selectedCharacterId()||buildSnapshot?.characterId);
-  if(!cid)throw new Error('Select the Guardian you will use in the Shooting Range.');
+  if(!cid)throw new Error('Select the Guardian you will use for this Build Test.');
+  const domain=asString(testDomain).toLowerCase()==='pvp'?'pvp':'pve';
+  const immutableBuild=clone(buildSnapshot||readBuildSnapshot());
+  if(!immutableBuild)throw new Error('A verified Working Build is required before arming a Build Test.');
   let baseline=[];
   let baselineError=null;
   try{
@@ -184,24 +216,51 @@ async function armShootingRangeCapture({characterId=null,buildSnapshot=null}={})
     baselineError={message:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null};
   }
   const capture={
-    schemaVersion:1,
-    testId:`PF-RANGE-${Date.now()}`,
+    schemaVersion:2,
+    testId:`BF-TEST-${Date.now()}`,
     armedAt:new Date().toISOString(),
     membership,
     characterId:cid,
-    buildSnapshot:clone(buildSnapshot||readBuildSnapshot()),
+    buildSnapshot:immutableBuild,
+    testDomain:domain,
+    calibrationType:domain==='pve'&&calibrationType==='shooting-range'?'shooting-range':null,
+    expectedActivity:{
+      activityHash:asNumber(expectedActivity?.activityHash),
+      activityTypeHash:asNumber(expectedActivity?.activityTypeHash),
+      mode:asNumber(expectedActivity?.mode),
+      name:asString(expectedActivity?.name),
+      mapHash:asNumber(expectedActivity?.mapHash),
+      modifierHashes:Array.isArray(expectedActivity?.modifierHashes)?expectedActivity.modifierHashes.map(asNumber).filter(value=>value!==null):[],
+      source:expectedActivity?.source==='bungie-definition'?'bungie-definition':'unselected'
+    },
     baselineInstanceIds:baseline,
     baselineError,
     status:'armed'
   };
-  return saveCapture(capture);
+  return saveCapture(capture,{archivePrevious:true});
 }
 
-async function collectShootingRangeResults({maxCandidates=5}={}){
+async function collectShootingRangeResults({maxCandidates=5,expectedCharacterId=null}={}){
+  return collectBuildTestResults({maxCandidates,expectedCharacterId});
+}
+
+async function collectBuildTestResults({maxCandidates=5,expectedCharacterId=null}={}){
   const capture=readCapture();
-  if(!capture)throw new Error('No Shooting Range capture is armed.');
+  if(!capture)throw new Error('No Build Test is armed.');
+  if(expectedCharacterId&&!captureMatchesCharacter(capture,expectedCharacterId)){
+    const error=new Error(`The saved capture belongs to character ${asString(capture.characterId)||'unknown'}, not the current Build Forge Guardian ${asString(expectedCharacterId)||'unknown'}.`);
+    error.code='capture-character-mismatch';
+    error.captureCharacterId=asString(capture.characterId);
+    error.currentCharacterId=asString(expectedCharacterId);
+    throw error;
+  }
   const session=await getBungieSession();
   const history=await pullActivityHistory({session,characterId:capture.characterId,count:25,page:0});
+  if(String(history.membership.membershipId)!==String(capture.membership?.membershipId)||Number(history.membership.membershipType)!==Number(capture.membership?.membershipType)){
+    const error=new Error('The active Destiny membership does not match the membership bound when this Build Test was armed.');
+    error.code='capture-membership-mismatch';
+    throw error;
+  }
   const baselineAvailable=!capture.baselineError;
   const candidates=selectCandidateActivities({
     activities:history.activities,
@@ -216,10 +275,11 @@ async function collectShootingRangeResults({maxCandidates=5}={}){
     try{
       const pulled=await pullPgcr(candidate.instanceId);
       const pgcr=summarizePgcr(pulled.pgcr,{membershipId:history.membership.membershipId,characterId:capture.characterId});
-      results.push({activity:candidate,pgcr,evidence:classifyCandidateEvidence({activity:candidate,pgcr}),rawPgcr:pulled.payload,pgcrEndpoint:pulled.endpoint});
+      const completed=candidate.completed===true||pgcr.stats.completed===1;
+      if(completed)results.push({activity:{...candidate,completed:true},pgcr,evidence:classifyCandidateEvidence({activity:candidate,pgcr}),rawPgcr:pulled.payload,pgcrEndpoint:pulled.endpoint});
     }catch(error){
       const failure={message:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null};
-      results.push({activity:candidate,pgcr:null,evidence:classifyCandidateEvidence({activity:candidate,error:failure}),error:failure});
+      if(candidate.completed===true)results.push({activity:candidate,pgcr:null,evidence:classifyCandidateEvidence({activity:candidate,error:failure}),error:failure});
     }
   }
   const completed={
@@ -229,14 +289,28 @@ async function collectShootingRangeResults({maxCandidates=5}={}){
     historyEndpoint:history.endpoint,
     baselineStatus:baselineAvailable?'available':'unavailable',
     candidates:results,
-    evidenceSummary:summarizeCaptureEvidence(results)
+    evidenceSummary:summarizeCaptureEvidence(results),
+    candidateSelection:chooseCandidateActivity(results,capture.expectedActivity||{})
   };
   saveCapture(completed);
   return completed;
 }
 
+function confirmCandidateActivity(instanceId,{expectedCharacterId=null}={}){
+  const capture=readCapture();
+  if(!capture||capture.status!=='collected')throw new Error('Pull completed Build Test results before confirming an activity.');
+  if(expectedCharacterId&&!captureMatchesCharacter(capture,expectedCharacterId))throw new Error('This Build Test belongs to a different Guardian.');
+  const id=asString(instanceId);
+  const result=(capture.candidates||[]).find(row=>asString(row?.activity?.instanceId)===id);
+  if(!result||result.activity?.completed!==true)throw new Error('Only a completed post-arm candidate can be confirmed.');
+  const confirmed={...capture,candidateSelection:{status:'user-confirmed',selectedInstanceId:id,requiresUserConfirmation:false,choices:capture.candidates||[],confirmedAt:new Date().toISOString()}};
+  saveCapture(confirmed);
+  return confirmed;
+}
+
 export {
   CAPTURE_KEY,
+  CAPTURE_ARCHIVE_KEY,
   BUILD_SPACE_KEY,
   membershipFromSession,
   activityRows,
@@ -246,6 +320,11 @@ export {
   pullPgcr,
   armShootingRangeCapture,
   collectShootingRangeResults,
+  armBuildTest,
+  collectBuildTestResults,
+  confirmCandidateActivity,
+  captureMatchesCharacter,
   readCapture,
+  readCaptureArchive,
   clearCapture
 };
