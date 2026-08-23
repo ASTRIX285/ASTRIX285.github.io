@@ -227,3 +227,12 @@ html,body{
   overflow-x:hidden!important;
   overflow-y:auto!important;
 }
+
+
+/* Immutable Original / mutable Working Build controls. */
+.notice{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.notice>span{min-width:0}
+.restore-btn{flex:0 0 auto;border:1px solid rgba(158,96,255,.5);border-radius:8px;padding:9px 11px;background:rgba(96,49,146,.12);color:#d8c3ff;font:700 8px Orbitron;letter-spacing:.08em;cursor:pointer}
+.restore-btn:hover:not(:disabled){border-color:#b98bff;color:#fff}
+.restore-btn:disabled{opacity:.34;cursor:not-allowed}
+@media(max-width:720px){.notice{align-items:stretch;flex-direction:column}.restore-btn{width:100%}}
