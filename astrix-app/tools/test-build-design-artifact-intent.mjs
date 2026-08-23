@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,diffBuilds} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
+import {createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,restoreWorkingBuild,diffBuilds} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 
 const originalConfiguration={schemaVersion:1,artifactHash:999,seasonNumber:28,selectedPerkHashes:[123],source:'fixture-intent',provenance:{provider:'fixture'}};
 const state=createBuildState({characterId:'fixture',artifactConfiguration:originalConfiguration});
@@ -18,6 +18,16 @@ assert.equal(state.workingBuild.artifactConfiguration.provenance.state,'intended
 assert.equal(state.workingBuild.artifactConfiguration.provenance.upstream.provider,'verified-fixture');
 const changes=diffBuilds(state.originalBuild,state.workingBuild);
 assert.deepEqual(changes.map(change=>change.path),['artifact','artifactConfiguration']);
+state.recommendation={id:'stale-working-recommendation'};
+state.validationRecords.push({testId:'preserved-history'});
+const restored=restoreWorkingBuild(state);
+assert.strictEqual(restored.originalBuild,state.originalBuild);
+assert.notStrictEqual(restored.workingBuild,restored.originalBuild);
+assert.deepEqual(diffBuilds(restored.originalBuild,restored.workingBuild),[]);
+assert.equal(restored.recommendation,null);
+assert.deepEqual(restored.validationRecords,[{testId:'preserved-history'}]);
+restored.workingBuild.artifactConfiguration.selectedPerkHashes.push(999);
+assert.deepEqual(restored.originalBuild.artifactConfiguration.selectedPerkHashes,[123]);
 
 const perkOnly=createBuildState({characterId:'fixture',artifact:{hash:1001},artifactConfiguration:{artifactHash:1001,seasonNumber:29,selectedPerkHashes:[501]}});
 perkOnly.workingBuild.artifactConfiguration.selectedPerkHashes=[501,502];
