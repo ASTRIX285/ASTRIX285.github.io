@@ -4,10 +4,11 @@
  * Progress changes only when a real application event occurs.
  */
 const gate=document.getElementById('buildLoadingGate');
-const value=document.getElementById('buildLoadingProgress');
+const value=document.getElementById('buildLoadingPercent');
 const stageNode=document.getElementById('buildLoadingStage');
 const messageNode=document.getElementById('buildLoadingMessage');
 const actionButton=document.getElementById('buildLoadingAction');
+const progressNode=document.getElementById('buildLoadingProgress');
 let current=0;
 let closeTimer=0;
 let completed=false;
@@ -26,7 +27,7 @@ function update(detail={}){
   gate.dataset.status=status;
   gate.dataset.stage=String(detail.stage||'loading');
   gate.style.setProperty('--progress',String(percent));
-  const donut=gate.querySelector('.build-loading-gate__donut');
+  const donut=progressNode||gate.querySelector('.build-loading-gate__donut');
   donut?.style.setProperty('--progress',String(percent));
   donut?.setAttribute('aria-valuenow',String(percent));
   if(value)value.textContent=`${percent}%`;
