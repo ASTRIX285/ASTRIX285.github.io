@@ -1,0 +1,58 @@
+/* Shared ASTRIX Build Forge data-loading gate.
+   Contract is also consumed by Build Design:
+   astrix:build-load-progress {stage,percent,label,status,message,action}. */
+body.is-build-loading{overflow:hidden!important}
+.build-loading-gate[hidden]{display:none!important}
+.build-loading-gate{
+  position:fixed;inset:0;z-index:5000;display:grid;place-items:center;padding:24px;
+  background:rgba(5,4,8,.76);backdrop-filter:blur(12px) brightness(.42);
+  -webkit-backdrop-filter:blur(12px) brightness(.42);
+  opacity:1;transition:opacity .3s ease;touch-action:none
+}
+.build-loading-gate.is-complete{opacity:0;pointer-events:none}
+.build-loading-gate__panel{
+  width:min(360px,92vw);display:grid;justify-items:center;gap:14px;padding:26px 22px 22px;
+  border:1px solid rgba(164,31,40,.58);border-radius:18px;
+  background:linear-gradient(180deg,rgba(14,11,18,.96),rgba(7,6,10,.98));
+  box-shadow:0 20px 70px rgba(0,0,0,.72),0 0 30px rgba(127,24,30,.12);
+  text-align:center
+}
+.build-loading-gate__donut{
+  --progress:0;position:relative;width:116px;height:116px;border-radius:50%;
+  display:grid;place-items:center;
+  background:conic-gradient(#d7ad48 calc(var(--progress)*1%),rgba(255,255,255,.09) 0);
+  box-shadow:0 0 26px rgba(171,30,39,.14)
+}
+.build-loading-gate__donut::before{
+  content:"";position:absolute;inset:8px;border-radius:50%;
+  background:#09080d;border:1px solid rgba(215,173,72,.2)
+}
+.build-loading-gate__value{position:relative;z-index:1;color:#fff;font:800 1.35rem Orbitron,sans-serif;letter-spacing:.04em}
+.build-loading-gate__brand{
+  width:min(230px,70vw);height:auto;object-fit:contain;
+  filter:drop-shadow(0 0 5px rgba(206,38,46,.42)) drop-shadow(0 0 10px rgba(215,173,72,.18));
+  animation:astrix-gate-brand 1.8s ease-in-out infinite
+}
+.build-loading-gate__stage{margin:0;color:#f2eef5;font:700 .76rem Orbitron,sans-serif;letter-spacing:.11em;text-transform:uppercase}
+.build-loading-gate__message{min-height:18px;margin:0;color:#aaa1af;font:500 .72rem/1.45 Inter,sans-serif}
+.build-loading-gate__action{
+  min-width:180px;padding:10px 14px;border:1px solid rgba(84,227,155,.55);border-radius:9px;
+  color:#75efb3;background:rgba(8,31,24,.76);font:700 .68rem Orbitron,sans-serif;letter-spacing:.08em
+}
+.build-loading-gate[data-status="error"] .build-loading-gate__donut{
+  background:conic-gradient(#d24a52 calc(var(--progress)*1%),rgba(255,255,255,.09) 0)
+}
+.build-loading-gate[data-status="ready"] .build-loading-gate__brand{
+  animation:astrix-gate-complete .42s ease both
+}
+@keyframes astrix-gate-brand{50%{filter:drop-shadow(0 0 7px rgba(206,38,46,.52)) drop-shadow(0 0 13px rgba(215,173,72,.24))}}
+@keyframes astrix-gate-complete{50%{filter:drop-shadow(0 0 9px rgba(206,38,46,.62)) drop-shadow(0 0 16px rgba(215,173,72,.36));transform:scale(1.025)}}
+@media(max-width:620px){
+  .build-loading-gate{padding:16px}
+  .build-loading-gate__panel{width:min(330px,92vw);padding:22px 18px 19px;gap:12px}
+  .build-loading-gate__donut{width:104px;height:104px}
+  .build-loading-gate__brand{width:min(210px,68vw)}
+}
+@media(prefers-reduced-motion:reduce){
+  .build-loading-gate,.build-loading-gate__brand{transition:none!important;animation:none!important}
+}
