@@ -159,38 +159,12 @@ html[data-subclass="prismatic"] .subclass-option[data-subclass-option="prismatic
 
 .left .super-feature{
   display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;
-  min-height:282px!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important;overflow:visible!important
+  padding:0!important;margin:0!important;border:0!important;background:transparent!important
 }
 .left .super-feature__label{
   display:block!important;margin:0!important;color:rgba(var(--pf-gold),.78)!important;
   font:700 .52rem Inter,sans-serif!important;letter-spacing:.14em!important
 }
-/* Only the SUPERS heading sits above the formation. The resolved Super name is
-   kept in the DOM for data binding but hidden to prevent visual collisions. */
-.left .super-feature__name{display:none!important}
-.left .super-feature__cluster{position:relative!important;width:230px!important;height:245px!important;margin-top:4px!important;overflow:visible!important}
-.left .super-diamond{
-  position:absolute!important;display:grid!important;place-items:center!important;aspect-ratio:1!important;
-  transform:translateX(-50%) rotate(45deg)!important;border:1px solid rgba(var(--pf-gold),.40)!important;border-radius:2px!important;
-  background:linear-gradient(135deg,rgba(var(--pf-crimson),.18),rgba(12,9,17,.58))!important;box-shadow:inset 0 0 16px rgba(var(--pf-crimson),.08)!important
-}
-.left .super-diamond::after{content:""!important;position:absolute!important;inset:5px!important;border:1px solid rgba(var(--pf-gold),.10)!important;pointer-events:none!important}
-.left .super-diamond>span{display:grid!important;place-items:center!important;width:70%!important;height:70%!important;transform:rotate(-45deg)!important;color:rgba(255,255,255,.28)!important}
-.left .super-diamond>span img{width:100%!important;height:100%!important;object-fit:contain!important}
-.left .super-diamond--equipped{
-  left:50%!important;top:10px!important;width:96px!important;z-index:4!important;border-color:rgba(var(--pf-gold),.90)!important;
-  background:linear-gradient(135deg,rgba(var(--pf-crimson),.46),rgba(34,20,35,.68))!important;
-  box-shadow:0 0 0 1px rgba(var(--pf-crimson),.30),0 0 22px rgba(var(--pf-gold),.12),inset 0 0 22px rgba(var(--pf-crimson),.18)!important
-}
-.left .super-diamond--equipped>span{width:66%!important;height:66%!important}
-.left .super-diamond--alt{width:48px!important;z-index:2!important;opacity:.48!important;background:linear-gradient(135deg,rgba(var(--pf-crimson),.10),rgba(11,9,15,.64))!important}
-/* Tight 45-degree formation: lower centre is the datum; the two upper diamonds
-   sit exactly 40px left/up and right/up, leaving equal visual spacing. */
-.left .super-diamond--alt1{left:calc(50% - 40px)!important;top:142px!important}
-.left .super-diamond--alt2{left:calc(50% + 40px)!important;top:142px!important}
-.left .super-diamond--alt3{left:50%!important;top:182px!important}
-.left .super-diamond--alt.has-live-icon{opacity:.76!important}
-
 /* -------------------- ONE SOCKET LANGUAGE -------------------- */
 .left>.grp{padding-left:10px!important;padding-right:10px!important}
 .left .grp .lbl{margin:0 0 6px!important;color:rgba(var(--pf-gold),.76)!important;font:700 .50rem Inter,sans-serif!important;letter-spacing:.13em!important}
