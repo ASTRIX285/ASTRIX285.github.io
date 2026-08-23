@@ -32,10 +32,81 @@ function readCaptureArchive(){
   }catch{return [];}
 }
 
+function compactBuildSnapshot(build){
+  if(!build||typeof build!=='object')return null;
+  const itemIdentity=item=>({
+    itemHash:asNumber(item?.itemHash??item?.hash),
+    itemInstanceId:asString(item?.itemInstanceId??item?.instanceId),
+    name:asString(item?.name??item?.displayProperties?.name)
+  });
+  const items=[
+    ...(Array.isArray(build?.weapons)?build.weapons:[]),
+    ...(Array.isArray(build?.armor)?build.armor:[]),
+    ...(Array.isArray(build?.armour)?build.armour:[])
+  ].map(itemIdentity).filter(item=>item.itemHash!==null||item.itemInstanceId||item.name);
+  return {
+    characterId:asString(build?.characterId),
+    characterClass:asString(build?.characterClass??build?.className),
+    subclassName:asString(build?.subclassName??build?.subclass),
+    subclassHash:asNumber(build?.subclassHash),
+    items
+  };
+}
+
+function compactCaptureForArchive(capture){
+  const candidates=(Array.isArray(capture?.candidates)?capture.candidates:[]).map(row=>({
+    activity:{
+      instanceId:asString(row?.activity?.instanceId),
+      period:asString(row?.activity?.period),
+      referenceId:asNumber(row?.activity?.referenceId),
+      directorActivityHash:asNumber(row?.activity?.directorActivityHash),
+      activityTypeHash:asNumber(row?.activity?.activityTypeHash),
+      mode:asNumber(row?.activity?.mode),
+      modes:Array.isArray(row?.activity?.modes)?row.activity.modes.map(asNumber).filter(value=>value!==null):[],
+      completed:row?.activity?.completed===true
+    },
+    pgcr:row?.pgcr?{
+      period:asString(row.pgcr.period),
+      activityDetails:clone(row.pgcr.activityDetails||null),
+      player:clone(row.pgcr.player||null),
+      claimMetrics:clone(row.pgcr.claimMetrics||{})
+    }:null,
+    evidence:clone(row?.evidence||null),
+    error:clone(row?.error||null)
+  }));
+  return {
+    schemaVersion:asNumber(capture?.schemaVersion)||2,
+    testId:asString(capture?.testId),
+    status:asString(capture?.status),
+    armedAt:asString(capture?.armedAt),
+    collectedAt:asString(capture?.collectedAt),
+    membership:clone(capture?.membership||null),
+    characterId:asString(capture?.characterId),
+    testDomain:asString(capture?.testDomain),
+    calibrationType:asString(capture?.calibrationType),
+    expectedActivity:clone(capture?.expectedActivity||null),
+    baselineStatus:asString(capture?.baselineStatus),
+    baselineError:clone(capture?.baselineError||null),
+    buildSnapshot:compactBuildSnapshot(capture?.buildSnapshot),
+    candidates,
+    evidenceSummary:clone(capture?.evidenceSummary||null),
+    candidateSelection:clone(capture?.candidateSelection||null),
+    archivedEvidence:true
+  };
+}
+
 function archiveCapture(capture){
-  const archive=mergeCaptureArchive(readCaptureArchive(),capture,5);
-  sessionStorage.setItem(CAPTURE_ARCHIVE_KEY,JSON.stringify(archive));
-  return archive;
+  let archive=mergeCaptureArchive(readCaptureArchive().map(compactCaptureForArchive),compactCaptureForArchive(capture),5);
+  while(archive.length){
+    try{
+      sessionStorage.setItem(CAPTURE_ARCHIVE_KEY,JSON.stringify(archive));
+      return archive;
+    }catch{
+      archive=archive.slice(0,-1);
+    }
+  }
+  try{sessionStorage.removeItem(CAPTURE_ARCHIVE_KEY);}catch{}
+  return [];
 }
 
 function saveCapture(capture,{archivePrevious=false}={}){
@@ -43,7 +114,13 @@ function saveCapture(capture,{archivePrevious=false}={}){
     const previous=readCapture();
     if(previous?.testId&&previous.testId!==capture?.testId)archiveCapture(previous);
   }
-  sessionStorage.setItem(CAPTURE_KEY,JSON.stringify(capture));
+  const serialized=JSON.stringify(capture);
+  try{
+    sessionStorage.setItem(CAPTURE_KEY,serialized);
+  }catch(error){
+    try{sessionStorage.removeItem(CAPTURE_ARCHIVE_KEY);}catch{}
+    sessionStorage.setItem(CAPTURE_KEY,serialized);
+  }
   return capture;
 }
 
