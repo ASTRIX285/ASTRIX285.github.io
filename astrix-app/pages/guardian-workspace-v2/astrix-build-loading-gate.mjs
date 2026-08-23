@@ -24,7 +24,7 @@ function update(detail={}){
   gate.dataset.status=status;
   gate.dataset.stage=String(detail.stage||'loading');
   gate.style.setProperty('--progress',String(percent));
-  gate.querySelector('.build-loading-gate__donut')?.style.setProperty('--progress',String(percent));
+  const donut=gate.querySelector('.build-loading-gate__donut');\n  donut?.style.setProperty('--progress',String(percent));\n  donut?.setAttribute('aria-valuenow',String(percent));
   if(value)value.textContent=`${percent}%`;
   if(stageNode)stageNode.textContent=detail.label||'Loading Guardian data';
   if(messageNode)messageNode.textContent=detail.message||'';
