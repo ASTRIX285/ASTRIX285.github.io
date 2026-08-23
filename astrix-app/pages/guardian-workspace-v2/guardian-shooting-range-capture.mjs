@@ -1,7 +1,8 @@
 import {AUTH_ORIGIN,getBungieSession} from './guardian-bungie-auth.mjs';
-import {captureMatchesCharacter,selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence} from './guardian-shooting-range-evidence.mjs';
+import {captureMatchesCharacter,mergeCaptureArchive,selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence} from './guardian-shooting-range-evidence.mjs';
 
 const CAPTURE_KEY='astrix:shooting-range-capture:v1';
+const CAPTURE_ARCHIVE_KEY='astrix:shooting-range-capture-archive:v1';
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
 
@@ -24,7 +25,24 @@ function readCapture(){
   try{return JSON.parse(sessionStorage.getItem(CAPTURE_KEY)||'null');}catch{return null;}
 }
 
-function saveCapture(capture){
+function readCaptureArchive(){
+  try{
+    const archive=JSON.parse(sessionStorage.getItem(CAPTURE_ARCHIVE_KEY)||'[]');
+    return Array.isArray(archive)?archive:[];
+  }catch{return [];}
+}
+
+function archiveCapture(capture){
+  const archive=mergeCaptureArchive(readCaptureArchive(),capture,5);
+  sessionStorage.setItem(CAPTURE_ARCHIVE_KEY,JSON.stringify(archive));
+  return archive;
+}
+
+function saveCapture(capture,{archivePrevious=false}={}){
+  if(archivePrevious){
+    const previous=readCapture();
+    if(previous?.testId&&previous.testId!==capture?.testId)archiveCapture(previous);
+  }
   sessionStorage.setItem(CAPTURE_KEY,JSON.stringify(capture));
   return capture;
 }
@@ -194,7 +212,7 @@ async function armShootingRangeCapture({characterId=null,buildSnapshot=null}={})
     baselineError,
     status:'armed'
   };
-  return saveCapture(capture);
+  return saveCapture(capture,{archivePrevious:true});
 }
 
 async function collectShootingRangeResults({maxCandidates=5,expectedCharacterId=null}={}){
@@ -244,6 +262,7 @@ async function collectShootingRangeResults({maxCandidates=5,expectedCharacterId=
 
 export {
   CAPTURE_KEY,
+  CAPTURE_ARCHIVE_KEY,
   BUILD_SPACE_KEY,
   membershipFromSession,
   activityRows,
@@ -255,5 +274,6 @@ export {
   collectShootingRangeResults,
   captureMatchesCharacter,
   readCapture,
+  readCaptureArchive,
   clearCapture
 };
