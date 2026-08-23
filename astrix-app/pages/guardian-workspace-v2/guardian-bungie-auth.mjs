@@ -72,9 +72,8 @@ async function requestSession(){
 }
 
 function publishSession(session){
-  if(!session?.authenticated)return;
-  globalThis.ASTRIX_BUNGIE_SESSION=session;
-  globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session}));
+  if(session?.authenticated)globalThis.ASTRIX_BUNGIE_SESSION=session;
+  globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session||{authenticated:false}}));
 }
 
 function getBungieSession({force=false}={}){
