@@ -7,21 +7,17 @@ import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs';
 import './guardian-artifact.mjs';
 import './paradox-build-space-handoff.mjs';
 
-if (!document.querySelector('link[data-astrix-subclass-super-polish]')) {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = './guardian-subclass-super-polish.css?v=20260823-main-pass';
-  link.dataset.astrixSubclassSuperPolish = 'true';
-  document.head.appendChild(link);
-}
+const subclassPolishLink = document.querySelector('link[data-astrix-subclass-super-polish]') || document.createElement('link');
+subclassPolishLink.rel = 'stylesheet';
+subclassPolishLink.href = './guardian-subclass-super-polish.css?v=20260823-main-pass-3';
+subclassPolishLink.dataset.astrixSubclassSuperPolish = 'true';
+if (!subclassPolishLink.isConnected) document.head.appendChild(subclassPolishLink);
 
-if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = './guardian-left-panel-lock.css?v=20260823-main-pass-2';
-  link.dataset.astrixLeftPanelLock = 'true';
-  document.head.appendChild(link);
-}
+const leftPanelLockLink = document.querySelector('link[data-astrix-left-panel-lock]') || document.createElement('link');
+leftPanelLockLink.rel = 'stylesheet';
+leftPanelLockLink.href = './guardian-left-panel-lock.css?v=20260823-main-pass-3';
+leftPanelLockLink.dataset.astrixLeftPanelLock = 'true';
+if (!leftPanelLockLink.isConnected) document.head.appendChild(leftPanelLockLink);
 
 const slotObservers = new Map();
 const subclassIconCache = new Map();
