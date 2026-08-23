@@ -7,10 +7,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./paradox-build-space.css?v=20260823-8">
+  <link rel="stylesheet" href="./paradox-build-space.css?v=20260823-9">
   <link rel="stylesheet" href="../guardian-gear-layout.css?v=20260822-8">
 </head>
-<body>
+<body class="is-build-loading">
+  <div class="build-loading-gate" id="buildLoadingGate" role="dialog" aria-modal="true" aria-labelledby="buildLoadingStage">
+    <div class="build-loading-surface">
+      <div class="build-loading-progress" id="buildLoadingProgress" role="progressbar" aria-label="Build Forge loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="--build-progress:0">
+        <span id="buildLoadingPercent">0%</span>
+      </div>
+      <div class="build-loading-brand" id="buildLoadingBrand"><img src="../../../../img/logo.png" alt=""><strong>ASTRIX <em>PARADOX</em></strong></div>
+      <p class="build-loading-stage" id="buildLoadingStage" aria-live="polite">Locating protected build snapshot…</p>
+      <p class="build-loading-message" id="buildLoadingMessage" hidden></p>
+      <div class="build-loading-actions" id="buildLoadingActions" hidden><button type="button" id="buildLoadingRetry">RETRY</button><button type="button" id="buildLoadingBack">BACK TO BUILD FORGE</button></div>
+    </div>
+  </div>
   <header class="topbar">
     <a class="brand" href="../"><img src="../../../../img/logo.png" alt="ASTRIX PARADOX"><span><b>ASTRIX <em>PARADOX</em></b><small>AI GAMING INTELLIGENCE</small></span></a>
     <div class="workspace-title">GUARDIAN BUILD FORGE</div>
@@ -28,7 +39,7 @@
     </aside>
     <section class="panel design-canvas">
       <div class="panel-head"><div><small>ORIGINAL → WORKING BUILD</small><h1>BUILD DESIGN</h1></div><span class="status-chip">ITERATION 1</span></div>
-      <div class="notice"><span id="buildStateNotice"><b>Baseline protected.</b> The build loaded here is stored as the immutable starting point for Paradox recommendations.</span><button type="button" class="restore-btn" id="restoreOriginal" disabled>RESTORE ORIGINAL</button></div>
+      <div class="notice"><span id="buildStateNotice"><b>Baseline protected.</b> The build loaded here is stored as the immutable starting point for Build Forge recommendations.</span><button type="button" class="restore-btn" id="restoreOriginal" disabled>RESTORE ORIGINAL</button></div>
       <section class="design-section"><div class="section-title"><h2>WEAPONS</h2><span>WORKING BUILD</span></div><div class="gear-weapons"><div id="weaponGrid" class="weap-grid"></div></div></section>
       <section class="design-section"><div class="section-title"><h2>ARMOUR & MODS</h2><span>LIVE BUNGIE STATE</span></div><div class="gear-combined"><div id="armourGrid" class="gear-columns"></div></div></section>
       <section class="design-section test-loop">
@@ -44,12 +55,12 @@
     <aside class="panel intelligence" data-paradox-analysis>
       <div class="panel-head"><div><small>PARADOX INTELLIGENCE</small><h2>ANALYSIS</h2></div><span class="live-dot">LIVE BUILD</span></div>
       <section class="intel-card"><small>SOURCE</small><strong id="sourceLabel">Waiting for build</strong><p id="sourceDetail">The selected or most recently equipped Bungie loadout will be preferred.</p></section>
-      <section class="intel-card"><small>BUILD STATE</small><strong>ORIGINAL SNAPSHOT CAPTURED</strong><p>Recommendations mutate a separate working copy so the source build can always be restored.</p></section>
+      <section class="intel-card"><small>BUILD STATE</small><strong id="buildStateLabel">RESOLVING</strong><p id="buildStateDetail">Validating the protected Original and Working Build snapshots.</p></section>
       <section class="intel-card"><small>ARTIFACT STATE</small><strong id="artifactStatus">RESOLVING</strong><p id="artifactStatusDetail">Reading the exact Artifact and active perks carried into this build.</p></section>
       <section class="forge-analysis">
         <div class="ra-head"><h2>PARADOX ANALYSIS</h2><span class="upd">Awaiting verified evidence</span></div>
         <div class="health-card"><div class="ring"><span class="heart">♥</span></div><div><div class="eyebrow">GUARDIAN HEALTH</div><div class="verdict">EVIDENCE PENDING<small>Load a live Guardian build to begin verified analysis.</small></div></div></div>
-        <div class="focus"><span class="label">BUILD FOCUS</span><div class="focus-row"><span class="focus-icon">◎</span><div><b>Build intelligence</b><p>Recommendations remain inside the Forge until the user reviews them.</p></div></div></div>
+        <div class="focus"><span class="label">BUILD FOCUS</span><div class="focus-row"><span class="focus-icon">◎</span><div><b>Build intelligence</b><p>Recommendations remain inside Build Forge until the user reviews them.</p></div></div></div>
         <div class="mini-grid"><div class="mini"><div class="t">CURRENT LOOP</div><div class="big">Pending</div></div><div class="mini"><div class="t">CHAMPION COVERAGE</div><div class="big">Evidence only</div></div><div class="mini"><div class="t">ACTIVITY FIT</div><div class="big">Not selected</div></div><div class="mini"><div class="t">CONFIDENCE</div><div class="big">Evidence Limited</div></div></div>
         <div class="sw-grid"><div class="sw-card str"><div class="t">STRENGTHS</div><ul><li><span class="d"></span>No strength claimed without directed evidence</li></ul></div><div class="sw-card weak"><div class="t">WEAK LINKS</div><ul><li><span class="d"></span>No verified weak link identified</li></ul></div></div>
         <div class="improve"><b>RECOMMENDATION</b><p>No recommendation is claimed until a verified missing input or weak link is found.</p></div>
