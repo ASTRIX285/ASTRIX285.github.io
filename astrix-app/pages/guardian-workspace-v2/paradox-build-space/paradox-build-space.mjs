@@ -9,6 +9,9 @@ import {renderWeapons} from '../guardian-semantic-ui.mjs';
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
+const HANDOFF_SCHEMA=2;
+const HANDOFF_TTL_MS=30*60*1000;
+const LOAD_STAGES=Object.freeze({SNAPSHOT:20,VALIDATE:40,PROFILE:58,SOCKETS:74,ARTIFACT:88,READY:100});
 const BUNGIE='https://www.bungie.net';
 const byId=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -16,13 +19,50 @@ const abs=path=>path?(String(path).startsWith('http')?path:`${BUNGIE}${path}`):'
 const iconOf=item=>item?.icon||item?.definition?.displayProperties?.icon||item?.displayProperties?.icon||'';
 const elementOf=item=>{const text=[item?.element,item?.damageType,item?.name,item?.displayName,item?.definition?.itemTypeDisplayName,...(item?.definition?.traitIds||[])].filter(Boolean).join(' ').toLowerCase();return ['stasis','arc','strand','void','solar','prismatic'].find(value=>text.includes(value))||'unknown';};
 const isPrismaticBuild=build=>[build?.subclass,build?.subclassName,build?.subclassBuild?.name].filter(Boolean).join(' ').toLowerCase().includes('prismatic');
-function readState(){for(const store of [sessionStorage,localStorage]){try{const value=JSON.parse(store.getItem(BUILD_SPACE_KEY)||'null');if(value)return value;}catch{}}return null;}
+let activeLoadError='';
+function bindingOf(value){return {membershipId:String(value?.membershipId||value?.bungieMembershipId||value?.membership?.membershipId||''),membershipType:String(value?.membershipType||value?.membership?.membershipType||''),characterId:String(value?.characterId||'')};}
+function validateBuildState(state,binding={}){
+  if(!state||state.version!==1||!state.originalBuild||!state.workingBuild)return null;
+  const original=state.originalBuild,working=state.workingBuild,originalBinding=bindingOf(original),workingBinding=bindingOf(working);
+  if(!originalBinding.characterId||workingBinding.characterId!==originalBinding.characterId)return null;
+  if(binding.characterId&&String(binding.characterId)!==originalBinding.characterId)return null;
+  if(binding.membershipId&&originalBinding.membershipId&&String(binding.membershipId)!==originalBinding.membershipId)return null;
+  if(originalBinding.membershipId&&workingBinding.membershipId&&originalBinding.membershipId!==workingBinding.membershipId)return null;
+  return state;
+}
+function decodeState(raw,{durable=false}={}){
+  if(!raw||typeof raw!=='object')return null;
+  if(raw.schemaVersion===HANDOFF_SCHEMA){
+    if(!raw.payload||Date.now()-Number(raw.savedAt||0)>HANDOFF_TTL_MS)return null;
+    return validateBuildState(raw.payload,raw.binding||{});
+  }
+  return durable?null:validateBuildState(raw);
+}
+function readState(){
+  activeLoadError='';
+  for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){
+    try{const raw=JSON.parse(store.getItem(BUILD_SPACE_KEY)||'null'),state=decodeState(raw,{durable});if(state)return state;if(raw)store.removeItem(BUILD_SPACE_KEY);}
+    catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
+  }
+  activeLoadError=activeLoadError||'No current Build Forge snapshot was found. Return to the Guardian page and choose Improve My Guardian again.';
+  return null;
+}
+function emitLoad(stage,percent,label,status='loading',message=''){
+  const gate=byId('buildLoadingGate'),progress=byId('buildLoadingProgress'),percentNode=byId('buildLoadingPercent'),stageNode=byId('buildLoadingStage'),messageNode=byId('buildLoadingMessage'),actions=byId('buildLoadingActions');
+  if(progress){progress.style.setProperty('--build-progress',String(percent));progress.setAttribute('aria-valuenow',String(percent));}
+  if(percentNode)percentNode.textContent=percent+'%';if(stageNode)stageNode.textContent=label;
+  if(messageNode){messageNode.textContent=message;messageNode.hidden=!message;}if(actions)actions.hidden=status!=='error';
+  gate?.classList.toggle('is-complete',status==='ready');
+  if(status==='loading'){gate?.classList.remove('is-hidden');document.body.classList.add('is-build-loading');}
+  if(status==='ready'){setTimeout(()=>{gate?.classList.add('is-hidden');document.body.classList.remove('is-build-loading');},220);}
+  window.dispatchEvent(new CustomEvent('astrix:build-load-progress',{detail:{stage,percent,label,status,message}}));
+}
 function tile(item){if(!item)return '<span class="icon-tile empty">◆</span>';const icon=abs(iconOf(item)),name=esc(item.name||'Destiny item');return `<span class="icon-tile" title="${name}">${icon?`<img src="${esc(icon)}" alt="${name}">`:'◆'}</span>`;}
 function weaponCardShell(index){return `<div class="weap"><div class="art ph"><span class="ph-glyph">⌖</span></div><div class="cap"><b>Weapon slot ${index+1}</b><small>Awaiting resolved weapon semantics</small></div></div>`;}
 function gearCard(item,fallback){const index=Math.max(0,(Number(String(fallback).match(/\d+/)?.[0])||1)-1);return String(fallback).startsWith('Weapon')?weaponCardShell(index):armourCard(index,item);}
 function currentBuild(){const state=readState();return state?.workingBuild||state?.originalBuild||null;}
 
-function writeState(next){for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,JSON.stringify(next));}catch{}}}
+function writeState(next){const original=next?.originalBuild||{},envelope={schemaVersion:HANDOFF_SCHEMA,savedAt:Date.now(),binding:bindingOf(original),payload:next},json=JSON.stringify(envelope);for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,json);}catch{}}}
 const list=(...values)=>values.find(Array.isArray)||[];
 function resolvedSubclassOptions(build){const options=list(build?.availableSubclasses,build?.subclassOptions,build?.resolvedSubclasses,build?.catalog?.subclasses);const current={name:build?.subclassName||build?.subclass||'Subclass',icon:build?.subclassIcon,subclassBuild:build?.subclassBuild};return options.length?options:[current];}
 function resolvedOptions(build,kind){const sb=build?.subclassBuild||{},cap=kind[0].toUpperCase()+kind.slice(1),pluralCap=kind==='super'?'Supers':kind==='artifact'?'Artifacts':cap,equipped=kind==='super'?[sb.super].filter(Boolean):kind==='artifact'?[build.artifact].filter(Boolean):list(sb[kind],build?.[kind]),options=list(sb['available'+cap],sb['available'+pluralCap],sb[kind+'Options'],build?.['available'+cap],build?.['available'+pluralCap],build?.[kind+'Options'],build?.resolvedOptions?.[kind]),merged=[...equipped,...options].filter(Boolean);return merged.filter((item,index,all)=>{const key=item?.hash??item?.itemHash??item?.name??iconOf(item);return all.findIndex(other=>(other?.hash??other?.itemHash??other?.name??iconOf(other))===key)===index;});}
