@@ -29,10 +29,13 @@ body.is-build-loading{overflow:hidden!important}
 }
 .build-loading-gate__value{position:relative;z-index:1;color:#fff;font:800 1.35rem Orbitron,sans-serif;letter-spacing:.04em}
 .build-loading-gate__brand{
-  width:min(230px,70vw);height:auto;object-fit:contain;
-  filter:drop-shadow(0 0 5px rgba(206,38,46,.42)) drop-shadow(0 0 10px rgba(215,173,72,.18));
+  display:flex;align-items:center;justify-content:center;gap:10px;width:min(280px,76vw);
+  filter:drop-shadow(0 0 5px rgba(206,38,46,.38)) drop-shadow(0 0 10px rgba(215,173,72,.16));
   animation:astrix-gate-brand 1.8s ease-in-out infinite
 }
+.build-loading-gate__brand-mark{width:42px;height:42px;object-fit:contain;flex:0 0 auto}
+.build-loading-gate__brand-name{color:#f6f3f6;font:800 1.05rem Orbitron,sans-serif;letter-spacing:.08em;white-space:nowrap}
+.build-loading-gate__brand-name b{color:#d43740;font:inherit;text-shadow:0 0 8px rgba(196,34,44,.28)}
 .build-loading-gate__stage{margin:0;color:#f2eef5;font:700 .76rem Orbitron,sans-serif;letter-spacing:.11em;text-transform:uppercase}
 .build-loading-gate__message{min-height:18px;margin:0;color:#aaa1af;font:500 .72rem/1.45 Inter,sans-serif}
 .build-loading-gate__action{
