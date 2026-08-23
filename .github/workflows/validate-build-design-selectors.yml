@@ -4,7 +4,10 @@ on:
   pull_request:
     paths:
       - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space/**'
+      - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-artifact.mjs'
       - 'astrix-app/tools/test-build-design-artifact-intent.mjs'
+      - 'astrix-app/tools/test-build-space-character-isolation.mjs'
       - '.github/workflows/validate-build-design-selectors.yml'
 
 jobs:
@@ -19,5 +22,9 @@ jobs:
         run: |
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-artifact.mjs
       - name: Test intended Artifact configuration
         run: node astrix-app/tools/test-build-design-artifact-intent.mjs
+      - name: Test character-scoped Build Space handoff
+        run: node astrix-app/tools/test-build-space-character-isolation.mjs
