@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./paradox-build-space.css?v=20260823-7">
+  <link rel="stylesheet" href="./paradox-build-space.css?v=20260823-8">
   <link rel="stylesheet" href="../guardian-gear-layout.css?v=20260822-8">
 </head>
 <body>
@@ -28,7 +28,7 @@
     </aside>
     <section class="panel design-canvas">
       <div class="panel-head"><div><small>ORIGINAL → WORKING BUILD</small><h1>BUILD DESIGN</h1></div><span class="status-chip">ITERATION 1</span></div>
-      <div class="notice"><b>Baseline protected.</b> The build loaded here is stored as the immutable starting point for Paradox recommendations.</div>
+      <div class="notice"><span id="buildStateNotice"><b>Baseline protected.</b> The build loaded here is stored as the immutable starting point for Paradox recommendations.</span><button type="button" class="restore-btn" id="restoreOriginal" disabled>RESTORE ORIGINAL</button></div>
       <section class="design-section"><div class="section-title"><h2>WEAPONS</h2><span>WORKING BUILD</span></div><div class="gear-weapons"><div id="weaponGrid" class="weap-grid"></div></div></section>
       <section class="design-section"><div class="section-title"><h2>ARMOUR & MODS</h2><span>LIVE BUNGIE STATE</span></div><div class="gear-combined"><div id="armourGrid" class="gear-columns"></div></div></section>
       <section class="design-section test-loop">
@@ -57,6 +57,6 @@
       <button class="primary" disabled>RUN PARADOX ANALYSIS · NEXT ITERATION</button>
     </aside>
   </main>
-  <script type="module" src="./paradox-build-space.mjs?v=20260823-7"></script>
+  <script type="module" src="./paradox-build-space.mjs?v=20260823-8"></script>
 </body>
 </html>
