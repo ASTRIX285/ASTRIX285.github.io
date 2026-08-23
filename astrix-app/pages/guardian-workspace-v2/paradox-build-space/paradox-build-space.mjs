@@ -40,8 +40,9 @@ function decodeState(raw,{durable=false}={}){
 }
 function readState(){
   activeLoadError='';
+  const params=new URLSearchParams(location.search),expectedCharacterId=params.get('characterId')||'',expectedMembershipId=params.get('membershipId')||'';
   for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){
-    try{const raw=JSON.parse(store.getItem(BUILD_SPACE_KEY)||'null'),state=decodeState(raw,{durable});if(state)return state;if(raw)store.removeItem(BUILD_SPACE_KEY);}
+    try{const raw=JSON.parse(store.getItem(BUILD_SPACE_KEY)||'null'),state=decodeState(raw,{durable}),binding=state?bindingOf(state.originalBuild):null;if(state&&(!expectedCharacterId||binding.characterId===expectedCharacterId)&&(!expectedMembershipId||!binding.membershipId||binding.membershipId===expectedMembershipId))return state;if(raw)store.removeItem(BUILD_SPACE_KEY);}
     catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
   }
   activeLoadError=activeLoadError||'No current Build Forge snapshot was found. Return to the Guardian page and choose Improve My Guardian again.';
