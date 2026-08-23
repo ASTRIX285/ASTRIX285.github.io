@@ -36,7 +36,10 @@ const titanSource=resolveBuildSource();
 assert.deepEqual(titanSource.artifactConfiguration.selectedPerkHashes,[202]);
 assert.equal(titanSource.weapons[0].weaponRollAdvice.verdict,'keep');
 
-const persistedWarlock=JSON.parse(localStorage.getItem(LAST_LOADOUT_KEY));
+const persistedWarlockEnvelope=JSON.parse(localStorage.getItem(LAST_LOADOUT_KEY));
+assert.equal(persistedWarlockEnvelope.schemaVersion,2,'durable loadouts use the versioned handoff envelope');
+assert.equal(persistedWarlockEnvelope.binding.characterId,'warlock-1','durable envelope remains bound to the saved Guardian');
+const persistedWarlock=persistedWarlockEnvelope.payload;
 assert.deepEqual(persistedWarlock.artifactConfiguration.selectedPerkHashes,[101],'Titan Artifact intent cannot contaminate the cached Warlock loadout');
 assert.equal(persistedWarlock.weaponRollAdvice,undefined,'Titan weapon advice cannot contaminate the cached Warlock loadout');
 
