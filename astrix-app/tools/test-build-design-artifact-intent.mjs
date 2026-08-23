@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
+import {createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,diffBuilds} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 
 const originalConfiguration={schemaVersion:1,artifactHash:999,seasonNumber:28,selectedPerkHashes:[123],source:'fixture-intent',provenance:{provider:'fixture'}};
 const state=createBuildState({characterId:'fixture',artifactConfiguration:originalConfiguration});
@@ -16,6 +16,22 @@ assert.deepEqual(state.workingBuild.artifactConfiguration.selectedPerkHashes,[50
 assert.equal(state.workingBuild.artifactConfiguration.source,'paradox-build-space-intended');
 assert.equal(state.workingBuild.artifactConfiguration.provenance.state,'intended');
 assert.equal(state.workingBuild.artifactConfiguration.provenance.upstream.provider,'verified-fixture');
+const changes=diffBuilds(state.originalBuild,state.workingBuild);
+assert.deepEqual(changes.map(change=>change.path),['artifact','artifactConfiguration']);
+
+const perkOnly=createBuildState({characterId:'fixture',artifact:{hash:1001},artifactConfiguration:{artifactHash:1001,seasonNumber:29,selectedPerkHashes:[501]}});
+perkOnly.workingBuild.artifactConfiguration.selectedPerkHashes=[501,502];
+assert.deepEqual(diffBuilds(perkOnly.originalBuild,perkOnly.workingBuild).map(change=>change.path),['artifactConfiguration']);
+perkOnly.workingBuild.artifactConfiguration.selectedPerkHashes=[501];
+assert.deepEqual(diffBuilds(perkOnly.originalBuild,perkOnly.workingBuild),[]);
+
+const reordered=createBuildState({characterId:'fixture',artifactConfiguration:{artifactHash:1001,seasonNumber:29,selectedPerkHashes:[501,502]}});
+reordered.workingBuild.artifactConfiguration.selectedPerkHashes=[502,501];
+assert.deepEqual(diffBuilds(reordered.originalBuild,reordered.workingBuild),[],'Artifact perk ordering alone is not a Working Build change');
+
+const unavailableState=createBuildState({characterId:'fixture',artifactConfiguration:{artifactHash:1001,seasonNumber:29,selectedPerkHashes:null}});
+unavailableState.workingBuild.artifactConfiguration.selectedPerkHashes=[];
+assert.deepEqual(diffBuilds(unavailableState.originalBuild,unavailableState.workingBuild).map(change=>change.path),['artifactConfiguration'],'unknown active state remains distinct from an explicit empty intended selection');
 
 const unavailable=createIntendedArtifactConfiguration({hash:1002,seasonNumber:29,state:'state-unavailable'},null);
 assert.equal(unavailable.selectedPerkHashes,null);
