@@ -18,7 +18,7 @@ if (!document.querySelector('link[data-astrix-subclass-super-polish]')) {
 if (!document.querySelector('link[data-astrix-left-panel-lock]')) {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = './guardian-left-panel-lock.css?v=20260820-0004';
+  link.href = './guardian-left-panel-lock.css?v=20260823-main-pass-2';
   link.dataset.astrixLeftPanelLock = 'true';
   document.head.appendChild(link);
 }
