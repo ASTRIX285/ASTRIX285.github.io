@@ -7,14 +7,15 @@
   --pf-gap:8px;
   --pf-art-slot:52px;
   --pf-art-row-gap:10px;
-  --subclass-accent:137,92,246;
+  --subclass-accent:#7e5fc6;
+  --subclass-accent-rgb:126,95,198;
 }
-html[data-subclass="arc"]{--subclass-accent:90,214,255}
-html[data-subclass="solar"]{--subclass-accent:255,125,45}
-html[data-subclass="void"]{--subclass-accent:153,93,255}
-html[data-subclass="stasis"]{--subclass-accent:92,163,255}
-html[data-subclass="strand"]{--subclass-accent:73,226,145}
-html[data-subclass="prismatic"]{--subclass-accent:237,99,255}
+html[data-subclass="arc"]{--subclass-accent:#79bbea;--subclass-accent-rgb:121,187,234}
+html[data-subclass="solar"]{--subclass-accent:#f0631e;--subclass-accent-rgb:240,99,30}
+html[data-subclass="void"]{--subclass-accent:#7e5fc6;--subclass-accent-rgb:126,95,198}
+html[data-subclass="stasis"]{--subclass-accent:#4d88ff;--subclass-accent-rgb:77,136,255}
+html[data-subclass="strand"]{--subclass-accent:#35e366;--subclass-accent-rgb:53,227,102}
+html[data-subclass="prismatic"]{--subclass-accent:#e56adf;--subclass-accent-rgb:229,106,223}
 
 html body .workspace>.left .subclass-rail{
   display:grid!important;
@@ -95,7 +96,7 @@ html[data-subclass="strand"] body .workspace>.left .subclass-option[data-subclas
 html[data-subclass="prismatic"] body .workspace>.left .subclass-option[data-subclass-option="prismatic"] .subclass-option__diamond{
   border-color:rgba(227,178,60,.98)!important;
   background:linear-gradient(135deg,rgba(142,34,48,.92) 0%,rgba(142,34,48,.74) 43%,rgba(227,178,60,.34) 100%)!important;
-  box-shadow:0 0 0 1px rgba(227,178,60,.30),0 0 12px rgba(142,34,48,.70),0 0 22px rgba(var(--subclass-accent),.45),inset 0 0 16px rgba(227,178,60,.14)!important;
+  box-shadow:0 0 0 1px rgba(227,178,60,.30),0 0 12px rgba(142,34,48,.70),0 0 22px rgba(var(--subclass-accent-rgb),.45),inset 0 0 16px rgba(227,178,60,.14)!important;
 }
 html body .workspace>.left .subclass-option.is-active .subclass-option__icon{
   filter:saturate(1.14) brightness(1.18)!important;
@@ -317,4 +318,68 @@ html body .workspace .guardian-loadout-icon-fallback{
   height:100%!important;
   font-size:0!important;
   color:transparent!important;
+}
+
+
+/* Main Guardian visual pass — this file is the final async-loaded authority. */
+html body .workspace>.left .subclass-option__diamond{
+  width:50px!important;
+  height:50px!important;
+  border-color:color-mix(in srgb,var(--element-colour,#7e5fc6) 76%,#fff 24%)!important;
+  background:color-mix(in srgb,var(--element-colour,#7e5fc6) 28%,#0b0910 72%)!important;
+}
+html body .workspace>.left .subclass-option__icon{
+  width:96%!important;
+  height:96%!important;
+  object-fit:contain!important;
+}
+html body .workspace>.left .super-feature{
+  flex-basis:342px!important;
+  min-height:342px!important;
+}
+html body .workspace>.left .super-feature__cluster{
+  width:260px!important;
+  height:282px!important;
+  margin-top:12px!important;
+}
+html body .workspace>.left .super-diamond--equipped{
+  top:4px!important;
+  width:184px!important;
+}
+html body .workspace>.left .super-diamond--alt{
+  width:56px!important;
+  background:color-mix(in srgb,var(--subclass-accent) 20%,#100b15 80%)!important;
+}
+html body .workspace>.left .super-diamond--alt1{left:calc(50% - 48px)!important;top:192px!important}
+html body .workspace>.left .super-diamond--alt2{left:calc(50% + 48px)!important;top:192px!important}
+html body .workspace>.left .super-diamond--alt3{left:50%!important;top:232px!important}
+html body .workspace>.left .super-diamond--alt.is-selected-super{
+  opacity:.82!important;
+  border-color:color-mix(in srgb,var(--subclass-accent) 76%,#fff 24%)!important;
+  background:color-mix(in srgb,var(--subclass-accent) 42%,#100b15 58%)!important;
+}
+html body .workspace>.left .super-feature__name{
+  max-width:260px!important;
+  min-height:26px!important;
+  margin:10px 0 0!important;
+  padding:5px 10px!important;
+  background:rgba(5,4,8,.78)!important;
+  box-sizing:border-box!important;
+}
+@media (min-width:721px) and (max-width:1499px){
+  html body .workspace>.left .super-feature{flex-basis:310px!important;min-height:310px!important}
+  html body .workspace>.left .super-feature__cluster{width:230px!important;height:252px!important}
+  html body .workspace>.left .super-diamond--equipped{width:156px!important}
+  html body .workspace>.left .super-diamond--alt1{left:calc(50% - 43px)!important;top:164px!important}
+  html body .workspace>.left .super-diamond--alt2{left:calc(50% + 43px)!important;top:164px!important}
+  html body .workspace>.left .super-diamond--alt3{top:204px!important}
+}
+@media (max-width:720px){
+  html body .workspace>.left .super-feature{flex-basis:286px!important;min-height:286px!important}
+  html body .workspace>.left .super-feature__cluster{width:214px!important;height:232px!important}
+  html body .workspace>.left .super-diamond--equipped{width:140px!important}
+  html body .workspace>.left .super-diamond--alt{width:52px!important}
+  html body .workspace>.left .super-diamond--alt1{left:calc(50% - 40px)!important;top:150px!important}
+  html body .workspace>.left .super-diamond--alt2{left:calc(50% + 40px)!important;top:150px!important}
+  html body .workspace>.left .super-diamond--alt3{top:188px!important}
 }
