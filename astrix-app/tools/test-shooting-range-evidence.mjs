@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+  captureMatchesCharacter,
   selectCandidateActivities,
   classifyCandidateEvidence,
   summarizeCaptureEvidence
@@ -9,6 +10,10 @@ const armedAt='2026-08-22T20:00:00.000Z';
 const before={instanceId:'100',period:'2026-08-22T19:59:00.000Z',referenceId:10,directorActivityHash:11};
 const baseline={instanceId:'101',period:'2026-08-22T20:01:00.000Z',referenceId:20,directorActivityHash:21};
 const newActivity={instanceId:'102',period:'2026-08-22T20:02:00.000Z',referenceId:30,directorActivityHash:31};
+
+assert.equal(captureMatchesCharacter({characterId:'warlock-1'},'warlock-1'),true,'the capture may only match its exact Guardian');
+assert.equal(captureMatchesCharacter({characterId:'warlock-1'},'titan-2'),false,'a different Guardian must not inherit the capture');
+assert.equal(captureMatchesCharacter({characterId:'warlock-1'},''),false,'missing current Guardian identity must fail closed');
 
 assert.deepEqual(
   selectCandidateActivities({activities:[before,baseline,newActivity],baselineInstanceIds:['101'],armedAt,baselineAvailable:true}).map(row=>row.instanceId),
