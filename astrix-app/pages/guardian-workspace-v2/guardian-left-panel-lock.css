@@ -494,5 +494,6 @@ html body .workspace>.left .prismatic-transcendence__slot img{
   html body .workspace>.left .super-diamond--equipped{width:142px!important}
 }
 @media (max-width:720px){
+  html body .workspace>.left .subclass-option__diamond{width:35px!important;height:35px!important}
   html body .workspace>.left .super-feature__cluster{transform:none!important}
 }
