@@ -54,13 +54,13 @@ function resolveArtifactByProvenance(payload,characterId){
     return {...base,state:'state-unavailable',provenance:'state-unavailable',perks:null,activePerks:null,unresolvedPerkHashes:[],artifactConfiguration,stateMessage:'Artifact activation state for the selected character is unavailable.'};
   }
 
-  const items=seasonalArtifact.tiers.flatMap(tier=>Array.isArray(tier?.items)?tier.items:[]);
+  const items=seasonalArtifact.tiers.flatMap((tier,tierIndex)=>Array.isArray(tier?.items)?tier.items.map((item,itemIndex)=>({...item,tierIndex,itemIndex,tierUnlocked:tier?.isUnlocked===true,pointsToUnlock:Number(tier?.pointsToUnlock??0)||0})):[]);
   if(!items.length){
     const artifactConfiguration=createArtifactConfiguration({artifactHash,seasonNumber,selectedPerkHashes:null,source:'bungie-live-state-unavailable',provenance:{...provenance,state:'state-unavailable'}});
     return {...base,state:'state-unavailable',provenance:'state-unavailable',perks:null,activePerks:null,unresolvedPerkHashes:[],artifactConfiguration,stateMessage:'Bungie returned no Artifact tier item state for the selected character.'};
   }
 
-  const perks=items.map(item=>({...displayItem(definitions,item.itemHash),isActive:item.isActive===true,isVisible:item.isVisible!==false}));
+  const perks=items.map(item=>({...displayItem(definitions,item.itemHash),isActive:item.isActive===true,isVisible:item.isVisible!==false,tierIndex:item.tierIndex,itemIndex:item.itemIndex,tierUnlocked:item.tierUnlocked,pointsToUnlock:item.pointsToUnlock}));
   const activePerks=perks.filter(item=>item.isActive);
   const selectedPerkHashes=activePerks.map(item=>item.hash);
   const unresolvedPerkHashes=activePerks.filter(item=>item.unresolved).map(item=>item.hash);
