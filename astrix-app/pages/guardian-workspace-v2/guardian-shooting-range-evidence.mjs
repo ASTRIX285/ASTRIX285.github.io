@@ -7,6 +7,14 @@ function captureMatchesCharacter(capture,characterId){
   return Boolean(capturedCharacterId&&currentCharacterId&&capturedCharacterId===currentCharacterId);
 }
 
+function mergeCaptureArchive(archive=[],capture=null,limit=5){
+  const max=Math.max(1,Number(limit)||5);
+  const testId=asString(capture?.testId);
+  const previous=(Array.isArray(archive)?archive:[]).filter(row=>asString(row?.testId));
+  if(!testId)return previous.slice(0,max);
+  return [{...capture},...previous.filter(row=>asString(row.testId)!==testId)].slice(0,max);
+}
+
 function periodAtOrAfterArmed(period,armedAt){
   const periodMs=Date.parse(asString(period));
   const armedMs=Date.parse(asString(armedAt));
@@ -70,4 +78,4 @@ function summarizeCaptureEvidence(results=[]){
   };
 }
 
-export {captureMatchesCharacter,periodAtOrAfterArmed,selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence};
+export {captureMatchesCharacter,mergeCaptureArchive,periodAtOrAfterArmed,selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence};
