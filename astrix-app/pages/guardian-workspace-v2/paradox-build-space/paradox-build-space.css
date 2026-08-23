@@ -117,9 +117,9 @@
 @media(max-width:720px){.artifact-tier-perks{grid-template-columns:repeat(4,minmax(54px,1fr))}.artifact-perk-matrix{max-height:430px}}
 
 
-/* Locked parity layout: Artifact items and armour preserve card scale at every width. */
+/* Build Design armour parity: five cards use the row; six mods form a 3-by-2 matrix. */
 :root{
-  --pf-build-armour-card-width:150px;
+  --pf-build-armour-card-width:168px;
   --pf-build-armour-image-width:82px;
   --pf-build-armour-image-height:92px;
   --pf-build-mod-size:36px;
@@ -147,24 +147,24 @@
 .design-canvas .gear-combined{min-width:0;overflow-x:auto;overflow-y:visible;scrollbar-gutter:stable}
 .design-canvas .gear-combined .gear-columns{
   display:grid!important;
-  grid-template-columns:repeat(5,var(--pf-build-armour-card-width))!important;
-  grid-auto-flow:column!important;
-  width:max-content!important;
-  min-width:100%!important;
-  gap:clamp(5px,.5vw,10px)!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  width:100%!important;
+  min-width:0!important;
+  gap:clamp(8px,.7vw,14px)!important;
   padding-bottom:8px;
 }
 .design-canvas .gear-combined .gear-slot{
-  width:var(--pf-build-armour-card-width)!important;
-  min-width:var(--pf-build-armour-card-width)!important;
+  width:auto!important;
+  min-width:0!important;
 }
 .design-canvas .gear-combined .gear-arm-anchor .arm{
   width:var(--pf-build-armour-image-width)!important;
   height:var(--pf-build-armour-image-height)!important;
 }
 .design-canvas .gear-combined .gear-slot .gear-mods{
-  grid-template-columns:repeat(2,var(--pf-build-mod-size))!important;
-  grid-template-rows:repeat(3,var(--pf-build-mod-size))!important;
+  grid-template-columns:repeat(3,var(--pf-build-mod-size))!important;
+  grid-template-rows:repeat(2,var(--pf-build-mod-size))!important;
   grid-auto-flow:row!important;
   gap:4px!important;
 }
@@ -173,12 +173,20 @@
   height:var(--pf-build-mod-size)!important;
 }
 @media(max-width:1100px){
-  .design-canvas .gear-combined .gear-columns{grid-template-columns:repeat(5,var(--pf-build-armour-card-width))!important}
+  .design-canvas .gear-combined .gear-columns{
+    grid-template-columns:repeat(5,var(--pf-build-armour-card-width))!important;
+    grid-auto-flow:column!important;
+    width:max-content!important;
+    min-width:100%!important;
+  }
+  .design-canvas .gear-combined .gear-slot{
+    width:var(--pf-build-armour-card-width)!important;
+    min-width:var(--pf-build-armour-card-width)!important;
+  }
 }
 @media(max-width:720px){
-  :root{--pf-build-armour-card-width:150px;--pf-build-artifact-card-width:74px}
+  :root{--pf-build-armour-card-width:168px;--pf-build-artifact-card-width:74px}
   .artifact-item-selector{grid-template-columns:repeat(7,var(--pf-build-artifact-card-width))!important}
-  .design-canvas .gear-combined .gear-columns{grid-template-columns:repeat(5,var(--pf-build-armour-card-width))!important}
 }
 
 
