@@ -1,5 +1,5 @@
 import {AUTH_ORIGIN,getBungieSession} from './guardian-bungie-auth.mjs';
-import {selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence} from './guardian-shooting-range-evidence.mjs';
+import {captureMatchesCharacter,selectCandidateActivities,classifyCandidateEvidence,summarizeCaptureEvidence} from './guardian-shooting-range-evidence.mjs';
 
 const CAPTURE_KEY='astrix:shooting-range-capture:v1';
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
@@ -197,9 +197,16 @@ async function armShootingRangeCapture({characterId=null,buildSnapshot=null}={})
   return saveCapture(capture);
 }
 
-async function collectShootingRangeResults({maxCandidates=5}={}){
+async function collectShootingRangeResults({maxCandidates=5,expectedCharacterId=null}={}){
   const capture=readCapture();
   if(!capture)throw new Error('No Shooting Range capture is armed.');
+  if(expectedCharacterId&&!captureMatchesCharacter(capture,expectedCharacterId)){
+    const error=new Error(`The saved capture belongs to character ${asString(capture.characterId)||'unknown'}, not the current Build Forge Guardian ${asString(expectedCharacterId)||'unknown'}.`);
+    error.code='capture-character-mismatch';
+    error.captureCharacterId=asString(capture.characterId);
+    error.currentCharacterId=asString(expectedCharacterId);
+    throw error;
+  }
   const session=await getBungieSession();
   const history=await pullActivityHistory({session,characterId:capture.characterId,count:25,page:0});
   const baselineAvailable=!capture.baselineError;
@@ -246,6 +253,7 @@ export {
   pullPgcr,
   armShootingRangeCapture,
   collectShootingRangeResults,
+  captureMatchesCharacter,
   readCapture,
   clearCapture
 };
