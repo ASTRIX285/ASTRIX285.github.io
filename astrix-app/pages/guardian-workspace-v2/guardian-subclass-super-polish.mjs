@@ -1,4 +1,4 @@
-const STYLE_HREF="./guardian-subclass-super-polish.css?v=20260821-bungie-icons";
+const STYLE_HREF="./guardian-subclass-super-polish.css?v=20260823-tester-fix-1";
 if(!document.querySelector('link[data-astrix-subclass-super-polish]')){
   const link=document.createElement("link");
   link.rel="stylesheet";

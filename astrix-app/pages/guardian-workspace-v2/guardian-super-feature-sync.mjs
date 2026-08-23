@@ -9,7 +9,7 @@ import './paradox-build-space-handoff.mjs';
 
 const subclassPolishLink = document.querySelector('link[data-astrix-subclass-super-polish]') || document.createElement('link');
 subclassPolishLink.rel = 'stylesheet';
-subclassPolishLink.href = './guardian-subclass-super-polish.css?v=20260823-main-pass-3';
+subclassPolishLink.href = './guardian-subclass-super-polish.css?v=20260823-tester-fix-1';
 subclassPolishLink.dataset.astrixSubclassSuperPolish = 'true';
 if (!subclassPolishLink.isConnected) document.head.appendChild(subclassPolishLink);
 
