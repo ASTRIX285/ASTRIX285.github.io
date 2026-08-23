@@ -192,14 +192,14 @@
 <body class="is-build-loading">
   <div class="build-loading-gate" id="buildLoadingGate" role="dialog" aria-modal="true" aria-labelledby="buildLoadingStage" aria-describedby="buildLoadingMessage" data-status="loading">
     <div class="build-loading-gate__panel">
-      <div class="build-loading-gate__donut" role="progressbar" aria-label="Guardian data loading progress" aria-valuemin="0" aria-valuemax="100"><span class="build-loading-gate__value" id="buildLoadingProgress">20%</span></div>
+      <div class="build-loading-gate__donut" id="buildLoadingProgress" role="progressbar" aria-label="Guardian data loading progress" aria-valuemin="0" aria-valuemax="100"><span class="build-loading-gate__value" id="buildLoadingPercent">20%</span></div>
       <div class="build-loading-gate__brand" id="buildLoadingBrand" aria-label="ASTRIX PARADOX">
         <img class="build-loading-gate__brand-mark" src="../../../img/logo.png" alt="">
         <span class="build-loading-gate__brand-name">ASTRIX <b>PARADOX</b></span>
       </div>
       <p class="build-loading-gate__stage" id="buildLoadingStage">Preparing Build Forge</p>
       <p class="build-loading-gate__message" id="buildLoadingMessage">Restoring the current workspace before Bungie data is resolved.</p>
-      <button type="button" class="build-loading-gate__action" id="buildLoadingAction" hidden>Try again</button>
+      <div class="build-loading-gate__actions" id="buildLoadingActions"><button type="button" class="build-loading-gate__action" id="buildLoadingAction" hidden>Try again</button></div>
     </div>
   </div>
   <header class="topbar">
