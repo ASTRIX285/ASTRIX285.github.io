@@ -152,6 +152,22 @@ const isGrenadePlug=plug=>matchesCategory(plug,["grenade"],/grenade/);
 const isAspectPlug=plug=>matchesCategory(plug,["aspect"],/aspect/);
 const isFragmentPlug=plug=>matchesCategory(plug,["fragment"],/fragment/);
 
+const uniqueItems=rows=>rows.filter((row,index,all)=>row&&Number.isFinite(Number(row.hash))&&all.findIndex(other=>Number(other?.hash)===Number(row.hash))===index);
+
+function subclassCandidatePlugs(profile,definitions,item){
+  const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item?.itemInstanceId]?.plugs||{};
+  const reusableHashes=Object.values(reusable).flatMap(rows=>Array.isArray(rows)?rows:[])
+    .map(row=>Number(row?.plugItemHash??row?.plugHash)).filter(Number.isFinite);
+  const itemDef=definition(definitions,item?.itemHash)||{};
+  const manifestHashes=(itemDef.sockets?.socketEntries||[]).flatMap(entry=>[
+    Number(entry?.singleInitialItemHash),
+    ...(entry?.reusablePlugItems||[]).map(row=>Number(row?.plugItemHash))
+  ]).filter(Number.isFinite);
+  return uniqueItems([...reusableHashes,...manifestHashes]
+    .map(hash=>displayItem(definitions,hash))
+    .filter(row=>row.definition&&Object.keys(row.definition).length));
+}
+
 function normaliseItem(profile,definitions,item,payload={}){
   const base=displayItem(definitions,item.itemHash);
   const override=Number.isInteger(Number(item?.overrideStyleItemHash))?displayItem(definitions,Number(item.overrideStyleItemHash)):null;
@@ -205,23 +221,12 @@ function subclassConfiguration(profile,definitions,item,payload={}){
   const melee=plugs.find(isMeleePlug)||null;
   const grenade=plugs.find(isGrenadePlug)||null;
 
-  const socketStates=profile?.itemComponents?.sockets?.data?.[item?.itemInstanceId]?.sockets||[];
-  const superSocketIndex=superItem?socketStates.findIndex(socket=>Number(socket.plugHash)===Number(superItem.hash)):-1;
-  const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item?.itemInstanceId]?.plugs||{};
-  const reusableRows=superSocketIndex>=0?(reusable[String(superSocketIndex)]||reusable[superSocketIndex]||[]):[];
-
-  const itemDef=definitions?.[String(item?.itemHash)]||{};
-  const manifestSockets=itemDef.sockets?.socketEntries||[];
-  const manifestSupers=manifestSockets
-    .flatMap(entry=>[entry.singleInitialItemHash,...(entry.reusablePlugItems||[]).map(p=>p.plugItemHash)])
-    .filter(Boolean)
-    .map(hash=>displayItem(definitions,hash))
-    .filter(row=>row.definition&&Object.keys(row.definition).length>0&&isSuperPlug(row));
+  const candidates=subclassCandidatePlugs(profile,definitions,item);
+  const optionsFor=(equipped,predicate)=>uniqueItems([equipped,...candidates.filter(predicate)]);
 
   const superOptions=[
     superItem,
-    ...reusableRows.map(row=>displayItem(definitions,row.plugItemHash??row.plugHash)).filter(row=>row.definition&&Object.keys(row.definition).length>0&&isSuperPlug(row)),
-    ...manifestSupers
+    ...candidates.filter(isSuperPlug)
   ].filter((row,index,rows)=>row&&rows.findIndex(other=>Number(other.hash)===Number(row.hash))===index)
     .map(row=>{
       const damageHash=Number(row?.damageTypeHash??row?.definition?.defaultDamageTypeHash??row?.definition?.damageTypeHashes?.[0]);
@@ -229,6 +234,14 @@ function subclassConfiguration(profile,definitions,item,payload={}){
       return {...row,damageTypeHash:Number.isFinite(damageHash)?damageHash:null,elementDefinition};
     });
   const transcendenceOptions=plugs.filter(row=>String(row?.definition?.plug?.plugCategoryIdentifier||row?.plugCategoryIdentifier||'').toLowerCase().includes('transcend'));
+  const abilityOptionsBySocket={
+    classAbility:optionsFor(classAbility,isClassAbilityPlug),
+    movement:optionsFor(movement,isMovementPlug),
+    melee:optionsFor(melee,isMeleePlug),
+    grenade:optionsFor(grenade,isGrenadePlug)
+  };
+  const availableAspects=optionsFor(null,isAspectPlug);
+  const availableFragments=optionsFor(null,isFragmentPlug);
 
   return {
     super:superItem,
@@ -239,8 +252,14 @@ function subclassConfiguration(profile,definitions,item,payload={}){
     melee,
     grenade,
     abilities:[classAbility,movement,melee,grenade].filter(Boolean),
+    abilityOptionsBySocket,
+    availableAbilities:uniqueItems(Object.values(abilityOptionsBySocket).flat()),
     aspects:plugs.filter(isAspectPlug),
     fragments:plugs.filter(isFragmentPlug),
+    availableAspects,
+    aspectOptions:availableAspects,
+    availableFragments,
+    fragmentOptions:availableFragments,
     socketsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]),
     reusablePlugsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]),
     socketCoverage
@@ -249,6 +268,21 @@ function subclassConfiguration(profile,definitions,item,payload={}){
 
 function currentArtifact(payload,characterId){
   return resolveArtifactByProvenance(payload,characterId);
+}
+
+function availableArtifactItems(payload,current){
+  const profile=payload?.profile||{};
+  const definitions=payload?.definitions||{};
+  const inventoryItems=[
+    ...(profile?.profileInventory?.data?.items||[]),
+    ...Object.values(profile?.characterInventories?.data||{}).flatMap(row=>row?.items||[]),
+    ...Object.values(profile?.characterEquipment?.data||{}).flatMap(row=>row?.items||[])
+  ];
+  const inventoryArtifacts=inventoryItems.map(item=>displayItem(definitions,item?.itemHash)).filter(item=>{
+    const type=[item?.itemTypeDisplayName,item?.definition?.itemTypeAndTierDisplayName,item?.definition?.displayProperties?.name].join(" ").toLowerCase();
+    return type.includes("artifact");
+  });
+  return uniqueItems([current,...inventoryArtifacts]);
 }
 
 function identityCosmetics(profile,definitions,equipment,character){
@@ -272,9 +306,10 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
-  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem,payload):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],aspects:[],fragments:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
+  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem,payload):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character);
   const artifact=currentArtifact(payload,character.characterId);
+  const availableArtifacts=availableArtifactItems(payload,artifact);
   const characterLoadouts=profile?.characterLoadouts?.data?.[character.characterId];
   const loadoutsAvailable=Array.isArray(characterLoadouts?.loadouts);
   const rank=guardianRank(profile);
@@ -302,9 +337,17 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     melee:subclassBuild.melee,
     grenade:subclassBuild.grenade,
     abilities:subclassBuild.abilities,
+    abilityOptionsBySocket:subclassBuild.abilityOptionsBySocket,
+    availableAbilities:subclassBuild.availableAbilities,
     aspects:subclassBuild.aspects,
     fragments:subclassBuild.fragments,
+    availableAspects:subclassBuild.availableAspects,
+    aspectOptions:subclassBuild.aspectOptions,
+    availableFragments:subclassBuild.availableFragments,
+    fragmentOptions:subclassBuild.fragmentOptions,
     artifact,
+    availableArtifacts,
+    artifactOptions:availableArtifacts,
     artifactConfiguration:artifact?.artifactConfiguration||null,
     hashCoverage,
     power:character.light??null,
