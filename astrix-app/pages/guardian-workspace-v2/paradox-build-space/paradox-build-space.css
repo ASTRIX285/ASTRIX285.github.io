@@ -117,12 +117,13 @@
 @media(max-width:720px){.artifact-tier-perks{grid-template-columns:repeat(4,minmax(54px,1fr))}.artifact-perk-matrix{max-height:430px}}
 
 
-/* Build Design armour parity: five cards use the row; six mods form a 3-by-2 matrix. */
+/* Build Design armour parity: five portrait cards use the row; six mods form a
+   2-column x 3-row matrix, matching the main Build Forge sheet. */
 :root{
   --pf-build-armour-card-width:168px;
-  --pf-build-armour-image-width:82px;
-  --pf-build-armour-image-height:92px;
-  --pf-build-mod-size:36px;
+  --pf-build-armour-image-width:88px;
+  --pf-build-armour-image-height:104px;
+  --pf-build-mod-size:44px;
   --pf-build-artifact-card-width:74px;
 }
 .artifact-item-selector{
@@ -157,20 +158,48 @@
 .design-canvas .gear-combined .gear-slot{
   width:auto!important;
   min-width:0!important;
+  min-height:292px!important;
+  display:flex!important;
+  flex-direction:column!important;
 }
 .design-canvas .gear-combined .gear-arm-anchor .arm{
   width:var(--pf-build-armour-image-width)!important;
   height:var(--pf-build-armour-image-height)!important;
 }
+.design-canvas .gear-combined .gear-arm-anchor .arm>img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
 .design-canvas .gear-combined .gear-slot .gear-mods{
-  grid-template-columns:repeat(3,var(--pf-build-mod-size))!important;
-  grid-template-rows:repeat(2,var(--pf-build-mod-size))!important;
+  grid-template-columns:repeat(2,var(--pf-build-mod-size))!important;
+  grid-template-rows:repeat(3,var(--pf-build-mod-size))!important;
   grid-auto-flow:row!important;
-  gap:4px!important;
+  gap:6px!important;
+  margin-top:auto!important;
 }
 .design-canvas .gear-combined .gear-slot .gear-mod{
   width:var(--pf-build-mod-size)!important;
   height:var(--pf-build-mod-size)!important;
+  border-color:transparent!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+.design-canvas .gear-combined .gear-slot .gear-mod img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+}
+.design-canvas .gear-combined .gear-slot .gear-mod.is-masterwork{
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+.design-canvas .gear-combined .gear-slot .gear-mod.is-masterwork-gold{
+  border:2px solid #f0d55e!important;
+  border-radius:7px!important;
+  box-shadow:0 0 10px rgba(240,213,94,.38)!important;
 }
 @media(max-width:1100px){
   .design-canvas .gear-combined .gear-columns{

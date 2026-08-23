@@ -187,8 +187,20 @@
       .left .super-diamond--alt3{left:50%!important;top:230px!important}
     }
   </style>
+  <link rel="stylesheet" href="./guardian-main-correction.css?v=20260823-1">
+  <link rel="stylesheet" href="./guardian-main-loader.css?v=20260823-1">
 </head>
-<body>
+<body class="is-guardian-loading">
+  <div class="guardian-loading-gate" id="guardianLoadingGate" role="dialog" aria-modal="true" aria-labelledby="guardianLoadingStage">
+    <div class="guardian-loading-surface">
+      <div class="guardian-loading-progress" id="guardianLoadingProgress" role="progressbar" aria-label="Build Forge Guardian loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-lit-edges="0">
+        <svg viewBox="0 0 120 104" aria-hidden="true"><path d="M30 2H90"/><path d="M90 2L118 52"/><path d="M118 52L90 102"/><path d="M90 102H30"/><path d="M30 102L2 52"/><path d="M2 52L30 2"/></svg>
+        <strong id="guardianLoadingPercent">0%</strong>
+      </div>
+      <div class="guardian-loading-brand"><img src="../../../img/logo.png" alt=""><b>ASTRIX <em>PARADOX</em></b></div>
+      <p id="guardianLoadingStage" aria-live="polite">Connecting to Guardian data…</p>
+    </div>
+  </div>
   <header class="topbar">
     <div class="brand"><img class="brand-logo" src="../../../img/logo.png" alt="ASTRIX PARADOX logo"><div><div class="nm">ASTRIX <span class="brand-accent">PARADOX</span></div><div class="sub">AI GAMING INTELLIGENCE</div></div></div>
     <div class="ws-label">GUARDIAN BUILD FORGE</div>
@@ -258,5 +270,6 @@
   <script type="module" src="./guardian-beta-readiness.mjs"></script>
   <script type="module" src="./guardian-beta-runtime.mjs?v=20260822-2"></script>
   <script type="module" src="./paradox-build-space-handoff.mjs?v=20260822-1"></script>
+  <script type="module" src="./guardian-main-loader.mjs?v=20260823-1"></script>
 </body>
 </html>
