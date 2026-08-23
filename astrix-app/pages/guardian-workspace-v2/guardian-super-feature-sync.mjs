@@ -15,7 +15,7 @@ if (!subclassPolishLink.isConnected) document.head.appendChild(subclassPolishLin
 
 const leftPanelLockLink = document.querySelector('link[data-astrix-left-panel-lock]') || document.createElement('link');
 leftPanelLockLink.rel = 'stylesheet';
-leftPanelLockLink.href = './guardian-left-panel-lock.css?v=20260823-main-pass-3';
+leftPanelLockLink.href = './guardian-left-panel-lock.css?v=20260823-main-pass-4';
 leftPanelLockLink.dataset.astrixLeftPanelLock = 'true';
 if (!leftPanelLockLink.isConnected) document.head.appendChild(leftPanelLockLink);
 
