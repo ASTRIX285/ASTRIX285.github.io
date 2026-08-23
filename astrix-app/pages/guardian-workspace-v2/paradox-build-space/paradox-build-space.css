@@ -218,3 +218,12 @@
   .super-selector.is-prismatic .selector-card:not(:first-child){width:47px;height:47px}
   .transcendence-slots{grid-template-columns:1fr 1fr}
 }
+
+
+/* Build Space owns document scrolling; shared Guardian desktop rules target .workspace. */
+html,body{
+  height:auto!important;
+  min-height:100%;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
