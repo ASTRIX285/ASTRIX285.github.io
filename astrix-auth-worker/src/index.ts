@@ -284,7 +284,7 @@ function definitionPlugCategory(definition: Record<string, unknown> | undefined)
   return String(plug?.plugCategoryIdentifier || "").toLowerCase();
 }
 
-function reusableSuperHashes(
+function reusableSubclassPlugHashes(
   profile: DestinyProfilePayload,
   definitions: Record<string, Record<string, unknown>>
 ): number[] {
@@ -292,17 +292,16 @@ function reusableSuperHashes(
   for (const character of Object.values(profile.characterEquipment?.data || {})) {
     for (const item of character.items || []) {
       if (!item.itemInstanceId) continue;
-      const sockets = profile.itemComponents?.sockets?.data?.[item.itemInstanceId]?.sockets || [];
-      const superSocketIndex = sockets.findIndex(socket => {
-        if (!Number.isInteger(socket.plugHash)) return false;
-        return definitionPlugCategory(definitions[String(socket.plugHash)]).includes("super");
-      });
-      if (superSocketIndex < 0) continue;
+      const itemDefinition = definitions[String(item.itemHash)] || {};
+      const typeName = String(itemDefinition.itemTypeDisplayName || "").toLowerCase();
+      const displayName = String((itemDefinition.displayProperties as { name?: unknown } | undefined)?.name || "").toLowerCase();
+      if (!typeName.includes("subclass") && !displayName.includes("subclass")) continue;
       const reusable = profile.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]?.plugs || {};
-      const rows = reusable[String(superSocketIndex)] || [];
-      for (const row of rows) {
-        const hash = row.plugItemHash ?? row.plugHash;
-        if (Number.isInteger(hash)) hashes.add(Number(hash));
+      for (const rows of Object.values(reusable)) {
+        for (const row of rows || []) {
+          const hash = row.plugItemHash ?? row.plugHash;
+          if (Number.isInteger(hash)) hashes.add(Number(hash));
+        }
       }
     }
   }
@@ -517,13 +516,13 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     ...artifactPerkHashes(payload.Response)
   ])];
   const definitions = await fetchInventoryDefinitions(baseDefinitionHashes, session.accessToken, env);
-  const reusableSuperDefinitionHashes = reusableSuperHashes(payload.Response, definitions);
-  const missingReusableSuperHashes = reusableSuperDefinitionHashes.filter(hash => !definitions[String(hash)]);
-  if (missingReusableSuperHashes.length) {
-    Object.assign(definitions, await fetchInventoryDefinitions(missingReusableSuperHashes, session.accessToken, env));
+  const reusableSubclassDefinitionHashes = reusableSubclassPlugHashes(payload.Response, definitions);
+  const missingReusableSubclassHashes = reusableSubclassDefinitionHashes.filter(hash => !definitions[String(hash)]);
+  if (missingReusableSubclassHashes.length) {
+    Object.assign(definitions, await fetchInventoryDefinitions(missingReusableSubclassHashes, session.accessToken, env));
   }
 
-  const requestedDefinitionHashes = [...new Set([...baseDefinitionHashes, ...reusableSuperDefinitionHashes])];
+  const requestedDefinitionHashes = [...new Set([...baseDefinitionHashes, ...reusableSubclassDefinitionHashes])];
   const damageTypeHashes = [...new Set(Object.values(payload.Response.itemComponents?.instances?.data || {}).map(row => Number(row.damageTypeHash)).filter(Number.isInteger))];
   const breakerTypeHashes = [...new Set([...Object.values(definitions).map(row => Number(row.breakerTypeHash)),...Object.values(payload.Response.itemComponents?.instances?.data || {}).map(row => Number(row.breakerTypeHash))].filter(Number.isInteger))];
   const [damageDefinitions, breakerDefinitions] = await Promise.all([
@@ -537,7 +536,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     unresolved: unresolvedDefinitionHashes,
     complete: unresolvedDefinitionHashes.length === 0,
     characterCount: Object.keys(payload.Response.characterEquipment?.data || {}).length,
-    reusableSuperRequested: reusableSuperDefinitionHashes.length,
+    reusableSubclassRequested: reusableSubclassDefinitionHashes.length,
     artifactPerkRequested: artifactPerkHashes(payload.Response).length
   };
 
