@@ -10,6 +10,7 @@ const messageNode=document.getElementById('buildLoadingMessage');
 const actionButton=document.getElementById('buildLoadingAction');
 let current=0;
 let closeTimer=0;
+let completed=false;
 
 function clampPercent(percent){const value=Number(percent);return Number.isFinite(value)?Math.max(0,Math.min(100,Math.round(value))):current;}
 function show(){if(!gate)return;clearTimeout(closeTimer);gate.hidden=false;gate.classList.remove('is-complete');document.body.classList.add('is-build-loading');}
@@ -20,11 +21,14 @@ function update(detail={}){
   if(status!=='error')percent=Math.max(current,percent);
   if(status==='ready')percent=100;
   current=percent;
+  if(status==='ready')completed=true;
   show();
   gate.dataset.status=status;
   gate.dataset.stage=String(detail.stage||'loading');
   gate.style.setProperty('--progress',String(percent));
-  const donut=gate.querySelector('.build-loading-gate__donut');\n  donut?.style.setProperty('--progress',String(percent));\n  donut?.setAttribute('aria-valuenow',String(percent));
+  const donut=gate.querySelector('.build-loading-gate__donut');
+  donut?.style.setProperty('--progress',String(percent));
+  donut?.setAttribute('aria-valuenow',String(percent));
   if(value)value.textContent=`${percent}%`;
   if(stageNode)stageNode.textContent=detail.label||'Loading Guardian data';
   if(messageNode)messageNode.textContent=detail.message||'';
@@ -42,6 +46,10 @@ function update(detail={}){
 function publish(detail){document.dispatchEvent(new CustomEvent('astrix:build-load-progress',{detail}));}
 
 document.addEventListener('astrix:build-load-progress',event=>update(event.detail||{}));
+globalThis.addEventListener('astrix:bungie-session',event=>{
+  if(completed)return;
+  if(!event.detail?.authenticated)publish({stage:'auth',percent:current,label:'Connect Bungie to continue',status:'error',message:'A Bungie connection is required to load verified Guardian data.',action:'reconnect'});
+});
 document.addEventListener('astrix:guardian-loading',()=>publish({stage:'profile',percent:58,label:'Loading Guardian profile',status:'loading',message:'Retrieving the selected Guardian and equipped state from Bungie.'}));
 document.addEventListener('astrix:bungie-character-roster',()=>publish({stage:'manifest',percent:74,label:'Resolving Bungie identities',status:'loading',message:'Matching profile, manifest, sockets and verified equipment hashes.'}));
 document.addEventListener('astrix:guardian-selection-changed',()=>requestAnimationFrame(()=>publish({stage:'render',percent:100,label:'Guardian build ready',status:'ready',message:'Verified build data rendered.'})));
@@ -49,7 +57,7 @@ document.addEventListener('astrix:guardian-error',event=>publish({stage:'error',
 document.addEventListener('astrix:guardian-load-timeout',()=>publish({stage:'error',percent:current,label:'Bungie request timed out',status:'error',message:'Check the connection and retry the Guardian load.',action:'reload'}));
 actionButton?.addEventListener('click',()=>{
   if(actionButton.dataset.action==='reconnect'){
-    const connect=document.querySelector('[data-bungie-connect],#bungieConnectButton,a[href*="bungie/login"]');
+    const connect=document.querySelector('[data-bungie-connect],#bungieAuthButton,#bungieConnectButton,a[href*="bungie/login"],a[href*="bungie/start"]');
     if(connect){connect.click();return;}
   }
   location.reload();
