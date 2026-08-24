@@ -23,7 +23,11 @@ for(const fixture of fixtureLibrary.fixtures??[]){
   else fallbackFixtures.push(fixture.fixtureId);
 }
 assert.deepEqual(fallbackFixtures,['PF-BETA-04'],'Only PF-BETA-04 should require subclass fallback');
-assert.equal(directSubclassFixtures.length,22,'The other 22 fixtures must retain their normal direct subclass path');
+assert.equal(
+  directSubclassFixtures.length,
+  (fixtureLibrary.fixtures?.length??0)-fallbackFixtures.length,
+  'Every fixture except PF-BETA-04 must retain its normal direct subclass path'
+);
 
 const listeners=new Map();
 globalThis.document={

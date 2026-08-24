@@ -6,6 +6,7 @@ import {
   selectLiveCharacter
 } from "./guardian-bungie-profile.mjs";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
+import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs";
 
 const PLAYER_POWER_CAP = 550;
 const VALID_CLASSES = ["hunter", "titan", "warlock"];
@@ -117,49 +118,25 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
   const activeElement = (workspaceState.subclass || "arc").toLowerCase();
   document.documentElement.dataset.subclass = activeElement;
 
-  const subclassButtons = [...document.querySelectorAll("[data-subclass-option]")];
-  subclassButtons.forEach(button => button.classList.toggle("is-active", button.dataset.subclassOption === activeElement));
-  const activeSubclassButton = subclassButtons.find(button => button.dataset.subclassOption === activeElement);
-  const activeSubclassIcon = resolvedDisplayIcon(build.subclassDefinition || build.subclass || workspaceState.subclassDefinition || workspaceState.subclassItem);
-  const activeSubclassHolder = activeSubclassButton?.querySelector(".subclass-option__diamond > span");
-  if (activeSubclassIcon && activeSubclassHolder) activeSubclassHolder.innerHTML = iconMarkup(activeSubclassIcon, subclassName);
+  renderEquippedSubclass({
+    root: byId("equippedSubclassSummary"),
+    iconNode: byId("equippedSubclassIcon"),
+    nameNode: byId("equippedSubclassName"),
+    metaNode: byId("equippedSubclassMeta"),
+    subclass: activeElement,
+    subclassName,
+    characterClass: workspaceState.characterClass,
+    icon: workspaceState.subclassIcon || resolvedDisplayIcon(build.subclassDefinition || build.subclass || workspaceState.subclassDefinition || workspaceState.subclassItem)
+  });
 
   const activeSuper = build.super;
   const superOptions = Array.isArray(build.superOptions) && build.superOptions.length
     ? build.superOptions
     : (activeSuper ? [activeSuper] : []);
 
-  const alternates = superOptions.filter(opt => Number(opt.hash) !== Number(activeSuper?.hash));
   const featureHost = byId("superFeatureCluster");
   if (featureHost) {
-    const slots = [activeSuper, alternates[0] || null, alternates[1] || null, alternates[2] || null];
-    featureHost.querySelectorAll("[data-super-slot]").forEach((slot, index) => {
-      const item = slots[index];
-      slot.classList.toggle("is-selected", index === 0);
-      slot.setAttribute("aria-current", index === 0 ? "true" : "false");
-      const holder = slot.querySelector("span");
-      if (!holder) return;
-      const icon = resolvedDisplayIcon(item);
-      if (icon) {
-        holder.innerHTML = iconMarkup(icon, item?.name);
-        slot.classList.add("has-live-icon");
-        slot.title = item?.name || (index === 0 ? "Equipped Super" : "Alternate Super");
-        slot.tabIndex = 0;
-        slot.setAttribute("role", "button");
-        slot.onclick = () => {
-          featureHost.querySelectorAll("[data-super-slot]").forEach(node => {
-            node.classList.toggle("is-selected", node === slot);
-            node.setAttribute("aria-current", node === slot ? "true" : "false");
-          });
-          const nameNode = byId("subclassName");
-          if (nameNode && item?.name) nameNode.textContent = item.name;
-        };
-      } else {
-        holder.innerHTML = "◆";
-        slot.classList.remove("has-live-icon");
-        slot.title = item?.name ? `${item.name} · icon unresolved` : (index === 0 ? "Equipped Super icon unresolved" : "Alternate Super unresolved");
-      }
-    });
+    renderSuperFormation({host:featureHost,nameNode:byId("subclassName"),activeSuper,superOptions,subclass:activeElement,onSelect:()=>{}});
   }
 
   const subclassNameNode = byId("subclassName");

@@ -1,5 +1,4 @@
 import "./guardian-paradox-live-adapter.mjs";
-import "./guardian-subclass-super-polish.mjs";
 import { resolveArmourSet } from "./guardian-armour-set-resolver.mjs";
 import {
   normaliseArmourSemantics,
