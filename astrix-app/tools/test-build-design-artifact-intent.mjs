@@ -67,4 +67,35 @@ assert.deepEqual(liveArtifact,liveBefore,'staging intended perks must not mutate
 const locked=toggleIntendedArtifactPerk(liveArtifact,toggled,2);
 assert.deepEqual(locked.selectedPerkHashes,[501,502],'locked tiers must not be staged');
 
+const fixtureWithoutConfiguration=createBuildState({
+  source:'paradox-fixture',
+  characterId:'fixture-generated-configuration',
+  artifact:{
+    hash:2001,
+    seasonNumber:30,
+    source:'verified-manifest-fixture',
+    activePerks:[{hash:601},{hash:602}]
+  }
+});
+assert.equal(fixtureWithoutConfiguration.originalBuild.artifactConfiguration.artifactHash,2001);
+assert.equal(fixtureWithoutConfiguration.originalBuild.artifactConfiguration.seasonNumber,30);
+assert.deepEqual(fixtureWithoutConfiguration.originalBuild.artifactConfiguration.selectedPerkHashes,[601,602]);
+assert.equal(fixtureWithoutConfiguration.originalBuild.artifactConfiguration.source,'paradox-build-space-intended');
+assert.equal(fixtureWithoutConfiguration.originalBuild.artifactConfiguration.provenance.state,'intended');
+assert.equal(fixtureWithoutConfiguration.originalBuild.artifactConfiguration.provenance.derivedFrom,'verified-manifest-fixture');
+
+const explicitShareConfiguration={
+  schemaVersion:1,
+  artifactHash:3001,
+  seasonNumber:31,
+  selectedPerkHashes:[701],
+  source:'shared-build-intent',
+  provenance:{provider:'verified-share',shareId:'share-1'}
+};
+const sharedBuild=createBuildState({source:'shared-build',characterId:'shared',artifact:{hash:3001},artifactConfiguration:explicitShareConfiguration});
+assert.deepEqual(sharedBuild.originalBuild.artifactConfiguration,explicitShareConfiguration,'explicit share provenance must be retained unchanged');
+
+const liveWithoutConfiguration=createBuildState({source:'bungie-live',characterId:'live',artifact:{hash:4001,seasonNumber:31,activePerks:[{hash:801}]}});
+assert.equal(liveWithoutConfiguration.originalBuild.artifactConfiguration,null,'missing live configuration must remain unavailable instead of being reclassified as intended');
+
 console.log('Build Design Artifact intent tests passed.');
