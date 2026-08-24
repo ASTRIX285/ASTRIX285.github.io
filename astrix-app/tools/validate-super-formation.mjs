@@ -48,6 +48,7 @@ assert.match(css,/transform:translate\(-50%,-50%\) rotate\(45deg\)!important/,'D
 assert.match(css,/aspect-ratio:1 \/ 1!important/,'Formation must remain square');
 const gap=Number(css.match(/gap:clamp\((\d+)px,3vw,40px\)!important/)?.[1]);
 assert.ok(gap>=32,`Subclass/Super minimum gap is ${gap||0}px; expected at least 32px`);
+assert.match(css,/flex:0 0 auto!important;/,'Equipped subclass/Super wrapper must not collapse inside the scroll rail');
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
   assert.match(html,/guardian-super-formation\.css/,`${label} does not load the shared stylesheet`);
