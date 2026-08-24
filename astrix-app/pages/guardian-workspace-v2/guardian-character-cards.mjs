@@ -10,47 +10,6 @@ mountForgeShell({rootSelector:'.workspace',gameId:'destiny-2',gameName:'Destiny 
 
 const host = () => document.querySelector("#guardianCharacterCards");
 const MAX_CHARACTERS = 3;
-const STAT_ICON_KEYS = Object.freeze({
-  Mobility: "mobility",
-  Resilience: "resilience",
-  Recovery: "recovery",
-  Discipline: "discipline",
-  Intellect: "intellect",
-  Strength: "strength",
-  Weapons: "mobility",
-  Health: "resilience",
-  Class: "recovery",
-  Grenade: "discipline",
-  Super: "intellect",
-  Melee: "strength"
-});
-
-const DEFAULT_CARDS = [
-  {
-    characterId: "hunter-beta",
-    characterClass: "hunter",
-    title: "TITLE DATA PENDING",
-    power: 550,
-    stats: [["Mobility", 100], ["Resilience", 65], ["Recovery", 105], ["Discipline", 100], ["Intellect", 40], ["Strength", 45]],
-    selected: false
-  },
-  {
-    characterId: "warlock-beta",
-    characterClass: "warlock",
-    title: "TITLE DATA PENDING",
-    power: 550,
-    stats: [["Mobility", 105], ["Resilience", 70], ["Recovery", 30], ["Discipline", 110], ["Intellect", 105], ["Strength", 40]],
-    selected: false
-  },
-  {
-    characterId: "titan-beta",
-    characterClass: "titan",
-    title: "TITLE DATA PENDING",
-    power: 550,
-    stats: [["Mobility", 94], ["Resilience", 23], ["Recovery", 94], ["Discipline", 53], ["Intellect", 72], ["Strength", 129]],
-    selected: false
-  }
-];
 
 let characters = [];
 let selectedCharacterId = "";
@@ -68,13 +27,15 @@ function renderStatus(message, state = "disconnected") {
 function statMarkup(stats = []) {
   const statPairs = Array.isArray(stats) && stats.length && Array.isArray(stats[0])
     ? stats
-    : [["Mobility", 100], ["Resilience", 50], ["Recovery", 80], ["Discipline", 90], ["Intellect", 40], ["Strength", 30]];
+    : [];
 
   return statPairs
     .slice(0, 6)
-    .map(([name, value]) => {
-      const iconKey = STAT_ICON_KEYS[name] || "mobility";
-      return `<span class="guardian-character-card__stat" title="${escapeHtml(name)}" aria-label="${escapeHtml(name)} ${Number(value || 0)}"><i class="guardian-stat-icon guardian-stat-icon--${iconKey}" aria-hidden="true"></i><b>${Number(value || 0)}</b></span>`;
+    .map(([name, value, icon]) => {
+      const iconMarkup = icon
+        ? `<img class="guardian-stat-icon" src="${escapeHtml(icon)}" alt="" aria-hidden="true" decoding="async">`
+        : `<span class="guardian-stat-icon is-unavailable" aria-hidden="true"></span>`;
+      return `<span class="guardian-character-card__stat" title="${escapeHtml(name)}" aria-label="${escapeHtml(name)} ${Number(value || 0)}">${iconMarkup}<b>${Number(value || 0)}</b></span>`;
     })
     .join("");
 }
@@ -101,15 +62,13 @@ function render(nextCharacters = characters, nextSelectedId = selectedCharacterI
       const emblemStyle = emblemBackground
         ? ` style="--character-emblem:url('${escapeHtml(emblemBackground)}')"`
         : "";
-      const title = character.title || (character.titleHash != null ? "TITLE DATA PENDING" : "NO TITLE EQUIPPED");
-
       return `<button type="button" class="guardian-character-card${selected ? " is-selected" : ""}" data-character-id="${escapeHtml(
         character.characterId
       )}" data-class="${escapeHtml(character.characterClass)}" aria-pressed="${selected}" aria-label="Select ${escapeHtml(
         classLabel(character.characterClass)
       )}, power ${escapeHtml(character.power ?? "unavailable")}"${emblemStyle}>
         <span class="guardian-character-card__head">
-          <span class="guardian-character-card__identity"><strong>${escapeHtml(classLabel(character.characterClass).toUpperCase())}</strong><small>${escapeHtml(title)}</small></span>
+          <span class="guardian-character-card__identity"><strong>${escapeHtml(classLabel(character.characterClass).toUpperCase())}</strong></span>
           <span class="guardian-character-card__power"><i aria-hidden="true">✦</i>${escapeHtml(character.power ?? "550")}</span>
         </span>
         <span class="guardian-character-card__stats">${statMarkup(character.stats)}</span>

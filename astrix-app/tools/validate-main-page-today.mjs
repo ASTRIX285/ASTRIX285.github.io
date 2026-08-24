@@ -53,8 +53,14 @@ assert.match(gearCss,/weapon-support-icon\{width:var\(--pf-mod-size,36px\);heigh
 assert.match(characterModule,/emblemBackground = character\.emblem\?\.background/,'Hero card must use the Bungie emblem background');
 assert.match(characterCss,/var\(--character-emblem\) center\/cover no-repeat/,'Emblem must remain the full-card background fill');
 assert.match(characterCss,/box-shadow:0 20px 34px -18px/,'Selected card must use a gentle lower glow');
-assert.match(characterModule,/Mobility:[\s\S]*?Resilience:[\s\S]*?Recovery:[\s\S]*?Discipline:[\s\S]*?Intellect:[\s\S]*?Strength:/,'The six Destiny stat icons must retain their correct order');
-assert.match(characterCss,/guardian-stat-icons\.png/,'Guardian cards must use the developer-provided stat sprite');
+assert.match(profile,/\["Weapons",2996146975[\s\S]*?\["Health",392767087[\s\S]*?\["Class",1943323491[\s\S]*?\["Grenade",1735777505[\s\S]*?\["Super",144602215[\s\S]*?\["Melee",4244567218/,'The six current Destiny stat definitions must retain Bungie order');
+assert.doesNotMatch(characterCss,/guardian-stat-icons\.png/,'Guardian cards must not use the removed reference-image sprite');
+assert.match(characterModule,/class="guardian-stat-icon" src="\$\{escapeHtml\(icon\)\}"/,'Guardian cards must render the Bungie-provided stat icon URL');
+assert.match(profile,/DestinyStatDefinition identities from Bungie/,'Guardian stat identities must document their Bungie manifest provenance');
+assert.match(profile,/bc69675acdae9e6b9a68a02fb4d62e07/,'Weapons must use Bungie DestinyStatDefinition artwork');
+assert.doesNotMatch(characterModule,/guardian-character-card__head[^\n]*<small>/,'Guardian cards must not render a title subtitle');
+assert.match(characterCss,/grid-template-columns:repeat\(3,300px\)/,'Main and Build must share the fixed-width character-card ribbon');
+assert.match(buildHtml,/id="backToGuardian"/,'Build Design must retain the Back button');
 assert.match(artifact,/NO ACTIVE PERKS REPORTED BY BUNGIE/,'A resolved zero-perk Artifact must show an explicit Bungie state');
 assert.match(artifact,/ARTIFACT STATE UNAVAILABLE/,'An unresolved Artifact must remain explicit');
 assert.match(loadoutsCss,/background-image:var\(--loadout-color-image/,'Saved loadout must retain its Bungie colour image');
@@ -70,7 +76,7 @@ assert.match(buildHtml,/id="guardianLoadouts"/,'Build Tool in-game loadout selec
 assert.match(buildHtml,/id="artifactPickerPanel"[\s\S]*?hidden/,'Build Artifact catalogue must stay collapsed behind the equipped summary');
 assert.match(buildModule,/import '\.\.\/guardian-character-cards\.mjs(?:\?[^']+)?'/,'Build Tool must reuse the Main character-card renderer');
 assert.match(buildModule,/import '\.\.\/guardian-loadouts\.mjs'/,'Build Tool must reuse the Main in-game loadout renderer');
-assert.match(buildModule,/import '\.\.\/guardian-bungie-profile\.mjs'/,'Build Tool must reuse strict Main character selection');
+assert.match(buildModule,/import '\.\.\/guardian-bungie-profile\.mjs(?:\?[^']+)?'/,'Build Tool must reuse strict Main character selection');
 assert.match(buildModule,/createBuildState\(detail\)/,'Selected Build Tool character must create a new protected build snapshot');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs'/,'Build Armour must import the shared Main card renderer');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');

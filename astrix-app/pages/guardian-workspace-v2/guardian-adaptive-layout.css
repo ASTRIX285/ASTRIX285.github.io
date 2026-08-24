@@ -184,68 +184,6 @@
   }
   .gear-combined .gear-mod{width:34px!important;height:34px!important}
 
-  /* Character selector is a fixed-size ribbon on every desktop resolution.
-   * It no longer stretches on 4K or collapses into a very shallow strip. */
-  .stage>.guardian-character-cards{
-    position:absolute!important;
-    top:12px!important;
-    left:50%!important;
-    right:auto!important;
-    width:auto!important;
-    display:grid!important;
-    grid-template-columns:repeat(3,300px)!important;
-    gap:10px!important;
-    justify-content:center!important;
-    overflow:visible!important;
-    padding:0!important;
-    transform:translateX(-50%)!important;
-    z-index:20!important;
-  }
-
-  .guardian-character-card{
-    width:300px!important;
-    min-width:300px!important;
-    max-width:300px!important;
-    height:88px!important;
-    min-height:88px!important;
-    max-height:88px!important;
-    padding:8px 10px!important;
-    gap:5px!important;
-    border-radius:5px!important;
-    box-shadow:0 7px 18px rgba(0,0,0,.3)!important;
-  }
-
-  .guardian-character-card__head{
-    grid-template-columns:30px minmax(0,1fr) auto!important;
-    gap:7px!important;
-  }
-  .guardian-character-card__emblem{width:30px!important;height:30px!important;border-radius:3px!important}
-  .guardian-character-card__head strong{font-size:.78rem!important;letter-spacing:.035em!important}
-  .guardian-character-card__head small{margin-top:1px!important;font-size:.52rem!important}
-  .guardian-character-card__power{color:var(--gold,#e3b23c)!important;font-size:.75rem!important}
-  .guardian-character-card__stats{grid-template-columns:repeat(6,42px)!important;gap:4px!important;justify-content:start!important}
-  .guardian-character-card__stat{
-    width:42px!important;
-    min-width:42px!important;
-    height:28px!important;
-    min-height:28px!important;
-    padding:2px!important;
-    gap:3px!important;
-    border-color:rgba(227,178,60,.28)!important;
-    background:rgba(227,178,60,.06)!important;
-    border-radius:3px!important;
-  }
-  .guardian-character-card__stat i{
-    width:16px!important;
-    height:16px!important;
-    flex:0 0 16px!important;
-    color:var(--gold,#e3b23c)!important;
-    background:rgba(227,178,60,.13)!important;
-    border-radius:2px!important;
-    font-size:.7rem!important;
-  }
-  .guardian-character-card__stat b{color:#fff!important;font-size:.67rem!important}
-
   /* Left-rail frame is now deliberately reserved before the remaining Bungie
    * binding work is completed. Empty runtime containers still hold their place. */
   .workspace>.left{

@@ -7,7 +7,17 @@ const CLASS_NAMES=["titan","hunter","warlock"];
 const BUCKETS={kinetic:1498876634,energy:2465295065,power:953998645,helmet:3448274439,gauntlets:3551918588,chest:14239492,legs:20886954,classItem:1585787867,ghost:4023194814,subclass:3284755031};
 const ARMOUR_ORDER=[BUCKETS.helmet,BUCKETS.gauntlets,BUCKETS.chest,BUCKETS.legs,BUCKETS.classItem];
 const WEAPON_ORDER=[BUCKETS.kinetic,BUCKETS.energy,BUCKETS.power];
-const STAT_ORDER=[["Mobility",2996146975],["Resilience",392767087],["Recovery",1943323491],["Discipline",1735777505],["Intellect",144602215],["Strength",4244567218]];
+/* Current DestinyStatDefinition identities from Bungie's English manifest.
+ * The UI loads the artwork from Bungie's CDN; no local copy or derivative
+ * sprite is used. Keep these hashes as the source of the character values. */
+const STAT_ORDER=[
+  ["Weapons",2996146975,"/common/destiny2_content/icons/bc69675acdae9e6b9a68a02fb4d62e07.png"],
+  ["Health",392767087,"/common/destiny2_content/icons/717b8b218cc14325a54869bef21d2964.png"],
+  ["Class",1943323491,"/common/destiny2_content/icons/7eb845acb5b3a4a9b7e0b2f05f5c43f1.png"],
+  ["Grenade",1735777505,"/common/destiny2_content/icons/065cdaabef560e5808e821cefaeaa22c.png"],
+  ["Super",144602215,"/common/destiny2_content/icons/585ae4ede9c3da96b34086fccccdc8cd.png"],
+  ["Melee",4244567218,"/common/destiny2_content/icons/fa534aca76d7f2d7e7b4ba4df4271b42.png"]
+];
 const SELECTED_CHARACTER_KEY="astrix:selected-character-id";
 const SELECTED_LOADOUT_KEY="astrix:selected-bungie-loadout-v1";
 const loadoutCache=new Map();
@@ -120,7 +130,7 @@ function characterRoster(payload,selectedCharacterId=null){
       guardianRank:rank,
       titleHash:title.hash,
       title:title.name,
-      stats:STAT_ORDER.map(([name,hash])=>[name,Number(character.stats?.[hash]??0)]),
+      stats:STAT_ORDER.map(([name,hash,icon])=>[name,Number(character.stats?.[hash]??0),absoluteIcon(icon),hash]),
       emblem:{hash:character.emblemHash??null,icon:absoluteIcon(character.emblemPath),background:absoluteIcon(character.emblemBackgroundPath)},
       selected:String(character.characterId||"")===String(selectedCharacterId||"")
     };
@@ -380,7 +390,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     guardianRank:rank,
     titleHash:title.hash,
     title:title.name,
-    stats:STAT_ORDER.map(([name,hash])=>[name,Number(character.stats?.[hash]??0)]),
+    stats:STAT_ORDER.map(([name,hash,icon])=>[name,Number(character.stats?.[hash]??0),absoluteIcon(icon),hash]),
     weapons,
     armour,
     ...cosmetics,
