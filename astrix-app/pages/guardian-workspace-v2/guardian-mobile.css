@@ -10,21 +10,9 @@
   .workspace{width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;margin:0!important;padding:var(--mobile-gap)!important;gap:var(--mobile-gap)!important;display:flex!important;flex-direction:column!important;align-items:stretch!important}.workspace>*{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;flex:none!important}
   .panel,.stage,.equip{border-radius:14px!important}.left{overflow:visible!important;max-height:none!important;padding:var(--rail-pad)!important}
   .left #superFocus{display:none!important}
-  .left .super-feature{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;min-height:270px!important;padding:4px 0 10px!important;border-bottom:1px solid rgba(227,178,60,.16)!important;overflow:visible!important}
+  .left .super-feature{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;padding:4px 0 10px!important;border-bottom:1px solid rgba(227,178,60,.16)!important}
   .left .super-feature__label{display:block!important;position:static!important;margin:0 0 3px!important;line-height:1.1!important;font-size:.55rem!important;text-align:center!important}
-  html body .workspace .left .super-feature__name{display:block!important;position:static!important;min-height:18px!important;max-width:90%!important;margin:0 0 12px!important;line-height:1.15!important;font-size:.72rem!important;font-weight:800!important;letter-spacing:.1em!important;text-transform:uppercase!important;color:rgba(255,255,255,.84)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;text-align:center!important}
-  html body .workspace .left .super-feature__cluster{position:relative!important;width:min(280px,82vw)!important;height:218px!important;margin:0 auto!important;overflow:visible!important}
-  .left .super-diamond{position:absolute!important;left:50%;display:grid!important;place-items:center!important;aspect-ratio:1!important;transform:translateX(-50%) rotate(45deg)!important;border:1px solid rgba(255,255,255,.42)!important;background:rgba(75,40,112,.13)!important;box-shadow:inset 0 0 18px rgba(116,69,170,.08)!important}
-  .left .super-diamond::after{content:"";position:absolute;inset:7px;border:1px solid rgba(255,255,255,.12);pointer-events:none}
-  .left .super-diamond>span{width:70%;height:70%;display:grid;place-items:center;transform:rotate(-45deg);color:rgba(255,255,255,.35)}
-  .left .super-feature__icon{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 7px rgba(255,255,255,.18))}
-  html body .workspace .left .super-diamond--equipped{top:4px!important;width:126px!important;border-color:rgba(255,255,255,.88)!important;background:linear-gradient(135deg,rgba(126,75,180,.44),rgba(56,29,91,.20))!important;box-shadow:0 0 26px rgba(128,72,190,.28),inset 0 0 30px rgba(168,104,226,.18)!important;z-index:3!important}
-  .left .super-diamond--equipped>span{width:68%;height:68%}
-  .left .super-diamond--alt{width:62px!important;opacity:.48!important;background:rgba(65,45,82,.10)!important}
-  html body .workspace .left .super-diamond--alt1{left:30%!important;top:137px!important}
-  html body .workspace .left .super-diamond--alt2{left:50%!important;top:169px!important}
-  html body .workspace .left .super-diamond--alt3{left:70%!important;top:137px!important}
-  .left .super-diamond--alt.has-live-icon{opacity:.68!important}
+  html body .workspace .left .super-feature__name{font-size:.72rem!important;font-weight:800!important;letter-spacing:.1em!important;text-transform:uppercase!important;color:rgba(255,255,255,.84)!important}
   #abilityList{grid-template-columns:repeat(4,var(--rail-icon))!important}#aspectList,#fragList{grid-template-columns:repeat(5,var(--rail-icon))!important}.artifact-row .perks{grid-template-columns:repeat(4,var(--rail-icon))!important;grid-auto-rows:var(--rail-icon)!important}
   .stage{height:clamp(520px,128vw,620px)!important;min-height:520px!important;overflow:hidden!important}.stage .identity{left:18px!important;top:82px!important;width:calc(100% - 36px)!important;max-width:none!important}.id-head h1{font-size:1.3rem!important}.id-metrics{gap:16px!important;grid-template-columns:repeat(3,max-content)!important}.metric .v{font-size:1.18rem!important}.id-cosmetics{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}.cos{min-width:0!important}.cos b{font-size:.63rem!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stage .hero-stats{left:18px!important;top:292px!important;width:min(46vw,205px)!important;padding:12px!important}.view3d{right:14px!important;top:14px!important}.hero-subclass-dock{left:16px!important;top:16px!important}
   .right{padding:16px!important;overflow:visible!important}.ra-head{align-items:flex-start!important;gap:8px}.ra-head h2{font-size:1rem!important}.health-card{padding:15px!important;gap:14px!important}.ring{width:92px!important;height:92px!important;flex:0 0 92px!important}.verdict{font-size:1.25rem!important}.verdict small{font-size:.8rem!important;line-height:1.35!important}.mini-grid,.sw-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}.mini,.sw-card{padding:12px!important;min-width:0!important}.sw-card li{font-size:.78rem!important;line-height:1.3!important}
@@ -66,7 +54,6 @@
     grid-row:1!important;
     width:100%!important;
     min-width:0!important;
-    min-height:300px!important;
     padding:0!important;
     border-bottom:0!important;
     justify-self:stretch!important;
@@ -77,35 +64,6 @@
     margin:0 0 4px!important;
     text-align:center!important;
   }
-  html body .workspace .left .super-feature__cluster{
-    position:relative!important;
-    width:210px!important;
-    max-width:100%!important;
-    height:260px!important;
-    margin:0 auto!important;
-  }
-  html body .workspace .left .super-feature__name{
-    display:block!important;
-    position:absolute!important;
-    z-index:9!important;
-    top:150px!important;
-    left:50%!important;
-    transform:translateX(-50%)!important;
-    width:190px!important;
-    max-width:95%!important;
-    min-height:18px!important;
-    margin:0!important;
-    font-size:.62rem!important;
-    line-height:18px!important;
-    text-align:center!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    pointer-events:none!important;
-  }
-  html body .workspace .left .super-diamond--alt1{left:calc(50% - 40px)!important;top:190px!important}
-  html body .workspace .left .super-diamond--alt2{left:calc(50% + 40px)!important;top:190px!important}
-  html body .workspace .left .super-diamond--alt3{left:50%!important;top:230px!important}
 }
 
 /* Mobile Armour & Mods: armour cards stack; each card owns a horizontal mod rail. */

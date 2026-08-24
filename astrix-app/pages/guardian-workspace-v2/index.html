@@ -23,95 +23,6 @@
   <link rel="stylesheet" href="./guardian-mobile.css?v=20260822-3">
   <link rel="stylesheet" href="./guardian-layout-final.css">
   <style>
-    /* ================================================================
-       LOCKED: SUBCLASS + SUPER PRESENTATION
-       Do not alter in later layout passes without explicit approval.
-       Desktop/tablet: subclass beside Super.
-       Phone: subclass above Super.
-       Six subclass choices = 2 columns x 3 rows.
-       Super order = heading, large equipped diamond, name, three alternates.
-       ================================================================ */
-    .left .subclass-super-shell{
-      grid-template-columns:144px minmax(0,1fr)!important;
-      gap:12px!important;
-    }
-    .left .subclass-rail{
-      display:grid!important;
-      grid-template-columns:repeat(2,56px)!important;
-      grid-template-rows:auto repeat(3,56px)!important;
-      justify-content:center!important;
-      align-content:start!important;
-      column-gap:12px!important;
-      row-gap:8px!important;
-      width:144px!important;
-      min-width:144px!important;
-    }
-    .left .subclass-rail__label{grid-column:1/-1!important}
-    .left .subclass-option{
-      width:56px!important;
-      min-width:56px!important;
-      height:56px!important;
-      min-height:56px!important;
-    }
-    .left .subclass-option__diamond{
-      width:46px!important;
-      height:46px!important;
-      transform:rotate(45deg)!important;
-    }
-
-    .left .super-feature{
-      position:relative!important;
-      min-height:390px!important;
-      overflow:visible!important;
-    }
-    .left .super-feature__label{
-      display:block!important;
-      margin:0!important;
-    }
-    .left .super-feature__name{
-      display:block!important;
-      position:absolute!important;
-      z-index:8!important;
-      top:202px!important;
-      left:50%!important;
-      transform:translateX(-50%)!important;
-      width:100%!important;
-      max-width:230px!important;
-      min-height:18px!important;
-      margin:0!important;
-      color:rgba(255,255,255,.9)!important;
-      font:800 .66rem Inter,sans-serif!important;
-      letter-spacing:.07em!important;
-      line-height:20px!important;
-      text-align:center!important;
-      text-transform:uppercase!important;
-      white-space:nowrap!important;
-      overflow:hidden!important;
-      text-overflow:ellipsis!important;
-      pointer-events:none!important;
-    }
-    .left .super-feature__cluster{
-      height:350px!important;
-      margin-top:4px!important;
-      overflow:visible!important;
-    }
-    .left .super-diamond--alt1{top:180px!important}
-    .left .super-diamond--alt2{top:180px!important}
-    .left .super-diamond--alt3{top:220px!important}
-
-    @media (min-width:981px) and (max-width:1499px){
-      /* Compact/high-browser-scale desktop: enlarge visibly without escaping
-         the narrower left rail or displacing the centre gear rack. */
-      .left .subclass-super-shell{grid-template-columns:128px minmax(0,1fr)!important;gap:8px!important}
-      .left .subclass-rail{width:128px!important;min-width:128px!important;grid-template-columns:repeat(2,52px)!important;grid-template-rows:auto repeat(3,52px)!important;column-gap:10px!important}
-      .left .subclass-option{width:52px!important;min-width:52px!important;height:52px!important;min-height:52px!important}
-      .left .subclass-option__diamond{width:42px!important;height:42px!important}
-      .left .super-diamond--equipped{width:142px!important}
-      .left .super-feature__name{top:174px!important;max-width:180px!important}
-      .left .super-diamond--alt1,.left .super-diamond--alt2{top:214px!important}
-      .left .super-diamond--alt3{top:256px!important}
-    }
-
     @media (max-width:620px){
       /* LOCKED MOBILE GUARDIAN CARDS: one character per row. */
       .topbar .guardian-character-cards{
@@ -133,61 +44,9 @@
         flex:none!important;
       }
       .topbar .guardian-character-cards__status{grid-column:1!important;width:100%!important}
-
-      /* LOCKED MOBILE SUBCLASS/SUPER: subclass above, Super below. */
-      .left .subclass-super-shell{
-        display:grid!important;
-        grid-template-columns:minmax(0,1fr)!important;
-        grid-template-rows:auto auto!important;
-        gap:18px!important;
-        width:100%!important;
-        min-height:0!important;
-      }
-      .left .subclass-rail{
-        grid-column:1!important;
-        grid-row:1!important;
-        grid-template-columns:repeat(2,48px)!important;
-        grid-template-rows:auto repeat(3,48px)!important;
-        width:132px!important;
-        min-width:132px!important;
-        justify-self:center!important;
-        column-gap:12px!important;
-        row-gap:8px!important;
-      }
-      .left .subclass-option{
-        width:48px!important;
-        min-width:48px!important;
-        height:48px!important;
-        min-height:48px!important;
-      }
-      .left .subclass-option__diamond{width:34px!important;height:34px!important}
-
-      .left .super-feature{
-        grid-column:1!important;
-        grid-row:2!important;
-        width:100%!important;
-        min-height:350px!important;
-        justify-self:center!important;
-      }
-      .left .super-feature__label{text-align:center!important}
-      .left .super-feature__name{
-        top:150px!important;
-        max-width:220px!important;
-        font-size:.62rem!important;
-        line-height:18px!important;
-      }
-      .left .super-feature__cluster{
-        width:230px!important;
-        height:314px!important;
-        margin:4px auto 0!important;
-      }
-      /* Preserve the approved three-small-diamond shape; only keep it below the name. */
-      .left .super-diamond--alt1{left:calc(50% - 40px)!important;top:190px!important}
-      .left .super-diamond--alt2{left:calc(50% + 40px)!important;top:190px!important}
-      .left .super-diamond--alt3{left:50%!important;top:230px!important}
     }
   </style>
-  <link rel="stylesheet" href="./guardian-main-correction.css?v=20260823-1">
+  <link rel="stylesheet" href="./guardian-super-formation.css?v=20260824-1">
   <link rel="stylesheet" href="./guardian-main-loader.css?v=20260823-1">
 </head>
 <body class="is-guardian-loading">
@@ -210,26 +69,24 @@
 
   <div class="workspace">
     <aside class="panel left">
-      <section class="subclass-super-shell" aria-label="Subclass and Super selection">
-        <div class="subclass-rail" aria-label="Subclass elements">
-          <p class="subclass-rail__label">SUBCLASS</p>
-          <button type="button" class="subclass-option" data-subclass-option="arc" aria-label="Arc subclass" title="Arc"><span class="subclass-option__diamond"><span>AR</span></span></button>
-          <button type="button" class="subclass-option" data-subclass-option="solar" aria-label="Solar subclass" title="Solar"><span class="subclass-option__diamond"><span>SO</span></span></button>
-          <button type="button" class="subclass-option" data-subclass-option="void" aria-label="Void subclass" title="Void"><span class="subclass-option__diamond"><span>VO</span></span></button>
-          <button type="button" class="subclass-option" data-subclass-option="stasis" aria-label="Stasis subclass" title="Stasis"><span class="subclass-option__diamond"><span>ST</span></span></button>
-          <button type="button" class="subclass-option" data-subclass-option="strand" aria-label="Strand subclass" title="Strand"><span class="subclass-option__diamond"><span>SR</span></span></button>
-          <button type="button" class="subclass-option" data-subclass-option="prismatic" aria-label="Prismatic subclass" title="Prismatic"><span class="subclass-option__diamond"><span>PR</span></span></button>
+      <section class="subclass-super-shell equipped-subclass-stack" aria-label="Equipped subclass and Super selection">
+        <div class="equipped-subclass" id="equippedSubclassSummary" data-subclass="arc" aria-label="Equipped subclass">
+          <span class="equipped-subclass__crest"><img id="equippedSubclassIcon" alt="" hidden></span>
+          <span class="equipped-subclass__copy">
+            <strong id="equippedSubclassName">ARC HUNTER</strong>
+            <small id="equippedSubclassMeta">HUNTER SUBCLASS</small>
+          </span>
         </div>
-
         <section class="super-feature" aria-label="Subclass Supers">
-          <p class="super-feature__label">SUPERS</p>
-          <div class="super-feature__name" id="subclassName">SELECTED SUPER</div>
           <div class="super-feature__cluster" id="superFeatureCluster">
             <div class="super-diamond super-diamond--equipped" data-super-slot="equipped"><span>◆</span></div>
             <div class="super-diamond super-diamond--alt super-diamond--alt1" data-super-slot="alternate-1"><span>◆</span></div>
             <div class="super-diamond super-diamond--alt super-diamond--alt2" data-super-slot="alternate-2"><span>◆</span></div>
             <div class="super-diamond super-diamond--alt super-diamond--alt3" data-super-slot="alternate-3"><span>◆</span></div>
+            <div class="super-diamond super-diamond--alt super-diamond--alt4" data-super-slot="alternate-4"><span>◆</span></div>
+            <div class="super-diamond super-diamond--alt super-diamond--alt5" data-super-slot="alternate-5"><span>◆</span></div>
           </div>
+          <div class="super-feature__name" id="subclassName">SELECTED SUPER</div>
         </section>
       </section>
 

@@ -400,10 +400,12 @@ function traitEvidence(nodes,curatedEntries,runtimeLoop=[]){
 
         if(runtimeAB)addLink(a,effect,b,'runtime-description-parsing');
         if(runtimeBA)addLink(b,effect,a,'runtime-description-parsing');
-        if(curatedAB)addLink(a,effect,b,'curated-fixture-data');
-        if(curatedBA)addLink(b,effect,a,'curated-fixture-data');
+        // Prefer independent official Bungie direction descriptions over a
+        // fixture-curated chain when both prove the same directed effect.
         if(directionAB&&!runtimeBA&&!curatedBA)addLink(a,effect,b,'bungie-direction-description');
         if(directionBA&&!runtimeAB&&!curatedAB)addLink(b,effect,a,'bungie-direction-description');
+        if(curatedAB)addLink(a,effect,b,'curated-fixture-data');
+        if(curatedBA)addLink(b,effect,a,'curated-fixture-data');
         if(buffAB&&!runtimeBA&&!curatedBA&&!directionBA)addLink(a,effect,b,'keywords.buffs producer signal');
         if(buffBA&&!runtimeAB&&!curatedAB&&!directionAB)addLink(b,effect,a,'keywords.buffs producer signal');
 
