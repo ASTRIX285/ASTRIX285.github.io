@@ -297,49 +297,7 @@ html body .workspace>.left .subclass-option__icon{
 }
 
 
-/* Prismatic Transcendence remains independent of shared Super geometry. */
-html body .workspace>.left .prismatic-transcendence{
-  position:absolute!important;
-  z-index:4!important;
-  top:22px!important;
-  right:2px!important;
-  display:grid!important;
-  justify-items:center!important;
-  gap:5px!important;
-}
-html body .workspace>.left .prismatic-transcendence__label{
-  color:#e56adf!important;
-  font-size:7px!important;
-  letter-spacing:.08em!important;
-}
-html body .workspace>.left .prismatic-transcendence__slots{
-  display:flex!important;
-  gap:7px!important;
-}
-html body .workspace>.left .prismatic-transcendence__slot{
-  display:grid!important;
-  place-items:center!important;
-  width:34px!important;
-  height:34px!important;
-  padding:0!important;
-  border:1px solid rgba(229,106,223,.76)!important;
-  border-radius:6px!important;
-  background:rgba(25,12,31,.88)!important;
-  overflow:hidden!important;
-}
-html body .workspace>.left .prismatic-transcendence__slot.is-equipped{
-  box-shadow:0 0 13px rgba(229,106,223,.62)!important;
-  background:rgba(126,95,198,.48)!important;
-}
-html body .workspace>.left .prismatic-transcendence__slot img{
-  width:100%!important;
-  height:100%!important;
-  object-fit:contain!important;
-}
-@media (max-width:720px){
-  html body .workspace>.left .prismatic-transcendence{top:20px!important;right:0!important}
-  html body .workspace>.left .prismatic-transcendence__slot{width:30px!important;height:30px!important}
-}
+/* Transcendence layout is owned by guardian-left-rail-shared.css. */
 @media (max-width:720px){
   html body .workspace>.left .subclass-option__diamond{width:35px!important;height:35px!important}
 }

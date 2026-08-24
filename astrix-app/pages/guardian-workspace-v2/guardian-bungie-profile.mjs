@@ -135,7 +135,10 @@ function socketResolution(profile,definitions,item){
   if(!item?.itemInstanceId)return {plugs:[],requested:[],resolved:[],unresolved:[],complete:true};
   const sockets=profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]?.sockets||[];
   const requested=sockets.map(socket=>Number(socket.plugHash)).filter(Number.isFinite);
-  const rows=requested.map(hash=>displayItem(definitions,hash));
+  const rows=sockets.map((socket,socketIndex)=>{
+    const hash=Number(socket?.plugHash);
+    return Number.isFinite(hash)?{...displayItem(definitions,hash),socketIndex}:null;
+  }).filter(Boolean);
   const plugs=rows.filter(row=>row.definition&&Object.keys(row.definition).length>0);
   const resolved=plugs.map(row=>Number(row.hash));
   const unresolved=requested.filter(hash=>!definition(definitions,hash));
@@ -255,6 +258,7 @@ function subclassConfiguration(profile,definitions,item,payload={}){
       return {...row,damageTypeHash:Number.isFinite(damageHash)?damageHash:null,elementDefinition};
     });
   const transcendenceOptions=plugs.filter(row=>String(row?.definition?.plug?.plugCategoryIdentifier||row?.plugCategoryIdentifier||'').toLowerCase().includes('transcend'));
+  const transcendenceSlots=transcendenceOptions.slice(0,2).map(row=>({socketIndex:row.socketIndex,equipped:row,options:[row]}));
   const abilityOptionsBySocket={
     classAbility:optionsFor(classAbility,isClassAbilityPlug),
     movement:optionsFor(movement,isMovementPlug),
@@ -268,6 +272,7 @@ function subclassConfiguration(profile,definitions,item,payload={}){
     super:superItem,
     superOptions,
     transcendenceOptions,
+    transcendenceSlots,
     classAbility,
     movement,
     melee,
@@ -520,7 +525,9 @@ async function loadLiveProfile(session,{background=false}={}){
   }
 
   if(document.documentElement.dataset.guardianProfileMode==="roster-only"){
-    return normaliseLiveProfile(payload,session,selectedCharacterId);
+    const detail=normaliseLiveProfile(payload,session,selectedCharacterId);
+    document.dispatchEvent(new CustomEvent("astrix:guardian-loadout-context",{detail}));
+    return detail;
   }
 
   if(rememberedLoadout&&rememberedLoadout.characterId===selectedCharacterId){

@@ -48,6 +48,7 @@
     }
   </style>
   <link rel="stylesheet" href="./guardian-super-formation.css?v=20260824-local-review-2">
+  <link rel="stylesheet" href="./guardian-left-rail-shared.css?v=20260824-build-mirror-1">
   <link rel="stylesheet" href="./guardian-main-loader.css?v=20260823-1">
   <link rel="stylesheet" href="./astrix-token-branch-preview.css?v=20260824-d2-background-4">
 </head>
@@ -72,7 +73,7 @@
   </header>
 
   <div class="workspace">
-    <aside class="panel left">
+    <aside class="panel left guardian-left-rail">
       <section class="subclass-super-shell equipped-subclass-stack" aria-label="Equipped subclass and Super selection">
         <div class="equipped-subclass" id="equippedSubclassSummary" data-subclass="arc" aria-label="Equipped subclass">
           <span class="equipped-subclass__crest"><img id="equippedSubclassIcon" alt="" hidden></span>
@@ -81,6 +82,10 @@
             <small id="equippedSubclassMeta">HUNTER SUBCLASS</small>
           </span>
         </div>
+        <section class="prismatic-transcendence" id="mainTranscendence" aria-label="Equipped Prismatic Transcendence" hidden>
+          <span class="prismatic-transcendence__label">TRANSCENDENCE</span>
+          <div class="prismatic-transcendence__slots" id="mainTranscendenceSlots"></div>
+        </section>
         <section class="super-feature" aria-label="Subclass Supers">
           <div class="super-feature__cluster" id="superFeatureCluster">
             <div class="super-diamond super-diamond--equipped" data-super-slot="equipped"><span>◆</span></div>

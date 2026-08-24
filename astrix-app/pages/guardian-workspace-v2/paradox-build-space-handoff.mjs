@@ -8,13 +8,17 @@ const safeStore=(key,value)=>{const json=JSON.stringify(value);try{sessionStorag
 const safeRead=key=>{for(const store of [sessionStorage,localStorage]){try{const value=JSON.parse(store.getItem(key)||'null');if(value)return value;}catch{}}return null;};
 
 function compactBuild(detail={}){
+  const subclassBuild=detail.subclassBuild&&typeof detail.subclassBuild==='object'?detail.subclassBuild:{
+    super:detail.super||null,superOptions:detail.superOptions||[],abilities:detail.abilities||[],abilityOptionsBySocket:detail.abilityOptionsBySocket||{},availableAbilities:detail.availableAbilities||[],aspects:detail.aspects||[],availableAspects:detail.availableAspects||[],fragments:detail.fragments||[],availableFragments:detail.availableFragments||[],transcendenceOptions:detail.transcendenceOptions||[],transcendenceSlots:detail.transcendenceSlots||[]
+  };
   return {
     version:1,capturedAt:new Date().toISOString(),
     source:detail.selectedLoadoutIndex!=null?'bungie-loadout':(detail.source||'current-guardian'),
     characterId:String(detail.characterId||''),characterClass:detail.characterClass||'',displayName:detail.displayName||'Guardian',
     selectedLoadoutIndex:Number.isInteger(detail.selectedLoadoutIndex)?detail.selectedLoadoutIndex:null,
     subclass:detail.subclass||'',subclassName:detail.subclassName||'',subclassIcon:detail.subclassIcon||'',
-    subclassBuild:clone(detail.subclassBuild||{}),artifact:clone(detail.artifact||null),artifactConfiguration:clone(detail.artifactConfiguration||detail.artifact?.artifactConfiguration||null),weapons:clone(detail.weapons||[]),armour:clone(detail.armour||[]),
+    subclassBuild:clone(subclassBuild),artifact:clone(detail.artifact||null),artifactConfiguration:clone(detail.artifactConfiguration||detail.artifact?.artifactConfiguration||null),weapons:clone(detail.weapons||[]),armour:clone(detail.armour||[]),
+    loadoutsAvailable:detail.loadoutsAvailable===true,loadouts:clone(detail.loadouts||[]),
     stats:clone(detail.stats||[]),hashCoverage:clone(detail.hashCoverage||null),semanticCoverage:clone(detail.semanticCoverage||null),coverage:clone(detail.coverage||null),paradoxAnalysis:clone(detail.paradoxAnalysis||null),
     locks:{},objective:null,activityContext:null
   };
