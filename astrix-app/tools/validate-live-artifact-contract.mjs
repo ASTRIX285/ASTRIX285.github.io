@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { resolveArtifactViewState } from '../pages/guardian-workspace-v2/guardian-artifact-state.mjs';
+import { resolveArtifactViewState,resolveFixtureArtifactDefinition,resolveIntendedArtifactConfiguration } from '../pages/guardian-workspace-v2/guardian-artifact-state.mjs';
 
 const live={
   source:'bungie-live',
@@ -46,7 +46,38 @@ assert.equal(fixture.artifact.hash,999);
 assert.deepEqual(fixture.selectedHashes,[77,88]);
 assert.equal(fixture.editable,true);
 
+const manifestArtifacts={
+  first:{hash:111,seasonNumber:29,display:{name:'First real Artifact'}},
+  requested:{bungieHash:222,seasonNumber:30,display:{name:'Requested real Artifact'}}
+};
+assert.equal(resolveFixtureArtifactDefinition(manifestArtifacts,222).bungieHash,222,'explicit Artifact hash resolves its real manifest definition');
+assert.equal(resolveFixtureArtifactDefinition(manifestArtifacts,999),null,'unknown explicit Artifact hash must not fall back to another definition');
+assert.equal(resolveFixtureArtifactDefinition(manifestArtifacts,null).hash,111,'manifest default is used only when no Artifact hash was supplied');
+
+const savedConfiguration={
+  schemaVersion:1,
+  artifactHash:222,
+  seasonNumber:30,
+  selectedPerkHashes:[91,92],
+  source:'shared-build-intent',
+  provenance:{provider:'verified-share',shareId:'share-222'}
+};
+const retained=resolveIntendedArtifactConfiguration(
+  {artifactConfiguration:savedConfiguration},
+  {hash:222,seasonNumber:30},
+  savedConfiguration.selectedPerkHashes,
+  {source:'fixture-intent',provenance:{provider:'fallback'}}
+);
+assert.equal(retained.artifactHash,222);
+assert.equal(retained.seasonNumber,30);
+assert.deepEqual(retained.selectedPerkHashes,[91,92]);
+assert.equal(retained.source,'shared-build-intent');
+assert.deepEqual(retained.provenance,{provider:'verified-share',shareId:'share-222'});
+assert.equal(resolveIntendedArtifactConfiguration({},null,[]).artifactHash,null,'missing Artifact identity must remain unavailable, not hash zero');
+
 console.log('LIVE_ARTIFACT_WINS=PASS');
 console.log('ACTIVE_PERKS_ONLY=PASS');
 console.log('UNAVAILABLE_IS_NOT_ZERO=PASS');
 console.log('FIXTURE_ARTIFACT_ISOLATED=PASS');
+console.log('FIXTURE_PROVENANCE_RETAINED=PASS');
+console.log('FIXTURE_MANIFEST_HASH_BOUND=PASS');
