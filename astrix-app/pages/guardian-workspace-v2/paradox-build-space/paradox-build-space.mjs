@@ -5,7 +5,7 @@ import {renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
 import {createPerkChangePlan,confirmPerkChangePlan,applyConfirmedPerkChangePlan} from '../guardian-perk-change-plan.mjs';
 import {armourCard} from '../guardian-gear-layout.mjs';
 import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260824-artifact-state-2';
-import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260824-formation-3';
+import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260824-bungie-art-4';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
 import '../guardian-bungie-profile.mjs?v=20260824-bungie-icons-3';

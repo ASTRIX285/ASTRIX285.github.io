@@ -61,13 +61,18 @@ function setDiamondFromItem(diamond,item,fallbackTitle='Super unavailable'){
     let image=holder.querySelector('img.super-feature__icon');
     if(!image){holder.textContent='';image=document.createElement('img');image.className='super-feature__icon';holder.appendChild(image);}
     image.alt=title;
+    image.decoding='async';
+    image.src=src;
+    image.dataset.bungieOriginalSrc=src;
+    image.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
     diamond.classList.add('has-live-icon');
+    diamond.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
     diamond.tabIndex=0;
     diamond.setAttribute('role','button');
-    void cleanImageElement(image,src);
   }else{
     holder.replaceChildren();
     diamond.classList.remove('has-live-icon');
+    delete diamond.dataset.bungieArtworkSource;
     diamond.tabIndex=-1;
     diamond.removeAttribute('role');
   }

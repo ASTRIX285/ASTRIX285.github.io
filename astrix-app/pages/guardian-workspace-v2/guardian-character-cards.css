@@ -53,8 +53,8 @@
   text-align:left;
   cursor:pointer;
   box-shadow:0 10px 26px rgba(0,0,0,.28);
-  filter:saturate(.72) brightness(.82);
-  opacity:.88;
+  filter:saturate(.94) brightness(.96);
+  opacity:1;
   transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease,filter .18s ease,opacity .18s ease;
 }
 .guardian-character-card::before{
@@ -62,9 +62,9 @@
   position:absolute;
   z-index:-2;
   inset:0;
-  background:var(--character-emblem) center/cover no-repeat;
-  opacity:.72;
-  filter:saturate(.86) brightness(.82);
+  background:var(--character-emblem) center/contain no-repeat;
+  opacity:.94;
+  filter:saturate(.96) brightness(.94);
   transition:opacity .18s ease,filter .18s ease,transform .18s ease;
 }
 .guardian-character-card::after{
@@ -73,19 +73,20 @@
   z-index:-1;
   inset:0;
   background:
-    linear-gradient(90deg,rgba(5,5,9,.08) 0 28%,rgba(5,5,9,.54) 62%,rgba(5,5,9,.84) 100%),
-    linear-gradient(0deg,rgba(5,5,9,.78) 0 38%,rgba(5,5,9,.12) 78%,rgba(5,5,9,.2) 100%);
+    linear-gradient(90deg,rgba(5,5,9,.04) 0 38%,rgba(5,5,9,.14) 68%,rgba(5,5,9,.28) 100%),
+    linear-gradient(0deg,rgba(5,5,9,.54) 0 36%,rgba(5,5,9,.08) 76%,rgba(5,5,9,.12) 100%);
   pointer-events:none;
 }
-.guardian-character-card:hover{transform:translateY(-1px);border-color:rgba(var(--stage-accent-rgb,180,70,70),.62);filter:saturate(.88) brightness(.92);opacity:.95}
-.guardian-character-card:hover::before{opacity:.82;filter:saturate(.96) brightness(.9);transform:scale(1.01)}
+.guardian-character-card:hover{transform:translateY(-1px);border-color:rgba(var(--stage-accent-rgb,180,70,70),.62);filter:none;opacity:1}
+.guardian-character-card:hover::before{opacity:1;filter:none;transform:scale(1.005)}
 .guardian-character-card.is-selected{
   border-color:rgba(255,255,255,.26);
-  box-shadow:0 20px 34px -18px rgba(104,190,255,.72),0 12px 32px rgba(0,0,0,.38);
+  box-shadow:0 0 0 1px rgba(157,210,255,.16),0 18px 34px -14px rgba(104,190,255,.72),0 0 22px rgba(104,190,255,.18),0 12px 32px rgba(0,0,0,.38);
   filter:none;
   opacity:1;
 }
-.guardian-character-card.is-selected::before{opacity:.38;filter:saturate(.55) brightness(.72)}
+.guardian-character-card.is-selected::before{opacity:.48;filter:saturate(.48) brightness(.68)}
+.guardian-character-card.is-selected::after{background:linear-gradient(0deg,rgba(6,9,15,.62) 0 38%,rgba(104,190,255,.08) 100%)}
 .guardian-character-card__head{position:absolute;z-index:1;inset:0;display:block;min-width:0;pointer-events:none}
 .guardian-character-card__identity{
   position:absolute;

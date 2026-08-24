@@ -141,7 +141,7 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
 .super-feature .super-diamond::before{
   content:""!important;
   position:absolute!important;
-  z-index:1!important;
+  z-index:3!important;
   inset:0!important;
   border:var(--super-bevel-size) solid color-mix(in srgb,var(--super-accent) 34%,rgba(255,255,255,.24))!important;
   box-shadow:
@@ -153,17 +153,18 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   content:""!important;
   position:absolute!important;
   inset:var(--super-bevel-size)!important;
+  z-index:3!important;
   border:1px solid color-mix(in srgb,var(--super-accent) 28%,transparent)!important;
   pointer-events:none!important;
 }
 .super-feature .super-diamond.has-live-icon{
-  background:color-mix(in srgb,var(--super-accent) 24%,transparent)!important;
+  background:#090a0e!important;
   opacity:.92!important;
   cursor:pointer!important;
 }
 .super-feature .super-diamond--equipped.has-live-icon,
 .super-feature .super-diamond.is-selected-super.has-live-icon{
-  background:color-mix(in srgb,var(--super-accent) 42%,transparent)!important;
+  background:#090a0e!important;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--super-accent) 68%,transparent),0 0 18px color-mix(in srgb,var(--super-accent) 54%,transparent),inset 0 0 22px color-mix(in srgb,var(--super-accent) 24%,transparent)!important;
   opacity:1!important;
 }
@@ -177,7 +178,7 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   overflow:hidden!important;
   transform:rotate(-45deg)!important;
   color:transparent!important;
-  z-index:2!important;
+  z-index:1!important;
 }
 .super-feature .super-diamond>span>img{
   display:block!important;
@@ -185,12 +186,12 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   height:100%!important;
   max-width:100%!important;
   max-height:100%!important;
-  object-fit:contain!important;
+  object-fit:cover!important;
   transform:none!important;
   border:0!important;
   outline:0!important;
   box-shadow:none!important;
-  filter:drop-shadow(0 0 6px color-mix(in srgb,var(--super-accent) 35%,transparent))!important;
+  filter:saturate(1.06) contrast(1.02) drop-shadow(0 0 6px color-mix(in srgb,var(--super-accent) 35%,transparent))!important;
 }
 .super-feature .super-diamond--equipped>span{
   inset:var(--super-equipped-bevel)!important;
@@ -198,7 +199,7 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   height:auto!important;
 }
 .super-feature .super-diamond--equipped>span>img{
-  transform:scale(1.24)!important;
+  transform:none!important;
 }
 
 /* Exact PSD coordinates. Do not re-derive. */

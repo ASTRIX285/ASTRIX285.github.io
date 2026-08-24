@@ -39,7 +39,10 @@ assert.match(formationCss,/--super-alternate-bevel:2px/,'Alternate Supers need t
 assert.match(formationCss,/\.super-feature\{[\s\S]*?--super-accent:var\(--gold,#E0A94E\)/,'Unresolved Super borders must match the chassis gold');
 assert.match(formationCss,/border:var\(--super-bevel-size\) solid/,'Super bevel thickness must use the shared size token');
 assert.doesNotMatch(formationCss,/data-super-count="[1-5]"/,'Partial-count geometry must not collapse the six-slot PSD frame');
-assert.match(formationCss,/\.super-diamond--equipped>span>[\s\S]*?transform:scale\(1\.24\)!important/,'Equipped Super icon must reach the inner bevel');
+assert.match(formationModule,/image\.dataset\.bungieArtworkSource='DestinyInventoryItemDefinition'/,'Every resolved Super must retain Bungie artwork provenance');
+assert.match(formationModule,/image\.src=src/,'Resolved Supers must load Bungie artwork directly instead of a copied local asset');
+assert.match(formationCss,/\.super-diamond>span>img[\s\S]*?object-fit:cover!important/,'Bungie Super art must fill each diamond through its inner bevel');
+assert.match(formationCss,/\.super-diamond--equipped>span\{[\s\S]*?inset:var\(--super-equipped-bevel\)!important/,'Equipped Super artwork must stop at the inner bevel');
 
 assert.match(gearModule,/armour-set-bonus-icon/,'Resolved armour set icon must sit with the armour image');
 assert.match(gearModule,/is-set-2-active/,'2-piece active state must reach the card');
@@ -51,8 +54,9 @@ assert.match(gearCss,/weapon-perk-strip\{[^}]*border:0[^}]*background:transparen
 assert.match(gearCss,/weapon-support-icon\{width:var\(--pf-mod-size,36px\);height:var\(--pf-mod-size,36px\)/,'Weapon mod/masterwork icons must match armour mod size');
 
 assert.match(characterModule,/emblemBackground = character\.emblem\?\.background/,'Hero card must use the Bungie emblem background');
-assert.match(characterCss,/var\(--character-emblem\) center\/cover no-repeat/,'Emblem must remain the full-card background fill');
-assert.match(characterCss,/box-shadow:0 20px 34px -18px/,'Selected card must use a gentle lower glow');
+assert.match(characterCss,/var\(--character-emblem\) center\/contain no-repeat/,'The complete Bungie emblem banner must stay inside the card');
+assert.match(characterCss,/\.guardian-character-card\.is-selected::before\{opacity:\.48;filter:saturate\(\.48\) brightness\(\.68\)\}/,'Selected card artwork must use the approved passive treatment');
+assert.match(characterCss,/0 18px 34px -14px rgba\(104,190,255,\.72\)/,'Selected card must use a restrained glow behind the card');
 assert.match(profile,/\["Weapons",2996146975[\s\S]*?\["Health",392767087[\s\S]*?\["Class",1943323491[\s\S]*?\["Grenade",1735777505[\s\S]*?\["Super",144602215[\s\S]*?\["Melee",4244567218/,'The six current Destiny stat definitions must retain Bungie order');
 assert.doesNotMatch(characterCss,/guardian-stat-icons\.png/,'Guardian cards must not use the removed reference-image sprite');
 assert.match(characterModule,/class="guardian-stat-icon" src="\$\{escapeHtml\(icon\)\}"/,'Guardian cards must render the Bungie-provided stat icon URL');
@@ -86,8 +90,9 @@ assert.match(buildModule,/astrix:build-render-complete/,'Build Tool must publish
 assert.match(loadoutsModule,/pendingIndex=index;[\s\S]*?astrix:loadout-selected/,'A selected Bungie loadout must show pending state before it loads');
 assert.doesNotMatch(loadoutsModule,/activeIndex=index;[\s\S]*?astrix:loadout-selected/,'A loadout must not become active before Bungie returns the exact slot');
 assert.match(loadoutsModule,/astrix:loadout-error[\s\S]*?pendingIndex=null/,'A failed loadout request must restore the previous committed selection');
-assert.match(buildCss,/grid-template-columns:repeat\(2,var\(--pf-build-mod-size\)\) 8px repeat\(2,var\(--pf-build-mod-size\)\) 8px repeat\(2,var\(--pf-build-mod-size\)\)/,'Build armour mods must form horizontal 2-2-2 groups');
-assert.match(buildCss,/gear-mod:nth-child\(6\)\{grid-column:8\}/,'Build 2-2-2 grouping must place all six real mod slots');
+assert.match(buildCss,/grid-template-columns:repeat\(3,var\(--pf-mod-size,36px\)\)/,'Build armour mods must form three Main-sized columns');
+assert.match(buildCss,/grid-template-rows:repeat\(2,var\(--pf-mod-size,36px\)\)/,'Build armour mods must form two 2-2-2 rows');
+assert.match(buildCss,/grid-auto-flow:column!important/,'Build armour mods must fill each vertical pair before the next pair');
 assert.match(sharedRailCss,/guardian-left-rail \.build-fragment-slots\{grid-template-columns:repeat\(5,var\(--guardian-rail-slot\)\)/,'Shared rail must fit five Fragment sockets in one row');
 assert.match(sharedRailCss,/guardian-left-rail \.artifact-row/,'Artifact summary must be owned by the shared Main and Build rail');
 assert.match(sharedRailCss,/artifact-item-selector[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Expanded Artifact catalogue must form 2-2-2 rows');

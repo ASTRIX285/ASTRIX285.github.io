@@ -197,17 +197,11 @@ html,body{
 .build-back-btn{min-height:28px;padding:5px 10px;font:700 8px Orbitron,Inter,sans-serif;letter-spacing:.08em;cursor:pointer}
 .build-back-btn:hover,.build-back-btn:focus-visible{border-color:rgba(100,226,182,.62);color:#6fe3b6;outline:none}
 
-/* Shared Main armour cards with the one approved Build-only difference:
-   six Main-sized mod icons arranged horizontally as three explicit pairs. */
-:root{--pf-build-armour-card-width:300px;--pf-build-mod-size:var(--pf-mod-size,36px)}
+/* Shared Main armour cards with the approved Build-only difference:
+   six Main-sized mod icons in three vertical pairs across two rows. */
+:root{--pf-build-armour-card-width:300px}
 .design-canvas .gear-combined{min-width:0;overflow-x:auto;overflow-y:visible;scrollbar-gutter:stable}
 .design-canvas .gear-combined .gear-columns{grid-template-columns:repeat(5,var(--pf-build-armour-card-width))!important;grid-auto-flow:column!important;width:max-content!important;min-width:100%!important;gap:clamp(8px,.7vw,14px)!important;padding-bottom:8px}
 .design-canvas .gear-combined .gear-slot{width:var(--pf-build-armour-card-width)!important;min-width:var(--pf-build-armour-card-width)!important;min-height:236px!important}
-.design-canvas .gear-combined .gear-slot .gear-mods{grid-template-columns:repeat(2,var(--pf-build-mod-size)) 8px repeat(2,var(--pf-build-mod-size)) 8px repeat(2,var(--pf-build-mod-size))!important;grid-template-rows:var(--pf-build-mod-size)!important;grid-auto-flow:row!important;gap:4px!important;width:max-content!important;margin:0 auto!important}
-.design-canvas .gear-combined .gear-slot .gear-mod{width:var(--pf-build-mod-size)!important;height:var(--pf-build-mod-size)!important}
-.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(1){grid-column:1}
-.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(2){grid-column:2}
-.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(3){grid-column:4}
-.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(4){grid-column:5}
-.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(5){grid-column:7}
-.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(6){grid-column:8}
+.design-canvas .gear-combined .gear-slot .gear-mods{grid-template-columns:repeat(3,var(--pf-mod-size,36px))!important;grid-template-rows:repeat(2,var(--pf-mod-size,36px))!important;grid-auto-flow:column!important;column-gap:12px!important;row-gap:4px!important;width:max-content!important;margin:0 auto!important}
+.design-canvas .gear-combined .gear-slot .gear-mod{width:var(--pf-mod-size,36px)!important;height:var(--pf-mod-size,36px)!important}
