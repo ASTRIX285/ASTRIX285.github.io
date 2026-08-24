@@ -292,3 +292,27 @@ html,body{
 .build-loading-gate.is-complete .build-loading-brand{filter:drop-shadow(0 0 16px rgba(237,48,61,.9)) drop-shadow(0 0 12px rgba(214,167,46,.55))}
 .build-loading-gate.is-launching .build-loading-surface{animation:build-launch .55s cubic-bezier(.2,.8,.2,1) both}
 @keyframes build-launch{0%{transform:scale(1);opacity:1}55%{transform:scale(1.035);filter:brightness(1.28)}100%{transform:scale(.96);opacity:0;filter:brightness(1.5)}}
+
+/* Shared Main-page character selector, reused without a second renderer. */
+.build-character-selector{padding:12px 12px 0;background:rgba(5,5,10,.94)}
+.build-character-selector .guardian-character-cards{position:static!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;width:100%!important;padding:0!important}
+.build-character-selector .guardian-character-card{min-height:122px!important}
+.build-space{min-height:calc(100vh - 206px)}
+
+/* Six Main-sized mods arranged horizontally as three explicit pairs. */
+:root{--pf-build-armour-card-width:300px;--pf-build-mod-size:36px}
+.design-canvas .gear-combined .gear-columns{grid-template-columns:repeat(5,var(--pf-build-armour-card-width))!important;grid-auto-flow:column!important;width:max-content!important;min-width:100%!important}
+.design-canvas .gear-combined .gear-slot{width:var(--pf-build-armour-card-width)!important;min-width:var(--pf-build-armour-card-width)!important;min-height:236px!important}
+.design-canvas .gear-combined .gear-slot .gear-mods{grid-template-columns:repeat(2,var(--pf-build-mod-size)) 8px repeat(2,var(--pf-build-mod-size)) 8px repeat(2,var(--pf-build-mod-size))!important;grid-template-rows:var(--pf-build-mod-size)!important;grid-auto-flow:row!important;gap:4px!important}
+.design-canvas .gear-combined .gear-slot .gear-mod{width:var(--pf-build-mod-size)!important;height:var(--pf-build-mod-size)!important}
+.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(1){grid-column:1}
+.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(2){grid-column:2}
+.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(3){grid-column:4}
+.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(4){grid-column:5}
+.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(5){grid-column:7}
+.design-canvas .gear-combined .gear-slot .gear-mod:nth-child(6){grid-column:8}
+@media(max-width:720px){
+  :root{--pf-build-armour-card-width:300px}
+  .build-character-selector .guardian-character-cards{display:flex!important;overflow-x:auto!important}
+  .build-character-selector .guardian-character-card{flex:0 0 min(84vw,320px)!important}
+}

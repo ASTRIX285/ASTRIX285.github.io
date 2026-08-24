@@ -61,11 +61,16 @@ export function armourCard(index, item) {
   const archetype = item?.armourSemantics?.archetype ?? item?.archetype ?? null;
   const archetypeIcon = archetype?.icon ?? archetype?.displayProperties?.icon ?? "";
   const archetypeTitle = [archetype?.name ?? archetype?.displayName, archetype?.description].filter(Boolean).join(" — ");
-  const setStrip = !isExotic ? armourSetStrip(item?.armourSemantics?.set) : "";
+  const armourSet = !isExotic ? item?.armourSemantics?.set ?? item?.setBonus ?? null : null;
+  const setStrip = armourSetStrip(armourSet);
+  const twoPieceActive = armourSet?.twoPiece?.active === true;
+  const fourPieceActive = armourSet?.fourPiece?.active === true;
+  const setBonusIcon = armourSet?.identity?.icon ?? armourSet?.twoPiece?.icon ?? armourSet?.fourPiece?.icon ?? "";
+  const setBonusTitle = [armourSet?.identity?.name, "Bungie armour set bonus"].filter(Boolean).join(" — ");
   const traitIcon = trait?.icon ?? trait?.displayProperties?.icon ?? "";
   const traitTitle = [trait?.name ?? trait?.displayName, trait?.description].filter(Boolean).join(" — ");
 
-  return `<article class="gear-slot ${isExotic ? "exotic" : ""} ${isTierFive ? "is-level-gold" : ""}" data-armour-index="${index}">
+  return `<article class="gear-slot ${isExotic ? "exotic" : ""} ${isTierFive ? "is-level-gold" : ""} ${armourSet?.identity ? "has-set-bonus" : ""} ${twoPieceActive ? "is-set-2-active" : ""} ${fourPieceActive ? "is-set-4-active" : ""}" data-armour-index="${index}">
     <div class="gear-slot-label">${esc(name)}</div>
     <div class="gear-arm-row">
       <div class="gear-arm-anchor">
@@ -74,6 +79,7 @@ export function armourCard(index, item) {
           ${icon ? `<img src="${esc(icon)}" alt="">` : '<span class="ph-glyph">◇</span>'}
           ${archetypeIcon ? `<span class="armour-archetype-icon" title="${esc(archetypeTitle || "Verified armour archetype")}"><img src="${esc(archetypeIcon)}" alt="${esc(archetype?.name ?? "Armour archetype")}"></span>` : ""}
           ${isExotic && traitIcon ? `<span class="armour-exotic-overlay" title="${esc(traitTitle || "Verified exotic armour perk")}"><img src="${esc(traitIcon)}" alt="${esc(trait?.name ?? "Exotic armour perk")}"></span>` : ""}
+          ${setBonusIcon ? `<span class="armour-set-bonus-icon" title="${esc(setBonusTitle)}"><img src="${esc(setBonusIcon)}" alt="${esc(armourSet?.identity?.name ?? "Armour set bonus")}"></span>` : ""}
         </div>
       </div>
       ${setStrip}

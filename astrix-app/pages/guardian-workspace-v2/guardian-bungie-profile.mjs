@@ -9,6 +9,7 @@ const ARMOUR_ORDER=[BUCKETS.helmet,BUCKETS.gauntlets,BUCKETS.chest,BUCKETS.legs,
 const WEAPON_ORDER=[BUCKETS.kinetic,BUCKETS.energy,BUCKETS.power];
 const STAT_ORDER=[["Weapons",2996146975],["Health",392767087],["Class",1943323491],["Grenade",1735777505],["Super",144602215],["Melee",4244567218]];
 const SELECTED_CHARACTER_KEY="astrix:selected-character-id";
+const SELECTED_LOADOUT_KEY="astrix:selected-bungie-loadout-v1";
 const loadoutCache=new Map();
 let liveProfilePayload=null;
 let liveProfileSession=null;
@@ -69,6 +70,26 @@ function rememberedCharacterId(profile){
 
 function rememberCharacterId(characterId){
   try{sessionStorage.setItem(SELECTED_CHARACTER_KEY,String(characterId||""));}
+  catch{}
+}
+
+function rememberedLoadoutSelection(profile){
+  try{
+    const saved=JSON.parse(localStorage.getItem(SELECTED_LOADOUT_KEY)||"null");
+    const characterId=String(saved?.characterId||"");
+    const index=Number(saved?.index);
+    if(!characterId||!Number.isInteger(index)||index<0||index>19||!profile?.characters?.data?.[characterId])return null;
+    return {characterId,index};
+  }catch{return null;}
+}
+
+function rememberLoadoutSelection(characterId,index){
+  try{localStorage.setItem(SELECTED_LOADOUT_KEY,JSON.stringify({characterId:String(characterId||""),index:Number(index)}));}
+  catch{}
+}
+
+function forgetLoadoutSelection(){
+  try{localStorage.removeItem(SELECTED_LOADOUT_KEY);}
   catch{}
 }
 
@@ -446,10 +467,11 @@ async function loadSelectedLoadout(selection){
   const cacheKey=`${characterId}:${index}`;
   const cached=loadoutCache.get(cacheKey);
   if(cached){
+    rememberLoadoutSelection(characterId,index);
     document.documentElement.dataset.guardianSource="bungie-loadout";
     document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:cached}));
     document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:cached}));
-    return;
+    return cached;
   }
   setRenderStatus("LOADING SAVED LOADOUT",`Opening Bungie loadout ${index+1}`,"Resolving equipment and subclass configuration");
   document.dispatchEvent(new CustomEvent("astrix:loadout-loading",{detail:{characterId,index}}));
@@ -466,10 +488,13 @@ async function loadSelectedLoadout(selection){
   }
 
   loadoutCache.set(cacheKey,detail);
+  rememberCharacterId(characterId);
+  rememberLoadoutSelection(characterId,index);
   document.documentElement.dataset.guardianSource="bungie-loadout";
   setRenderStatus("BUILD INTELLIGENCE",`Bungie loadout ${index+1} ready`,"Saved build loaded for analysis");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail}));
+  return detail;
 }
 
 async function loadLiveProfile(session,{background=false}={}){
@@ -480,7 +505,8 @@ async function loadLiveProfile(session,{background=false}={}){
   const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
   liveProfilePayload=payload;
   liveProfileSession=session;
-  const selectedCharacterId=rememberedCharacterId(payload.profile)||String(activeCharacter(payload.profile)?.characterId||"");
+  const rememberedLoadout=rememberedLoadoutSelection(payload.profile);
+  const selectedCharacterId=rememberedCharacterId(payload.profile)||rememberedLoadout?.characterId||String(activeCharacter(payload.profile)?.characterId||"");
   if(selectedCharacterId)rememberCharacterId(selectedCharacterId);
   publishCharacterRoster(payload,selectedCharacterId);
 
@@ -493,6 +519,16 @@ async function loadLiveProfile(session,{background=false}={}){
     return null;
   }
 
+  if(document.documentElement.dataset.guardianProfileMode==="roster-only"){
+    return normaliseLiveProfile(payload,session,selectedCharacterId);
+  }
+
+  if(rememberedLoadout&&rememberedLoadout.characterId===selectedCharacterId){
+    const detail=await loadSelectedLoadout(rememberedLoadout);
+    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail}));
+    return detail;
+  }
+
   const detail=normaliseLiveProfile(payload,session,selectedCharacterId);
   setRenderStatus("BUILD INTELLIGENCE","Live profile data ready","Equipment and loadout analysis active");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
@@ -500,10 +536,13 @@ async function loadLiveProfile(session,{background=false}={}){
   return detail;
 }
 
-function selectLiveCharacter(characterId){
+function selectLiveCharacter(characterId,expectedClass=""){
   console.log("[TRACE select] clicked id:", characterId, "| exists in profile?", !!liveProfilePayload?.profile?.characters?.data?.[characterId]);
-  if(!liveProfilePayload)return null;
+  if(!liveProfilePayload)throw new Error("Bungie character roster is not loaded; character selection cannot fall back to last played.");
   const detail=normaliseLiveProfile(liveProfilePayload,liveProfileSession,characterId);
+  const expected=String(expectedClass||"").trim().toLowerCase();
+  if(expected&&detail.characterClass!==expected)throw new Error(`Selected ${expected} card resolved ${detail.characterClass} data for character ${characterId}.`);
+  forgetLoadoutSelection();
   rememberCharacterId(detail.characterId);
   document.documentElement.dataset.guardianSource="bungie-live";
   document.documentElement.dataset.equippedActive="true";
@@ -564,7 +603,7 @@ document.addEventListener("astrix:loadout-selected",event=>{
 });
 
 document.addEventListener("astrix:character-selected",event=>{
-  try{selectLiveCharacter(String(event.detail?.characterId||""));}
+  try{selectLiveCharacter(String(event.detail?.characterId||""),String(event.detail?.characterClass||""));}
   catch(error){reportProfileError(error);}
 });
 

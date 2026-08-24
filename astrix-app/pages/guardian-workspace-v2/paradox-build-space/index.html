@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-guardian-profile-mode="roster-only">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./paradox-build-space.css?v=20260823-11">
+  <link rel="stylesheet" href="./paradox-build-space.css?v=20260824-main-page-1">
   <link rel="stylesheet" href="./build-test-modes.css?v=20260823-1">
-  <link rel="stylesheet" href="../guardian-gear-layout.css?v=20260822-8">
-  <link rel="stylesheet" href="../guardian-super-formation.css?v=20260824-1">
+  <link rel="stylesheet" href="../guardian-gear-layout.css?v=20260824-main-page-1">
+  <link rel="stylesheet" href="../guardian-character-cards.css?v=20260824-main-page-1">
+  <link rel="stylesheet" href="../guardian-super-formation.css?v=20260824-main-page-1">
 </head>
 <body class="is-build-loading">
   <div class="build-loading-gate" id="buildLoadingGate" role="dialog" aria-modal="true" aria-labelledby="buildLoadingStage">
@@ -33,6 +34,9 @@
     <div class="workspace-title">GUARDIAN BUILD FORGE</div>
     <div class="source-pill" id="sourcePill">BUILD SOURCE · RESOLVING</div>
   </header>
+  <section class="build-character-selector" aria-label="Select Bungie character">
+    <div class="guardian-character-cards" id="guardianCharacterCards" aria-label="Bungie characters"><div class="guardian-character-cards__status" role="status">LOADING BUNGIE CHARACTERS</div></div>
+  </section>
   <main class="build-space">
     <aside class="panel build-rail">
       <div class="panel-head"><div><small>BUILD CONFIGURATION</small><h2 id="guardianHeading">GUARDIAN</h2></div><button class="ghost-btn" id="backToGuardian">BACK</button></div>
@@ -81,6 +85,6 @@
       <button class="primary" disabled>RUN PARADOX ANALYSIS · NEXT ITERATION</button>
     </aside>
   </main>
-  <script type="module" src="./paradox-build-space.mjs?v=20260823-11"></script>
+  <script type="module" src="./paradox-build-space.mjs?v=20260824-main-page-1"></script>
 </body>
 </html>

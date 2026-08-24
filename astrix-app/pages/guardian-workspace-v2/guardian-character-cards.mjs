@@ -86,19 +86,19 @@ function render(nextCharacters = characters, nextSelectedId = selectedCharacterI
   target.innerHTML = characters
     .map((character) => {
       const selected = Boolean(selectedCharacterId) && String(character.characterId) === selectedCharacterId;
-      const emblem = character.emblem?.icon
-        ? `<img src="${escapeHtml(character.emblem.icon)}" alt="" loading="eager" decoding="async">`
-        : `<span aria-hidden="true">◆</span>`;
+      const emblemBackground = character.emblem?.background || character.emblem?.icon || "";
+      const emblemStyle = emblemBackground
+        ? ` style="--character-emblem:url('${escapeHtml(emblemBackground)}')"`
+        : "";
       const title = character.title || (character.titleHash != null ? "TITLE DATA PENDING" : "NO TITLE EQUIPPED");
 
       return `<button type="button" class="guardian-character-card${selected ? " is-selected" : ""}" data-character-id="${escapeHtml(
         character.characterId
       )}" data-class="${escapeHtml(character.characterClass)}" aria-pressed="${selected}" aria-label="Select ${escapeHtml(
         classLabel(character.characterClass)
-      )}, power ${escapeHtml(character.power ?? "unavailable")}">
+      )}, power ${escapeHtml(character.power ?? "unavailable")}"${emblemStyle}>
         <span class="guardian-character-card__head">
-          <span class="guardian-character-card__emblem">${emblem}</span>
-          <span><strong>${escapeHtml(classLabel(character.characterClass).toUpperCase())}</strong><small>${escapeHtml(title)}</small></span>
+          <span class="guardian-character-card__identity"><strong>${escapeHtml(classLabel(character.characterClass).toUpperCase())}</strong><small>${escapeHtml(title)}</small></span>
           <span class="guardian-character-card__power"><i aria-hidden="true">✦</i>${escapeHtml(character.power ?? "550")}</span>
         </span>
         <span class="guardian-character-card__stats">${statMarkup(character.stats)}</span>

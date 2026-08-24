@@ -79,13 +79,23 @@ function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=
   const feature=host.closest('.super-feature')||host;
   feature.dataset.superSubclass=subclassKey(subclass,activeSuper);
   const options=(Array.isArray(superOptions)?superOptions:[]).filter(Boolean).filter((item,index,rows)=>rows.findIndex(other=>itemKey(other)===itemKey(item))===index);
-  const activeId=itemKey(activeSuper);
+  const resolvedActive=activeSuper||options.find(item=>item?.isEquipped===true||item?.equipped===true)||null;
+  const activeId=itemKey(resolvedActive);
   const alternates=options.filter(item=>itemKey(item)!==activeId).slice(0,5);
-  const items=[activeSuper,...alternates];
-  const slots=['equipped','alternate-1','alternate-2','alternate-3','alternate-4','alternate-5'].map(key=>host.querySelector(`[data-super-slot="${key}"]`));
+  const items=resolvedActive?[resolvedActive,...alternates]:[];
+  /* The PSD names remain stable in the DOM, but partial formations populate
+   * from the bottom anchor outwards: bottom, lower-right, lower-left,
+   * upper-right, upper-left. Hidden slots are not rendered. */
+  const slots=['equipped','alternate-5','alternate-4','alternate-3','alternate-2','alternate-1'].map(key=>host.querySelector(`[data-super-slot="${key}"]`));
+  const count=Math.min(6,items.length);
+  host.dataset.superCount=String(count);
+  feature.dataset.superCount=String(count);
+  host.dataset.activeSuper=activeId;
+  host.dataset.superState=resolvedActive?'resolved':'unresolved';
 
   slots.forEach((slot,index)=>{
     const item=items[index]||null;
+    if(slot)slot.hidden=!item;
     setDiamondFromItem(slot,item,index===0?'Equipped Super unavailable':`Alternate Super ${index} unavailable`);
     const selected=index===0&&Boolean(item);
     slot?.classList.toggle('is-selected',selected);
@@ -105,7 +115,7 @@ function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=
     }
   });
 
-  if(nameNode)nameNode.textContent=activeSuper?.name||activeSuper?.displayName||'SELECTED SUPER';
+  if(nameNode)nameNode.textContent=resolvedActive?.name||resolvedActive?.displayName||'SELECTED SUPER';
 }
 
 export {renderEquippedSubclass,renderSuperFormation,resolvedSuperIcon,setDiamondFromItem};

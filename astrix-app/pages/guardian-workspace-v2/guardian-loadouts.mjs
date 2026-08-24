@@ -62,7 +62,7 @@ document.addEventListener("astrix:guardian-selection-changed",event=>{
     return;
   }
   activeCharacterId=String(event.detail?.characterId||activeCharacterId||"");
-  if(Number.isInteger(event.detail?.selectedLoadoutIndex))activeIndex=event.detail.selectedLoadoutIndex;
+  activeIndex=Number.isInteger(event.detail?.selectedLoadoutIndex)?event.detail.selectedLoadoutIndex:null;
   render(event.detail?.loadouts||[]);
 });
 document.addEventListener("astrix:guardian-loading",()=>renderStatus("Loading Bungie loadouts…","pending"));
