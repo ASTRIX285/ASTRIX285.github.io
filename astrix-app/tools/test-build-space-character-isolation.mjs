@@ -36,6 +36,26 @@ const titanSource=resolveBuildSource();
 assert.deepEqual(titanSource.artifactConfiguration.selectedPerkHashes,[202]);
 assert.equal(titanSource.weapons[0].weaponRollAdvice.verdict,'keep');
 
+rememberArtifactSelection({
+  characterId:'titan-1',
+  selectedLoadoutIndex:null,
+  state:'state-unavailable',
+  artifact:{hash:9001,state:'state-unavailable',activePerks:null,perks:null},
+  artifactConfiguration:{
+    schemaVersion:1,
+    artifactHash:9001,
+    seasonNumber:29,
+    selectedPerkHashes:null,
+    source:'bungie-live-state-unavailable',
+    provenance:{provider:'bungie',component:202,state:'state-unavailable'}
+  },
+  perks:null
+});
+const unavailableTitanSource=resolveBuildSource();
+assert.equal(unavailableTitanSource.artifact.state,'state-unavailable');
+assert.equal(unavailableTitanSource.artifact.activePerks,null,'unavailable component-202 evidence must not become an empty active-perk list');
+assert.equal(unavailableTitanSource.artifactConfiguration.selectedPerkHashes,null,'unavailable live selection remains distinct from explicit empty intent');
+
 const persistedWarlockEnvelope=JSON.parse(localStorage.getItem(LAST_LOADOUT_KEY));
 assert.equal(persistedWarlockEnvelope.schemaVersion,2,'durable loadouts use the versioned handoff envelope');
 assert.equal(persistedWarlockEnvelope.binding.characterId,'warlock-1','durable envelope remains bound to the saved Guardian');
