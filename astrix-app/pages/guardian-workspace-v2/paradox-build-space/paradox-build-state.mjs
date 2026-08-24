@@ -24,7 +24,7 @@ function toggleIntendedArtifactPerk(artifact,previous,index){
 }
 function needsIntendedArtifactConfiguration(build={}){
   const source=String(build.source||'').toLowerCase();
-  return ['fixture','saved','share','dim'].some(marker=>source.includes(marker));
+  return ['fixture','beta','saved','share','dim'].some(marker=>source.includes(marker));
 }
 function artifactConfigurationForBuild(build={}){
   const explicit=build.artifactConfiguration||build.artifact?.artifactConfiguration||null;
