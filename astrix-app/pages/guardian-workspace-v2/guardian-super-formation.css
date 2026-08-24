@@ -10,6 +10,7 @@ html body .workspace .left .subclass-super-shell.equipped-subclass-stack{
   grid-template-columns:none!important;
   grid-template-rows:none!important;
   flex-direction:column!important;
+  flex:0 0 auto!important;
   align-items:stretch!important;
   gap:clamp(32px,3vw,40px)!important;
   width:100%!important;
