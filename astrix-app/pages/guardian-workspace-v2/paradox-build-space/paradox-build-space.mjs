@@ -55,18 +55,10 @@ function readState(){
   return null;
 }
 function emitLoad(stage,percent,label,status='loading',message=''){
-  const gate=byId('buildLoadingGate'),progress=byId('buildLoadingProgress'),percentNode=byId('buildLoadingPercent'),stageNode=byId('buildLoadingStage'),messageNode=byId('buildLoadingMessage'),actions=byId('buildLoadingActions');
-  if(progress){progress.style.setProperty('--build-progress',String(percent));progress.dataset.litEdges=String(Math.min(6,Math.ceil(Number(percent||0)/16.667)));progress.setAttribute('aria-valuenow',String(percent));}
-  if(percentNode)percentNode.textContent=percent+'%';if(stageNode)stageNode.textContent=label;
-  if(messageNode){messageNode.textContent=message;messageNode.hidden=!message;}if(actions)actions.hidden=status!=='error';
-  gate?.classList.toggle('is-complete',status==='ready');
-  if(status==='loading'){gate?.classList.remove('is-hidden');document.body.classList.add('is-build-loading');}
-  if(status==='ready'){playLaunchCue();setTimeout(()=>gate?.classList.add('is-launching'),180);setTimeout(()=>{gate?.classList.add('is-hidden');document.body.classList.remove('is-build-loading');},700);}
+  window.AstrixLoader?.set(percent);
+  window.AstrixLoader?.status(message||label);
+  if(status==='ready'||status==='error')requestAnimationFrame(()=>requestAnimationFrame(()=>window.AstrixLoader?.done()));
   window.dispatchEvent(new CustomEvent('astrix:build-load-progress',{detail:{stage,percent,label,status,message}}));
-}
-function playLaunchCue(){
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!navigator.userActivation?.hasBeenActive)return;
-  try{const Context=window.AudioContext||window.webkitAudioContext;if(!Context)return;const audio=new Context(),now=audio.currentTime,gain=audio.createGain(),osc=audio.createOscillator();osc.type='sine';osc.frequency.setValueAtTime(120,now);osc.frequency.exponentialRampToValueAtTime(620,now+.22);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.05,now+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+.3);osc.connect(gain).connect(audio.destination);osc.start(now);osc.stop(now+.31);osc.onended=()=>audio.close();}catch{}
 }
 function tile(item){if(!item)return '<span class="icon-tile empty">◆</span>';const icon=abs(iconOf(item)),name=esc(item.name||'Destiny item');return `<span class="icon-tile" title="${name}">${icon?`<img src="${esc(icon)}" alt="${name}">`:'◆'}</span>`;}
 function weaponCardShell(index){return `<div class="weap"><div class="art ph"><span class="ph-glyph">⌖</span></div><div class="cap"><b>Weapon slot ${index+1}</b><small>Awaiting resolved weapon semantics</small></div></div>`;}
@@ -85,7 +77,7 @@ function verifiedActivities(build,domain=testDomain){
   }).filter(row=>Number(row?.hash||row?.activityHash||row?.activityTypeHash||row?.mode)>0);
 }
 function selectedExpectedActivity(){const node=byId('expectedActivity'),row=verifiedActivities(currentBuild()).find(item=>String(item.hash||item.activityHash||item.activityTypeHash||item.mode)===node?.value);return row?{activityHash:Number(row.activityHash||row.hash)||null,activityTypeHash:Number(row.activityTypeHash)||null,mode:Number(row.mode)||null,mapHash:Number(row.mapHash)||null,modifierHashes:Array.isArray(row.modifierHashes)?row.modifierHashes:[],name:String(row.name||row.displayName||'Bungie activity'),source:'bungie-definition'}:null;}
-function renderTestConfiguration(){const build=currentBuild(),node=byId('expectedActivity'),rows=verifiedActivities(build);if(node){node.innerHTML='<option value="">ANY COMPLETED ACTIVITY</option>'+rows.map(row=>'<option value="'+esc(row.hash||row.activityHash||row.activityTypeHash||row.mode)+'">'+esc(row.name||row.displayName||'Bungie activity '+(row.hash||row.activityHash))+'</option>').join('');}byId('testDomainLabel').textContent=testDomain.toUpperCase()+' BUILD TEST';byId('calibrationOption').hidden=testDomain!=='pve';byId('testContextNote').textContent=testDomain==='pvp'?'Crucible modes appear only when resolved from current Bungie activity definitions. Map and modifier context can attach to the same verified intake contract.':'Select a verified PvE activity, leave Any Activity selected, or use optional Shooting Range calibration.';document.querySelectorAll('[data-test-domain]').forEach(button=>{const active=button.dataset.testDomain===testDomain;button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',String(active));});}
+function renderTestConfiguration(){const build=currentBuild(),node=byId('expectedActivity'),rows=verifiedActivities(build),destination=byId('expectedDestination'),destinationApi=globalThis.AstrixDestinations;if(destination&&destinationApi){destination.innerHTML=destinationApi.options().map(option=>'<option value="'+esc(option.key)+'">'+esc(option.label.toUpperCase())+'</option>').join('');destination.value=destinationApi.current();}if(node){node.innerHTML='<option value="">ANY COMPLETED ACTIVITY</option>'+rows.map(row=>'<option value="'+esc(row.hash||row.activityHash||row.activityTypeHash||row.mode)+'">'+esc(row.name||row.displayName||'Bungie activity '+(row.hash||row.activityHash))+'</option>').join('');}byId('testDomainLabel').textContent=testDomain.toUpperCase()+' BUILD TEST';byId('calibrationOption').hidden=testDomain!=='pve';byId('testContextNote').textContent=testDomain==='pvp'?'Crucible modes appear only when resolved from current Bungie activity definitions. Map and modifier context can attach to the same verified intake contract.':'Select a verified PvE activity, leave Any Activity selected, or use optional Shooting Range calibration.';document.querySelectorAll('[data-test-domain]').forEach(button=>{const active=button.dataset.testDomain===testDomain;button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',String(active));});}
 
 function writeState(next){const original=next?.originalBuild||{},envelope={schemaVersion:HANDOFF_SCHEMA,savedAt:Date.now(),binding:bindingOf(original),payload:next},json=JSON.stringify(envelope);for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,json);}catch{}}}
 function switchBuildCharacter(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId)return;const next=createBuildState(detail);writeState(next);render();}
@@ -151,6 +143,7 @@ document.addEventListener('astrix:guardian-selection-changed',event=>switchBuild
 document.addEventListener('astrix:loadout-loading',event=>{const slot=Number(event.detail?.index);byId('sourcePill').textContent=Number.isInteger(slot)?`BUILD SOURCE · LOADING BUNGIE SLOT ${slot+1}`:'BUILD SOURCE · LOADING BUNGIE SLOT';});
 document.addEventListener('astrix:loadout-error',()=>{byId('sourcePill').textContent='BUILD SOURCE · LOADOUT ERROR';});
 document.querySelectorAll('[data-test-domain]').forEach(button=>button.addEventListener('click',()=>{testDomain=button.dataset.testDomain==='pvp'?'pvp':'pve';renderTestConfiguration();}));
+byId('expectedDestination')?.addEventListener('change',event=>globalThis.AstrixDestinations?.set?.(event.target.value));
 byId('backToGuardian')?.addEventListener('click',()=>location.href='../');
 byId('armRangeTest')?.addEventListener('click',armRange);
 byId('pullRangeResults')?.addEventListener('click',pullRange);
@@ -158,6 +151,3 @@ byId('downloadRangeEvidence')?.addEventListener('click',downloadRangeEvidence);
 byId('applyBuild')?.addEventListener('click',applyBuild);
 byId('restoreOriginal')?.addEventListener('click',restoreOriginal);
 render();
-
-byId('buildLoadingRetry')?.addEventListener('click',()=>render());
-byId('buildLoadingBack')?.addEventListener('click',()=>location.href='../');

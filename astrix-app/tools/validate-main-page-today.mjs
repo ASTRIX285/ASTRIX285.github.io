@@ -3,13 +3,13 @@ import {readFile} from 'node:fs/promises';
 
 const ROOT=new URL('../pages/guardian-workspace-v2/',import.meta.url);
 const read=path=>readFile(new URL(path,ROOT),'utf8');
-const [workspace,workspaceHtml,loader,profile,formationModule,formationCss,superSync,sharedRailCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsModule,loadoutsCss,handoff,buildHtml,buildModule,buildCss,tokenPreview]=await Promise.all([
-  read('guardian-workspace-v2.mjs'),read('index.html'),read('guardian-main-loader.mjs'),read('guardian-bungie-profile.mjs'),
+const [workspace,workspaceHtml,loader,profile,formationModule,formationCss,superSync,sharedRailCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsModule,loadoutsCss,handoff,buildHtml,buildModule,buildCss,tokenPreview,portalCss,portalController]=await Promise.all([
+  read('guardian-workspace-v2.mjs'),read('index.html'),read('guardian-portal-progress.mjs'),read('guardian-bungie-profile.mjs'),
   read('guardian-super-formation.mjs'),read('guardian-super-formation.css'),read('guardian-super-feature-sync.mjs'),read('guardian-left-rail-shared.css'),read('guardian-gear-layout.mjs'),
   read('guardian-gear-layout.css'),read('guardian-character-cards.mjs'),read('guardian-character-cards.css'),
   read('guardian-artifact.mjs'),read('guardian-loadouts.mjs'),read('guardian-layout-final.css'),read('paradox-build-space-handoff.mjs'),
   read('paradox-build-space/index.html'),read('paradox-build-space/paradox-build-space.mjs'),read('paradox-build-space/paradox-build-space.css'),
-  read('astrix-token-branch-preview.css')
+  read('astrix-token-branch-preview.css'),read('../../shared/astrix-portal-loader.css'),read('../../shared/astrix-portal-loader.js')
 ]);
 
 assert.match(workspace,/astrix:guardian-render-complete/,'Main must publish render completion');
@@ -17,6 +17,10 @@ assert.match(workspace,/Promise\.all\(images\.map\(settleImage\)\)/,'Main render
 assert.match(loader,/astrix:guardian-render-complete/,'Loader must finish from the render event');
 assert.doesNotMatch(loader,/window\.addEventListener\('load'[\s\S]*?finish/,'Loader must not finish on window load');
 assert.doesNotMatch(loader,/setTimeout\(finish/,'Loader must not finish from an arbitrary timeout');
+assert.match(loader,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>loader\?\.done\(\)\)\)/,'Main portal must clear only after the render-complete paint');
+assert.match(portalCss,/body\.apx-loading\{overflow:hidden!important\}/,'Shared portal must preserve page scroll locking above page-specific layout rules');
+assert.match(portalCss,/@media\(prefers-reduced-motion:reduce\)/,'Shared portal must honour reduced motion');
+assert.match(portalController,/role="status" aria-live="polite"/,'Shared portal must retain its accessible live status');
 
 assert.match(profile,/resolveArtifactByProvenance/,'Artifact provenance resolver must be wired into the live profile');
 assert.match(profile,/SELECTED_LOADOUT_KEY/,'Selected Bungie loadout must be persisted as the page default');
@@ -97,6 +101,8 @@ assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWe
 assert.match(buildModule,/astrix:guardian-loadout-context/,'Build must bind its protected snapshot to the shared loadout selector');
 assert.match(buildModule,/resolvedOptions\(build,'artifact'\)\.slice\(0,6\)/,'Build Artifact catalogue must use the specified 2-2-2 six-card field');
 assert.match(buildModule,/astrix:build-render-complete/,'Build Tool must publish render completion');
+assert.match(buildModule,/window\.AstrixLoader\?\.set\(percent\)/,'Build milestones must drive the shared portal');
+assert.doesNotMatch(buildModule,/buildLoadingGate|data\.litEdges|data-lit-edges/,'Build must not retain the legacy loader controller');
 assert.match(loadoutsModule,/pendingIndex=index;[\s\S]*?astrix:loadout-selected/,'A selected Bungie loadout must show pending state before it loads');
 assert.doesNotMatch(loadoutsModule,/activeIndex=index;[\s\S]*?astrix:loadout-selected/,'A loadout must not become active before Bungie returns the exact slot');
 assert.match(loadoutsModule,/astrix:loadout-error[\s\S]*?pendingIndex=null/,'A failed loadout request must restore the previous committed selection');
@@ -116,6 +122,9 @@ for(const [label,html] of [['Main',workspaceHtml],['Build',buildHtml]]){
   assert.match(html,/class="scene immersive"/,`${label} token preview scene is missing`);
   assert.match(html,/class="grain"/,`${label} token preview grain is missing`);
   assert.match(html,/guardian-left-rail-shared\.css/,`${label} must load the shared Main and Build left rail`);
+  assert.match(html,/astrix-portal-loader\.css/,`${label} must load the shared portal stylesheet`);
+  assert.match(html,/astrix-portal-loader\.js/,`${label} must load the shared portal controller`);
+  assert.doesNotMatch(html,/(guardian|build)-loading-gate/,`${label} must not retain legacy loader markup`);
 }
 assert.match(tokenPreview,/D2_JB\.jpg/,'Main and Build must use the unbranded D2 background');
 assert.match(tokenPreview,/developer-provided artwork/,'Developer artwork provenance must remain explicit');
@@ -125,7 +134,7 @@ assert.match(tokenPreview,/\.workspace,\.build-character-selector,\.build-space\
 assert.match(tokenPreview,/max-aspect-ratio:4\/3/,'D2 background must adapt to narrower screens');
 assert.match(tokenPreview,/\.workspace>\.stage/,'Main Hero stage atmosphere is missing');
 assert.match(tokenPreview,/\.build-space>\.design-canvas/,'Build Design atmosphere is missing');
-assert.match(tokenPreview,/\.guardian-loading-gate,\.build-loading-gate/,'Loading gates must preserve the developer artwork');
+assert.doesNotMatch(tokenPreview,/\.guardian-loading-gate,\.build-loading-gate/,'Legacy loading-gate presentation must be removed');
 
 console.log('MAIN_RENDER_GATE=PASS');
 console.log('SUBCLASS_SUPER_DATA_PATH=PASS');

@@ -7,6 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../shared/astrix-portal-loader.css?v=20260824-portal-1">
+  <script>window.APX_LOGO='../../../../img/logo.png';</script>
+  <script src="../../../shared/astrix-portal-loader.js?v=20260824-portal-1"></script>
   <link rel="stylesheet" href="../../../astrix-tokens.css?v=20260824-branch-preview-1">
   <link rel="stylesheet" href="./paradox-build-space.css?v=20260824-armour-mirror-1">
   <link rel="stylesheet" href="./build-test-modes.css?v=20260823-1">
@@ -15,25 +18,12 @@
   <link rel="stylesheet" href="../guardian-super-formation.css?v=20260824-bungie-art-4">
   <link rel="stylesheet" href="../guardian-left-rail-shared.css?v=20260824-artifact-state-2">
   <link rel="stylesheet" href="../astrix-token-branch-preview.css?v=20260824-d2-background-4">
+  <link rel="stylesheet" href="../../../astrix-destinations.css?v=20260824-destination-1">
+  <script src="../../../shared/astrix-destination-theme.js?v=20260824-destination-1"></script>
 </head>
-<body class="is-build-loading astrix-token-preview">
+<body class="astrix-token-preview">
   <div class="scene immersive" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
-  <div class="build-loading-gate" id="buildLoadingGate" role="dialog" aria-modal="true" aria-labelledby="buildLoadingStage">
-    <div class="build-loading-surface">
-      <div class="build-loading-progress" id="buildLoadingProgress" role="progressbar" aria-label="Build Forge loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="--build-progress:0">
-        <svg class="build-loading-hex" viewBox="0 0 120 104" aria-hidden="true">
-          <path d="M30 2H90"/><path d="M90 2L118 52"/><path d="M118 52L90 102"/>
-          <path d="M90 102H30"/><path d="M30 102L2 52"/><path d="M2 52L30 2"/>
-        </svg>
-        <span id="buildLoadingPercent">0%</span>
-      </div>
-      <div class="build-loading-brand" id="buildLoadingBrand"><img src="../../../../img/logo.png" alt=""><strong>ASTRIX <em>PARADOX</em></strong></div>
-      <p class="build-loading-stage" id="buildLoadingStage" aria-live="polite">Locating protected build snapshot…</p>
-      <p class="build-loading-message" id="buildLoadingMessage" hidden></p>
-      <div class="build-loading-actions" id="buildLoadingActions" hidden><button type="button" id="buildLoadingRetry">RETRY</button><button type="button" id="buildLoadingBack">BACK TO BUILD FORGE</button></div>
-    </div>
-  </div>
   <header class="topbar">
     <a class="brand" href="../"><img src="../../../../img/logo.png" alt="ASTRIX PARADOX"><span><b>ASTRIX <em>PARADOX</em></b><small>AI GAMING INTELLIGENCE</small></span></a>
     <div class="workspace-title">GUARDIAN BUILD FORGE</div>
@@ -62,6 +52,7 @@
         <div class="section-title"><h2>VALIDATION LOOP</h2><span id="testDomainLabel">PVE BUILD TEST</span></div>
         <div class="test-configuration" aria-label="Build Test configuration">
           <div class="test-domain-tabs" role="group" aria-label="Build Test domain"><button type="button" class="is-active" data-test-domain="pve" aria-pressed="true">PVE</button><button type="button" data-test-domain="pvp" aria-pressed="false">PVP</button></div>
+          <label class="destination-control"><span>DESTINATION</span><select id="expectedDestination" aria-label="Destination"><option value="">DEFAULT ATMOSPHERE</option></select></label>
           <label><span>ACTIVITY / MODE</span><select id="expectedActivity"><option value="">ANY COMPLETED ACTIVITY</option></select></label>
           <label class="calibration-option" id="calibrationOption"><input type="checkbox" id="shootingRangeCalibration"><span>SHOOTING RANGE CALIBRATION</span></label>
           <p id="testContextNote">Select an expected PvE activity when Bungie supplies a verified definition, or leave Any Activity selected.</p>

@@ -7,6 +7,9 @@
   <meta name="description" content="ASTRIX PARADOX is a multi-game operations hub. Choose your universe. Join the community. No pings. No pressure. Just vibes.">
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="astrix-app/shared/astrix-portal-loader.css?v=20260824-portal-1">
+  <script>window.APX_LOGO='img/logo.png';</script>
+  <script src="astrix-app/shared/astrix-portal-loader.js?v=20260824-portal-1"></script>
 
   <!-- Favicons -->
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
@@ -319,6 +322,13 @@
   })();
 </script>
 
+<script>
+  AstrixLoader.set(42);AstrixLoader.status('Rendering operations hub');
+  window.addEventListener('load',()=>{
+    AstrixLoader.set(94);AstrixLoader.status('Operations hub rendered');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>AstrixLoader.done()));
+  },{once:true});
+</script>
 <script src="js/main.js"></script>
 </body>
 </html>
