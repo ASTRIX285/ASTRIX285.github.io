@@ -19,26 +19,20 @@ html[data-subclass="strand"]{--subclass-accent-rgb:53,227,102}
 html[data-subclass="prismatic"]{--subclass-accent-rgb:229,106,223}
 
 body.astrix-token-preview .scene.immersive{
+  --d2-position:50% 46%;
+  inset:-2%;
   isolation:isolate;
   overflow:hidden;
   background:
-    radial-gradient(78% 62% at 50% 42%,rgba(var(--subclass-accent-rgb,121,187,234),.12),transparent 70%),
-    radial-gradient(1200px 820px at 70% 6%,rgba(120,74,40,.18),transparent 60%),
-    linear-gradient(160deg,#17120e 0%,#090706 76%)!important;
+    linear-gradient(180deg,rgba(4,5,7,.08),rgba(5,4,3,.28)),
+    radial-gradient(78% 62% at 50% 42%,rgba(var(--subclass-accent-rgb,121,187,234),.08),transparent 72%),
+    url("../../../img/games/D2_JB.jpg") var(--d2-position)/cover no-repeat!important;
+  filter:blur(clamp(2px,.22vw,5px)) brightness(.78) saturate(.76) contrast(.94);
+  transform:scale(1.02);
+  transform-origin:center;
 }
 body.astrix-token-preview .scene.immersive::before{
-  content:"";
-  position:absolute;
-  inset:-4%;
-  z-index:0;
-  background-image:url("../../../img/games/D2_JB.jpg");
-  background-repeat:no-repeat;
-  background-position:50% 46%;
-  background-size:cover;
-  opacity:.43;
-  filter:blur(clamp(3px,.3vw,7px)) brightness(.62) saturate(.72) contrast(.9);
-  transform:scale(1.035);
-  transform-origin:center;
+  display:none;
 }
 body.astrix-token-preview .scene.immersive::after{
   content:"";
@@ -46,9 +40,9 @@ body.astrix-token-preview .scene.immersive::after{
   inset:0;
   z-index:1;
   background:
-    radial-gradient(64% 58% at 50% 42%,transparent 8%,rgba(5,4,4,.18) 58%,rgba(4,3,3,.62) 100%),
-    linear-gradient(90deg,rgba(5,4,3,.58),rgba(5,4,3,.2) 48%,rgba(5,4,3,.58)),
-    linear-gradient(180deg,rgba(4,3,3,.2),rgba(4,3,3,.68));
+    radial-gradient(72% 66% at 50% 42%,transparent 28%,rgba(5,4,4,.08) 62%,rgba(4,3,3,.36) 100%),
+    linear-gradient(90deg,rgba(5,4,3,.32),rgba(5,4,3,.04) 48%,rgba(5,4,3,.32)),
+    linear-gradient(180deg,rgba(4,3,3,.04),rgba(4,3,3,.34));
 }
 body.astrix-token-preview .topbar{
   border-color:var(--border-strong)!important;
@@ -71,10 +65,10 @@ body.astrix-token-preview .workspace>.stage{
   background:
     radial-gradient(58% 52% at 50% 42%,rgba(var(--subclass-accent-rgb,121,187,234),.24),transparent 68%),
     radial-gradient(100% 72% at 50% 112%,rgba(var(--subclass-accent-rgb,121,187,234),.1),transparent 66%),
-    linear-gradient(180deg,rgba(14,10,18,.48),rgba(6,5,9,.72))!important;
+    linear-gradient(180deg,rgba(14,10,18,.34),rgba(6,5,9,.56))!important;
   border-color:rgba(var(--subclass-accent-rgb,121,187,234),.24)!important;
   box-shadow:
-    inset 0 0 clamp(44px,7vw,112px) rgba(0,0,0,.54),
+    inset 0 0 clamp(44px,7vw,112px) rgba(0,0,0,.34),
     0 18px 44px rgba(0,0,0,.3),
     0 0 28px rgba(var(--subclass-accent-rgb,121,187,234),.07)!important;
   backdrop-filter:blur(3px)!important;
@@ -93,7 +87,7 @@ body.astrix-token-preview .workspace>.stage .stage-state-card{
 body.astrix-token-preview .build-space>.design-canvas{
   background:
     radial-gradient(78% 48% at 50% 0%,rgba(var(--subclass-accent-rgb,121,187,234),.16),transparent 72%),
-    linear-gradient(180deg,rgba(27,21,17,.68),rgba(12,9,8,.76))!important;
+    linear-gradient(180deg,rgba(27,21,17,.54),rgba(12,9,8,.64))!important;
   border-color:rgba(var(--subclass-accent-rgb,121,187,234),.24)!important;
   box-shadow:
     inset 0 0 clamp(36px,5vw,80px) rgba(0,0,0,.28),
@@ -106,23 +100,23 @@ body.astrix-token-preview .build-space>.design-canvas>.panel-head{
 }
 
 @media (min-aspect-ratio:21/9){
-  body.astrix-token-preview .scene.immersive::before{
-    background-position:50% 48%;
-    transform:scale(1.05);
+  body.astrix-token-preview .scene.immersive{
+    --d2-position:50% 48%;
+    transform:scale(1.035);
   }
 }
 @media (max-aspect-ratio:4/3){
-  body.astrix-token-preview .scene.immersive::before{
-    inset:-6%;
-    background-position:50% 44%;
-    opacity:.38;
-    transform:scale(1.07);
+  body.astrix-token-preview .scene.immersive{
+    --d2-position:50% 44%;
+    inset:-4%;
+    filter:blur(clamp(3px,.5vw,6px)) brightness(.74) saturate(.72) contrast(.92);
+    transform:scale(1.05);
   }
 }
 @media (orientation:portrait){
-  body.astrix-token-preview .scene.immersive::before{
-    background-position:52% 42%;
-    filter:blur(clamp(4px,.7vw,8px)) brightness(.56) saturate(.68) contrast(.88);
+  body.astrix-token-preview .scene.immersive{
+    --d2-position:52% 42%;
+    filter:blur(clamp(4px,.7vw,7px)) brightness(.7) saturate(.68) contrast(.9);
   }
   body.astrix-token-preview .workspace>.stage,
   body.astrix-token-preview .build-space>.design-canvas{

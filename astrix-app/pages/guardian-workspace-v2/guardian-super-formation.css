@@ -82,7 +82,8 @@ html body .workspace .left .subclass-super-shell.equipped-subclass-stack{
 }
 
 .super-feature{
-  --super-accent:#8B4DFF;
+  /* Neutral until a real subclass/Super state has been resolved. */
+  --super-accent:#8A8A92;
   --super-equipped-bevel:5px;
   --super-alternate-bevel:2px;
   position:relative!important;
