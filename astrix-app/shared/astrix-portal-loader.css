@@ -4,10 +4,16 @@
    Control from your load code:  AstrixLoader.set(pct)  /  AstrixLoader.done()
    ===================================================================== */
 :root{--apx-cyan:#5fe6ff;--apx-blue:#1a8bff;--apx-glow:#8af2ff;--apx-deep:#062033;
-  --apx-gold:#e0a94e;--apx-crimson:#c0433f;--apx-text:#eaf6ff;}
+  --apx-gold:#e0a94e;--apx-crimson:#c0433f;--apx-text:#eaf6ff;
+  --apx-loader-bg:radial-gradient(1200px 900px at 50% 46%,#08111f 0%,#04060c 60%,#020308 100%);}
+
+/* Cover the application during parser startup so its background cannot paint
+   before the loader has mounted into <body>. */
+html.apx-booting::before{content:"";position:fixed;inset:0;z-index:99998;background:var(--apx-loader-bg)}
+html.apx-booting body{visibility:hidden!important}
 
 .apx-gate{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;
-  background:radial-gradient(1200px 900px at 50% 46%,#08111f 0%,#04060c 60%,#020308 100%);
+  background:var(--apx-loader-bg);
   transition:opacity .25s ease,visibility .25s ease;}
 .apx-gate.is-done{opacity:0;visibility:hidden}
 .apx-gate::before{content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
