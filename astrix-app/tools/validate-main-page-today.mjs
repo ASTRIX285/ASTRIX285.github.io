@@ -29,15 +29,17 @@ assert.match(superSync,/if\(!isPrismatic\)[\s\S]*?block\.hidden=true/,'Main Tran
 assert.match(superSync,/Array\.from\(\{length:2\}/,'Prismatic Main must preserve both verified Transcendence sockets');
 
 assert.match(formationModule,/\['equipped','alternate-5','alternate-4','alternate-3','alternate-2','alternate-1'\]/,'Partial Supers must fill bottom, right, left, then up');
-assert.match(formationModule,/slot\.hidden=!item/,'Unused Super diamonds must not render');
-assert.match(formationModule,/dataset\.superCount/,'Resolved Super count must be exposed to CSS');
+assert.match(formationModule,/slot\.hidden=false/,'All six PSD Super frames must remain visible');
+assert.match(formationModule,/is-empty-super/,'Unresolved Super slots must be explicit transparent frames');
+assert.match(formationModule,/dataset\.superCount='6'/,'The exact six-slot PSD geometry must remain stable');
+assert.match(formationModule,/dataset\.resolvedSuperCount/,'Resolved Super count must remain separately observable');
 assert.match(formationModule,/document\.documentElement\.dataset\.subclass=key/,'Equipped subclass must theme both Main and Build');
 assert.match(formationCss,/--super-equipped-bevel:5px/,'Equipped Super needs the approved 4–6px bevel');
 assert.match(formationCss,/--super-alternate-bevel:2px/,'Alternate Supers need the approved 1–2px bevel');
 assert.match(formationCss,/\.super-feature\{[\s\S]*?--super-accent:var\(--gold,#E0A94E\)/,'Unresolved Super borders must match the chassis gold');
 assert.match(formationCss,/border:var\(--super-bevel-size\) solid/,'Super bevel thickness must use the shared size token');
-assert.match(formationCss,/data-super-count="1"/,'Single-Super compact geometry is missing');
-assert.match(formationCss,/data-super-count="5"/,'Five-Super centred geometry is missing');
+assert.doesNotMatch(formationCss,/data-super-count="[1-5]"/,'Partial-count geometry must not collapse the six-slot PSD frame');
+assert.match(formationCss,/\.super-diamond--equipped>span>[\s\S]*?transform:scale\(1\.24\)!important/,'Equipped Super icon must reach the inner bevel');
 
 assert.match(gearModule,/armour-set-bonus-icon/,'Resolved armour set icon must sit with the armour image');
 assert.match(gearModule,/is-set-2-active/,'2-piece active state must reach the card');
@@ -49,9 +51,12 @@ assert.match(gearCss,/weapon-perk-strip\{[^}]*border:0[^}]*background:transparen
 assert.match(gearCss,/weapon-support-icon\{width:var\(--pf-mod-size,36px\);height:var\(--pf-mod-size,36px\)/,'Weapon mod/masterwork icons must match armour mod size');
 
 assert.match(characterModule,/emblemBackground = character\.emblem\?\.background/,'Hero card must use the Bungie emblem background');
-assert.match(characterCss,/var\(--character-emblem\) center top\/100% 58%/,'Emblem must feature across the card top half');
+assert.match(characterCss,/var\(--character-emblem\) center\/cover no-repeat/,'Emblem must remain the full-card background fill');
 assert.match(characterCss,/box-shadow:0 20px 34px -18px/,'Selected card must use a gentle lower glow');
-assert.match(artifact,/ARTIFACT IN DEVELOPMENT/,'Unresolved live Artifact must show the In Development placeholder');
+assert.match(characterModule,/Mobility:[\s\S]*?Resilience:[\s\S]*?Recovery:[\s\S]*?Discipline:[\s\S]*?Intellect:[\s\S]*?Strength:/,'The six Destiny stat icons must retain their correct order');
+assert.match(characterCss,/guardian-stat-icons\.png/,'Guardian cards must use the developer-provided stat sprite');
+assert.match(artifact,/NO ACTIVE PERKS REPORTED BY BUNGIE/,'A resolved zero-perk Artifact must show an explicit Bungie state');
+assert.match(artifact,/ARTIFACT STATE UNAVAILABLE/,'An unresolved Artifact must remain explicit');
 assert.match(loadoutsCss,/background-image:var\(--loadout-color-image/,'Saved loadout must retain its Bungie colour image');
 assert.match(loadoutsCss,/guardian-loadout-icon\{width:var\(--pf-mod-size,36px\)/,'Loadout icon must match armour mod size');
 assert.match(handoff,/latestGuardian&&Number\.isInteger\(latestGuardian\.selectedLoadoutIndex\)/,'Improve My Guardian must prefer the active selected loadout');
@@ -63,7 +68,7 @@ assert.match(buildHtml,/id="guardianCharacterCards"/,'Build Tool character cards
 assert.match(buildHtml,/class="panel build-rail guardian-left-rail"/,'Build Tool must mount the shared Main left rail');
 assert.match(buildHtml,/id="guardianLoadouts"/,'Build Tool in-game loadout selector is missing');
 assert.match(buildHtml,/id="artifactPickerPanel"[\s\S]*?hidden/,'Build Artifact catalogue must stay collapsed behind the equipped summary');
-assert.match(buildModule,/import '\.\.\/guardian-character-cards\.mjs'/,'Build Tool must reuse the Main character-card renderer');
+assert.match(buildModule,/import '\.\.\/guardian-character-cards\.mjs(?:\?[^']+)?'/,'Build Tool must reuse the Main character-card renderer');
 assert.match(buildModule,/import '\.\.\/guardian-loadouts\.mjs'/,'Build Tool must reuse the Main in-game loadout renderer');
 assert.match(buildModule,/import '\.\.\/guardian-bungie-profile\.mjs'/,'Build Tool must reuse strict Main character selection');
 assert.match(buildModule,/createBuildState\(detail\)/,'Selected Build Tool character must create a new protected build snapshot');

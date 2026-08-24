@@ -78,6 +78,9 @@ for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
 assert.match(moduleSource,/function renderEquippedSubclass/,'Shared equipped subclass renderer is missing');
 assert.match(moduleSource,/function renderSuperFormation/,'Shared Super renderer is missing');
 assert.match(moduleSource,/holder\.replaceChildren\(\)/,'Empty Super slots must clear placeholder glyphs');
+assert.match(moduleSource,/slot\.hidden=false/,'Every PSD Super frame must remain visible');
+assert.match(moduleSource,/is-empty-super/,'Unresolved Super frames must remain transparent and explicit');
+assert.match(css,/\.super-diamond--equipped>span\{[\s\S]*?inset:var\(--super-equipped-bevel\)!important/,'Equipped Super artwork must stop at the inner bevel');
 
 const obsoleteFiles=[
   'guardian-main-correction.css',
