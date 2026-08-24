@@ -33,6 +33,7 @@ function renderEquippedSubclass({root,iconNode,nameNode,metaNode,subclass='',sub
     ? suppliedLabel
     : `${subclassLabel} ${classLabel}`;
 
+  document.documentElement.dataset.subclass=key;
   root.dataset.subclass=key;
   if(nameNode)nameNode.textContent=identity.toUpperCase();
   if(metaNode)metaNode.textContent=`${classLabel} SUBCLASS`.toUpperCase();

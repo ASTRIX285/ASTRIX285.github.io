@@ -3,12 +3,13 @@ import {readFile} from 'node:fs/promises';
 
 const ROOT=new URL('../pages/guardian-workspace-v2/',import.meta.url);
 const read=path=>readFile(new URL(path,ROOT),'utf8');
-const [workspace,loader,profile,formationModule,formationCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsCss,handoff,buildHtml,buildModule,buildCss]=await Promise.all([
+const [workspace,loader,profile,formationModule,formationCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsCss,handoff,buildHtml,buildModule,buildCss,tokenPreview]=await Promise.all([
   read('guardian-workspace-v2.mjs'),read('guardian-main-loader.mjs'),read('guardian-bungie-profile.mjs'),
   read('guardian-super-formation.mjs'),read('guardian-super-formation.css'),read('guardian-gear-layout.mjs'),
   read('guardian-gear-layout.css'),read('guardian-character-cards.mjs'),read('guardian-character-cards.css'),
   read('guardian-artifact.mjs'),read('guardian-layout-final.css'),read('paradox-build-space-handoff.mjs'),
-  read('paradox-build-space/index.html'),read('paradox-build-space/paradox-build-space.mjs'),read('paradox-build-space/paradox-build-space.css')
+  read('paradox-build-space/index.html'),read('paradox-build-space/paradox-build-space.mjs'),read('paradox-build-space/paradox-build-space.css'),
+  read('astrix-token-branch-preview.css')
 ]);
 
 assert.match(workspace,/astrix:guardian-render-complete/,'Main must publish render completion');
@@ -26,6 +27,7 @@ assert.match(profile,/character selection cannot fall back to last played/,'Miss
 assert.match(formationModule,/\['equipped','alternate-5','alternate-4','alternate-3','alternate-2','alternate-1'\]/,'Partial Supers must fill bottom, right, left, then up');
 assert.match(formationModule,/slot\.hidden=!item/,'Unused Super diamonds must not render');
 assert.match(formationModule,/dataset\.superCount/,'Resolved Super count must be exposed to CSS');
+assert.match(formationModule,/document\.documentElement\.dataset\.subclass=key/,'Equipped subclass must theme both Main and Build');
 assert.match(formationCss,/--super-equipped-bevel:5px/,'Equipped Super needs the approved 4–6px bevel');
 assert.match(formationCss,/--super-alternate-bevel:2px/,'Alternate Supers need the approved 1–2px bevel');
 assert.match(formationCss,/border:var\(--super-bevel-size\) solid/,'Super bevel thickness must use the shared size token');
@@ -63,6 +65,12 @@ for(const [label,html] of [['Main',await read('index.html')],['Build',buildHtml]
   assert.match(html,/class="scene immersive"/,`${label} token preview scene is missing`);
   assert.match(html,/class="grain"/,`${label} token preview grain is missing`);
 }
+assert.match(tokenPreview,/D2_JB\.jpg/,'Main and Build must use the unbranded D2 background');
+assert.match(tokenPreview,/developer-provided artwork/,'Developer artwork provenance must remain explicit');
+assert.match(tokenPreview,/background-size:cover/,'D2 background must scale to the viewport');
+assert.match(tokenPreview,/max-aspect-ratio:4\/3/,'D2 background must adapt to narrower screens');
+assert.match(tokenPreview,/\.workspace>\.stage/,'Main Hero stage atmosphere is missing');
+assert.match(tokenPreview,/\.build-space>\.design-canvas/,'Build Design atmosphere is missing');
 
 console.log('MAIN_RENDER_GATE=PASS');
 console.log('SUBCLASS_SUPER_DATA_PATH=PASS');
