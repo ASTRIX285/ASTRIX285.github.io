@@ -24,6 +24,8 @@ jobs:
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs
           node --check astrix-app/pages/guardian-workspace-v2/guardian-artifact.mjs
+      - name: Validate shared Super formation dependency
+        run: node astrix-app/tools/validate-super-formation.mjs
       - name: Test intended Artifact configuration
         run: node astrix-app/tools/test-build-design-artifact-intent.mjs
       - name: Test character-scoped Build Space handoff
