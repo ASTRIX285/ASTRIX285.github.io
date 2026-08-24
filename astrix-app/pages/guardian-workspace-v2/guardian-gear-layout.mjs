@@ -10,17 +10,10 @@ import { openArmourDrawer } from "./guardian-beta-runtime.mjs";
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const armourNames = ["Helmet", "Gauntlets", "Chest", "Legs", "Class Item"];
 
-function syncModSizeToArtifact() {
-  const mod = document.querySelector(".gear-mod");
-  const slot = mod?.closest(".gear-slot");
-  if (!mod || !slot) return;
+const MAIN_MOD_TILE_SIZE = "var(--pf-slot,52px)";
 
-  const fragment = document.querySelector("#fragList .ico-badge");
-  const fragmentSize = fragment?.getBoundingClientRect().width || 36;
-  const available = slot.clientWidth - 12;
-  const maximumFit = Math.floor((available - 4) / 2);
-  const target = Math.max(30, Math.min(fragmentSize, maximumFit));
-  document.documentElement.style.setProperty("--pf-mod-size", `${target}px`);
+function syncModSizeToArtifact() {
+  document.documentElement.style.setProperty("--pf-mod-size", MAIN_MOD_TILE_SIZE);
 }
 
 function modTile(mod) {

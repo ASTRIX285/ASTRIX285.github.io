@@ -234,6 +234,24 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
 }
 .super-feature .super-feature__name::before{display:none!important}
 
+@media(min-width:1281px){
+  .super-feature,
+  html body .workspace .left .equipped-subclass-stack>.super-feature{
+    min-height:max(356px,18.541667vw)!important;
+    padding:0 max(8px,.416667vw) max(10px,.520833vw)!important;
+  }
+  .super-feature .super-feature__cluster{
+    width:max(300px,15.625vw)!important;
+    max-width:none!important;
+  }
+  .super-feature .super-feature__name{
+    width:max(230px,11.979167vw)!important;
+    min-height:max(18px,.9375vw)!important;
+    margin:max(8px,.416667vw) auto 0!important;
+    padding:max(5px,.260417vw) max(10px,.520833vw)!important;
+  }
+}
+
 @media(max-width:720px){
   .equipped-subclass-stack,
   html body .workspace .left .subclass-super-shell.equipped-subclass-stack{gap:32px!important}

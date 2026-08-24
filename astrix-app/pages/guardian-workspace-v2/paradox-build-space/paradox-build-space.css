@@ -198,10 +198,41 @@ html,body{
 .build-back-btn:hover,.build-back-btn:focus-visible{border-color:rgba(100,226,182,.62);color:#6fe3b6;outline:none}
 
 /* Shared Main armour cards with the approved Build-only difference:
-   six Main-sized mod icons in three vertical pairs across two rows. */
-:root{--pf-build-armour-card-width:300px}
-.design-canvas .gear-combined{min-width:0;overflow-x:auto;overflow-y:visible;scrollbar-gutter:stable}
-.design-canvas .gear-combined .gear-columns{grid-template-columns:repeat(5,var(--pf-build-armour-card-width))!important;grid-auto-flow:column!important;width:max-content!important;min-width:100%!important;gap:clamp(8px,.7vw,14px)!important;padding-bottom:8px}
-.design-canvas .gear-combined .gear-slot{width:var(--pf-build-armour-card-width)!important;min-width:var(--pf-build-armour-card-width)!important;min-height:236px!important}
-.design-canvas .gear-combined .gear-slot .gear-mods{grid-template-columns:repeat(3,var(--pf-mod-size,36px))!important;grid-template-rows:repeat(2,var(--pf-mod-size,36px))!important;grid-auto-flow:column!important;column-gap:12px!important;row-gap:4px!important;width:max-content!important;margin:0 auto!important}
-.design-canvas .gear-combined .gear-slot .gear-mod{width:var(--pf-mod-size,36px)!important;height:var(--pf-mod-size,36px)!important}
+   six exact Main-sized mod icons in three vertical pairs across two rows.
+   All five cards remain inside the central console without a scroll rail. */
+.design-canvas .gear-combined{
+  min-width:0;
+  overflow:visible!important;
+  scrollbar-width:none;
+}
+.design-canvas .gear-combined .gear-columns{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  width:100%!important;
+  min-width:0!important;
+  gap:5px!important;
+  padding:0!important;
+}
+.design-canvas .gear-combined .gear-slot{
+  width:auto!important;
+  min-width:0!important;
+  min-height:230px!important;
+  padding:4px!important;
+}
+.design-canvas .gear-combined .gear-slot .gear-mods{
+  grid-template-columns:repeat(3,var(--pf-mod-size,52px))!important;
+  grid-template-rows:repeat(2,var(--pf-mod-size,52px))!important;
+  grid-auto-flow:column!important;
+  gap:4px!important;
+  width:max-content!important;
+  margin:0 auto!important;
+}
+.design-canvas .gear-combined .gear-slot .gear-mod{
+  width:var(--pf-mod-size,52px)!important;
+  height:var(--pf-mod-size,52px)!important;
+}
+@media(max-width:720px){
+  .design-canvas .gear-combined .gear-columns{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}

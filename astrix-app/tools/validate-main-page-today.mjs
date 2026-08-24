@@ -3,13 +3,13 @@ import {readFile} from 'node:fs/promises';
 
 const ROOT=new URL('../pages/guardian-workspace-v2/',import.meta.url);
 const read=path=>readFile(new URL(path,ROOT),'utf8');
-const [workspace,workspaceHtml,loader,profile,formationModule,formationCss,superSync,sharedRailCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsModule,loadoutsCss,handoff,buildHtml,buildModule,buildCss,tokenPreview]=await Promise.all([
+const [workspace,workspaceHtml,loader,profile,formationModule,formationCss,superSync,sharedRailCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsModule,loadoutsCss,handoff,buildHtml,buildModule,buildCss,tokenPreview,resolutionCss]=await Promise.all([
   read('guardian-workspace-v2.mjs'),read('index.html'),read('guardian-main-loader.mjs'),read('guardian-bungie-profile.mjs'),
   read('guardian-super-formation.mjs'),read('guardian-super-formation.css'),read('guardian-super-feature-sync.mjs'),read('guardian-left-rail-shared.css'),read('guardian-gear-layout.mjs'),
   read('guardian-gear-layout.css'),read('guardian-character-cards.mjs'),read('guardian-character-cards.css'),
   read('guardian-artifact.mjs'),read('guardian-loadouts.mjs'),read('guardian-layout-final.css'),read('paradox-build-space-handoff.mjs'),
   read('paradox-build-space/index.html'),read('paradox-build-space/paradox-build-space.mjs'),read('paradox-build-space/paradox-build-space.css'),
-  read('astrix-token-branch-preview.css')
+  read('astrix-token-branch-preview.css'),read('guardian-resolution-adaptive.css')
 ]);
 
 assert.match(workspace,/astrix:guardian-render-complete/,'Main must publish render completion');
@@ -85,7 +85,7 @@ assert.match(buildModule,/import '\.\.\/guardian-character-cards\.mjs(?:\?[^']+)
 assert.match(buildModule,/import '\.\.\/guardian-loadouts\.mjs'/,'Build Tool must reuse the Main in-game loadout renderer');
 assert.match(buildModule,/import '\.\.\/guardian-bungie-profile\.mjs(?:\?[^']+)?'/,'Build Tool must reuse strict Main character selection');
 assert.match(buildModule,/createBuildState\(detail\)/,'Selected Build Tool character must create a new protected build snapshot');
-assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs'/,'Build Armour must import the shared Main card renderer');
+assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs(?:\?[^']+)?'/,'Build Armour must import the shared Main card renderer');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/astrix:guardian-loadout-context/,'Build must bind its protected snapshot to the shared loadout selector');
 assert.match(buildModule,/resolvedOptions\(build,'artifact'\)\.slice\(0,6\)/,'Build Artifact catalogue must use the specified 2-2-2 six-card field');
@@ -93,9 +93,20 @@ assert.match(buildModule,/astrix:build-render-complete/,'Build Tool must publish
 assert.match(loadoutsModule,/pendingIndex=index;[\s\S]*?astrix:loadout-selected/,'A selected Bungie loadout must show pending state before it loads');
 assert.doesNotMatch(loadoutsModule,/activeIndex=index;[\s\S]*?astrix:loadout-selected/,'A loadout must not become active before Bungie returns the exact slot');
 assert.match(loadoutsModule,/astrix:loadout-error[\s\S]*?pendingIndex=null/,'A failed loadout request must restore the previous committed selection');
-assert.match(buildCss,/grid-template-columns:repeat\(3,var\(--pf-mod-size,36px\)\)/,'Build armour mods must form three Main-sized columns');
-assert.match(buildCss,/grid-template-rows:repeat\(2,var\(--pf-mod-size,36px\)\)/,'Build armour mods must form two 2-2-2 rows');
+assert.match(gearModule,/const MAIN_MOD_TILE_SIZE = "var\(--pf-slot,52px\)"/,'Main and Build must inherit the exact shared socket size');
+assert.match(buildCss,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,'All five Build armour cards must fit the central console');
+assert.match(buildCss,/overflow:visible!important;[\s\S]*?scrollbar-width:none/,'Build armour rack must not create a horizontal scrollbar');
+assert.doesNotMatch(buildCss,/--pf-build-armour-card-width:300px/,'Build armour cards must not force a 300px overflow width');
+assert.match(buildCss,/grid-template-columns:repeat\(3,var\(--pf-mod-size,52px\)\)!important/,'Build armour mods must form three exact Main-sized columns');
+assert.match(buildCss,/grid-template-rows:repeat\(2,var\(--pf-mod-size,52px\)\)!important/,'Build armour mods must form two 2-2-2 rows');
 assert.match(buildCss,/grid-auto-flow:column!important/,'Build armour mods must fill each vertical pair before the next pair');
+assert.match(resolutionCss,/html\{font-size:max\(16px,\.833333vw\)!important\}/,'Desktop typography must scale above a readable 1920px baseline');
+assert.match(resolutionCss,/grid-template-columns:max\(384px,20vw\) minmax\(0,1fr\)!important/,'Main desktop rail must scale above its readable baseline');
+assert.match(resolutionCss,/grid-template-columns:max\(384px,20vw\) minmax\(0,1fr\) max\(364\.8px,19vw\)!important/,'Build rails must scale above their readable baseline');
+assert.match(resolutionCss,/--pf-mod-size:var\(--pf-slot\)/,'Main and Build mod sockets must share one adaptive size variable');
+assert.match(resolutionCss,/guardian-character-card\{[\s\S]*?width:max\(300px,15\.625vw\)!important/,'Character cards must scale without becoming smaller than the approved baseline');
+assert.match(resolutionCss,/@media \(min-width:981px\) and \(max-width:1280px\)\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/,'Zoomed and compact Build consoles must reflow armour cards');
+assert.match(resolutionCss,/design-canvas \.gear-combined\{overflow:visible!important\}/,'Narrow Build layouts must not create a central scrollbar');
 assert.match(sharedRailCss,/guardian-left-rail \.build-fragment-slots\{grid-template-columns:repeat\(5,var\(--guardian-rail-slot\)\)/,'Shared rail must fit five Fragment sockets in one row');
 assert.match(sharedRailCss,/guardian-left-rail \.artifact-row/,'Artifact summary must be owned by the shared Main and Build rail');
 assert.match(sharedRailCss,/artifact-item-selector[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Expanded Artifact catalogue must form 2-2-2 rows');
