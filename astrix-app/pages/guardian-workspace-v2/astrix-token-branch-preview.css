@@ -59,6 +59,13 @@ body.astrix-token-preview :is(.panel-head,.section-title,.rail-section){
   border-color:var(--border)!important;
 }
 
+/* Loading and missing-snapshot gates must not erase the developer artwork. */
+body.astrix-token-preview :is(.guardian-loading-gate,.build-loading-gate){
+  background:rgba(3,2,8,.42)!important;
+  backdrop-filter:blur(8px) brightness(.78)!important;
+  -webkit-backdrop-filter:blur(8px) brightness(.78)!important;
+}
+
 /* Main Hero stage: subclass colour is the focal atmosphere; the D2 vista
  * remains visible through the subdued translucent canvas. */
 body.astrix-token-preview .workspace>.stage{

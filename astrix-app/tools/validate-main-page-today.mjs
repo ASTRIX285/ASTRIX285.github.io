@@ -30,7 +30,7 @@ assert.match(formationModule,/dataset\.superCount/,'Resolved Super count must be
 assert.match(formationModule,/document\.documentElement\.dataset\.subclass=key/,'Equipped subclass must theme both Main and Build');
 assert.match(formationCss,/--super-equipped-bevel:5px/,'Equipped Super needs the approved 4–6px bevel');
 assert.match(formationCss,/--super-alternate-bevel:2px/,'Alternate Supers need the approved 1–2px bevel');
-assert.match(formationCss,/\.super-feature\{[\s\S]*?--super-accent:#8A8A92/,'Unresolved Super borders must default to neutral grey');
+assert.match(formationCss,/\.super-feature\{[\s\S]*?--super-accent:var\(--gold,#E0A94E\)/,'Unresolved Super borders must match the chassis gold');
 assert.match(formationCss,/border:var\(--super-bevel-size\) solid/,'Super bevel thickness must use the shared size token');
 assert.match(formationCss,/data-super-count="1"/,'Single-Super compact geometry is missing');
 assert.match(formationCss,/data-super-count="5"/,'Five-Super centred geometry is missing');
@@ -72,6 +72,7 @@ assert.match(tokenPreview,/var\(--d2-position\)\/cover no-repeat/,'D2 background
 assert.match(tokenPreview,/max-aspect-ratio:4\/3/,'D2 background must adapt to narrower screens');
 assert.match(tokenPreview,/\.workspace>\.stage/,'Main Hero stage atmosphere is missing');
 assert.match(tokenPreview,/\.build-space>\.design-canvas/,'Build Design atmosphere is missing');
+assert.match(tokenPreview,/\.guardian-loading-gate,\.build-loading-gate/,'Loading gates must preserve the developer artwork');
 
 console.log('MAIN_RENDER_GATE=PASS');
 console.log('SUBCLASS_SUPER_DATA_PATH=PASS');
