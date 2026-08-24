@@ -3,8 +3,9 @@ import {readFile} from 'node:fs/promises';
 
 const ROOT=new URL('../pages/guardian-workspace-v2/',import.meta.url);
 const read=path=>readFile(new URL(path,ROOT),'utf8');
-const [workspace,workspaceHtml,loader,profile,formationModule,formationCss,superSync,sharedRailCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsModule,loadoutsCss,handoff,buildHtml,buildModule,buildCss,tokenPreview,portalCss,portalController]=await Promise.all([
+const [workspace,workspaceHtml,loader,profile,auth,sessionCache,formationModule,formationCss,superSync,sharedRailCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsModule,loadoutsCss,handoff,buildHtml,buildModule,buildCss,tokenPreview,portalCss,portalController]=await Promise.all([
   read('guardian-workspace-v2.mjs'),read('index.html'),read('guardian-portal-progress.mjs'),read('guardian-bungie-profile.mjs'),
+  read('guardian-bungie-auth.mjs'),read('guardian-session-cache.mjs'),
   read('guardian-super-formation.mjs'),read('guardian-super-formation.css'),read('guardian-super-feature-sync.mjs'),read('guardian-left-rail-shared.css'),read('guardian-gear-layout.mjs'),
   read('guardian-gear-layout.css'),read('guardian-character-cards.mjs'),read('guardian-character-cards.css'),
   read('guardian-artifact.mjs'),read('guardian-loadouts.mjs'),read('guardian-layout-final.css'),read('paradox-build-space-handoff.mjs'),
@@ -21,6 +22,14 @@ assert.match(loader,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>l
 assert.match(portalCss,/body\.apx-loading\{overflow:hidden!important\}/,'Shared portal must preserve page scroll locking above page-specific layout rules');
 assert.match(portalCss,/@media\(prefers-reduced-motion:reduce\)/,'Shared portal must honour reduced motion');
 assert.match(portalController,/role="status" aria-live="polite"/,'Shared portal must retain its accessible live status');
+assert.match(portalController,/APX_SKIP_PORTAL===true/,'Shared portal must support the explicit cached Guardian fast-return path');
+
+assert.match(auth,/readCachedBungieSession/,'Bungie authentication must reuse the current tab session');
+assert.match(profile,/readCachedBungieProfile/,'Guardian profile must reuse the current authenticated session snapshot');
+assert.match(profile,/readCachedBungieLoadoutDetail/,'Selected Bungie loadout detail must survive Main and Build navigation');
+assert.match(sessionCache,/indexedDB\.open\(DB_NAME,DB_VERSION\)/,'Guardian session data must use browser storage capable of holding the full Bungie profile');
+assert.match(sessionCache,/PROFILE_TTL_MS=30\*60\*1000/,'Cached Guardian evidence must have an explicit freshness boundary');
+assert.doesNotMatch(profile,/ensureLiveProfile\(globalThis\.ASTRIX_BUNGIE_SESSION\|\|null/,'Profile bootstrap must not make an unauthenticated profile request before session resolution');
 
 assert.match(profile,/resolveArtifactByProvenance/,'Artifact provenance resolver must be wired into the live profile');
 assert.match(profile,/SELECTED_LOADOUT_KEY/,'Selected Bungie loadout must be persisted as the page default');
@@ -83,14 +92,19 @@ assert.match(artifact,/NO ACTIVE PERKS REPORTED BY BUNGIE/,'A resolved zero-perk
 assert.match(artifact,/ARTIFACT STATE UNAVAILABLE/,'An unresolved Artifact must remain explicit');
 assert.match(loadoutsCss,/background-image:var\(--loadout-color-image/,'Saved loadout must retain its Bungie colour image');
 assert.match(loadoutsCss,/guardian-loadout-icon\{width:var\(--pf-mod-size,36px\)/,'Loadout icon must match armour mod size');
+assert.match(loadoutsModule,/data-bungie-icon-hash/,'Rendered loadouts must retain Bungie iconHash provenance');
+assert.match(loadoutsModule,/data-bungie-color-hash/,'Rendered loadouts must retain Bungie colorHash provenance');
 assert.match(handoff,/latestGuardian&&Number\.isInteger\(latestGuardian\.selectedLoadoutIndex\)/,'Improve My Guardian must prefer the active selected loadout');
 assert.match(handoff,/loadoutsAvailable:detail\.loadoutsAvailable===true/,'Build handoff must carry the exact Bungie in-game loadout catalogue');
 assert.match(handoff,/super:detail\.super\|\|null/,'Build handoff must preserve fixture and legacy subclass fields without an empty subclassBuild');
+assert.match(handoff,/markGuardianFastReturn\(\);location\.href='\.\/paradox-build-space\/'/,'Main to Build must reuse the authenticated cached navigation path');
 
 assert.match(buildHtml,/data-guardian-profile-mode="roster-only"/,'Build Tool must load the roster without replacing its protected snapshot');
 assert.match(buildHtml,/id="guardianCharacterCards"/,'Build Tool character cards are missing');
 assert.match(buildHtml,/class="panel build-rail guardian-left-rail"/,'Build Tool must mount the shared Main left rail');
 assert.match(buildHtml,/id="guardianLoadouts"/,'Build Tool in-game loadout selector is missing');
+assert.match(workspaceHtml,/gear-combined[\s\S]*?guardian-loadouts-strip[\s\S]*?id="guardianLoadouts"[\s\S]*?gear-columns/,'Main in-game loadouts must be directly above the Armour cards');
+assert.match(buildHtml,/armour-design-section[\s\S]*?guardian-loadouts-strip[\s\S]*?id="guardianLoadouts"[\s\S]*?gear-combined[\s\S]*?id="armourGrid"/,'Build in-game loadouts must be directly above the Armour cards');
 assert.match(buildHtml,/id="artifactPickerPanel"[\s\S]*?hidden/,'Build Artifact catalogue must stay collapsed behind the equipped summary');
 assert.match(buildModule,/import '\.\.\/guardian-character-cards\.mjs(?:\?[^']+)?'/,'Build Tool must reuse the Main character-card renderer');
 assert.match(buildModule,/import '\.\.\/guardian-loadouts\.mjs'/,'Build Tool must reuse the Main in-game loadout renderer');
@@ -115,7 +129,9 @@ assert.match(buildCss,/grid-auto-flow:column!important/,'Build armour mods must 
 assert.match(sharedRailCss,/guardian-left-rail \.build-fragment-slots\{grid-template-columns:repeat\(5,var\(--guardian-rail-slot\)\)/,'Shared rail must fit five Fragment sockets in one row');
 assert.match(sharedRailCss,/guardian-left-rail \.artifact-row/,'Artifact summary must be owned by the shared Main and Build rail');
 assert.match(sharedRailCss,/artifact-item-selector[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Expanded Artifact catalogue must form 2-2-2 rows');
-assert.match(sharedRailCss,/guardian-left-rail \.guardian-loadouts-grid/,'The 1–20 loadout grid must be owned by the shared rail');
+assert.match(sharedRailCss,/guardian-loadouts-strip \.guardian-loadouts-grid\{[\s\S]*?grid-template-columns:repeat\(20,minmax\(32px,1fr\)\)/,'The shared Main and Build loadout tray must remain one 1–20 row');
+assert.match(sharedRailCss,/guardian-loadouts-strip \.guardian-loadout-slot\.is-saved\{[\s\S]*?background-image:var\(--loadout-color-image/,'The horizontal tray must display Bungie-selected loadout colour artwork');
+assert.match(buildModule,/markGuardianFastReturn\(\);location\.href='\.\.\/'/,'Build Back must mark the authenticated cached return before opening Main');
 
 for(const [label,html] of [['Main',workspaceHtml],['Build',buildHtml]]){
   assert.match(html,/astrix-tokens\.css/,`${label} must load the supplied token sheet on this branch`);

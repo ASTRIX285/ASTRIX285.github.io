@@ -9,6 +9,12 @@
    Set the logo path once:  window.APX_LOGO = '/img/logo.png';
    ===================================================================== */
 (function(){
+  if(window.APX_SKIP_PORTAL===true){
+    var noop=function(){};
+    document.documentElement.classList.remove('apx-booting');
+    window.AstrixLoader={mount:noop,set:noop,status:noop,done:noop,skipped:true};
+    return;
+  }
   document.documentElement.classList.add('apx-booting');
   var LOGO = (window.APX_LOGO || '/img/logo.png');
   var gate, prog, pct, status, pendingPct=0, pendingStatus='Opening portal', pendingDone=false;

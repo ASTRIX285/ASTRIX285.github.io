@@ -1,3 +1,5 @@
+import {cacheBungieSession,readCachedBungieSession} from "./guardian-session-cache.mjs";
+
 const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
 const CANONICAL_APP_ORIGIN = "https://astrixparadox.com";
 
@@ -73,12 +75,22 @@ async function requestSession(){
 
 function publishSession(session){
   if(!session?.authenticated)return;
+  cacheBungieSession(session);
   globalThis.ASTRIX_BUNGIE_SESSION=session;
   globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session}));
 }
 
 function getBungieSession({force=false}={}){
   if(!force&&sessionRequest)return sessionRequest;
+  if(!force){
+    const cached=readCachedBungieSession();
+    if(cached){
+      publishSession(cached);
+      sessionRequest=Promise.resolve(cached);
+      globalThis.ASTRIX_BUNGIE_SESSION_PROMISE=sessionRequest;
+      return sessionRequest;
+    }
+  }
   sessionRequest=requestSession()
     .then(session=>{
       publishSession(session);

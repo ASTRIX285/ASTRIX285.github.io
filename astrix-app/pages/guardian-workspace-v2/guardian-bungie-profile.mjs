@@ -1,5 +1,11 @@
 import {getBungieSession} from "./guardian-bungie-auth.mjs";
 import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
+import {
+  cacheBungieProfile,
+  readCachedBungieProfile,
+  cacheBungieLoadoutDetail,
+  readCachedBungieLoadoutDetail
+} from "./guardian-session-cache.mjs";
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
@@ -488,6 +494,15 @@ async function loadSelectedLoadout(selection){
     document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:cached}));
     return cached;
   }
+  const stored=await readCachedBungieLoadoutDetail(liveProfileSession||globalThis.ASTRIX_BUNGIE_SESSION,characterId,index);
+  if(stored){
+    loadoutCache.set(cacheKey,stored);
+    rememberLoadoutSelection(characterId,index);
+    document.documentElement.dataset.guardianSource="bungie-loadout";
+    document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:{...stored,sessionCacheRestored:true}}));
+    document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:{...stored,sessionCacheRestored:true}}));
+    return stored;
+  }
   setRenderStatus("LOADING SAVED LOADOUT",`Opening Bungie loadout ${index+1}`,"Resolving equipment and subclass configuration");
   document.dispatchEvent(new CustomEvent("astrix:loadout-loading",{detail:{characterId,index}}));
   const url=new URL(`${AUTH_ORIGIN}/bungie/loadout`);
@@ -503,6 +518,7 @@ async function loadSelectedLoadout(selection){
   }
 
   loadoutCache.set(cacheKey,detail);
+  await cacheBungieLoadoutDetail(liveProfileSession||globalThis.ASTRIX_BUNGIE_SESSION,characterId,index,detail);
   rememberCharacterId(characterId);
   rememberLoadoutSelection(characterId,index);
   document.documentElement.dataset.guardianSource="bungie-loadout";
@@ -512,12 +528,7 @@ async function loadSelectedLoadout(selection){
   return detail;
 }
 
-async function loadLiveProfile(session,{background=false}={}){
-  if(!background){
-    setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
-    document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
-  }
-  const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
+async function activateLiveProfile(payload,session,{fromCache=false}={}){
   liveProfilePayload=payload;
   liveProfileSession=session;
   const rememberedLoadout=rememberedLoadoutSelection(payload.profile);
@@ -527,30 +538,44 @@ async function loadLiveProfile(session,{background=false}={}){
 
   document.documentElement.dataset.guardianSource="bungie-live";
   document.documentElement.dataset.equippedActive="true";
+  if(fromCache){
+    document.documentElement.dataset.guardianSessionRestored="true";
+    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-cache-restored",{detail:{source:"bungie-session-cache",characterId:selectedCharacterId}}));
+  }
 
   if(!selectedCharacterId){
     setRenderStatus("SELECT GUARDIAN","Choose Hunter, Warlock or Titan","Waiting for an explicit Bungie character selection");
-    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{source:"bungie-live",pendingSelection:true,characterId:"",definitionCoverage:payload.definitionCoverage||null,artifactCoverage:payload.artifactCoverage||null}}));
+    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{source:"bungie-live",pendingSelection:true,characterId:"",sessionCacheRestored:fromCache,definitionCoverage:payload.definitionCoverage||null,artifactCoverage:payload.artifactCoverage||null}}));
     return null;
   }
 
   if(document.documentElement.dataset.guardianProfileMode==="roster-only"){
     const detail=normaliseLiveProfile(payload,session,selectedCharacterId);
-    document.dispatchEvent(new CustomEvent("astrix:guardian-loadout-context",{detail}));
+    document.dispatchEvent(new CustomEvent("astrix:guardian-loadout-context",{detail:{...detail,sessionCacheRestored:fromCache}}));
     return detail;
   }
 
   if(rememberedLoadout&&rememberedLoadout.characterId===selectedCharacterId){
     const detail=await loadSelectedLoadout(rememberedLoadout);
-    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail}));
+    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{...detail,sessionCacheRestored:fromCache}}));
     return detail;
   }
 
   const detail=normaliseLiveProfile(payload,session,selectedCharacterId);
   setRenderStatus("BUILD INTELLIGENCE","Live profile data ready","Equipment and loadout analysis active");
-  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
-  document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail}));
+  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:{...detail,sessionCacheRestored:fromCache}}));
+  document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{...detail,sessionCacheRestored:fromCache}}));
   return detail;
+}
+
+async function loadLiveProfile(session,{background=false}={}){
+  if(!background){
+    setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
+    document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
+  }
+  const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
+  await cacheBungieProfile(session,payload);
+  return activateLiveProfile(payload,session);
 }
 
 function selectLiveCharacter(characterId,expectedClass=""){
@@ -584,7 +609,11 @@ function reportProfileError(error){
 function ensureLiveProfile(session,{background=false,silent=false}={}){
   if(liveProfileReady)return Promise.resolve(null);
   if(liveProfileRequest)return liveProfileRequest;
-  liveProfileRequest=loadLiveProfile(session,{background})
+  liveProfileRequest=(async()=>{
+    const cachedPayload=await readCachedBungieProfile(session);
+    if(cachedPayload)return activateLiveProfile(cachedPayload,session,{fromCache:true});
+    return loadLiveProfile(session,{background});
+  })()
     .then(detail=>{
       liveProfileReady=true;
       return detail;
@@ -624,7 +653,7 @@ document.addEventListener("astrix:character-selected",event=>{
   catch(error){reportProfileError(error);}
 });
 
-ensureLiveProfile(globalThis.ASTRIX_BUNGIE_SESSION||null,{background:true,silent:true});
+if(globalThis.ASTRIX_BUNGIE_SESSION?.authenticated)handleAuthenticatedSession(globalThis.ASTRIX_BUNGIE_SESSION);
 getBungieSession().then(handleAuthenticatedSession);
 
 export {normaliseLiveProfile,loadSelectedLoadout,characterRoster,selectLiveCharacter,profileWithSelectedLoadout,subclassConfiguration,loadoutCoverage,socketResolution,currentArtifact};

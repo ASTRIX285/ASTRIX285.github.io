@@ -44,8 +44,8 @@ function render(loadouts=[]){
     const identity=loadoutIdentity(loadout);
     const title=`${identity.name}, Bungie loadout slot ${index+1}`;
     const colorStyle=identity.color?` style="--loadout-color-image:url(${escapeHtml(identity.color)})"`:"";
-    const icon=identity.icon?`<img class="guardian-loadout-icon" src="${escapeHtml(identity.icon)}" alt="" loading="lazy" decoding="async">`:`<span class="guardian-loadout-icon-fallback" aria-hidden="true">◆</span>`;
-    return `<button type="button" class="guardian-loadout-slot is-saved ${activeIndex===index?"is-active":""} ${pendingIndex===index?"is-loading":""}" data-loadout-slot="${index}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}" aria-busy="${pendingIndex===index}"${colorStyle}>${icon}<span class="guardian-loadout-name" aria-hidden="true">${escapeHtml(identity.name)}</span><small>${index+1}</small></button>`;
+    const icon=identity.icon?`<img class="guardian-loadout-icon" src="${escapeHtml(identity.icon)}" alt="" loading="eager" decoding="async">`:`<span class="guardian-loadout-icon-fallback" aria-hidden="true">◆</span>`;
+    return `<button type="button" class="guardian-loadout-slot is-saved ${activeIndex===index?"is-active":""} ${pendingIndex===index?"is-loading":""}" data-loadout-slot="${index}" data-bungie-name-hash="${escapeHtml(loadout.nameHash||"")}" data-bungie-icon-hash="${escapeHtml(loadout.iconHash||"")}" data-bungie-color-hash="${escapeHtml(loadout.colorHash||"")}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}" aria-busy="${pendingIndex===index}"${colorStyle}>${icon}<span class="guardian-loadout-name" aria-hidden="true">${escapeHtml(identity.name)}</span><small>${index+1}</small></button>`;
   }).join("");
   target.querySelectorAll(".is-saved").forEach(button=>button.addEventListener("click",()=>{
     const index=Number(button.dataset.loadoutSlot);

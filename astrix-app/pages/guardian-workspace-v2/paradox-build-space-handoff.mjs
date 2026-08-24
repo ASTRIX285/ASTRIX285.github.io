@@ -1,4 +1,5 @@
 import {clone,createBuildState} from './paradox-build-space/paradox-build-state.mjs';
+import {markGuardianFastReturn} from './guardian-session-cache.mjs';
 
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
 const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';
@@ -41,7 +42,7 @@ function resolveBuildSource(){
   const remembered=safeRead(LAST_LOADOUT_KEY);
   return remembered?.characterId?remembered:null;
 }
-function openBuildSpace(event){const button=event.target?.closest?.('.improve-cta');if(!button)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();const source=resolveBuildSource();if(source){const state=createBuildState(source);state.sourcePriority=source.source==='bungie-loadout'?'selected-or-last-bungie-loadout':'current-equipped-guardian';safeStore(BUILD_SPACE_KEY,state);}location.href='./paradox-build-space/';}
+function openBuildSpace(event){const button=event.target?.closest?.('.improve-cta');if(!button)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();const source=resolveBuildSource();if(source){const state=createBuildState(source);state.sourcePriority=source.source==='bungie-loadout'?'selected-or-last-bungie-loadout':'current-equipped-guardian';safeStore(BUILD_SPACE_KEY,state);}markGuardianFastReturn();location.href='./paradox-build-space/';}
 
 document.addEventListener('astrix:guardian-selection-changed',e=>rememberGuardian(e.detail||{}));
 document.addEventListener('astrix:bungie-loadout-loaded',e=>rememberExplicitLoadout(e.detail||{}));

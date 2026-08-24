@@ -6,9 +6,10 @@ import {createPerkChangePlan,confirmPerkChangePlan,applyConfirmedPerkChangePlan}
 import {armourCard} from '../guardian-gear-layout.mjs?v=20260824-armour-mirror-1';
 import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260824-artifact-state-2';
 import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260824-bungie-art-4';
+import {markGuardianFastReturn} from '../guardian-session-cache.mjs';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
-import '../guardian-bungie-profile.mjs?v=20260824-bungie-icons-3';
+import '../guardian-bungie-profile.mjs?v=20260824-session-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 
@@ -144,7 +145,7 @@ document.addEventListener('astrix:loadout-loading',event=>{const slot=Number(eve
 document.addEventListener('astrix:loadout-error',()=>{byId('sourcePill').textContent='BUILD SOURCE · LOADOUT ERROR';});
 document.querySelectorAll('[data-test-domain]').forEach(button=>button.addEventListener('click',()=>{testDomain=button.dataset.testDomain==='pvp'?'pvp':'pve';renderTestConfiguration();}));
 byId('expectedDestination')?.addEventListener('change',event=>globalThis.AstrixDestinations?.set?.(event.target.value));
-byId('backToGuardian')?.addEventListener('click',()=>location.href='../');
+byId('backToGuardian')?.addEventListener('click',()=>{markGuardianFastReturn();location.href='../';});
 byId('armRangeTest')?.addEventListener('click',armRange);
 byId('pullRangeResults')?.addEventListener('click',pullRange);
 byId('downloadRangeEvidence')?.addEventListener('click',downloadRangeEvidence);

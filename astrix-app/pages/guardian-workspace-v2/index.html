@@ -8,9 +8,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../shared/astrix-portal-loader.css?v=20260824-portal-1">
-  <script>window.APX_LOGO='../../../img/logo.png';</script>
-  <script src="../../shared/astrix-portal-loader.js?v=20260824-portal-1"></script>
+  <link rel="stylesheet" href="../../shared/astrix-portal-loader.css?v=20260824-session-1">
+  <script>
+    window.APX_LOGO='../../../img/logo.png';
+    try{
+      const fastReturnKey='astrix:guardian-fast-return:v1';
+      window.APX_SKIP_PORTAL=sessionStorage.getItem(fastReturnKey)==='1';
+      if(window.APX_SKIP_PORTAL)sessionStorage.removeItem(fastReturnKey);
+      window.addEventListener('pageshow',event=>{if(event.persisted)sessionStorage.removeItem(fastReturnKey);});
+    }catch{}
+  </script>
+  <script src="../../shared/astrix-portal-loader.js?v=20260824-session-1"></script>
   <link rel="stylesheet" href="../../astrix-tokens.css?v=20260824-branch-preview-1">
   <link rel="stylesheet" href="./guardian-workspace-v2.css?v=20260822-2">
   <link rel="stylesheet" href="./guardian-workspace-v2-compact.css">
@@ -27,7 +35,7 @@
   <link rel="stylesheet" href="./guardian-mobile.css?v=20260822-3">
   <link rel="stylesheet" href="./guardian-layout-final.css?v=20260824-bungie-icons-3">
   <link rel="stylesheet" href="./guardian-super-formation.css?v=20260824-bungie-art-4">
-  <link rel="stylesheet" href="./guardian-left-rail-shared.css?v=20260824-artifact-state-2">
+  <link rel="stylesheet" href="./guardian-left-rail-shared.css?v=20260824-loadout-row-1">
   <link rel="stylesheet" href="./astrix-token-branch-preview.css?v=20260824-d2-background-4">
   <link rel="stylesheet" href="../../astrix-destinations.css?v=20260824-destination-1">
   <script src="../../shared/astrix-destination-theme.js?v=20260824-destination-1"></script>
@@ -76,7 +84,6 @@
       <div class="grp grp--aspects"><p class="lbl">Aspects</p><div class="slot-list" id="aspectList"></div></div>
       <div class="grp grp--fragments"><p class="lbl">Fragments</p><div class="slot-list frag-list" id="fragList"></div></div>
       <div class="grp grp--artifact"><p class="lbl">Artifact</p><div class="artifact-row" tabindex="0" role="button" aria-label="Configure Artifact"><span class="art"><img id="artIcon" alt="Seasonal artifact" onerror="this.style.opacity=0"></span><div class="artifact-copy"><b>ARTIFACT</b><small id="artName">Seasonal Artifact</small></div><div class="perks" id="artPerks"><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span></div></div></div>
-      <div class="grp guardian-loadouts-panel"><div class="guardian-loadouts-head"><p class="lbl">In-game Loadouts</p><small>BUNGIE · 1–20</small></div><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div>
     </aside>
 
     <section class="stage" aria-label="Guardian stage"><div class="stage-state-container" id="stageStateContainer"><div class="stage-state-card"><div class="icon">⬡</div><h3 id="stageStateTitle">GUARDIAN TELEMETRY</h3><p id="stageStateMessage">Select a Bungie character or loadout to inspect live data metrics.</p></div></div></section>
@@ -92,7 +99,7 @@
 
     <section class="equip">
       <div class="eq gear-weapons"><div class="eq-head"><h3>WEAPONS</h3><span class="tools">▤</span></div><div class="weap-grid"><div class="weap"><div class="art ph"><span class="pw" data-power-cap>550</span><span class="ph-glyph">⌖</span></div><div class="cap"><b>Kinetic slot</b><small class="ph-tag">awaiting live data</small></div></div><div class="weap"><div class="art ph"><span class="pw" data-power-cap>550</span><span class="ph-glyph">⌖</span></div><div class="cap"><b>Energy slot</b><small class="ph-tag">awaiting live data</small></div></div><div class="weap"><div class="art ph"><span class="pw">—</span><span class="ph-glyph">⌖</span></div><div class="cap"><b>Power slot</b><small class="ph-tag">awaiting live data</small></div></div></div></div>
-      <section class="eq gear-combined"><div class="eq-head"><h3>ARMOUR & MODS</h3><span class="tools">EQUIPPED</span></div><div class="gear-subhead"><span>Armour above · 6 functional mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div class="gear-columns"></div></section>
+      <section class="eq gear-combined"><div class="eq-head"><h3>ARMOUR & MODS</h3><span class="tools">EQUIPPED</span></div><div class="guardian-loadouts-panel guardian-loadouts-strip"><div class="guardian-loadouts-head"><p class="lbl">IN-GAME LOADOUTS</p><small>BUNGIE · 1–20</small></div><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div><div class="gear-subhead"><span>Armour above · 6 functional mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div class="gear-columns"></div></section>
       <div class="eq stats-block"><div class="eq-head"><h3>STATS</h3><span class="tools">⇅</span></div><div class="stats-row" id="statsRow"></div></div>
       <div class="eq activity"><div class="eq-head"><h3>ACTIVITY</h3></div><div class="act-hero"><span class="ic">◈</span><div><b>Grandmaster Nightfall</b><small>The Glassway</small></div></div><div class="act-row"><span>Power Cap</span><b data-power-cap>550</b></div><div class="act-row"><span>Champions</span><b>⚔ ✷</b></div><button class="btn-change">Change Activity</button></div>
     </section>
@@ -100,7 +107,7 @@
 
   <div class="actionbar"><div class="grp"><button class="ab-btn">▤ LOADOUTS</button><button class="ab-btn">⤬ COMPARE</button></div><button class="improve-cta">✦ IMPROVE MY GUARDIAN</button><div class="grp"><button class="ab-btn">🖫 SAVE LOADOUT</button><button class="ab-btn">⤴ SHARE</button><button class="ab-btn">•••</button></div></div>
 
-  <script type="module" src="./guardian-workspace-v2.mjs?v=20260824-bungie-art-4"></script>
+  <script type="module" src="./guardian-workspace-v2.mjs?v=20260824-session-1"></script>
   <script type="module" src="./guardian-character-cards.mjs?v=20260824-bungie-icons-3"></script>
   <script type="module" src="./guardian-gear-layout.mjs?v=20260824-armour-mirror-1"></script>
   <script type="module" src="./guardian-beta-armour-layout.mjs"></script>
@@ -109,6 +116,6 @@
   <script type="module" src="./guardian-beta-readiness.mjs"></script>
   <script type="module" src="./guardian-beta-runtime.mjs?v=20260822-2"></script>
   <script type="module" src="./paradox-build-space-handoff.mjs?v=20260824-main-page-1"></script>
-  <script type="module" src="./guardian-portal-progress.mjs?v=20260824-portal-1"></script>
+  <script type="module" src="./guardian-portal-progress.mjs?v=20260824-session-1"></script>
 </body>
 </html>

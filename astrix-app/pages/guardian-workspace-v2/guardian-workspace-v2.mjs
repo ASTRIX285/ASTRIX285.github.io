@@ -4,7 +4,7 @@ import {
   loadSelectedLoadout,
   characterRoster,
   selectLiveCharacter
-} from "./guardian-bungie-profile.mjs?v=20260824-bungie-icons-3";
+} from "./guardian-bungie-profile.mjs?v=20260824-session-1";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
 import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260824-bungie-art-4";
 
