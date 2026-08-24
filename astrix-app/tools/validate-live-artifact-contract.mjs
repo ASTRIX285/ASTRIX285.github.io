@@ -74,6 +74,20 @@ assert.deepEqual(retained.selectedPerkHashes,[91,92]);
 assert.equal(retained.source,'shared-build-intent');
 assert.deepEqual(retained.provenance,{provider:'verified-share',shareId:'share-222'});
 assert.equal(resolveIntendedArtifactConfiguration({},null,[]).artifactHash,null,'missing Artifact identity must remain unavailable, not hash zero');
+const savedBefore=structuredClone(savedConfiguration);
+const edited=resolveIntendedArtifactConfiguration(
+  {artifactConfiguration:savedConfiguration},
+  {hash:222,seasonNumber:30},
+  [92,93,93],
+  {source:'fixture-intent',provenance:{provider:'fallback'}}
+);
+assert.deepEqual(edited.selectedPerkHashes,[92,93],'picker changes update only intended perk hashes and remove duplicates');
+assert.equal(edited.artifactHash,222);
+assert.equal(edited.seasonNumber,30);
+assert.equal(edited.source,'shared-build-intent');
+assert.deepEqual(edited.provenance,{provider:'verified-share',shareId:'share-222'});
+assert.deepEqual(savedConfiguration,savedBefore,'picker round trip must not mutate the incoming saved configuration');
+
 
 console.log('LIVE_ARTIFACT_WINS=PASS');
 console.log('ACTIVE_PERKS_ONLY=PASS');
@@ -81,3 +95,4 @@ console.log('UNAVAILABLE_IS_NOT_ZERO=PASS');
 console.log('FIXTURE_ARTIFACT_ISOLATED=PASS');
 console.log('FIXTURE_PROVENANCE_RETAINED=PASS');
 console.log('FIXTURE_MANIFEST_HASH_BOUND=PASS');
+console.log('FIXTURE_PICKER_ROUND_TRIP=PASS');
