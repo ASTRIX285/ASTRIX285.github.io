@@ -61,8 +61,8 @@ html body .workspace .left .subclass-super-shell.equipped-subclass-stack{
 }
 .equipped-subclass__crest img{
   display:block;
-  width:100%;
-  height:100%;
+  width:86%;
+  height:86%;
   object-fit:contain;
   filter:drop-shadow(0 0 5px rgba(255,255,255,.30));
 }
@@ -137,6 +137,7 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   cursor:default!important;
 }
 .super-feature .super-diamond[hidden]{display:none!important}
+.super-feature .super-diamond.is-empty-super{opacity:.48!important;cursor:default!important}
 .super-feature .super-diamond::before{
   content:""!important;
   position:absolute!important;
@@ -191,6 +192,14 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   box-shadow:none!important;
   filter:drop-shadow(0 0 6px color-mix(in srgb,var(--super-accent) 35%,transparent))!important;
 }
+.super-feature .super-diamond--equipped>span{
+  inset:var(--super-equipped-bevel)!important;
+  width:auto!important;
+  height:auto!important;
+}
+.super-feature .super-diamond--equipped>span>img{
+  transform:scale(1.24)!important;
+}
 
 /* Exact PSD coordinates. Do not re-derive. */
 .super-feature .super-diamond--equipped{--super-bevel-size:var(--super-equipped-bevel);left:50.25%!important;top:34.50%!important;width:41.45%!important;z-index:3!important}
@@ -200,16 +209,6 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
 .super-feature .super-diamond--alt3{left:34.62%!important;top:65.12%!important}
 .super-feature .super-diamond--alt4{left:65.38%!important;top:65.38%!important}
 .super-feature .super-diamond--alt5{left:50.00%!important;top:80.38%!important}
-
-/* Partial resolved sets stay connected. Six keeps the exact PSD constants.
- * At one item the equipped diamond recentres. At two items the bottom anchor
- * closes the 2% PSD gap so the pair reads as one formation. */
-.super-feature__cluster[data-super-count="1"] .super-diamond--equipped{left:50%!important;top:50%!important}
-.super-feature__cluster[data-super-count="2"] .super-diamond--equipped{left:50%!important;top:35.50%!important}
-.super-feature__cluster[data-super-count="2"] .super-diamond--alt5{left:50%!important;top:79.31%!important}
-.super-feature__cluster[data-super-count="3"] .super-diamond--alt5{left:42.31%!important;top:80.38%!important}
-.super-feature__cluster[data-super-count="3"] .super-diamond--alt4{left:57.69%!important;top:65.38%!important}
-.super-feature__cluster[data-super-count="5"]{transform:translateX(-7.5%)!important}
 
 .super-feature .super-diamond--alt.has-live-icon{opacity:.62!important}
 .super-feature .super-diamond.is-selected-super.has-live-icon{

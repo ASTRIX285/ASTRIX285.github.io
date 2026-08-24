@@ -10,7 +10,20 @@ mountForgeShell({rootSelector:'.workspace',gameId:'destiny-2',gameName:'Destiny 
 
 const host = () => document.querySelector("#guardianCharacterCards");
 const MAX_CHARACTERS = 3;
-const STAT_SYMBOLS = { Weapons: "⌖", Health: "♥", Class: "⬡", Grenade: "◉", Super: "✦", Melee: "⚔" };
+const STAT_ICON_KEYS = Object.freeze({
+  Mobility: "mobility",
+  Resilience: "resilience",
+  Recovery: "recovery",
+  Discipline: "discipline",
+  Intellect: "intellect",
+  Strength: "strength",
+  Weapons: "mobility",
+  Health: "resilience",
+  Class: "recovery",
+  Grenade: "discipline",
+  Super: "intellect",
+  Melee: "strength"
+});
 
 const DEFAULT_CARDS = [
   {
@@ -18,7 +31,7 @@ const DEFAULT_CARDS = [
     characterClass: "hunter",
     title: "TITLE DATA PENDING",
     power: 550,
-    stats: [["Weapons", 100], ["Health", 65], ["Class", 105], ["Grenade", 100], ["Super", 40], ["Melee", 45]],
+    stats: [["Mobility", 100], ["Resilience", 65], ["Recovery", 105], ["Discipline", 100], ["Intellect", 40], ["Strength", 45]],
     selected: false
   },
   {
@@ -26,7 +39,7 @@ const DEFAULT_CARDS = [
     characterClass: "warlock",
     title: "TITLE DATA PENDING",
     power: 550,
-    stats: [["Weapons", 105], ["Health", 70], ["Class", 30], ["Grenade", 110], ["Super", 105], ["Melee", 40]],
+    stats: [["Mobility", 105], ["Resilience", 70], ["Recovery", 30], ["Discipline", 110], ["Intellect", 105], ["Strength", 40]],
     selected: false
   },
   {
@@ -34,7 +47,7 @@ const DEFAULT_CARDS = [
     characterClass: "titan",
     title: "TITLE DATA PENDING",
     power: 550,
-    stats: [["Weapons", 94], ["Health", 23], ["Class", 94], ["Grenade", 53], ["Super", 72], ["Melee", 129]],
+    stats: [["Mobility", 94], ["Resilience", 23], ["Recovery", 94], ["Discipline", 53], ["Intellect", 72], ["Strength", 129]],
     selected: false
   }
 ];
@@ -55,16 +68,14 @@ function renderStatus(message, state = "disconnected") {
 function statMarkup(stats = []) {
   const statPairs = Array.isArray(stats) && stats.length && Array.isArray(stats[0])
     ? stats
-    : [["Weapons", 100], ["Health", 50], ["Class", 80], ["Grenade", 90], ["Super", 40], ["Melee", 30]];
+    : [["Mobility", 100], ["Resilience", 50], ["Recovery", 80], ["Discipline", 90], ["Intellect", 40], ["Strength", 30]];
 
   return statPairs
     .slice(0, 6)
-    .map(
-      ([name, value]) =>
-        `<span class="guardian-character-card__stat" title="${escapeHtml(name)}" aria-label="${escapeHtml(name)} ${Number(value || 0)}"><i aria-hidden="true">${
-          STAT_SYMBOLS[name] || "◆"
-        }</i><b>${Number(value || 0)}</b></span>`
-    )
+    .map(([name, value]) => {
+      const iconKey = STAT_ICON_KEYS[name] || "mobility";
+      return `<span class="guardian-character-card__stat" title="${escapeHtml(name)}" aria-label="${escapeHtml(name)} ${Number(value || 0)}"><i class="guardian-stat-icon guardian-stat-icon--${iconKey}" aria-hidden="true"></i><b>${Number(value || 0)}</b></span>`;
+    })
     .join("");
 }
 

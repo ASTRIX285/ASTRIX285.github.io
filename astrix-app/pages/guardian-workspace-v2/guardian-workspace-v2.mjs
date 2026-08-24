@@ -6,7 +6,7 @@ import {
   selectLiveCharacter
 } from "./guardian-bungie-profile.mjs";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
-import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs";
+import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260824-formation-3";
 
 const PLAYER_POWER_CAP = 550;
 const VALID_CLASSES = ["hunter", "titan", "warlock"];
@@ -181,37 +181,8 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
     fragmentHost.innerHTML = padRailSlots(markup, fragments.length, 5);
   }
 
-  const artifact = build.artifact || null;
-  const artIcon = byId("artIcon");
-  const artName = byId("artName");
-  if (artifact) {
-    if (artIcon) {
-      const artifactIcon = resolvedDisplayIcon(artifact);
-      if (artifactIcon) artIcon.src = bungieUrl(artifactIcon);
-      artIcon.alt = artifact.name || "Seasonal Artifact";
-    }
-    if (artName) artName.textContent = String(artifact.name || "SEASONAL ARTIFACT").toUpperCase();
-  }
-
-  // Applied Artifact perks are an active-state contract. A perk being visible in
-  // the seasonal Artifact grid does not mean that the Guardian has applied it.
-  // Never substitute visible tier choices when Bungie reports no active perks.
-  const artifactPerks = Array.isArray(artifact?.activePerks)
-    ? artifact.activePerks.filter(item => item?.isActive === true)
-    : [];
-  const artifactHost = byId("artPerks");
-  if (artifactHost) {
-    const appliedPerks = artifactPerks.slice(0, 7);
-    const markup = appliedPerks.map(item => `
-      <div class="slot" title="${escapeHtml(item.name)}">
-        <span class="ico-badge">${itemIconMarkup(item)}</span>
-        <span class="nm">${escapeHtml(item.name)}</span>
-      </div>
-    `).join("");
-    artifactHost.dataset.artifactState = appliedPerks.length ? "active" : "unresolved";
-    artifactHost.title = appliedPerks.length ? `${appliedPerks.length} applied Artifact perk(s)` : "No applied Artifact perks resolved from Bungie live state";
-    artifactHost.innerHTML = padRailSlots(markup, appliedPerks.length, 7);
-  }
+  // guardian-artifact.mjs is the sole owner of Artifact identity and active
+  // perk rendering. This renderer deliberately does not pad or infer that rail.
 }
 
 function settleImage(image) {

@@ -49,25 +49,7 @@ function detectBackground(data, width, height) {
 
 function keyWhite(imageData) {
   const { data, width, height } = imageData;
-  let hasTransparency = false;
-  for (let i = 3; i < data.length; i += 4) {
-    if (data[i] < 250) {
-      hasTransparency = true;
-      break;
-    }
-  }
-
   const output = new Uint8ClampedArray(data.length);
-  if (hasTransparency) {
-    for (let i = 0; i < data.length; i += 4) {
-      output[i] = 255;
-      output[i + 1] = 255;
-      output[i + 2] = 255;
-      output[i + 3] = data[i + 3];
-    }
-    return new ImageData(output, width, height);
-  }
-
   const bg = detectBackground(data, width, height);
   const gaps = bg.map(value => Math.max(255 - value, 1));
   const gapTotal = gaps[0] + gaps[1] + gaps[2];
@@ -81,7 +63,8 @@ function keyWhite(imageData) {
     output[i] = 255;
     output[i + 1] = 255;
     output[i + 2] = 255;
-    output[i + 3] = Math.round(Math.min(1, Math.max(0, alpha)) * 255);
+    const sourceAlpha = data[i + 3] / 255;
+    output[i + 3] = Math.round(Math.min(1, Math.max(0, alpha)) * sourceAlpha * 255);
   }
 
   return new ImageData(output, width, height);

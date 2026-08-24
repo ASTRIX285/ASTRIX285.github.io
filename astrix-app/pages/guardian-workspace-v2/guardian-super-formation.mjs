@@ -1,4 +1,4 @@
-import {cleanImageElement} from './guardian-bungie-icon-cleaner.mjs';
+import {cleanImageElement} from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
 
 const BUNGIE='https://www.bungie.net';
 const SUBCLASS_KEYS=Object.freeze(['void','arc','solar','strand','stasis','prismatic']);
@@ -84,20 +84,22 @@ function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=
   const activeId=itemKey(resolvedActive);
   const alternates=options.filter(item=>itemKey(item)!==activeId).slice(0,5);
   const items=resolvedActive?[resolvedActive,...alternates]:[];
-  /* The PSD names remain stable in the DOM, but partial formations populate
-   * from the bottom anchor outwards: bottom, lower-right, lower-left,
-   * upper-right, upper-left. Hidden slots are not rendered. */
+  /* The exact six-slot PSD frame is structural. Unresolved alternates remain
+   * visible as transparent frames instead of collapsing the formation. */
   const slots=['equipped','alternate-5','alternate-4','alternate-3','alternate-2','alternate-1'].map(key=>host.querySelector(`[data-super-slot="${key}"]`));
-  const count=Math.min(6,items.length);
-  host.dataset.superCount=String(count);
-  feature.dataset.superCount=String(count);
+  const resolvedCount=Math.min(6,items.length);
+  host.dataset.superCount='6';
+  feature.dataset.superCount='6';
+  host.dataset.resolvedSuperCount=String(resolvedCount);
+  feature.dataset.resolvedSuperCount=String(resolvedCount);
   host.dataset.activeSuper=activeId;
   host.dataset.superState=resolvedActive?'resolved':'unresolved';
 
   slots.forEach((slot,index)=>{
     const item=items[index]||null;
-    if(slot)slot.hidden=!item;
+    if(slot)slot.hidden=false;
     setDiamondFromItem(slot,item,index===0?'Equipped Super unavailable':`Alternate Super ${index} unavailable`);
+    slot?.classList.toggle('is-empty-super',!item);
     const selected=index===0&&Boolean(item);
     slot?.classList.toggle('is-selected',selected);
     slot?.classList.toggle('is-selected-super',selected);

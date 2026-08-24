@@ -138,7 +138,11 @@ function renderArtifactStatus(detail){
   host.querySelector(".semantic-detail")?.remove();
   const v=detail?.artifactValidation;
   if(!v)return;
-  const label=v.activeCount!=null?`${v.activeCount} applied perk${v.activeCount===1?"":"s"}${v.noDuplicateActiveHashes?" · unique":" · duplicate hash detected"}`:"Artifact state unresolved";
+  const label=v.activeCount==null
+    ? "Artifact state unresolved"
+    : v.activeCount===0
+      ? "No active perks reported by Bungie"
+      : `${v.activeCount} applied perk${v.activeCount===1?"":"s"}${v.noDuplicateActiveHashes?" · unique":" · duplicate hash detected"}`;
   host.insertAdjacentHTML("beforeend",`<span class="semantic-detail">${esc(label)}</span>`);
 }
 

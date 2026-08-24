@@ -124,7 +124,7 @@ function renderArtifactDisplay(){
     perksEl.title=stateUnavailable?'Live Artifact activation state is unavailable.':(perks.length?`${perks.length} active Artifact perk(s) resolved from Bungie`:(currentMode==='live'?'Bungie reports no active Artifact perks':'No fixture Artifact perks selected'));
     if(!perks.length){
       perksEl.innerHTML=currentMode==='live'
-        ? (stateUnavailable?'<span class="art-empty artifact-development-placeholder">ARTIFACT IN DEVELOPMENT</span>':Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join(''))
+        ? (stateUnavailable?'<span class="art-empty artifact-development-placeholder">ARTIFACT STATE UNAVAILABLE</span>':'<span class="art-empty artifact-none-active">NO ACTIVE PERKS REPORTED BY BUNGIE</span>')
         : '<button type="button" class="art-empty" tabindex="-1">Choose Artifact perks</button>';
     }else{
       const shown=perks.slice(0,PANEL_ICONS);
@@ -172,6 +172,7 @@ function installStyles(){
     .artifact-row.is-development{min-height:58px;border:1px dashed rgba(118,210,255,.34);border-radius:8px;background:rgba(50,120,164,.06)}
     .artifact-row.is-development .artifact-copy b{color:#8ed7ff}
     #artPerks .artifact-development-placeholder{width:100%;text-align:center;color:#8ed7ff;border-color:rgba(118,210,255,.42)}
+    #artPerks .artifact-none-active{width:100%;text-align:center;color:#d8c57b;border-color:rgba(216,197,123,.42)}
     .artifact-row:focus-visible{outline:1px solid #9e60ff;outline-offset:4px;border-radius:8px}
     #artPerks .art-empty{padding:5px 9px;border:1px dashed rgba(158,96,255,.5);border-radius:7px;background:transparent;color:#9e60ff;font:600 10px Rajdhani;letter-spacing:.04em;cursor:pointer}
     .beta-artifact-modal{width:min(980px,95vw)!important}.beta-artifact-summary{display:flex;justify-content:space-between;align-items:center;margin:4px 0 16px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:8px}.beta-artifact-summary span{color:#9e60ff}.beta-artifact-tiers{display:grid;gap:12px}.beta-artifact-tier{padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:10px}.beta-artifact-tier h3{margin:0 0 8px;color:#a87aff;font:700 10px Orbitron;letter-spacing:.1em}.beta-artifact-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.beta-artifact-choice{display:grid;gap:5px;justify-items:center;min-width:0;padding:7px 4px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.02);color:#ddd;cursor:pointer}.beta-artifact-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:7px;background:#16111f}.beta-artifact-icon img{width:100%;height:100%;object-fit:contain}.beta-artifact-choice b{max-width:100%;font:600 8px Rajdhani;line-height:1.05;text-align:center}.beta-artifact-choice.selected{border-color:#33d6c7;background:rgba(51,214,199,.06)}.beta-artifact-choice.unresolved{opacity:.6}@media(max-width:900px){.beta-artifact-grid{grid-template-columns:repeat(4,1fr)}}`;

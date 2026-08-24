@@ -3,9 +3,9 @@
  * Super chain is populated directly from event.detail.subclassBuild.
  */
 
-import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs';
-import {renderEquippedSubclass,renderSuperFormation} from './guardian-super-formation.mjs';
-import './guardian-artifact.mjs';
+import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
+import {renderEquippedSubclass,renderSuperFormation} from './guardian-super-formation.mjs?v=20260824-formation-3';
+import './guardian-artifact.mjs?v=20260824-artifact-state-2';
 import './paradox-build-space-handoff.mjs';
 
 const leftPanelLockLink = document.querySelector('link[data-astrix-left-panel-lock]') || document.createElement('link');
@@ -16,7 +16,7 @@ if (!leftPanelLockLink.isConnected) document.head.appendChild(leftPanelLockLink)
 
 const slotObservers = new Map();
 const subclassIconCache = new Map();
-const LEFT_PANEL_SLOT_TARGETS = Object.freeze({ abilityList:4, aspectList:2, fragList:5, artPerks:7 });
+const LEFT_PANEL_SLOT_TARGETS = Object.freeze({ abilityList:4, aspectList:2, fragList:5 });
 const SUBCLASS_KEYS = Object.freeze(['arc','solar','void','stasis','strand','prismatic']);
 const SUBCLASS_CACHE_KEY = 'astrix:bungie-subclass-icons-v1';
 
