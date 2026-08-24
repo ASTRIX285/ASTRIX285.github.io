@@ -33,7 +33,8 @@ def main() -> int:
     assert "background:rgba(7,9,14,.52)" in styles
     assert "font:800 .78rem Inter,sans-serif" in styles
     assert "background:var(--character-emblem) left center/cover no-repeat" in styles
-    assert "left:24px;\n  right:60px" in styles
+    assert "gap:5px" in styles
+    assert "left:34px;\n  right:50px" in styles
     assert "left:24px;\n  right:4px" in styles
     assert ".class-super-row{" in styles
     assert ".class-super-row .subclass-hero" in styles

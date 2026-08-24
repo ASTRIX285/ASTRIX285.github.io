@@ -55,7 +55,8 @@ assert.match(gearCss,/weapon-support-icon\{width:var\(--pf-mod-size,36px\);heigh
 
 assert.match(characterModule,/emblemBackground = character\.emblem\?\.background/,'Hero card must use the Bungie emblem background');
 assert.match(characterCss,/var\(--character-emblem\) left center\/cover no-repeat/,'The Bungie emblem banner must fill the complete rounded card without distorting or cropping its left-side icon');
-assert.match(characterCss,/\.guardian-character-card__identity\{[\s\S]*?left:24px;[\s\S]*?right:60px;/,'Character identity overlay must move exactly 10px right');
+assert.match(characterCss,/\.guardian-character-cards\{[\s\S]*?gap:5px;/,'Desktop character-card spacing must be reduced by 50 percent');
+assert.match(characterCss,/\.guardian-character-card__identity\{[\s\S]*?left:34px;[\s\S]*?right:50px;/,'Character identity text must move another 10px right');
 assert.match(characterCss,/\.guardian-character-card__stats\{[\s\S]*?left:24px;[\s\S]*?right:4px;/,'Character stat overlay must move exactly 10px right');
 assert.match(characterCss,/\.guardian-character-card\.is-selected::before\{opacity:\.48;filter:saturate\(\.48\) brightness\(\.68\)\}/,'Selected card artwork must use the approved passive treatment');
 assert.match(characterCss,/0 18px 34px -14px rgba\(104,190,255,\.72\)/,'Selected card must use a restrained glow behind the card');

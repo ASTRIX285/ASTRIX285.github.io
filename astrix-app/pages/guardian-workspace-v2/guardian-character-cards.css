@@ -12,7 +12,7 @@
   display:grid;
   grid-template-columns:repeat(3,300px);
   justify-content:center;
-  gap:10px;
+  gap:5px;
   width:100%;
   pointer-events:auto;
 }
@@ -91,8 +91,8 @@
 .guardian-character-card__identity{
   position:absolute;
   top:10px;
-  left:24px;
-  right:60px;
+  left:34px;
+  right:50px;
   min-width:0;
   padding:0;
   text-align:left;
@@ -147,12 +147,12 @@
 .class-super-row .super-option.is-inactive:hover,.class-super-row .super-option.is-inactive:focus-visible{opacity:.7;filter:saturate(.8);outline:none}
 .topbar .gtag{display:none!important}
 @media(max-width:1220px){
-  .guardian-character-cards{gap:8px}
+  .guardian-character-cards{gap:4px}
   .class-super-row{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
 }
 @media(max-width:860px){
   .guardian-character-selector{padding:10px}
-  .guardian-character-cards{display:flex;gap:9px;overflow-x:auto;overflow-y:hidden;padding:0 0 8px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+  .guardian-character-cards{display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;padding:0 0 8px;scroll-snap-type:x mandatory;scrollbar-width:thin}
   .guardian-character-card{flex:0 0 min(84vw,300px);width:min(84vw,300px);min-width:min(84vw,300px);max-width:min(84vw,300px);height:88px;min-height:88px;max-height:88px;scroll-snap-align:start}
   .guardian-character-cards__status{flex:1 0 100%;min-height:86px}
 }
