@@ -69,6 +69,8 @@ for(const [label,html] of [['Main',await read('index.html')],['Build',buildHtml]
 assert.match(tokenPreview,/D2_JB\.jpg/,'Main and Build must use the unbranded D2 background');
 assert.match(tokenPreview,/developer-provided artwork/,'Developer artwork provenance must remain explicit');
 assert.match(tokenPreview,/var\(--d2-position\)\/cover no-repeat/,'D2 background must scale to the viewport');
+assert.match(tokenPreview,/\.scene\.immersive\{[\s\S]*?z-index:0!important/,'D2 scene must render above the opaque root canvas');
+assert.match(tokenPreview,/\.workspace,\.build-character-selector,\.build-space\)[\s\S]*?z-index:2/,'Main and Build content must render above the D2 scene');
 assert.match(tokenPreview,/max-aspect-ratio:4\/3/,'D2 background must adapt to narrower screens');
 assert.match(tokenPreview,/\.workspace>\.stage/,'Main Hero stage atmosphere is missing');
 assert.match(tokenPreview,/\.build-space>\.design-canvas/,'Build Design atmosphere is missing');

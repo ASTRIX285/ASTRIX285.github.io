@@ -2,6 +2,8 @@
  * The supplied global token sheet remains unchanged and loads first. This
  * scoped layer exposes its chassis without replacing subclass data colours. */
 body.astrix-token-preview{
+  position:relative;
+  isolation:isolate;
   background:transparent!important;
   color:var(--text)!important;
   font-family:var(--font)!important;
@@ -21,8 +23,10 @@ html[data-subclass="prismatic"]{--subclass-accent-rgb:229,106,223}
 body.astrix-token-preview .scene.immersive{
   --d2-position:50% 46%;
   inset:-2%;
+  z-index:0!important;
   isolation:isolate;
   overflow:hidden;
+  pointer-events:none;
   background:
     linear-gradient(180deg,rgba(4,5,7,.08),rgba(5,4,3,.28)),
     radial-gradient(78% 62% at 50% 42%,rgba(var(--subclass-accent-rgb,121,187,234),.08),transparent 72%),
@@ -30,6 +34,13 @@ body.astrix-token-preview .scene.immersive{
   filter:blur(clamp(2px,.22vw,5px)) brightness(.78) saturate(.76) contrast(.94);
   transform:scale(1.02);
   transform-origin:center;
+}
+body.astrix-token-preview .grain{
+  z-index:1!important;
+}
+body.astrix-token-preview>:is(.workspace,.build-character-selector,.build-space){
+  position:relative;
+  z-index:2;
 }
 body.astrix-token-preview .scene.immersive::before{
   display:none;
