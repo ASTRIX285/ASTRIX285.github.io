@@ -54,7 +54,9 @@ assert.match(gearCss,/weapon-perk-strip\{[^}]*border:0[^}]*background:transparen
 assert.match(gearCss,/weapon-support-icon\{width:var\(--pf-mod-size,36px\);height:var\(--pf-mod-size,36px\)/,'Weapon mod/masterwork icons must match armour mod size');
 
 assert.match(characterModule,/emblemBackground = character\.emblem\?\.background/,'Hero card must use the Bungie emblem background');
-assert.match(characterCss,/var\(--character-emblem\) center\/contain no-repeat/,'The complete Bungie emblem banner must stay inside the card');
+assert.match(characterCss,/var\(--character-emblem\) center\/100% 100% no-repeat/,'The Bungie emblem banner must fill the complete rounded card');
+assert.match(characterCss,/\.guardian-character-card__identity\{[\s\S]*?left:24px;[\s\S]*?right:60px;/,'Character identity overlay must move exactly 10px right');
+assert.match(characterCss,/\.guardian-character-card__stats\{[\s\S]*?left:24px;[\s\S]*?right:4px;/,'Character stat overlay must move exactly 10px right');
 assert.match(characterCss,/\.guardian-character-card\.is-selected::before\{opacity:\.48;filter:saturate\(\.48\) brightness\(\.68\)\}/,'Selected card artwork must use the approved passive treatment');
 assert.match(characterCss,/0 18px 34px -14px rgba\(104,190,255,\.72\)/,'Selected card must use a restrained glow behind the card');
 assert.match(profile,/\["Weapons",2996146975[\s\S]*?\["Health",392767087[\s\S]*?\["Class",1943323491[\s\S]*?\["Grenade",1735777505[\s\S]*?\["Super",144602215[\s\S]*?\["Melee",4244567218/,'The six current Destiny stat definitions must retain Bungie order');

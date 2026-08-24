@@ -16,22 +16,25 @@ def main() -> int:
     hero_styles = (PAGE / "guardian-hero.css").read_text(encoding="utf-8")
 
     assert 'id="guardianCharacterCards"' in html
-    assert 'src="./guardian-character-cards.mjs"' in html
-    assert 'href="./guardian-character-cards.css"' in html
+    assert 'src="./guardian-character-cards.mjs?v=' in html
+    assert 'href="./guardian-character-cards.css?v=' in html
     assert '<div class="identity">' not in html
-    assert "const MAX_CHARACTERS=3" in module
-    assert "STAT_SYMBOLS" in module
+    assert "const MAX_CHARACTERS = 3" in module
+    assert 'class="guardian-stat-icon"' in module
     assert "guardian-character-card__rank" not in module
     assert 'new CustomEvent("astrix:character-selected"' in module
     assert '"astrix:bungie-character-roster"' in module
     assert "function characterRoster(" in profile
     assert "function selectLiveCharacter(" in profile
-    assert 'publishCharacterRoster(payload,detail.characterId)' in profile
+    assert 'publishCharacterRoster(liveProfilePayload,detail.characterId)' in profile
     assert 'grid-template-columns:repeat(3' in styles
     assert 'scroll-snap-type:x mandatory' in styles
-    assert "color:rgb(var(--stage-accent-rgb" in styles
-    assert "background:rgba(var(--stage-accent-rgb" in styles
-    assert "clamp(.64rem,.65vw,.84rem)" in styles
+    assert "border-color:rgba(var(--stage-accent-rgb" in styles
+    assert "background:rgba(7,9,14,.52)" in styles
+    assert "font:800 .78rem Inter,sans-serif" in styles
+    assert "background:var(--character-emblem) center/100% 100% no-repeat" in styles
+    assert "left:24px;\n  right:60px" in styles
+    assert "left:24px;\n  right:4px" in styles
     assert ".class-super-row{" in styles
     assert ".class-super-row .subclass-hero" in styles
     assert "grid-template-rows:auto 62px auto" in styles
@@ -40,7 +43,7 @@ def main() -> int:
     assert ".super-option:nth-child(2){top:2px;left:25%}" in styles
     assert ".super-option:nth-child(3){top:2px;left:75%}" in styles
     assert "scrollbar-width:none" in styles
-    assert ".slice(0,3)" in (PAGE / "guardian-advisor-layer.mjs").read_text(encoding="utf-8")
+    assert ".slice(0,4)" in (PAGE / "guardian-advisor-layer.mjs").read_text(encoding="utf-8")
     assert "left:50%!important" in hero_styles
     assert "top:50%!important" in hero_styles
     assert "transform:translate(-50%,-50%)!important" in hero_styles
@@ -54,8 +57,8 @@ def main() -> int:
     print("MOBILE_HORIZONTAL_STRIP=PASS")
     print("LEGACY_IDENTITY_STATS_REMOVED=PASS")
     print("GUARDIAN_RANK_DEFERRED=PASS")
-    print("STAT_ICON_SUBCLASS_TINT=PASS")
-    print("STAT_VALUE_SIZE_TWO_STEPS=PASS")
+    print("STAT_ICON_BUNGIE_ARTWORK=PASS")
+    print("STAT_VALUE_FIXED_RIBBON=PASS")
     print("LEFT_CLASS_SUPER_ALIGNMENT=PASS")
     print("HERO_STATUS_CENTRED=PASS")
     return 0
