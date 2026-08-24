@@ -26,8 +26,9 @@ assert.match(profile,/character selection cannot fall back to last played/,'Miss
 assert.match(formationModule,/\['equipped','alternate-5','alternate-4','alternate-3','alternate-2','alternate-1'\]/,'Partial Supers must fill bottom, right, left, then up');
 assert.match(formationModule,/slot\.hidden=!item/,'Unused Super diamonds must not render');
 assert.match(formationModule,/dataset\.superCount/,'Resolved Super count must be exposed to CSS');
-assert.match(formationCss,/super-diamond--equipped::before\{border-width:12px/,'Equipped Super needs the 12px inner bevel');
-assert.match(formationCss,/border:6px solid/,'Alternate Supers need the smaller 6px inner bevel');
+assert.match(formationCss,/--super-equipped-bevel:5px/,'Equipped Super needs the approved 4–6px bevel');
+assert.match(formationCss,/--super-alternate-bevel:2px/,'Alternate Supers need the approved 1–2px bevel');
+assert.match(formationCss,/border:var\(--super-bevel-size\) solid/,'Super bevel thickness must use the shared size token');
 assert.match(formationCss,/data-super-count="1"/,'Single-Super compact geometry is missing');
 assert.match(formationCss,/data-super-count="5"/,'Five-Super centred geometry is missing');
 
@@ -56,6 +57,12 @@ assert.match(buildModule,/createBuildState\(detail\)/,'Selected Build Tool chara
 assert.match(buildModule,/astrix:build-render-complete/,'Build Tool must publish render completion');
 assert.match(buildCss,/grid-template-columns:repeat\(2,var\(--pf-build-mod-size\)\) 8px repeat\(2,var\(--pf-build-mod-size\)\) 8px repeat\(2,var\(--pf-build-mod-size\)\)/,'Build armour mods must form horizontal 2-2-2 groups');
 assert.match(buildCss,/gear-mod:nth-child\(6\)\{grid-column:8\}/,'Build 2-2-2 grouping must place all six real mod slots');
+
+for(const [label,html] of [['Main',await read('index.html')],['Build',buildHtml]]){
+  assert.match(html,/astrix-tokens\.css/,`${label} must load the supplied token sheet on this branch`);
+  assert.match(html,/class="scene immersive"/,`${label} token preview scene is missing`);
+  assert.match(html,/class="grain"/,`${label} token preview grain is missing`);
+}
 
 console.log('MAIN_RENDER_GATE=PASS');
 console.log('SUBCLASS_SUPER_DATA_PATH=PASS');

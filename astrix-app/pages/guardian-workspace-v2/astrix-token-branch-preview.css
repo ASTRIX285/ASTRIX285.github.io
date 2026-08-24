@@ -1,0 +1,22 @@
+/* Branch-only bridge for evaluating astrix-tokens.css on Guardian Build Forge.
+ * The supplied global token sheet remains unchanged and loads first. This
+ * scoped layer exposes its chassis without replacing subclass data colours. */
+body.astrix-token-preview{
+  background:transparent!important;
+  color:var(--text)!important;
+  font-family:var(--font)!important;
+}
+body.astrix-token-preview .topbar{
+  border-color:var(--border-strong)!important;
+  background:color-mix(in srgb,var(--surface) 86%,#080604 14%)!important;
+  backdrop-filter:var(--blur)!important;
+}
+body.astrix-token-preview :is(.panel,.eq,.gear-slot,.summary-card,.intel-card){
+  border-color:var(--border)!important;
+  background:linear-gradient(180deg,var(--surface-2),var(--surface))!important;
+  box-shadow:var(--shadow)!important;
+  backdrop-filter:var(--blur)!important;
+}
+body.astrix-token-preview :is(.panel-head,.section-title,.rail-section){
+  border-color:var(--border)!important;
+}

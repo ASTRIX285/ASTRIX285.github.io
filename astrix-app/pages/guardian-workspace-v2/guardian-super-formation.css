@@ -83,6 +83,8 @@ html body .workspace .left .subclass-super-shell.equipped-subclass-stack{
 
 .super-feature{
   --super-accent:#8B4DFF;
+  --super-equipped-bevel:5px;
+  --super-alternate-bevel:2px;
   position:relative!important;
   display:flex!important;
   flex:0 0 auto!important;
@@ -119,6 +121,7 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
 }
 
 .super-feature .super-diamond{
+  --super-bevel-size:var(--super-alternate-bevel);
   position:absolute!important;
   display:grid!important;
   place-items:center!important;
@@ -138,17 +141,16 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   position:absolute!important;
   z-index:1!important;
   inset:0!important;
-  border:6px solid color-mix(in srgb,var(--super-accent) 34%,rgba(255,255,255,.24))!important;
+  border:var(--super-bevel-size) solid color-mix(in srgb,var(--super-accent) 34%,rgba(255,255,255,.24))!important;
   box-shadow:
-    inset 3px 3px 5px rgba(255,255,255,.18),
-    inset -4px -4px 7px rgba(0,0,0,.52)!important;
+    inset 1px 1px 2px rgba(255,255,255,.18),
+    inset -2px -2px 3px rgba(0,0,0,.52)!important;
   pointer-events:none!important;
 }
-.super-feature .super-diamond--equipped::before{border-width:12px!important}
 .super-feature .super-diamond::after{
   content:""!important;
   position:absolute!important;
-  inset:6px!important;
+  inset:var(--super-bevel-size)!important;
   border:1px solid color-mix(in srgb,var(--super-accent) 28%,transparent)!important;
   pointer-events:none!important;
 }
@@ -190,7 +192,7 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
 }
 
 /* Exact PSD coordinates. Do not re-derive. */
-.super-feature .super-diamond--equipped{left:50.25%!important;top:34.50%!important;width:41.45%!important;z-index:3!important}
+.super-feature .super-diamond--equipped{--super-bevel-size:var(--super-equipped-bevel);left:50.25%!important;top:34.50%!important;width:41.45%!important;z-index:3!important}
 .super-feature .super-diamond--alt{width:20.51%!important;z-index:2!important}
 .super-feature .super-diamond--alt1{left:19.62%!important;top:49.75%!important}
 .super-feature .super-diamond--alt2{left:80.38%!important;top:50.12%!important}
