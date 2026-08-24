@@ -68,7 +68,7 @@ const locked=toggleIntendedArtifactPerk(liveArtifact,toggled,2);
 assert.deepEqual(locked.selectedPerkHashes,[501,502],'locked tiers must not be staged');
 
 const fixtureWithoutConfiguration=createBuildState({
-  source:'paradox-fixture',
+  source:'paradox-beta',
   characterId:'fixture-generated-configuration',
   artifact:{
     hash:2001,
