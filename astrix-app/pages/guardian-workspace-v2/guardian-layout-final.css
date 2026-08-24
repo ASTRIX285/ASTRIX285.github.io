@@ -52,17 +52,36 @@
   height:58px!important;
   min-height:58px!important;
   max-height:58px!important;
-  padding:5px 7px!important;
-  gap:2px!important;
+  padding:0!important;
+  gap:0!important;
   border-radius:6px!important;
   box-shadow:0 5px 14px rgba(0,0,0,.28)!important;
 }
-.topbar .guardian-character-card__head{grid-template-columns:24px minmax(0,1fr) auto!important;gap:5px!important}
-.topbar .guardian-character-card__emblem{width:24px!important;height:24px!important;border-radius:3px!important}
-.topbar .guardian-character-card__head strong{font-size:.66rem!important;letter-spacing:.035em!important}
+.topbar .guardian-character-card__head{position:absolute!important;inset:0!important;display:block!important}
+.topbar .guardian-character-card__identity{
+  top:20px!important;
+  left:20px!important;
+  right:20px!important;
+  padding:0!important;
+  text-align:right!important;
+}
+.topbar .guardian-character-card__head strong{font-size:.66rem!important;line-height:1.05!important;letter-spacing:.035em!important}
 .topbar .guardian-character-card__head small{display:none!important}
-.topbar .guardian-character-card__power{align-self:center!important;font-size:.65rem!important}
-.topbar .guardian-character-card__stats{display:grid!important;grid-template-columns:repeat(6,1fr)!important;gap:2px!important;padding:0!important}
+.topbar .guardian-character-card__power{
+  top:6px!important;
+  right:8px!important;
+  align-self:auto!important;
+  font-size:.65rem!important;
+}
+.topbar .guardian-character-card__stats{
+  left:20px!important;
+  right:7px!important;
+  bottom:4px!important;
+  display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  gap:2px!important;
+  padding:0!important;
+}
 .topbar .guardian-character-card__stat{
   display:grid!important;grid-template-columns:10px auto!important;align-items:center!important;justify-content:center!important;
   width:auto!important;min-width:0!important;height:16px!important;min-height:16px!important;padding:0!important;gap:1px!important;
@@ -90,7 +109,6 @@
   .workspace{grid-template-columns:clamp(320px,28vw,350px) minmax(0,1fr) clamp(270px,27vw,330px)!important}
   .topbar .guardian-character-cards{left:50%!important;grid-template-columns:repeat(3,165px)!important;width:509px!important}
   .topbar .guardian-character-card{width:165px!important;min-width:165px!important;max-width:165px!important}
-  .topbar .guardian-character-card__stats{display:none!important}
 }
 
 /* -------------------- SUBCLASS + SUPER -------------------- */
