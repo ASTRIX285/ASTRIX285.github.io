@@ -3,13 +3,13 @@ import {readFile} from 'node:fs/promises';
 
 const ROOT=new URL('../pages/guardian-workspace-v2/',import.meta.url);
 const read=path=>readFile(new URL(path,ROOT),'utf8');
-const [workspace,workspaceHtml,loader,profile,formationModule,formationCss,superSync,sharedRailCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsModule,loadoutsCss,handoff,buildHtml,buildModule,buildCss,tokenPreview,resolutionCss]=await Promise.all([
+const [workspace,workspaceHtml,loader,profile,formationModule,formationCss,superSync,sharedRailCss,gearModule,gearCss,characterModule,characterCss,artifact,loadoutsModule,loadoutsCss,handoff,buildHtml,buildModule,buildCss,tokenPreview]=await Promise.all([
   read('guardian-workspace-v2.mjs'),read('index.html'),read('guardian-main-loader.mjs'),read('guardian-bungie-profile.mjs'),
   read('guardian-super-formation.mjs'),read('guardian-super-formation.css'),read('guardian-super-feature-sync.mjs'),read('guardian-left-rail-shared.css'),read('guardian-gear-layout.mjs'),
   read('guardian-gear-layout.css'),read('guardian-character-cards.mjs'),read('guardian-character-cards.css'),
   read('guardian-artifact.mjs'),read('guardian-loadouts.mjs'),read('guardian-layout-final.css'),read('paradox-build-space-handoff.mjs'),
   read('paradox-build-space/index.html'),read('paradox-build-space/paradox-build-space.mjs'),read('paradox-build-space/paradox-build-space.css'),
-  read('astrix-token-branch-preview.css'),read('guardian-resolution-adaptive.css')
+  read('astrix-token-branch-preview.css')
 ]);
 
 assert.match(workspace,/astrix:guardian-render-complete/,'Main must publish render completion');
@@ -45,6 +45,10 @@ assert.match(formationCss,/\.super-diamond>span>img[\s\S]*?object-fit:cover!impo
 assert.match(formationCss,/\.super-diamond--equipped>span\{[\s\S]*?inset:var\(--super-equipped-bevel\)!important/,'Equipped Super artwork must stop at the inner bevel');
 
 assert.match(gearModule,/armour-set-bonus-icon/,'Resolved armour set icon must sit with the armour image');
+assert.match(gearModule,/armour-archetype-icon/,'The shared Main armour-type icon overlay is missing');
+assert.match(gearModule,/armour-season-icon/,'The shared Main season/source emblem is missing');
+assert.match(gearModule,/armourTier \?\? item\?\.armourSemantics\?\.tier \?\? item\?\.gearTier/,'Armour tier must retain the Bungie instance fallback');
+assert.match(gearModule,/https:\/\/www\.bungie\.net/,'Relative Bungie armour artwork paths must resolve against Bungie');
 assert.match(gearModule,/is-set-2-active/,'2-piece active state must reach the card');
 assert.match(gearModule,/is-set-4-active/,'4-piece active state must reach the card');
 assert.match(gearCss,/\.gear-slot\.is-set-2-active/,'2-piece card highlight is missing');
@@ -68,6 +72,9 @@ assert.match(profile,/bc69675acdae9e6b9a68a02fb4d62e07/,'Weapons must use Bungie
 assert.doesNotMatch(characterModule,/guardian-character-card__head[^\n]*<small>/,'Guardian cards must not render a title subtitle');
 assert.match(characterCss,/grid-template-columns:repeat\(3,300px\)/,'Main and Build must share the fixed-width character-card ribbon');
 assert.match(buildHtml,/id="backToGuardian"/,'Build Design must retain the Back button');
+assert.match(buildCss,/\.build-back-btn\{min-height:28px;padding:5px 10px/,'Build Design Back button styling must remain independent of armour layout');
+assert.doesNotMatch(workspaceHtml,/guardian-resolution-adaptive\.css/,'Main must not load the rejected broad resize override');
+assert.doesNotMatch(buildHtml,/guardian-resolution-adaptive\.css/,'Build must not load the rejected broad resize override');
 assert.match(artifact,/NO ACTIVE PERKS REPORTED BY BUNGIE/,'A resolved zero-perk Artifact must show an explicit Bungie state');
 assert.match(artifact,/ARTIFACT STATE UNAVAILABLE/,'An unresolved Artifact must remain explicit');
 assert.match(loadoutsCss,/background-image:var\(--loadout-color-image/,'Saved loadout must retain its Bungie colour image');
@@ -94,19 +101,11 @@ assert.match(loadoutsModule,/pendingIndex=index;[\s\S]*?astrix:loadout-selected/
 assert.doesNotMatch(loadoutsModule,/activeIndex=index;[\s\S]*?astrix:loadout-selected/,'A loadout must not become active before Bungie returns the exact slot');
 assert.match(loadoutsModule,/astrix:loadout-error[\s\S]*?pendingIndex=null/,'A failed loadout request must restore the previous committed selection');
 assert.match(gearModule,/const MAIN_MOD_TILE_SIZE = "var\(--pf-slot,52px\)"/,'Main and Build must inherit the exact shared socket size');
-assert.match(buildCss,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,'All five Build armour cards must fit the central console');
-assert.match(buildCss,/overflow:visible!important;[\s\S]*?scrollbar-width:none/,'Build armour rack must not create a horizontal scrollbar');
-assert.doesNotMatch(buildCss,/--pf-build-armour-card-width:300px/,'Build armour cards must not force a 300px overflow width');
-assert.match(buildCss,/grid-template-columns:repeat\(3,var\(--pf-mod-size,52px\)\)!important/,'Build armour mods must form three exact Main-sized columns');
-assert.match(buildCss,/grid-template-rows:repeat\(2,var\(--pf-mod-size,52px\)\)!important/,'Build armour mods must form two 2-2-2 rows');
+assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-columns/,'Build must not override the Main armour-card grid');
+assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-slot\{/,'Build must not override Main armour-card dimensions or padding');
+assert.match(buildCss,/grid-template-columns:repeat\(3,var\(--pf-mod-size,36px\)\)!important/,'Build armour mods must form three Main-sized columns');
+assert.match(buildCss,/grid-template-rows:repeat\(2,var\(--pf-mod-size,36px\)\)!important/,'Build armour mods must form two 2-2-2 rows');
 assert.match(buildCss,/grid-auto-flow:column!important/,'Build armour mods must fill each vertical pair before the next pair');
-assert.match(resolutionCss,/html\{font-size:max\(16px,\.833333vw\)!important\}/,'Desktop typography must scale above a readable 1920px baseline');
-assert.match(resolutionCss,/grid-template-columns:max\(384px,20vw\) minmax\(0,1fr\)!important/,'Main desktop rail must scale above its readable baseline');
-assert.match(resolutionCss,/grid-template-columns:max\(384px,20vw\) minmax\(0,1fr\) max\(364\.8px,19vw\)!important/,'Build rails must scale above their readable baseline');
-assert.match(resolutionCss,/--pf-mod-size:var\(--pf-slot\)/,'Main and Build mod sockets must share one adaptive size variable');
-assert.match(resolutionCss,/guardian-character-card\{[\s\S]*?width:max\(300px,15\.625vw\)!important/,'Character cards must scale without becoming smaller than the approved baseline');
-assert.match(resolutionCss,/@media \(min-width:981px\) and \(max-width:1280px\)\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/,'Zoomed and compact Build consoles must reflow armour cards');
-assert.match(resolutionCss,/design-canvas \.gear-combined\{overflow:visible!important\}/,'Narrow Build layouts must not create a central scrollbar');
 assert.match(sharedRailCss,/guardian-left-rail \.build-fragment-slots\{grid-template-columns:repeat\(5,var\(--guardian-rail-slot\)\)/,'Shared rail must fit five Fragment sockets in one row');
 assert.match(sharedRailCss,/guardian-left-rail \.artifact-row/,'Artifact summary must be owned by the shared Main and Build rail');
 assert.match(sharedRailCss,/artifact-item-selector[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Expanded Artifact catalogue must form 2-2-2 rows');

@@ -3,7 +3,7 @@ import {mountForgeShell} from '../platform-forge-shell.mjs';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs';
 import {renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
 import {createPerkChangePlan,confirmPerkChangePlan,applyConfirmedPerkChangePlan} from '../guardian-perk-change-plan.mjs';
-import {armourCard} from '../guardian-gear-layout.mjs?v=20260824-mod-size-3';
+import {armourCard} from '../guardian-gear-layout.mjs?v=20260824-armour-mirror-1';
 import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260824-artifact-state-2';
 import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260824-bungie-art-4';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
