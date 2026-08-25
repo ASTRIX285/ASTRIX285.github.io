@@ -132,6 +132,7 @@ assert.match(loadoutsModule,/astrix:loadout-error[\s\S]*?pendingIndex=null/,'A f
 assert.match(gearModule,/const MAIN_MOD_TILE_SIZE = "var\(--pf-slot,52px\)"/,'Main and Build must inherit the exact shared socket size');
 assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-columns/,'Build must not override the Main armour-card grid');
 assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-slot\{/,'Build must not override Main armour-card dimensions or padding');
+assert.match(buildCss,/\.design-canvas \.gear-combined\{--pf-mod-size:var\(--pf-slot,52px\)/,'Build mod tiles must use the exact Character-screen size token');
 assert.match(buildCss,/grid-template-columns:repeat\(3,var\(--pf-mod-size,36px\)\)!important/,'Build armour mods must form three Main-sized columns');
 assert.match(buildCss,/grid-template-rows:repeat\(2,var\(--pf-mod-size,36px\)\)!important/,'Build armour mods must form two 2-2-2 rows');
 assert.match(buildCss,/grid-auto-flow:column!important/,'Build armour mods must fill each vertical pair before the next pair');
