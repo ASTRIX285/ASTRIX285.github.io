@@ -46,3 +46,31 @@ jobs:
       - name: Paradox Validator — authentication guard
         run: |
           node -e "fetch('https://auth.astrixparadox.com/bungie/profile').then(async r=>{const b=await r.json();if(r.status!==401||b.error!=='authentication_required')throw new Error(r.status+' '+JSON.stringify(b));console.log('profile guard pass')})"
+      - name: Paradox Validator — localhost credentialed CORS
+        run: |
+          node - <<'NODE'
+          for (const origin of ['http://localhost:8000', 'http://localhost:5500']) {
+            const preflight = await fetch('https://auth.astrixparadox.com/bungie/profile', {
+              method: 'OPTIONS',
+              headers: {
+                Origin: origin,
+                'Access-Control-Request-Method': 'GET',
+                'Access-Control-Request-Headers': 'Content-Type'
+              }
+            });
+            if (preflight.status !== 204) throw new Error(`${origin} preflight status ${preflight.status}`);
+            if (preflight.headers.get('access-control-allow-origin') !== origin) throw new Error(`${origin} preflight origin mismatch`);
+            if (preflight.headers.get('access-control-allow-credentials') !== 'true') throw new Error(`${origin} preflight credentials missing`);
+
+            const profile = await fetch('https://auth.astrixparadox.com/bungie/profile', {
+              headers: { Origin: origin }
+            });
+            const body = await profile.json();
+            if (profile.status !== 401 || body.error !== 'authentication_required') {
+              throw new Error(`${origin} profile guard ${profile.status} ${JSON.stringify(body)}`);
+            }
+            if (profile.headers.get('access-control-allow-origin') !== origin) throw new Error(`${origin} profile origin mismatch`);
+            if (profile.headers.get('access-control-allow-credentials') !== 'true') throw new Error(`${origin} profile credentials missing`);
+          }
+          console.log('localhost CORS pass');
+          NODE
