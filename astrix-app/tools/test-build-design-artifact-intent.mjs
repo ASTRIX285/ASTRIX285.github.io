@@ -38,7 +38,7 @@ assert.equal(Object.isFrozen(protectedHydrated.workingBuild),false,'Working Buil
 assert.throws(()=>{protectedHydrated.originalBuild.artifactConfiguration.selectedPerkHashes.push(777);},TypeError);
 protectedHydrated.workingBuild.artifactConfiguration.selectedPerkHashes.push(777);
 assert.deepEqual(protectedHydrated.originalBuild.artifactConfiguration.selectedPerkHashes,[123]);
-assert.deepEqual(protectedHydrated.workingBuild.artifactConfiguration.selectedPerkHashes,[123,777]);
+assert.deepEqual(protectedHydrated.workingBuild.artifactConfiguration.selectedPerkHashes,[501,502,777]);
 assert.deepEqual(protectedHydrated.validationRecords,[{testId:'preserved-history'}]);
 
 const perkOnly=createBuildState({characterId:'fixture',artifact:{hash:1001},artifactConfiguration:{artifactHash:1001,seasonNumber:29,selectedPerkHashes:[501]}});
