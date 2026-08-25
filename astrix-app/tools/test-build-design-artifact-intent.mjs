@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,restoreWorkingBuild,diffBuilds} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
+import {createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,protectBuildState,restoreWorkingBuild,diffBuilds} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 
 const originalConfiguration={schemaVersion:1,artifactHash:999,seasonNumber:28,selectedPerkHashes:[123],source:'fixture-intent',provenance:{provider:'fixture'}};
 const state=createBuildState({characterId:'fixture',artifactConfiguration:originalConfiguration});
@@ -28,6 +28,18 @@ assert.equal(restored.recommendation,null);
 assert.deepEqual(restored.validationRecords,[{testId:'preserved-history'}]);
 restored.workingBuild.artifactConfiguration.selectedPerkHashes.push(999);
 assert.deepEqual(restored.originalBuild.artifactConfiguration.selectedPerkHashes,[123]);
+
+const hydrated=JSON.parse(JSON.stringify(state));
+assert.equal(Object.isFrozen(hydrated.originalBuild),false,'browser storage hydration removes JavaScript immutability');
+const protectedHydrated=protectBuildState(hydrated);
+assert.equal(Object.isFrozen(protectedHydrated.originalBuild),true,'hydrated Original Build must be frozen again');
+assert.equal(Object.isFrozen(protectedHydrated.originalBuild.artifactConfiguration),true,'nested Original Build state must also be frozen');
+assert.equal(Object.isFrozen(protectedHydrated.workingBuild),false,'Working Build must remain editable');
+assert.throws(()=>{protectedHydrated.originalBuild.artifactConfiguration.selectedPerkHashes.push(777);},TypeError);
+protectedHydrated.workingBuild.artifactConfiguration.selectedPerkHashes.push(777);
+assert.deepEqual(protectedHydrated.originalBuild.artifactConfiguration.selectedPerkHashes,[123]);
+assert.deepEqual(protectedHydrated.workingBuild.artifactConfiguration.selectedPerkHashes,[123,777]);
+assert.deepEqual(protectedHydrated.validationRecords,[{testId:'preserved-history'}]);
 
 const perkOnly=createBuildState({characterId:'fixture',artifact:{hash:1001},artifactConfiguration:{artifactHash:1001,seasonNumber:29,selectedPerkHashes:[501]}});
 perkOnly.workingBuild.artifactConfiguration.selectedPerkHashes=[501,502];
