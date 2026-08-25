@@ -292,3 +292,15 @@ html,body{
 .build-loading-gate.is-complete .build-loading-brand{filter:drop-shadow(0 0 16px rgba(237,48,61,.9)) drop-shadow(0 0 12px rgba(214,167,46,.55))}
 .build-loading-gate.is-launching .build-loading-surface{animation:build-launch .55s cubic-bezier(.2,.8,.2,1) both}
 @keyframes build-launch{0%{transform:scale(1);opacity:1}55%{transform:scale(1.035);filter:brightness(1.28)}100%{transform:scale(.96);opacity:0;filter:brightness(1.5)}}
+
+
+/* Narrow Build Forge header containment. Preserve the brand and source identity
+   without allowing either fixed-content block to force page-level overflow. */
+@media(max-width:720px){
+  .topbar{padding-inline:max(10px,env(safe-area-inset-left)) max(10px,env(safe-area-inset-right));gap:8px}
+  .brand{min-width:0;gap:7px}
+  .brand img{width:30px;height:30px;flex:0 0 30px}
+  .brand span{min-width:0;overflow:hidden}
+  .brand b,.brand small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .source-pill{min-width:0;max-width:112px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 8px}
+}
