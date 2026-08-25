@@ -66,6 +66,10 @@ assert.match(formationCss,/\.super-diamond--equipped>span\{[\s\S]*?inset:var\(--
 
 assert.match(gearModule,/armour-set-bonus-icon/,'Resolved armour set icon must sit with the armour image');
 assert.match(gearModule,/armour-archetype-icon/,'The shared Main armour-type icon overlay is missing');
+assert.match(gearModule,/function armourModSequence\(item, armourTier, archetype\)/,'Main and Build must share one exact armour slot contract');
+assert.match(gearModule,/return \[masterwork, \.\.\.clean\(generalSource\)\.slice\(0, 2\), \.\.\.clean\(slotSource\)\.slice\(0, 3\)\]/,'Armour slots must remain one masterwork, two general mods and three armour-type mods');
+assert.match(gearModule,/!isArmourTypeSymbol\(plug\) && !isIgnoredArmourPlug\(plug\)/,'Archetype, Infuse and exotic perk symbols must never enter the mod grid');
+assert.match(gearModule,/manifestExoticPerk = item\?\.armourSemantics\?\.exoticPerk \?\? item\?\.exoticPerk \?\? item\?\.intrinsicTrait/,'Manifest exotic perk must stay on the armour piece even without a cached rarity flag');
 assert.match(gearModule,/armour-season-icon/,'The shared Main season/source emblem is missing');
 assert.match(gearModule,/armourTier \?\? item\?\.armourSemantics\?\.tier \?\? item\?\.gearTier/,'Armour tier must retain the Bungie instance fallback');
 assert.match(gearModule,/https:\/\/www\.bungie\.net/,'Relative Bungie armour artwork paths must resolve against Bungie');
@@ -74,6 +78,7 @@ assert.match(gearModule,/is-set-4-active/,'4-piece active state must reach the c
 assert.match(gearCss,/\.gear-slot\.is-set-2-active/,'2-piece card highlight is missing');
 assert.match(gearCss,/\.gear-slot\.is-set-4-active/,'4-piece card highlight is missing');
 assert.match(gearCss,/height:108px!important/,'Armour and weapon portrait rows must be taller');
+assert.match(gearCss,/\.gear-mod\.is-masterwork-gold\{[^}]*border:3px solid #f0d55e[^}]*rgba\(142,34,48,\.94\)/,'Level-five masterwork must retain the crimson/gold stroke');
 assert.match(gearCss,/weapon-perk-strip\{[^}]*border:0[^}]*background:transparent/,'Selected perks must not sit inside a blue container');
 assert.match(gearCss,/weapon-support-icon\{width:var\(--pf-mod-size,36px\);height:var\(--pf-mod-size,36px\)/,'Weapon mod/masterwork icons must match armour mod size');
 

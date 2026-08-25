@@ -32,7 +32,7 @@ try{
       plug(5,'Helmet Mod','armor.mods.helmet'),
       {...plug(5,'Helmet Mod','armor.mods.helmet'),socketIndex:5},
       {...plug(5,'Helmet Mod','armor.mods.helmet'),socketIndex:6},
-      plug(6,'Bulwark Armour Archetype','armor.archetype'),
+      plug(6,'Bulwark','armor.masterworks.archetype'),
       plug(7,'Close Enough Exotic Armour Perk','armor.exotic.perk')
     ]
   });

@@ -172,7 +172,7 @@ function enrichArmour(detail,payload,profile,rows){
       slotMods:armourSemantics.slotMods,
       // Position 1 is permanently reserved for the verified armour upgrade
       // level. The following five positions retain Bungie's socket order.
-      mods:[masterworkSlot,...armourSemantics.generalMods,...armourSemantics.slotMods].slice(0,6),
+      mods:[masterworkSlot,...armourSemantics.generalMods.slice(0,2),...armourSemantics.slotMods.slice(0,3)],
       intrinsicTrait:armourSemantics.exoticPerk||item.intrinsicTrait||null
     };
   });
