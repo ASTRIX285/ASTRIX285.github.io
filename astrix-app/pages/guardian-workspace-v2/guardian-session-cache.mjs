@@ -6,7 +6,10 @@ const FAST_RETURN_KEY="astrix:guardian-fast-return:v1";
 const DB_NAME="astrix-guardian-session";
 const DB_VERSION=1;
 const STORE_NAME="guardian-data";
-const PROFILE_TTL_MS=30*60*1000;
+// The profile cache belongs to the current browser session. Keep the last
+// verified Guardian available for a full working session so Main <-> Build
+// navigation never collapses to placeholders while Bungie refreshes.
+const PROFILE_TTL_MS=12*60*60*1000;
 
 const safeSessionRead=key=>{
   try{return JSON.parse(sessionStorage.getItem(key)||"null");}

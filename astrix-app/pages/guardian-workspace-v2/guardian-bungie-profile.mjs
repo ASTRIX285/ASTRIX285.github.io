@@ -41,7 +41,9 @@ const setRenderStatus=(title,message,detail="")=>{
   if(detailNode)detailNode.textContent=detail;
 };
 
-async function fetchJsonWithTimeout(url,timeoutMs=15000){
+const PROFILE_REQUEST_TIMEOUT_MS=60_000;
+
+async function fetchJsonWithTimeout(url,timeoutMs=PROFILE_REQUEST_TIMEOUT_MS){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
@@ -630,8 +632,9 @@ function ensureLiveProfile(session,{background=false,silent=false}={}){
 
 async function handleAuthenticatedSession(session){
   if(!session?.authenticated)return null;
-  const first=await ensureLiveProfile(session,{background:true,silent:true});
-  if(first||liveProfileReady)return first;
+  // One authenticated profile request only. The earlier silent 15-second
+  // attempt immediately launched a second request when the Worker was still
+  // resolving Bungie manifest evidence, leaving the UI on empty placeholders.
   return ensureLiveProfile(session,{background:false,silent:false});
 }
 

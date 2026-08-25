@@ -35,7 +35,9 @@ assert.match(auth,/if\(session\?\.authenticated\)\{[\s\S]*?cacheBungieSession\(s
 assert.match(profile,/readCachedBungieProfile/,'Guardian profile must reuse the current authenticated session snapshot');
 assert.match(profile,/readCachedBungieLoadoutDetail/,'Selected Bungie loadout detail must survive Main and Build navigation');
 assert.match(sessionCache,/indexedDB\.open\(DB_NAME,DB_VERSION\)/,'Guardian session data must use browser storage capable of holding the full Bungie profile');
-assert.match(sessionCache,/PROFILE_TTL_MS=30\*60\*1000/,'Cached Guardian evidence must have an explicit freshness boundary');
+assert.match(sessionCache,/PROFILE_TTL_MS=12\*60\*60\*1000/,'Cached Guardian evidence must survive the complete browser work session');
+assert.match(profile,/PROFILE_REQUEST_TIMEOUT_MS=60_000/,'Authenticated Bungie profile resolution must allow manifest enrichment to finish');
+assert.match(profile,/return ensureLiveProfile\(session,\{background:false,silent:false\}\)/,'Authenticated profile recovery must issue one visible request rather than duplicate retries');
 assert.doesNotMatch(profile,/ensureLiveProfile\(globalThis\.ASTRIX_BUNGIE_SESSION\|\|null/,'Profile bootstrap must not make an unauthenticated profile request before session resolution');
 
 assert.match(profile,/resolveArtifactByProvenance/,'Artifact provenance resolver must be wired into the live profile');
