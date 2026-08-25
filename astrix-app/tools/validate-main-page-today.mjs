@@ -19,12 +19,16 @@ assert.match(loader,/astrix:guardian-render-complete/,'Loader must finish from t
 assert.doesNotMatch(loader,/window\.addEventListener\('load'[\s\S]*?finish/,'Loader must not finish on window load');
 assert.doesNotMatch(loader,/setTimeout\(finish/,'Loader must not finish from an arbitrary timeout');
 assert.match(loader,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>loader\?\.done\(\)\)\)/,'Main portal must clear only after the render-complete paint');
+assert.match(loader,/else finishAfterPaint\('Guardian access ready'\)/,'An unauthenticated local session must reveal the Guardian page and Connect button');
+assert.match(loader,/currentSession=window\.ASTRIX_BUNGIE_SESSION[\s\S]*?guardianRenderComplete/,'Main portal must reconcile Guardian state if startup completed before listener registration');
+assert.ok(workspaceHtml.indexOf('guardian-portal-progress.mjs')<workspaceHtml.indexOf('guardian-workspace-v2.mjs'),'Main portal progress must start listening before Guardian modules run');
 assert.match(portalCss,/body\.apx-loading\{overflow:hidden!important\}/,'Shared portal must preserve page scroll locking above page-specific layout rules');
 assert.match(portalCss,/@media\(prefers-reduced-motion:reduce\)/,'Shared portal must honour reduced motion');
 assert.match(portalController,/role="status" aria-live="polite"/,'Shared portal must retain its accessible live status');
 assert.match(portalController,/APX_SKIP_PORTAL===true/,'Shared portal must support the explicit cached Guardian fast-return path');
 
 assert.match(auth,/readCachedBungieSession/,'Bungie authentication must reuse the current tab session');
+assert.match(auth,/if\(session\?\.authenticated\)cacheBungieSession\(session\);[\s\S]*?dispatchEvent\(new CustomEvent\("astrix:bungie-session"/,'Bungie authentication must publish both connected and disconnected session results');
 assert.match(profile,/readCachedBungieProfile/,'Guardian profile must reuse the current authenticated session snapshot');
 assert.match(profile,/readCachedBungieLoadoutDetail/,'Selected Bungie loadout detail must survive Main and Build navigation');
 assert.match(sessionCache,/indexedDB\.open\(DB_NAME,DB_VERSION\)/,'Guardian session data must use browser storage capable of holding the full Bungie profile');

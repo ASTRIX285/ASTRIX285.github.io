@@ -7,7 +7,10 @@ const finishAfterPaint=label=>{
 
 set(8,'Preparing Build Forge');
 document.addEventListener('astrix:guardian-loading',()=>set(18,'Connecting to Bungie'));
-window.addEventListener('astrix:bungie-session',event=>set(event.detail?.authenticated?32:24,event.detail?.authenticated?'Bungie session ready':'Preparing Guardian access'));
+window.addEventListener('astrix:bungie-session',event=>{
+  if(event.detail?.authenticated)set(32,'Bungie session ready');
+  else finishAfterPaint('Guardian access ready');
+});
 document.addEventListener('astrix:bungie-profile-loaded',event=>{
   if(event.detail?.pendingSelection)finishAfterPaint('Guardian selection ready');
   else set(70,'Guardian profile resolved');
@@ -16,3 +19,8 @@ document.addEventListener('astrix:guardian-selection-changed',()=>set(86,'Painti
 document.addEventListener('astrix:beta-fixture-loaded',()=>set(86,'Painting Guardian preview'));
 document.addEventListener('astrix:guardian-render-complete',()=>finishAfterPaint('Guardian build rendered'),{once:true});
 document.addEventListener('astrix:guardian-error',()=>finishAfterPaint('Guardian state rendered'),{once:true});
+
+const currentSession=window.ASTRIX_BUNGIE_SESSION;
+if(document.documentElement.dataset.guardianRenderComplete==='true')finishAfterPaint('Guardian build rendered');
+else if(currentSession?.authenticated)set(32,'Bungie session ready');
+else if(currentSession)finishAfterPaint('Guardian access ready');

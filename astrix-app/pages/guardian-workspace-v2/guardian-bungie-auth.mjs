@@ -74,8 +74,7 @@ async function requestSession(){
 }
 
 function publishSession(session){
-  if(!session?.authenticated)return;
-  cacheBungieSession(session);
+  if(session?.authenticated)cacheBungieSession(session);
   globalThis.ASTRIX_BUNGIE_SESSION=session;
   globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session}));
 }
@@ -98,7 +97,9 @@ function getBungieSession({force=false}={}){
     })
     .catch(error=>{
       console.info("[ASTRIX Bungie auth] no active session",error);
-      return {authenticated:false,error:error?.message||"session_unavailable"};
+      const session={authenticated:false,error:error?.message||"session_unavailable"};
+      publishSession(session);
+      return session;
     });
   globalThis.ASTRIX_BUNGIE_SESSION_PROMISE=sessionRequest;
   return sessionRequest;

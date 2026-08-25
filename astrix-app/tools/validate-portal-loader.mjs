@@ -38,6 +38,9 @@ assert.doesNotMatch(mainHtml,/guardian-loading-gate|guardianLoadingProgress|data
 assert.doesNotMatch(buildHtml,/build-loading-gate|buildLoadingProgress|data-lit-edges/,'Build legacy hex gate must be removed');
 assert.match(mainProgress,/astrix:guardian-render-complete',\(\)=>finishAfterPaint/,'Main must finish from its existing render-complete contract');
 assert.match(mainProgress,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>loader\?\.done\(\)\)\)/,'Main completion must clear after the final painted frame');
+assert.match(mainProgress,/else finishAfterPaint\('Guardian access ready'\)/,'Main portal must finish when local Bungie authentication is not yet connected');
+assert.match(mainProgress,/currentSession=window\.ASTRIX_BUNGIE_SESSION[\s\S]*?guardianRenderComplete/,'Main portal must reconcile a session or render that completed before listener registration');
+assert.ok(mainHtml.indexOf('guardian-portal-progress.mjs')<mainHtml.indexOf('guardian-workspace-v2.mjs'),'Main progress listener must load before Guardian startup');
 assert.match(mainHtml,/astrix:guardian-fast-return:v1/,'Main must consume the Build-to-Guardian fast-return marker before the portal mounts');
 assert.match(buildHtml,/astrix:guardian-fast-return:v1/,'Build must consume the authenticated Main-to-Build fast-return marker before the portal mounts');
 assert.match(buildModule,/markGuardianFastReturn\(\)/,'Build Back must preserve the authenticated Guardian session return path');
