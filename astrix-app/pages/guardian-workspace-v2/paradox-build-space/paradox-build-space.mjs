@@ -5,7 +5,8 @@ import {renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
 import {createPerkChangePlan,confirmPerkChangePlan,applyConfirmedPerkChangePlan} from '../guardian-perk-change-plan.mjs';
 import {armourCard} from '../guardian-gear-layout.mjs';
 import {renderWeapons} from '../guardian-semantic-ui.mjs';
-import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-formation.mjs';\nimport {guardianReturnMode} from '../guardian-session-continuity.mjs';
+import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-formation.mjs';
+import {guardianReturnMode} from '../guardian-session-continuity.mjs';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 

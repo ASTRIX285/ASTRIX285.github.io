@@ -1,4 +1,6 @@
-import {SESSION_CACHE_KEY,createSessionCacheEnvelope,readReusableSession} from "./guardian-session-continuity.mjs";\n\nconst AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
+import {SESSION_CACHE_KEY,createSessionCacheEnvelope,readReusableSession} from "./guardian-session-continuity.mjs";
+
+const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
 const CANONICAL_APP_ORIGIN = "https://astrixparadox.com";
 
 function authReturnUrl(){
@@ -79,8 +81,9 @@ async function requestSession(){
       signal:controller.signal
     });
     const session=await response.json().catch(()=>({authenticated:false}));
-    if(response.status===401)return {authenticated:false};
+    if(response.status===401){clearCachedSession();return {authenticated:false};}
     if(!response.ok)throw new Error(session?.error||`session:${response.status}`);
+    if(session?.authenticated)storeCachedSession(session);
     return session;
   }finally{
     clearTimeout(timer);
