@@ -22,10 +22,11 @@ assert.match(markup,/--loadout-color-image:url\(https:\/\/www\.bungie\.net\//);
 assert.match(markup,/class="guardian-loadout-icon" src="https:\/\/www\.bungie\.net\//);
 
 const root='astrix-app/pages/guardian-workspace-v2/';
-const [guardianHtml,buildHtml,sharedCss,handoff,buildModule]=await Promise.all([
+const [guardianHtml,buildHtml,sharedCss,buildCss,handoff,buildModule]=await Promise.all([
   readFile(root+'index.html','utf8'),
   readFile(root+'paradox-build-space/index.html','utf8'),
   readFile(root+'guardian-loadout-row.css','utf8'),
+  readFile(root+'paradox-build-space/paradox-build-space.css','utf8'),
   readFile(root+'paradox-build-space-handoff.mjs','utf8'),
   readFile(root+'paradox-build-space/paradox-build-space.mjs','utf8')
 ]);
@@ -34,6 +35,9 @@ assert.ok(between(guardianHtml,'id="guardianLoadouts"','ARMOUR & MODS'),'Charact
 assert.ok(between(buildHtml,'id="buildGuardianLoadouts"','ARMOUR & MODS'),'Build Forge loadout strip must be immediately before Armour');
 assert.match(sharedCss,/grid-template-columns:repeat\(20,/,'the strip must remain one 20-slot row');
 assert.match(sharedCss,/overflow-x:auto/,'narrow screens must scroll the single row instead of wrapping it');
+assert.match(buildCss,/\.brand\{min-width:0;gap:7px\}/,'the narrow header brand must be allowed to shrink');
+assert.match(buildCss,/\.brand span\{min-width:0;overflow:hidden\}/,'long brand copy must remain inside its grid track');
+assert.match(buildCss,/\.source-pill\{min-width:0;max-width:112px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap/,'the narrow source badge must stay bounded without page scaling');
 assert.match(handoff,/loadoutsAvailable:detail\.loadoutsAvailable===true,loadouts:clone\(detail\.loadouts\|\|\[\]\)/,'Build Forge handoff must retain Bungie loadouts');
 assert.match(buildModule,/renderLoadoutHost\(byId\('buildGuardianLoadouts'\)/,'Build Forge must use the shared Bungie renderer');
 
