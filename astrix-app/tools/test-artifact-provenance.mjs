@@ -32,6 +32,20 @@ assert.equal(unavailable.state,'state-unavailable');
 assert.equal(unavailable.activePerks,null);
 assert.equal(unavailable.artifactConfiguration.selectedPerkHashes,null);
 
+const incompleteActivationPayload=structuredClone(payload);
+delete incompleteActivationPayload.profile.characterProgressions.data['cid-live'].seasonalArtifact.tiers[0].items[0].isActive;
+const incompleteActivation=resolveArtifactByProvenance(incompleteActivationPayload,'cid-live');
+assert.equal(incompleteActivation.state,'state-unavailable');
+assert.equal(incompleteActivation.activePerks,null,'missing isActive evidence must not become zero active perks');
+assert.equal(incompleteActivation.artifactConfiguration.selectedPerkHashes,null);
+assert.match(incompleteActivation.stateMessage,/incomplete Artifact tier activation evidence/);
+
+const malformedHashPayload=structuredClone(payload);
+malformedHashPayload.profile.characterProgressions.data['cid-live'].seasonalArtifact.tiers[0].items[0].itemHash=null;
+const malformedHash=resolveArtifactByProvenance(malformedHashPayload,'cid-live');
+assert.equal(malformedHash.state,'state-unavailable');
+assert.equal(malformedHash.activePerks,null,'missing perk identity must leave activation state unavailable');
+
 const unresolvedPayload=structuredClone(payload);
 unresolvedPayload.profile.characterProgressions.data['cid-live'].seasonalArtifact.tiers[0].items[0].itemHash=789;
 const unresolved=resolveArtifactByProvenance(unresolvedPayload,'cid-live');
