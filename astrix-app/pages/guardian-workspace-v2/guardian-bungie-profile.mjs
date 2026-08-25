@@ -193,6 +193,11 @@ const isMeleePlug=plug=>matchesCategory(plug,["melee"],/melee/);
 const isGrenadePlug=plug=>matchesCategory(plug,["grenade"],/grenade/);
 const isAspectPlug=plug=>matchesCategory(plug,["aspect"],/aspect/);
 const isFragmentPlug=plug=>matchesCategory(plug,["fragment"],/fragment/);
+const isTranscendencePlug=plug=>{
+  const itemType=String(plug?.itemTypeDisplayName||plug?.definition?.itemTypeDisplayName||"").toLowerCase();
+  const name=String(plug?.name||plug?.definition?.displayProperties?.name||"").toLowerCase();
+  return itemType==="utility ability"||itemType==="prismatic grenade"||name==="transcendence"||plugCategory(plug).includes("transcend");
+};
 
 const uniqueItems=rows=>rows.filter((row,index,all)=>row&&Number.isFinite(Number(row.hash))&&all.findIndex(other=>Number(other?.hash)===Number(row.hash))===index);
 
@@ -275,7 +280,7 @@ function subclassConfiguration(profile,definitions,item,payload={}){
       const elementDefinition=Number.isFinite(damageHash)?payload?.damageDefinitions?.[String(damageHash)]||null:null;
       return {...row,damageTypeHash:Number.isFinite(damageHash)?damageHash:null,elementDefinition};
     });
-  const transcendenceOptions=plugs.filter(row=>String(row?.definition?.plug?.plugCategoryIdentifier||row?.plugCategoryIdentifier||'').toLowerCase().includes('transcend'));
+  const transcendenceOptions=plugs.filter(isTranscendencePlug);
   const transcendenceSlots=transcendenceOptions.slice(0,2).map(row=>({socketIndex:row.socketIndex,equipped:row,options:[row]}));
   const abilityOptionsBySocket={
     classAbility:optionsFor(classAbility,isClassAbilityPlug),

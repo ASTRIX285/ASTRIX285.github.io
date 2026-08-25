@@ -84,8 +84,8 @@ html body .workspace .left .subclass-super-shell.equipped-subclass-stack{
 .super-feature{
   /* Chassis gold until a real subclass/Super state has been resolved. */
   --super-accent:var(--gold,#E0A94E);
-  --super-equipped-bevel:5px;
-  --super-alternate-bevel:2px;
+  --super-equipped-bevel:3px;
+  --super-alternate-bevel:1px;
   position:relative!important;
   display:flex!important;
   flex:0 0 auto!important;
@@ -145,8 +145,8 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   inset:0!important;
   border:var(--super-bevel-size) solid color-mix(in srgb,var(--super-accent) 34%,rgba(255,255,255,.24))!important;
   box-shadow:
-    inset 1px 1px 2px rgba(255,255,255,.18),
-    inset -2px -2px 3px rgba(0,0,0,.52)!important;
+    inset 1px 1px 1px rgba(255,255,255,.12),
+    inset -1px -1px 2px rgba(0,0,0,.34)!important;
   pointer-events:none!important;
 }
 .super-feature .super-diamond::after{
@@ -194,9 +194,9 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   filter:saturate(1.06) contrast(1.02) drop-shadow(0 0 6px color-mix(in srgb,var(--super-accent) 35%,transparent))!important;
 }
 .super-feature .super-diamond--equipped>span{
-  inset:var(--super-equipped-bevel)!important;
-  width:auto!important;
-  height:auto!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
 }
 .super-feature .super-diamond--equipped>span>img{
   transform:none!important;

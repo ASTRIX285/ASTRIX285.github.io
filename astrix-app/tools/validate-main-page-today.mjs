@@ -47,6 +47,7 @@ assert.match(profile,/rememberLoadoutSelection\(characterId,index\)/,'Loadout se
 assert.match(profile,/Selected \$\{expected\} card resolved \$\{detail\.characterClass\}/,'Character class mismatch must fail loudly');
 assert.match(profile,/character selection cannot fall back to last played/,'Missing roster must not silently fall back');
 assert.match(profile,/transcendenceSlots=transcendenceOptions\.slice\(0,2\)/,'Prismatic Transcendence must retain its exact equipped socket mapping');
+assert.match(profile,/itemType==="utility ability"\|\|itemType==="prismatic grenade"/,'Prismatic Transcendence must capture both the utility ability and equipped Prismatic grenade');
 assert.match(workspaceHtml,/id="mainTranscendence"[\s\S]*?hidden/,'Main must contain a deterministic Prismatic-only Transcendence field');
 assert.match(superSync,/if\(!isPrismatic\)[\s\S]*?block\.hidden=true/,'Main Transcendence must be hidden for non-Prismatic subclasses');
 assert.match(superSync,/Array\.from\(\{length:2\}/,'Prismatic Main must preserve both verified Transcendence sockets');
@@ -57,15 +58,15 @@ assert.match(formationModule,/is-empty-super/,'Unresolved Super slots must be ex
 assert.match(formationModule,/dataset\.superCount='6'/,'The exact six-slot PSD geometry must remain stable');
 assert.match(formationModule,/dataset\.resolvedSuperCount/,'Resolved Super count must remain separately observable');
 assert.match(formationModule,/document\.documentElement\.dataset\.subclass=key/,'Equipped subclass must theme both Main and Build');
-assert.match(formationCss,/--super-equipped-bevel:5px/,'Equipped Super needs the approved 4–6px bevel');
-assert.match(formationCss,/--super-alternate-bevel:2px/,'Alternate Supers need the approved 1–2px bevel');
+assert.match(formationCss,/--super-equipped-bevel:3px/,'Equipped Super needs the softened bevel');
+assert.match(formationCss,/--super-alternate-bevel:1px/,'Alternate Supers need the softened bevel');
 assert.match(formationCss,/\.super-feature\{[\s\S]*?--super-accent:var\(--gold,#E0A94E\)/,'Unresolved Super borders must match the chassis gold');
 assert.match(formationCss,/border:var\(--super-bevel-size\) solid/,'Super bevel thickness must use the shared size token');
 assert.doesNotMatch(formationCss,/data-super-count="[1-5]"/,'Partial-count geometry must not collapse the six-slot PSD frame');
 assert.match(formationModule,/image\.dataset\.bungieArtworkSource='DestinyInventoryItemDefinition'/,'Every resolved Super must retain Bungie artwork provenance');
 assert.match(formationModule,/image\.src=src/,'Resolved Supers must load Bungie artwork directly instead of a copied local asset');
 assert.match(formationCss,/\.super-diamond>span>img[\s\S]*?object-fit:cover!important/,'Bungie Super art must fill each diamond through its inner bevel');
-assert.match(formationCss,/\.super-diamond--equipped>span\{[\s\S]*?inset:var\(--super-equipped-bevel\)!important/,'Equipped Super artwork must stop at the inner bevel');
+assert.match(formationCss,/\.super-diamond--equipped>span\{[\s\S]*?inset:0!important;[\s\S]*?width:100%!important;[\s\S]*?height:100%!important/,'Equipped Super artwork must reach the diamond edge');
 
 assert.match(gearModule,/armour-set-bonus-icon/,'Resolved armour set icon must sit with the armour image');
 assert.match(gearModule,/armour-archetype-icon/,'The shared Main armour-type icon overlay is missing');
@@ -144,11 +145,10 @@ assert.match(loadoutsModule,/astrix:loadout-error[\s\S]*?pendingIndex=null/,'A f
 assert.match(gearModule,/const MAIN_MOD_TILE_SIZE = "var\(--pf-slot,52px\)"/,'Main and Build must inherit the exact shared socket size');
 assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-columns/,'Build must not override the Main armour-card grid');
 assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-slot\{/,'Build must not override Main armour-card dimensions or padding');
-assert.match(buildCss,/\.design-canvas \.gear-combined\{--pf-mod-size:var\(--pf-slot,52px\)/,'Build mod tiles must use the exact Character-screen size token');
-assert.match(buildCss,/grid-template-columns:repeat\(3,var\(--pf-mod-size,36px\)\)!important/,'Build armour mods must form three Main-sized columns');
-assert.match(buildCss,/grid-template-rows:repeat\(2,var\(--pf-mod-size,36px\)\)!important/,'Build armour mods must form two 2-2-2 rows');
-assert.match(buildCss,/grid-auto-flow:column!important/,'Build armour mods must fill each vertical pair before the next pair');
-assert.match(sharedRailCss,/guardian-left-rail \.build-fragment-slots\{grid-template-columns:repeat\(5,var\(--guardian-rail-slot\)\)/,'Shared rail must fit five Fragment sockets in one row');
+assert.match(sharedRailCss,/--guardian-square:46px;[\s\S]*?--guardian-square-gap:6px;[\s\S]*?--guardian-square-radius:6px;/,'Guardian square dimensions must have one shared token source');
+assert.match(gearCss,/\.gear-mods\{display:grid;grid-template-columns:repeat\(2,var\(--guardian-square\)\);grid-template-rows:repeat\(3,var\(--guardian-square\)\);grid-auto-flow:row;gap:var\(--guardian-square-gap\)/,'Character and Build armour mods must share one 2 by 3 grid');
+assert.doesNotMatch(buildCss,/--pf-mod-size|\.gear-slot \.gear-mods\{|grid-auto-flow:column!important/,'Build must not override the shared armour mod size or flow');
+assert.match(sharedRailCss,/guardian-left-rail \.build-fragment-slots\{grid-template-columns:repeat\(5,var\(--guardian-square\)\)/,'Shared rail must fit five same-sized Fragment sockets in one row');
 assert.match(sharedRailCss,/guardian-left-rail \.artifact-row/,'Artifact summary must be owned by the shared Main and Build rail');
 assert.match(sharedRailCss,/artifact-item-selector[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Expanded Artifact catalogue must form 2-2-2 rows');
 assert.match(sharedRailCss,/guardian-loadouts-strip \.guardian-loadouts-grid\{[\s\S]*?grid-template-columns:repeat\(20,minmax\(32px,1fr\)\)/,'The shared Main and Build loadout tray must remain one 1–20 row');

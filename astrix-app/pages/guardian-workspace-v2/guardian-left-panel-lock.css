@@ -3,9 +3,6 @@
  * selectors are the last presentation authority. No Bungie data logic here. */
 
 :root{
-  --pf-slot:52px;
-  --pf-gap:8px;
-  --pf-art-slot:52px;
   --pf-art-row-gap:10px;
   --subclass-accent:#7e5fc6;
   --subclass-accent-rgb:126,95,198;
@@ -118,17 +115,17 @@ html body .workspace>.left #fragList{
   grid-auto-flow:row!important;
   align-items:start!important;
   justify-content:start!important;
-  gap:var(--pf-gap)!important;
-  min-height:var(--pf-slot)!important;
+  gap:var(--guardian-square-gap)!important;
+  min-height:var(--guardian-square)!important;
   transform:none!important;
   rotate:0deg!important;
   clip-path:none!important;
   background:none!important;
   overflow:hidden!important;
 }
-html body .workspace>.left #abilityList{grid-template-columns:repeat(4,var(--pf-slot))!important}
-html body .workspace>.left #aspectList{grid-template-columns:repeat(2,var(--pf-slot))!important}
-html body .workspace>.left #fragList{grid-template-columns:repeat(5,var(--pf-slot))!important}
+html body .workspace>.left #abilityList{grid-template-columns:repeat(4,var(--guardian-square))!important}
+html body .workspace>.left #aspectList{grid-template-columns:repeat(2,var(--guardian-square))!important}
+html body .workspace>.left #fragList{grid-template-columns:repeat(5,var(--guardian-square))!important}
 html body .workspace>.left #abilityList::before,
 html body .workspace>.left #abilityList::after,
 html body .workspace>.left #aspectList::before,
@@ -145,12 +142,12 @@ html body .workspace>.left #fragList>*{
   position:relative!important;
   display:grid!important;
   place-items:center!important;
-  width:var(--pf-slot)!important;
-  min-width:var(--pf-slot)!important;
-  max-width:var(--pf-slot)!important;
-  height:var(--pf-slot)!important;
-  min-height:var(--pf-slot)!important;
-  max-height:var(--pf-slot)!important;
+  width:var(--guardian-square)!important;
+  min-width:var(--guardian-square)!important;
+  max-width:var(--guardian-square)!important;
+  height:var(--guardian-square)!important;
+  min-height:var(--guardian-square)!important;
+  max-height:var(--guardian-square)!important;
   aspect-ratio:1!important;
   margin:0!important;
   padding:3px!important;
@@ -214,23 +211,23 @@ html body .workspace>.left #fragList .ico-badge{
 html body .workspace>.left .artifact-row .perks{
   grid-column:1/-1!important;
   display:grid!important;
-  grid-template-columns:repeat(4,var(--pf-art-slot))!important;
-  grid-template-rows:repeat(2,var(--pf-art-slot))!important;
+  grid-template-columns:repeat(4,var(--guardian-square))!important;
+  grid-template-rows:repeat(2,var(--guardian-square))!important;
   column-gap:8px!important;
   row-gap:var(--pf-art-row-gap)!important;
-  width:calc((var(--pf-art-slot) * 4) + 24px)!important;
+  width:calc((var(--guardian-square) * 4) + 24px)!important;
   max-width:100%!important;
-  min-height:calc((var(--pf-art-slot) * 2) + var(--pf-art-row-gap))!important;
+  min-height:calc((var(--guardian-square) * 2) + var(--pf-art-row-gap))!important;
   padding-top:5px!important;
   overflow:visible!important;
 }
 html body .workspace>.left .artifact-row .perks>*{
-  width:var(--pf-art-slot)!important;
-  min-width:var(--pf-art-slot)!important;
-  max-width:var(--pf-art-slot)!important;
-  height:var(--pf-art-slot)!important;
-  min-height:var(--pf-art-slot)!important;
-  max-height:var(--pf-art-slot)!important;
+  width:var(--guardian-square)!important;
+  min-width:var(--guardian-square)!important;
+  max-width:var(--guardian-square)!important;
+  height:var(--guardian-square)!important;
+  min-height:var(--guardian-square)!important;
+  max-height:var(--guardian-square)!important;
   border-radius:9px!important;
   box-sizing:border-box!important;
 }

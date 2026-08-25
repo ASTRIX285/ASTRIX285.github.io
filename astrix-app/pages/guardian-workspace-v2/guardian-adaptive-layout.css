@@ -177,13 +177,6 @@
   .gear-combined .gear-arm-row{min-height:82px!important}
   .gear-combined .gear-arm-anchor .arm{width:92px!important;height:92px!important;aspect-ratio:auto!important}
   .gear-combined .gear-intrinsic{width:42px!important;height:42px!important}
-  .gear-combined .gear-mods{
-    grid-template-columns:repeat(2,34px)!important;
-    grid-template-rows:repeat(3,34px)!important;
-    gap:4px!important;
-  }
-  .gear-combined .gear-mod{width:34px!important;height:34px!important}
-
   /* Left-rail frame is now deliberately reserved before the remaining Bungie
    * binding work is completed. Empty runtime containers still hold their place. */
   .workspace>.left{

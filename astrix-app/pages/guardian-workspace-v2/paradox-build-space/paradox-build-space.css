@@ -4,7 +4,7 @@
 .forge-analysis .health-card{display:flex;gap:12px;align-items:center;margin-top:12px;padding:12px;border:1px solid rgba(190,25,35,.35);border-radius:10px}.forge-analysis .ring{width:70px;height:70px;flex:0 0 70px;border-radius:50%;border:7px solid #55e5ad;display:grid;place-items:center}.forge-analysis .heart{color:#ffc451;font-size:22px}.forge-analysis .eyebrow,.forge-analysis .t,.forge-analysis .label{font:700 9px Orbitron;letter-spacing:.1em;color:#999}.forge-analysis .verdict{color:#55e5ad;font-weight:800}.forge-analysis .verdict small{display:block;margin-top:6px;color:#aaa;font-size:10px;line-height:1.4;font-weight:500}
 .forge-analysis .focus{margin-top:12px}.forge-analysis .focus-row{display:flex;gap:9px;margin-top:8px;padding:10px;border:1px solid rgba(180,132,45,.28);border-radius:9px}.forge-analysis .focus-row p{margin:4px 0 0;color:#aaa;font-size:10px}.forge-analysis .mini-grid,.forge-analysis .sw-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.forge-analysis .mini,.forge-analysis .sw-card,.forge-analysis .improve{padding:10px;border:1px solid rgba(190,25,35,.3);border-radius:9px;background:#0a0a0d}.forge-analysis .big{margin-top:7px;font-size:11px;font-weight:800}.forge-analysis ul{padding-left:14px;margin:8px 0 0}.forge-analysis li,.forge-analysis .improve p{color:#aaa;font-size:10px;line-height:1.45;margin-bottom:7px}.forge-analysis .improve{margin-top:10px}.forge-analysis .improve b{font:700 9px Orbitron;color:#c7a23f}
 :root{--line:rgba(147,35,43,.5);--line-2:rgba(180,132,45,.42);--dim:#85858d;--muted:#999;--stage-accent:#9e60ff;--stage-accent-soft:rgba(158,96,255,.22)}
-.design-canvas .gear-weapons{padding:0;background:none;border:0}.design-canvas .gear-weapons .weap-grid{grid-template-columns:repeat(3,82px)!important}.design-canvas .gear-combined{--pf-mod-size:var(--pf-slot,52px);padding:0;background:none;border:0}
+.design-canvas .gear-weapons{padding:0;background:none;border:0}.design-canvas .gear-weapons .weap-grid{grid-template-columns:repeat(3,82px)!important}.design-canvas .gear-combined{padding:0;background:none;border:0}
 
 /* Keep In-game Loadouts and Armour & Mods as independent design containers.
    Their content retains Main-page dimensions; the document grows vertically. */
@@ -189,12 +189,3 @@ html,body{
 .build-rail-nav{display:flex;justify-content:flex-end;min-height:30px;margin:-4px 0 6px}
 .build-back-btn{min-height:28px;padding:5px 10px;font:700 8px Orbitron,Inter,sans-serif;letter-spacing:.08em;cursor:pointer}
 .build-back-btn:hover,.build-back-btn:focus-visible{border-color:rgba(100,226,182,.62);color:#6fe3b6;outline:none}
-
-/* Build uses the Main armour card without changing its dimensions, padding,
-   artwork or overlays. Only the six mod positions rotate to two rows. */
-.design-canvas .gear-combined .gear-slot .gear-mods{
-  grid-template-columns:repeat(3,var(--pf-mod-size,36px))!important;
-  grid-template-rows:repeat(2,var(--pf-mod-size,36px))!important;
-  grid-auto-flow:column!important;
-  justify-content:center!important;
-}

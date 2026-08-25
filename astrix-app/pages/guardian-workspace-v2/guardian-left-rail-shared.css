@@ -3,8 +3,11 @@
  * expandable editing fields below the equipped sockets.
  */
 :root{
-  --guardian-rail-slot:52px;
-  --guardian-rail-gap:7px;
+  --guardian-square:46px;
+  --guardian-square-gap:6px;
+  --guardian-square-radius:6px;
+  --guardian-rail-slot:var(--guardian-square);
+  --guardian-rail-gap:var(--guardian-square-gap);
   --guardian-rail-gold:227,178,60;
   --guardian-rail-crimson:142,34,48;
 }
@@ -79,24 +82,24 @@
   display:grid!important;
   justify-content:start!important;
   align-items:start!important;
-  gap:var(--guardian-rail-gap)!important;
-  min-height:var(--guardian-rail-slot)!important;
+  gap:var(--guardian-square-gap)!important;
+  min-height:var(--guardian-square)!important;
 }
-.guardian-left-rail .build-ability-slots{grid-template-columns:repeat(4,var(--guardian-rail-slot))!important}
-.guardian-left-rail .build-aspect-slots{grid-template-columns:repeat(2,var(--guardian-rail-slot))!important}
-.guardian-left-rail .build-fragment-slots{grid-template-columns:repeat(5,var(--guardian-rail-slot))!important}
+.guardian-left-rail .build-ability-slots{grid-template-columns:repeat(4,var(--guardian-square))!important}
+.guardian-left-rail .build-aspect-slots{grid-template-columns:repeat(2,var(--guardian-square))!important}
+.guardian-left-rail .build-fragment-slots{grid-template-columns:repeat(5,var(--guardian-square))!important}
 .guardian-left-rail .build-equipped-slots>.icon-tile,
 .guardian-left-rail .build-artifact-row .perks>*,
 .guardian-left-rail .rail-empty-slot{
   position:relative!important;
   display:grid!important;
   place-items:center!important;
-  width:var(--guardian-rail-slot)!important;
-  min-width:var(--guardian-rail-slot)!important;
-  max-width:var(--guardian-rail-slot)!important;
-  height:var(--guardian-rail-slot)!important;
-  min-height:var(--guardian-rail-slot)!important;
-  max-height:var(--guardian-rail-slot)!important;
+  width:var(--guardian-square)!important;
+  min-width:var(--guardian-square)!important;
+  max-width:var(--guardian-square)!important;
+  height:var(--guardian-square)!important;
+  min-height:var(--guardian-square)!important;
+  max-height:var(--guardian-square)!important;
   padding:3px!important;
   overflow:hidden!important;
   border:1px solid rgba(var(--guardian-rail-gold),.34)!important;
@@ -130,7 +133,7 @@
 /* Main-sized Artifact summary. The Build catalogue stays collapsed below it. */
 .guardian-left-rail .artifact-row{
   display:grid!important;
-  grid-template-columns:52px minmax(0,1fr)!important;
+  grid-template-columns:var(--guardian-square) minmax(0,1fr)!important;
   gap:7px 9px!important;
   width:100%!important;
   padding:7px!important;
@@ -141,8 +144,8 @@
 .guardian-left-rail .artifact-row .art{
   display:grid!important;
   place-items:center!important;
-  width:52px!important;
-  height:52px!important;
+  width:var(--guardian-square)!important;
+  height:var(--guardian-square)!important;
   overflow:hidden!important;
   border:1px solid rgba(var(--guardian-rail-gold),.34)!important;
   border-radius:8px!important;
@@ -157,12 +160,12 @@
 .guardian-left-rail .artifact-row .perks{
   grid-column:1/-1!important;
   display:grid!important;
-  grid-template-columns:repeat(4,var(--guardian-rail-slot))!important;
-  grid-auto-rows:var(--guardian-rail-slot)!important;
-  gap:var(--guardian-rail-gap)!important;
+  grid-template-columns:repeat(4,var(--guardian-square))!important;
+  grid-auto-rows:var(--guardian-square)!important;
+  gap:var(--guardian-square-gap)!important;
   width:max-content!important;
   max-width:100%!important;
-  min-height:calc((var(--guardian-rail-slot) * 2) + var(--guardian-rail-gap))!important;
+  min-height:calc((var(--guardian-square) * 2) + var(--guardian-square-gap))!important;
   margin:0!important;
   padding-top:2px!important;
 }
@@ -181,7 +184,7 @@
   min-height:42px!important;
 }
 .guardian-left-rail .build-artifact-row .artifact-perk{
-  min-height:var(--guardian-rail-slot)!important;
+  min-height:var(--guardian-square)!important;
   padding:3px!important;
 }
 .guardian-left-rail .build-artifact-row .artifact-perk img{width:100%!important;height:100%!important;object-fit:contain!important}
@@ -214,7 +217,7 @@
   min-width:0!important;
 }
 .guardian-left-rail .artifact-item-selector .selector-card img,
-.guardian-left-rail .artifact-item-selector .selector-glyph{width:52px!important;height:52px!important}
+.guardian-left-rail .artifact-item-selector .selector-glyph{width:var(--guardian-square)!important;height:var(--guardian-square)!important}
 .guardian-left-rail .artifact-perk-matrix{max-height:none!important;margin:0!important}
 
 /* Legacy rail ownership is retained for archived surfaces. Main and Build Forge
@@ -482,15 +485,15 @@
 .guardian-left-rail .prismatic-transcendence__slots,
 .guardian-left-rail .transcendence-slots{
   display:grid!important;
-  grid-template-columns:repeat(2,var(--guardian-rail-slot))!important;
-  gap:var(--guardian-rail-gap)!important;
+  grid-template-columns:repeat(2,var(--guardian-square))!important;
+  gap:var(--guardian-square-gap)!important;
   justify-content:start!important;
 }
 .guardian-left-rail .prismatic-transcendence__slot{
   display:grid!important;
   place-items:center!important;
-  width:var(--guardian-rail-slot)!important;
-  height:var(--guardian-rail-slot)!important;
+  width:var(--guardian-square)!important;
+  height:var(--guardian-square)!important;
   padding:3px!important;
   overflow:hidden!important;
   border:1px solid rgba(229,106,223,.58)!important;
@@ -502,11 +505,7 @@
 .guardian-left-rail .transcendence-slot{min-width:0!important}
 .guardian-left-rail .transcendence-slot h4{margin:0 0 5px!important;color:#c9b2ff!important;font:700 .43rem Orbitron,Inter,sans-serif!important}
 .guardian-left-rail .transcendence-options{display:flex!important;gap:6px!important;overflow-x:auto!important}
-.guardian-left-rail .transcendence-options .selector-card{flex:0 0 var(--guardian-rail-slot)!important;width:var(--guardian-rail-slot)!important}
-
-@media(min-width:721px) and (max-width:1499px){
-  .build-rail.guardian-left-rail{--guardian-rail-slot:46px}
-}
+.guardian-left-rail .transcendence-options .selector-card{flex:0 0 var(--guardian-square)!important;width:var(--guardian-square)!important}
 @media(max-width:720px){
   .guardian-left-rail .build-rail-editor{max-height:380px!important}
 }
