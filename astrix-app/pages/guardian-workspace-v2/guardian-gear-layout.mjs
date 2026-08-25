@@ -6,6 +6,7 @@
 
 import "./guardian-semantic-ui.mjs?v=20260824-artifact-state-2";
 import { openArmourDrawer } from "./guardian-beta-runtime.mjs";
+import { classifyArmourPlug } from "./guardian-semantic-resolver.mjs";
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const bungieIcon = (value) => {
@@ -39,16 +40,21 @@ const isArmourTypeSymbol = (plug) => {
   if (!plug) return false;
   const text = plugText(plug);
   const name = String(plug?.name ?? plug?.displayName ?? "").trim().toLowerCase();
-  return plug?.semanticRole === "archetype" || /armou?r[\s._-]*archetype/.test(text) || armourArchetypeNames.has(name);
+  return classifyArmourPlug(plug) === "archetype" || plug?.semanticRole === "archetype" || /armou?r[\s._-]*archetype/.test(text) || armourArchetypeNames.has(name);
 };
-const isIgnoredArmourPlug = (plug) => /\binfus(e|ion)\b|semanticrole infuse|exotic[\s._-]*(armou?r[\s._-]*)?(intrinsic|perk)/.test(plugText(plug));
-const roleMatches = (plug, role) => plug?.semanticRole === role || plugText(plug).includes(role);
+const isIgnoredArmourPlug = (plug) => ["infuse", "exotic-perk"].includes(classifyArmourPlug(plug)) || /\binfus(e|ion)\b|semanticrole infuse|exotic[\s._-]*(armou?r[\s._-]*)?(intrinsic|perk)/.test(plugText(plug));
+const roleMatches = (plug, role) => classifyArmourPlug(plug) === role || plug?.semanticRole === role || plugText(plug).includes(role);
 
 function resolveArmourArchetype(item, armourTier) {
   const semantics = item?.armourSemantics ?? {};
   const explicit = semantics.archetype ?? item?.archetype ?? null;
   if (explicit) return explicit;
-  const candidates = [...(Array.isArray(item?.mods) ? item.mods : []), item?.masterwork, semantics.masterwork].filter(Boolean);
+  const candidates = [
+    ...(Array.isArray(item?.mods) ? item.mods : []),
+    ...(Array.isArray(item?.socketCoverage?.plugs) ? item.socketCoverage.plugs : []),
+    item?.masterwork,
+    semantics.masterwork
+  ].filter(Boolean);
   // Cached Armor 3.0 handoffs from the earlier mapper can label the type shield
   // as masterwork. Recover only a positively classified type shield for the art
   // overlay; never substitute an unrelated mod, Infuse or exotic-perk icon.
@@ -67,8 +73,15 @@ function armourModSequence(item, armourTier, archetype) {
     semanticRole: "masterwork",
     energyCost: Number.isFinite(level) ? level : masterworkSource?.energyCost ?? ""
   } : null;
-  const generalSource = Array.isArray(item?.generalMods) ? item.generalMods : Array.isArray(semantics.generalMods) ? semantics.generalMods : raw.filter(plug => roleMatches(plug, "general-mod"));
-  const slotSource = Array.isArray(item?.slotMods) ? item.slotMods : Array.isArray(semantics.slotMods) ? semantics.slotMods : raw.filter(plug => roleMatches(plug, "slot-mod"));
+  const socketPlugs = Array.isArray(item?.socketCoverage?.plugs) ? item.socketCoverage.plugs : [];
+  const sourceFor = (direct, resolved, role) => {
+    if (Array.isArray(direct) && direct.length) return direct;
+    if (Array.isArray(resolved) && resolved.length) return resolved;
+    const rawMatches = raw.filter(plug => roleMatches(plug, role));
+    return rawMatches.length ? rawMatches : socketPlugs.filter(plug => roleMatches(plug, role));
+  };
+  const generalSource = sourceFor(item?.generalMods, semantics.generalMods, "general-mod");
+  const slotSource = sourceFor(item?.slotMods, semantics.slotMods, "slot-mod");
   const clean = rows => rows.filter(plug => plug && !isArmourTypeSymbol(plug) && !isIgnoredArmourPlug(plug));
   return [masterwork, ...clean(generalSource).slice(0, 2), ...clean(slotSource).slice(0, 3)];
 }

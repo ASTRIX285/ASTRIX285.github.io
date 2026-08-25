@@ -1,6 +1,7 @@
 import "./guardian-paradox-live-adapter.mjs";
 import { resolveArmourSet } from "./guardian-armour-set-resolver.mjs";
 import {
+  classifyArmourPlug,
   normaliseArmourSemantics,
   normaliseWeaponSemantics,
   normaliseGuardianStats,
@@ -158,6 +159,14 @@ function enrichArmour(detail,payload,profile,rows){
       semanticRole:"masterwork",
       energyCost:armourSemantics.tier
     }:null;
+    const cachedMods=Array.isArray(item.mods)?item.mods:[];
+    const cachedGeneralMods=cachedMods.filter(plug=>classifyArmourPlug(plug)==="general-mod");
+    const cachedSlotMods=cachedMods.filter(plug=>classifyArmourPlug(plug)==="slot-mod");
+    const generalMods=armourSemantics.generalMods.length>=cachedGeneralMods.length?armourSemantics.generalMods:cachedGeneralMods;
+    const slotMods=armourSemantics.slotMods.length>=cachedSlotMods.length?armourSemantics.slotMods:cachedSlotMods;
+    armourSemantics.generalMods=generalMods;
+    armourSemantics.slotMods=slotMods;
+    const resolvedFunctionalMods=[...generalMods,...slotMods];
     return {
       ...item,
       itemInstanceId:rawItem?.itemInstanceId||null,
@@ -165,14 +174,18 @@ function enrichArmour(detail,payload,profile,rows){
       armourTier:armourSemantics.tier,
       masterwork:armourSemantics.masterwork,
       energy:armourSemantics.energy,
-      archetype:armourSemantics.archetype,
+      archetype:armourSemantics.archetype||item.archetype||null,
       exoticPerk:armourSemantics.exoticPerk,
       setBonus:armourSemantics.set,
-      generalMods:armourSemantics.generalMods,
-      slotMods:armourSemantics.slotMods,
+      generalMods,
+      slotMods,
       // Position 1 is permanently reserved for the verified armour upgrade
       // level. The following five positions retain Bungie's socket order.
-      mods:[masterworkSlot,...armourSemantics.generalMods.slice(0,2),...armourSemantics.slotMods.slice(0,3)],
+      // Do not erase Bungie's cached socket list when the original network
+      // payload is unavailable and semantic reclassification is incomplete.
+      mods:resolvedFunctionalMods.length
+        ? [masterworkSlot,...generalMods.slice(0,2),...slotMods.slice(0,3)]
+        : cachedMods,
       intrinsicTrait:armourSemantics.exoticPerk||item.intrinsicTrait||null
     };
   });

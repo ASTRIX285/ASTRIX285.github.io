@@ -1,4 +1,4 @@
-import "./guardian-semantic-interceptor.mjs";
+import "./guardian-semantic-interceptor.mjs?v=20260825-armour-data-recovery-1";
 import {
   normaliseLiveProfile,
   loadSelectedLoadout,

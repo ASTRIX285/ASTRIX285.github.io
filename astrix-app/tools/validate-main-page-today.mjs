@@ -12,6 +12,7 @@ const [workspace,workspaceHtml,loader,profile,auth,sessionCache,formationModule,
   read('paradox-build-space/index.html'),read('paradox-build-space/paradox-build-space.mjs'),read('paradox-build-space/paradox-build-space.css'),
   read('astrix-token-branch-preview.css'),read('../../shared/astrix-portal-loader.css'),read('../../shared/astrix-portal-loader.js')
 ]);
+const interceptor=await read('guardian-semantic-interceptor.mjs');
 
 assert.match(workspace,/astrix:guardian-render-complete/,'Main must publish render completion');
 assert.match(workspace,/Promise\.all\(images\.map\(settleImage\)\)/,'Main render completion must wait for visible images');
@@ -71,6 +72,10 @@ assert.match(gearModule,/armour-archetype-icon/,'The shared Main armour-type ico
 assert.match(gearModule,/function armourModSequence\(item, armourTier, archetype\)/,'Main and Build must share one exact armour slot contract');
 assert.match(gearModule,/return \[masterwork, \.\.\.clean\(generalSource\)\.slice\(0, 2\), \.\.\.clean\(slotSource\)\.slice\(0, 3\)\]/,'Armour slots must remain one masterwork, two general mods and three armour-type mods');
 assert.match(gearModule,/!isArmourTypeSymbol\(plug\) && !isIgnoredArmourPlug\(plug\)/,'Archetype, Infuse and exotic perk symbols must never enter the mod grid');
+assert.match(gearModule,/classifyArmourPlug\(plug\) === role/,'Cached Bungie socket definitions must recover their semantic mod roles');
+assert.match(gearModule,/rawMatches\.length \? rawMatches : socketPlugs\.filter/,'Cached raw mods must take priority without duplicating fallback socket plugs');
+assert.match(interceptor,/cachedGeneralMods[\s\S]*?generalMods\.length>=cachedGeneralMods\.length[\s\S]*?slotMods\.length>=cachedSlotMods\.length/,'Semantic enrichment must retain the more complete Bungie mod evidence');
+assert.match(interceptor,/resolvedFunctionalMods\.length[\s\S]*?: cachedMods/,'Semantic enrichment must never erase the cached Bungie mod list');
 assert.match(gearModule,/manifestExoticPerk = item\?\.armourSemantics\?\.exoticPerk \?\? item\?\.exoticPerk \?\? item\?\.intrinsicTrait/,'Manifest exotic perk must stay on the armour piece even without a cached rarity flag');
 assert.match(gearModule,/armour-season-icon/,'The shared Main season/source emblem is missing');
 assert.match(gearModule,/armourTier \?\? item\?\.armourSemantics\?\.tier \?\? item\?\.gearTier/,'Armour tier must retain the Bungie instance fallback');
