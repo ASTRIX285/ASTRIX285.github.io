@@ -6,6 +6,19 @@
 :root{--line:rgba(147,35,43,.5);--line-2:rgba(180,132,45,.42);--dim:#85858d;--muted:#999;--stage-accent:#9e60ff;--stage-accent-soft:rgba(158,96,255,.22)}
 .design-canvas .gear-weapons{padding:0;background:none;border:0}.design-canvas .gear-weapons .weap-grid{grid-template-columns:repeat(3,82px)!important}.design-canvas .gear-combined{padding:0;background:none;border:0}
 
+/* Keep In-game Loadouts and Armour & Mods as independent design containers.
+   Their content retains Main-page dimensions; the document grows vertically. */
+.design-canvas .loadouts-design-section,
+.design-canvas .armour-design-section{
+  margin:0 0 14px;
+  padding:14px;
+  border:1px solid rgba(180,132,45,.28);
+  border-radius:12px;
+  background:linear-gradient(180deg,rgba(18,15,23,.88),rgba(9,8,12,.9));
+}
+.design-canvas .loadouts-design-section .section-title,
+.design-canvas .armour-design-section .section-title{margin-bottom:12px}
+
 
 /* Shared Guardian weapon overlays must be contained by their Build Space card. */
 .design-canvas .gear-weapons .weap{position:relative!important}

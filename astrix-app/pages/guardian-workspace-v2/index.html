@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="./guardian-mobile.css?v=20260822-3">
   <link rel="stylesheet" href="./guardian-layout-final.css?v=20260824-bungie-icons-3">
   <link rel="stylesheet" href="./guardian-super-formation.css?v=20260824-bungie-art-4">
-  <link rel="stylesheet" href="./guardian-left-rail-shared.css?v=20260824-loadout-row-1">
+  <link rel="stylesheet" href="./guardian-left-rail-shared.css?v=20260825-separated-loadouts-1">
   <link rel="stylesheet" href="./astrix-token-branch-preview.css?v=20260824-d2-background-4">
   <link rel="stylesheet" href="../../astrix-destinations.css?v=20260824-destination-1">
   <script src="../../shared/astrix-destination-theme.js?v=20260824-destination-1"></script>
@@ -99,7 +99,8 @@
 
     <section class="equip">
       <div class="eq gear-weapons"><div class="eq-head"><h3>WEAPONS</h3><span class="tools">▤</span></div><div class="weap-grid"><div class="weap"><div class="art ph"><span class="pw" data-power-cap>550</span><span class="ph-glyph">⌖</span></div><div class="cap"><b>Kinetic slot</b><small class="ph-tag">awaiting live data</small></div></div><div class="weap"><div class="art ph"><span class="pw" data-power-cap>550</span><span class="ph-glyph">⌖</span></div><div class="cap"><b>Energy slot</b><small class="ph-tag">awaiting live data</small></div></div><div class="weap"><div class="art ph"><span class="pw">—</span><span class="ph-glyph">⌖</span></div><div class="cap"><b>Power slot</b><small class="ph-tag">awaiting live data</small></div></div></div></div>
-      <section class="eq gear-combined"><div class="eq-head"><h3>ARMOUR & MODS</h3><span class="tools">EQUIPPED</span></div><div class="guardian-loadouts-panel guardian-loadouts-strip"><div class="guardian-loadouts-head"><p class="lbl">IN-GAME LOADOUTS</p><small>BUNGIE · 1–20</small></div><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div><div class="gear-subhead"><span>Armour above · 6 functional mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div class="gear-columns"></div></section>
+      <section class="eq guardian-loadouts-container" aria-labelledby="guardianLoadoutsTitle"><div class="eq-head"><h3 id="guardianLoadoutsTitle">IN-GAME LOADOUTS</h3><span class="tools">BUNGIE · 1–20</span></div><div class="guardian-loadouts-panel guardian-loadouts-strip"><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div></section>
+      <section class="eq gear-combined"><div class="eq-head"><h3>ARMOUR & MODS</h3><span class="tools">EQUIPPED</span></div><div class="gear-subhead"><span>Armour above · 6 functional mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div class="gear-columns"></div></section>
       <div class="eq stats-block"><div class="eq-head"><h3>STATS</h3><span class="tools">⇅</span></div><div class="stats-row" id="statsRow"></div></div>
       <div class="eq activity"><div class="eq-head"><h3>ACTIVITY</h3></div><div class="act-hero"><span class="ic">◈</span><div><b>Grandmaster Nightfall</b><small>The Glassway</small></div></div><div class="act-row"><span>Power Cap</span><b data-power-cap>550</b></div><div class="act-row"><span>Champions</span><b>⚔ ✷</b></div><button class="btn-change">Change Activity</button></div>
     </section>

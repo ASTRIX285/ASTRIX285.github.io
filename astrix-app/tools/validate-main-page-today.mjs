@@ -110,8 +110,10 @@ assert.match(buildHtml,/data-guardian-profile-mode="roster-only"/,'Build Tool mu
 assert.match(buildHtml,/id="guardianCharacterCards"/,'Build Tool character cards are missing');
 assert.match(buildHtml,/class="panel build-rail guardian-left-rail"/,'Build Tool must mount the shared Main left rail');
 assert.match(buildHtml,/id="guardianLoadouts"/,'Build Tool in-game loadout selector is missing');
-assert.match(workspaceHtml,/gear-combined[\s\S]*?guardian-loadouts-strip[\s\S]*?id="guardianLoadouts"[\s\S]*?gear-columns/,'Main in-game loadouts must be directly above the Armour cards');
-assert.match(buildHtml,/armour-design-section[\s\S]*?guardian-loadouts-strip[\s\S]*?id="guardianLoadouts"[\s\S]*?gear-combined[\s\S]*?id="armourGrid"/,'Build in-game loadouts must be directly above the Armour cards');
+assert.match(workspaceHtml,/<section class="eq guardian-loadouts-container"[\s\S]*?id="guardianLoadouts"[\s\S]*?<\/section>\s*<section class="eq gear-combined">/,'Main in-game loadouts must be a separate container directly above Armour & Mods');
+assert.doesNotMatch(workspaceHtml,/<section class="eq gear-combined">[\s\S]*?id="guardianLoadouts"/,'Main Armour & Mods must not contain the in-game loadout tray');
+assert.match(buildHtml,/<section class="design-section loadouts-design-section"[\s\S]*?id="guardianLoadouts"[\s\S]*?<\/section>\s*<section class="design-section armour-design-section">/,'Build in-game loadouts must be a separate container directly above Armour & Mods');
+assert.doesNotMatch(buildHtml,/<section class="design-section armour-design-section">[\s\S]*?id="guardianLoadouts"/,'Build Armour & Mods must not contain the in-game loadout tray');
 assert.match(buildHtml,/id="artifactPickerPanel"[\s\S]*?hidden/,'Build Artifact catalogue must stay collapsed behind the equipped summary');
 assert.match(buildModule,/import '\.\.\/guardian-character-cards\.mjs(?:\?[^']+)?'/,'Build Tool must reuse the Main character-card renderer');
 assert.match(buildModule,/import '\.\.\/guardian-loadouts\.mjs'/,'Build Tool must reuse the Main in-game loadout renderer');
@@ -138,6 +140,10 @@ assert.match(sharedRailCss,/guardian-left-rail \.artifact-row/,'Artifact summary
 assert.match(sharedRailCss,/artifact-item-selector[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Expanded Artifact catalogue must form 2-2-2 rows');
 assert.match(sharedRailCss,/guardian-loadouts-strip \.guardian-loadouts-grid\{[\s\S]*?grid-template-columns:repeat\(20,minmax\(32px,1fr\)\)/,'The shared Main and Build loadout tray must remain one 1–20 row');
 assert.match(sharedRailCss,/guardian-loadouts-strip \.guardian-loadout-slot\.is-saved\{[\s\S]*?background-image:var\(--loadout-color-image/,'The horizontal tray must display Bungie-selected loadout colour artwork');
+assert.match(sharedRailCss,/body\.guardian-main-page\{[\s\S]*?overflow-y:auto!important/,'The Character page must own vertical document scrolling');
+assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.guardian-loadouts-container\{[\s\S]*?grid-row:1!important/,'The Main loadout container must occupy its own row above Armour');
+assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.gear-combined\{[\s\S]*?grid-row:2!important[\s\S]*?height:auto!important/,'Armour & Mods must retain its natural height below loadouts');
+assert.match(buildCss,/\.design-canvas \.loadouts-design-section,[\s\S]*?\.design-canvas \.armour-design-section\{/,'Build loadouts and Armour must be independent visual containers');
 assert.match(buildModule,/markGuardianFastReturn\(\);location\.href='\.\.\/'/,'Build Back must mark the authenticated cached return before opening Main');
 
 for(const [label,html] of [['Main',workspaceHtml],['Build',buildHtml]]){

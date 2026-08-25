@@ -18,12 +18,12 @@
   </script>
   <script src="../../../shared/astrix-portal-loader.js?v=20260825-auth-gate-1"></script>
   <link rel="stylesheet" href="../../../astrix-tokens.css?v=20260824-branch-preview-1">
-  <link rel="stylesheet" href="./paradox-build-space.css?v=20260824-loadout-row-1">
+  <link rel="stylesheet" href="./paradox-build-space.css?v=20260825-separated-loadouts-1">
   <link rel="stylesheet" href="./build-test-modes.css?v=20260823-1">
   <link rel="stylesheet" href="../guardian-gear-layout.css?v=20260824-main-page-1">
   <link rel="stylesheet" href="../guardian-character-cards.css?v=20260824-emblem-fill-6">
   <link rel="stylesheet" href="../guardian-super-formation.css?v=20260824-bungie-art-4">
-  <link rel="stylesheet" href="../guardian-left-rail-shared.css?v=20260824-loadout-row-1">
+  <link rel="stylesheet" href="../guardian-left-rail-shared.css?v=20260825-separated-loadouts-1">
   <link rel="stylesheet" href="../astrix-token-branch-preview.css?v=20260824-d2-background-4">
   <link rel="stylesheet" href="../../../astrix-destinations.css?v=20260824-destination-1">
   <script src="../../../shared/astrix-destination-theme.js?v=20260824-destination-1"></script>
@@ -53,7 +53,8 @@
       <div class="panel-head"><div><small>ORIGINAL → WORKING BUILD</small><h1>BUILD DESIGN</h1></div><span class="status-chip">ITERATION 1</span></div>
       <div class="notice"><span id="buildStateNotice"><b>Baseline protected.</b> The build loaded here is stored as the immutable starting point for Build Forge recommendations.</span><button type="button" class="restore-btn" id="restoreOriginal" disabled>RESTORE ORIGINAL</button></div>
       <section class="design-section"><div class="section-title"><h2>WEAPONS</h2><span>WORKING BUILD</span></div><div class="gear-weapons"><div id="weaponGrid" class="weap-grid"></div></div></section>
-      <section class="design-section armour-design-section"><div class="section-title"><h2>ARMOUR & MODS</h2><span>LIVE BUNGIE STATE</span></div><div class="guardian-loadouts-panel guardian-loadouts-strip"><div class="guardian-loadouts-head"><p class="lbl">IN-GAME LOADOUTS</p><small>BUNGIE · 1–20</small></div><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div><div class="gear-combined"><div id="armourGrid" class="gear-columns"></div></div></section>
+      <section class="design-section loadouts-design-section" aria-labelledby="buildLoadoutsTitle"><div class="section-title"><h2 id="buildLoadoutsTitle">IN-GAME LOADOUTS</h2><span>BUNGIE · 1–20</span></div><div class="guardian-loadouts-panel guardian-loadouts-strip"><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div></section>
+      <section class="design-section armour-design-section"><div class="section-title"><h2>ARMOUR & MODS</h2><span>LIVE BUNGIE STATE</span></div><div class="gear-combined"><div id="armourGrid" class="gear-columns"></div></div></section>
       <section class="design-section test-loop">
         <div class="section-title"><h2>VALIDATION LOOP</h2><span id="testDomainLabel">PVE BUILD TEST</span></div>
         <div class="test-configuration" aria-label="Build Test configuration">
