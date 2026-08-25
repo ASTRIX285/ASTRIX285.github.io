@@ -47,6 +47,7 @@
     }
   </style>
   <link rel="stylesheet" href="./guardian-super-formation.css?v=20260824-1">
+  <link rel="stylesheet" href="./guardian-loadout-row.css?v=20260825-1">
   <link rel="stylesheet" href="./guardian-main-loader.css?v=20260823-1">
 </head>
 <body class="is-guardian-loading">
@@ -94,7 +95,7 @@
       <div class="grp grp--aspects"><p class="lbl">Aspects</p><div class="slot-list" id="aspectList"></div></div>
       <div class="grp grp--fragments"><p class="lbl">Fragments</p><div class="slot-list frag-list" id="fragList"></div></div>
       <div class="grp grp--artifact"><p class="lbl">Artifact</p><div class="artifact-row" tabindex="0" role="button" aria-label="Configure Artifact"><span class="art"><img id="artIcon" alt="Seasonal artifact" onerror="this.style.opacity=0"></span><div class="artifact-copy"><b>ARTIFACT</b><small id="artName">Seasonal Artifact</small></div><div class="perks" id="artPerks"><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span><span class="rail-empty-slot"></span></div></div></div>
-      <div class="grp guardian-loadouts-panel"><div class="guardian-loadouts-head"><p class="lbl">In-game Loadouts</p><small>BUNGIE · 1–20</small></div><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div>
+      
     </aside>
 
     <section class="stage" aria-label="Guardian stage"><div class="stage-state-container" id="stageStateContainer"><div class="stage-state-card"><div class="icon">⬡</div><h3 id="stageStateTitle">GUARDIAN TELEMETRY</h3><p id="stageStateMessage">Select a Bungie character or loadout to inspect live data metrics.</p></div></div></section>
@@ -110,6 +111,7 @@
 
     <section class="equip">
       <div class="eq gear-weapons"><div class="eq-head"><h3>WEAPONS</h3><span class="tools">▤</span></div><div class="weap-grid"><div class="weap"><div class="art ph"><span class="pw" data-power-cap>550</span><span class="ph-glyph">⌖</span></div><div class="cap"><b>Kinetic slot</b><small class="ph-tag">awaiting live data</small></div></div><div class="weap"><div class="art ph"><span class="pw" data-power-cap>550</span><span class="ph-glyph">⌖</span></div><div class="cap"><b>Energy slot</b><small class="ph-tag">awaiting live data</small></div></div><div class="weap"><div class="art ph"><span class="pw">—</span><span class="ph-glyph">⌖</span></div><div class="cap"><b>Power slot</b><small class="ph-tag">awaiting live data</small></div></div></div></div>
+      <div class="grp guardian-loadouts-panel"><div class="guardian-loadouts-head"><p class="lbl">In-game Loadouts</p><small>BUNGIE · 1–20</small></div><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div>
       <section class="eq gear-combined"><div class="eq-head"><h3>ARMOUR & MODS</h3><span class="tools">EQUIPPED</span></div><div class="gear-subhead"><span>Armour above · 6 functional mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div class="gear-columns"></div></section>
       <div class="eq stats-block"><div class="eq-head"><h3>STATS</h3><span class="tools">⇅</span></div><div class="stats-row" id="statsRow"></div></div>
       <div class="eq activity"><div class="eq-head"><h3>ACTIVITY</h3></div><div class="act-hero"><span class="ic">◈</span><div><b>Grandmaster Nightfall</b><small>The Glassway</small></div></div><div class="act-row"><span>Power Cap</span><b data-power-cap>550</b></div><div class="act-row"><span>Champions</span><b>⚔ ✷</b></div><button class="btn-change">Change Activity</button></div>

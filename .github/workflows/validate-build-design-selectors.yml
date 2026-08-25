@@ -5,12 +5,16 @@ on:
     paths:
       - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space/**'
       - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/index.html'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-loadouts.mjs'
+      - 'astrix-app/pages/guardian-workspace-v2/guardian-loadout-row.css'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-artifact.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-bungie-auth.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/guardian-session-continuity.mjs'
       - 'astrix-app/tools/test-build-design-artifact-intent.mjs'
       - 'astrix-app/tools/test-build-space-character-isolation.mjs'
+      - 'astrix-app/tools/test-guardian-loadout-row.mjs'
       - 'astrix-app/tools/test-guardian-session-continuity.mjs'
       - '.github/workflows/validate-build-design-selectors.yml'
 
@@ -31,11 +35,14 @@ jobs:
           node --check astrix-app/pages/guardian-workspace-v2/guardian-bungie-auth.mjs
           node --check astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs
           node --check astrix-app/pages/guardian-workspace-v2/guardian-session-continuity.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/guardian-loadouts.mjs
       - name: Validate shared Super formation dependency
         run: node astrix-app/tools/validate-super-formation.mjs
       - name: Test intended Artifact configuration
         run: node astrix-app/tools/test-build-design-artifact-intent.mjs
       - name: Test character-scoped Build Space handoff
         run: node astrix-app/tools/test-build-space-character-isolation.mjs
+      - name: Test shared Bungie loadout row
+        run: node astrix-app/tools/test-guardian-loadout-row.mjs
       - name: Test Character and Build session continuity
         run: node astrix-app/tools/test-guardian-session-continuity.mjs

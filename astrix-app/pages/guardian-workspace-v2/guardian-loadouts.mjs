@@ -21,17 +21,9 @@ function isSaved(loadout){
   return Boolean(loadout&&(loadout.items?.length||loadout.subclassOverrides?.length));
 }
 
-function renderStatus(message,state="pending"){
-  const target=host();
-  if(!target)return;
-  target.innerHTML=`<div class="guardian-loadouts-status is-${escapeHtml(state)}" role="status">${escapeHtml(message)}</div>`;
-}
-
-function render(loadouts=[]){
-  const target=host();
-  if(!target)return;
+function loadoutSlotsMarkup(loadouts=[],{selectedIndex=null,interactive=true}={}){
   const rows=Array.isArray(loadouts)?loadouts:[];
-  target.innerHTML=Array.from({length:SLOT_COUNT},(_,index)=>{
+  return Array.from({length:SLOT_COUNT},(_,index)=>{
     const loadout=rows[index]||null;
     const saved=isSaved(loadout);
     if(!saved){
@@ -42,14 +34,32 @@ function render(loadouts=[]){
     const title=`${identity.name}, Bungie loadout slot ${index+1}`;
     const colorStyle=identity.color?` style="--loadout-color-image:url(${escapeHtml(identity.color)})"`:"";
     const icon=identity.icon?`<img class="guardian-loadout-icon" src="${escapeHtml(identity.icon)}" alt="" loading="lazy" decoding="async">`:`<span class="guardian-loadout-icon-fallback" aria-hidden="true">◆</span>`;
-    return `<button type="button" class="guardian-loadout-slot is-saved ${activeIndex===index?"is-active":""}" data-loadout-slot="${index}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}"${colorStyle}>${icon}<span class="guardian-loadout-name" aria-hidden="true">${escapeHtml(identity.name)}</span><small>${index+1}</small></button>`;
+    const inactive=interactive?"":' aria-disabled="true"';
+    return `<button type="button" class="guardian-loadout-slot is-saved ${selectedIndex===index?"is-active":""}" data-loadout-slot="${index}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}"${inactive}${colorStyle}>${icon}<span class="guardian-loadout-name" aria-hidden="true">${escapeHtml(identity.name)}</span><small>${index+1}</small></button>`;
   }).join("");
+}
+
+function renderLoadoutHost(target,loadouts=[],{selectedIndex=null,characterId="",interactive=true}={}){
+  if(!target)return;
+  const rows=Array.isArray(loadouts)?loadouts:[];
+  target.innerHTML=loadoutSlotsMarkup(rows,{selectedIndex,interactive});
+  if(!interactive)return;
   target.querySelectorAll(".is-saved").forEach(button=>button.addEventListener("click",()=>{
     const index=Number(button.dataset.loadoutSlot);
     activeIndex=index;
     target.querySelectorAll(".guardian-loadout-slot").forEach(slot=>slot.classList.toggle("is-active",Number(slot.dataset.loadoutSlot)===index));
-    document.dispatchEvent(new CustomEvent("astrix:loadout-selected",{detail:{index,characterId:activeCharacterId,loadout:rows[index],source:"bungie-live"}}));
+    document.dispatchEvent(new CustomEvent("astrix:loadout-selected",{detail:{index,characterId:String(characterId||activeCharacterId),loadout:rows[index],source:"bungie-live"}}));
   }));
+}
+
+function renderStatus(message,state="pending"){
+  const target=host();
+  if(!target)return;
+  target.innerHTML=`<div class="guardian-loadouts-status is-${escapeHtml(state)}" role="status">${escapeHtml(message)}</div>`;
+}
+
+function render(loadouts=[]){
+  renderLoadoutHost(host(),loadouts,{selectedIndex:activeIndex,characterId:activeCharacterId,interactive:true});
 }
 
 document.addEventListener("astrix:guardian-selection-changed",event=>{
@@ -70,5 +80,5 @@ document.addEventListener("astrix:guardian-error",()=>renderStatus("Loadout data
 document.addEventListener("astrix:beta-fixture-loaded",()=>renderStatus("Connect Bungie to load in-game slots","disconnected"));
 renderStatus("Connect Bungie to load in-game slots","disconnected");
 
-export {render as renderGuardianLoadouts};
+export {render as renderGuardianLoadouts,renderLoadoutHost,loadoutSlotsMarkup};
 export {isSaved,loadoutIdentity,renderStatus as renderGuardianLoadoutStatus};

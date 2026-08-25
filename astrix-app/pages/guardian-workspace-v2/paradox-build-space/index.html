@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="./build-test-modes.css?v=20260823-1">
   <link rel="stylesheet" href="../guardian-gear-layout.css?v=20260822-8">
   <link rel="stylesheet" href="../guardian-super-formation.css?v=20260824-1">
+  <link rel="stylesheet" href="../guardian-loadout-row.css?v=20260825-1">
 </head>
 <body class="is-build-loading">
   <div class="build-loading-gate" id="buildLoadingGate" role="dialog" aria-modal="true" aria-labelledby="buildLoadingStage">
@@ -47,6 +48,7 @@
       <div class="panel-head"><div><small>ORIGINAL → WORKING BUILD</small><h1>BUILD DESIGN</h1></div><span class="status-chip">ITERATION 1</span></div>
       <div class="notice"><span id="buildStateNotice"><b>Baseline protected.</b> The build loaded here is stored as the immutable starting point for Build Forge recommendations.</span><button type="button" class="restore-btn" id="restoreOriginal" disabled>RESTORE ORIGINAL</button></div>
       <section class="design-section"><div class="section-title"><h2>WEAPONS</h2><span>WORKING BUILD</span></div><div class="gear-weapons"><div id="weaponGrid" class="weap-grid"></div></div></section>
+      <section class="design-section build-loadouts-section"><div class="guardian-loadouts-head"><h2>IN-GAME LOADOUTS</h2><small>BUNGIE · 1–20</small></div><div class="guardian-loadouts-grid" id="buildGuardianLoadouts" aria-label="Original Bungie in-game loadout slots"></div></section>
       <section class="design-section"><div class="section-title"><h2>ARMOUR & MODS</h2><span>LIVE BUNGIE STATE</span></div><div class="gear-combined"><div id="armourGrid" class="gear-columns"></div></div></section>
       <section class="design-section test-loop">
         <div class="section-title"><h2>VALIDATION LOOP</h2><span id="testDomainLabel">PVE BUILD TEST</span></div>
