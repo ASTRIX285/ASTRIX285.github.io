@@ -15,6 +15,10 @@ function authReturnUrl(){
   return current;
 }
 
+function authStartUrl(){
+  return `${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(authReturnUrl().toString())}`;
+}
+
 function installStyles(){
   if(document.getElementById("guardianBungieAuthStyles")) return;
   const style=document.createElement("style");
@@ -44,8 +48,7 @@ function makeControl(){
   button.textContent="CHECKING BUNGIE…";
   button.addEventListener("click",()=>{
     if(button.dataset.state==="connected") return;
-    const returnUrl=authReturnUrl();
-    location.href=`${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(returnUrl.toString())}`;
+    location.href=authStartUrl();
   });
   wrap.appendChild(button);
   const anchor=document.querySelector(".topbar .char-switch");
@@ -74,7 +77,12 @@ async function requestSession(){
 }
 
 function publishSession(session){
-  if(session?.authenticated)cacheBungieSession(session);
+  if(session?.authenticated){
+    cacheBungieSession(session);
+    globalThis.AstrixLoader?.authResolved?.();
+  }else{
+    globalThis.AstrixLoader?.authRequired?.(authStartUrl());
+  }
   globalThis.ASTRIX_BUNGIE_SESSION=session;
   globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session}));
 }

@@ -9,7 +9,7 @@ import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-for
 import {markGuardianFastReturn} from '../guardian-session-cache.mjs';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
-import '../guardian-bungie-profile.mjs?v=20260824-session-1';
+import '../guardian-bungie-profile.mjs?v=20260825-auth-gate-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 

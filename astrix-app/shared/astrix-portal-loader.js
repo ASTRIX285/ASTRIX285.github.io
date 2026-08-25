@@ -12,12 +12,12 @@
   if(window.APX_SKIP_PORTAL===true){
     var noop=function(){};
     document.documentElement.classList.remove('apx-booting');
-    window.AstrixLoader={mount:noop,set:noop,status:noop,done:noop,skipped:true};
+    window.AstrixLoader={mount:noop,set:noop,status:noop,done:noop,authRequired:noop,authResolved:noop,skipped:true};
     return;
   }
   document.documentElement.classList.add('apx-booting');
   var LOGO = (window.APX_LOGO || '/img/logo.png');
-  var gate, prog, pct, status, pendingPct=0, pendingStatus='Opening portal', pendingDone=false;
+  var gate, prog, pct, status, authPanel, authButton, pendingPct=0, pendingStatus='Opening portal', pendingDone=false, pendingAuthUrl='';
   function markup(){
     return ''+
     '<div class="apx-gate" role="status" aria-live="polite" aria-label="Loading">'+
@@ -38,6 +38,11 @@
           '</div>'+
         '</div>'+
         '<div class="apx-brand">ASTRIX <em>PARADOX</em></div>'+
+        '<div class="apx-auth-panel" hidden>'+
+          '<strong>BUNGIE AUTHENTICATION</strong>'+
+          '<span>Connect your Bungie account to load your live Guardian.</span>'+
+          '<button class="apx-auth-button" type="button">CONNECT BUNGIE</button>'+
+        '</div>'+
         '<p class="apx-status">Opening portal</p>'+
       '</div>'+
     '</div>';
@@ -46,11 +51,20 @@
     gate=document.querySelector('.apx-gate');
     if(!gate)return;
     prog=gate.querySelector('.apx-prog');pct=gate.querySelector('.apx-pct');status=gate.querySelector('.apx-status');
+    authPanel=gate.querySelector('.apx-auth-panel');authButton=gate.querySelector('.apx-auth-button');
+  }
+  function applyAuth(){
+    if(!gate||!authPanel||!authButton)return;
+    var required=Boolean(pendingAuthUrl);
+    gate.classList.toggle('is-auth-required',required);
+    authPanel.hidden=!required;
+    authButton.onclick=required?function(){window.location.href=pendingAuthUrl;}:null;
   }
   function apply(){
     if(prog)prog.style.setProperty('--p',pendingPct);
     if(pct)pct.textContent=pendingPct+'%';
     if(status)status.textContent=pendingStatus;
+    applyAuth();
     if(pendingDone)finish();
   }
   function mount(){
@@ -73,6 +87,11 @@
     pendingStatus=String(t||'Opening portal');
     if(status)status.textContent=pendingStatus;
   }
+  function authRequired(url){
+    pendingAuthUrl=String(url||'');pendingDone=false;
+    setStatus('Bungie authentication required');applyAuth();
+  }
+  function authResolved(){pendingAuthUrl='';applyAuth();}
   function finish(){
     if(!gate||gate.classList.contains('is-done'))return;
     pendingPct=100;
@@ -86,7 +105,7 @@
     };
     gate.addEventListener('transitionend',removeGate);
   }
-  function done(){pendingDone=true;set(100);if(gate)finish();}
+  function done(){if(pendingAuthUrl)return;pendingDone=true;set(100);if(gate)finish();}
   if(document.body)mount();
   else{
     var bodyObserver=new MutationObserver(function(){
@@ -96,5 +115,5 @@
     bodyObserver.observe(document.documentElement,{childList:true});
     document.addEventListener('DOMContentLoaded',function(){bodyObserver.disconnect();mount();},{once:true});
   }
-  window.AstrixLoader={mount:mount,set:set,status:setStatus,done:done};
+  window.AstrixLoader={mount:mount,set:set,status:setStatus,done:done,authRequired:authRequired,authResolved:authResolved};
 })();
