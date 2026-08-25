@@ -39,6 +39,22 @@ assert.equal(unresolved.activePerks[0].name,'');
 assert.equal(unresolved.activePerks[0].unresolved,true);
 assert.deepEqual(unresolved.unresolvedPerkHashes,[789]);
 
+const mismatchedDefinitionPayload=structuredClone(payload);
+mismatchedDefinitionPayload.artifactDefinition={hash:111,displayProperties:{name:'Wrong Artifact',icon:'/common/wrong.png'}};
+const mismatchedDefinition=resolveArtifactByProvenance(mismatchedDefinitionPayload,'cid-live');
+assert.equal(mismatchedDefinition.hash,999);
+assert.equal(mismatchedDefinition.name,'','a stale definition must not label a different Artifact hash');
+assert.equal(mismatchedDefinition.definition,null);
+assert.equal(mismatchedDefinition.displayResolved,false);
+assert.equal(mismatchedDefinition.unresolved,true);
+
+const exactManifestPayload=structuredClone(mismatchedDefinitionPayload);
+exactManifestPayload.definitions['999']={hash:999,displayProperties:{name:'Exact Manifest Artifact',icon:'/common/exact.png'}};
+const exactManifestArtifact=resolveArtifactByProvenance(exactManifestPayload,'cid-live');
+assert.equal(exactManifestArtifact.name,'Exact Manifest Artifact','an exact manifest hash may resolve display identity');
+assert.equal(exactManifestArtifact.definition.hash,999);
+assert.equal(exactManifestArtifact.unresolved,false);
+
 const intended=createArtifactConfiguration({artifactHash:999,seasonNumber:28,selectedPerkHashes:[123],source:'fixture-intent',provenance:{provider:'fixture'}});
 assert.equal(createArtifactConfiguration({source:'fixture-intent'}).artifactHash,null);
 const state=createBuildState({characterId:'fixture',artifactConfiguration:intended});

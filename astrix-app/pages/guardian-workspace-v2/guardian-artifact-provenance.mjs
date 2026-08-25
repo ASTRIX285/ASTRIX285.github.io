@@ -45,8 +45,10 @@ function resolveArtifactByProvenance(payload,characterId){
   const artifactDefinition=payload?.artifactDefinition||null;
   const definitionHash=numberOrNull(artifactDefinition?.hash);
   const artifactHash=characterArtifactHash??profileArtifactHash??definitionHash;
-  const seasonNumber=numberOrNull(payload?.seasonNumber??payload?.currentSeasonNumber??payload?.artifactCoverage?.seasonNumber??artifactDefinition?.seasonNumber);
-  const base={hash:artifactHash,bungieHash:artifactHash,name:artifactDefinition?.displayProperties?.name||'',description:artifactDefinition?.displayProperties?.description||'',icon:abs(artifactDefinition?.displayProperties?.icon),definition:artifactDefinition,displayResolved:Boolean(artifactDefinition),coverage:payload?.artifactCoverage||null};
+  const manifestDefinition=definition(definitions,artifactHash);
+  const resolvedArtifactDefinition=manifestDefinition||(definitionHash===artifactHash?artifactDefinition:null);
+  const seasonNumber=numberOrNull(payload?.seasonNumber??payload?.currentSeasonNumber??payload?.artifactCoverage?.seasonNumber??resolvedArtifactDefinition?.seasonNumber);
+  const base={hash:artifactHash,bungieHash:artifactHash,name:resolvedArtifactDefinition?.displayProperties?.name||'',description:resolvedArtifactDefinition?.displayProperties?.description||'',icon:abs(resolvedArtifactDefinition?.displayProperties?.icon),definition:resolvedArtifactDefinition,displayResolved:Boolean(resolvedArtifactDefinition),unresolved:!resolvedArtifactDefinition,coverage:payload?.artifactCoverage||null};
   const provenance={provider:'bungie',endpoint:'Destiny2.GetProfile',component:202,componentName:'CharacterProgressions',characterId:cid,path:`characterProgressions.data.${cid}.seasonalArtifact.tiers[].items[isActive=true]`};
 
   if(!characterProgression||!seasonalArtifact||!Array.isArray(seasonalArtifact.tiers)){
