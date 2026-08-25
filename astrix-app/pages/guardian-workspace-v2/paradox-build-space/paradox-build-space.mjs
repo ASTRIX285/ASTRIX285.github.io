@@ -5,7 +5,7 @@ import {renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
 import {createPerkChangePlan,confirmPerkChangePlan,applyConfirmedPerkChangePlan} from '../guardian-perk-change-plan.mjs';
 import {armourCard} from '../guardian-gear-layout.mjs';
 import {renderWeapons} from '../guardian-semantic-ui.mjs';
-import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-formation.mjs';
+import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-formation.mjs';\nimport {guardianReturnMode} from '../guardian-session-continuity.mjs';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 
@@ -137,8 +137,13 @@ function refreshRangeCapture(){const capture=readCapture();const build=currentBu
 async function armRange(){const build=currentBuild();if(!build?.characterId){setRangeStatus('No Guardian characterId is present in this Build Forge snapshot.','bad');return;}const button=byId('armRangeTest');try{if(button)button.disabled=true;setRangeStatus('Taking the pre-test Activity History baseline…','warn');const capture=await armBuildTest({characterId:build.characterId,buildSnapshot:build,testDomain,calibrationType:testDomain==='pve'&&byId('shootingRangeCalibration')?.checked?'shooting-range':null,expectedActivity:selectedExpectedActivity()});refreshRangeCapture();showRangeOutput(capture);if(capture.baselineError)setRangeStatus(`ARMED, but Activity History baseline failed: ${capture.baselineError.message}`,'warn');}catch(error){setRangeStatus(error?.message||'Unable to arm Build Test.','bad');showRangeOutput({error:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null});}finally{if(button)button.disabled=false;}}
 async function pullRange(){const button=byId('pullRangeResults'),build=currentBuild(),capture=readCapture();if(!captureMatchesCharacter(capture,build?.characterId)){setRangeStatus(`Capture blocked: saved character ${capture?.characterId||'unknown'} does not match current Build Forge Guardian ${build?.characterId||'unknown'}.`,'bad');showRangeOutput({error:'Build Test Guardian mismatch.',code:'capture-character-mismatch',captureCharacterId:capture?.characterId||null,currentCharacterId:build?.characterId||null});return;}try{if(button)button.disabled=true;setRangeStatus('Pulling completed post-arm activities and candidate PGCRs…','warn');const result=await collectBuildTestResults({expectedCharacterId:build.characterId});refreshRangeCapture();showRangeOutput(result);if(!result.candidates?.length)setRangeStatus('No completed post-arm Bungie activity candidate was found.','warn');else if(result.candidateSelection?.requiresUserConfirmation)setRangeStatus(`${result.candidates.length} candidates found. Confirm the correct completed activity; Build Forge will not guess.`,'warn');else if(!result.evidenceSummary?.verifiedActivityPgcrCount)setRangeStatus('Candidates pulled, but none has complete activity-hash + PGCR proof.','warn');else setRangeStatus(`${result.evidenceSummary.verifiedActivityPgcrCount} verified activity + PGCR record(s) pulled. Causal perk and uptime claims remain inference.`,'good');}catch(error){setRangeStatus(error?.message||'Unable to pull Build Test results.','bad');showRangeOutput({error:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null,captureCharacterId:error?.captureCharacterId||null,currentCharacterId:error?.currentCharacterId||null});}finally{if(button)button.disabled=!captureMatchesCharacter(readCapture(),currentBuild()?.characterId);}}
 document.addEventListener('click',event=>{const candidate=event.target.closest('[data-confirm-instance]');if(candidate){try{const confirmed=confirmCandidateActivity(candidate.dataset.confirmInstance,{expectedCharacterId:currentBuild()?.characterId});refreshRangeCapture();showRangeOutput(confirmed);setRangeStatus(`COMPLETED ACTIVITY CONFIRMED · ${candidate.dataset.confirmInstance}`,'good');}catch(error){setRangeStatus(error?.message||'Unable to confirm this activity.','bad');}return;}const toggle=event.target.closest('[data-toggle-panel]');if(toggle){const panel=byId(toggle.dataset.togglePanel),expanded=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!expanded));if(panel)panel.hidden=expanded;return;}const option=event.target.closest('[data-select-kind]');if(option)stageSelection(option.dataset.selectKind,Number(option.dataset.selectIndex));});
+function returnToGuardian(){
+  const mode=guardianReturnMode({referrer:document.referrer,currentUrl:location.href,historyLength:history.length});
+  if(mode==='history'){history.back();return;}
+  location.href='../';
+}
 document.querySelectorAll('[data-test-domain]').forEach(button=>button.addEventListener('click',()=>{testDomain=button.dataset.testDomain==='pvp'?'pvp':'pve';renderTestConfiguration();}));
-byId('backToGuardian')?.addEventListener('click',()=>location.href='../');
+byId('backToGuardian')?.addEventListener('click',returnToGuardian);
 byId('armRangeTest')?.addEventListener('click',armRange);
 byId('pullRangeResults')?.addEventListener('click',pullRange);
 byId('downloadRangeEvidence')?.addEventListener('click',downloadRangeEvidence);
@@ -148,4 +153,4 @@ render();
 renderWeapons(currentBuild()?.weapons||[]);
 
 byId('buildLoadingRetry')?.addEventListener('click',()=>{render();if(currentBuild())renderWeapons(currentBuild()?.weapons||[]);});
-byId('buildLoadingBack')?.addEventListener('click',()=>location.href='../');
+byId('buildLoadingBack')?.addEventListener('click',returnToGuardian);

@@ -1,4 +1,4 @@
-const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
+import {SESSION_CACHE_KEY,createSessionCacheEnvelope,readReusableSession} from "./guardian-session-continuity.mjs";\n\nconst AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
 const CANONICAL_APP_ORIGIN = "https://astrixparadox.com";
 
 function authReturnUrl(){
@@ -53,6 +53,22 @@ function makeControl(){
 
 let sessionRequest=null;
 
+function cachedSession(){
+  try{return readReusableSession(sessionStorage.getItem(SESSION_CACHE_KEY));}
+  catch{return null;}
+}
+
+function storeCachedSession(session){
+  try{
+    const envelope=createSessionCacheEnvelope(session);
+    if(envelope)sessionStorage.setItem(SESSION_CACHE_KEY,JSON.stringify(envelope));
+  }catch{}
+}
+
+function clearCachedSession(){
+  try{sessionStorage.removeItem(SESSION_CACHE_KEY);}catch{}
+}
+
 async function requestSession(){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),12000);
@@ -77,17 +93,39 @@ function publishSession(session){
   globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session}));
 }
 
+let sessionValidationRequest=null;
+
 function getBungieSession({force=false}={}){
   if(!force&&sessionRequest)return sessionRequest;
-  sessionRequest=requestSession()
-    .then(session=>{
-      publishSession(session);
-      return session;
-    })
-    .catch(error=>{
-      console.info("[ASTRIX Bungie auth] no active session",error);
-      return {authenticated:false,error:error?.message||"session_unavailable"};
-    });
+  const cached=force?null:cachedSession();
+  if(cached){
+    publishSession(cached);
+    sessionRequest=Promise.resolve(cached);
+    if(!sessionValidationRequest){
+      sessionValidationRequest=requestSession()
+        .then(session=>{
+          sessionRequest=Promise.resolve(session);
+          if(session?.authenticated)publishSession(session);
+          else globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session-ended"));
+          return session;
+        })
+        .catch(error=>{
+          console.info("[ASTRIX Bungie auth] cached session revalidation deferred",error);
+          return cached;
+        })
+        .finally(()=>{sessionValidationRequest=null;});
+    }
+  }else{
+    sessionRequest=requestSession()
+      .then(session=>{
+        publishSession(session);
+        return session;
+      })
+      .catch(error=>{
+        console.info("[ASTRIX Bungie auth] no active session",error);
+        return {authenticated:false,error:error?.message||"session_unavailable"};
+      });
+  }
   globalThis.ASTRIX_BUNGIE_SESSION_PROMISE=sessionRequest;
   return sessionRequest;
 }

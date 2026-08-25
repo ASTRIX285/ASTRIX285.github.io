@@ -568,7 +568,8 @@ document.addEventListener("astrix:character-selected",event=>{
   catch(error){reportProfileError(error);}
 });
 
-ensureLiveProfile(globalThis.ASTRIX_BUNGIE_SESSION||null,{background:true,silent:true});
+// Wait for the reusable Worker session before loading the profile. This avoids
+// a duplicate unauthenticated profile request on Character → Build → Character navigation.
 getBungieSession().then(handleAuthenticatedSession);
 
 export {normaliseLiveProfile,loadSelectedLoadout,characterRoster,selectLiveCharacter,profileWithSelectedLoadout,subclassConfiguration,loadoutCoverage,socketResolution,currentArtifact};
