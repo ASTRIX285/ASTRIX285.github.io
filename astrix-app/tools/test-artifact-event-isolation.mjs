@@ -27,7 +27,7 @@ assert.deepEqual(cachedWarlock.artifactConfiguration.selectedPerkHashes,[101],'T
 
 rememberArtifactSelection({characterId:'warlock-1',selectedLoadoutIndex:2,artifact:{hash:8001},artifactConfiguration:{selectedPerkHashes:[102]},perks:[{hash:102}],state:'intended'});
 const updatedWarlock=JSON.parse(localStorage.getItem(LAST_LOADOUT_KEY));
-assert.deepEqual(updatedWarlock.artifactConfiguration.selectedPerkHashes,[102],'matching loadout Artifact events must update only their bound snapshot');
+assert.deepEqual(updatedWarlock.artifactConfiguration.selectedPerkHashes,[101],'inactive loadout Artifact events must not mutate the persisted cached snapshot');
 assert.deepEqual(resolveBuildSource().artifactConfiguration.selectedPerkHashes,[202],'Warlock loadout events must not contaminate the active Titan');
 
 rememberArtifactSelection({characterId:'titan-1',selectedLoadoutIndex:null,state:'state-unavailable',artifact:{hash:9001,state:'state-unavailable',activePerks:null},artifactConfiguration:{artifactHash:9001,selectedPerkHashes:null,source:'bungie-live-state-unavailable'},perks:null});
