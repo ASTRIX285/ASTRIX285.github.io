@@ -66,7 +66,7 @@ assert.doesNotMatch(formationCss,/data-super-count="[1-5]"/,'Partial-count geome
 assert.match(formationModule,/image\.dataset\.bungieArtworkSource='DestinyInventoryItemDefinition'/,'Every resolved Super must retain Bungie artwork provenance');
 assert.match(formationModule,/image\.src=src/,'Resolved Supers must load Bungie artwork directly instead of a copied local asset');
 assert.match(formationCss,/\.super-diamond>span>img[\s\S]*?object-fit:cover!important/,'Bungie Super art must fill each diamond through its inner bevel');
-assert.match(formationCss,/\.super-diamond--equipped>span\{[\s\S]*?inset:0!important;[\s\S]*?width:100%!important;[\s\S]*?height:100%!important/,'Equipped Super artwork must reach the diamond edge');
+assert.match(formationCss,/\.super-diamond--equipped>span\{[\s\S]*?inset:-20\.7107%!important;[\s\S]*?width:141\.4214%!important;[\s\S]*?height:141\.4214%!important/,'Equipped Super artwork must reach the rotated diamond edge');
 
 assert.match(gearModule,/armour-set-bonus-icon/,'Resolved armour set icon must sit with the armour image');
 assert.match(gearModule,/armour-archetype-icon/,'The shared Main armour-type icon overlay is missing');
@@ -146,7 +146,7 @@ assert.match(gearModule,/const MAIN_MOD_TILE_SIZE = "var\(--pf-slot,52px\)"/,'Ma
 assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-columns/,'Build must not override the Main armour-card grid');
 assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-slot\{/,'Build must not override Main armour-card dimensions or padding');
 assert.match(sharedRailCss,/--guardian-square:46px;[\s\S]*?--guardian-square-gap:6px;[\s\S]*?--guardian-square-radius:6px;/,'Guardian square dimensions must have one shared token source');
-assert.match(gearCss,/\.gear-mods\{display:grid;grid-template-columns:repeat\(2,var\(--guardian-square\)\);grid-template-rows:repeat\(3,var\(--guardian-square\)\);grid-auto-flow:row;gap:var\(--guardian-square-gap\)/,'Character and Build armour mods must share one 2 by 3 grid');
+assert.match(gearCss,/\.gear-mods\{display:grid;grid-template-columns:repeat\(3,var\(--guardian-square\)\);grid-template-rows:repeat\(2,var\(--guardian-square\)\);grid-auto-flow:row;gap:var\(--guardian-square-gap\)/,'Character and Build armour mods must share one 2-row by 3-column grid');
 assert.doesNotMatch(buildCss,/--pf-mod-size|\.gear-slot \.gear-mods\{|grid-auto-flow:column!important/,'Build must not override the shared armour mod size or flow');
 assert.match(sharedRailCss,/guardian-left-rail \.build-fragment-slots\{grid-template-columns:repeat\(5,var\(--guardian-square\)\)/,'Shared rail must fit five same-sized Fragment sockets in one row');
 assert.match(sharedRailCss,/guardian-left-rail \.artifact-row/,'Artifact summary must be owned by the shared Main and Build rail');

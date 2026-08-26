@@ -21,7 +21,7 @@ const squareOwners=Object.entries(sources).filter(([,source])=>/--guardian-squar
 assert.deepEqual(squareOwners,['shared'],'The Guardian square token must have one stylesheet owner');
 assert.match(sources.shared,/--guardian-square:46px;[\s\S]*?--guardian-square-gap:6px;[\s\S]*?--guardian-square-radius:6px;/,'The approved 46px square contract drifted');
 assert.match(sources.shared,/guardian-left-rail[\s\S]*?width:var\(--guardian-square\)!important;[\s\S]*?height:var\(--guardian-square\)!important/,'Left-rail sockets must consume the shared square token');
-assert.match(sources.gear,/\.gear-mods\{[^}]*repeat\(2,var\(--guardian-square\)\)[^}]*repeat\(3,var\(--guardian-square\)\)[^}]*gap:var\(--guardian-square-gap\)/,'Armour mods must consume the same square and gap tokens');
+assert.match(sources.gear,/\.gear-mods\{[^}]*repeat\(3,var\(--guardian-square\)\)[^}]*repeat\(2,var\(--guardian-square\)\)[^}]*gap:var\(--guardian-square-gap\)/,'Armour mods must consume the same square and gap tokens');
 assert.doesNotMatch(sources.build,/--guardian-square\s*:|--pf-mod-size\s*:|\.gear-slot \.gear-mods\s*\{/,'Build must not create a second socket-size owner');
 
 assert.match(sources.shared,/guardian-loadouts-strip\{[\s\S]*?overflow-x:auto!important/,'The 1–20 loadout strip must contain its own narrow-screen overflow');

@@ -80,7 +80,7 @@ assert.match(moduleSource,/function renderSuperFormation/,'Shared Super renderer
 assert.match(moduleSource,/holder\.replaceChildren\(\)/,'Empty Super slots must clear placeholder glyphs');
 assert.match(moduleSource,/slot\.hidden=false/,'Every PSD Super frame must remain visible');
 assert.match(moduleSource,/is-empty-super/,'Unresolved Super frames must remain transparent and explicit');
-assert.match(css,/\.super-diamond--equipped>span\{[\s\S]*?inset:var\(--super-equipped-bevel\)!important/,'Equipped Super artwork must stop at the inner bevel');
+assert.match(css,/\.super-diamond--equipped>span\{[\s\S]*?inset:-20\.7107%!important;[\s\S]*?width:141\.4214%!important;[\s\S]*?height:141\.4214%!important/,'Equipped Super artwork must fill the rotated diamond without inner padding');
 
 const obsoleteFiles=[
   'guardian-main-correction.css',

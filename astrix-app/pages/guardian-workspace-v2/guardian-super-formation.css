@@ -130,6 +130,8 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   height:auto!important;
   transform:translate(-50%,-50%) rotate(45deg)!important;
   overflow:hidden!important;
+  margin:0!important;
+  padding:0!important;
   border:1px solid color-mix(in srgb,var(--super-accent) 74%,white)!important;
   background:transparent!important;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--super-accent) 24%,transparent),0 0 12px color-mix(in srgb,var(--super-accent) 26%,transparent)!important;
@@ -152,7 +154,7 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
 .super-feature .super-diamond::after{
   content:""!important;
   position:absolute!important;
-  inset:var(--super-bevel-size)!important;
+  inset:0!important;
   z-index:3!important;
   border:1px solid color-mix(in srgb,var(--super-accent) 28%,transparent)!important;
   pointer-events:none!important;
@@ -170,12 +172,14 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
 }
 .super-feature .super-diamond>span{
   position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
+  inset:-20.7107%!important;
+  width:141.4214%!important;
+  height:141.4214%!important;
   display:grid!important;
   place-items:center!important;
   overflow:hidden!important;
+  margin:0!important;
+  padding:0!important;
   transform:rotate(-45deg)!important;
   color:transparent!important;
   z-index:1!important;
@@ -188,15 +192,17 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
   max-height:100%!important;
   object-fit:cover!important;
   transform:none!important;
+  margin:0!important;
+  padding:0!important;
   border:0!important;
   outline:0!important;
   box-shadow:none!important;
   filter:saturate(1.06) contrast(1.02) drop-shadow(0 0 6px color-mix(in srgb,var(--super-accent) 35%,transparent))!important;
 }
 .super-feature .super-diamond--equipped>span{
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
+  inset:-20.7107%!important;
+  width:141.4214%!important;
+  height:141.4214%!important;
 }
 .super-feature .super-diamond--equipped>span>img{
   transform:none!important;

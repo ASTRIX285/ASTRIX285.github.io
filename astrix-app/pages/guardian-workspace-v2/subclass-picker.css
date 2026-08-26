@@ -13,7 +13,7 @@
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:clamp(4px,calc((100% - 240px)/5),12px);
+  gap:3px;
   width:calc(100% + 16px);
   max-width:calc(100% + 16px);
   margin:18px -8px 0;
