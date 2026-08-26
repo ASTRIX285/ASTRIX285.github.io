@@ -1,4 +1,4 @@
-import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,restoreWorkingBuild} from './paradox-build-state.mjs';
+import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,protectBuildState,restoreWorkingBuild} from './paradox-build-state.mjs';
 import {mountForgeShell} from '../platform-forge-shell.mjs';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs';
 import {renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
@@ -35,7 +35,7 @@ function validateBuildState(state,binding={}){
   if(binding.characterId&&String(binding.characterId)!==originalBinding.characterId)return null;
   if(binding.membershipId&&originalBinding.membershipId&&String(binding.membershipId)!==originalBinding.membershipId)return null;
   if(originalBinding.membershipId&&workingBinding.membershipId&&originalBinding.membershipId!==workingBinding.membershipId)return null;
-  return state;
+  return protectBuildState(state);
 }
 function decodeState(raw,{durable=false}={}){
   if(!raw||typeof raw!=='object')return null;
