@@ -7,6 +7,7 @@ import {armourCard} from '../guardian-gear-layout.mjs?v=20260825-armour-data-rec
 import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260824-artifact-state-2';
 import {renderEquippedSubclass,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260824-bungie-art-4';
 import {markGuardianFastReturn} from '../guardian-session-cache.mjs';
+import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope} from '../paradox-build-binding.mjs';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
 import '../guardian-bungie-profile.mjs?v=20260825-auth-gate-1';
@@ -14,8 +15,6 @@ import '../guardian-bungie-profile.mjs?v=20260825-auth-gate-1';
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
-const HANDOFF_SCHEMA=2;
-const HANDOFF_TTL_MS=30*60*1000;
 const LOAD_STAGES=Object.freeze({SNAPSHOT:20,VALIDATE:40,PROFILE:58,SOCKETS:74,ARTIFACT:88,READY:100});
 const BUNGIE='https://www.bungie.net';
 const byId=id=>document.getElementById(id);
@@ -27,29 +26,26 @@ const isPrismaticBuild=build=>[build?.subclass,build?.subclassName,build?.subcla
 let activeLoadError='';
 let testDomain='pve';
 let buildRenderSequence=0;
-function bindingOf(value){return {membershipId:String(value?.membershipId||value?.bungieMembershipId||value?.membership?.membershipId||''),membershipType:String(value?.membershipType||value?.membership?.membershipType||''),characterId:String(value?.characterId||'')};}
 function validateBuildState(state,binding={}){
   if(!state||state.version!==1||!state.originalBuild||!state.workingBuild)return null;
-  const original=state.originalBuild,working=state.workingBuild,originalBinding=bindingOf(original),workingBinding=bindingOf(working);
-  if(!originalBinding.characterId||workingBinding.characterId!==originalBinding.characterId)return null;
-  if(binding.characterId&&String(binding.characterId)!==originalBinding.characterId)return null;
-  if(binding.membershipId&&originalBinding.membershipId&&String(binding.membershipId)!==originalBinding.membershipId)return null;
-  if(originalBinding.membershipId&&workingBinding.membershipId&&originalBinding.membershipId!==workingBinding.membershipId)return null;
+  const originalBinding=bindingOf(state.originalBuild),workingBinding=bindingOf(state.workingBuild);
+  if(!originalBinding.characterId||!bindingsEqual(originalBinding,workingBinding))return null;
+  if(bindingOf(binding).characterId&&!bindingsEqual(binding,originalBinding))return null;
   return protectBuildState(state);
 }
 function decodeState(raw,{durable=false}={}){
   if(!raw||typeof raw!=='object')return null;
   if(raw.schemaVersion===HANDOFF_SCHEMA){
-    if(!raw.payload||Date.now()-Number(raw.savedAt||0)>HANDOFF_TTL_MS)return null;
-    return validateBuildState(raw.payload,raw.binding||{});
+    const state=validateHandoffEnvelope(raw);
+    return state?validateBuildState(state,raw.binding||{}):null;
   }
   return durable?null:validateBuildState(raw);
 }
 function readState(){
   activeLoadError='';
-  const params=new URLSearchParams(location.search),expectedCharacterId=params.get('characterId')||'',expectedMembershipId=params.get('membershipId')||'';
+  const params=new URLSearchParams(location.search),expectedCharacterId=params.get('characterId')||'',expectedMembershipId=params.get('membershipId')||'',expectedMembershipType=params.get('membershipType')||'';
   for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){
-    try{const raw=JSON.parse(store.getItem(BUILD_SPACE_KEY)||'null'),state=decodeState(raw,{durable}),binding=state?bindingOf(state.originalBuild):null;if(state&&(!expectedCharacterId||binding.characterId===expectedCharacterId)&&(!expectedMembershipId||binding.membershipId===expectedMembershipId))return state;if(raw)store.removeItem(BUILD_SPACE_KEY);}
+    try{const raw=JSON.parse(store.getItem(BUILD_SPACE_KEY)||'null'),state=decodeState(raw,{durable}),binding=state?bindingOf(state.originalBuild):null;if(state&&(!expectedCharacterId||binding.characterId===expectedCharacterId)&&(!expectedMembershipId||binding.membershipId===expectedMembershipId)&&(!expectedMembershipType||binding.membershipType===expectedMembershipType))return state;if(raw)store.removeItem(BUILD_SPACE_KEY);}
     catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
   }
   activeLoadError=activeLoadError||'No current Build Forge snapshot was found. Return to the Guardian page and choose Improve My Guardian again.';
@@ -80,7 +76,7 @@ function verifiedActivities(build,domain=testDomain){
 function selectedExpectedActivity(){const node=byId('expectedActivity'),row=verifiedActivities(currentBuild()).find(item=>String(item.hash||item.activityHash||item.activityTypeHash||item.mode)===node?.value);return row?{activityHash:Number(row.activityHash||row.hash)||null,activityTypeHash:Number(row.activityTypeHash)||null,mode:Number(row.mode)||null,mapHash:Number(row.mapHash)||null,modifierHashes:Array.isArray(row.modifierHashes)?row.modifierHashes:[],name:String(row.name||row.displayName||'Bungie activity'),source:'bungie-definition'}:null;}
 function renderTestConfiguration(){const build=currentBuild(),node=byId('expectedActivity'),rows=verifiedActivities(build),destination=byId('expectedDestination'),destinationApi=globalThis.AstrixDestinations;if(destination&&destinationApi){destination.innerHTML=destinationApi.options().map(option=>'<option value="'+esc(option.key)+'">'+esc(option.label.toUpperCase())+'</option>').join('');destination.value=destinationApi.current();}if(node){node.innerHTML='<option value="">ANY COMPLETED ACTIVITY</option>'+rows.map(row=>'<option value="'+esc(row.hash||row.activityHash||row.activityTypeHash||row.mode)+'">'+esc(row.name||row.displayName||'Bungie activity '+(row.hash||row.activityHash))+'</option>').join('');}byId('testDomainLabel').textContent=testDomain.toUpperCase()+' BUILD TEST';byId('calibrationOption').hidden=testDomain!=='pve';byId('testContextNote').textContent=testDomain==='pvp'?'Crucible modes appear only when resolved from current Bungie activity definitions. Map and modifier context can attach to the same verified intake contract.':'Select a verified PvE activity, leave Any Activity selected, or use optional Shooting Range calibration.';document.querySelectorAll('[data-test-domain]').forEach(button=>{const active=button.dataset.testDomain===testDomain;button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',String(active));});}
 
-function writeState(next){const original=next?.originalBuild||{},envelope={schemaVersion:HANDOFF_SCHEMA,savedAt:Date.now(),binding:bindingOf(original),payload:next},json=JSON.stringify(envelope);for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,json);}catch{}}}
+function writeState(next){const json=JSON.stringify(createHandoffEnvelope(next));for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,json);}catch{}}}
 function switchBuildCharacter(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId)return;const next=createBuildState(detail);writeState(next);render();}
 function settleBuildImage(image){if(!image?.src||image.hidden||image.closest('[hidden]')||image.complete)return Promise.resolve();return Promise.race([typeof image.decode==='function'?image.decode().catch(()=>{}):new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});}),new Promise(resolve=>setTimeout(resolve,5000))]);}
 function completeBuildRender(build){const sequence=++buildRenderSequence;requestAnimationFrame(()=>requestAnimationFrame(async()=>{if(sequence!==buildRenderSequence)return;const images=[...document.querySelectorAll('.build-space img,.build-character-selector img')].filter(image=>!image.closest('[hidden]'));await Promise.all(images.map(settleBuildImage));if(sequence!==buildRenderSequence)return;emitLoad('render',LOAD_STAGES.READY,'Build Forge rendered','ready');document.dispatchEvent(new CustomEvent('astrix:build-render-complete',{detail:{characterId:String(build?.characterId||''),selectedLoadoutIndex:Number.isInteger(build?.selectedLoadoutIndex)?build.selectedLoadoutIndex:null,renderedImages:images.filter(image=>image.complete&&image.naturalWidth>0).length}}));}));}
