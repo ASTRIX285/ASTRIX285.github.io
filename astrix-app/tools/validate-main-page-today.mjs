@@ -86,7 +86,7 @@ assert.match(gearModule,/is-set-4-active/,'4-piece active state must reach the c
 assert.match(gearCss,/\.gear-slot\.is-set-2-active/,'2-piece card highlight is missing');
 assert.match(gearCss,/\.gear-slot\.is-set-4-active/,'4-piece card highlight is missing');
 assert.match(gearCss,/height:108px!important/,'Armour and weapon portrait rows must be taller');
-assert.match(gearCss,/\.gear-mod\.is-masterwork-gold\{[^}]*border:3px solid #f0d55e[^}]*rgba\(142,34,48,\.94\)/,'Level-five masterwork must retain the crimson/gold stroke');
+assert.match(gearCss,/\.gear-mod\.is-masterwork-gold\{[^}]*border:1px solid rgba\(142,34,48,\.94\)[^}]*outline:2px solid #f0d55e!important/,'Level-five masterwork must retain the 2px outer crimson/gold stroke');
 assert.match(gearCss,/weapon-perk-strip\{[^}]*border:0[^}]*background:transparent/,'Selected perks must not sit inside a blue container');
 assert.match(gearCss,/weapon-support-icon\{width:var\(--pf-mod-size,36px\);height:var\(--pf-mod-size,36px\)/,'Weapon mod/masterwork icons must match armour mod size');
 

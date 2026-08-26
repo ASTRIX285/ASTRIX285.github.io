@@ -180,7 +180,8 @@ html[data-subclass="prismatic"] .subclass-option[data-subclass-option="prismatic
 
 /* -------------------- ARMOUR MODS -------------------- */
 .gear-combined .gear-slot{width:auto!important;min-width:0!important;max-width:none!important}
-.gear-combined .gear-mod img{width:100%!important;height:100%!important;object-fit:contain!important}
+.gear-combined .gear-mod{padding:0!important}
+.gear-combined .gear-mod img{width:100%!important;height:100%!important;object-fit:cover!important}
 
 /* -------------------- LOADOUTS: REFERENCE COMPONENT -------------------- */
 .guardian-loadouts-panel{padding-top:8px!important;margin-top:auto!important}
