@@ -1,0 +1,48 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+
+const ROOT=new URL('../pages/guardian-workspace-v2/',import.meta.url);
+const sources={
+  shared:await readFile(new URL('guardian-left-rail-shared.css',ROOT),'utf8'),
+  adaptive:await readFile(new URL('guardian-adaptive-layout.css',ROOT),'utf8'),
+  characters:await readFile(new URL('guardian-character-cards.css',ROOT),'utf8'),
+  gear:await readFile(new URL('guardian-gear-layout.css',ROOT),'utf8'),
+  layout:await readFile(new URL('guardian-layout-final.css',ROOT),'utf8'),
+  leftLock:await readFile(new URL('guardian-left-panel-lock.css',ROOT),'utf8'),
+  mobile:await readFile(new URL('guardian-mobile.css',ROOT),'utf8'),
+  super:await readFile(new URL('guardian-super-formation.css',ROOT),'utf8'),
+  build:await readFile(new URL('paradox-build-space/paradox-build-space.css',ROOT),'utf8')
+};
+const mainHtml=await readFile(new URL('index.html',ROOT),'utf8');
+const buildHtml=await readFile(new URL('paradox-build-space/index.html',ROOT),'utf8');
+const combined=Object.values(sources).join('\n');
+
+const squareOwners=Object.entries(sources).filter(([,source])=>/--guardian-square\s*:/.test(source)).map(([name])=>name);
+assert.deepEqual(squareOwners,['shared'],'The Guardian square token must have one stylesheet owner');
+assert.match(sources.shared,/--guardian-square:46px;[\s\S]*?--guardian-square-gap:6px;[\s\S]*?--guardian-square-radius:6px;/,'The approved 46px square contract drifted');
+assert.match(sources.shared,/guardian-left-rail[\s\S]*?width:var\(--guardian-square\)!important;[\s\S]*?height:var\(--guardian-square\)!important/,'Left-rail sockets must consume the shared square token');
+assert.match(sources.gear,/\.gear-mods\{[^}]*repeat\(2,var\(--guardian-square\)\)[^}]*repeat\(3,var\(--guardian-square\)\)[^}]*gap:var\(--guardian-square-gap\)/,'Armour mods must consume the same square and gap tokens');
+assert.doesNotMatch(sources.build,/--guardian-square\s*:|--pf-mod-size\s*:|\.gear-slot \.gear-mods\s*\{/,'Build must not create a second socket-size owner');
+
+assert.match(sources.shared,/guardian-loadouts-strip\{[\s\S]*?overflow-x:auto!important/,'The 1–20 loadout strip must contain its own narrow-screen overflow');
+assert.match(sources.shared,/guardian-loadouts-grid\{[\s\S]*?grid-template-columns:repeat\(20,minmax\(32px,1fr\)\)!important;[\s\S]*?min-width:720px!important/,'The Bungie 1–20 loadout row must remain fluid and single-row');
+assert.match(sources.shared,/guardian-loadout-slot\{[\s\S]*?aspect-ratio:1!important/,'Every loadout slot must remain square');
+
+assert.doesNotMatch(combined,/(?:^|[;{])\s*zoom\s*:/m,'Page-level CSS zoom is forbidden');
+const pageLayoutCss=[sources.adaptive,sources.gear,sources.layout,sources.leftLock,sources.mobile,sources.shared,sources.super,sources.build].join('\n');
+assert.doesNotMatch(pageLayoutCss,/(?:html|body|\.workspace|\.build-space|\.design-canvas|\.guardian-left-rail)\s*\{[^{}]*transform\s*:\s*scale\(/,'Page containers must not be scaled to simulate responsiveness');
+
+assert.match(sources.characters,/@media\(max-width:860px\)\{[\s\S]*?guardian-character-cards\{[^}]*overflow-x:auto/,'Character cards must remain reachable on tablets and phones');
+assert.match(sources.build,/@media \(max-width:1100px\) and \(min-width:721px\)\{[\s\S]*?\.build-space\{grid-template-columns:minmax\(300px,340px\) minmax\(0,1fr\)\}/,'Build must retain its smaller-laptop/tablet two-column contract');
+assert.match(sources.build,/@media \(max-width:720px\)\{[\s\S]*?\.build-space\{grid-template-columns:1fr/,'Build must collapse to one document-flow column on phones');
+assert.match(sources.super,/@media\(max-width:720px\)\{[\s\S]*?\.super-feature \.super-feature__cluster\{width:min\(300px,100%\)!important\}/,'Super geometry must scale inside its container at narrow widths');
+
+for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
+  assert.match(html,/<meta name="viewport" content="width=device-width,initial-scale=1">/,label+' must declare a device-width viewport');
+  assert.doesNotMatch(html,/guardian-resolution-adaptive\.css/,label+' must not load the rejected broad scaling override');
+}
+
+console.log('RESPONSIVE_SINGLE_OWNER=PASS');
+console.log('RESPONSIVE_NO_PAGE_SCALE=PASS');
+console.log('RESPONSIVE_LOADOUT_ROW=PASS');
+console.log('RESPONSIVE_TABLET_PHONE_SOURCE=PASS');
