@@ -28,9 +28,9 @@
   width:var(--subclass-picker-slot);
   min-width:var(--subclass-picker-slot);
   max-width:var(--subclass-picker-slot);
-  height:var(--subclass-picker-slot);
-  min-height:var(--subclass-picker-slot);
-  max-height:var(--subclass-picker-slot);
+  height:auto;
+  min-height:0;
+  max-height:none;
   aspect-ratio:1/1;
   overflow:hidden;
   contain:layout paint;
