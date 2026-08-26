@@ -45,22 +45,29 @@ function resolveArtifactByProvenance(payload,characterId){
   const artifactDefinition=payload?.artifactDefinition||null;
   const definitionHash=numberOrNull(artifactDefinition?.hash);
   const artifactHash=characterArtifactHash??profileArtifactHash??definitionHash;
-  const seasonNumber=numberOrNull(payload?.seasonNumber??payload?.currentSeasonNumber??payload?.artifactCoverage?.seasonNumber??artifactDefinition?.seasonNumber);
-  const base={hash:artifactHash,bungieHash:artifactHash,name:artifactDefinition?.displayProperties?.name||'',description:artifactDefinition?.displayProperties?.description||'',icon:abs(artifactDefinition?.displayProperties?.icon),definition:artifactDefinition,displayResolved:Boolean(artifactDefinition),coverage:payload?.artifactCoverage||null};
+  const manifestDefinition=definition(definitions,artifactHash);
+  const resolvedArtifactDefinition=manifestDefinition||(definitionHash===artifactHash?artifactDefinition:null);
+  const seasonNumber=numberOrNull(payload?.seasonNumber??payload?.currentSeasonNumber??payload?.artifactCoverage?.seasonNumber??resolvedArtifactDefinition?.seasonNumber);
+  const base={hash:artifactHash,bungieHash:artifactHash,name:resolvedArtifactDefinition?.displayProperties?.name||'',description:resolvedArtifactDefinition?.displayProperties?.description||'',icon:abs(resolvedArtifactDefinition?.displayProperties?.icon),definition:resolvedArtifactDefinition,displayResolved:Boolean(resolvedArtifactDefinition),unresolved:!resolvedArtifactDefinition,coverage:payload?.artifactCoverage||null};
   const provenance={provider:'bungie',endpoint:'Destiny2.GetProfile',component:202,componentName:'CharacterProgressions',characterId:cid,path:`characterProgressions.data.${cid}.seasonalArtifact.tiers[].items[isActive=true]`};
+  const unavailable=stateMessage=>{
+    const artifactConfiguration=createArtifactConfiguration({artifactHash,seasonNumber,selectedPerkHashes:null,source:'bungie-live-state-unavailable',provenance:{...provenance,state:'state-unavailable'}});
+    return {...base,state:'state-unavailable',provenance:'state-unavailable',perks:null,activePerks:null,unresolvedPerkHashes:[],artifactConfiguration,stateMessage};
+  };
 
   if(!characterProgression||!seasonalArtifact||!Array.isArray(seasonalArtifact.tiers)){
-    const artifactConfiguration=createArtifactConfiguration({artifactHash,seasonNumber,selectedPerkHashes:null,source:'bungie-live-state-unavailable',provenance:{...provenance,state:'state-unavailable'}});
-    return {...base,state:'state-unavailable',provenance:'state-unavailable',perks:null,activePerks:null,unresolvedPerkHashes:[],artifactConfiguration,stateMessage:'Artifact activation state for the selected character is unavailable.'};
+    return unavailable('Artifact activation state for the selected character is unavailable.');
   }
 
   const items=seasonalArtifact.tiers.flatMap(tier=>Array.isArray(tier?.items)?tier.items:[]);
   if(!items.length){
-    const artifactConfiguration=createArtifactConfiguration({artifactHash,seasonNumber,selectedPerkHashes:null,source:'bungie-live-state-unavailable',provenance:{...provenance,state:'state-unavailable'}});
-    return {...base,state:'state-unavailable',provenance:'state-unavailable',perks:null,activePerks:null,unresolvedPerkHashes:[],artifactConfiguration,stateMessage:'Bungie returned no Artifact tier item state for the selected character.'};
+    return unavailable('Bungie returned no Artifact tier item state for the selected character.');
+  }
+  if(items.some(item=>numberOrNull(item?.itemHash)===null||typeof item?.isActive!=='boolean')){
+    return unavailable('Bungie returned incomplete Artifact tier activation evidence for the selected character.');
   }
 
-  const perks=items.map(item=>({...displayItem(definitions,item.itemHash),isActive:item.isActive===true,isVisible:item.isVisible!==false}));
+  const perks=items.map(item=>({...displayItem(definitions,item.itemHash),isActive:item.isActive,isVisible:item.isVisible!==false}));
   const activePerks=perks.filter(item=>item.isActive);
   const selectedPerkHashes=activePerks.map(item=>item.hash);
   const unresolvedPerkHashes=activePerks.filter(item=>item.unresolved).map(item=>item.hash);
