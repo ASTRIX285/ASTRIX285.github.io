@@ -41,7 +41,9 @@ type BungieApiResponse<T> = {
 
 type DestinyItemComponent = { itemHash?: number; itemInstanceId?: string; overrideStyleItemHash?: number; versionNumber?: number; state?: number };
 type DestinySocketComponent = { sockets?: Array<{ plugHash?: number }> };
-type DestinyReusablePlugComponent = { plugs?: Record<string, Array<{ plugItemHash?: number; plugHash?: number }>> };
+type DestinyItemPlug = { plugItemHash?: number; plugHash?: number; canInsert?: boolean; enabled?: boolean };
+type DestinyReusablePlugComponent = { plugs?: Record<string, DestinyItemPlug[]> };
+type DestinyPlugSetsComponent = { plugs?: Record<string, DestinyItemPlug[]> };
 type DestinyArtifactProfileScoped = { artifactHash?: number };
 type DestinyArtifactTierItem = { itemHash?: number; isActive?: boolean; isVisible?: boolean };
 type DestinyArtifactCharacterScoped = { tiers?: Array<{ items?: DestinyArtifactTierItem[] }> };
@@ -60,6 +62,8 @@ type DestinyProfilePayload = {
   characterLoadouts?: { data?: Record<string, { loadouts?: DestinyLoadoutComponent[] }> };
   profileProgression?: { data?: { seasonalArtifact?: DestinyArtifactProfileScoped } };
   characterProgressions?: { data?: Record<string, { seasonalArtifact?: DestinyArtifactCharacterScoped }> };
+  profilePlugSets?: { data?: DestinyPlugSetsComponent };
+  characterPlugSets?: { data?: Record<string, DestinyPlugSetsComponent> };
   itemComponents?: {
     sockets?: { data?: Record<string, DestinySocketComponent> };
     instances?: { data?: Record<string, { damageTypeHash?: number; breakerTypeHash?: number; gearTier?: number; itemLevel?: number; quality?: number; primaryStat?: { value?: number } }> };
@@ -289,7 +293,7 @@ function reusableSubclassPlugHashes(
   definitions: Record<string, Record<string, unknown>>
 ): number[] {
   const hashes = new Set<number>();
-  for (const character of Object.values(profile.characterEquipment?.data || {})) {
+  for (const [characterId, character] of Object.entries(profile.characterEquipment?.data || {})) {
     for (const item of character.items || []) {
       if (!item.itemInstanceId) continue;
       const itemDefinition = definitions[String(item.itemHash)] || {};
@@ -301,6 +305,19 @@ function reusableSubclassPlugHashes(
         for (const row of rows || []) {
           const hash = row.plugItemHash ?? row.plugHash;
           if (Number.isInteger(hash)) hashes.add(Number(hash));
+        }
+      }
+      const socketEntries = (itemDefinition.sockets as { socketEntries?: Array<{ reusablePlugSetHash?: number }> } | undefined)?.socketEntries || [];
+      const plugSets = [profile.profilePlugSets?.data?.plugs, profile.characterPlugSets?.data?.[characterId]?.plugs];
+      for (const entry of socketEntries) {
+        const plugSetHash = Number(entry.reusablePlugSetHash);
+        if (!Number.isInteger(plugSetHash)) continue;
+        for (const plugs of plugSets) {
+          for (const row of plugs?.[String(plugSetHash)] || []) {
+            if (row.canInsert === false || row.enabled === false) continue;
+            const hash = row.plugItemHash ?? row.plugHash;
+            if (Number.isInteger(hash)) hashes.add(Number(hash));
+          }
         }
       }
     }

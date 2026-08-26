@@ -97,6 +97,20 @@ async function enrichLoadoutSupers(payload: any, env: Env): Promise<any> {
     const hash = Number(row?.plugItemHash);
     if (Number.isInteger(hash)) candidateHashes.add(hash);
   }
+  const plugSetHash = Number(manifestSocket?.reusablePlugSetHash);
+  if (Number.isInteger(plugSetHash)) {
+    const plugSets = [
+      payload.profile?.profilePlugSets?.data?.plugs,
+      payload.profile?.characterPlugSets?.data?.[payload.characterId]?.plugs
+    ];
+    for (const plugs of plugSets) {
+      for (const row of plugs?.[String(plugSetHash)] || []) {
+        if (row?.canInsert === false || row?.enabled === false) continue;
+        const hash = Number(row?.plugItemHash ?? row?.plugHash);
+        if (Number.isInteger(hash)) candidateHashes.add(hash);
+      }
+    }
+  }
 
   const unresolved = await resolveMissingInventoryDefinitions(payload, candidateHashes, env);
   payload.loadoutSuperCoverage = {

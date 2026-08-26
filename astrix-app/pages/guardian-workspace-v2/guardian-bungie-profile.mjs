@@ -201,16 +201,22 @@ const isTranscendencePlug=plug=>{
 
 const uniqueItems=rows=>rows.filter((row,index,all)=>row&&Number.isFinite(Number(row.hash))&&all.findIndex(other=>Number(other?.hash)===Number(row.hash))===index);
 
-function subclassCandidatePlugs(profile,definitions,item){
+function subclassCandidatePlugs(profile,definitions,item,characterId=""){
   const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item?.itemInstanceId]?.plugs||{};
   const reusableHashes=Object.values(reusable).flatMap(rows=>Array.isArray(rows)?rows:[])
     .map(row=>Number(row?.plugItemHash??row?.plugHash)).filter(Number.isFinite);
   const itemDef=definition(definitions,item?.itemHash)||{};
-  const manifestHashes=(itemDef.sockets?.socketEntries||[]).flatMap(entry=>[
+  const socketEntries=itemDef.sockets?.socketEntries||[];
+  const manifestHashes=socketEntries.flatMap(entry=>[
     Number(entry?.singleInitialItemHash),
     ...(entry?.reusablePlugItems||[]).map(row=>Number(row?.plugItemHash))
   ]).filter(Number.isFinite);
-  return uniqueItems([...reusableHashes,...manifestHashes]
+  const plugSetHashes=socketEntries.map(entry=>Number(entry?.reusablePlugSetHash)).filter(Number.isInteger);
+  const plugSets=[profile?.profilePlugSets?.data?.plugs,profile?.characterPlugSets?.data?.[characterId]?.plugs];
+  const availablePlugSetHashes=plugSets.flatMap(plugs=>plugSetHashes.flatMap(hash=>plugs?.[String(hash)]||[]))
+    .filter(row=>row?.canInsert!==false&&row?.enabled!==false)
+    .map(row=>Number(row?.plugItemHash??row?.plugHash)).filter(Number.isFinite);
+  return uniqueItems([...reusableHashes,...manifestHashes,...availablePlugSetHashes]
     .map(hash=>displayItem(definitions,hash))
     .filter(row=>row.definition&&Object.keys(row.definition).length));
 }
@@ -258,7 +264,7 @@ function normaliseItem(profile,definitions,item,payload={}){
   };
 }
 
-function subclassConfiguration(profile,definitions,item,payload={}){
+function subclassConfiguration(profile,definitions,item,payload={},characterId=""){
   const socketCoverage=socketResolution(profile,definitions,item);
   const plugs=socketCoverage.plugs;
   const superItem=plugs.find(isSuperPlug)||null;
@@ -268,7 +274,7 @@ function subclassConfiguration(profile,definitions,item,payload={}){
   const melee=plugs.find(isMeleePlug)||null;
   const grenade=plugs.find(isGrenadePlug)||null;
 
-  const candidates=subclassCandidatePlugs(profile,definitions,item);
+  const candidates=subclassCandidatePlugs(profile,definitions,item,characterId);
   const optionsFor=(equipped,predicate)=>uniqueItems([equipped,...candidates.filter(predicate)]);
 
   const superOptions=[
@@ -355,7 +361,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
-  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem,payload):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
+  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem,payload,character.characterId):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character);
   const artifact=currentArtifact(payload,character.characterId);
   const availableArtifacts=availableArtifactItems(payload,artifact);

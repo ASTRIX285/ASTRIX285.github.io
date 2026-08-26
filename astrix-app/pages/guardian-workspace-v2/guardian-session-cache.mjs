@@ -1,7 +1,7 @@
 const SESSION_KEY="astrix:bungie-session-cache:v1";
-const PROFILE_MARKER_KEY="astrix:bungie-profile-cache:v1";
-const PROFILE_FALLBACK_KEY="astrix:bungie-profile-cache-fallback:v1";
-const LOADOUT_FALLBACK_PREFIX="astrix:bungie-loadout-cache-fallback:v1:";
+const PROFILE_MARKER_KEY="astrix:bungie-profile-cache:v2";
+const PROFILE_FALLBACK_KEY="astrix:bungie-profile-cache-fallback:v2";
+const LOADOUT_FALLBACK_PREFIX="astrix:bungie-loadout-cache-fallback:v2:";
 const FAST_RETURN_KEY="astrix:guardian-fast-return:v1";
 const DB_NAME="astrix-guardian-session";
 const DB_VERSION=1;
@@ -78,8 +78,8 @@ async function readRecord(key){
   });
 }
 
-function profileRecordKey(identity){return `profile:${identity}`;}
-function loadoutRecordKey(identity,characterId,index){return `loadout:${identity}:${characterId}:${index}`;}
+function profileRecordKey(identity){return `profile:v2:${identity}`;}
+function loadoutRecordKey(identity,characterId,index){return `loadout:v2:${identity}:${characterId}:${index}`;}
 function isFresh(record){return Boolean(record&&Date.now()-Number(record.savedAt||0)<=PROFILE_TTL_MS);}
 
 async function cacheBungieProfile(session,payload){
