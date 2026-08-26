@@ -1,17 +1,14 @@
 import {clone,createBuildState} from './paradox-build-space/paradox-build-state.mjs';
 import {markGuardianFastReturn} from './guardian-session-cache.mjs';
+import {bindingOf,createHandoffEnvelope,validateHandoffEnvelope} from './paradox-build-binding.mjs';
 
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
 const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';
-const HANDOFF_SCHEMA=2;
-const HANDOFF_TTL_MS=30*60*1000;
 let latestGuardian=null;
 let latestExplicitLoadout=null;
 let activeCharacterId='';
-const bindingOf=value=>({membershipId:String(value?.membershipId||value?.bungieMembershipId||value?.membership?.membershipId||''),membershipType:String(value?.membershipType||value?.membership?.membershipType||''),characterId:String(value?.characterId||'')});
-const safeStore=(key,value,{durable=false}={})=>{const envelope={schemaVersion:HANDOFF_SCHEMA,savedAt:Date.now(),binding:bindingOf(value?.originalBuild||value),payload:value};const json=JSON.stringify(envelope);try{sessionStorage.setItem(key,json);}catch{}if(durable)try{localStorage.setItem(key,json);}catch{}};
-const validEnvelope=(envelope,{expectedCharacterId='',allowLegacy=false}={})=>{if(!envelope||typeof envelope!=='object')return null;if(envelope.schemaVersion!==HANDOFF_SCHEMA)return allowLegacy&&envelope.characterId?envelope:null;if(!envelope.payload||Date.now()-Number(envelope.savedAt||0)>HANDOFF_TTL_MS)return null;const binding=envelope.binding||{},payloadBinding=bindingOf(envelope.payload?.originalBuild||envelope.payload);if(!binding.characterId||binding.characterId!==payloadBinding.characterId)return null;if(expectedCharacterId&&binding.characterId!==String(expectedCharacterId))return null;return envelope.payload;};
-const safeRead=(key,options={})=>{for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){try{const parsed=JSON.parse(store.getItem(key)||'null');const value=validEnvelope(parsed,{...options,allowLegacy:!durable});if(value)return value;if(parsed)store.removeItem(key);}catch{}}return null;};
+const safeStore=(key,value,{durable=false}={})=>{const json=JSON.stringify(createHandoffEnvelope(value));try{sessionStorage.setItem(key,json);}catch{}if(durable)try{localStorage.setItem(key,json);}catch{}};
+const safeRead=(key,options={})=>{for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){try{const parsed=JSON.parse(store.getItem(key)||'null');const value=validateHandoffEnvelope(parsed,{...options,allowLegacy:!durable});if(value)return value;if(parsed)store.removeItem(key);}catch{}}return null;};
 
 function compactBuild(detail={}){
   const subclassBuild=detail.subclassBuild&&typeof detail.subclassBuild==='object'?detail.subclassBuild:{
@@ -51,7 +48,7 @@ function resolveBuildSource(){
   const remembered=safeRead(LAST_LOADOUT_KEY);
   return remembered?.characterId?remembered:null;
 }
-function openBuildSpace(event){const button=event.target?.closest?.('.improve-cta');if(!button)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();const source=resolveBuildSource();let target='./paradox-build-space/';if(source){const state=createBuildState(source);state.sourcePriority=source.source==='bungie-loadout'?'selected-or-last-bungie-loadout':'current-equipped-guardian';safeStore(BUILD_SPACE_KEY,state,{durable:true});const binding=bindingOf(source),params=new URLSearchParams();if(binding.characterId)params.set('characterId',binding.characterId);if(binding.membershipId)params.set('membershipId',binding.membershipId);const query=params.toString();if(query)target+='?'+query;}markGuardianFastReturn();location.href=target;}
+function openBuildSpace(event){const button=event.target?.closest?.('.improve-cta');if(!button)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();const source=resolveBuildSource();let target='./paradox-build-space/';if(source){const state=createBuildState(source);state.sourcePriority=source.source==='bungie-loadout'?'selected-or-last-bungie-loadout':'current-equipped-guardian';safeStore(BUILD_SPACE_KEY,state,{durable:true});const binding=bindingOf(source),params=new URLSearchParams();if(binding.characterId)params.set('characterId',binding.characterId);if(binding.membershipId)params.set('membershipId',binding.membershipId);if(binding.membershipType)params.set('membershipType',binding.membershipType);const query=params.toString();if(query)target+='?'+query;}markGuardianFastReturn();location.href=target;}
 
 document.addEventListener('astrix:guardian-selection-changed',e=>rememberGuardian(e.detail||{}));
 document.addEventListener('astrix:bungie-loadout-loaded',e=>rememberExplicitLoadout(e.detail||{}));
