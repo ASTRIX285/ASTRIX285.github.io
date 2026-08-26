@@ -9,7 +9,7 @@
    ===================================================================== */
 
 .subclass-picker{
-  --subclass-picker-slot:40px;
+  --subclass-picker-slot:min(56px,calc(16.666667% - 2.5px));
   display:flex;
   justify-content:center;
   align-items:center;
@@ -41,36 +41,35 @@
 }
 .subclass-picker .el .shape{
   position:absolute;
-  inset:15%;
-  border:2px solid var(--el);
+  inset:14.6447%;
+  border:.5px solid var(--el);
   background:color-mix(in srgb,var(--el) 15%,transparent);
   transition:background .18s ease,box-shadow .18s ease,transform .18s ease;
 }
 .subclass-picker .el.diamond .shape{transform:rotate(45deg)}
-.subclass-picker .el.prismatic .shape{inset:16%;border-radius:50%}
+.subclass-picker .el.prismatic .shape{inset:0;border-radius:50%}
 
 /* Bungie artwork stays upright and fixed inside its own clipped slot. */
 .subclass-picker .el .icon{
   position:absolute;
-  left:50%;
-  top:50%;
+  inset:0;
   display:block;
-  width:22px;
-  min-width:22px;
-  max-width:22px;
-  height:22px;
-  min-height:22px;
-  max-height:22px;
+  width:100%;
+  min-width:100%;
+  max-width:100%;
+  height:100%;
+  min-height:100%;
+  max-height:100%;
   overflow:hidden;
-  transform:translate(-50%,-50%);
-  background:center/contain no-repeat;
+  transform:none;
+  background:center/100% 100% no-repeat;
   opacity:.92;
   pointer-events:none;
 }
 
 .subclass-picker .el:hover .shape{
   background:color-mix(in srgb,var(--el) 24%,transparent);
-  box-shadow:0 0 12px color-mix(in srgb,var(--el) 55%,transparent);
+  box-shadow:none;
 }
 .subclass-picker .el:focus-visible{outline:2px solid var(--el);outline-offset:-2px}
 .subclass-picker .el.is-active .shape,
