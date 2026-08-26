@@ -1,0 +1,95 @@
+/* =====================================================================
+   ASTRIX PARADOX — SUBCLASS PICKER
+   Sits BELOW the super formation, in both Character and Build Space.
+   Five element diamonds + one Prismatic circle. Selecting an element
+   loads that character's last-equipped Super of that element into the
+   big diamond above, with its other Supers as passives.
+   (This file is the layout + states. The click->load wiring is a
+   separate brief.)
+   ===================================================================== */
+
+.subclass-picker{
+  --subclass-picker-slot:40px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:clamp(4px,calc((100% - 240px)/5),12px);
+  width:calc(100% + 16px);
+  max-width:calc(100% + 16px);
+  margin:18px -8px 0;
+  padding:0;
+  overflow:hidden;
+  box-sizing:border-box;
+  isolation:isolate;
+}
+.subclass-picker .el{
+  position:relative;
+  flex:0 0 var(--subclass-picker-slot);
+  width:var(--subclass-picker-slot);
+  min-width:var(--subclass-picker-slot);
+  max-width:var(--subclass-picker-slot);
+  height:var(--subclass-picker-slot);
+  min-height:var(--subclass-picker-slot);
+  max-height:var(--subclass-picker-slot);
+  aspect-ratio:1/1;
+  overflow:hidden;
+  contain:layout paint;
+  background:none;
+  border:0;
+  padding:0;
+  cursor:pointer;
+}
+.subclass-picker .el .shape{
+  position:absolute;
+  inset:15%;
+  border:2px solid var(--el);
+  background:color-mix(in srgb,var(--el) 15%,transparent);
+  transition:background .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.subclass-picker .el.diamond .shape{transform:rotate(45deg)}
+.subclass-picker .el.prismatic .shape{inset:16%;border-radius:50%}
+
+/* Bungie artwork stays upright and fixed inside its own clipped slot. */
+.subclass-picker .el .icon{
+  position:absolute;
+  left:50%;
+  top:50%;
+  display:block;
+  width:22px;
+  min-width:22px;
+  max-width:22px;
+  height:22px;
+  min-height:22px;
+  max-height:22px;
+  overflow:hidden;
+  transform:translate(-50%,-50%);
+  background:center/contain no-repeat;
+  opacity:.92;
+  pointer-events:none;
+}
+
+.subclass-picker .el:hover .shape{
+  background:color-mix(in srgb,var(--el) 24%,transparent);
+  box-shadow:0 0 12px color-mix(in srgb,var(--el) 55%,transparent);
+}
+.subclass-picker .el:focus-visible{outline:2px solid var(--el);outline-offset:-2px}
+.subclass-picker .el.is-active .shape,
+.subclass-picker .el[aria-selected="true"] .shape{
+  background:color-mix(in srgb,var(--el) 32%,transparent);
+  box-shadow:0 0 16px var(--el),inset 0 0 10px color-mix(in srgb,var(--el) 40%,transparent);
+}
+
+.subclass-picker .el[data-element="arc"]{--el:var(--el-arc)}
+.subclass-picker .el[data-element="solar"]{--el:var(--el-solar)}
+.subclass-picker .el[data-element="void"]{--el:var(--el-void)}
+.subclass-picker .el[data-element="stasis"]{--el:var(--el-stasis)}
+.subclass-picker .el[data-element="strand"]{--el:var(--el-strand)}
+.subclass-picker .el[data-element="prismatic"]{--el:var(--el-prismatic)}
+
+.subclass-picker .el[disabled],
+.subclass-picker .el.is-locked{opacity:.32;cursor:default}
+.subclass-picker .el.is-locked .shape{box-shadow:none}
+
+@media (prefers-reduced-motion:reduce){
+  .subclass-picker .el .shape{transition:none}
+}

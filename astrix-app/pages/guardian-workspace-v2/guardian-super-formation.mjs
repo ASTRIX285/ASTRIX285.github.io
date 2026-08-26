@@ -2,6 +2,14 @@ import {cleanImageElement} from './guardian-bungie-icon-cleaner.mjs?v=20260824-i
 
 const BUNGIE='https://www.bungie.net';
 const SUBCLASS_KEYS=Object.freeze(['void','arc','solar','strand','stasis','prismatic']);
+const SUBCLASS_PICKER_ICONS=Object.freeze({
+  arc:'/common/destiny2_content/icons/949af7a61d60a8e6071282daafa9e6e9.png',
+  solar:'/common/destiny2_content/icons/fedcb91b7ab0584c12f0e9fec730702b.png',
+  void:'/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png',
+  stasis:'/common/destiny2_content/icons/6e441ffa8c8171ce9caf71e51b72fc19.png',
+  strand:'/common/destiny2_content/icons/41c0024ce809085ac16f4e0777ea0ac4.png',
+  prismatic:Object.freeze({hunter:'/common/destiny2_content/icons/fab506e62fa4f188bfe2fb6d56b39614.png',warlock:'/common/destiny2_content/icons/652406349e99e3db0c3198f78af4eeae.png',titan:'/common/destiny2_content/icons/c1740d829e62afc40a9e57af4e3cad4c.png'})
+});
 
 function resolvedSuperIcon(item){
   if(!item)return '';
@@ -45,6 +53,22 @@ function renderEquippedSubclass({root,iconNode,nameNode,metaNode,subclass='',sub
     if(src)void cleanImageElement(iconNode,src);
     else iconNode.removeAttribute('src');
   }
+}
+
+function renderSubclassPicker({root,characterClass='',subclass=''}={}){
+  if(!root)return;
+  const active=subclassKey(subclass,null);
+  const classKey=String(characterClass||'hunter').trim().toLowerCase();
+  root.querySelectorAll('.el[data-element]').forEach(button=>{
+    const element=String(button.dataset.element||'').toLowerCase();
+    const iconPath=element==='prismatic'?SUBCLASS_PICKER_ICONS.prismatic[classKey]:SUBCLASS_PICKER_ICONS[element];
+    const icon=button.querySelector('.icon');
+    const selected=element===active;
+    button.classList.toggle('is-active',selected);
+    button.setAttribute('aria-selected',String(selected));
+    button.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
+    if(icon)icon.style.backgroundImage=iconPath?`url("${absoluteIcon(iconPath)}")`:'';
+  });
 }
 
 function setDiamondFromItem(diamond,item,fallbackTitle='Super unavailable'){
@@ -126,4 +150,4 @@ function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=
   if(nameNode)nameNode.textContent=resolvedActive?.name||resolvedActive?.displayName||'SELECTED SUPER';
 }
 
-export {renderEquippedSubclass,renderSuperFormation,resolvedSuperIcon,setDiamondFromItem};
+export {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation,resolvedSuperIcon,setDiamondFromItem};
