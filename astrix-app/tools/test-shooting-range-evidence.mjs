@@ -28,6 +28,17 @@ const pgcr={activityDetails:{referenceId:30,directorActivityHash:31},entries:[]}
 const verified=classifyCandidateEvidence({activity:newActivity,pgcr});
 assert.equal(verified.classification,'verified-activity-pgcr-evidence');
 assert.equal(verified.shootingRangeIdentification,'unverified');
+assert.equal(verified.proof.hasPgcrHashIdentity,true);
+
+const emptyPgcr=classifyCandidateEvidence({activity:newActivity,pgcr:{}});
+assert.equal(emptyPgcr.classification,'pgcr-without-pgcr-hash-identity','an object without PGCR hash identity must never verify an activity');
+assert.equal(emptyPgcr.proof.hashAgreement,false);
+
+const partialPgcr=classifyCandidateEvidence({activity:newActivity,pgcr:{activityDetails:{referenceId:30}}});
+assert.equal(partialPgcr.classification,'pgcr-without-pgcr-hash-identity','both PGCR identity hashes are required');
+
+const mismatchedPgcr=classifyCandidateEvidence({activity:newActivity,pgcr:{activityDetails:{referenceId:30,directorActivityHash:999}}});
+assert.equal(mismatchedPgcr.classification,'activity-pgcr-hash-mismatch','Activity History and PGCR hashes must agree exactly');
 
 const failed=classifyCandidateEvidence({activity:newActivity,error:{status:404}});
 assert.equal(failed.classification,'pgcr-unavailable');
