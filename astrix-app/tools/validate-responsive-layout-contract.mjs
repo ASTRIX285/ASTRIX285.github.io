@@ -32,7 +32,9 @@ assert.doesNotMatch(combined,/(?:^|[;{])\s*zoom\s*:/m,'Page-level CSS zoom is fo
 const pageLayoutCss=[sources.adaptive,sources.gear,sources.layout,sources.leftLock,sources.mobile,sources.shared,sources.super,sources.build].join('\n');
 assert.doesNotMatch(pageLayoutCss,/(?:html|body|\.workspace|\.build-space|\.design-canvas|\.guardian-left-rail)\s*\{[^{}]*transform\s*:\s*scale\(/,'Page containers must not be scaled to simulate responsiveness');
 
-assert.match(sources.characters,/@media\s*\(max-width:860px\)\{[\s\S]*?guardian-character-cards\{[^}]*overflow-x:auto/,'Character cards must remain reachable on tablets and phones');
+assert.match(sources.characters,/html body \.topbar\{[\s\S]*?position:sticky!important/,'The character-card ribbon must remain anchored to the tool header');
+assert.match(sources.characters,/@media\s*\(max-width:860px\)\{[\s\S]*?#guardianCharacterCards\.guardian-character-cards\{[^}]*display:grid!important;[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;[^}]*overflow:hidden!important/,'All three character cards must remain fixed and contained in the phone ribbon');
+assert.doesNotMatch(sources.characters,/scroll-snap-type|overflow-x:auto/,'The fixed character-card ribbon must not become a separate scrolling container');
 assert.match(sources.build,/@media\s*\(max-width:1100px\)\s*and\s*\(min-width:721px\)\{[\s\S]*?\.build-space\{grid-template-columns:minmax\(300px,340px\) minmax\(0,1fr\)\}/,'Build must retain its smaller-laptop/tablet two-column contract');
 assert.match(sources.build,/@media\s*\(max-width:720px\)\{[\s\S]*?\.build-space\{grid-template-columns:1fr/,'Build must collapse to one document-flow column on phones');
 assert.match(sources.super,/@media\s*\(max-width:720px\)\{[\s\S]*?\.super-feature \.super-feature__cluster\{width:min\(300px,100%\)!important\}/,'Super geometry must scale inside its container at narrow widths');
