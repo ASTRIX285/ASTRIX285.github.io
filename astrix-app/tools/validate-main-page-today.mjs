@@ -103,7 +103,7 @@ assert.match(characterModule,/class="guardian-stat-icon" src="\$\{escapeHtml\(ic
 assert.match(profile,/DestinyStatDefinition identities from Bungie/,'Guardian stat identities must document their Bungie manifest provenance');
 assert.match(profile,/bc69675acdae9e6b9a68a02fb4d62e07/,'Weapons must use Bungie DestinyStatDefinition artwork');
 assert.doesNotMatch(characterModule,/guardian-character-card__head[^\n]*<small>/,'Guardian cards must not render a title subtitle');
-assert.match(characterCss,/grid-template-columns:repeat\(3,300px\)/,'Main and Build must share the fixed-width character-card ribbon');
+assert.match(characterCss,/grid-template-columns:repeat\(3,minmax\(0,300px\)\)/,'Main and Build must share the contained character-card ribbon');
 assert.match(buildHtml,/id="backToGuardian"/,'Build Design must retain the Back button');
 assert.match(buildCss,/\.build-back-btn\{min-height:28px;padding:5px 10px/,'Build Design Back button styling must remain independent of armour layout');
 assert.doesNotMatch(workspaceHtml,/guardian-resolution-adaptive\.css/,'Main must not load the rejected broad resize override');
