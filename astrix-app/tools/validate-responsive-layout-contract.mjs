@@ -38,7 +38,7 @@ assert.match(sources.build,/@media\s*\(max-width:720px\)\{[\s\S]*?\.build-space\
 assert.match(sources.super,/@media\s*\(max-width:720px\)\{[\s\S]*?\.super-feature \.super-feature__cluster\{width:min\(300px,100%\)!important\}/,'Super geometry must scale inside its container at narrow widths');
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
-  assert.match(html,/<meta name="viewport" content="width=device-width,initial-scale=1">/,label+' must declare a device-width viewport');
+  assert.match(html,/<meta\s+name="viewport"\s+content="[^"]*width=device-width[^"]*initial-scale=1(?:\.0)?[^"]*"\s*\/?>/,label+' must declare a device-width viewport');
   assert.doesNotMatch(html,/guardian-resolution-adaptive\.css/,label+' must not load the rejected broad scaling override');
 }
 
