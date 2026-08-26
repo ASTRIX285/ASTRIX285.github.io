@@ -69,16 +69,17 @@ function classifyCandidateEvidence({activity=null,pgcr=null,error=null}={}){
   const pgcrReferenceId=positiveHash(pgcr?.activityDetails?.referenceId);
   const pgcrDirectorActivityHash=positiveHash(pgcr?.activityDetails?.directorActivityHash);
   const hasHashIdentity=Boolean(referenceId&&directorActivityHash);
-  const hasPgcr=Boolean(pgcr);
-  const hashAgreement=hasHashIdentity&&Boolean(
-    (!pgcrReferenceId||pgcrReferenceId===referenceId)&&
-    (!pgcrDirectorActivityHash||pgcrDirectorActivityHash===directorActivityHash)
-  );
+  const hasPgcr=Boolean(pgcr&&typeof pgcr==='object');
+  const hasPgcrHashIdentity=Boolean(pgcrReferenceId&&pgcrDirectorActivityHash);
+  const hashAgreement=hasHashIdentity&&hasPgcrHashIdentity&&
+    pgcrReferenceId===referenceId&&
+    pgcrDirectorActivityHash===directorActivityHash;
   let classification='unproven-activity-candidate';
   if(error)classification='pgcr-unavailable';
   else if(hasPgcr&&!hasHashIdentity)classification='pgcr-without-activity-hash-identity';
+  else if(hasPgcr&&!hasPgcrHashIdentity)classification='pgcr-without-pgcr-hash-identity';
   else if(hasPgcr&&!hashAgreement)classification='activity-pgcr-hash-mismatch';
-  else if(hasPgcr&&hasHashIdentity&&hashAgreement)classification='verified-activity-pgcr-evidence';
+  else if(hasPgcr&&hasHashIdentity&&hasPgcrHashIdentity&&hashAgreement)classification='verified-activity-pgcr-evidence';
   return {
     classification,
     shootingRangeIdentification:'unverified',
@@ -87,6 +88,9 @@ function classifyCandidateEvidence({activity=null,pgcr=null,error=null}={}){
       hasReferenceId:Boolean(referenceId),
       hasDirectorActivityHash:Boolean(directorActivityHash),
       hasPgcr,
+      hasPgcrReferenceId:Boolean(pgcrReferenceId),
+      hasPgcrDirectorActivityHash:Boolean(pgcrDirectorActivityHash),
+      hasPgcrHashIdentity,
       hashAgreement
     }
   };
