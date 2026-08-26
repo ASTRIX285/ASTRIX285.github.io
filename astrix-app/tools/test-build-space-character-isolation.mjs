@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
 
 class MemoryStore{
   constructor(){this.values=new Map();}
@@ -61,6 +62,17 @@ const persistedWarlockEnvelope=JSON.parse(localStorage.getItem(LAST_LOADOUT_KEY)
 assert.equal(persistedWarlockEnvelope.schemaVersion,2,'durable loadouts use the versioned handoff envelope');
 assert.equal(persistedWarlockEnvelope.binding.characterId,'warlock-1','durable envelope remains bound to the saved Guardian');
 assert.equal(persistedWarlockEnvelope.binding.membershipId,'membership-1','durable envelope remains bound to the Bungie membership');
+assert.equal(persistedWarlockEnvelope.binding.membershipType,'3','durable envelope retains the Bungie membership type');
+assert.equal(validateHandoffEnvelope(persistedWarlockEnvelope,{expectedCharacterId:'warlock-1',expectedMembershipId:'membership-1',expectedMembershipType:'3'})?.characterId,'warlock-1','exact Guardian and platform binding is accepted');
+for(const [field,value] of [['characterId','titan-1'],['membershipId','membership-2'],['membershipType','2']]){
+  const tampered=structuredClone(persistedWarlockEnvelope);
+  tampered.binding[field]=value;
+  assert.equal(validateHandoffEnvelope(tampered),null,`tampered ${field} binding must be rejected`);
+}
+assert.equal(validateHandoffEnvelope(persistedWarlockEnvelope,{expectedMembershipType:'2'}),null,'a different requested Bungie platform must not reuse the cached loadout');
+const expired=structuredClone(persistedWarlockEnvelope);
+expired.savedAt=Date.now()-(31*60*1000);
+assert.equal(validateHandoffEnvelope(expired),null,'expired durable handoffs must remain unavailable');
 const persistedWarlock=persistedWarlockEnvelope.payload;
 assert.deepEqual(persistedWarlock.artifactConfiguration.selectedPerkHashes,[101],'Titan Artifact intent cannot contaminate the cached Warlock loadout');
 assert.equal(persistedWarlock.weaponRollAdvice,undefined,'Titan weapon advice cannot contaminate the cached Warlock loadout');
