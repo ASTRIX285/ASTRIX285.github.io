@@ -2,7 +2,7 @@
  * Live Bungie state is authoritative for live Guardians/loadouts.
  * Fixture/DIM test builds fall back to the beta manifest picker.
  */
-import { resolveArtifactViewState } from './guardian-artifact-state.mjs';
+import { resolveArtifactViewState,resolveFixtureArtifactDefinition,resolveIntendedArtifactConfiguration } from './guardian-artifact-state.mjs';
 
 const MANIFEST_URL='../../data/paradox-forge/beta/beta-bungie-manifest-cache.json';
 const BUNGIE_ROOT='https://www.bungie.net';
@@ -24,6 +24,8 @@ let currentMode='fixture';
 let currentArtifactState='intended';
 let liveArtifact=null;
 let livePerksByHash=new Map();
+let currentSelectionContext={characterId:'',selectedLoadoutIndex:null};
+let currentArtifactConfiguration=null;
 
 async function ensureManifest(){
   if(manifest)return;
@@ -90,6 +92,24 @@ function selectionForFixture(detail){
   return Array.isArray(perks)?perks.map(p=>Number(p?.hash??p?.bungieHash)).filter(Number.isFinite):[];
 }
 
+function fixtureConfiguration(id){
+  const configuration=resolveIntendedArtifactConfiguration(
+    {artifactConfiguration:currentArtifactConfiguration},
+    id,
+    selected,
+    {seasonNumber:artifactDef?.seasonNumber,source:'fixture-intent',provenance:{provider:'paradox-fixture',fixtureId:currentFixtureId,manifest:'beta-bungie-manifest-cache'}}
+  );
+  currentArtifactConfiguration=configuration;
+  return configuration;
+}
+
+function emitArtifactSelection(id,stateUnavailable,perks){
+  const artifactConfiguration=currentMode==='live'
+    ?liveArtifact?.artifactConfiguration||currentArtifactConfiguration||null
+    :fixtureConfiguration(id);
+  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{...currentSelectionContext,artifact:id,perks:stateUnavailable?null:perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
+}
+
 function renderArtifactDisplay(){
   const id=artifactIdentity();
   const nameEl=qs('#artName');
@@ -101,6 +121,7 @@ function renderArtifactDisplay(){
     if(nameEl)nameEl.textContent='Artifact unresolved';
     if(iconEl){iconEl.removeAttribute('src');iconEl.style.opacity='0';}
     if(perksEl){perksEl.dataset.artifactState='unresolved';perksEl.innerHTML=Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join('');}
+    emitArtifactSelection(null,currentMode==='live'&&currentArtifactState==='state-unavailable',[]);
     return;
   }
 
@@ -134,10 +155,7 @@ function renderArtifactDisplay(){
     }
   }
 
-  const artifactConfiguration=currentMode==='live'
-    ?liveArtifact?.artifactConfiguration||null
-    :{schemaVersion:1,artifactHash:Number.isFinite(hashOf(id))?hashOf(id):null,seasonNumber:Number.isFinite(Number(artifactDef?.seasonNumber))?Number(artifactDef.seasonNumber):null,selectedPerkHashes:selected.slice(),source:'fixture-intent',provenance:{provider:'paradox-fixture',fixtureId:currentFixtureId,manifest:'beta-bungie-manifest-cache'}};
-  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{artifact:id,perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
+  emitArtifactSelection(id,stateUnavailable,perks);
 }
 
 function closePicker(){qs('#astrixArtifactModal')?.remove();}
@@ -180,18 +198,21 @@ function installStyles(){
 }
 
 async function onSelection(detail={}){
+  currentSelectionContext={characterId:String(detail?.characterId||''),selectedLoadoutIndex:Number.isInteger(detail?.selectedLoadoutIndex)?detail.selectedLoadoutIndex:null};
   const liveMode=['bungie-live','bungie-loadout','bungie-selected-loadout'].includes(String(detail?.source||'').toLowerCase());
   if(liveMode){
     const view=resolveArtifactViewState(detail,{});
-    currentMode='live';currentArtifactState=view.state;currentFixtureId=null;liveArtifact=view.artifact;selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];
+    currentMode='live';currentArtifactState=view.state;currentFixtureId=null;liveArtifact=view.artifact;selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];currentArtifactConfiguration=view.artifactConfiguration||null;
     livePerksByHash=new Map([...(view.allPerks||[]),...(view.perks||[])].map(item=>[Number(item.hash),item]));
     renderArtifactDisplay();wireRow();return;
   }
 
   try{await ensureManifest();}catch(err){console.error('[Paradox artifact]',err);return;}
   currentMode='fixture';currentArtifactState='intended';liveArtifact=null;livePerksByHash=new Map();currentFixtureId=detail?.fixtureId??currentFixtureId;
+  const requestedArtifactHash=detail?.artifactConfiguration?.artifactHash??detail?.artifact?.artifactConfiguration?.artifactHash??detail?.artifact?.hash??detail?.artifact?.bungieHash??null;
+  artifactDef=resolveFixtureArtifactDefinition(manifest?.artifacts,requestedArtifactHash);
   const view=resolveArtifactViewState(detail,{fixtureArtifact:fixtureArtifactIdentity(),fixtureSelected:selectionForFixture(detail)});
-  selected=view.selectedHashes;renderArtifactDisplay();wireRow();
+  selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];currentArtifactConfiguration=view.artifactConfiguration||null;renderArtifactDisplay();wireRow();
 }
 
 document.addEventListener('astrix:guardian-selection-changed',e=>onSelection(e.detail||{}));
