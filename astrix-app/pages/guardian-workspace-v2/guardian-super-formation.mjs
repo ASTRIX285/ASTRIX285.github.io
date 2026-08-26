@@ -55,19 +55,36 @@ function renderEquippedSubclass({root,iconNode,nameNode,metaNode,subclass='',sub
   }
 }
 
-function renderSubclassPicker({root,characterClass='',subclass=''}={}){
+function renderSubclassPicker({root,characterClass='',subclass='',subclassOptions=[],selectKind='',onSelect=null}={}){
   if(!root)return;
   const active=subclassKey(subclass,null);
   const classKey=String(characterClass||'hunter').trim().toLowerCase();
+  const options=Array.isArray(subclassOptions)?subclassOptions.filter(Boolean):[];
   root.querySelectorAll('.el[data-element]').forEach(button=>{
     const element=String(button.dataset.element||'').toLowerCase();
-    const iconPath=element==='prismatic'?SUBCLASS_PICKER_ICONS.prismatic[classKey]:SUBCLASS_PICKER_ICONS[element];
+    const optionIndex=options.findIndex(item=>subclassKey([item?.element,item?.subclass,item?.key,item?.name,item?.displayName].filter(Boolean).join(' '),null)===element);
+    const option=options[optionIndex]||null;
+    const iconPath=resolvedSuperIcon(option)||(element==='prismatic'?SUBCLASS_PICKER_ICONS.prismatic[classKey]:SUBCLASS_PICKER_ICONS[element]);
     const icon=button.querySelector('.icon');
     const selected=element===active;
+    const unlocked=Boolean(option)||(!options.length&&selected);
+    button.onclick=null;
+    button.onkeydown=null;
+    button.removeAttribute('data-select-kind');
+    button.removeAttribute('data-select-index');
+    button.disabled=!unlocked;
+    button.classList.toggle('is-locked',!unlocked);
     button.classList.toggle('is-active',selected);
     button.setAttribute('aria-selected',String(selected));
     button.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
     if(icon)icon.style.backgroundImage=iconPath?`url("${absoluteIcon(iconPath)}")`:'';
+    if(!option)return;
+    if(selectKind){button.dataset.selectKind=selectKind;button.dataset.selectIndex=String(optionIndex);}
+    if(typeof onSelect==='function'){
+      const select=()=>onSelect(option,optionIndex,button);
+      button.onclick=select;
+      button.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select();}};
+    }
   });
 }
 

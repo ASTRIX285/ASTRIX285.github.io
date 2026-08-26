@@ -30,6 +30,66 @@ function equippedRows(payload: any): any[] {
   return Object.values(payload?.profile?.characterEquipment?.data || {}).flatMap((row: any) => row?.items || []);
 }
 
+function subclassRows(payload: any): Array<{ characterId: string; item: any }> {
+  const definitions: Record<string, Record<string, any>> = payload?.definitions || {};
+  const rows: Array<{ characterId: string; item: any }> = [];
+  for (const source of [payload?.profile?.characterEquipment?.data, payload?.profile?.characterInventories?.data]) {
+    for (const [characterId, inventory] of Object.entries(source || {})) {
+      for (const item of (inventory as any)?.items || []) {
+        const definition = definitions[String(item?.itemHash)];
+        if (Number(item?.bucketHash ?? definition?.inventory?.bucketTypeHash) === SUBCLASS_BUCKET_HASH) rows.push({ characterId, item });
+      }
+    }
+  }
+  return rows.filter((row, index, all) => all.findIndex(other => String(other.item?.itemInstanceId || other.item?.itemHash) === String(row.item?.itemInstanceId || row.item?.itemHash)) === index);
+}
+
+async function enrichSubclassInventory(payload: any, env: Env): Promise<any> {
+  if (!payload?.profile) return payload;
+  const initialRows = subclassRows(payload);
+  await resolveMissingInventoryDefinitions(payload, initialRows.map(row => Number(row.item?.itemHash)), env);
+  const rows = subclassRows(payload);
+  const requested = new Set<number>();
+  for (const { characterId, item } of rows) {
+    if (!item?.itemInstanceId) continue;
+    for (const socket of payload.profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]?.sockets || []) {
+      const hash = Number(socket?.plugHash);
+      if (Number.isInteger(hash)) requested.add(hash);
+    }
+    const reusable = payload.profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]?.plugs || {};
+    for (const plugs of Object.values(reusable)) {
+      for (const row of (plugs as any[]) || []) {
+        if (row?.canInsert === false || row?.enabled === false) continue;
+        const hash = Number(row?.plugItemHash ?? row?.plugHash);
+        if (Number.isInteger(hash)) requested.add(hash);
+      }
+    }
+    const definition = payload.definitions?.[String(item.itemHash)] || {};
+    for (const entry of definition?.sockets?.socketEntries || []) {
+      const initialHash = Number(entry?.singleInitialItemHash);
+      if (Number.isInteger(initialHash)) requested.add(initialHash);
+      const plugSetHash = Number(entry?.reusablePlugSetHash);
+      if (!Number.isInteger(plugSetHash)) continue;
+      for (const plugSets of [payload.profile?.profilePlugSets?.data?.plugs, payload.profile?.characterPlugSets?.data?.[characterId]?.plugs]) {
+        for (const row of plugSets?.[String(plugSetHash)] || []) {
+          if (row?.canInsert === false || row?.enabled === false) continue;
+          const hash = Number(row?.plugItemHash ?? row?.plugHash);
+          if (Number.isInteger(hash)) requested.add(hash);
+        }
+      }
+    }
+  }
+  const unresolved = await resolveMissingInventoryDefinitions(payload, requested, env);
+  payload.subclassCatalogCoverage = {
+    itemInstances: rows.map(row => String(row.item?.itemInstanceId || "")).filter(Boolean),
+    requested: [...requested],
+    resolved: [...requested].filter(hash => Boolean(payload.definitions?.[String(hash)])),
+    unresolved,
+    complete: unresolved.length === 0
+  };
+  return payload;
+}
+
 async function enrichWeaponReusablePlugs(payload: any, env: Env): Promise<any> {
   const profile = payload?.profile;
   if (!profile) return payload;
@@ -143,6 +203,7 @@ export default {
     try {
       if (request.method === "GET" && (path === "/bungie/profile" || path === "/v1/destiny/profile")) {
         return await rewriteJsonResponse(response, async payload => {
+          await enrichSubclassInventory(payload, env);
           await enrichEquipableSets(payload, env);
           await enrichWeaponReusablePlugs(payload, env);
           return payload;

@@ -4,13 +4,13 @@
  */
 
 import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
-import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from './guardian-super-formation.mjs?v=20260826-super-runtime-2';
+import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from './guardian-super-formation.mjs?v=20260826-four-fixes-1';
 import './guardian-artifact.mjs?v=20260824-artifact-state-2';
 import './paradox-build-space-handoff.mjs';
 
 const leftPanelLockLink = document.querySelector('link[data-astrix-left-panel-lock]') || document.createElement('link');
 leftPanelLockLink.rel = 'stylesheet';
-leftPanelLockLink.href = './guardian-left-panel-lock.css?v=20260823-main-pass-4';
+leftPanelLockLink.href = './guardian-left-panel-lock.css?v=20260826-four-fixes-1';
 leftPanelLockLink.dataset.astrixLeftPanelLock = 'true';
 if (!leftPanelLockLink.isConnected) document.head.appendChild(leftPanelLockLink);
 
@@ -38,7 +38,7 @@ function bungieUrl(path){if(!path)return '';return path.startsWith('http')?path:
 function subclassCacheId(characterClass,element){return `${String(characterClass||'unknown').toLowerCase()}:${String(element||'').toLowerCase()}`;}
 function cacheSubclassIcon(characterClass,element,icon){const src=bungieUrl(icon);if(!src||!SUBCLASS_KEYS.includes(element))return;subclassIconCache.set(subclassCacheId(characterClass,element),src);persistSubclassIconCache();}
 function ingestSubclassCatalog(detail={}){const characterClass=String(detail.characterClass||'').toLowerCase();const catalog=Array.isArray(detail.subclassCatalog)?detail.subclassCatalog:[];catalog.forEach(item=>{const element=String(item?.element||item?.subclass||'').toLowerCase();cacheSubclassIcon(characterClass,element,resolvedDisplayIcon(item));});const activeElement=String(detail.subclass||'').trim().toLowerCase();if(activeElement&&detail.subclassIcon)cacheSubclassIcon(characterClass,activeElement,detail.subclassIcon);}
-function syncEquippedSubclass(detail={}){ingestSubclassCatalog(detail);const element=String(detail.subclass||'').trim().toLowerCase();const characterClass=String(detail.characterClass||'Guardian').trim();const icon=detail.subclassIcon||subclassIconCache.get(subclassCacheId(characterClass.toLowerCase(),element))||'';renderEquippedSubclass({root:document.getElementById('equippedSubclassSummary'),iconNode:document.getElementById('equippedSubclassIcon'),nameNode:document.getElementById('equippedSubclassName'),metaNode:document.getElementById('equippedSubclassMeta'),subclass:element,subclassName:detail.subclassName||element,characterClass,icon});renderSubclassPicker({root:document.getElementById('subclassPicker'),characterClass,subclass:element});}
+function syncEquippedSubclass(detail={}){ingestSubclassCatalog(detail);const element=String(detail.subclass||'').trim().toLowerCase();const characterClass=String(detail.characterClass||'Guardian').trim();const catalog=Array.isArray(detail.subclassCatalog)?detail.subclassCatalog:[];const icon=detail.subclassIcon||subclassIconCache.get(subclassCacheId(characterClass.toLowerCase(),element))||'';renderEquippedSubclass({root:document.getElementById('equippedSubclassSummary'),iconNode:document.getElementById('equippedSubclassIcon'),nameNode:document.getElementById('equippedSubclassName'),metaNode:document.getElementById('equippedSubclassMeta'),subclass:element,subclassName:detail.subclassName||element,characterClass,icon});renderSubclassPicker({root:document.getElementById('subclassPicker'),characterClass,subclass:element,subclassOptions:catalog,onSelect:item=>{const nextElement=String(item?.element||item?.subclass||item?.key||'').toLowerCase();const nextBuild=item?.subclassBuild||item?.build||{};const next={...detail,subclass:nextElement,subclassName:item?.name||item?.displayName||nextElement,subclassIcon:resolvedDisplayIcon(item),subclassBuild:nextBuild,super:nextBuild.super||null,superOptions:nextBuild.superOptions||[]};syncEquippedSubclass(next);populateSuperChain(next);}});}
 function setDiamondFromItem(diamond,item,fallbackTitle=''){if(!diamond)return;const holder=diamond.querySelector('span');if(!holder)return;const icon=resolvedDisplayIcon(item);const title=String(item?.name||fallbackTitle||'').trim();const src=bungieUrl(icon);if(src){let img=holder.querySelector('img.super-feature__icon');if(!img){holder.textContent='';img=document.createElement('img');img.className='super-feature__icon';holder.appendChild(img);}img.alt=title;diamond.classList.add('has-live-icon');void cleanImageElement(img,src);}else{holder.textContent='◆';diamond.classList.remove('has-live-icon');}diamond.title=title||fallbackTitle;diamond.setAttribute('aria-label',title||fallbackTitle);}
 function syncTranscendence(host,detail,isPrismatic){
   let block=document.getElementById('mainTranscendence')||host.parentElement?.querySelector('.prismatic-transcendence');

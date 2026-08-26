@@ -31,6 +31,7 @@ html body .topbar{
 html body .topbar>#guardianCharacterCards{
   width:100%!important;
   max-width:910px!important;
+  align-self:center!important;
 }
 html body .topbar+:is(.workspace,.build-space){min-height:calc(100vh - 108px)!important}
 .guardian-character-cards__status{
@@ -93,6 +94,7 @@ html body .topbar>#guardianCharacterCards .guardian-character-card{width:100%;mi
   background:
     linear-gradient(90deg,rgba(5,5,9,.04) 0 38%,rgba(5,5,9,.14) 68%,rgba(5,5,9,.28) 100%),
     linear-gradient(0deg,rgba(5,5,9,.54) 0 36%,rgba(5,5,9,.08) 76%,rgba(5,5,9,.12) 100%);
+  opacity:.2;
   pointer-events:none;
 }
 .guardian-character-card:hover{transform:translateY(-1px);border-color:rgba(var(--stage-accent-rgb,180,70,70),.62);filter:none;opacity:1}
@@ -104,7 +106,7 @@ html body .topbar>#guardianCharacterCards .guardian-character-card{width:100%;mi
   opacity:1;
 }
 .guardian-character-card.is-selected::before{opacity:.48;filter:saturate(.48) brightness(.68)}
-.guardian-character-card.is-selected::after{background:linear-gradient(0deg,rgba(6,9,15,.62) 0 38%,rgba(104,190,255,.08) 100%)}
+.guardian-character-card.is-selected::after{background:linear-gradient(0deg,rgba(6,9,15,.62) 0 38%,rgba(104,190,255,.08) 100%);opacity:.1}
 .guardian-character-card__head{position:absolute;z-index:1;inset:0;display:block;min-width:0;pointer-events:none}
 .guardian-character-card__identity{
   position:absolute;
@@ -130,7 +132,7 @@ html body .topbar>#guardianCharacterCards .guardian-character-card{width:100%;mi
 .guardian-character-card__stats{
   position:absolute;
   z-index:1;
-  left:24px;
+  left:39px;
   right:4px;
   bottom:8px;
   display:grid;

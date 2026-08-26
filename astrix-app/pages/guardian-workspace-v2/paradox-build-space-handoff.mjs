@@ -19,7 +19,7 @@ function compactBuild(detail={}){
     source:detail.selectedLoadoutIndex!=null?'bungie-loadout':(detail.source||'current-guardian'),
     characterId:String(detail.characterId||''),membershipId:String(detail.membershipId||detail.bungieMembershipId||detail.membership?.membershipId||''),membershipType:String(detail.membershipType||detail.membership?.membershipType||''),characterClass:detail.characterClass||'',displayName:detail.displayName||'Guardian',
     selectedLoadoutIndex:Number.isInteger(detail.selectedLoadoutIndex)?detail.selectedLoadoutIndex:null,
-    subclass:detail.subclass||'',subclassName:detail.subclassName||'',subclassIcon:detail.subclassIcon||'',
+    subclass:detail.subclass||'',subclassName:detail.subclassName||'',subclassIcon:detail.subclassIcon||'',subclassCatalog:clone(detail.subclassCatalog||[]),
     subclassBuild:clone(subclassBuild),artifact:clone(detail.artifact||null),artifactConfiguration:clone(detail.artifactConfiguration||detail.artifact?.artifactConfiguration||null),weapons:clone(detail.weapons||[]),armour:clone(detail.armour||[]),
     loadoutsAvailable:detail.loadoutsAvailable===true,loadouts:clone(detail.loadouts||[]),
     stats:clone(detail.stats||[]),hashCoverage:clone(detail.hashCoverage||null),semanticCoverage:clone(detail.semanticCoverage||null),coverage:clone(detail.coverage||null),paradoxAnalysis:clone(detail.paradoxAnalysis||null),

@@ -321,12 +321,12 @@
  * crushing their 3 x 2 mod grids. */
 .gear-combined{container-type:inline-size}
 @container (max-width:900px){
-  .gear-columns{grid-template-columns:repeat(3,minmax(150px,1fr))!important}
+  .gear-columns{grid-template-columns:repeat(3,minmax(220px,1fr))!important}
 }
-@container (max-width:580px){
-  .gear-columns{grid-template-columns:repeat(2,minmax(145px,1fr))!important}
+@container (max-width:680px){
+  .gear-columns{grid-template-columns:repeat(2,minmax(220px,1fr))!important}
 }
-@container (max-width:340px){
+@container (max-width:460px){
   .gear-columns{grid-template-columns:1fr!important}
 }
 

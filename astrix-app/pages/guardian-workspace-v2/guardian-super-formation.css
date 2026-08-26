@@ -66,6 +66,20 @@ html body .workspace .left .subclass-super-shell.equipped-subclass-stack{
   object-fit:contain;
   filter:drop-shadow(0 0 5px rgba(255,255,255,.30));
 }
+.equipped-subclass:not([data-subclass="prismatic"]) .equipped-subclass__crest{
+  place-self:center;
+  width:70.7107%;
+  border-radius:0;
+  transform:rotate(45deg);
+}
+.equipped-subclass:not([data-subclass="prismatic"]) .equipped-subclass__crest::after{border-radius:0}
+.equipped-subclass:not([data-subclass="prismatic"]) .equipped-subclass__crest img{
+  width:141.4214%;
+  height:141.4214%;
+  max-width:none;
+  max-height:none;
+  transform:rotate(-45deg);
+}
 .equipped-subclass__copy{display:grid;gap:5px;min-width:0}
 .equipped-subclass__copy strong{
   color:#fff;

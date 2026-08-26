@@ -3,7 +3,7 @@
  * expandable editing fields below the equipped sockets.
  */
 :root{
-  --guardian-square:46px;
+  --guardian-square:clamp(40px,3.2vw,64px);
   --guardian-square-gap:6px;
   --guardian-square-radius:6px;
   --guardian-rail-slot:var(--guardian-square);
@@ -85,9 +85,9 @@
   gap:var(--guardian-square-gap)!important;
   min-height:var(--guardian-square)!important;
 }
-.guardian-left-rail .build-ability-slots{grid-template-columns:repeat(4,var(--guardian-square))!important}
-.guardian-left-rail .build-aspect-slots{grid-template-columns:repeat(2,var(--guardian-square))!important}
-.guardian-left-rail .build-fragment-slots{grid-template-columns:repeat(5,var(--guardian-square))!important}
+.guardian-left-rail .build-ability-slots,
+.guardian-left-rail .build-aspect-slots,
+.guardian-left-rail .build-fragment-slots{grid-template-columns:repeat(auto-fit,var(--guardian-square))!important}
 .guardian-left-rail .build-equipped-slots>.icon-tile,
 .guardian-left-rail .build-artifact-row .perks>*,
 .guardian-left-rail .rail-empty-slot{
@@ -160,10 +160,10 @@
 .guardian-left-rail .artifact-row .perks{
   grid-column:1/-1!important;
   display:grid!important;
-  grid-template-columns:repeat(4,var(--guardian-square))!important;
+  grid-template-columns:repeat(auto-fit,var(--guardian-square))!important;
   grid-auto-rows:var(--guardian-square)!important;
   gap:var(--guardian-square-gap)!important;
-  width:max-content!important;
+  width:100%!important;
   max-width:100%!important;
   min-height:calc((var(--guardian-square) * 2) + var(--guardian-square-gap))!important;
   margin:0!important;

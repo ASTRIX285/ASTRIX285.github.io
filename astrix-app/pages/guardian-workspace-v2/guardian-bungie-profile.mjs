@@ -207,16 +207,14 @@ function subclassCandidatePlugs(profile,definitions,item,characterId=""){
     .map(row=>Number(row?.plugItemHash??row?.plugHash)).filter(Number.isFinite);
   const itemDef=definition(definitions,item?.itemHash)||{};
   const socketEntries=itemDef.sockets?.socketEntries||[];
-  const manifestHashes=socketEntries.flatMap(entry=>[
-    Number(entry?.singleInitialItemHash),
-    ...(entry?.reusablePlugItems||[]).map(row=>Number(row?.plugItemHash))
-  ]).filter(Number.isFinite);
+  const manifestHashes=socketEntries.map(entry=>Number(entry?.singleInitialItemHash)).filter(Number.isFinite);
   const plugSetHashes=socketEntries.map(entry=>Number(entry?.reusablePlugSetHash)).filter(Number.isInteger);
   const plugSets=[profile?.profilePlugSets?.data?.plugs,profile?.characterPlugSets?.data?.[characterId]?.plugs];
   const availablePlugSetHashes=plugSets.flatMap(plugs=>plugSetHashes.flatMap(hash=>plugs?.[String(hash)]||[]))
     .filter(row=>row?.canInsert!==false&&row?.enabled!==false)
     .map(row=>Number(row?.plugItemHash??row?.plugHash)).filter(Number.isFinite);
-  return uniqueItems([...reusableHashes,...manifestHashes,...availablePlugSetHashes]
+  const availableHashes=[...reusableHashes,...availablePlugSetHashes];
+  return uniqueItems([...(availableHashes.length?availableHashes:manifestHashes)]
     .map(hash=>displayItem(definitions,hash))
     .filter(row=>row.definition&&Object.keys(row.definition).length));
 }
@@ -298,7 +296,7 @@ function subclassConfiguration(profile,definitions,item,payload={},characterId="
   const availableFragments=optionsFor(null,isFragmentPlug);
 
   return {
-    super:superItem,
+    super:superItem||superOptions[0]||null,
     superOptions,
     transcendenceOptions,
     transcendenceSlots,
@@ -361,7 +359,9 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
-  const subclassBuild=subclassItem?subclassConfiguration(profile,definitions,subclassItem,payload,character.characterId):{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
+  const subclassItems=[subclassItem,...(profile?.characterInventories?.data?.[character.characterId]?.items||[])].filter(item=>item&&definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===BUCKETS.subclass);
+  const subclassCatalog=subclassItems.map(item=>{const display=displayItem(definitions,item.itemHash),element=classifySubclass(display);return {...display,itemInstanceId:item.itemInstanceId||null,element,subclass:element,key:element,subclassBuild:subclassConfiguration(profile,definitions,item,payload,character.characterId)}}).filter((item,index,rows)=>rows.findIndex(other=>other.element===item.element)===index);
+  const subclassBuild=subclassCatalog.find(item=>Number(item.hash)===Number(subclassItem?.itemHash))?.subclassBuild||{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character);
   const artifact=currentArtifact(payload,character.characterId);
   const availableArtifacts=availableArtifactItems(payload,artifact);
@@ -384,6 +384,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     subclass:classifySubclass(subclass),
     subclassName:subclass?.name||"Subclass",
     subclassIcon:subclass?.icon||"",
+    subclassCatalog,
     subclassBuild,
     super:subclassBuild.super,
     superOptions:subclassBuild.superOptions,
@@ -508,7 +509,7 @@ async function loadSelectedLoadout(selection){
     return cached;
   }
   const stored=await readCachedBungieLoadoutDetail(liveProfileSession||globalThis.ASTRIX_BUNGIE_SESSION,characterId,index);
-  if(stored){
+  if(stored&&Array.isArray(stored.subclassCatalog)){
     loadoutCache.set(cacheKey,stored);
     rememberLoadoutSelection(characterId,index);
     document.documentElement.dataset.guardianSource="bungie-loadout";
@@ -624,7 +625,7 @@ function ensureLiveProfile(session,{background=false,silent=false}={}){
   if(liveProfileRequest)return liveProfileRequest;
   liveProfileRequest=(async()=>{
     const cachedPayload=await readCachedBungieProfile(session);
-    if(cachedPayload)return activateLiveProfile(cachedPayload,session,{fromCache:true});
+    if(cachedPayload?.subclassCatalogCoverage)return activateLiveProfile(cachedPayload,session,{fromCache:true});
     return loadLiveProfile(session,{background});
   })()
     .then(detail=>{

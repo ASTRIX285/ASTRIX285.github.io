@@ -65,6 +65,9 @@ assert.match(formationCss,/border:var\(--super-bevel-size\) solid/,'Super bevel 
 assert.doesNotMatch(formationCss,/data-super-count="[1-5]"/,'Partial-count geometry must not collapse the six-slot PSD frame');
 assert.match(formationModule,/image\.dataset\.bungieArtworkSource='DestinyInventoryItemDefinition'/,'Every resolved Super must retain Bungie artwork provenance');
 assert.match(formationModule,/image\.src=src/,'Resolved Supers must load Bungie artwork directly instead of a copied local asset');
+assert.match(profile,/subclassCatalog=subclassItems\.map/,'Guardian profile must expose the account-unlocked subclass catalogue');
+assert.match(superSync,/subclassOptions:catalog,onSelect:/,'Character subclass picker must repaint the verified Super formation');
+assert.match(buildModule,/subclassOptions:resolvedSubclassOptions\(build\),selectKind:'subclass'/,'Build subclass picker must stage the selected verified subclass');
 assert.match(formationCss,/\.super-diamond>span>img[\s\S]*?object-fit:cover!important/,'Bungie Super art must fill each diamond through its inner bevel');
 assert.match(formationCss,/\.super-diamond--equipped>span\{[\s\S]*?inset:-20\.7107%!important;[\s\S]*?width:141\.4214%!important;[\s\S]*?height:141\.4214%!important/,'Equipped Super artwork must reach the rotated diamond edge');
 
@@ -94,7 +97,8 @@ assert.match(characterModule,/emblemBackground = character\.emblem\?\.background
 assert.match(characterCss,/var\(--character-emblem\) left center\/cover no-repeat/,'The Bungie emblem banner must fill the complete rounded card without distorting or cropping its left-side icon');
 assert.match(characterCss,/\.guardian-character-cards\{[\s\S]*?gap:5px;/,'Desktop character-card spacing must be reduced by 50 percent');
 assert.match(characterCss,/\.guardian-character-card__identity\{[\s\S]*?left:34px;[\s\S]*?right:50px;/,'Character identity text must move another 10px right');
-assert.match(characterCss,/\.guardian-character-card__stats\{[\s\S]*?left:24px;[\s\S]*?right:4px;/,'Character stat overlay must move exactly 10px right');
+assert.match(characterCss,/\.guardian-character-card__stats\{[\s\S]*?left:39px;[\s\S]*?right:4px;/,'Character stat overlay must preserve the emblem with the requested additional 15px inset');
+assert.match(characterCss,/\.guardian-character-card\.is-selected::after\{[^}]*opacity:\.1/,'Selected character overlay must remain 90 percent transparent');
 assert.match(characterCss,/\.guardian-character-card\.is-selected::before\{opacity:\.48;filter:saturate\(\.48\) brightness\(\.68\)\}/,'Selected card artwork must use the approved passive treatment');
 assert.match(characterCss,/0 18px 34px -14px rgba\(104,190,255,\.72\)/,'Selected card must use a restrained glow behind the card');
 assert.match(profile,/\["Weapons",2996146975[\s\S]*?\["Health",392767087[\s\S]*?\["Class",1943323491[\s\S]*?\["Grenade",1735777505[\s\S]*?\["Super",144602215[\s\S]*?\["Melee",4244567218/,'The six current Destiny stat definitions must retain Bungie order');
@@ -117,6 +121,7 @@ assert.match(loadoutsModule,/data-bungie-color-hash/,'Rendered loadouts must ret
 assert.match(handoff,/latestGuardian&&Number\.isInteger\(latestGuardian\.selectedLoadoutIndex\)/,'Improve My Guardian must prefer the active selected loadout');
 assert.match(handoff,/loadoutsAvailable:detail\.loadoutsAvailable===true/,'Build handoff must carry the exact Bungie in-game loadout catalogue');
 assert.match(handoff,/super:detail\.super\|\|null/,'Build handoff must preserve fixture and legacy subclass fields without an empty subclassBuild');
+assert.match(handoff,/subclassCatalog:clone\(detail\.subclassCatalog\|\|\[\]\)/,'Build handoff must preserve verified subclass choices');
 assert.match(handoff,/markGuardianFastReturn\(\);location\.href='\.\/paradox-build-space\/'/,'Main to Build must reuse the authenticated cached navigation path');
 
 assert.match(buildHtml,/data-guardian-profile-mode="roster-only"/,'Build Tool must load the roster without replacing its protected snapshot');
@@ -145,10 +150,10 @@ assert.match(loadoutsModule,/astrix:loadout-error[\s\S]*?pendingIndex=null/,'A f
 assert.match(gearModule,/const MAIN_MOD_TILE_SIZE = "var\(--pf-slot,52px\)"/,'Main and Build must inherit the exact shared socket size');
 assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-columns/,'Build must not override the Main armour-card grid');
 assert.doesNotMatch(buildCss,/\.design-canvas \.gear-combined \.gear-slot\{/,'Build must not override Main armour-card dimensions or padding');
-assert.match(sharedRailCss,/--guardian-square:46px;[\s\S]*?--guardian-square-gap:6px;[\s\S]*?--guardian-square-radius:6px;/,'Guardian square dimensions must have one shared token source');
+assert.match(sharedRailCss,/--guardian-square:clamp\(40px,3\.2vw,64px\);[\s\S]*?--guardian-square-gap:6px;[\s\S]*?--guardian-square-radius:6px;/,'Guardian square dimensions must have one shared responsive token source');
 assert.match(gearCss,/\.gear-mods\{display:grid;grid-template-columns:repeat\(3,var\(--guardian-square\)\);grid-template-rows:repeat\(2,var\(--guardian-square\)\);grid-auto-flow:row;gap:var\(--guardian-square-gap\)/,'Character and Build armour mods must share one 2-row by 3-column grid');
 assert.doesNotMatch(buildCss,/--pf-mod-size|\.gear-slot \.gear-mods\{|grid-auto-flow:column!important/,'Build must not override the shared armour mod size or flow');
-assert.match(sharedRailCss,/guardian-left-rail \.build-fragment-slots\{grid-template-columns:repeat\(5,var\(--guardian-square\)\)/,'Shared rail must fit five same-sized Fragment sockets in one row');
+assert.match(sharedRailCss,/guardian-left-rail \.build-fragment-slots[\s\S]*?grid-template-columns:repeat\(auto-fit,var\(--guardian-square\)\)/,'Shared rail sockets must wrap before leaving their container');
 assert.match(sharedRailCss,/guardian-left-rail \.artifact-row/,'Artifact summary must be owned by the shared Main and Build rail');
 assert.match(sharedRailCss,/artifact-item-selector[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Expanded Artifact catalogue must form 2-2-2 rows');
 assert.match(sharedRailCss,/guardian-loadouts-strip \.guardian-loadouts-grid\{[\s\S]*?grid-template-columns:repeat\(20,minmax\(32px,1fr\)\)/,'The shared Main and Build loadout tray must remain one 1–20 row');
