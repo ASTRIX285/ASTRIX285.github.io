@@ -359,10 +359,10 @@
 .guardian-loadouts-strip .guardian-loadout-slot.is-loading{opacity:.66!important;cursor:progress!important}
 .guardian-loadouts-strip .guardian-loadout-slot.is-empty{opacity:.56!important}
 .guardian-loadouts-strip .guardian-loadout-icon{
-  width:78%!important;
-  height:78%!important;
-  max-width:36px!important;
-  max-height:36px!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
   object-fit:contain!important;
   transform:none!important;
 }
