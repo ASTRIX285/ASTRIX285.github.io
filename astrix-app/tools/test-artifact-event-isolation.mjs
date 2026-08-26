@@ -4,6 +4,7 @@ class MemoryStore{
   constructor(){this.values=new Map();}
   getItem(key){return this.values.has(key)?this.values.get(key):null;}
   setItem(key,value){this.values.set(key,String(value));}
+  removeItem(key){this.values.delete(key);}
 }
 
 globalThis.sessionStorage=new MemoryStore();
@@ -22,12 +23,15 @@ rememberGuardian(titan);
 rememberArtifactSelection({characterId:'titan-1',selectedLoadoutIndex:null,artifact:{hash:9001},artifactConfiguration:{selectedPerkHashes:[202]},perks:[{hash:202}],state:'intended'});
 assert.deepEqual(resolveBuildSource().artifactConfiguration.selectedPerkHashes,[202]);
 
-const cachedWarlock=JSON.parse(localStorage.getItem(LAST_LOADOUT_KEY));
+const cachedWarlockEnvelope=JSON.parse(localStorage.getItem(LAST_LOADOUT_KEY));
+assert.equal(cachedWarlockEnvelope.schemaVersion,2,'durable Artifact state must use the character-bound handoff envelope');
+assert.equal(cachedWarlockEnvelope.binding.characterId,'warlock-1');
+const cachedWarlock=cachedWarlockEnvelope.payload;
 assert.deepEqual(cachedWarlock.artifactConfiguration.selectedPerkHashes,[101],'Titan Artifact events must not contaminate the cached Warlock loadout');
 
 rememberArtifactSelection({characterId:'warlock-1',selectedLoadoutIndex:2,artifact:{hash:8001},artifactConfiguration:{selectedPerkHashes:[102]},perks:[{hash:102}],state:'intended'});
-const updatedWarlock=JSON.parse(localStorage.getItem(LAST_LOADOUT_KEY));
-assert.deepEqual(updatedWarlock.artifactConfiguration.selectedPerkHashes,[101],'inactive loadout Artifact events must not mutate the persisted cached snapshot');
+const updatedWarlockEnvelope=JSON.parse(localStorage.getItem(LAST_LOADOUT_KEY));
+assert.deepEqual(updatedWarlockEnvelope.payload.artifactConfiguration.selectedPerkHashes,[101],'inactive loadout Artifact events must not mutate the persisted cached snapshot');
 assert.deepEqual(resolveBuildSource().artifactConfiguration.selectedPerkHashes,[202],'Warlock loadout events must not contaminate the active Titan');
 
 rememberArtifactSelection({characterId:'titan-1',selectedLoadoutIndex:null,state:'state-unavailable',artifact:{hash:9001,state:'state-unavailable',activePerks:null},artifactConfiguration:{artifactHash:9001,selectedPerkHashes:null,source:'bungie-live-state-unavailable'},perks:null});
