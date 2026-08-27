@@ -33,6 +33,10 @@ let liveProfileSession=null;
 const manifestReady=guardianManifest.ready();
 let fixtureProfileDetail=null;
 let latestResolvedBuild=null;
+let authenticatedSession=globalThis.ASTRIX_BUNGIE_SESSION?.authenticated?globalThis.ASTRIX_BUNGIE_SESSION:null;
+
+const currentAuthenticatedSession=()=>authenticatedSession?.authenticated?authenticatedSession:(globalThis.ASTRIX_BUNGIE_SESSION?.authenticated?globalThis.ASTRIX_BUNGIE_SESSION:null);
+const isFixtureDetail=detail=>detail?.source==="paradox-beta-fixture";
 
 const cloneBuildValue=value=>{try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}};
 function resolvedBuildSnapshot(detail={}){
@@ -98,6 +102,33 @@ const setRenderStatus=(title,message,detail="")=>{
   if(messageNode)messageNode.textContent=message;
   if(detailNode)detailNode.textContent=detail;
 };
+
+function setSourceCaption(detail={},source="bungie-live"){
+  const title=document.getElementById("stageStateTitle");
+  const message=document.getElementById("stageStateMessage");
+  if(title)title.textContent=source==="bungie-live"?"GUARDIAN PROFILE ACTIVE":"FIXTURE PROFILE ACTIVE";
+  if(!message)return;
+  const characterClass=String(detail.className||detail.characterClass||"Guardian").toUpperCase();
+  const subclass=String(detail.subclassName||detail.subclass||"Subclass").toUpperCase();
+  const caption=document.createElement("small");
+  caption.style.color="#8e7bb0";
+  caption.textContent=source==="bungie-live"?"Live Bungie Guardian":"Telemetry synchronized from Paradox beta fixture";
+  message.replaceChildren(document.createTextNode(`${characterClass} · ${subclass}`),document.createElement("br"),caption);
+}
+
+function setLiveProfileUnavailable(message){
+  const stage=document.querySelector(".stage");
+  const title=document.getElementById("stageStateTitle");
+  const detail=document.getElementById("stageStateMessage");
+  if(stage)stage.dataset.state="error";
+  if(title)title.textContent="LIVE PROFILE UNAVAILABLE";
+  if(detail)detail.textContent=`${message} Retry or reconnect Bungie.`;
+}
+
+function blockAuthenticatedFixture(event){
+  if(!isFixtureDetail(event.detail)||!currentAuthenticatedSession())return;
+  event.stopImmediatePropagation();
+}
 
 const PROFILE_REQUEST_TIMEOUT_MS=60_000;
 
@@ -613,7 +644,7 @@ async function loadSelectedLoadout(selection){
   const cached=loadoutCache.get(cacheKey);
   if(cached){
     rememberLoadoutSelection(characterId,index);
-    document.documentElement.dataset.guardianSource="bungie-loadout";
+    document.documentElement.dataset.guardianSource="bungie-live";
     document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:cached}));
     document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:cached}));
     return cached;
@@ -622,7 +653,7 @@ async function loadSelectedLoadout(selection){
   if(stored&&Array.isArray(stored.subclassCatalog)){
     loadoutCache.set(cacheKey,stored);
     rememberLoadoutSelection(characterId,index);
-    document.documentElement.dataset.guardianSource="bungie-loadout";
+    document.documentElement.dataset.guardianSource="bungie-live";
     document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:{...stored,sessionCacheRestored:true}}));
     document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:{...stored,sessionCacheRestored:true}}));
     return stored;
@@ -645,7 +676,7 @@ async function loadSelectedLoadout(selection){
   await cacheBungieLoadoutDetail(liveProfileSession||globalThis.ASTRIX_BUNGIE_SESSION,characterId,index,detail);
   rememberCharacterId(characterId);
   rememberLoadoutSelection(characterId,index);
-  document.documentElement.dataset.guardianSource="bungie-loadout";
+  document.documentElement.dataset.guardianSource="bungie-live";
   setRenderStatus("BUILD INTELLIGENCE",`Bungie loadout ${index+1} ready`,"Saved build loaded for analysis");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
   document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail}));
@@ -705,6 +736,13 @@ async function loadLiveProfile(session,{background=false}={}){
 function selectLiveCharacter(characterId,expectedClass=""){
   console.log("[TRACE select] clicked id:", characterId, "| exists in profile?", !!liveProfilePayload?.profile?.characters?.data?.[characterId]);
   if(!liveProfilePayload){
+    const session=currentAuthenticatedSession();
+    if(session){
+      document.documentElement.dataset.guardianSource="bungie-live-loading";
+      setRenderStatus("LOADING CHARACTER PROFILE","Waiting for your live Bungie Guardian","Fixture selection is disabled while authenticated");
+      ensureLiveProfile(session,{background:false,silent:false});
+      return null;
+    }
     const fixtureId=String(fixtureProfileDetail?.characterId||fixtureProfileDetail?.fixtureId||"");
     if(fixtureProfileDetail&&fixtureId===String(characterId)){
       const detail=fixtureProfileDetail;
@@ -737,9 +775,11 @@ let liveProfileReady=false;
 function reportProfileError(error){
   const message=error?.message||"Guardian data could not be loaded.";
   console.error("[ASTRIX Bungie profile]",error);
-  setRenderStatus("LIVE PROFILE UNAVAILABLE",message,"Your preview workspace remains available");
+  document.documentElement.dataset.guardianSource="bungie-live-error";
+  setRenderStatus("LIVE PROFILE UNAVAILABLE",message,"Retry or reconnect Bungie");
   document.dispatchEvent(new CustomEvent("astrix:profile-error",{detail:{message}}));
   document.dispatchEvent(new CustomEvent("astrix:guardian-error",{detail:{message}}));
+  queueMicrotask(()=>setLiveProfileUnavailable(message));
 }
 
 function ensureLiveProfile(session,{background=false,silent=false}={}){
@@ -747,7 +787,10 @@ function ensureLiveProfile(session,{background=false,silent=false}={}){
   if(liveProfileRequest)return liveProfileRequest;
   liveProfileRequest=(async()=>{
     const cachedPayload=await readCachedBungieProfile(session);
-    if(cachedPayload?.profile)return activateLiveProfile(await hydrateManifestPayload(cachedPayload),session,{fromCache:true});
+    if(cachedPayload?.profile){
+      try{await activateLiveProfile(await hydrateManifestPayload(cachedPayload),session,{fromCache:true});}
+      catch(error){console.warn("[ASTRIX Bungie profile] cached live profile could not render; requesting a fresh profile",error);}
+    }
     return loadLiveProfile(session,{background});
   })()
     .then(detail=>{
@@ -765,19 +808,30 @@ function ensureLiveProfile(session,{background=false,silent=false}={}){
 }
 
 async function handleAuthenticatedSession(session){
-  if(!session?.authenticated)return null;
+  if(!session?.authenticated){
+    authenticatedSession=null;
+    return null;
+  }
+  authenticatedSession=session;
+  fixtureProfileDetail=null;
+  document.documentElement.dataset.guardianSource="bungie-live-loading";
   // One authenticated profile request only. The earlier silent 15-second
   // attempt immediately launched a second request when the Worker was still
   // resolving Bungie manifest evidence, leaving the UI on empty placeholders.
   return ensureLiveProfile(session,{background:false,silent:false});
 }
 
-globalThis.addEventListener("astrix:bungie-session",event=>{
-  handleAuthenticatedSession(event.detail);
-});
+globalThis.addEventListener("astrix:bungie-session",event=>{handleAuthenticatedSession(event.detail);});
+
+document.addEventListener("astrix:guardian-selection-changed",blockAuthenticatedFixture,true);
+document.addEventListener("astrix:beta-fixture-loaded",blockAuthenticatedFixture,true);
 
 document.addEventListener("astrix:guardian-selection-changed",event=>{
   rememberResolvedBuild(event.detail||{});
+  if(event.detail?.source==="bungie-live"||event.detail?.loadoutSource==="bungie-live"){
+    document.documentElement.dataset.guardianSource="bungie-live";
+    queueMicrotask(()=>setSourceCaption(event.detail||{},"bungie-live"));
+  }
 });
 
 document.addEventListener("click",event=>{
@@ -795,12 +849,14 @@ document.addEventListener("astrix:loadout-selected",event=>{
 });
 
 document.addEventListener("astrix:beta-fixture-loaded",event=>{
-  if(liveProfilePayload)return;
+  if(currentAuthenticatedSession()||liveProfilePayload)return;
   const detail=event.detail||{};
   if(detail.source!=="paradox-beta-fixture")return;
   fixtureProfileDetail=detail;
+  document.documentElement.dataset.guardianSource="fixture";
   rememberResolvedBuild(detail);
   publishFixtureRoster(detail);
+  queueMicrotask(()=>setSourceCaption(detail,"fixture"));
 });
 
 document.addEventListener("astrix:character-selected",event=>{
