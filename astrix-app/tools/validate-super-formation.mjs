@@ -44,10 +44,10 @@ for(const [slot,values] of Object.entries(expectedGeometry)){
   for(const [property,value] of Object.entries(values))assert.match(block,new RegExp(`${property}:${value.replace('.','\\.')}`),`${slot} ${property} drifted`);
 }
 assert.match(css,/\.super-diamond--alt\{width:20\.51%!important/,'Alternate Super width drifted');
-const equippedBevel=Number(css.match(/--super-equipped-bevel:(\d+)px/)?.[1]);
-const alternateBevel=Number(css.match(/--super-alternate-bevel:(\d+)px/)?.[1]);
-assert.ok(equippedBevel>=4&&equippedBevel<=6,`Equipped Super bevel is ${equippedBevel||0}px; expected 4–6px`);
-assert.ok(alternateBevel>=1&&alternateBevel<=2,`Alternate Super bevel is ${alternateBevel||0}px; expected 1–2px`);
+const equippedBevel=Number(css.match(/--super-equipped-bevel:(\d+(?:\.\d+)?)px/)?.[1]);
+const alternateBevel=Number(css.match(/--super-alternate-bevel:(\d+(?:\.\d+)?)px/)?.[1]);
+assert.equal(equippedBevel,5,`Equipped Super bevel is ${equippedBevel||0}px; expected 5px`);
+assert.equal(alternateBevel,2.5,`Alternate Super bevel is ${alternateBevel||0}px; expected 2.5px`);
 const rotatedBounds=(left,top,width)=>{
   const halfDiagonal=width*Math.SQRT2/2;
   return {left:left-halfDiagonal,right:left+halfDiagonal,top:top-halfDiagonal,bottom:top+halfDiagonal};

@@ -58,8 +58,8 @@ assert.match(formationModule,/is-empty-super/,'Unresolved Super slots must be ex
 assert.match(formationModule,/dataset\.superCount='6'/,'The exact six-slot PSD geometry must remain stable');
 assert.match(formationModule,/dataset\.resolvedSuperCount/,'Resolved Super count must remain separately observable');
 assert.match(formationModule,/document\.documentElement\.dataset\.subclass=key/,'Equipped subclass must theme both Main and Build');
-assert.match(formationCss,/--super-equipped-bevel:3px/,'Equipped Super needs the softened bevel');
-assert.match(formationCss,/--super-alternate-bevel:1px/,'Alternate Supers need the softened bevel');
+assert.match(formationCss,/--super-equipped-bevel:5px/,'Equipped Super needs the softened bevel');
+assert.match(formationCss,/--super-alternate-bevel:2\.5px/,'Alternate Supers need the softened bevel');
 assert.match(formationCss,/\.super-feature\{[\s\S]*?--super-accent:var\(--gold,#E0A94E\)/,'Unresolved Super borders must match the chassis gold');
 assert.match(formationCss,/border:var\(--super-bevel-size\) solid/,'Super bevel thickness must use the shared size token');
 assert.doesNotMatch(formationCss,/data-super-count="[1-5]"/,'Partial-count geometry must not collapse the six-slot PSD frame');
@@ -128,7 +128,7 @@ assert.match(handoff,/latestGuardian&&Number\.isInteger\(latestGuardian\.selecte
 assert.match(handoff,/loadoutsAvailable:detail\.loadoutsAvailable===true/,'Build handoff must carry the exact Bungie in-game loadout catalogue');
 assert.match(handoff,/super:detail\.super\|\|null/,'Build handoff must preserve fixture and legacy subclass fields without an empty subclassBuild');
 assert.match(handoff,/subclassCatalog:clone\(detail\.subclassCatalog\|\|\[\]\)/,'Build handoff must preserve verified subclass choices');
-assert.match(handoff,/markGuardianFastReturn\(\);location\.href='\.\/paradox-build-space\/'/,'Main to Build must reuse the authenticated cached navigation path');
+assert.match(handoff,/let target='\.\/paradox-build-space\/';[\s\S]*?if\(query\)target\+='\?'\+query;}markGuardianFastReturn\(\);location\.href=target;/,'Main to Build must reuse the authenticated cached navigation path');
 
 assert.match(buildHtml,/data-guardian-profile-mode="roster-only"/,'Build Tool must load the roster without replacing its protected snapshot');
 assert.match(buildHtml,/id="guardianCharacterCards"/,'Build Tool character cards are missing');
