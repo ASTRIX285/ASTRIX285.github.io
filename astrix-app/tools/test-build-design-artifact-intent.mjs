@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,protectBuildState,restoreWorkingBuild,diffBuilds} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
+import {createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,protectBuildState,restoreWorkingBuild,diffBuilds,serializePortableBuild,deserializePortableBuild} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 
 const originalConfiguration={schemaVersion:1,artifactHash:999,seasonNumber:28,selectedPerkHashes:[123],source:'fixture-intent',provenance:{provider:'fixture'}};
 const state=createBuildState({characterId:'fixture',artifactConfiguration:originalConfiguration});
@@ -109,5 +109,40 @@ assert.deepEqual(sharedBuild.originalBuild.artifactConfiguration,explicitShareCo
 
 const liveWithoutConfiguration=createBuildState({source:'bungie-live',characterId:'live',artifact:{hash:4001,seasonNumber:31,activePerks:[{hash:801}]}});
 assert.equal(liveWithoutConfiguration.originalBuild.artifactConfiguration,null,'missing live configuration must remain unavailable instead of being reclassified as intended');
+
+const portableSource=createBuildState({
+  source:'saved-build',
+  characterId:'portable-guardian',
+  membershipId:'membership-1',
+  membershipType:'3',
+  artifact:{hash:3001},
+  artifactConfiguration:explicitShareConfiguration,
+  weapons:[{itemInstanceId:'weapon-1'}]
+});
+portableSource.workingBuild.artifactConfiguration.selectedPerkHashes.push(702);
+const portableConfiguration={...explicitShareConfiguration,selectedPerkHashes:[701,702]};
+const savedJson=serializePortableBuild(portableSource,{kind:'saved-build'});
+const savedEnvelope=JSON.parse(savedJson);
+assert.equal(savedEnvelope.kind,'saved-build');
+assert.deepEqual(savedEnvelope.build.artifactConfiguration,portableConfiguration,'saved snapshots retain complete intended Artifact provenance');
+const restoredPortable=deserializePortableBuild(savedJson,{expectedKind:'saved-build'});
+assert.ok(restoredPortable,'a valid portable snapshot must restore');
+assert.equal(Object.isFrozen(restoredPortable.originalBuild),true,'portable restore creates a newly immutable Original Build');
+assert.equal(Object.isFrozen(restoredPortable.originalBuild.artifactConfiguration),true);
+assert.equal(Object.isFrozen(restoredPortable.workingBuild),false,'portable restore keeps Working Build independently editable');
+assert.deepEqual(restoredPortable.originalBuild.artifactConfiguration,portableConfiguration);
+restoredPortable.workingBuild.artifactConfiguration.selectedPerkHashes.push(703);
+assert.deepEqual(restoredPortable.originalBuild.artifactConfiguration.selectedPerkHashes,[701,702]);
+
+const sharedJson=serializePortableBuild(portableSource,{kind:'shared-build'});
+assert.ok(deserializePortableBuild(sharedJson,{expectedKind:'shared-build'}));
+assert.equal(deserializePortableBuild(sharedJson,{expectedKind:'saved-build'}),null,'saved and shared envelopes cannot be silently interchanged');
+
+const incompletePortable=createBuildState({source:'saved-build',characterId:'incomplete',artifact:{hash:3001},artifactConfiguration:{artifactHash:3001,seasonNumber:31,selectedPerkHashes:[701],source:'saved-build-intent'}});
+assert.throws(()=>serializePortableBuild(incompletePortable),/explicit intended Artifact configuration/,'portable snapshots require provenance');
+const unavailablePortable=createBuildState({source:'saved-build',characterId:'unavailable',artifact:{hash:3001},artifactConfiguration:{...explicitShareConfiguration,selectedPerkHashes:null}});
+assert.throws(()=>serializePortableBuild(unavailablePortable),/explicit intended Artifact configuration/,'unknown live Artifact state cannot be serialized as explicit saved intent');
+const mismatchPortable=createBuildState({source:'saved-build',characterId:'mismatch',artifact:{hash:9999},artifactConfiguration:explicitShareConfiguration});
+assert.throws(()=>serializePortableBuild(mismatchPortable),/identity does not match/,'portable snapshots reject mismatched Artifact identity');
 
 console.log('Build Design Artifact intent tests passed.');
