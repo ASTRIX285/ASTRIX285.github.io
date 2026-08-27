@@ -189,3 +189,40 @@ html,body{
 .build-rail-nav{display:flex;justify-content:flex-end;min-height:30px;margin:-4px 0 6px}
 .build-back-btn{min-height:28px;padding:5px 10px;font:700 8px Orbitron,Inter,sans-serif;letter-spacing:.08em;cursor:pointer}
 .build-back-btn:hover,.build-back-btn:focus-visible{border-color:rgba(100,226,182,.62);color:#6fe3b6;outline:none}
+
+@media (min-width:2400px) and (min-height:1100px){
+  html:has(.build-space){font-size:max(16px,.75vw)}
+  html body:has(.build-space) .topbar{
+    grid-template-columns:auto auto minmax(0,50vw) auto!important;
+    height:max(108px,5.6vw)!important;
+    min-height:max(108px,5.6vw)!important;
+  }
+  html body:has(.build-space) .topbar>#guardianCharacterCards{max-width:50vw!important}
+  html body:has(.build-space) header.topbar>#guardianCharacterCards .guardian-character-card{
+    height:4.6vw!important;
+    min-height:4.6vw!important;
+    max-height:4.6vw!important;
+  }
+  .build-space{
+    grid-template-columns:minmax(340px,19%) minmax(680px,1fr) minmax(360px,18%);
+    gap:max(12px,.6vw);
+    padding:max(12px,.6vw);
+  }
+  .build-rail,.intelligence{padding:max(16px,.8vw)}
+  .design-canvas{padding:max(18px,.9vw);container-type:inline-size}
+  .intelligence{container-type:inline-size}
+  .design-canvas .gear-weapons{width:25%;container-type:inline-size}
+  .design-canvas .gear-weapons .weap-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important}
+  .design-canvas .gear-weapons .weap,
+  .design-canvas .gear-weapons .weap .art,
+  .design-canvas .gear-weapons .weap .cap{width:100%!important;max-width:none!important}
+  .design-canvas .gear-weapons .weap .art{height:auto!important;aspect-ratio:82/108!important}
+  .design-canvas .gear-weapons .weapon-perk-icon{width:12cqw;height:12cqw}
+  .design-canvas .gear-weapons .weapon-support-icon{width:16cqw;height:16cqw}
+  .design-canvas .gear-combined .gear-arm-row{container-type:inline-size}
+  .design-canvas .gear-combined .gear-arm-anchor .arm{width:46cqw!important;height:46cqw!important}
+  .design-canvas .gear-combined .gear-intrinsic{width:22cqw!important;height:22cqw!important}
+  .build-space :is(.panel-head small,.rail-section h3,.section-title span,.intel-card small,.forge-analysis .eyebrow,.forge-analysis .t,.forge-analysis .label){font-size:max(9px,.45vw)!important}
+  .build-space :is(.panel-head h1,.panel-head h2,.forge-analysis .ra-head h2,.intel-card strong){font-size:max(14px,.8vw)!important}
+  .build-space :is(.notice,.intel-card p,.intel-card li,.forge-analysis .verdict small,.forge-analysis .focus-row p,.forge-analysis li,.forge-analysis .improve p){font-size:max(12px,.6vw)!important}
+}

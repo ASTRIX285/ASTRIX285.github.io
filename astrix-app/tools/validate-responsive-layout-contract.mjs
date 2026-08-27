@@ -43,7 +43,11 @@ assert.match(sources.super,/@media\s*\(max-width:720px\)\{[\s\S]*?\.super-featur
 assert.match(sources.feedback,/@media \(min-width:2400px\) and \(min-height:1100px\)\{[\s\S]*?grid-template-columns:minmax\(320px,22%\) minmax\(0,1fr\)!important/,'Ultra-wide Main must keep the Guardian rail proportional');
 assert.match(sources.feedback,/\.equip\.gear-layout-active\{[\s\S]*?grid-template-columns:25% minmax\(0,1fr\)!important[\s\S]*?\.gear-weapons \.weap-grid\{[\s\S]*?repeat\(3,minmax\(0,1fr\)\)!important/,'Ultra-wide weapons must expand with the equipment container');
 assert.match(sources.feedback,/\.gear-combined \.gear-slot\{container-type:inline-size\}[\s\S]*?\.gear-arm-anchor \.arm\{width:46cqw!important;height:46cqw!important\}/,'Ultra-wide armour must scale inside each owned card');
-assert.match(sources.shared,/@media \(min-width:2400px\) and \(min-height:1100px\)\{[\s\S]*?body\.guardian-main-page\{--guardian-square:max\(40px,2\.7vw\)\}/,'Ultra-wide Main sockets must lift the desktop size cap');
+assert.match(sources.shared,/@media \(min-width:2400px\) and \(min-height:1100px\)\{[\s\S]*?body\.guardian-main-page,[\s\S]*?body:has\(\.build-space\)\{--guardian-square:max\(40px,2\.7vw\)\}/,'Ultra-wide Main and Build sockets must lift the desktop size cap');
+assert.match(sources.characters,/@media \(min-width:2400px\) and \(min-height:1100px\)\{[\s\S]*?#guardianCharacterCards\.guardian-character-cards\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important\}/,'Ultra-wide character cards must fill the ribbon track');
+assert.match(sources.build,/@media \(min-width:2400px\) and \(min-height:1100px\)\{[\s\S]*?grid-template-columns:minmax\(340px,19%\) minmax\(680px,1fr\) minmax\(360px,18%\)/,'Ultra-wide Build rails must stay proportional');
+assert.match(sources.build,/\.design-canvas \.gear-weapons\{width:25%;container-type:inline-size\}[\s\S]*?\.weap-grid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important/,'Ultra-wide Build weapons must expand with their owned container');
+assert.match(sources.build,/\.design-canvas \.gear-combined \.gear-arm-row\{container-type:inline-size\}[\s\S]*?\.gear-arm-anchor \.arm\{width:46cqw!important;height:46cqw!important\}/,'Ultra-wide Build armour must scale inside each owned card');
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
   assert.match(html,/<meta\s+name="viewport"\s+content="[^"]*width=device-width[^"]*initial-scale=1(?:\.0)?[^"]*"\s*\/?>/,label+' must declare a device-width viewport');

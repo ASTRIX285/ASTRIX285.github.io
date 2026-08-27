@@ -190,3 +190,13 @@ html body .topbar>#guardianCharacterCards .guardian-character-card{width:100%;mi
   html body header.topbar>#guardianCharacterCards .guardian-character-card{width:100%!important;min-width:0!important;max-width:none!important;height:88px!important;min-height:88px!important;max-height:88px!important;scroll-snap-align:none!important}
   .guardian-character-cards__status{min-height:86px}
 }
+
+@media (min-width:2400px) and (min-height:1100px){
+  html body .topbar>#guardianCharacterCards.guardian-character-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  html body .topbar>#guardianCharacterCards .guardian-character-card{container-type:inline-size}
+  html body .topbar>#guardianCharacterCards .guardian-character-card__identity{top:max(10px,3.3cqw);left:max(34px,11.3cqw);right:max(50px,16.7cqw)}
+  html body .topbar>#guardianCharacterCards .guardian-character-card__power{top:max(10px,3.3cqw);right:max(12px,4cqw)}
+  html body .topbar>#guardianCharacterCards .guardian-character-card__stats{left:max(39px,13cqw);right:max(4px,1.3cqw);bottom:max(8px,2.7cqw);gap:max(4px,1.3cqw)}
+  html body .topbar>#guardianCharacterCards .guardian-character-card__stat{min-height:max(28px,9.3cqw);padding:max(2px,.7cqw)}
+  html body .topbar>#guardianCharacterCards .guardian-character-card__stat .guardian-stat-icon{width:max(18px,6cqw);height:max(18px,6cqw);flex-basis:max(18px,6cqw)}
+}

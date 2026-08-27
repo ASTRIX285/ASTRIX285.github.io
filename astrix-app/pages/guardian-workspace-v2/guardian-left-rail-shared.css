@@ -511,5 +511,6 @@
 }
 
 @media (min-width:2400px) and (min-height:1100px){
-  body.guardian-main-page{--guardian-square:max(40px,2.7vw)}
+  body.guardian-main-page,
+  body:has(.build-space){--guardian-square:max(40px,2.7vw)}
 }
