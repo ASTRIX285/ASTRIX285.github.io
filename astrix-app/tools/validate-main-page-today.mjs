@@ -66,6 +66,8 @@ assert.doesNotMatch(formationCss,/data-super-count="[1-5]"/,'Partial-count geome
 assert.match(formationModule,/image\.dataset\.bungieArtworkSource='DestinyInventoryItemDefinition'/,'Every resolved Super must retain Bungie artwork provenance');
 assert.match(formationModule,/image\.src=src/,'Resolved Supers must load Bungie artwork directly instead of a copied local asset');
 assert.match(profile,/subclassCatalog=subclassItems\.map/,'Guardian profile must expose the account-unlocked subclass catalogue');
+assert.match(profile,/super:superItem\|\|null/,'Equipped Super must come only from the exact resolved Bungie socket');
+assert.doesNotMatch(profile,/super:superItem\|\|superOptions\[0\]/,'An available Super must never be guessed as equipped');
 assert.match(superSync,/subclassOptions:catalog,onSelect:/,'Character subclass picker must repaint the verified Super formation');
 assert.match(buildModule,/subclassOptions:resolvedSubclassOptions\(build\),selectKind:'subclass'/,'Build subclass picker must stage the selected verified subclass');
 assert.match(formationCss,/\.super-diamond>span>img[\s\S]*?object-fit:cover!important/,'Bungie Super art must fill each diamond through its inner bevel');
