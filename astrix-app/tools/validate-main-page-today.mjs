@@ -110,6 +110,7 @@ assert.match(profile,/DestinyStatDefinition identities from Bungie/,'Guardian st
 assert.match(profile,/bc69675acdae9e6b9a68a02fb4d62e07/,'Weapons must use Bungie DestinyStatDefinition artwork');
 assert.doesNotMatch(characterModule,/guardian-character-card__head[^\n]*<small>/,'Guardian cards must not render a title subtitle');
 assert.match(characterCss,/grid-template-columns:repeat\(3,minmax\(0,300px\)\)/,'Main and Build must share the contained character-card ribbon');
+assert.match(characterCss,/topbar>#guardianCharacterCards\{[\s\S]*?justify-self:center!important;/,'Guardian character-card ribbon must remain centred inside the header');
 assert.match(buildHtml,/id="armRangeTest" disabled/,'Build Test must start disabled until a verified character-bound snapshot resolves');
 assert.match(buildModule,/if\(arm\)arm\.disabled=!characterId/,'Shooting Range refresh must reject missing Guardian identity');
 assert.match(buildModule,/finally\{if\(button\)button\.disabled=!String\(currentBuild\(\)\?\.characterId\|\|''\)\.trim\(\);\}/,'Build Test must remain disabled after errors when Guardian identity is unavailable');
