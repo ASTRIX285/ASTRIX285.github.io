@@ -36,11 +36,24 @@ function resolveArtifactViewState(detail={},fallback={}){
   const liveArtifact=detail?.artifact||null;
   const liveMode=source==='bungie-live'||source==='bungie-loadout'||source==='bungie-selected-loadout';
 
-  if(liveMode&&liveArtifact){
+  if(liveMode){
+    if(!liveArtifact){
+      return {
+        mode:'live',
+        state:'state-unavailable',
+        editable:false,
+        artifact:null,
+        perks:null,
+        selectedHashes:null,
+        allPerks:[],
+        artifactConfiguration:detail?.artifactConfiguration||null,
+        source
+      };
+    }
     const state=String(liveArtifact.state||'state-unavailable');
     const all=normalisePerks(liveArtifact.perks||[]);
     const explicit=normalisePerks(liveArtifact.activePerks||[]);
-    const active=state==='state-unavailable'?[]:(explicit.length?explicit:all.filter(item=>item?.isActive===true));
+    const active=state==='state-unavailable'?null:(explicit.length?explicit:all.filter(item=>item?.isActive===true));
     return {
       mode:'live',
       state,
