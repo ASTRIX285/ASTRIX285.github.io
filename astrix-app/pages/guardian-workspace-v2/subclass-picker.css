@@ -44,7 +44,7 @@
   inset:14.6447%;
   border:.5px solid var(--el);
   background:color-mix(in srgb,var(--el) 15%,transparent);
-  transition:background .18s ease,box-shadow .18s ease,transform .18s ease;
+  transition:background .18s ease,filter .18s ease,transform .18s ease;
 }
 .subclass-picker .el.diamond .shape{transform:rotate(45deg)}
 .subclass-picker .el.prismatic .shape{inset:0;border-radius:50%}
@@ -74,8 +74,15 @@
 .subclass-picker .el:focus-visible{outline:2px solid var(--el);outline-offset:-2px}
 .subclass-picker .el.is-active .shape,
 .subclass-picker .el[aria-selected="true"] .shape{
-  background:color-mix(in srgb,var(--el) 32%,transparent);
-  box-shadow:0 0 16px var(--el),inset 0 0 10px color-mix(in srgb,var(--el) 40%,transparent);
+  background:color-mix(in srgb,var(--el) 8%,transparent);
+  box-shadow:none;
+  filter:drop-shadow(0 0 8px var(--el));
+  animation:subclass-shape-halo 2.4s ease-in-out infinite;
+}
+
+@keyframes subclass-shape-halo{
+  0%,100%{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--el) 58%,transparent))}
+  50%{filter:drop-shadow(0 0 12px var(--el))}
 }
 
 .subclass-picker .el[data-element="arc"]{--el:var(--el-arc)}
@@ -90,5 +97,5 @@
 .subclass-picker .el.is-locked .shape{box-shadow:none}
 
 @media (prefers-reduced-motion:reduce){
-  .subclass-picker .el .shape{transition:none}
+  .subclass-picker .el .shape{transition:none;animation:none}
 }
