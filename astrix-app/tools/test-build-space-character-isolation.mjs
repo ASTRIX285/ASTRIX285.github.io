@@ -22,7 +22,15 @@ const {
   LAST_LOADOUT_KEY
 }=await import('../pages/guardian-workspace-v2/paradox-build-space-handoff.mjs');
 
-const warlockLoadout={characterId:'warlock-1',membershipId:'membership-1',membershipType:'3',characterClass:'Warlock',selectedLoadoutIndex:2,weapons:[{itemInstanceId:'warlock-weapon'}],artifactConfiguration:{selectedPerkHashes:[101]}};
+const intendedWarlockArtifactConfiguration={
+  schemaVersion:1,
+  artifactHash:8001,
+  seasonNumber:29,
+  selectedPerkHashes:[101],
+  source:'saved-build-intent',
+  provenance:{provider:'bungie-manifest',manifestHash:8001,component:202}
+};
+const warlockLoadout={characterId:'warlock-1',membershipId:'membership-1',membershipType:'3',characterClass:'Warlock',selectedLoadoutIndex:2,weapons:[{itemInstanceId:'warlock-weapon'}],artifactConfiguration:intendedWarlockArtifactConfiguration};
 rememberGuardian(warlockLoadout);
 rememberExplicitLoadout(warlockLoadout);
 assert.equal(resolveBuildSource().selectedLoadoutIndex,2,'selected loadout is preferred while its Guardian remains active');
@@ -74,6 +82,8 @@ const expired=structuredClone(persistedWarlockEnvelope);
 expired.savedAt=Date.now()-(31*60*1000);
 assert.equal(validateHandoffEnvelope(expired),null,'expired durable handoffs must remain unavailable');
 const persistedWarlock=persistedWarlockEnvelope.payload;
+assert.deepEqual(persistedWarlock.artifactConfiguration,intendedWarlockArtifactConfiguration,'saved Artifact intent must retain its exact hash, season, perks, source and provenance through JSON storage');
+assert.notEqual(persistedWarlock.artifactConfiguration,intendedWarlockArtifactConfiguration,'persisted Artifact intent must be a detached JSON snapshot');
 assert.deepEqual(persistedWarlock.artifactConfiguration.selectedPerkHashes,[101],'Titan Artifact intent cannot contaminate the cached Warlock loadout');
 assert.equal(persistedWarlock.weaponRollAdvice,undefined,'Titan weapon advice cannot contaminate the cached Warlock loadout');
 
