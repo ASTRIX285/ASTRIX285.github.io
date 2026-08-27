@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {resolveArtifactByProvenance,createArtifactConfiguration} from '../pages/guardian-workspace-v2/guardian-artifact-provenance.mjs';
 import {createBuildState} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
+import {resolveArtifactViewState} from '../pages/guardian-workspace-v2/guardian-artifact-state.mjs';
 
 const definitions={'123':{displayProperties:{name:'Verified Active Perk',icon:'/common/test.png'}}};
 const payload={
@@ -31,6 +32,18 @@ const unavailable=resolveArtifactByProvenance(payload,'missing-character');
 assert.equal(unavailable.state,'state-unavailable');
 assert.equal(unavailable.activePerks,null);
 assert.equal(unavailable.artifactConfiguration.selectedPerkHashes,null);
+
+const missingLiveView=resolveArtifactViewState({source:'bungie-live',artifact:null});
+assert.equal(missingLiveView.mode,'live','a live event without an Artifact must not fall back to fixture mode');
+assert.equal(missingLiveView.state,'state-unavailable');
+assert.equal(missingLiveView.artifact,null);
+assert.equal(missingLiveView.perks,null,'missing component-202 Artifact evidence must not become zero active perks');
+assert.equal(missingLiveView.selectedHashes,null);
+
+const unavailableLiveView=resolveArtifactViewState({source:'bungie-live',artifact:unavailable});
+assert.equal(unavailableLiveView.mode,'live');
+assert.equal(unavailableLiveView.perks,null,'unavailable component-202 activation evidence must remain unknown');
+assert.equal(unavailableLiveView.selectedHashes,null);
 
 const incompleteActivationPayload=structuredClone(payload);
 delete incompleteActivationPayload.profile.characterProgressions.data['cid-live'].seasonalArtifact.tiers[0].items[0].isActive;
