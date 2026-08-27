@@ -296,7 +296,7 @@ function subclassConfiguration(profile,definitions,item,payload={},characterId="
   const availableFragments=optionsFor(null,isFragmentPlug);
 
   return {
-    super:superItem||superOptions[0]||null,
+    super:superItem||null,
     superOptions,
     transcendenceOptions,
     transcendenceSlots,
