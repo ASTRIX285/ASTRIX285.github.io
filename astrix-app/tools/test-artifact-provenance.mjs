@@ -62,7 +62,7 @@ assert.equal(malformedHash.activePerks,null,'missing perk identity must leave ac
 const unresolvedPayload=structuredClone(payload);
 unresolvedPayload.profile.characterProgressions.data['cid-live'].seasonalArtifact.tiers[0].items[0].itemHash=789;
 const unresolved=resolveArtifactByProvenance(unresolvedPayload,'cid-live');
-assert.equal(unresolved.activePerks[0].name,'');
+assert.equal(unresolved.activePerks[0].name,'Unresolved Destiny definition 789');
 assert.equal(unresolved.activePerks[0].unresolved,true);
 assert.deepEqual(unresolved.unresolvedPerkHashes,[789]);
 
@@ -70,7 +70,7 @@ const mismatchedDefinitionPayload=structuredClone(payload);
 mismatchedDefinitionPayload.artifactDefinition={hash:111,displayProperties:{name:'Wrong Artifact',icon:'/common/wrong.png'}};
 const mismatchedDefinition=resolveArtifactByProvenance(mismatchedDefinitionPayload,'cid-live');
 assert.equal(mismatchedDefinition.hash,999);
-assert.equal(mismatchedDefinition.name,'','a stale definition must not label a different Artifact hash');
+assert.equal(mismatchedDefinition.name,'Unresolved Destiny definition 999','a stale definition must not label a different Artifact hash');
 assert.equal(mismatchedDefinition.definition,null);
 assert.equal(mismatchedDefinition.displayResolved,false);
 assert.equal(mismatchedDefinition.unresolved,true);

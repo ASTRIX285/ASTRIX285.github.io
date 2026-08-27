@@ -96,20 +96,24 @@ function artifactState(artifactData, currentSeasonNumber) {
   return { status: 'current', blocker: null };
 }
 
-export function resolveBuildWeapons(weaponHashes, manifestCache) {
-  const inventory = manifestCache?.inventoryItems ?? {};
+export function resolveBuildWeapons(weaponHashes, manifestDefinitions, curatedTags = {}) {
+  const getDefinition=typeof manifestDefinitions?.get==='function'
+    ?hash=>manifestDefinitions.get('DestinyInventoryItemDefinition',hash)
+    :hash=>manifestDefinitions?.[String(hash)]??null;
+  const tags = curatedTags?.inventoryItems ?? {};
   const weapons = [];
   const unresolved = [];
   for (const rawHash of weaponHashes ?? []) {
     const hash = Number(rawHash);
-    const row = inventory[String(hash)];
-    if (!row || row.itemType !== 3 || !row.weaponType || !row.element) {
+    const definition=getDefinition(hash);
+    const row = tags[String(hash)];
+    if (!definition || definition.itemType !== 3 || !row?.weaponType || !row?.element) {
       unresolved.push(hash);
       continue;
     }
     weapons.push({
       hash,
-      name: row.display?.name ?? '',
+      name: definition.displayProperties?.name ?? `Unnamed Destiny definition ${hash}`,
       weaponType: row.weaponType,
       element: row.element
     });

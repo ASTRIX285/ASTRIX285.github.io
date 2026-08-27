@@ -22,6 +22,11 @@ function rememberPayload(url,payload){
   }
 }
 
+document.addEventListener("astrix:manifest-payload-hydrated",event=>{
+  const payload=event.detail;
+  rememberPayload(Array.isArray(payload?.selectedItems)?"/bungie/loadout":"/bungie/profile",payload);
+});
+
 if(rawFetch){
   globalThis.fetch=async (...args)=>{
     const response=await rawFetch(...args);
@@ -100,8 +105,12 @@ function alternativeColumnsFor(rawItem,profile,payload){
     (rows||[]).filter(row=>row?.canInsert!==false).map(row=>{
       const hash=Number(row?.plugItemHash??row?.plugHash);
       const definition=definitionFor(payload,hash);
-      if(!Number.isInteger(hash)||!definition)return null;
-      return {hash,bungieHash:hash,name:definition.displayProperties?.name||`Destiny perk ${hash}`,description:definition.displayProperties?.description||"",icon:definition.displayProperties?.icon||"",definition,socketIndex:Number(socketIndex),canInsert:true};
+      if(!Number.isInteger(hash))return null;
+      const itemDefinition=definitionFor(payload,rawItem.itemHash);
+      const category=(itemDefinition?.sockets?.socketCategories||[]).find(item=>(item?.socketIndexes||[]).map(Number).includes(Number(socketIndex)))||null;
+      const socketCategoryHash=Number(category?.socketCategoryHash);
+      const socketCategoryDefinition=Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null;
+      return {hash,bungieHash:hash,name:definition?.displayProperties?.name||`Unresolved Destiny definition ${hash}`,description:definition?.displayProperties?.description||"",icon:definition?.displayProperties?.icon||"",definition,socketIndex:Number(socketIndex),socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,canInsert:true,unresolved:!definition};
     }).filter(Boolean)
   ]).filter(([,rows])=>rows.length));
 }

@@ -1,5 +1,6 @@
 import {getBungieSession} from "./guardian-bungie-auth.mjs";
 import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
+import {guardianManifest} from "./guardian-manifest-service.mjs";
 import {
   cacheBungieProfile,
   readCachedBungieProfile,
@@ -13,22 +14,20 @@ const CLASS_NAMES=["titan","hunter","warlock"];
 const BUCKETS={kinetic:1498876634,energy:2465295065,power:953998645,helmet:3448274439,gauntlets:3551918588,chest:14239492,legs:20886954,classItem:1585787867,ghost:4023194814,subclass:3284755031};
 const ARMOUR_ORDER=[BUCKETS.helmet,BUCKETS.gauntlets,BUCKETS.chest,BUCKETS.legs,BUCKETS.classItem];
 const WEAPON_ORDER=[BUCKETS.kinetic,BUCKETS.energy,BUCKETS.power];
-/* Current DestinyStatDefinition identities from Bungie's English manifest.
- * The UI loads the artwork from Bungie's CDN; no local copy or derivative
- * sprite is used. Keep these hashes as the source of the character values. */
 const STAT_ORDER=[
-  ["Weapons",2996146975,"/common/destiny2_content/icons/bc69675acdae9e6b9a68a02fb4d62e07.png"],
-  ["Health",392767087,"/common/destiny2_content/icons/717b8b218cc14325a54869bef21d2964.png"],
-  ["Class",1943323491,"/common/destiny2_content/icons/7eb845acb5b3a4a9b7e0b2f05f5c43f1.png"],
-  ["Grenade",1735777505,"/common/destiny2_content/icons/065cdaabef560e5808e821cefaeaa22c.png"],
-  ["Super",144602215,"/common/destiny2_content/icons/585ae4ede9c3da96b34086fccccdc8cd.png"],
-  ["Melee",4244567218,"/common/destiny2_content/icons/fa534aca76d7f2d7e7b4ba4df4271b42.png"]
+  2996146975,
+  392767087,
+  1943323491,
+  1735777505,
+  144602215,
+  4244567218
 ];
 const SELECTED_CHARACTER_KEY="astrix:selected-character-id";
 const SELECTED_LOADOUT_KEY="astrix:selected-bungie-loadout-v1";
 const loadoutCache=new Map();
 let liveProfilePayload=null;
 let liveProfileSession=null;
+const manifestReady=guardianManifest.ready();
 
 const setRenderStatus=(title,message,detail="")=>{
   const host=document.querySelector("#guardianHero.guardian-render-status");
@@ -59,11 +58,26 @@ async function fetchJsonWithTimeout(url,timeoutMs=PROFILE_REQUEST_TIMEOUT_MS){
   }
 }
 
+async function manifestRequestUrl(path){
+  await manifestReady;
+  const url=new URL(path,AUTH_ORIGIN);
+  if(guardianManifest.status().mode==="indexeddb")url.searchParams.set("definitions","client-manifest");
+  return url;
+}
+
+async function hydrateManifestPayload(payload){
+  await guardianManifest.hydratePayload(payload);
+  document.dispatchEvent(new CustomEvent("astrix:manifest-payload-hydrated",{detail:payload}));
+  return payload;
+}
+
 const absoluteIcon=path=>path?new URL(path,BUNGIE_ORIGIN).toString():"";
 const definition=(definitions,hash)=>definitions?.[String(hash)]||null;
 const displayItem=(definitions,hash)=>{
   const row=definition(definitions,hash)||{};
-  return {hash:Number(hash),bungieHash:Number(hash),name:row.displayProperties?.name||`Destiny item ${hash}`,description:row.displayProperties?.description||"",icon:absoluteIcon(row.displayProperties?.icon),tier:row.inventory?.tierTypeName||"",tierType:Number(row.inventory?.tierType??0),tierTypeHash:row.inventory?.tierTypeHash??null,tierIcon:absoluteIcon(row.iconWatermark||row.quality?.displayVersionWatermarkIcons?.[0]),itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
+  const displays=[row.displayProperties,...(row.resolvedSandboxPerks||[]).map(perk=>perk?.displayProperties)].filter(Boolean);
+  const displayValue=key=>displays.find(display=>display?.[key])?.[key]||"";
+  return {hash:Number(hash),bungieHash:Number(hash),name:displayValue("name")||`Unresolved Destiny item ${hash}`,description:displayValue("description"),icon:absoluteIcon(displayValue("icon")),tier:row.inventory?.tierTypeName||"",tierType:Number(row.inventory?.tierType??0),tierTypeHash:row.inventory?.tierTypeHash??null,tierIcon:absoluteIcon(row.iconWatermark||row.quality?.displayVersionWatermarkIcons?.[0]),itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
 };
 
 function classifySubclass(item){
@@ -124,6 +138,13 @@ function equippedTitle(payload,character){
   return {hash:Number(hash),name:String(row?.displayProperties?.name||"")};
 }
 
+function characterStats(payload,character){
+  return STAT_ORDER.map(hash=>{
+    const row=payload?.statDefinitions?.[String(hash)]||null;
+    return [row?.displayProperties?.name||`Unresolved Destiny stat ${hash}`,Number(character?.stats?.[hash]??0),absoluteIcon(row?.displayProperties?.icon),hash];
+  });
+}
+
 function characterRoster(payload,selectedCharacterId=null){
   const profile=payload?.profile||{};
   const rank=guardianRank(profile);
@@ -138,7 +159,7 @@ function characterRoster(payload,selectedCharacterId=null){
       guardianRank:rank,
       titleHash:title.hash,
       title:title.name,
-      stats:STAT_ORDER.map(([name,hash,icon])=>[name,Number(character.stats?.[hash]??0),absoluteIcon(icon),hash]),
+      stats:characterStats(payload,character),
       emblem:{hash:character.emblemHash??null,icon:absoluteIcon(character.emblemPath),background:absoluteIcon(character.emblemBackgroundPath)},
       selected:String(character.characterId||"")===String(selectedCharacterId||"")
     };
@@ -149,22 +170,26 @@ function publishCharacterRoster(payload,selectedCharacterId){
   document.dispatchEvent(new CustomEvent("astrix:bungie-character-roster",{detail:{source:"bungie-live",selectedCharacterId:String(selectedCharacterId||""),characters:characterRoster(payload,selectedCharacterId)}}));
 }
 
-function socketResolution(profile,definitions,item){
+function socketResolution(profile,definitions,item,payload={}){
   if(!item?.itemInstanceId)return {plugs:[],requested:[],resolved:[],unresolved:[],complete:true};
   const sockets=profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]?.sockets||[];
+  const socketCategories=definition(definitions,item.itemHash)?.sockets?.socketCategories||[];
   const requested=sockets.map(socket=>Number(socket.plugHash)).filter(Number.isFinite);
   const rows=sockets.map((socket,socketIndex)=>{
     const hash=Number(socket?.plugHash);
-    return Number.isFinite(hash)?{...displayItem(definitions,hash),socketIndex}:null;
+    const category=socketCategories.find(row=>(row?.socketIndexes||[]).map(Number).includes(socketIndex))||null;
+    const socketCategoryHash=Number(category?.socketCategoryHash);
+    const socketCategoryDefinition=Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null;
+    return Number.isFinite(hash)?{...displayItem(definitions,hash),socketIndex,socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition}:null;
   }).filter(Boolean);
-  const plugs=rows.filter(row=>row.definition&&Object.keys(row.definition).length>0);
-  const resolved=plugs.map(row=>Number(row.hash));
+  const plugs=rows;
+  const resolved=plugs.filter(row=>row.definition&&Object.keys(row.definition).length>0).map(row=>Number(row.hash));
   const unresolved=requested.filter(hash=>!definition(definitions,hash));
   return {plugs,requested,resolved,unresolved,complete:unresolved.length===0};
 }
 
-function socketPlugs(profile,definitions,item){
-  return socketResolution(profile,definitions,item).plugs;
+function socketPlugs(profile,definitions,item,payload={}){
+  return socketResolution(profile,definitions,item,payload).plugs;
 }
 
 function plugType(plug){
@@ -172,6 +197,8 @@ function plugType(plug){
     plug?.itemTypeDisplayName,
     plug?.name,
     plug?.definition?.plug?.plugCategoryIdentifier,
+    plug?.socketCategoryDefinition?.displayProperties?.name,
+    plug?.socketCategoryDefinition?.displayProperties?.description,
     ...(plug?.definition?.traitIds||[])
   ].filter(Boolean).join(" ").toLowerCase();
 }
@@ -223,7 +250,7 @@ function normaliseItem(profile,definitions,item,payload={}){
   const base=displayItem(definitions,item.itemHash);
   const override=Number.isInteger(Number(item?.overrideStyleItemHash))?displayItem(definitions,Number(item.overrideStyleItemHash)):null;
   const instance=item.itemInstanceId?profile?.itemComponents?.instances?.data?.[item.itemInstanceId]:null;
-  const socketCoverage=socketResolution(profile,definitions,item);
+  const socketCoverage=socketResolution(profile,definitions,item,payload);
   const plugs=socketCoverage.plugs;
   const shader=plugs.find(plug=>/shader/.test(plugType(plug)))||null;
   const ornament=plugs.find(plug=>/skin|ornament/.test(plugType(plug)))||null;
@@ -263,7 +290,7 @@ function normaliseItem(profile,definitions,item,payload={}){
 }
 
 function subclassConfiguration(profile,definitions,item,payload={},characterId=""){
-  const socketCoverage=socketResolution(profile,definitions,item);
+  const socketCoverage=socketResolution(profile,definitions,item,payload);
   const plugs=socketCoverage.plugs;
   const superItem=plugs.find(isSuperPlug)||null;
   console.log("[TRACE super] subclassItem:", item?.itemHash, "instance:", item?.itemInstanceId, "→ super:", superItem?.hash, superItem?.name, "| cat:", superItem?.definition?.plug?.plugCategoryIdentifier);
@@ -338,11 +365,11 @@ function availableArtifactItems(payload,current){
   return uniqueItems([current,...inventoryArtifacts]);
 }
 
-function identityCosmetics(profile,definitions,equipment,character){
+function identityCosmetics(profile,definitions,equipment,character,payload={}){
   const ghostItem=equipment.find(item=>definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===BUCKETS.ghost);
-  const allPlugs=equipment.flatMap(item=>socketPlugs(profile,definitions,item));
+  const allPlugs=equipment.flatMap(item=>socketPlugs(profile,definitions,item,payload));
   const shader=allPlugs.find(plug=>String(plug.definition?.plug?.plugCategoryIdentifier||"").includes("shader"))||null;
-  return {ghost:ghostItem?normaliseItem(profile,definitions,ghostItem):null,shader,emblem:{hash:character.emblemHash??null,icon:absoluteIcon(character.emblemPath),background:absoluteIcon(character.emblemBackgroundPath)}};
+  return {ghost:ghostItem?normaliseItem(profile,definitions,ghostItem,payload):null,shader,emblem:{hash:character.emblemHash??null,icon:absoluteIcon(character.emblemPath),background:absoluteIcon(character.emblemBackgroundPath)}};
 }
 
 function normaliseLiveProfile(payload,session,preferredCharacterId=null){
@@ -362,7 +389,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const subclassItems=[subclassItem,...(profile?.characterInventories?.data?.[character.characterId]?.items||[])].filter(item=>item&&definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===BUCKETS.subclass);
   const subclassCatalog=subclassItems.map(item=>{const display=displayItem(definitions,item.itemHash),element=classifySubclass(display);return {...display,itemInstanceId:item.itemInstanceId||null,element,subclass:element,key:element,subclassBuild:subclassConfiguration(profile,definitions,item,payload,character.characterId)}}).filter((item,index,rows)=>rows.findIndex(other=>other.element===item.element)===index);
   const subclassBuild=subclassCatalog.find(item=>Number(item.hash)===Number(subclassItem?.itemHash))?.subclassBuild||{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
-  const cosmetics=identityCosmetics(profile,definitions,equipment,character);
+  const cosmetics=identityCosmetics(profile,definitions,equipment,character,payload);
   const artifact=currentArtifact(payload,character.characterId);
   const availableArtifacts=availableArtifactItems(payload,artifact);
   const characterLoadouts=profile?.characterLoadouts?.data?.[character.characterId];
@@ -410,7 +437,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     guardianRank:rank,
     titleHash:title.hash,
     title:title.name,
-    stats:STAT_ORDER.map(([name,hash,icon])=>[name,Number(character.stats?.[hash]??0),absoluteIcon(icon),hash]),
+    stats:characterStats(payload,character),
     weapons,
     armour,
     ...cosmetics,
@@ -444,7 +471,7 @@ function profileWithSelectedLoadout(payload){
   const character=profile?.characters?.data?.[characterId];
   if(character){
     const totals={};
-    STAT_ORDER.forEach(([,hash])=>{totals[hash]=items.reduce((sum,item)=>sum+Number(statData?.[item.itemInstanceId]?.stats?.[hash]?.value||0),0)});
+    STAT_ORDER.forEach(hash=>{totals[hash]=items.reduce((sum,item)=>sum+Number(statData?.[item.itemInstanceId]?.stats?.[hash]?.value||0),0)});
     character.stats=totals;
   }
   return profile;
@@ -519,10 +546,10 @@ async function loadSelectedLoadout(selection){
   }
   setRenderStatus("LOADING SAVED LOADOUT",`Opening Bungie loadout ${index+1}`,"Resolving equipment and subclass configuration");
   document.dispatchEvent(new CustomEvent("astrix:loadout-loading",{detail:{characterId,index}}));
-  const url=new URL(`${AUTH_ORIGIN}/bungie/loadout`);
+  const url=await manifestRequestUrl("/bungie/loadout");
   url.searchParams.set("characterId",characterId);
   url.searchParams.set("index",String(index));
-  const payload=mergeLoadoutContext(await fetchJsonWithTimeout(url));
+  const payload=await hydrateManifestPayload(mergeLoadoutContext(await fetchJsonWithTimeout(url)));
   payload.profile=profileWithSelectedLoadout(payload);
   const detail={...normaliseLiveProfile(payload,null,characterId),selectedLoadoutIndex:index,loadoutSource:"bungie-live"};
   detail.coverage=loadoutCoverage(detail);
@@ -587,7 +614,7 @@ async function loadLiveProfile(session,{background=false}={}){
     setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
     document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
   }
-  const payload=await fetchJsonWithTimeout(`${AUTH_ORIGIN}/bungie/profile`);
+  const payload=await hydrateManifestPayload(await fetchJsonWithTimeout(await manifestRequestUrl("/bungie/profile")));
   await cacheBungieProfile(session,payload);
   return activateLiveProfile(payload,session);
 }
@@ -625,7 +652,7 @@ function ensureLiveProfile(session,{background=false,silent=false}={}){
   if(liveProfileRequest)return liveProfileRequest;
   liveProfileRequest=(async()=>{
     const cachedPayload=await readCachedBungieProfile(session);
-    if(cachedPayload?.subclassCatalogCoverage)return activateLiveProfile(cachedPayload,session,{fromCache:true});
+    if(cachedPayload?.profile)return activateLiveProfile(await hydrateManifestPayload(cachedPayload),session,{fromCache:true});
     return loadLiveProfile(session,{background});
   })()
     .then(detail=>{

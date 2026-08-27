@@ -19,7 +19,7 @@ const pageRoot = path.join(root, 'astrix-app/pages/guardian-workspace-v2');
 const FIXTURE_FILE = 'ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json';
 const CACHE_FILE = 'beta-bungie-manifest-cache.json';
 const files = [FIXTURE_FILE, 'beta-component-identities.json', CACHE_FILE,
-  'beta-bungie-manifest-cache-trait-direction-extension.json'];
+  'beta-bungie-manifest-cache-trait-direction-extension.json','beta-bungie-manifest-cache-weapon-perk-extension.json'];
 const routes = new Map(files.map(n => [n, path.join(dataRoot, n)]));
 
 // The one real verified weapon role that must never regress (Prometheus Lens / PF-BETA-13).
@@ -44,7 +44,9 @@ const loader = await import(pathToFileURL(path.join(pageRoot, 'guardian-fixture-
 const engine = await import(pathToFileURL(path.join(pageRoot, 'guardian-paradox-engine.mjs')).href + '?v=' + Date.now());
 const semantics = await import(pathToFileURL(path.join(pageRoot, 'guardian-semantic-resolver.mjs')).href + '?v=' + Date.now());
 const rawFixtures = JSON.parse(await fs.readFile(routes.get(FIXTURE_FILE), 'utf8'));
-const cache = JSON.parse(await fs.readFile(routes.get(CACHE_FILE), 'utf8'));
+const baseCache = JSON.parse(await fs.readFile(routes.get(CACHE_FILE), 'utf8'));
+const perkExtension = JSON.parse(await fs.readFile(routes.get('beta-bungie-manifest-cache-weapon-perk-extension.json'), 'utf8'));
+const cache = {...baseCache,inventoryItems:{...(baseCache.inventoryItems||{}),...(perkExtension.inventoryItems||{})}};
 const perkResolves = h => Boolean(cache.inventoryItems && cache.inventoryItems[String(h)]);
 
 // ============================================================
@@ -94,7 +96,7 @@ for (const fx of rawFixtures.fixtures) {
   for (const eq of (fx.rawDim?.equipped ?? [])) {
     for (const rp of (eq.rollPerks ?? [])) {
       if (!perkResolves(rp.perkHash))
-        fail(`C3: ${fx.fixtureId} weapon ${eq.hash} rollPerks perkHash ${rp.perkHash} does not resolve in manifest cache`);
+        fail(`C3: ${fx.fixtureId} weapon ${eq.hash} rollPerks perkHash ${rp.perkHash} has no curated reasoning evidence`);
       if (rp.socket == null)
         fail(`C3: ${fx.fixtureId} weapon ${eq.hash} rollPerks entry missing socket`);
     }

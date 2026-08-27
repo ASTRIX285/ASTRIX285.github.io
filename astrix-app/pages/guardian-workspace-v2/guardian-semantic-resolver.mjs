@@ -11,9 +11,10 @@ const uniqSockets=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>{
 })===index);
 
 function semanticText(item){
-  return [item?.name,item?.description,item?.itemTypeDisplayName,item?.definition?.plug?.plugCategoryIdentifier,...(item?.definition?.traitIds||[])].filter(Boolean).join(" ").toLowerCase();
+  return [item?.name,item?.description,item?.itemTypeDisplayName,item?.definition?.plug?.plugCategoryIdentifier,item?.socketCategoryHash,item?.socketCategoryDefinition?.displayProperties?.name,item?.socketCategoryDefinition?.displayProperties?.description,...(item?.definition?.traitIds||[])].filter(Boolean).join(" ").toLowerCase();
 }
 function plugCategory(item){return norm(item?.definition?.plug?.plugCategoryIdentifier);}
+function socketCategory(item){return norm([item?.socketCategoryDefinition?.displayProperties?.name,item?.socketCategoryDefinition?.displayProperties?.description].filter(Boolean).join(" "));}
 
 const armourArchetypeNames=new Set([
   "paragon","grenadier","specialist","brawler","bulwark","gunner",
@@ -64,8 +65,10 @@ function normaliseArmourSemantics({plugs=[],instance=null,stats=null}={}){
 }
 
 function classifyWeaponPlug(plug){
-  const category=plugCategory(plug),text=semanticText(plug);
+  const category=plugCategory(plug),socket=socketCategory(plug),text=semanticText(plug);
   if(/shader|ornament|skin/.test(text))return "appearance";
+  if(/\bmod(s|ification)?\b/.test(socket))return "weapon-mod";
+  if(/\b(perk|trait|barrel|magazine)\b/.test(socket))return "perk";
   if(category.includes("catalyst")||/\bcatalyst\b/.test(text))return "catalyst";
   if(category.includes("masterwork")||/weapon masterwork|masterwork level/.test(text))return "masterwork";
   if(category.includes("intrinsic")||/\b(frame|intrinsic)\b/.test(text))return "intrinsic";

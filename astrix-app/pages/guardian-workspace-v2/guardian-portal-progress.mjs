@@ -1,11 +1,16 @@
+import {guardianManifest} from "./guardian-manifest-service.mjs";
+
 const loader=window.AstrixLoader;
+const manifestReady=guardianManifest.ready();
 const set=(percent,label)=>{loader?.set(percent);if(label)loader?.status(label);};
-const finishAfterPaint=label=>{
+const finishAfterPaint=async label=>{
+  await manifestReady;
   set(96,label);
   requestAnimationFrame(()=>requestAnimationFrame(()=>loader?.done()));
 };
 
 set(8,'Preparing Build Forge');
+document.addEventListener('astrix:manifest-progress',event=>set(Number(event.detail?.percent)||12,event.detail?.label||'Preparing Bungie manifest'));
 document.addEventListener('astrix:guardian-loading',()=>set(18,'Connecting to Bungie'));
 window.addEventListener('astrix:bungie-session',event=>{
   if(event.detail?.authenticated)set(32,'Bungie session ready');

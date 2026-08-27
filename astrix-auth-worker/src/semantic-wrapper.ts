@@ -199,7 +199,9 @@ async function rewriteJsonResponse(response: Response, transform: (payload: any)
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const response = await worker.fetch(request, env);
-    const path = new URL(request.url).pathname;
+    const url = new URL(request.url);
+    const path = url.pathname;
+    if (url.searchParams.get("definitions") === "client-manifest" && (path === "/bungie/profile" || path === "/v1/destiny/profile" || path === "/bungie/loadout" || path === "/v1/destiny/loadout")) return response;
     try {
       if (request.method === "GET" && (path === "/bungie/profile" || path === "/v1/destiny/profile")) {
         return await rewriteJsonResponse(response, async payload => {
