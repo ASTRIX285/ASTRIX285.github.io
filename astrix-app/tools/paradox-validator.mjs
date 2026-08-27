@@ -12,6 +12,7 @@ const validators=[
   'validate-live-artifact-contract.mjs',
   'validate-manifest-service.mjs',
   'test-manifest-service.mjs',
+  'test-build-space-character-isolation.mjs',
   'validate-paradox-build-space.mjs',
   'validate-guardian-semantics.mjs',
   'validate-weapon-perk-apply.mjs',
