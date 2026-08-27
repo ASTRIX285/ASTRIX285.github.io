@@ -1,6 +1,8 @@
 import {getBungieSession} from "./guardian-bungie-auth.mjs";
 import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {guardianManifest} from "./guardian-manifest-service.mjs";
+import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
+import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
 import {
   cacheBungieProfile,
   readCachedBungieProfile,
@@ -24,11 +26,67 @@ const STAT_ORDER=[
 ];
 const SELECTED_CHARACTER_KEY="astrix:selected-character-id";
 const SELECTED_LOADOUT_KEY="astrix:selected-bungie-loadout-v1";
+const BUILD_SNAPSHOT_KEY="astrix:guardian-build-snapshot:v1";
 const loadoutCache=new Map();
 let liveProfilePayload=null;
 let liveProfileSession=null;
 const manifestReady=guardianManifest.ready();
 let fixtureProfileDetail=null;
+let latestResolvedBuild=null;
+
+const cloneBuildValue=value=>{try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}};
+function resolvedBuildSnapshot(detail={}){
+  const characterId=String(detail.characterId||detail.fixtureId||"");
+  if(!characterId)return null;
+  const sourceBuild=detail.subclassBuild&&typeof detail.subclassBuild==="object"?detail.subclassBuild:{};
+  const superItem=detail.super??sourceBuild.super??null;
+  const abilities=Array.isArray(detail.abilities)?detail.abilities:Array.isArray(sourceBuild.abilities)?sourceBuild.abilities:[];
+  const aspects=Array.isArray(detail.aspects)?detail.aspects:Array.isArray(sourceBuild.aspects)?sourceBuild.aspects:[];
+  const fragments=Array.isArray(detail.fragments)?detail.fragments:Array.isArray(sourceBuild.fragments)?sourceBuild.fragments:[];
+  const membership=liveProfileSession?.activeDestinyMembership||detail.membership||{};
+  const subclassBuild={...cloneBuildValue(sourceBuild),super:cloneBuildValue(superItem),abilities:cloneBuildValue(abilities),aspects:cloneBuildValue(aspects),fragments:cloneBuildValue(fragments)};
+  return {
+    version:1,
+    capturedAt:new Date().toISOString(),
+    source:detail.source||detail.loadoutSource||"current-guardian",
+    characterId,
+    membershipId:String(detail.membershipId||detail.bungieMembershipId||membership.membershipId||""),
+    membershipType:String(detail.membershipType??membership.membershipType??""),
+    characterClass:detail.characterClass||detail.className||"",
+    displayName:detail.displayName||"Guardian",
+    selectedLoadoutIndex:Number.isInteger(detail.selectedLoadoutIndex)?detail.selectedLoadoutIndex:null,
+    subclass:detail.subclass||"",
+    subclassName:detail.subclassName||"",
+    subclassIcon:detail.subclassIcon||"",
+    subclassCatalog:cloneBuildValue(detail.subclassCatalog||[]),
+    subclassBuild,
+    super:cloneBuildValue(superItem),
+    abilities:cloneBuildValue(abilities),
+    aspects:cloneBuildValue(aspects),
+    fragments:cloneBuildValue(fragments),
+    weapons:cloneBuildValue(detail.weapons||[]),
+    armour:cloneBuildValue(detail.armour||[]),
+    mods:cloneBuildValue(detail.mods||detail.armourMods||[]),
+    artifact:cloneBuildValue(detail.artifact||null),
+    artifactConfiguration:cloneBuildValue(detail.artifactConfiguration||detail.artifact?.artifactConfiguration||null),
+    availableArtifacts:cloneBuildValue(detail.availableArtifacts||[]),
+    artifactOptions:cloneBuildValue(detail.artifactOptions||[]),
+    stats:cloneBuildValue(detail.stats||[]),
+    hashCoverage:cloneBuildValue(detail.hashCoverage||null),
+    semanticCoverage:cloneBuildValue(detail.semanticCoverage||null),
+    paradoxAnalysis:cloneBuildValue(detail.paradoxAnalysis||null),
+    weaponRollAdvice:cloneBuildValue(detail.weaponRollAdvice||null)
+  };
+}
+function rememberResolvedBuild(detail={}){const snapshot=resolvedBuildSnapshot(detail);if(snapshot)latestResolvedBuild=snapshot;return snapshot;}
+function persistResolvedBuildSnapshot(){
+  if(!latestResolvedBuild?.characterId)return false;
+  const envelope=createHandoffEnvelope(createBuildState(latestResolvedBuild));
+  const json=JSON.stringify(envelope);
+  let stored=false;
+  for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SNAPSHOT_KEY,json);stored=true;}catch{}}
+  return stored;
+}
 
 const setRenderStatus=(title,message,detail="")=>{
   const host=document.querySelector("#guardianHero.guardian-render-status");
@@ -718,6 +776,15 @@ globalThis.addEventListener("astrix:bungie-session",event=>{
   handleAuthenticatedSession(event.detail);
 });
 
+document.addEventListener("astrix:guardian-selection-changed",event=>{
+  rememberResolvedBuild(event.detail||{});
+});
+
+document.addEventListener("click",event=>{
+  if(!event.target?.closest?.(".improve-cta"))return;
+  persistResolvedBuildSnapshot();
+},true);
+
 document.addEventListener("astrix:loadout-selected",event=>{
   loadSelectedLoadout(event.detail).catch(error=>{
     const message=error.message||"Saved loadout could not be loaded.";
@@ -732,6 +799,7 @@ document.addEventListener("astrix:beta-fixture-loaded",event=>{
   const detail=event.detail||{};
   if(detail.source!=="paradox-beta-fixture")return;
   fixtureProfileDetail=detail;
+  rememberResolvedBuild(detail);
   publishFixtureRoster(detail);
 });
 

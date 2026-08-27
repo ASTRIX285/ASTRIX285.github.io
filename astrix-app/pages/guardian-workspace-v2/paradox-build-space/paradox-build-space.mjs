@@ -12,10 +12,12 @@ import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHan
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
 import '../guardian-bungie-profile.mjs?v=20260827-manifest-service-1';
+import '../guardian-portal-progress.mjs';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
+const BUILD_SNAPSHOT_KEY='astrix:guardian-build-snapshot:v1';
 const LOAD_STAGES=Object.freeze({SNAPSHOT:20,VALIDATE:40,PROFILE:58,SOCKETS:74,ARTIFACT:88,READY:100});
 const BUNGIE='https://www.bungie.net';
 const byId=id=>document.getElementById(id);
@@ -45,9 +47,11 @@ function decodeState(raw,{durable=false}={}){
 function readState(){
   activeLoadError='';
   const params=new URLSearchParams(location.search),expectedCharacterId=params.get('characterId')||'',expectedMembershipId=params.get('membershipId')||'',expectedMembershipType=params.get('membershipType')||'';
-  for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){
-    try{const raw=JSON.parse(store.getItem(BUILD_SPACE_KEY)||'null'),state=decodeState(raw,{durable}),binding=state?bindingOf(state.originalBuild):null;if(state&&(!expectedCharacterId||binding.characterId===expectedCharacterId)&&(!expectedMembershipId||binding.membershipId===expectedMembershipId)&&(!expectedMembershipType||binding.membershipType===expectedMembershipType))return state;if(raw)store.removeItem(BUILD_SPACE_KEY);}
-    catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
+  for(const key of [BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY]){
+    for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){
+      try{const raw=JSON.parse(store.getItem(key)||'null'),state=decodeState(raw,{durable}),binding=state?bindingOf(state.originalBuild):null;if(state&&(!expectedCharacterId||binding.characterId===expectedCharacterId)&&(!expectedMembershipId||binding.membershipId===expectedMembershipId)&&(!expectedMembershipType||binding.membershipType===expectedMembershipType)){if(key===BUILD_SNAPSHOT_KEY){writeState(state);for(const target of [sessionStorage,localStorage]){try{target.removeItem(BUILD_SNAPSHOT_KEY);}catch{}}}return state;}if(raw)store.removeItem(key);}
+      catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
+    }
   }
   activeLoadError=activeLoadError||'No current Build Forge snapshot was found. Return to the Guardian page and choose Improve My Guardian again.';
   return null;
@@ -55,7 +59,6 @@ function readState(){
 function emitLoad(stage,percent,label,status='loading',message=''){
   window.AstrixLoader?.set(percent);
   window.AstrixLoader?.status(message||label);
-  if(status==='ready'||status==='error')guardianManifest.ready().finally(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>window.AstrixLoader?.done())));
   window.dispatchEvent(new CustomEvent('astrix:build-load-progress',{detail:{stage,percent,label,status,message}}));
 }
 document.addEventListener('astrix:manifest-progress',event=>{
@@ -84,7 +87,7 @@ function renderTestConfiguration(){const build=currentBuild(),node=byId('expecte
 function writeState(next){const json=JSON.stringify(createHandoffEnvelope(next));for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,json);}catch{}}}
 function switchBuildCharacter(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId)return;const next=createBuildState(detail);writeState(next);render();}
 function settleBuildImage(image){if(!image?.src||image.hidden||image.closest('[hidden]')||image.complete)return Promise.resolve();return Promise.race([typeof image.decode==='function'?image.decode().catch(()=>{}):new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});}),new Promise(resolve=>setTimeout(resolve,5000))]);}
-function completeBuildRender(build){const sequence=++buildRenderSequence;requestAnimationFrame(()=>requestAnimationFrame(async()=>{if(sequence!==buildRenderSequence)return;const images=[...document.querySelectorAll('.build-space img,.build-character-selector img')].filter(image=>!image.closest('[hidden]'));await Promise.all(images.map(settleBuildImage));if(sequence!==buildRenderSequence)return;emitLoad('render',LOAD_STAGES.READY,'Build Forge rendered','ready');document.dispatchEvent(new CustomEvent('astrix:build-render-complete',{detail:{characterId:String(build?.characterId||''),selectedLoadoutIndex:Number.isInteger(build?.selectedLoadoutIndex)?build.selectedLoadoutIndex:null,renderedImages:images.filter(image=>image.complete&&image.naturalWidth>0).length}}));}));}
+function completeBuildRender(build){const sequence=++buildRenderSequence;requestAnimationFrame(()=>requestAnimationFrame(async()=>{if(sequence!==buildRenderSequence)return;const images=[...document.querySelectorAll('.build-space img,.build-character-selector img')].filter(image=>!image.closest('[hidden]'));await Promise.all(images.map(settleBuildImage));if(sequence!==buildRenderSequence)return;guardianManifest.ready().finally(()=>{if(sequence!==buildRenderSequence)return;const status=build?'ready':'error',label=build?'Build Forge rendered':'Build snapshot state rendered';emitLoad('render',LOAD_STAGES.READY,label,status);document.dispatchEvent(new CustomEvent('astrix:build-render-complete',{detail:{status,characterId:String(build?.characterId||''),selectedLoadoutIndex:Number.isInteger(build?.selectedLoadoutIndex)?build.selectedLoadoutIndex:null,renderedImages:images.filter(image=>image.complete&&image.naturalWidth>0).length}}));});}));}
 const list=(...values)=>values.find(Array.isArray)||[];
 function resolvedSubclassOptions(build){const options=list(build?.subclassCatalog,build?.availableSubclasses,build?.subclassOptions,build?.resolvedSubclasses,build?.catalog?.subclasses);const current={name:build?.subclassName||build?.subclass||'Subclass',icon:build?.subclassIcon,subclassBuild:build?.subclassBuild};return options.length?options:[current];}
 function resolvedOptions(build,kind){const sb=build?.subclassBuild||{},cap=kind[0].toUpperCase()+kind.slice(1),pluralCap=kind==='super'?'Supers':kind==='artifact'?'Artifacts':cap,equipped=kind==='super'?[sb.super].filter(Boolean):kind==='artifact'?[build.artifact].filter(Boolean):list(sb[kind],build?.[kind]),options=list(sb['available'+cap],sb['available'+pluralCap],sb[kind+'Options'],build?.['available'+cap],build?.['available'+pluralCap],build?.[kind+'Options'],build?.resolvedOptions?.[kind]),merged=[...equipped,...options].filter(Boolean);return merged.filter((item,index,all)=>{const key=item?.hash??item?.itemHash??item?.name??iconOf(item);return all.findIndex(other=>(other?.hash??other?.itemHash??other?.name??iconOf(other))===key)===index;});}
@@ -111,6 +114,7 @@ function render(){
     byId('artifactStatus').textContent='NOT CHECKED';byId('artifactStatusDetail').textContent='Artifact resolution starts only after a verified build snapshot is loaded.';
     const armButton=byId('armRangeTest');if(armButton)armButton.disabled=true;
     emitLoad('snapshot',LOAD_STAGES.SNAPSHOT,'Build snapshot required','error',activeLoadError);
+    completeBuildRender(null);
     return;
   }
   const armButton=byId('armRangeTest');if(armButton)armButton.disabled=!String(build.characterId||'').trim();
