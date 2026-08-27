@@ -29,27 +29,31 @@ const isPrismaticBuild=build=>[build?.subclass,build?.subclassName,build?.subcla
 let activeLoadError='';
 let testDomain='pve';
 let buildRenderSequence=0;
-function validateBuildState(state,binding={}){
+function validateBuildState(state,expectedBinding={}){
   if(!state||state.version!==1||!state.originalBuild||!state.workingBuild)return null;
   const originalBinding=bindingOf(state.originalBuild),workingBinding=bindingOf(state.workingBuild);
   if(!originalBinding.characterId||!bindingsEqual(originalBinding,workingBinding))return null;
-  if(bindingOf(binding).characterId&&!bindingsEqual(binding,originalBinding))return null;
+  const expected=bindingOf(expectedBinding);
+  if(expected.characterId&&expected.characterId!==originalBinding.characterId)return null;
+  if(expected.membershipId&&expected.membershipId!==originalBinding.membershipId)return null;
+  if(expected.membershipType&&expected.membershipType!==originalBinding.membershipType)return null;
   return protectBuildState(state);
 }
-function decodeState(raw,{durable=false}={}){
+function decodeState(raw,{durable=false,expectedBinding={}}={}){
   if(!raw||typeof raw!=='object')return null;
   if(raw.schemaVersion===HANDOFF_SCHEMA){
     const state=validateHandoffEnvelope(raw);
-    return state?validateBuildState(state,raw.binding||{}):null;
+    return state?validateBuildState(state,expectedBinding):null;
   }
-  return durable?null:validateBuildState(raw);
+  return durable?null:validateBuildState(raw,expectedBinding);
 }
 function readState(){
   activeLoadError='';
   const params=new URLSearchParams(location.search),expectedCharacterId=params.get('characterId')||'',expectedMembershipId=params.get('membershipId')||'',expectedMembershipType=params.get('membershipType')||'';
+  const expectedBinding={characterId:expectedCharacterId,membershipId:expectedMembershipId,membershipType:expectedMembershipType};
   for(const key of [BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY]){
     for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){
-      try{const raw=JSON.parse(store.getItem(key)||'null'),state=decodeState(raw,{durable}),binding=state?bindingOf(state.originalBuild):null;if(state&&(!expectedCharacterId||binding.characterId===expectedCharacterId)&&(!expectedMembershipId||binding.membershipId===expectedMembershipId)&&(!expectedMembershipType||binding.membershipType===expectedMembershipType)){if(key===BUILD_SNAPSHOT_KEY){writeState(state);for(const target of [sessionStorage,localStorage]){try{target.removeItem(BUILD_SNAPSHOT_KEY);}catch{}}}return state;}if(raw)store.removeItem(key);}
+      try{const raw=JSON.parse(store.getItem(key)||'null'),state=decodeState(raw,{durable,expectedBinding});if(state){if(key===BUILD_SNAPSHOT_KEY){writeState(state);for(const target of [sessionStorage,localStorage]){try{target.removeItem(BUILD_SNAPSHOT_KEY);}catch{}}}return state;}if(raw)store.removeItem(key);}
       catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
     }
   }

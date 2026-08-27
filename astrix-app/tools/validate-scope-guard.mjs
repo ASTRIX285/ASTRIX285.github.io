@@ -4,8 +4,9 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
-  'astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs',
-  'astrix-app/pages/guardian-workspace-v2/guardian-bungie-auth.mjs',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-binding.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
   'astrix-app/tools/paradox-validator.mjs'
 ]);
