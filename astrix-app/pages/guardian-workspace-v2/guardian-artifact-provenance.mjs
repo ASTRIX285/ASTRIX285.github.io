@@ -10,12 +10,14 @@ const definition=(definitions,hash)=>hash===null?null:(definitions?.[String(hash
 function displayItem(definitions,hash){
   const numericHash=numberOrNull(hash);
   const row=definition(definitions,numericHash);
+  const displays=[row?.displayProperties,...(row?.resolvedSandboxPerks||[]).map(perk=>perk?.displayProperties)].filter(Boolean);
+  const displayValue=key=>displays.find(display=>display?.[key])?.[key]||'';
   return {
     hash:numericHash,
     bungieHash:numericHash,
-    name:row?.displayProperties?.name||'',
-    description:row?.displayProperties?.description||'',
-    icon:abs(row?.displayProperties?.icon),
+    name:displayValue('name')||`Unresolved Destiny definition ${numericHash}`,
+    description:displayValue('description'),
+    icon:abs(displayValue('icon')),
     definition:row,
     displayResolved:Boolean(row),
     unresolved:!row
@@ -48,7 +50,7 @@ function resolveArtifactByProvenance(payload,characterId){
   const manifestDefinition=definition(definitions,artifactHash);
   const resolvedArtifactDefinition=manifestDefinition||(definitionHash===artifactHash?artifactDefinition:null);
   const seasonNumber=numberOrNull(payload?.seasonNumber??payload?.currentSeasonNumber??payload?.artifactCoverage?.seasonNumber??resolvedArtifactDefinition?.seasonNumber);
-  const base={hash:artifactHash,bungieHash:artifactHash,name:resolvedArtifactDefinition?.displayProperties?.name||'',description:resolvedArtifactDefinition?.displayProperties?.description||'',icon:abs(resolvedArtifactDefinition?.displayProperties?.icon),definition:resolvedArtifactDefinition,displayResolved:Boolean(resolvedArtifactDefinition),unresolved:!resolvedArtifactDefinition,coverage:payload?.artifactCoverage||null};
+  const base={hash:artifactHash,bungieHash:artifactHash,name:resolvedArtifactDefinition?.displayProperties?.name||`Unresolved Destiny definition ${artifactHash}`,description:resolvedArtifactDefinition?.displayProperties?.description||'',icon:abs(resolvedArtifactDefinition?.displayProperties?.icon),definition:resolvedArtifactDefinition,displayResolved:Boolean(resolvedArtifactDefinition),unresolved:!resolvedArtifactDefinition,coverage:payload?.artifactCoverage||null};
   const provenance={provider:'bungie',endpoint:'Destiny2.GetProfile',component:202,componentName:'CharacterProgressions',characterId:cid,path:`characterProgressions.data.${cid}.seasonalArtifact.tiers[].items[isActive=true]`};
   const unavailable=stateMessage=>{
     const artifactConfiguration=createArtifactConfiguration({artifactHash,seasonNumber,selectedPerkHashes:null,source:'bungie-live-state-unavailable',provenance:{...provenance,state:'state-unavailable'}});

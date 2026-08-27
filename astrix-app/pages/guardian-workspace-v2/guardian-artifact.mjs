@@ -2,7 +2,8 @@
  * Live Bungie state is authoritative for live Guardians/loadouts.
  * Fixture/DIM test builds fall back to the beta manifest picker.
  */
-import { resolveArtifactViewState,resolveFixtureArtifactDefinition,resolveIntendedArtifactConfiguration } from './guardian-artifact-state.mjs';
+import { resolveArtifactViewState,resolveIntendedArtifactConfiguration } from './guardian-artifact-state.mjs';
+import {guardianManifest} from './guardian-manifest-service.mjs';
 
 const MANIFEST_URL='../../data/paradox-forge/beta/beta-bungie-manifest-cache.json';
 const BUNGIE_ROOT='https://www.bungie.net';
@@ -17,6 +18,7 @@ const absIcon=v=>{const s=String(v??'').trim();return !s?'':(s.startsWith('http'
 const hashOf=item=>Number(item?.hash??item?.bungieHash??item?.itemHash);
 
 let manifest=null;
+let fixtureArtifactHash=null;
 let artifactDef=null;
 let currentFixtureId=null;
 let selected=[];
@@ -29,19 +31,22 @@ let currentArtifactConfiguration=null;
 
 async function ensureManifest(){
   if(manifest)return;
-  const res=await fetch(MANIFEST_URL,{cache:'no-store'});
+  const [res]=await Promise.all([fetch(MANIFEST_URL,{cache:'no-store'}),guardianManifest.ready()]);
   if(!res.ok)throw new Error(`Artifact manifest load failed: ${res.status}`);
   manifest=await res.json();
-  artifactDef=Object.values(manifest.artifacts??{})[0]??null;
+  const curated=Object.values(manifest.artifacts??{})[0]??null;
+  fixtureArtifactHash=Number(curated?.bungieHash??curated?.hash);
+  artifactDef=Number.isFinite(fixtureArtifactHash)?await guardianManifest.getAsync('DestinyArtifactDefinition',fixtureArtifactHash):null;
 }
 
 function fixtureArtifactIdentity(){
   if(!artifactDef)return null;
+  const display=guardianManifest.identity(artifactDef.hash??fixtureArtifactHash,'DestinyArtifactDefinition');
   return {
-    hash:Number(artifactDef.bungieHash??artifactDef.hash??0),
-    name:artifactDef.display?.name||'Seasonal Artifact',
-    description:artifactDef.display?.description||'',
-    icon:absIcon(artifactDef.display?.icon)
+    hash:Number(artifactDef.hash??fixtureArtifactHash),
+    name:display.name,
+    description:display.description,
+    icon:display.icon
   };
 }
 
@@ -60,9 +65,9 @@ function artifactIdentity(){
 }
 
 function fixturePerkIdentity(hash){
-  const row=manifest?.inventoryItems?.[String(hash)]??null;
-  if(!row||!row.display?.name)return {hash:Number(hash),name:`Unresolved perk ${hash}`,description:'',icon:'',unresolved:true};
-  return {hash:Number(hash),name:row.display.name,description:row.display.description||'',icon:absIcon(row.display.icon),unresolved:false};
+  const row=guardianManifest.get('DestinyInventoryItemDefinition',hash);
+  if(!row)return {hash:Number(hash),name:`Unresolved Destiny definition ${hash}`,description:'',icon:'',unresolved:true};
+  return {...guardianManifest.identity(hash),hash:Number(hash),definition:row,unresolved:false};
 }
 
 function perkIdentity(hash){
@@ -81,7 +86,7 @@ function perkIdentity(hash){
 }
 
 function tierList(){
-  return (artifactDef?.tiers??[]).map(t=>({tier:Number(t.tier??0),perks:(t.itemHashes??[]).map(fixturePerkIdentity)}));
+  return (artifactDef?.tiers??[]).map((tier,index)=>({tier:Number(tier.tier??index+1),perks:(tier.items??[]).map(item=>item?.itemHash).filter(Number.isFinite).map(fixturePerkIdentity)}));
 }
 
 function loadOverrides(){try{return JSON.parse(localStorage.getItem(OVERRIDE_KEY)||'{}')||{};}catch{return {};}}
@@ -98,7 +103,7 @@ function fixtureConfiguration(id){
     {artifactConfiguration:currentArtifactConfiguration},
     id,
     selected,
-    {seasonNumber:artifactDef?.seasonNumber,source:'fixture-intent',provenance:{provider:'paradox-fixture',fixtureId:currentFixtureId,manifest:'beta-bungie-manifest-cache'}}
+    {seasonNumber:artifactDef?.seasonNumber,source:'fixture-intent',provenance:{provider:'paradox-fixture',fixtureId:currentFixtureId,manifest:'bungie-full-manifest'}}
   );
   currentArtifactConfiguration=configuration;
   return configuration;
@@ -224,7 +229,8 @@ async function onSelection(detail={}){
   try{await ensureManifest();}catch(err){console.error('[Paradox artifact]',err);return;}
   currentMode='fixture';currentArtifactState='intended';liveArtifact=null;livePerksByHash=new Map();currentFixtureId=detail?.fixtureId??currentFixtureId;
   const requestedArtifactHash=detail?.artifactConfiguration?.artifactHash??detail?.artifact?.artifactConfiguration?.artifactHash??detail?.artifact?.hash??detail?.artifact?.bungieHash??null;
-  artifactDef=resolveFixtureArtifactDefinition(manifest?.artifacts,requestedArtifactHash);
+  const resolvedHash=Number(requestedArtifactHash??fixtureArtifactHash);
+  artifactDef=Number.isFinite(resolvedHash)?await guardianManifest.getAsync('DestinyArtifactDefinition',resolvedHash):null;
   const view=resolveArtifactViewState(detail,{fixtureArtifact:fixtureArtifactIdentity(),fixtureSelected:selectionForFixture(detail)});
   selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];currentArtifactConfiguration=view.artifactConfiguration||null;renderArtifactDisplay();wireRow();
 }

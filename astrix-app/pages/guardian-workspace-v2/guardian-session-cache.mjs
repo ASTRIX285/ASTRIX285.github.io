@@ -4,8 +4,9 @@ const PROFILE_FALLBACK_KEY="astrix:bungie-profile-cache-fallback:v2";
 const LOADOUT_FALLBACK_PREFIX="astrix:bungie-loadout-cache-fallback:v2:";
 const FAST_RETURN_KEY="astrix:guardian-fast-return:v1";
 const DB_NAME="astrix-guardian-session";
-const DB_VERSION=1;
+const DB_VERSION=2;
 const STORE_NAME="guardian-data";
+const MANIFEST_STORE_NAME="manifest-data";
 // The profile cache belongs to the current browser session. Keep the last
 // verified Guardian available for a full working session so Main <-> Build
 // navigation never collapses to placeholders while Bungie refreshes.
@@ -45,6 +46,7 @@ function openDatabase(){
     request.onupgradeneeded=()=>{
       const db=request.result;
       if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME,{keyPath:"key"});
+      if(!db.objectStoreNames.contains(MANIFEST_STORE_NAME))db.createObjectStore(MANIFEST_STORE_NAME,{keyPath:"key"});
     };
     request.onsuccess=()=>resolve(request.result);
     request.onerror=()=>resolve(null);
@@ -137,5 +139,7 @@ export {
   readCachedBungieProfile,
   cacheBungieLoadoutDetail,
   readCachedBungieLoadoutDetail,
-  markGuardianFastReturn
+  markGuardianFastReturn,
+  openDatabase as openGuardianDatabase,
+  MANIFEST_STORE_NAME
 };

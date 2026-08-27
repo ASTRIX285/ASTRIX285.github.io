@@ -1,3 +1,5 @@
+import {guardianManifest} from './guardian-manifest-service.mjs';
+
 const MANIFEST_URL='../../data/paradox-forge/beta/beta-bungie-manifest-cache.json';
 const BUNGIE_ROOT='https://www.bungie.net';
 const ARTIFACT_SELECTION_KEY='astrix-paradox-beta-artifact-selection';
@@ -17,6 +19,7 @@ let fixtures=[];
 let currentClass='hunter';
 let currentFixture=null;
 let artifactDef=null;
+let artifactHash=null;
 let selectedArtifactHashes=[];
 
 function toast(message){
@@ -37,35 +40,38 @@ function modal(title,body){
 
 async function ensureData(){
   if(!manifest){
-    const response=await fetch(MANIFEST_URL,{cache:'no-store'});
+    const [response]=await Promise.all([fetch(MANIFEST_URL,{cache:'no-store'}),guardianManifest.ready()]);
     if(!response.ok)throw new Error(`Manifest cache load failed: ${response.status}`);
     manifest=await response.json();
-    artifactDef=Object.values(manifest.artifacts??{})[0]??null;
+    const curated=Object.values(manifest.artifacts??{})[0]??null;
+    artifactHash=Number(curated?.bungieHash??curated?.hash);
+    artifactDef=Number.isFinite(artifactHash)?await guardianManifest.getAsync('DestinyArtifactDefinition',artifactHash):null;
   }
   const api=globalThis.ASTRIXBetaFixtures;
   if(api?.list)fixtures=await api.list();
 }
 
 function inventoryIdentity(hash){
-  const row=manifest?.inventoryItems?.[String(hash)]??null;
-  if(!row)return {hash:Number(hash),name:`Destiny item ${hash}`,description:'',icon:''};
-  return {hash:Number(hash),name:row.display?.name||`Destiny item ${hash}`,description:row.display?.description||'',icon:absIcon(row.display?.icon)};
+  const row=guardianManifest.get('DestinyInventoryItemDefinition',hash);
+  if(!row)return {hash:Number(hash),name:`Unresolved Destiny definition ${hash}`,description:'',icon:'',unresolved:true};
+  return {...guardianManifest.identity(hash),hash:Number(hash),definition:row};
 }
 
 function artifactIdentity(){
   if(!artifactDef)return null;
+  const display=guardianManifest.identity(artifactDef.hash??artifactHash,'DestinyArtifactDefinition');
   return {
-    hash:Number(artifactDef.bungieHash??artifactDef.hash??0),
-    name:artifactDef.display?.name||'Seasonal Artifact',
-    description:artifactDef.display?.description||'',
-    icon:absIcon(artifactDef.display?.icon)
+    hash:Number(artifactDef.hash??artifactHash),
+    name:display.name,
+    description:display.description,
+    icon:display.icon
   };
 }
 
 function allArtifactTiers(){
-  return (artifactDef?.tiers??[]).map(tier=>({
-    tier:Number(tier.tier??0),
-    perks:(tier.itemHashes??[]).map(inventoryIdentity)
+  return (artifactDef?.tiers??[]).map((tier,index)=>({
+    tier:Number(tier.tier??index+1),
+    perks:(tier.items??[]).map(item=>item?.itemHash).filter(Number.isFinite).map(inventoryIdentity)
   }));
 }
 

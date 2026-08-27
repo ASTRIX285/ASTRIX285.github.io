@@ -103,11 +103,10 @@ assert.match(characterCss,/\.guardian-character-card__stats\{[\s\S]*?left:39px;[
 assert.match(characterCss,/\.guardian-character-card\.is-selected::after\{[^}]*opacity:\.1/,'Selected character overlay must remain 90 percent transparent');
 assert.match(characterCss,/\.guardian-character-card\.is-selected::before\{opacity:\.48;filter:saturate\(\.48\) brightness\(\.68\)\}/,'Selected card artwork must use the approved passive treatment');
 assert.match(characterCss,/0 18px 34px -14px rgba\(104,190,255,\.72\)/,'Selected card must use a restrained glow behind the card');
-assert.match(profile,/\["Weapons",2996146975[\s\S]*?\["Health",392767087[\s\S]*?\["Class",1943323491[\s\S]*?\["Grenade",1735777505[\s\S]*?\["Super",144602215[\s\S]*?\["Melee",4244567218/,'The six current Destiny stat definitions must retain Bungie order');
+assert.match(profile,/const STAT_ORDER=\[[\s\S]*?2996146975,[\s\S]*?392767087,[\s\S]*?1943323491,[\s\S]*?1735777505,[\s\S]*?144602215,[\s\S]*?4244567218/,'The six current Destiny stat hashes must retain Bungie order');
 assert.doesNotMatch(characterCss,/guardian-stat-icons\.png/,'Guardian cards must not use the removed reference-image sprite');
 assert.match(characterModule,/class="guardian-stat-icon" src="\$\{escapeHtml\(icon\)\}"/,'Guardian cards must render the Bungie-provided stat icon URL');
-assert.match(profile,/DestinyStatDefinition identities from Bungie/,'Guardian stat identities must document their Bungie manifest provenance');
-assert.match(profile,/bc69675acdae9e6b9a68a02fb4d62e07/,'Weapons must use Bungie DestinyStatDefinition artwork');
+assert.match(profile,/payload\?\.statDefinitions\?\.\[String\(hash\)\]/,'Guardian stat identities and artwork must resolve from the full DestinyStatDefinition table');
 assert.doesNotMatch(characterModule,/guardian-character-card__head[^\n]*<small>/,'Guardian cards must not render a title subtitle');
 assert.match(characterCss,/grid-template-columns:repeat\(3,minmax\(0,300px\)\)/,'Main and Build must share the contained character-card ribbon');
 assert.match(characterCss,/topbar>#guardianCharacterCards\{[\s\S]*?justify-self:center!important;/,'Guardian character-card ribbon must remain centred inside the header');

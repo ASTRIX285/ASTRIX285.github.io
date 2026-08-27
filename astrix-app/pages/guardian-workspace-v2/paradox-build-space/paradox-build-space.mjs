@@ -7,10 +7,11 @@ import {armourCard} from '../guardian-gear-layout.mjs?v=20260825-armour-data-rec
 import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260824-artifact-state-2';
 import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260826-four-fixes-1';
 import {markGuardianFastReturn} from '../guardian-session-cache.mjs';
+import {guardianManifest} from '../guardian-manifest-service.mjs';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope} from '../paradox-build-binding.mjs';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
-import '../guardian-bungie-profile.mjs?v=20260826-four-fixes-1';
+import '../guardian-bungie-profile.mjs?v=20260827-manifest-service-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 
@@ -54,9 +55,13 @@ function readState(){
 function emitLoad(stage,percent,label,status='loading',message=''){
   window.AstrixLoader?.set(percent);
   window.AstrixLoader?.status(message||label);
-  if(status==='ready'||status==='error')requestAnimationFrame(()=>requestAnimationFrame(()=>window.AstrixLoader?.done()));
+  if(status==='ready'||status==='error')guardianManifest.ready().finally(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>window.AstrixLoader?.done())));
   window.dispatchEvent(new CustomEvent('astrix:build-load-progress',{detail:{stage,percent,label,status,message}}));
 }
+document.addEventListener('astrix:manifest-progress',event=>{
+  window.AstrixLoader?.set(Number(event.detail?.percent)||12);
+  window.AstrixLoader?.status(event.detail?.label||'Preparing Bungie manifest');
+});
 function tile(item){if(!item)return '<span class="icon-tile empty">◆</span>';const icon=abs(iconOf(item)),name=esc(item.name||'Destiny item');return `<span class="icon-tile" title="${name}">${icon?`<img src="${esc(icon)}" alt="${name}">`:'◆'}</span>`;}
 function weaponCardShell(index){return `<div class="weap"><div class="art ph"><span class="ph-glyph">⌖</span></div><div class="cap"><b>Weapon slot ${index+1}</b><small>Awaiting resolved weapon semantics</small></div></div>`;}
 function gearCard(item,fallback){const index=Math.max(0,(Number(String(fallback).match(/\d+/)?.[0])||1)-1);return String(fallback).startsWith('Weapon')?weaponCardShell(index):armourCard(index,item);}
