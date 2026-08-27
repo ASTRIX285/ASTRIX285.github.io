@@ -5,10 +5,13 @@ const loader=window.AstrixLoader;
 const manifestReady=guardianManifest.ready();
 const isBuildSpace=Boolean(document.querySelector('.build-space'));
 const set=(percent,label)=>{loader?.set(percent);if(label)loader?.status(label);};
-const finishAfterPaint=async label=>{
-  await manifestReady;
+const finishRenderedPage=label=>{
   set(96,label);
   requestAnimationFrame(()=>requestAnimationFrame(()=>loader?.done()));
+};
+const finishAfterPaint=async label=>{
+  await manifestReady;
+  finishRenderedPage(label);
 };
 
 try{
@@ -31,7 +34,7 @@ document.addEventListener('astrix:bungie-profile-loaded',event=>{
 document.addEventListener('astrix:guardian-selection-changed',()=>set(86,'Painting Guardian build'));
 document.addEventListener('astrix:beta-fixture-loaded',()=>set(86,'Painting Guardian preview'));
 document.addEventListener('astrix:guardian-render-complete',()=>finishAfterPaint('Guardian build rendered'),{once:true});
-document.addEventListener('astrix:build-render-complete',()=>finishAfterPaint('Build Forge rendered'),{once:true});
+document.addEventListener('astrix:build-render-complete',()=>finishRenderedPage('Build Forge rendered'),{once:true});
 document.addEventListener('astrix:guardian-error',()=>{if(!isBuildSpace)finishAfterPaint('Guardian state rendered');},{once:true});
 
 const currentSession=window.ASTRIX_BUNGIE_SESSION;

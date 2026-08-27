@@ -49,7 +49,10 @@ assert.match(interceptor,/socketCategoryHash[\s\S]*?socketCategoryDefinition/,'A
 assert.match(resolver,/socketCategory\(plug\)[\s\S]*?weapon-mod[\s\S]*?perk/,'Weapon perk-versus-mod classification must consult the socket category first');
 assert.match(portal,/astrix:manifest-progress/,'Main portal loader must show manifest progress');
 assert.match(portal,/await manifestReady/,'Main portal must not clear before the manifest is ready');
-assert.match(build,/guardianManifest\.ready\(\)\.finally/,'Build portal must not clear before the manifest is ready');
+const buildRenderCompletion=build.match(/function completeBuildRender\(build\)\{([\s\S]*?)\}\nconst list=/)?.[1]||'';
+assert.match(buildRenderCompletion,/astrix:build-render-complete/,'Build Forge must publish its real render-complete signal');
+assert.doesNotMatch(buildRenderCompletion,/guardianManifest\.ready/,'Build Forge render completion must not be gated behind a manifest fetch');
+assert.match(portal,/astrix:build-render-complete',\(\)=>finishRenderedPage/,'Build portal must release from the real render-complete signal');
 
 for(const [label,source] of [['fixture',fixture],['artifact',artifact],['beta selector',beta]]){
   assert.match(source,/guardianManifest/ ,`${label} must resolve display definitions through the full manifest service`);
