@@ -6,6 +6,7 @@ const sources={
   shared:await readFile(new URL('guardian-left-rail-shared.css',ROOT),'utf8'),
   adaptive:await readFile(new URL('guardian-adaptive-layout.css',ROOT),'utf8'),
   characters:await readFile(new URL('guardian-character-cards.css',ROOT),'utf8'),
+  feedback:await readFile(new URL('guardian-layout-feedback.css',ROOT),'utf8'),
   gear:await readFile(new URL('guardian-gear-layout.css',ROOT),'utf8'),
   layout:await readFile(new URL('guardian-layout-final.css',ROOT),'utf8'),
   leftLock:await readFile(new URL('guardian-left-panel-lock.css',ROOT),'utf8'),
@@ -39,6 +40,10 @@ assert.doesNotMatch(sources.characters,/scroll-snap-type|overflow-x:auto/,'The f
 assert.match(sources.build,/@media\s*\(max-width:1100px\)\s*and\s*\(min-width:721px\)\{[\s\S]*?\.build-space\{grid-template-columns:minmax\(300px,340px\) minmax\(0,1fr\)\}/,'Build must retain its smaller-laptop/tablet two-column contract');
 assert.match(sources.build,/@media\s*\(max-width:720px\)\{[\s\S]*?\.build-space\{grid-template-columns:1fr/,'Build must collapse to one document-flow column on phones');
 assert.match(sources.super,/@media\s*\(max-width:720px\)\{[\s\S]*?\.super-feature \.super-feature__cluster\{width:min\(300px,100%\)!important\}/,'Super geometry must scale inside its container at narrow widths');
+assert.match(sources.feedback,/@media \(min-width:2400px\) and \(min-height:1100px\)\{[\s\S]*?grid-template-columns:minmax\(320px,22%\) minmax\(0,1fr\)!important/,'Ultra-wide Main must keep the Guardian rail proportional');
+assert.match(sources.feedback,/\.equip\.gear-layout-active\{[\s\S]*?grid-template-columns:25% minmax\(0,1fr\)!important[\s\S]*?\.gear-weapons \.weap-grid\{[\s\S]*?repeat\(3,minmax\(0,1fr\)\)!important/,'Ultra-wide weapons must expand with the equipment container');
+assert.match(sources.feedback,/\.gear-combined \.gear-slot\{container-type:inline-size\}[\s\S]*?\.gear-arm-anchor \.arm\{width:46cqw!important;height:46cqw!important\}/,'Ultra-wide armour must scale inside each owned card');
+assert.match(sources.shared,/@media \(min-width:2400px\) and \(min-height:1100px\)\{[\s\S]*?body\.guardian-main-page\{--guardian-square:max\(40px,2\.7vw\)\}/,'Ultra-wide Main sockets must lift the desktop size cap');
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
   assert.match(html,/<meta\s+name="viewport"\s+content="[^"]*width=device-width[^"]*initial-scale=1(?:\.0)?[^"]*"\s*\/?>/,label+' must declare a device-width viewport');
@@ -49,3 +54,4 @@ console.log('RESPONSIVE_SINGLE_OWNER=PASS');
 console.log('RESPONSIVE_NO_PAGE_SCALE=PASS');
 console.log('RESPONSIVE_LOADOUT_ROW=PASS');
 console.log('RESPONSIVE_TABLET_PHONE_SOURCE=PASS');
+console.log('RESPONSIVE_ULTRAWIDE_COMPONENTS=PASS');

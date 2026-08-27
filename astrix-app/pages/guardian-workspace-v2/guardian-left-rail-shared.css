@@ -509,3 +509,7 @@
 @media(max-width:720px){
   .guardian-left-rail .build-rail-editor{max-height:380px!important}
 }
+
+@media (min-width:2400px) and (min-height:1100px){
+  body.guardian-main-page{--guardian-square:max(40px,2.7vw)}
+}
