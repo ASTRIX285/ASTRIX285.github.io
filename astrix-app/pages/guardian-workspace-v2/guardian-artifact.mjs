@@ -2,7 +2,8 @@
  * Live Bungie state is authoritative for live Guardians/loadouts.
  * Fixture/DIM test builds fall back to the beta manifest picker.
  */
-import { resolveArtifactViewState } from './guardian-artifact-state.mjs';
+import { resolveArtifactViewState,resolveIntendedArtifactConfiguration } from './guardian-artifact-state.mjs';
+import {guardianManifest} from './guardian-manifest-service.mjs';
 
 const MANIFEST_URL='../../data/paradox-forge/beta/beta-bungie-manifest-cache.json';
 const BUNGIE_ROOT='https://www.bungie.net';
@@ -17,6 +18,7 @@ const absIcon=v=>{const s=String(v??'').trim();return !s?'':(s.startsWith('http'
 const hashOf=item=>Number(item?.hash??item?.bungieHash??item?.itemHash);
 
 let manifest=null;
+let fixtureArtifactHash=null;
 let artifactDef=null;
 let currentFixtureId=null;
 let selected=[];
@@ -24,27 +26,33 @@ let currentMode='fixture';
 let currentArtifactState='intended';
 let liveArtifact=null;
 let livePerksByHash=new Map();
+let currentSelectionContext={characterId:'',selectedLoadoutIndex:null};
+let currentArtifactConfiguration=null;
 
 async function ensureManifest(){
   if(manifest)return;
-  const res=await fetch(MANIFEST_URL,{cache:'no-store'});
+  const [res]=await Promise.all([fetch(MANIFEST_URL,{cache:'no-store'}),guardianManifest.ready()]);
   if(!res.ok)throw new Error(`Artifact manifest load failed: ${res.status}`);
   manifest=await res.json();
-  artifactDef=Object.values(manifest.artifacts??{})[0]??null;
+  const curated=Object.values(manifest.artifacts??{})[0]??null;
+  fixtureArtifactHash=Number(curated?.bungieHash??curated?.hash);
+  artifactDef=Number.isFinite(fixtureArtifactHash)?await guardianManifest.getAsync('DestinyArtifactDefinition',fixtureArtifactHash):null;
 }
 
 function fixtureArtifactIdentity(){
   if(!artifactDef)return null;
+  const display=guardianManifest.identity(artifactDef.hash??fixtureArtifactHash,'DestinyArtifactDefinition');
   return {
-    hash:Number(artifactDef.bungieHash??artifactDef.hash??0),
-    name:artifactDef.display?.name||'Seasonal Artifact',
-    description:artifactDef.display?.description||'',
-    icon:absIcon(artifactDef.display?.icon)
+    hash:Number(artifactDef.hash??fixtureArtifactHash),
+    name:display.name,
+    description:display.description,
+    icon:display.icon
   };
 }
 
 function artifactIdentity(){
-  if(currentMode==='live'&&liveArtifact){
+  if(currentMode==='live'){
+    if(!liveArtifact)return null;
     return {
       ...liveArtifact,
       hash:hashOf(liveArtifact),
@@ -57,9 +65,9 @@ function artifactIdentity(){
 }
 
 function fixturePerkIdentity(hash){
-  const row=manifest?.inventoryItems?.[String(hash)]??null;
-  if(!row||!row.display?.name)return {hash:Number(hash),name:`Unresolved perk ${hash}`,description:'',icon:'',unresolved:true};
-  return {hash:Number(hash),name:row.display.name,description:row.display.description||'',icon:absIcon(row.display.icon),unresolved:false};
+  const row=guardianManifest.get('DestinyInventoryItemDefinition',hash);
+  if(!row)return {hash:Number(hash),name:`Unresolved Destiny definition ${hash}`,description:'',icon:'',unresolved:true};
+  return {...guardianManifest.identity(hash),hash:Number(hash),definition:row,unresolved:false};
 }
 
 function perkIdentity(hash){
@@ -78,7 +86,7 @@ function perkIdentity(hash){
 }
 
 function tierList(){
-  return (artifactDef?.tiers??[]).map(t=>({tier:Number(t.tier??0),perks:(t.itemHashes??[]).map(fixturePerkIdentity)}));
+  return (artifactDef?.tiers??[]).map((tier,index)=>({tier:Number(tier.tier??index+1),perks:(tier.items??[]).map(item=>item?.itemHash).filter(Number.isFinite).map(fixturePerkIdentity)}));
 }
 
 function loadOverrides(){try{return JSON.parse(localStorage.getItem(OVERRIDE_KEY)||'{}')||{};}catch{return {};}}
@@ -90,6 +98,24 @@ function selectionForFixture(detail){
   return Array.isArray(perks)?perks.map(p=>Number(p?.hash??p?.bungieHash)).filter(Number.isFinite):[];
 }
 
+function fixtureConfiguration(id){
+  const configuration=resolveIntendedArtifactConfiguration(
+    {artifactConfiguration:currentArtifactConfiguration},
+    id,
+    selected,
+    {seasonNumber:artifactDef?.seasonNumber,source:'fixture-intent',provenance:{provider:'paradox-fixture',fixtureId:currentFixtureId,manifest:'bungie-full-manifest'}}
+  );
+  currentArtifactConfiguration=configuration;
+  return configuration;
+}
+
+function emitArtifactSelection(id,stateUnavailable,perks){
+  const artifactConfiguration=currentMode==='live'
+    ?liveArtifact?.artifactConfiguration||currentArtifactConfiguration||null
+    :fixtureConfiguration(id);
+  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{...currentSelectionContext,artifact:id,perks:stateUnavailable?null:perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
+}
+
 function renderArtifactDisplay(){
   const id=artifactIdentity();
   const nameEl=qs('#artName');
@@ -98,9 +124,23 @@ function renderArtifactDisplay(){
   const row=qs('.artifact-row');
 
   if(!id){
-    if(nameEl)nameEl.textContent='Artifact unresolved';
+    const stateUnavailable=currentMode==='live'&&currentArtifactState==='state-unavailable';
+    if(nameEl)nameEl.textContent=stateUnavailable?'IN DEVELOPMENT':'Artifact unresolved';
     if(iconEl){iconEl.removeAttribute('src');iconEl.style.opacity='0';}
-    if(perksEl){perksEl.dataset.artifactState='unresolved';perksEl.innerHTML=Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join('');}
+    if(row){
+      row.dataset.artifactMode=currentMode;
+      row.setAttribute('aria-label',stateUnavailable?'Live Bungie Artifact state unavailable':'Configure Artifact perks');
+      row.style.cursor=currentMode==='live'?'default':'pointer';
+      row.classList.toggle('is-development',stateUnavailable);
+    }
+    if(perksEl){
+      perksEl.dataset.artifactState=stateUnavailable?'state-unavailable':'unresolved';
+      perksEl.title=stateUnavailable?'Live Artifact activation state is unavailable.':'Artifact identity is unresolved.';
+      perksEl.innerHTML=stateUnavailable
+        ?'<span class="art-empty artifact-development-placeholder">ARTIFACT STATE UNAVAILABLE</span>'
+        :Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join('');
+    }
+    emitArtifactSelection(null,stateUnavailable,[]);
     return;
   }
 
@@ -113,13 +153,18 @@ function renderArtifactDisplay(){
   }
 
   const stateUnavailable=currentMode==='live'&&currentArtifactState==='state-unavailable';
+  row?.classList.toggle('is-development',stateUnavailable);
+  if(stateUnavailable){
+    if(nameEl)nameEl.textContent='IN DEVELOPMENT';
+    if(iconEl){iconEl.removeAttribute('src');iconEl.alt='';iconEl.style.opacity='0';}
+  }
   const perks=stateUnavailable?[]:selected.map(perkIdentity);
   if(perksEl){
     perksEl.dataset.artifactState=stateUnavailable?'state-unavailable':(perks.length?'active':'none-active');
     perksEl.title=stateUnavailable?'Live Artifact activation state is unavailable.':(perks.length?`${perks.length} active Artifact perk(s) resolved from Bungie`:(currentMode==='live'?'Bungie reports no active Artifact perks':'No fixture Artifact perks selected'));
     if(!perks.length){
       perksEl.innerHTML=currentMode==='live'
-        ? (stateUnavailable?'<span class="art-empty">ARTIFACT STATE UNAVAILABLE</span>':Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join(''))
+        ? (stateUnavailable?'<span class="art-empty artifact-development-placeholder">ARTIFACT STATE UNAVAILABLE</span>':'<span class="art-empty artifact-none-active">NO ACTIVE PERKS REPORTED BY BUNGIE</span>')
         : '<button type="button" class="art-empty" tabindex="-1">Choose Artifact perks</button>';
     }else{
       const shown=perks.slice(0,PANEL_ICONS);
@@ -129,10 +174,7 @@ function renderArtifactDisplay(){
     }
   }
 
-  const artifactConfiguration=currentMode==='live'
-    ?liveArtifact?.artifactConfiguration||null
-    :{schemaVersion:1,artifactHash:Number.isFinite(hashOf(id))?hashOf(id):null,seasonNumber:Number.isFinite(Number(artifactDef?.seasonNumber))?Number(artifactDef.seasonNumber):null,selectedPerkHashes:selected.slice(),source:'fixture-intent',provenance:{provider:'paradox-fixture',fixtureId:currentFixtureId,manifest:'beta-bungie-manifest-cache'}};
-  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{artifact:id,perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
+  emitArtifactSelection(id,stateUnavailable,perks);
 }
 
 function closePicker(){qs('#astrixArtifactModal')?.remove();}
@@ -164,6 +206,10 @@ function installStyles(){
   if(qs('#astrixArtifactStyles'))return;
   const style=document.createElement('style');style.id='astrixArtifactStyles';style.textContent=`
     .artifact-row[data-artifact-mode="fixture"]{cursor:pointer}
+    .artifact-row.is-development{min-height:58px;border:1px dashed rgba(118,210,255,.34);border-radius:8px;background:rgba(50,120,164,.06)}
+    .artifact-row.is-development .artifact-copy b{color:#8ed7ff}
+    #artPerks .artifact-development-placeholder{width:100%;text-align:center;color:#8ed7ff;border-color:rgba(118,210,255,.42)}
+    #artPerks .artifact-none-active{width:100%;text-align:center;color:#d8c57b;border-color:rgba(216,197,123,.42)}
     .artifact-row:focus-visible{outline:1px solid #9e60ff;outline-offset:4px;border-radius:8px}
     #artPerks .art-empty{padding:5px 9px;border:1px dashed rgba(158,96,255,.5);border-radius:7px;background:transparent;color:#9e60ff;font:600 10px Rajdhani;letter-spacing:.04em;cursor:pointer}
     .beta-artifact-modal{width:min(980px,95vw)!important}.beta-artifact-summary{display:flex;justify-content:space-between;align-items:center;margin:4px 0 16px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:8px}.beta-artifact-summary span{color:#9e60ff}.beta-artifact-tiers{display:grid;gap:12px}.beta-artifact-tier{padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:10px}.beta-artifact-tier h3{margin:0 0 8px;color:#a87aff;font:700 10px Orbitron;letter-spacing:.1em}.beta-artifact-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.beta-artifact-choice{display:grid;gap:5px;justify-items:center;min-width:0;padding:7px 4px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.02);color:#ddd;cursor:pointer}.beta-artifact-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:7px;background:#16111f}.beta-artifact-icon img{width:100%;height:100%;object-fit:contain}.beta-artifact-choice b{max-width:100%;font:600 8px Rajdhani;line-height:1.05;text-align:center}.beta-artifact-choice.selected{border-color:#33d6c7;background:rgba(51,214,199,.06)}.beta-artifact-choice.unresolved{opacity:.6}@media(max-width:900px){.beta-artifact-grid{grid-template-columns:repeat(4,1fr)}}`;
@@ -171,18 +217,22 @@ function installStyles(){
 }
 
 async function onSelection(detail={}){
+  currentSelectionContext={characterId:String(detail?.characterId||''),selectedLoadoutIndex:Number.isInteger(detail?.selectedLoadoutIndex)?detail.selectedLoadoutIndex:null};
   const liveMode=['bungie-live','bungie-loadout','bungie-selected-loadout'].includes(String(detail?.source||'').toLowerCase());
   if(liveMode){
     const view=resolveArtifactViewState(detail,{});
-    currentMode='live';currentArtifactState=view.state;currentFixtureId=null;liveArtifact=view.artifact;selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];
+    currentMode='live';currentArtifactState=view.state;currentFixtureId=null;liveArtifact=view.artifact;selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];currentArtifactConfiguration=view.artifactConfiguration||null;
     livePerksByHash=new Map([...(view.allPerks||[]),...(view.perks||[])].map(item=>[Number(item.hash),item]));
     renderArtifactDisplay();wireRow();return;
   }
 
   try{await ensureManifest();}catch(err){console.error('[Paradox artifact]',err);return;}
   currentMode='fixture';currentArtifactState='intended';liveArtifact=null;livePerksByHash=new Map();currentFixtureId=detail?.fixtureId??currentFixtureId;
+  const requestedArtifactHash=detail?.artifactConfiguration?.artifactHash??detail?.artifact?.artifactConfiguration?.artifactHash??detail?.artifact?.hash??detail?.artifact?.bungieHash??null;
+  const resolvedHash=Number(requestedArtifactHash??fixtureArtifactHash);
+  artifactDef=Number.isFinite(resolvedHash)?await guardianManifest.getAsync('DestinyArtifactDefinition',resolvedHash):null;
   const view=resolveArtifactViewState(detail,{fixtureArtifact:fixtureArtifactIdentity(),fixtureSelected:selectionForFixture(detail)});
-  selected=view.selectedHashes;renderArtifactDisplay();wireRow();
+  selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];currentArtifactConfiguration=view.artifactConfiguration||null;renderArtifactDisplay();wireRow();
 }
 
 document.addEventListener('astrix:guardian-selection-changed',e=>onSelection(e.detail||{}));

@@ -1,12 +1,12 @@
-import "./guardian-semantic-interceptor.mjs";
+import "./guardian-semantic-interceptor.mjs?v=20260825-armour-data-recovery-1";
 import {
   normaliseLiveProfile,
   loadSelectedLoadout,
   characterRoster,
   selectLiveCharacter
-} from "./guardian-bungie-profile.mjs";
+} from "./guardian-bungie-profile.mjs?v=20260827-manifest-service-1";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
-import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs";
+import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260826-four-fixes-1";
 
 const PLAYER_POWER_CAP = 550;
 const VALID_CLASSES = ["hunter", "titan", "warlock"];
@@ -67,6 +67,7 @@ const workspaceState = {
 };
 
 let stageLoadingTimer = 0;
+let renderSequence = 0;
 
 function setStageState(state, message = "") {
   const stage = document.querySelector(".stage");
@@ -129,10 +130,12 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
     icon: workspaceState.subclassIcon || resolvedDisplayIcon(build.subclassDefinition || build.subclass || workspaceState.subclassDefinition || workspaceState.subclassItem)
   });
 
-  const activeSuper = build.super;
+  const activeSuper = build.super || workspaceState.super || null;
   const superOptions = Array.isArray(build.superOptions) && build.superOptions.length
     ? build.superOptions
-    : (activeSuper ? [activeSuper] : []);
+    : (Array.isArray(workspaceState.superOptions) && workspaceState.superOptions.length
+      ? workspaceState.superOptions
+      : (activeSuper ? [activeSuper] : []));
 
   const featureHost = byId("superFeatureCluster");
   if (featureHost) {
@@ -178,37 +181,43 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
     fragmentHost.innerHTML = padRailSlots(markup, fragments.length, 5);
   }
 
-  const artifact = build.artifact || null;
-  const artIcon = byId("artIcon");
-  const artName = byId("artName");
-  if (artifact) {
-    if (artIcon) {
-      const artifactIcon = resolvedDisplayIcon(artifact);
-      if (artifactIcon) artIcon.src = bungieUrl(artifactIcon);
-      artIcon.alt = artifact.name || "Seasonal Artifact";
-    }
-    if (artName) artName.textContent = String(artifact.name || "SEASONAL ARTIFACT").toUpperCase();
-  }
+  // guardian-artifact.mjs is the sole owner of Artifact identity and active
+  // perk rendering. This renderer deliberately does not pad or infer that rail.
+}
 
-  // Applied Artifact perks are an active-state contract. A perk being visible in
-  // the seasonal Artifact grid does not mean that the Guardian has applied it.
-  // Never substitute visible tier choices when Bungie reports no active perks.
-  const artifactPerks = Array.isArray(artifact?.activePerks)
-    ? artifact.activePerks.filter(item => item?.isActive === true)
-    : [];
-  const artifactHost = byId("artPerks");
-  if (artifactHost) {
-    const appliedPerks = artifactPerks.slice(0, 7);
-    const markup = appliedPerks.map(item => `
-      <div class="slot" title="${escapeHtml(item.name)}">
-        <span class="ico-badge">${itemIconMarkup(item)}</span>
-        <span class="nm">${escapeHtml(item.name)}</span>
-      </div>
-    `).join("");
-    artifactHost.dataset.artifactState = appliedPerks.length ? "active" : "unresolved";
-    artifactHost.title = appliedPerks.length ? `${appliedPerks.length} applied Artifact perk(s)` : "No applied Artifact perks resolved from Bungie live state";
-    artifactHost.innerHTML = padRailSlots(markup, appliedPerks.length, 7);
-  }
+function settleImage(image) {
+  if (!image?.src || image.hidden || image.closest("[hidden]")) return Promise.resolve();
+  if (image.complete) return Promise.resolve();
+  return Promise.race([
+    typeof image.decode === "function" ? image.decode().catch(() => {}) : new Promise(resolve => {
+      image.addEventListener("load", resolve, { once: true });
+      image.addEventListener("error", resolve, { once: true });
+    }),
+    new Promise(resolve => setTimeout(resolve, 5000))
+  ]);
+}
+
+function publishRenderComplete(detail = {}) {
+  const sequence = ++renderSequence;
+  requestAnimationFrame(() => requestAnimationFrame(async () => {
+    if (sequence !== renderSequence) return;
+    const roots = [
+      byId("equippedSubclassSummary"), byId("superFeatureCluster"), byId("abilityList"),
+      byId("aspectList"), byId("fragList"), byId("artPerks"),
+      document.querySelector(".gear-weapons"), document.querySelector(".gear-combined"),
+      byId("guardianCharacterCards"), byId("guardianLoadouts")
+    ].filter(Boolean);
+    const images = [...new Set(roots.flatMap(root => [...root.querySelectorAll("img")]))];
+    await Promise.all(images.map(settleImage));
+    if (sequence !== renderSequence) return;
+    document.documentElement.dataset.guardianRenderComplete = "true";
+    document.dispatchEvent(new CustomEvent("astrix:guardian-render-complete", { detail: {
+      characterId: String(detail.characterId || ""),
+      selectedLoadoutIndex: Number.isInteger(detail.selectedLoadoutIndex) ? detail.selectedLoadoutIndex : null,
+      superCount: Number(byId("superFeatureCluster")?.dataset.superCount || 0),
+      renderedImages: images.filter(image => image.complete && image.naturalWidth > 0).length
+    }}));
+  }));
 }
 
 function ensureLayoutPlaceholders() {
@@ -289,14 +298,21 @@ function applyGuardianSelection(detail) {
 
   document.documentElement.dataset.subclass = (next.subclass || "arc").toLowerCase();
 
-  if (next.subclassBuild) renderSubclassBuild({...next.subclassBuild,artifact:next.artifact||null}, next.subclassName);
-  else ensureLayoutPlaceholders();
+  const subclassBuild = next.subclassBuild || {
+    super: next.super || null,
+    superOptions: Array.isArray(next.superOptions) ? next.superOptions : [],
+    abilities: Array.isArray(next.abilities) ? next.abilities : [],
+    aspects: Array.isArray(next.aspects) ? next.aspects : [],
+    fragments: Array.isArray(next.fragments) ? next.fragments : []
+  };
+  renderSubclassBuild({...subclassBuild,artifact:next.artifact||null}, next.subclassName);
   if (Array.isArray(next.weapons)) renderWeapons(next.weapons);
   if (Array.isArray(next.armour)) bindArmourSlots(next.armour);
   if (Array.isArray(next.stats)) renderStats(next.stats);
   updateIdentityCosmetics(next);
   renderVerifiedPreview(next);
   setStageState("ready");
+  publishRenderComplete(next);
 }
 
 document.addEventListener("astrix:guardian-selection-changed", event => {

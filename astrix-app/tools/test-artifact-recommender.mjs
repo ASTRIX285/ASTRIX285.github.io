@@ -5,12 +5,17 @@ const d='astrix-app/data/paradox-forge/beta/';
 const artifact=JSON.parse(await fs.readFile(d+'beta-current-artifact.json','utf8'));
 const fixtures=JSON.parse(await fs.readFile(d+'ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json','utf8'));
 const hashes=[4019651319,2965080304,17096506];
-const manifest={inventoryItems:{
-  '4019651319':{itemType:3,weaponType:'Hand Cannon',element:'Solar',display:{name:'Test Hand Cannon'}},
-  '2965080304':{itemType:3,weaponType:'Sniper Rifle',element:'Arc',display:{name:'Test Sniper Rifle'}},
-  '17096506':{itemType:3,weaponType:'Machine Gun',element:'Void',display:{name:'Test Machine Gun'}}
+const definitions={
+  '4019651319':{itemType:3,displayProperties:{name:'Test Hand Cannon'}},
+  '2965080304':{itemType:3,displayProperties:{name:'Test Sniper Rifle'}},
+  '17096506':{itemType:3,displayProperties:{name:'Test Machine Gun'}}
+};
+const curatedTags={inventoryItems:{
+  '4019651319':{weaponType:'Hand Cannon',element:'Solar'},
+  '2965080304':{weaponType:'Sniper Rifle',element:'Arc'},
+  '17096506':{weaponType:'Machine Gun',element:'Void'}
 }};
-const resolved=resolveBuildWeapons(hashes,manifest);if(resolved.unresolved.length)throw new Error('unresolved weapons '+resolved.unresolved);
+const resolved=resolveBuildWeapons(hashes,definitions,curatedTags);if(resolved.unresolved.length)throw new Error('unresolved weapons '+resolved.unresolved);
 const build={subclass:{name:'Gunslinger',element:'Solar'},weapons:resolved.weapons};
 const fixtureResult=recommendArtifactPerks(build,artifact,{currentSeasonNumber:28});
 if(fixtureResult.status!=='current'||!fixtureResult.recommendations.length)throw new Error('fixture recommendations missing '+JSON.stringify(fixtureResult));
@@ -25,7 +30,7 @@ const none=resolveArtifactByProvenance(nonePayload,'cid-live');if(none.state!=='
 const bad=resolveArtifactByProvenance(livePayload,'cid-missing');if(bad.state!=='state-unavailable'||bad.activePerks!==null||bad.artifactConfiguration?.selectedPerkHashes!==null)throw new Error('bad character fallback '+JSON.stringify(bad));
 const shared=resolveArtifactByProvenance({profile:{profileProgression:{data:{seasonalArtifact:{artifactHash:999}}}},artifactDefinition:{hash:999,displayProperties:{name:'Test Artifact'}}},'cid-live');if(shared.state!=='state-unavailable'||shared.activePerks!==null)throw new Error('share provenance failed '+JSON.stringify(shared));
 const unresolvedPayload=structuredClone(livePayload);unresolvedPayload.profile.characterProgressions.data['cid-live'].seasonalArtifact.tiers[0].items[0].itemHash=456;
-const unresolved=resolveArtifactByProvenance(unresolvedPayload,'cid-live');if(unresolved.activePerks[0].name!==''||unresolved.unresolvedPerkHashes[0]!==456)throw new Error('unresolved manifest display must not be invented '+JSON.stringify(unresolved));
+const unresolved=resolveArtifactByProvenance(unresolvedPayload,'cid-live');if(unresolved.activePerks[0].name!=='Unresolved Destiny definition 456'||unresolved.unresolvedPerkHashes[0]!==456)throw new Error('unresolved manifest display must be labelled, not invented '+JSON.stringify(unresolved));
 console.log('FIXTURE_RECOMMENDATIONS='+JSON.stringify({fixtureId:fixture.fixtureId,state:'state-unavailable',recommendationCount:fixtureResult.recommendations.length,recommendations:fixtureResult.recommendations}));
 console.log('LIVE_ACTIVE='+JSON.stringify({state:live.state,provenance:live.provenance,activePerks:live.activePerks.map(x=>({hash:x.hash,name:x.name}))}));
 console.log('LIVE_NONE_ACTIVE='+JSON.stringify({state:none.state,activePerks:none.activePerks}));

@@ -1,6 +1,7 @@
 import "./guardian-paradox-live-adapter.mjs";
 import { resolveArmourSet } from "./guardian-armour-set-resolver.mjs";
 import {
+  classifyArmourPlug,
   normaliseArmourSemantics,
   normaliseWeaponSemantics,
   normaliseGuardianStats,
@@ -20,6 +21,11 @@ function rememberPayload(url,payload){
     if(characterId&&Number.isInteger(index))loadoutPayloads.set(`${characterId}:${index}`,payload);
   }
 }
+
+document.addEventListener("astrix:manifest-payload-hydrated",event=>{
+  const payload=event.detail;
+  rememberPayload(Array.isArray(payload?.selectedItems)?"/bungie/loadout":"/bungie/profile",payload);
+});
 
 if(rawFetch){
   globalThis.fetch=async (...args)=>{
@@ -99,8 +105,12 @@ function alternativeColumnsFor(rawItem,profile,payload){
     (rows||[]).filter(row=>row?.canInsert!==false).map(row=>{
       const hash=Number(row?.plugItemHash??row?.plugHash);
       const definition=definitionFor(payload,hash);
-      if(!Number.isInteger(hash)||!definition)return null;
-      return {hash,bungieHash:hash,name:definition.displayProperties?.name||`Destiny perk ${hash}`,description:definition.displayProperties?.description||"",icon:definition.displayProperties?.icon||"",definition,socketIndex:Number(socketIndex),canInsert:true};
+      if(!Number.isInteger(hash))return null;
+      const itemDefinition=definitionFor(payload,rawItem.itemHash);
+      const category=(itemDefinition?.sockets?.socketCategories||[]).find(item=>(item?.socketIndexes||[]).map(Number).includes(Number(socketIndex)))||null;
+      const socketCategoryHash=Number(category?.socketCategoryHash);
+      const socketCategoryDefinition=Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null;
+      return {hash,bungieHash:hash,name:definition?.displayProperties?.name||`Unresolved Destiny definition ${hash}`,description:definition?.displayProperties?.description||"",icon:definition?.displayProperties?.icon||"",definition,socketIndex:Number(socketIndex),socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,canInsert:true,unresolved:!definition};
     }).filter(Boolean)
   ]).filter(([,rows])=>rows.length));
 }
@@ -158,6 +168,14 @@ function enrichArmour(detail,payload,profile,rows){
       semanticRole:"masterwork",
       energyCost:armourSemantics.tier
     }:null;
+    const cachedMods=Array.isArray(item.mods)?item.mods:[];
+    const cachedGeneralMods=cachedMods.filter(plug=>classifyArmourPlug(plug)==="general-mod");
+    const cachedSlotMods=cachedMods.filter(plug=>classifyArmourPlug(plug)==="slot-mod");
+    const generalMods=armourSemantics.generalMods.length>=cachedGeneralMods.length?armourSemantics.generalMods:cachedGeneralMods;
+    const slotMods=armourSemantics.slotMods.length>=cachedSlotMods.length?armourSemantics.slotMods:cachedSlotMods;
+    armourSemantics.generalMods=generalMods;
+    armourSemantics.slotMods=slotMods;
+    const resolvedFunctionalMods=[...generalMods,...slotMods];
     return {
       ...item,
       itemInstanceId:rawItem?.itemInstanceId||null,
@@ -165,14 +183,18 @@ function enrichArmour(detail,payload,profile,rows){
       armourTier:armourSemantics.tier,
       masterwork:armourSemantics.masterwork,
       energy:armourSemantics.energy,
-      archetype:armourSemantics.archetype,
+      archetype:armourSemantics.archetype||item.archetype||null,
       exoticPerk:armourSemantics.exoticPerk,
       setBonus:armourSemantics.set,
-      generalMods:armourSemantics.generalMods,
-      slotMods:armourSemantics.slotMods,
+      generalMods,
+      slotMods,
       // Position 1 is permanently reserved for the verified armour upgrade
       // level. The following five positions retain Bungie's socket order.
-      mods:[masterworkSlot,...armourSemantics.generalMods,...armourSemantics.slotMods].slice(0,6),
+      // Do not erase Bungie's cached socket list when the original network
+      // payload is unavailable and semantic reclassification is incomplete.
+      mods:resolvedFunctionalMods.length
+        ? [masterworkSlot,...generalMods.slice(0,2),...slotMods.slice(0,3)]
+        : cachedMods,
       intrinsicTrait:armourSemantics.exoticPerk||item.intrinsicTrait||null
     };
   });

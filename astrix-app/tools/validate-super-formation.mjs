@@ -44,6 +44,10 @@ for(const [slot,values] of Object.entries(expectedGeometry)){
   for(const [property,value] of Object.entries(values))assert.match(block,new RegExp(`${property}:${value.replace('.','\\.')}`),`${slot} ${property} drifted`);
 }
 assert.match(css,/\.super-diamond--alt\{width:20\.51%!important/,'Alternate Super width drifted');
+const equippedBevel=Number(css.match(/--super-equipped-bevel:(\d+(?:\.\d+)?)px/)?.[1]);
+const alternateBevel=Number(css.match(/--super-alternate-bevel:(\d+(?:\.\d+)?)px/)?.[1]);
+assert.equal(equippedBevel,5,`Equipped Super bevel is ${equippedBevel||0}px; expected 5px`);
+assert.equal(alternateBevel,2.5,`Alternate Super bevel is ${alternateBevel||0}px; expected 2.5px`);
 const rotatedBounds=(left,top,width)=>{
   const halfDiagonal=width*Math.SQRT2/2;
   return {left:left-halfDiagonal,right:left+halfDiagonal,top:top-halfDiagonal,bottom:top+halfDiagonal};
@@ -74,6 +78,9 @@ for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
 assert.match(moduleSource,/function renderEquippedSubclass/,'Shared equipped subclass renderer is missing');
 assert.match(moduleSource,/function renderSuperFormation/,'Shared Super renderer is missing');
 assert.match(moduleSource,/holder\.replaceChildren\(\)/,'Empty Super slots must clear placeholder glyphs');
+assert.match(moduleSource,/slot\.hidden=false/,'Every PSD Super frame must remain visible');
+assert.match(moduleSource,/is-empty-super/,'Unresolved Super frames must remain transparent and explicit');
+assert.match(css,/\.super-diamond--equipped>span\{[\s\S]*?inset:-20\.7107%!important;[\s\S]*?width:141\.4214%!important;[\s\S]*?height:141\.4214%!important/,'Equipped Super artwork must fill the rotated diamond without inner padding');
 
 const obsoleteFiles=[
   'guardian-main-correction.css',

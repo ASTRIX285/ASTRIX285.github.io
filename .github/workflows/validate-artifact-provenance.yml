@@ -12,6 +12,7 @@ on:
       - 'astrix-app/pages/guardian-workspace-v2/guardian-fixture-loader.mjs'
       - 'astrix-app/tools/test-artifact-provenance.mjs'
       - 'astrix-app/tools/test-artifact-recommender.mjs'
+      - 'astrix-app/tools/test-artifact-event-isolation.mjs'
       - '.github/workflows/validate-artifact-provenance.yml'
 
 jobs:
@@ -35,3 +36,5 @@ jobs:
         run: node astrix-app/tools/test-artifact-provenance.mjs
       - name: Test Artifact recommendations
         run: node astrix-app/tools/test-artifact-recommender.mjs
+      - name: Test character-bound Artifact events
+        run: node astrix-app/tools/test-artifact-event-isolation.mjs

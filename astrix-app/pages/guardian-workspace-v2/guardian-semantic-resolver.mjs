@@ -11,16 +11,24 @@ const uniqSockets=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>{
 })===index);
 
 function semanticText(item){
-  return [item?.name,item?.description,item?.itemTypeDisplayName,item?.definition?.plug?.plugCategoryIdentifier,...(item?.definition?.traitIds||[])].filter(Boolean).join(" ").toLowerCase();
+  return [item?.name,item?.description,item?.itemTypeDisplayName,item?.definition?.plug?.plugCategoryIdentifier,item?.socketCategoryHash,item?.socketCategoryDefinition?.displayProperties?.name,item?.socketCategoryDefinition?.displayProperties?.description,...(item?.definition?.traitIds||[])].filter(Boolean).join(" ").toLowerCase();
 }
 function plugCategory(item){return norm(item?.definition?.plug?.plugCategoryIdentifier);}
+function socketCategory(item){return norm([item?.socketCategoryDefinition?.displayProperties?.name,item?.socketCategoryDefinition?.displayProperties?.description].filter(Boolean).join(" "));}
+
+const armourArchetypeNames=new Set([
+  "paragon","grenadier","specialist","brawler","bulwark","gunner",
+  "siegebreaker","skirmisher","demolitionist","colossus","reaver","powerhouse"
+]);
 
 function classifyArmourPlug(plug){
   const category=plugCategory(plug),text=semanticText(plug);
   if(/shader|ornament|skin/.test(text))return "appearance";
   if(/infus(e|ion)/.test(text)||category.includes("infusion"))return "infuse";
-  if(category.includes("masterwork")||/armou?r masterwork|masterwork level/.test(text))return "masterwork";
-  if(category.includes("archetype")||/armou?r archetype/.test(text))return "archetype";
+  // Armour 3.0 type plugs can arrive under a compound category containing
+  // "masterwork". Type identity wins so its shield stays on the armour art.
+  if(category.includes("archetype")||/armou?r[\s._-]*archetype/.test(text)||armourArchetypeNames.has(norm(plug?.name)))return "archetype";
+  if(category.includes("masterwork")||/armou?r[\s._-]*masterwork|masterwork[\s._-]*level/.test(text))return "masterwork";
   if(category.includes("set_bonus")||category.includes("setbonus")||/\b[24][ -]?piece\b|set bonus/.test(text))return "set-bonus";
   if((category.includes("exotic")&&(category.includes("intrinsic")||category.includes("perk")))||/exotic (armou?r )?(intrinsic|perk)/.test(text))return "exotic-perk";
   if(category.includes("armor.mods.general")||category.includes("armour.mods.general")||/general armou?r mod/.test(text))return "general-mod";
@@ -57,8 +65,10 @@ function normaliseArmourSemantics({plugs=[],instance=null,stats=null}={}){
 }
 
 function classifyWeaponPlug(plug){
-  const category=plugCategory(plug),text=semanticText(plug);
+  const category=plugCategory(plug),socket=socketCategory(plug),text=semanticText(plug);
   if(/shader|ornament|skin/.test(text))return "appearance";
+  if(/\bmod(s|ification)?\b/.test(socket))return "weapon-mod";
+  if(/\b(perk|trait|barrel|magazine)\b/.test(socket))return "perk";
   if(category.includes("catalyst")||/\bcatalyst\b/.test(text))return "catalyst";
   if(category.includes("masterwork")||/weapon masterwork|masterwork level/.test(text))return "masterwork";
   if(category.includes("intrinsic")||/\b(frame|intrinsic)\b/.test(text))return "intrinsic";

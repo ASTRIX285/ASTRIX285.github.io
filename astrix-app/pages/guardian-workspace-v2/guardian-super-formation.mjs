@@ -1,7 +1,15 @@
-import {cleanImageElement} from './guardian-bungie-icon-cleaner.mjs';
+import {cleanImageElement} from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
 
 const BUNGIE='https://www.bungie.net';
 const SUBCLASS_KEYS=Object.freeze(['void','arc','solar','strand','stasis','prismatic']);
+const SUBCLASS_PICKER_ICONS=Object.freeze({
+  arc:'/common/destiny2_content/icons/949af7a61d60a8e6071282daafa9e6e9.png',
+  solar:'/common/destiny2_content/icons/fedcb91b7ab0584c12f0e9fec730702b.png',
+  void:'/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png',
+  stasis:'/common/destiny2_content/icons/6e441ffa8c8171ce9caf71e51b72fc19.png',
+  strand:'/common/destiny2_content/icons/41c0024ce809085ac16f4e0777ea0ac4.png',
+  prismatic:Object.freeze({hunter:'/common/destiny2_content/icons/fab506e62fa4f188bfe2fb6d56b39614.png',warlock:'/common/destiny2_content/icons/652406349e99e3db0c3198f78af4eeae.png',titan:'/common/destiny2_content/icons/c1740d829e62afc40a9e57af4e3cad4c.png'})
+});
 
 function resolvedSuperIcon(item){
   if(!item)return '';
@@ -33,6 +41,7 @@ function renderEquippedSubclass({root,iconNode,nameNode,metaNode,subclass='',sub
     ? suppliedLabel
     : `${subclassLabel} ${classLabel}`;
 
+  document.documentElement.dataset.subclass=key;
   root.dataset.subclass=key;
   if(nameNode)nameNode.textContent=identity.toUpperCase();
   if(metaNode)metaNode.textContent=`${classLabel} SUBCLASS`.toUpperCase();
@@ -44,6 +53,39 @@ function renderEquippedSubclass({root,iconNode,nameNode,metaNode,subclass='',sub
     if(src)void cleanImageElement(iconNode,src);
     else iconNode.removeAttribute('src');
   }
+}
+
+function renderSubclassPicker({root,characterClass='',subclass='',subclassOptions=[],selectKind='',onSelect=null}={}){
+  if(!root)return;
+  const active=subclassKey(subclass,null);
+  const classKey=String(characterClass||'hunter').trim().toLowerCase();
+  const options=Array.isArray(subclassOptions)?subclassOptions.filter(Boolean):[];
+  root.querySelectorAll('.el[data-element]').forEach(button=>{
+    const element=String(button.dataset.element||'').toLowerCase();
+    const optionIndex=options.findIndex(item=>subclassKey([item?.element,item?.subclass,item?.key,item?.name,item?.displayName].filter(Boolean).join(' '),null)===element);
+    const option=options[optionIndex]||null;
+    const iconPath=resolvedSuperIcon(option)||(element==='prismatic'?SUBCLASS_PICKER_ICONS.prismatic[classKey]:SUBCLASS_PICKER_ICONS[element]);
+    const icon=button.querySelector('.icon');
+    const selected=element===active;
+    const unlocked=Boolean(option)||(!options.length&&selected);
+    button.onclick=null;
+    button.onkeydown=null;
+    button.removeAttribute('data-select-kind');
+    button.removeAttribute('data-select-index');
+    button.disabled=!unlocked;
+    button.classList.toggle('is-locked',!unlocked);
+    button.classList.toggle('is-active',selected);
+    button.setAttribute('aria-selected',String(selected));
+    button.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
+    if(icon)icon.style.backgroundImage=iconPath?`url("${absoluteIcon(iconPath)}")`:'';
+    if(!option)return;
+    if(selectKind){button.dataset.selectKind=selectKind;button.dataset.selectIndex=String(optionIndex);}
+    if(typeof onSelect==='function'){
+      const select=()=>onSelect(option,optionIndex,button);
+      button.onclick=select;
+      button.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select();}};
+    }
+  });
 }
 
 function setDiamondFromItem(diamond,item,fallbackTitle='Super unavailable'){
@@ -60,13 +102,18 @@ function setDiamondFromItem(diamond,item,fallbackTitle='Super unavailable'){
     let image=holder.querySelector('img.super-feature__icon');
     if(!image){holder.textContent='';image=document.createElement('img');image.className='super-feature__icon';holder.appendChild(image);}
     image.alt=title;
+    image.decoding='async';
+    image.src=src;
+    image.dataset.bungieOriginalSrc=src;
+    image.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
     diamond.classList.add('has-live-icon');
+    diamond.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
     diamond.tabIndex=0;
     diamond.setAttribute('role','button');
-    void cleanImageElement(image,src);
   }else{
     holder.replaceChildren();
     diamond.classList.remove('has-live-icon');
+    delete diamond.dataset.bungieArtworkSource;
     diamond.tabIndex=-1;
     diamond.removeAttribute('role');
   }
@@ -79,14 +126,26 @@ function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=
   const feature=host.closest('.super-feature')||host;
   feature.dataset.superSubclass=subclassKey(subclass,activeSuper);
   const options=(Array.isArray(superOptions)?superOptions:[]).filter(Boolean).filter((item,index,rows)=>rows.findIndex(other=>itemKey(other)===itemKey(item))===index);
-  const activeId=itemKey(activeSuper);
+  const resolvedActive=activeSuper||options.find(item=>item?.isEquipped===true||item?.equipped===true)||null;
+  const activeId=itemKey(resolvedActive);
   const alternates=options.filter(item=>itemKey(item)!==activeId).slice(0,5);
-  const items=[activeSuper,...alternates];
-  const slots=['equipped','alternate-1','alternate-2','alternate-3','alternate-4','alternate-5'].map(key=>host.querySelector(`[data-super-slot="${key}"]`));
+  const items=resolvedActive?[resolvedActive,...alternates]:[];
+  /* The exact six-slot PSD frame is structural. Unresolved alternates remain
+   * visible as transparent frames instead of collapsing the formation. */
+  const slots=['equipped','alternate-5','alternate-4','alternate-3','alternate-2','alternate-1'].map(key=>host.querySelector(`[data-super-slot="${key}"]`));
+  const resolvedCount=Math.min(6,items.length);
+  host.dataset.superCount='6';
+  feature.dataset.superCount='6';
+  host.dataset.resolvedSuperCount=String(resolvedCount);
+  feature.dataset.resolvedSuperCount=String(resolvedCount);
+  host.dataset.activeSuper=activeId;
+  host.dataset.superState=resolvedActive?'resolved':'unresolved';
 
   slots.forEach((slot,index)=>{
     const item=items[index]||null;
+    if(slot)slot.hidden=false;
     setDiamondFromItem(slot,item,index===0?'Equipped Super unavailable':`Alternate Super ${index} unavailable`);
+    slot?.classList.toggle('is-empty-super',!item);
     const selected=index===0&&Boolean(item);
     slot?.classList.toggle('is-selected',selected);
     slot?.classList.toggle('is-selected-super',selected);
@@ -105,7 +164,7 @@ function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=
     }
   });
 
-  if(nameNode)nameNode.textContent=activeSuper?.name||activeSuper?.displayName||'SELECTED SUPER';
+  if(nameNode)nameNode.textContent=resolvedActive?.name||resolvedActive?.displayName||'SELECTED SUPER';
 }
 
-export {renderEquippedSubclass,renderSuperFormation,resolvedSuperIcon,setDiamondFromItem};
+export {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation,resolvedSuperIcon,setDiamondFromItem};

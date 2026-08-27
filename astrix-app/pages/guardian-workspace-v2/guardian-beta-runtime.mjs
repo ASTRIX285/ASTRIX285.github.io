@@ -14,12 +14,12 @@ const escapeHtml = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 
 const previewStats = [
-  ["Weapons", 100],
-  ["Health", 42],
-  ["Class", 70],
-  ["Grenade", 101],
-  ["Super", 28],
-  ["Melee", 38]
+  ["Mobility", 100],
+  ["Resilience", 42],
+  ["Recovery", 70],
+  ["Discipline", 101],
+  ["Intellect", 28],
+  ["Strength", 38]
 ];
 
 const workspaceState = {

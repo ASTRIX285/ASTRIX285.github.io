@@ -38,7 +38,14 @@ assert.equal(state.artifactConfiguration.provenance.component,202);
 const unavailable=resolveArtifactViewState({source:'bungie-live',artifact:{hash:123,state:'state-unavailable',activePerks:null,perks:null}},{fixtureSelected:[77]});
 assert.equal(unavailable.state,'state-unavailable');
 assert.equal(unavailable.selectedHashes,null);
-assert.equal(unavailable.perks.length,0);
+assert.equal(unavailable.perks,null,'unavailable component-202 evidence must remain unknown, not zero');
+
+const missingArtifact=resolveArtifactViewState({source:'bungie-live',artifact:null},{fixtureArtifact:{hash:999,name:'Fixture Artifact'},fixtureSelected:[77]});
+assert.equal(missingArtifact.mode,'live');
+assert.equal(missingArtifact.state,'state-unavailable');
+assert.equal(missingArtifact.artifact,null,'a missing live Artifact must not inherit fixture display identity');
+assert.equal(missingArtifact.selectedHashes,null);
+assert.equal(missingArtifact.perks,null);
 
 const fixture=resolveArtifactViewState({source:'paradox-beta',fixtureId:'PF-X'},{fixtureArtifact:{hash:999,name:'Fixture Artifact'},fixtureSelected:[77,88]});
 assert.equal(fixture.mode,'fixture');

@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./shared/astrix-portal-loader.css?v=20260824-portal-1">
+  <script>window.APX_LOGO='../img/logo.png';</script>
+  <script src="./shared/astrix-portal-loader.js?v=20260824-portal-1"></script>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="mechanics.css">
   <link rel="stylesheet" href="synergy-ui.css">
@@ -125,8 +128,21 @@
     </div>
   </dialog>
 
-  <script type="module" src="app.js"></script>
-  <script type="module" src="subclass-filter-ui.js"></script>
+  <script>
+    (()=>{
+      let catalogueRendered=false,subclassRendered=false;
+      const finish=()=>{
+        if(!catalogueRendered||!subclassRendered)return;
+        AstrixLoader.set(96);AstrixLoader.status('Build library rendered');
+        requestAnimationFrame(()=>requestAnimationFrame(()=>AstrixLoader.done()));
+      };
+      AstrixLoader.set(10);AstrixLoader.status('Loading committed build data');
+      document.addEventListener('astrix:build-catalogue-rendered',()=>{catalogueRendered=true;finish();},{once:true});
+      document.addEventListener('astrix:subclass-filter-rendered',()=>{subclassRendered=true;finish();},{once:true});
+    })();
+  </script>
+  <script type="module" src="app.js?v=20260824-portal-1"></script>
+  <script type="module" src="subclass-filter-ui.js?v=20260824-portal-1"></script>
   <script type="module" src="synergy-ui.js"></script>
 </body>
 </html>

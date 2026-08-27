@@ -12,6 +12,9 @@ const ENGINE_URL=new URL('pages/guardian-workspace-v2/guardian-paradox-engine.mj
 const BASELINE={high:3,medium:13,insufficient:7,low:0,totalLinks:35};
 const readJson=async url=>JSON.parse(await readFile(url,'utf8'));
 const fixtureLibrary=await readJson(FIXTURES_URL);
+const identityLibrary=await readJson(IDENTITIES_URL);
+const manifestLibrary=await readJson(MANIFEST_URL);
+const identityByHash=new Map((identityLibrary.identities??[]).map(row=>[String(Number(row.bungieHash)),row]));
 
 const directSubclassFixtures=[];
 const fallbackFixtures=[];
@@ -50,6 +53,13 @@ globalThis.CustomEvent=class CustomEvent{
 
 globalThis.fetch=async url=>{
   const value=String(url);
+  if(value.includes('/bungie/manifest/definition')){
+    const requestUrl=new URL(value),hash=requestUrl.searchParams.get('hash');
+    const cached=manifestLibrary.inventoryItems?.[String(hash)]??null,identity=identityByHash.get(String(hash))??null;
+    const display=cached?.display||{name:identity?.name??identity?.displayName??'',description:identity?.description??'',icon:identity?.icon??''};
+    const definition=cached||identity?{...cached,hash:Number(hash),itemType:cached?.itemType,displayProperties:display}:null;
+    return definition?{ok:true,status:200,json:async()=>({definition})}:{ok:false,status:404,json:async()=>({})};
+  }
   let target=null;
   if(value.includes('ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json'))target=FIXTURES_URL;
   else if(value.includes('beta-component-identities.json'))target=IDENTITIES_URL;

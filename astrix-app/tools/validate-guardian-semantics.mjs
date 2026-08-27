@@ -32,7 +32,7 @@ try{
       plug(5,'Helmet Mod','armor.mods.helmet'),
       {...plug(5,'Helmet Mod','armor.mods.helmet'),socketIndex:5},
       {...plug(5,'Helmet Mod','armor.mods.helmet'),socketIndex:6},
-      plug(6,'Bulwark Armour Archetype','armor.archetype'),
+      plug(6,'Bulwark','armor.masterworks.archetype'),
       plug(7,'Close Enough Exotic Armour Perk','armor.exotic.perk')
     ]
   });
@@ -42,6 +42,21 @@ try{
   if(!result.masterwork||!result.archetype||!result.exoticPerk)fail('G1: armour intrinsic families missing');
   if(result.discarded.length!==1||result.discarded[0].semanticRole!=='infuse')fail('G1: Infuse not excluded explicitly');
 }catch(error){fail(`G1 threw: ${error.message}`);}
+
+// G1b — Cached live profiles can recover mods from Bungie's display types
+// even when the original network payload/category metadata is unavailable.
+try{
+  const cachedPlug=(hash,name,itemTypeDisplayName)=>({hash,name,itemTypeDisplayName,definition:{}});
+  const result=semantics.normaliseArmourSemantics({plugs:[
+    cachedPlug(101,'Weapons +5','General Armor Mod'),
+    cachedPlug(102,'Health +5','General Armor Mod'),
+    cachedPlug(103,'Targeting Mod','Helmet Armor Mod'),
+    cachedPlug(104,'Ammo Finder','Helmet Armor Mod'),
+    cachedPlug(105,'Siphon Mod','Helmet Armor Mod'),
+    cachedPlug(106,'Gunner','Armor Archetype')
+  ]});
+  if(result.generalMods.length!==2||result.slotMods.length!==3||result.archetype?.name!=='Gunner')fail('G1b: cached Bungie display types did not recover the exact 2+3 mod contract and armour overlay');
+}catch(error){fail(`G1b threw: ${error.message}`);}
 
 // G2 — Exact equipable set identity and activation thresholds.
 try{

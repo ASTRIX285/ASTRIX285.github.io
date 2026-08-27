@@ -308,11 +308,17 @@ function renderBuilds() {
 }
 
 async function loadBuilds() {
+  window.AstrixLoader?.set(18);
+  window.AstrixLoader?.status('Fetching build catalogue');
   try {
     const response = await fetch(BUILD_DATA_URL, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Build data returned ${response.status}`);
+    window.AstrixLoader?.set(46);
+    window.AstrixLoader?.status('Reading build definitions');
     const data = await response.json();
     buildCatalogue = Array.isArray(data.builds) ? data.builds : [];
+    window.AstrixLoader?.set(66);
+    window.AstrixLoader?.status('Painting build cards');
     populateFilters(buildCatalogue);
     renderBuilds();
   } catch (error) {
@@ -325,6 +331,8 @@ async function loadBuilds() {
       buildEmpty.querySelector('p').textContent = 'The committed static JSON could not be loaded.';
     }
   }
+  window.AstrixLoader?.set(82);
+  document.dispatchEvent(new CustomEvent('astrix:build-catalogue-rendered'));
 }
 
 Object.values(filters).forEach((select) => select?.addEventListener('change', renderBuilds));

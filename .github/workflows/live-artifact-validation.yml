@@ -7,8 +7,11 @@ on:
       - 'astrix-app/pages/guardian-workspace-v2/guardian-super-feature-sync.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs'
       - 'astrix-app/pages/guardian-workspace-v2/paradox-build-space/**'
+      - 'astrix-app/pages/guardian-workspace-v2/*.css'
+      - 'astrix-app/pages/guardian-workspace-v2/index.html'
       - 'astrix-app/tools/validate-live-artifact-contract.mjs'
       - 'astrix-app/tools/validate-paradox-build-space.mjs'
+      - 'astrix-app/tools/validate-responsive-layout-contract.mjs'
       - '.github/workflows/live-artifact-validation.yml'
   workflow_dispatch:
 
@@ -26,6 +29,9 @@ jobs:
       - name: Validate Build Space state
         working-directory: astrix-app
         run: node tools/validate-paradox-build-space.mjs
+      - name: Validate responsive layout ownership
+        working-directory: astrix-app
+        run: node tools/validate-responsive-layout-contract.mjs
       - name: Syntax check Forge modules
         working-directory: astrix-app
         run: |

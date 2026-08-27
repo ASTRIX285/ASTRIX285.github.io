@@ -95,6 +95,14 @@ function improveGuardian(){
   openRecommendations();
 }
 
+function destinationOptionsMarkup(){
+  const api=globalThis.AstrixDestinations;
+  const selected=api?.current?.()||'';
+  return (api?.options?.()||[{key:'',label:'Default atmosphere'}]).map(option=>
+    `<option value="${option.key}"${option.key===selected?' selected':''}>${option.label}</option>`
+  ).join('');
+}
+
 function saveLoadout(){
   const id=currentFixture();
   const saved=new Set(JSON.parse(localStorage.getItem(SAVED_KEY)||'[]'));
@@ -116,7 +124,15 @@ async function shareLoadout(){
 
 function changeActivity(){
   const choices=['Grandmaster Nightfall','Raid / Dungeon','General PvE','Onslaught / Horde','PvP'];
-  const m=modal('Activity Profile',`<p class="beta-note">Activity selection is a alpha UI control. Encounter-specific counter reasoning will replace the current preview analysis when that engine is connected.</p><div class="beta-activity-list">${choices.map((x,i)=>`<button type="button" data-activity="${x}" class="${i===0?'active':''}">${x}</button>`).join('')}</div>`);
+  const m=modal('Activity Profile',`<p class="beta-note">Choose the destination atmosphere independently from the activity profile. This changes only the controlled background tint.</p><label class="destination-control"><span>DESTINATION</span><select id="betaDestination" aria-label="Destination">${destinationOptionsMarkup()}</select></label><div class="beta-activity-list">${choices.map((x,i)=>`<button type="button" data-activity="${x}" class="${i===0?'active':''}">${x}</button>`).join('')}</div>`);
+  qs('#betaDestination',m)?.addEventListener('change',event=>{
+    const api=globalThis.AstrixDestinations;
+    const key=api?.set?.(event.target.value)||'';
+    const label=api?.labelOf?.(key)||'Default atmosphere';
+    const location=qs('.activity .act-hero small');
+    if(location)location.textContent=label;
+    toast(`${label} atmosphere selected`);
+  });
   qsa('[data-activity]',m).forEach(btn=>btn.addEventListener('click',()=>{
     const label=qs('.activity .act-hero b');
     if(label)label.textContent=btn.dataset.activity;

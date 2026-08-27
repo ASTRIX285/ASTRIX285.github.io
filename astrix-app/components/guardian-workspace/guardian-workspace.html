@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Guardian Build Forge | Guardian Build Forge</title>
   <link rel="stylesheet" href="./guardian-workspace.css">
+  <link rel="stylesheet" href="../../shared/astrix-portal-loader.css?v=20260824-portal-1">
+  <script>window.APX_LOGO='../../../img/logo.png';</script>
+  <script src="../../shared/astrix-portal-loader.js?v=20260824-portal-1"></script>
 </head>
 <body class="gw-shell">
   <header class="gw-topbar">
@@ -66,11 +69,21 @@
   <footer class="gw-footer"><span>v1.0.0-alpha</span><span>Preview data only · Bungie account not connected</span><span>Guardian Build Forge is not affiliated with Bungie, Inc.</span></footer>
 
   <script type="module">
-    import { mountGuardianWorkspace } from './guardian-workspace.mjs';
-    mountGuardianWorkspace().catch(error => {
+    import { mountGuardianWorkspace } from './guardian-workspace.mjs?v=20260824-portal-1';
+    const settleImage=image=>image.complete?Promise.resolve():new Promise(resolve=>{
+      image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});
+    });
+    mountGuardianWorkspace().then(async({root})=>{
+      AstrixLoader.set(94);AstrixLoader.status('Guardian Journey rendered');
+      const images=[...root.querySelectorAll('img')];images.forEach(image=>{image.loading='eager';});
+      await Promise.all(images.map(settleImage));
+      requestAnimationFrame(()=>requestAnimationFrame(()=>AstrixLoader.done()));
+    }).catch(error => {
       console.error(error);
       const notice = document.querySelector('[data-gw-notice]');
       if (notice) notice.textContent = `Unable to load preview: ${error.message}`;
+      AstrixLoader.status('Guardian Journey state rendered');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>AstrixLoader.done()));
     });
   </script>
 </body>

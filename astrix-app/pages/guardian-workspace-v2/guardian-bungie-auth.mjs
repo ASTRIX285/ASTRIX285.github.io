@@ -1,3 +1,5 @@
+import {cacheBungieSession,readCachedBungieSession} from "./guardian-session-cache.mjs";
+
 const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
 const CANONICAL_APP_ORIGIN = "https://astrixparadox.com";
 
@@ -11,6 +13,10 @@ function authReturnUrl(){
     return new URL(`${current.pathname}${current.search}${current.hash}`,CANONICAL_APP_ORIGIN);
   }
   return current;
+}
+
+function authStartUrl(){
+  return `${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(authReturnUrl().toString())}`;
 }
 
 function installStyles(){
@@ -42,8 +48,7 @@ function makeControl(){
   button.textContent="CHECKING BUNGIE…";
   button.addEventListener("click",()=>{
     if(button.dataset.state==="connected") return;
-    const returnUrl=authReturnUrl();
-    location.href=`${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(returnUrl.toString())}`;
+    location.href=authStartUrl();
   });
   wrap.appendChild(button);
   const anchor=document.querySelector(".topbar .char-switch");
@@ -72,13 +77,27 @@ async function requestSession(){
 }
 
 function publishSession(session){
-  if(!session?.authenticated)return;
+  if(session?.authenticated){
+    cacheBungieSession(session);
+    globalThis.AstrixLoader?.authResolved?.();
+  }else{
+    globalThis.AstrixLoader?.authRequired?.(authStartUrl());
+  }
   globalThis.ASTRIX_BUNGIE_SESSION=session;
   globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session}));
 }
 
 function getBungieSession({force=false}={}){
   if(!force&&sessionRequest)return sessionRequest;
+  if(!force){
+    const cached=readCachedBungieSession();
+    if(cached){
+      publishSession(cached);
+      sessionRequest=Promise.resolve(cached);
+      globalThis.ASTRIX_BUNGIE_SESSION_PROMISE=sessionRequest;
+      return sessionRequest;
+    }
+  }
   sessionRequest=requestSession()
     .then(session=>{
       publishSession(session);
@@ -86,7 +105,9 @@ function getBungieSession({force=false}={}){
     })
     .catch(error=>{
       console.info("[ASTRIX Bungie auth] no active session",error);
-      return {authenticated:false,error:error?.message||"session_unavailable"};
+      const session={authenticated:false,error:error?.message||"session_unavailable"};
+      publishSession(session);
+      return session;
     });
   globalThis.ASTRIX_BUNGIE_SESSION_PROMISE=sessionRequest;
   return sessionRequest;

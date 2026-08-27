@@ -1,0 +1,84 @@
+/* =====================================================================
+   ASTRIX PARADOX — DESTINATION COLOURS (location-reactive atmosphere)
+   Set data-location on <html> from the selected destination. The UI stays
+   constant; only the --loc atmosphere tint changes. Our own treatment,
+   NOT Braytech's map imagery.
+   ===================================================================== */
+@property --loc{
+  syntax:"<color>";
+  inherits:true;
+  initial-value:#5fa8e6;
+}
+@property --loc-2{
+  syntax:"<color>";
+  inherits:true;
+  initial-value:#8fd0ff;
+}
+
+:root{--loc:#5fa8e6;--loc-2:#8fd0ff}                 /* default (no location) = blue */
+html[data-location="pale-heart"]{--loc:#d1a25a;--loc-2:#e6c98a}  /* Traveler, warm */
+html[data-location="europa"]{--loc:#5fa8e6;--loc-2:#9fd4ff}      /* icy blue */
+html[data-location="dreaming-city"]{--loc:#9a6fd0;--loc-2:#c79af0}/* purple */
+html[data-location="edz"]{--loc:#6fae5c;--loc-2:#a6d68f}         /* forest green */
+html[data-location="cosmodrome"]{--loc:#c07a45;--loc-2:#e0a26a} /* rust */
+html[data-location="moon"]{--loc:#8f9ea0;--loc-2:#c2cec9}        /* pale grey */
+html[data-location="neomuna"]{--loc:#35d6ff;--loc-2:#ff6fd0}     /* neon cyber */
+html[data-location="nessus"]{--loc:#c85a3a;--loc-2:#e88a5a}     /* Vex coral */
+html[data-location="throne-world"]{--loc:#6fae8f;--loc-2:#a6d6bf}/* Savathun teal */
+html[data-location="tower"]{--loc:#c9b78a;--loc-2:#e6d8b0}       /* daylight */
+
+html{
+  transition:--loc 250ms ease,--loc-2 250ms ease;
+}
+
+/* Dark neutral base plus a controlled location glow. This is deliberately
+   restrained: the destination changes the atmosphere, never the core UI. */
+body{
+  background:
+    radial-gradient(1100px 760px at 72% 4%,color-mix(in srgb,var(--loc) 26%,transparent),transparent 62%),
+    radial-gradient(900px 700px at 12% 100%,color-mix(in srgb,var(--loc) 12%,transparent),transparent 60%),
+    linear-gradient(162deg,#0f1626 0%,#0a1120 82%);
+  background-attachment:fixed;
+}
+
+/* Main and Build Space already share the developer-provided D2_JB artwork.
+   This overlay retints that existing atmosphere without adding or replacing
+   any map image and without touching panel, text, button, or subclass tokens. */
+body.astrix-token-preview .scene.immersive::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  display:block!important;
+  pointer-events:none;
+  background:
+    radial-gradient(78% 66% at 72% 4%,color-mix(in srgb,var(--loc) 21%,transparent),transparent 64%),
+    radial-gradient(70% 60% at 12% 100%,color-mix(in srgb,var(--loc-2) 9%,transparent),transparent 64%);
+}
+
+.destination-control{
+  display:grid;
+  gap:6px;
+  margin:0 0 14px;
+  color:#aaa;
+  font:700 9px Orbitron,sans-serif;
+  letter-spacing:.1em;
+}
+.destination-control select{
+  width:100%;
+  min-height:38px;
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:8px;
+  background:#0d111a;
+  color:#f7f7fb;
+  font:600 12px Inter,sans-serif;
+}
+.destination-control select:focus-visible{
+  outline:2px solid color-mix(in srgb,var(--loc) 72%,white);
+  outline-offset:2px;
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{transition:none}
+}

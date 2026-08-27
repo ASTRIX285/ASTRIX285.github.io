@@ -5,6 +5,8 @@ const BUNGIE_ORIGIN="https://www.bungie.net";
 const host=()=>document.querySelector("#guardianLoadouts");
 let activeCharacterId="";
 let activeIndex=null;
+let pendingIndex=null;
+let currentLoadouts=[];
 
 const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,character=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character]));
 const absoluteAsset=path=>path?new URL(path,BUNGIE_ORIGIN).toString():"";
@@ -31,6 +33,7 @@ function render(loadouts=[]){
   const target=host();
   if(!target)return;
   const rows=Array.isArray(loadouts)?loadouts:[];
+  currentLoadouts=rows;
   target.innerHTML=Array.from({length:SLOT_COUNT},(_,index)=>{
     const loadout=rows[index]||null;
     const saved=isSaved(loadout);
@@ -41,13 +44,14 @@ function render(loadouts=[]){
     const identity=loadoutIdentity(loadout);
     const title=`${identity.name}, Bungie loadout slot ${index+1}`;
     const colorStyle=identity.color?` style="--loadout-color-image:url(${escapeHtml(identity.color)})"`:"";
-    const icon=identity.icon?`<img class="guardian-loadout-icon" src="${escapeHtml(identity.icon)}" alt="" loading="lazy" decoding="async">`:`<span class="guardian-loadout-icon-fallback" aria-hidden="true">◆</span>`;
-    return `<button type="button" class="guardian-loadout-slot is-saved ${activeIndex===index?"is-active":""}" data-loadout-slot="${index}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}"${colorStyle}>${icon}<span class="guardian-loadout-name" aria-hidden="true">${escapeHtml(identity.name)}</span><small>${index+1}</small></button>`;
+    const icon=identity.icon?`<img class="guardian-loadout-icon" src="${escapeHtml(identity.icon)}" alt="" loading="eager" decoding="async">`:`<span class="guardian-loadout-icon-fallback" aria-hidden="true">◆</span>`;
+    return `<button type="button" class="guardian-loadout-slot is-saved ${activeIndex===index?"is-active":""} ${pendingIndex===index?"is-loading":""}" data-loadout-slot="${index}" data-bungie-name-hash="${escapeHtml(loadout.nameHash||"")}" data-bungie-icon-hash="${escapeHtml(loadout.iconHash||"")}" data-bungie-color-hash="${escapeHtml(loadout.colorHash||"")}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}" aria-busy="${pendingIndex===index}"${colorStyle}>${icon}<span class="guardian-loadout-name" aria-hidden="true">${escapeHtml(identity.name)}</span><small>${index+1}</small></button>`;
   }).join("");
   target.querySelectorAll(".is-saved").forEach(button=>button.addEventListener("click",()=>{
     const index=Number(button.dataset.loadoutSlot);
-    activeIndex=index;
-    target.querySelectorAll(".guardian-loadout-slot").forEach(slot=>slot.classList.toggle("is-active",Number(slot.dataset.loadoutSlot)===index));
+    if(pendingIndex!==null)return;
+    pendingIndex=index;
+    render(rows);
     document.dispatchEvent(new CustomEvent("astrix:loadout-selected",{detail:{index,characterId:activeCharacterId,loadout:rows[index],source:"bungie-live"}}));
   }));
 }
@@ -62,11 +66,28 @@ document.addEventListener("astrix:guardian-selection-changed",event=>{
     return;
   }
   activeCharacterId=String(event.detail?.characterId||activeCharacterId||"");
-  if(Number.isInteger(event.detail?.selectedLoadoutIndex))activeIndex=event.detail.selectedLoadoutIndex;
+  activeIndex=Number.isInteger(event.detail?.selectedLoadoutIndex)?event.detail.selectedLoadoutIndex:null;
+  pendingIndex=null;
   render(event.detail?.loadouts||[]);
+});
+document.addEventListener("astrix:guardian-loadout-context",event=>{
+  const detail=event.detail||{};
+  activeCharacterId=String(detail.characterId||activeCharacterId||"");
+  if(Number.isInteger(detail.selectedLoadoutIndex))activeIndex=detail.selectedLoadoutIndex;
+  pendingIndex=null;
+  if(detail.loadoutsAvailable===true)render(detail.loadouts||[]);
+  else renderStatus("Bungie loadout component unavailable","unavailable");
 });
 document.addEventListener("astrix:guardian-loading",()=>renderStatus("Loading Bungie loadouts…","pending"));
 document.addEventListener("astrix:guardian-error",()=>renderStatus("Loadout data unavailable","unavailable"));
+document.addEventListener("astrix:loadout-loading",event=>{
+  if(Number.isInteger(event.detail?.index))pendingIndex=event.detail.index;
+  if(currentLoadouts.length)render(currentLoadouts);
+});
+document.addEventListener("astrix:loadout-error",()=>{
+  pendingIndex=null;
+  if(currentLoadouts.length)render(currentLoadouts);else renderStatus("Loadout data unavailable","unavailable");
+});
 document.addEventListener("astrix:beta-fixture-loaded",()=>renderStatus("Connect Bungie to load in-game slots","disconnected"));
 renderStatus("Connect Bungie to load in-game slots","disconnected");
 

@@ -10,6 +10,19 @@ const BUNGIE_PLATFORM = "https://www.bungie.net/Platform";
 const SESSION_COOKIE = "astrix_session";
 const OAUTH_TTL_MS = 10 * 60 * 1000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const MANIFEST_COMPONENT_TYPES = new Set([
+  "DestinyInventoryItemDefinition",
+  "DestinySandboxPerkDefinition",
+  "DestinyArtifactDefinition",
+  "DestinyStatDefinition",
+  "DestinySocketCategoryDefinition"
+]);
+const LIVE_DEFINITION_TYPES = new Set([
+  ...MANIFEST_COMPONENT_TYPES,
+  "DestinyDamageTypeDefinition",
+  "DestinyBreakerTypeDefinition",
+  "DestinyEquipableItemSetDefinition"
+]);
 
 type TokenResponse = {
   access_token: string;
@@ -39,9 +52,16 @@ type BungieApiResponse<T> = {
   Message?: string;
 };
 
+type DestinyManifestResponse = {
+  version?: string;
+  jsonWorldComponentContentPaths?: Record<string, Record<string, string>>;
+};
+
 type DestinyItemComponent = { itemHash?: number; itemInstanceId?: string; overrideStyleItemHash?: number; versionNumber?: number; state?: number };
 type DestinySocketComponent = { sockets?: Array<{ plugHash?: number }> };
-type DestinyReusablePlugComponent = { plugs?: Record<string, Array<{ plugItemHash?: number; plugHash?: number }>> };
+type DestinyItemPlug = { plugItemHash?: number; plugHash?: number; canInsert?: boolean; enabled?: boolean };
+type DestinyReusablePlugComponent = { plugs?: Record<string, DestinyItemPlug[]> };
+type DestinyPlugSetsComponent = { plugs?: Record<string, DestinyItemPlug[]> };
 type DestinyArtifactProfileScoped = { artifactHash?: number };
 type DestinyArtifactTierItem = { itemHash?: number; isActive?: boolean; isVisible?: boolean };
 type DestinyArtifactCharacterScoped = { tiers?: Array<{ items?: DestinyArtifactTierItem[] }> };
@@ -60,6 +80,8 @@ type DestinyProfilePayload = {
   characterLoadouts?: { data?: Record<string, { loadouts?: DestinyLoadoutComponent[] }> };
   profileProgression?: { data?: { seasonalArtifact?: DestinyArtifactProfileScoped } };
   characterProgressions?: { data?: Record<string, { seasonalArtifact?: DestinyArtifactCharacterScoped }> };
+  profilePlugSets?: { data?: DestinyPlugSetsComponent };
+  characterPlugSets?: { data?: Record<string, DestinyPlugSetsComponent> };
   itemComponents?: {
     sockets?: { data?: Record<string, DestinySocketComponent> };
     instances?: { data?: Record<string, { damageTypeHash?: number; breakerTypeHash?: number; gearTier?: number; itemLevel?: number; quality?: number; primaryStat?: { value?: number } }> };
@@ -90,6 +112,79 @@ const PROFILE_COMPONENTS = [
 
 function randomToken(): string {
   return crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
+}
+
+function publicBungieHeaders(env: Env): HeadersInit {
+  return {
+    "X-API-Key": env.BUNGIE_API_KEY,
+    "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
+  };
+}
+
+async function destinyManifest(env: Env): Promise<DestinyManifestResponse> {
+  const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/`, { headers: publicBungieHeaders(env) });
+  const payload = await response.json<BungieApiResponse<DestinyManifestResponse>>().catch(() => null);
+  if (!response.ok || !payload?.Response?.version || !payload.Response.jsonWorldComponentContentPaths?.en) {
+    throw new Error(`bungie_manifest_failed:${response.status}`);
+  }
+  return payload.Response;
+}
+
+async function manifestMetadataRoute(request: Request, env: Env): Promise<Response> {
+  const manifest = await destinyManifest(env);
+  const english = manifest.jsonWorldComponentContentPaths?.en || {};
+  const paths = Object.fromEntries([...MANIFEST_COMPONENT_TYPES].map(type => [type, english[type]]).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+  if (Object.keys(paths).length !== MANIFEST_COMPONENT_TYPES.size) {
+    return withCors(request, env, json({ error: "bungie_manifest_component_path_missing" }, 502));
+  }
+  return withCors(request, env, json({ version: manifest.version, jsonWorldComponentContentPaths: { en: paths } }, 200, { "Cache-Control": "no-cache" }));
+}
+
+async function manifestComponentRoute(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const type = url.searchParams.get("type") || "";
+  const requestedVersion = url.searchParams.get("version") || "";
+  if (!MANIFEST_COMPONENT_TYPES.has(type) || !requestedVersion) {
+    return withCors(request, env, json({ error: "invalid_manifest_component_request" }, 400));
+  }
+  const manifest = await destinyManifest(env);
+  if (manifest.version !== requestedVersion) {
+    return withCors(request, env, json({ error: "manifest_version_changed", requestedVersion, currentVersion: manifest.version }, 409));
+  }
+  const path = manifest.jsonWorldComponentContentPaths?.en?.[type] || "";
+  if (!path.startsWith("/common/destiny2_content/json/")) {
+    return withCors(request, env, json({ error: "invalid_manifest_component_path" }, 502));
+  }
+  const bungieUrl = new URL(path, "https://www.bungie.net");
+  if (bungieUrl.origin !== "https://www.bungie.net") {
+    return withCors(request, env, json({ error: "invalid_manifest_component_origin" }, 502));
+  }
+  const upstream = await fetch(bungieUrl, { headers: { "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)" } });
+  if (!upstream.ok || !upstream.body) {
+    return withCors(request, env, json({ error: "bungie_manifest_component_failed", status: upstream.status }, 502));
+  }
+  const headers = new Headers({
+    "Content-Type": upstream.headers.get("Content-Type") || "application/json; charset=utf-8",
+    "Cache-Control": "public, max-age=31536000, immutable",
+    "X-Content-Type-Options": "nosniff",
+    "X-Manifest-Version": requestedVersion
+  });
+  return withCors(request, env, new Response(upstream.body, { status: 200, headers }));
+}
+
+async function manifestDefinitionRoute(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const type = url.searchParams.get("type") || "";
+  const hash = url.searchParams.get("hash") || "";
+  if (!LIVE_DEFINITION_TYPES.has(type) || !/^\d+$/.test(hash)) {
+    return withCors(request, env, json({ error: "invalid_manifest_definition_request" }, 400));
+  }
+  const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/${type}/${hash}/`, { headers: publicBungieHeaders(env) });
+  const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+  if (!response.ok || !payload?.Response) {
+    return withCors(request, env, json({ error: "bungie_manifest_definition_failed", status: response.status }, response.status === 404 ? 404 : 502));
+  }
+  return withCors(request, env, json({ type, hash: Number(hash), definition: payload.Response }, 200, { "Cache-Control": "public, max-age=604800" }));
 }
 
 function bindingInfo(value: unknown): { present: boolean; type: string; length: number | null } {
@@ -289,7 +384,7 @@ function reusableSubclassPlugHashes(
   definitions: Record<string, Record<string, unknown>>
 ): number[] {
   const hashes = new Set<number>();
-  for (const character of Object.values(profile.characterEquipment?.data || {})) {
+  for (const [characterId, character] of Object.entries(profile.characterEquipment?.data || {})) {
     for (const item of character.items || []) {
       if (!item.itemInstanceId) continue;
       const itemDefinition = definitions[String(item.itemHash)] || {};
@@ -301,6 +396,19 @@ function reusableSubclassPlugHashes(
         for (const row of rows || []) {
           const hash = row.plugItemHash ?? row.plugHash;
           if (Number.isInteger(hash)) hashes.add(Number(hash));
+        }
+      }
+      const socketEntries = (itemDefinition.sockets as { socketEntries?: Array<{ reusablePlugSetHash?: number }> } | undefined)?.socketEntries || [];
+      const plugSets = [profile.profilePlugSets?.data?.plugs, profile.characterPlugSets?.data?.[characterId]?.plugs];
+      for (const entry of socketEntries) {
+        const plugSetHash = Number(entry.reusablePlugSetHash);
+        if (!Number.isInteger(plugSetHash)) continue;
+        for (const plugs of plugSets) {
+          for (const row of plugs?.[String(plugSetHash)] || []) {
+            if (row.canInsert === false || row.enabled === false) continue;
+            const hash = row.plugItemHash ?? row.plugHash;
+            if (Number.isInteger(hash)) hashes.add(Number(hash));
+          }
         }
       }
     }
@@ -511,6 +619,21 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
+  if (new URL(request.url).searchParams.get("definitions") === "client-manifest") {
+    await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
+    return withCors(request, env, json({
+      authenticated: true,
+      membership,
+      components: PROFILE_COMPONENTS,
+      profile: payload.Response,
+      definitions: {},
+      damageDefinitions: {},
+      breakerDefinitions: {},
+      gearAssets: {},
+      manifestResolution: { mode: "client" }
+    }));
+  }
+
   const baseDefinitionHashes = [...new Set([
     ...equippedDefinitionHashes(payload.Response),
     ...artifactPerkHashes(payload.Response)
@@ -637,6 +760,23 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
     selectedByInstance.set(id, { ...item, plugItemHashes: row.plugItemHashes?.length ? row.plugItemHashes : (prior?.plugItemHashes || []) });
   }
   const selectedItems = [...selectedByInstance.values()];
+  if (requestUrl.searchParams.get("definitions") === "client-manifest") {
+    await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
+    return withCors(request, env, json({
+      authenticated: true,
+      membership,
+      characterId,
+      index,
+      loadout,
+      selectedItems,
+      profile,
+      definitions: {},
+      damageDefinitions: {},
+      breakerDefinitions: {},
+      gearAssets: {},
+      manifestResolution: { mode: "client" }
+    }));
+  }
   const definitionHashes = new Set<number>();
   for (const item of selectedItems) {
     if (Number.isInteger(item.itemHash)) definitionHashes.add(Number(item.itemHash));
@@ -915,6 +1055,9 @@ export default {
       if (request.method === "GET" && url.pathname === "/bungie/start") return startOAuth(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/callback") return oauthCallback(request, env);
       if (request.method === "GET" && url.pathname === "/session") return sessionRoute(request, env);
+      if (request.method === "GET" && url.pathname === "/bungie/manifest") return manifestMetadataRoute(request, env);
+      if (request.method === "GET" && url.pathname === "/bungie/manifest/component") return manifestComponentRoute(request, env);
+      if (request.method === "GET" && url.pathname === "/bungie/manifest/definition") return manifestDefinitionRoute(request, env);
       if (request.method === "GET" && (url.pathname === "/bungie/profile" || url.pathname === "/v1/destiny/profile")) {
         return profileRoute(request, env);
       }

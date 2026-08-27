@@ -30,6 +30,7 @@ jobs:
           grep -q "backend-route-missing" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
           grep -q "baselineInstanceIds" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
           grep -q "rawPgcr" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs
+          grep -q "pgcr-without-pgcr-hash-identity" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-evidence.mjs
           grep -q "shootingRangeIdentification:'unverified'" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-evidence.mjs
           if grep -q "activityName:'Shooting Range'" astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs; then
             echo 'Capture module must not invent a Shooting Range activity identity.'

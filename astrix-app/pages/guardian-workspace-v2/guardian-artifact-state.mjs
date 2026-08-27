@@ -1,8 +1,34 @@
-const num=value=>{const n=Number(value);return Number.isFinite(n)?n:null;};
+const num=value=>{if(value===null||value===undefined||value==='')return null;const n=Number(value);return Number.isFinite(n)?n:null;};
 const itemHash=item=>num(item?.hash??item?.bungieHash??item?.itemHash);
 
 function normalisePerks(rows=[]){
   return (Array.isArray(rows)?rows:[]).map(item=>({...item,hash:itemHash(item)})).filter(item=>item.hash!==null);
+}
+
+function cloneObject(value){try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}}
+
+function resolveFixtureArtifactDefinition(artifacts={},requestedHash=null){
+  const rows=Object.values(artifacts||{});
+  const explicit=num(requestedHash);
+  if(explicit===null)return rows[0]||null;
+  return rows.find(row=>itemHash(row)===explicit)||null;
+}
+
+function resolveIntendedArtifactConfiguration(detail={},artifact=null,selectedHashes=[],fallback={}){
+  const incoming=detail?.artifactConfiguration&&typeof detail.artifactConfiguration==='object'?detail.artifactConfiguration:{};
+  const provenance=incoming.provenance&&typeof incoming.provenance==='object'
+    ?cloneObject(incoming.provenance)
+    :fallback.provenance&&typeof fallback.provenance==='object'
+      ?cloneObject(fallback.provenance)
+      :null;
+  return {
+    schemaVersion:1,
+    artifactHash:num(incoming.artifactHash??itemHash(artifact)),
+    seasonNumber:num(incoming.seasonNumber??artifact?.seasonNumber??fallback.seasonNumber),
+    selectedPerkHashes:Array.isArray(selectedHashes)?[...new Set(selectedHashes.map(num).filter(value=>value!==null))]:null,
+    source:String(incoming.source||fallback.source||'fixture-intent'),
+    provenance
+  };
 }
 
 function resolveArtifactViewState(detail={},fallback={}){
@@ -10,11 +36,24 @@ function resolveArtifactViewState(detail={},fallback={}){
   const liveArtifact=detail?.artifact||null;
   const liveMode=source==='bungie-live'||source==='bungie-loadout'||source==='bungie-selected-loadout';
 
-  if(liveMode&&liveArtifact){
+  if(liveMode){
+    if(!liveArtifact){
+      return {
+        mode:'live',
+        state:'state-unavailable',
+        editable:false,
+        artifact:null,
+        perks:null,
+        selectedHashes:null,
+        allPerks:[],
+        artifactConfiguration:detail?.artifactConfiguration||null,
+        source
+      };
+    }
     const state=String(liveArtifact.state||'state-unavailable');
     const all=normalisePerks(liveArtifact.perks||[]);
     const explicit=normalisePerks(liveArtifact.activePerks||[]);
-    const active=state==='state-unavailable'?[]:(explicit.length?explicit:all.filter(item=>item?.isActive===true));
+    const active=state==='state-unavailable'?null:(explicit.length?explicit:all.filter(item=>item?.isActive===true));
     return {
       mode:'live',
       state,
@@ -43,4 +82,4 @@ function resolveArtifactViewState(detail={},fallback={}){
   };
 }
 
-export {resolveArtifactViewState};
+export {resolveArtifactViewState,resolveFixtureArtifactDefinition,resolveIntendedArtifactConfiguration};
