@@ -46,7 +46,8 @@ function fixtureArtifactIdentity(){
 }
 
 function artifactIdentity(){
-  if(currentMode==='live'&&liveArtifact){
+  if(currentMode==='live'){
+    if(!liveArtifact)return null;
     return {
       ...liveArtifact,
       hash:hashOf(liveArtifact),
@@ -118,10 +119,23 @@ function renderArtifactDisplay(){
   const row=qs('.artifact-row');
 
   if(!id){
-    if(nameEl)nameEl.textContent='Artifact unresolved';
+    const stateUnavailable=currentMode==='live'&&currentArtifactState==='state-unavailable';
+    if(nameEl)nameEl.textContent=stateUnavailable?'IN DEVELOPMENT':'Artifact unresolved';
     if(iconEl){iconEl.removeAttribute('src');iconEl.style.opacity='0';}
-    if(perksEl){perksEl.dataset.artifactState='unresolved';perksEl.innerHTML=Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join('');}
-    emitArtifactSelection(null,currentMode==='live'&&currentArtifactState==='state-unavailable',[]);
+    if(row){
+      row.dataset.artifactMode=currentMode;
+      row.setAttribute('aria-label',stateUnavailable?'Live Bungie Artifact state unavailable':'Configure Artifact perks');
+      row.style.cursor=currentMode==='live'?'default':'pointer';
+      row.classList.toggle('is-development',stateUnavailable);
+    }
+    if(perksEl){
+      perksEl.dataset.artifactState=stateUnavailable?'state-unavailable':'unresolved';
+      perksEl.title=stateUnavailable?'Live Artifact activation state is unavailable.':'Artifact identity is unresolved.';
+      perksEl.innerHTML=stateUnavailable
+        ?'<span class="art-empty artifact-development-placeholder">ARTIFACT STATE UNAVAILABLE</span>'
+        :Array.from({length:PANEL_ICONS},()=>'<span class="rail-empty-slot"></span>').join('');
+    }
+    emitArtifactSelection(null,stateUnavailable,[]);
     return;
   }
 
