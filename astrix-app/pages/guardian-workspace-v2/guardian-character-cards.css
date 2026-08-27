@@ -32,6 +32,7 @@ html body .topbar>#guardianCharacterCards{
   width:100%!important;
   max-width:910px!important;
   align-self:center!important;
+  justify-self:center!important;
 }
 html body .topbar+:is(.workspace,.build-space){min-height:calc(100vh - 108px)!important}
 .guardian-character-cards__status{
