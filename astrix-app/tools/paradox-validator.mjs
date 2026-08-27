@@ -10,9 +10,12 @@ const validators=[
   'validate-destination-theming.mjs',
   'validate-portal-loader.mjs',
   'validate-live-artifact-contract.mjs',
+  'validate-manifest-service.mjs',
+  'test-manifest-service.mjs',
   'validate-paradox-build-space.mjs',
   'validate-guardian-semantics.mjs',
-  'validate-weapon-perk-apply.mjs'
+  'validate-weapon-perk-apply.mjs',
+  'validate-weapon-rolls.mjs'
 ];
 
 for(const validator of validators){
