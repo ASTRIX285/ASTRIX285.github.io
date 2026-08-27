@@ -4,15 +4,26 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
-  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.css',
+  'astrix-app/pages/guardian-workspace-v2/guardian-advisor-layer.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs',
-  'astrix-app/pages/guardian-workspace-v2/subclass-picker.css',
-  'astrix-app/pages/guardian-workspace-v2/guardian-super-feature-sync.mjs',
-  'astrix-app/tools/validate-scope-guard.mjs'
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-character-cards.css',
+  'astrix-app/pages/guardian-workspace-v2/guardian-layout-feedback.css',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-session-cache.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-portal-progress.mjs',
+  'astrix-app/tools/validate-scope-guard.mjs',
+  'astrix-app/tools/paradox-validator.mjs'
 ]);
-const changed=execFileSync('git',['diff','--name-only','origin/fix/main-page-today...HEAD'],{cwd:root,encoding:'utf8'})
+const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
-const outside=changed.filter(path=>!allowed.has(path)&&!/^astrix-app\/tools\/paradox-validator\.[^/]+$/.test(path));
+const working=execFileSync('git',['diff','--name-only'],{cwd:root,encoding:'utf8'})
+  .split(/\r?\n/).filter(Boolean);
+const staged=execFileSync('git',['diff','--name-only','--cached'],{cwd:root,encoding:'utf8'})
+  .split(/\r?\n/).filter(Boolean);
+const untracked=execFileSync('git',['ls-files','--others','--exclude-standard'],{cwd:root,encoding:'utf8'})
+  .split(/\r?\n/).filter(Boolean);
+const outside=[...new Set([...changed,...working,...staged,...untracked])].filter(path=>!allowed.has(path));
 
 assert.deepEqual(outside,[],`Scope violation:\n${outside.join('\n')}`);
 console.log('SCOPE_GUARD=PASS');

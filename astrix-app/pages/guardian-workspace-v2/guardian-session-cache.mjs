@@ -3,6 +3,7 @@ const PROFILE_MARKER_KEY="astrix:bungie-profile-cache:v2";
 const PROFILE_FALLBACK_KEY="astrix:bungie-profile-cache-fallback:v2";
 const LOADOUT_FALLBACK_PREFIX="astrix:bungie-loadout-cache-fallback:v2:";
 const FAST_RETURN_KEY="astrix:guardian-fast-return:v1";
+const PORTAL_TRANSITION_KEY="astrix:guardian-portal-transition:v1";
 const DB_NAME="astrix-guardian-session";
 const DB_VERSION=2;
 const STORE_NAME="guardian-data";
@@ -126,13 +127,26 @@ async function readCachedBungieLoadoutDetail(session,characterId,index){
   return fallback?.key===key&&fallback?.identity===identity&&isFresh(fallback)?fallback.detail||null:null;
 }
 
+function armGuardianPortalTransition(){
+  const fromBuild=String(globalThis.location?.pathname||"").includes("/paradox-build-space/");
+  const label=fromBuild?"Opening Guardian workspace":"Opening Build Forge";
+  try{
+    sessionStorage.removeItem(FAST_RETURN_KEY);
+    sessionStorage.setItem(PORTAL_TRANSITION_KEY,JSON.stringify({armedAt:Date.now(),label}));
+  }catch{}
+  globalThis.APX_SKIP_PORTAL=false;
+  globalThis.AstrixLoader?.mount?.();
+  globalThis.AstrixLoader?.set?.(0);
+  globalThis.AstrixLoader?.status?.(label);
+}
+
 function markGuardianFastReturn(){
-  try{sessionStorage.setItem(FAST_RETURN_KEY,"1");}
-  catch{}
+  armGuardianPortalTransition();
 }
 
 export {
   FAST_RETURN_KEY,
+  PORTAL_TRANSITION_KEY,
   cacheBungieSession,
   readCachedBungieSession,
   cacheBungieProfile,
@@ -140,6 +154,7 @@ export {
   cacheBungieLoadoutDetail,
   readCachedBungieLoadoutDetail,
   markGuardianFastReturn,
+  armGuardianPortalTransition,
   openDatabase as openGuardianDatabase,
   MANIFEST_STORE_NAME
 };
