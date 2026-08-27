@@ -28,6 +28,7 @@ const loadoutCache=new Map();
 let liveProfilePayload=null;
 let liveProfileSession=null;
 const manifestReady=guardianManifest.ready();
+let fixtureProfileDetail=null;
 
 const setRenderStatus=(title,message,detail="")=>{
   const host=document.querySelector("#guardianHero.guardian-render-status");
@@ -166,8 +167,32 @@ function characterRoster(payload,selectedCharacterId=null){
   }).sort((a,b)=>(order[a.characterClass]??9)-(order[b.characterClass]??9));
 }
 
-function publishCharacterRoster(payload,selectedCharacterId){
-  document.dispatchEvent(new CustomEvent("astrix:bungie-character-roster",{detail:{source:"bungie-live",selectedCharacterId:String(selectedCharacterId||""),characters:characterRoster(payload,selectedCharacterId)}}));
+function fixtureCharacterRoster(detail={}){
+  const characterId=String(detail.characterId||detail.fixtureId||"");
+  const characterClass=String(detail.characterClass||detail.className||"").toLowerCase();
+  if(!characterId||!CLASS_NAMES.includes(characterClass))return [];
+  const emblem=detail.emblem||{};
+  return [{
+    characterId,
+    characterClass,
+    power:detail.power??null,
+    guardianRank:null,
+    titleHash:null,
+    title:"",
+    stats:(Array.isArray(detail.stats)?detail.stats:[]).slice(0,6).map(([name,value,icon,hash])=>[name,Number(value??0),absoluteIcon(icon),hash??null]),
+    emblem:{hash:emblem.hash??null,icon:absoluteIcon(emblem.icon),background:absoluteIcon(emblem.background)},
+    selected:true
+  }];
+}
+
+function publishCharacterRoster(payload,selectedCharacterId,{source="bungie-live"}={}){
+  const characters=Array.isArray(payload?.characters)?payload.characters:characterRoster(payload,selectedCharacterId);
+  document.dispatchEvent(new CustomEvent("astrix:bungie-character-roster",{detail:{source,selectedCharacterId:String(selectedCharacterId||""),characters}}));
+}
+
+function publishFixtureRoster(detail={}){
+  const characterId=String(detail.characterId||detail.fixtureId||"");
+  publishCharacterRoster({characters:fixtureCharacterRoster(detail)},characterId,{source:"fixture"});
 }
 
 function socketResolution(profile,definitions,item,payload={}){
@@ -621,7 +646,19 @@ async function loadLiveProfile(session,{background=false}={}){
 
 function selectLiveCharacter(characterId,expectedClass=""){
   console.log("[TRACE select] clicked id:", characterId, "| exists in profile?", !!liveProfilePayload?.profile?.characters?.data?.[characterId]);
-  if(!liveProfilePayload)throw new Error("Bungie character roster is not loaded; character selection cannot fall back to last played.");
+  if(!liveProfilePayload){
+    const fixtureId=String(fixtureProfileDetail?.characterId||fixtureProfileDetail?.fixtureId||"");
+    if(fixtureProfileDetail&&fixtureId===String(characterId)){
+      const detail=fixtureProfileDetail;
+      const expected=String(expectedClass||"").trim().toLowerCase();
+      if(expected&&String(detail.characterClass||detail.className||"").toLowerCase()!==expected)throw new Error(`Selected ${expected} fixture card resolved different fixture data for character ${characterId}.`);
+      document.documentElement.dataset.guardianSource="fixture";
+      publishFixtureRoster(detail);
+      document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
+      return detail;
+    }
+    throw new Error("Bungie character roster is not loaded; character selection cannot fall back to last played.");
+  }
   const detail=normaliseLiveProfile(liveProfilePayload,liveProfileSession,characterId);
   const expected=String(expectedClass||"").trim().toLowerCase();
   if(expected&&detail.characterClass!==expected)throw new Error(`Selected ${expected} card resolved ${detail.characterClass} data for character ${characterId}.`);
@@ -688,6 +725,14 @@ document.addEventListener("astrix:loadout-selected",event=>{
     setRenderStatus("SAVED LOADOUT UNAVAILABLE",message,"Your current Guardian profile is still active");
     document.dispatchEvent(new CustomEvent("astrix:loadout-error",{detail:{...event.detail,message}}));
   });
+});
+
+document.addEventListener("astrix:beta-fixture-loaded",event=>{
+  if(liveProfilePayload)return;
+  const detail=event.detail||{};
+  if(detail.source!=="paradox-beta-fixture")return;
+  fixtureProfileDetail=detail;
+  publishFixtureRoster(detail);
 });
 
 document.addEventListener("astrix:character-selected",event=>{
