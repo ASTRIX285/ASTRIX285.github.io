@@ -78,7 +78,12 @@ function mergeByHash(canonical,runtime){
   return merged;
 }
 function superDefinitionsFor(characterClass,element){const cls=classKey(characterClass),key=elementKey(element);return (SUPERS[cls]?.[key]||[]).map(row=>superItem(row,cls,key));}
-function mergeSuperOptions(characterClass,element,runtimeOptions=[]){return mergeByHash(superDefinitionsFor(characterClass,element),runtimeOptions);}
+function mergeSuperOptions(characterClass,element,runtimeOptions=[]){
+  const canonical=superDefinitionsFor(characterClass,element);
+  const allowed=new Set(canonical.map(item=>itemKey(item)));
+  const compatible=(Array.isArray(runtimeOptions)?runtimeOptions:[]).filter(item=>allowed.has(itemKey(item)));
+  return mergeByHash(canonical,compatible);
+}
 function subclassDefinitionsFor(characterClass){const cls=classKey(characterClass);return (SUBCLASSES[cls]||[]).map(row=>{const item=subclassItem(row,cls);const options=mergeSuperOptions(cls,item.element,[]);return {...item,subclassBuild:{super:options[0]||null,superOptions:options}};});}
 function mergeSubclassCatalog(runtimeCatalog=[],characterClass='hunter'){
   const cls=classKey(characterClass),runtime=Array.isArray(runtimeCatalog)?runtimeCatalog.filter(Boolean):[];
@@ -88,7 +93,8 @@ function mergeSubclassCatalog(runtimeCatalog=[],characterClass='hunter'){
     const options=mergeSuperOptions(cls,canonical.element,[liveBuild.super,...(Array.isArray(liveBuild.superOptions)?liveBuild.superOptions:[])].filter(Boolean));
     const selectedKey=itemKey(liveBuild.super);
     const selected=options.find(item=>itemKey(item)===selectedKey)||options[0]||null;
-    return {...canonical,...(live||{}),hash:Number(live?.hash??live?.itemHash??canonical.hash),bungieHash:Number(live?.bungieHash??live?.hash??live?.itemHash??canonical.hash),icon:live?.icon||live?.definition?.displayProperties?.icon||canonical.icon,element:canonical.element,subclass:canonical.element,key:canonical.element,characterClass:cls,subclassBuild:{...canonical.subclassBuild,...liveBuild,super:selected,superOptions:options}};
+    const definition={...(live?.definition||{}),...canonical.definition,displayProperties:{...(live?.definition?.displayProperties||{}),...canonical.definition.displayProperties}};
+    return {...canonical,...(live||{}),hash:canonical.hash,bungieHash:canonical.hash,name:canonical.name,icon:canonical.icon,definition,element:canonical.element,subclass:canonical.element,key:canonical.element,characterClass:cls,subclassBuild:{...canonical.subclassBuild,...liveBuild,super:selected,superOptions:options}};
   });
 }
 
