@@ -18,7 +18,7 @@ function contextFromAnalysis(analysis={}){
     desiredTokens:uniq((analysis.weakLinks||[]).map(row=>row.effect)),
     emittedTokens:uniq((analysis.buildLoop||[]).map(row=>row.output)),
     preferredRoles:uniq((analysis.weaponContribution||[]).flatMap(row=>row.roles||[])),
-    activityNeeds:uniq((analysis.activityCounters||[]).flatMap(row=>row.requiredTokens||row.needs||[]))
+    activityNeeds:uniq((analysis.activityCounters?.chains||[]).flatMap(row=>row.requirement?.requiredTokens||row.requirement?.needs||row.requiredTokens||row.needs||[]))
   };
 }
 
