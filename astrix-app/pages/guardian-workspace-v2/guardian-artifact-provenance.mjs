@@ -62,23 +62,6 @@ function resolveArtifactByProvenance(payload,characterId){
   }
 
   const items=seasonalArtifact.tiers.flatMap(tier=>Array.isArray(tier?.items)?tier.items:[]);
-  // --- ARTIFACT PROVENANCE DIAGNOSTIC (temporary) ---
-  try {
-    const activeCount = items.filter(i => i?.isActive === true).length;
-    const sample = items.slice(0, 3).map(i => ({ itemHash: i?.itemHash, isActive: i?.isActive, isVisible: i?.isVisible }));
-    console.log('[ARTIFACT_DIAG]', {
-      characterId: cid,
-      progressionFound: Boolean(characterProgression),
-      artifactHash,
-      tierCount: seasonalArtifact.tiers.length,
-      itemCount: items.length,
-      activeCount,
-      pointsAcquired: seasonalArtifact.pointsAcquired,
-      pointsUsed: seasonalArtifact.pointsUsedToUnlock ?? seasonalArtifact.pointsUsed,
-      sample
-    });
-  } catch (e) { console.log('[ARTIFACT_DIAG] error', e); }
-  // --- END DIAGNOSTIC ---
   if(!items.length){
     return unavailable('Bungie returned no Artifact tier item state for the selected character.');
   }
