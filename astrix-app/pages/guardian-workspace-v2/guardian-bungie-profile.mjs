@@ -3,6 +3,7 @@ import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {guardianManifest} from "./guardian-manifest-service.mjs";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
+import {mergeSubclassCatalog} from "./guardian-super-catalog.mjs?v=20260829-super-catalog-1";
 import {
   cacheBungieProfile,
   readCachedBungieProfile,
@@ -500,9 +501,11 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
+  const characterClass=CLASS_NAMES[Number(character.classType)]||"hunter";
   const subclassItems=[subclassItem,...(profile?.characterInventories?.data?.[character.characterId]?.items||[])].filter(item=>item&&definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===BUCKETS.subclass);
   const subclassCatalog=subclassItems.map(item=>{const display=displayItem(definitions,item.itemHash),element=classifySubclass(display);return {...display,itemInstanceId:item.itemInstanceId||null,element,subclass:element,key:element,subclassBuild:subclassConfiguration(profile,definitions,item,payload,character.characterId)}}).filter((item,index,rows)=>rows.findIndex(other=>other.element===item.element)===index);
-  const subclassBuild=subclassCatalog.find(item=>Number(item.hash)===Number(subclassItem?.itemHash))?.subclassBuild||{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
+  const verifiedSubclassCatalog=mergeSubclassCatalog(subclassCatalog,characterClass);
+  const subclassBuild=verifiedSubclassCatalog.find(item=>Number(item.hash)===Number(subclassItem?.itemHash))?.subclassBuild||{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character,payload);
   const artifact=currentArtifact(payload,character.characterId);
   const availableArtifacts=availableArtifactItems(payload,artifact);
@@ -521,11 +524,11 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   return {
     source:"bungie-live",
     characterId:character.characterId,
-    characterClass:CLASS_NAMES[Number(character.classType)]||"hunter",
+    characterClass,
     subclass:classifySubclass(subclass),
     subclassName:subclass?.name||"Subclass",
     subclassIcon:subclass?.icon||"",
-    subclassCatalog,
+    subclassCatalog:verifiedSubclassCatalog,
     subclassBuild,
     super:subclassBuild.super,
     superOptions:subclassBuild.superOptions,
