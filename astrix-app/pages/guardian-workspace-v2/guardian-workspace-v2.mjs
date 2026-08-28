@@ -6,7 +6,7 @@ import {
   selectLiveCharacter
 } from "./guardian-bungie-profile.mjs?v=20260827-manifest-service-1";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
-import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260828-subclass-header-1";
+import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260828-super-map-2";
 
 const PLAYER_POWER_CAP = 550;
 const VALID_CLASSES = ["hunter", "titan", "warlock"];
@@ -139,7 +139,7 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
 
   const featureHost = byId("superFeatureCluster");
   if (featureHost) {
-    renderSuperFormation({host:featureHost,nameNode:byId("subclassName"),activeSuper,superOptions,subclass:activeElement,onSelect:()=>{}});
+    renderSuperFormation({host:featureHost,nameNode:byId("subclassName"),activeSuper,superOptions,subclass:activeElement,subclassCatalog:workspaceState.subclassCatalog,onSelect:()=>{}});
   }
 
   const subclassNameNode = byId("subclassName");

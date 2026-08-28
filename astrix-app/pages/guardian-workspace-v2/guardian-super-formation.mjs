@@ -3,6 +3,12 @@ import {LOADOUT_DEFINITIONS} from './guardian-loadout-definitions.mjs';
 
 const BUNGIE='https://www.bungie.net';
 const SUBCLASS_KEYS=Object.freeze(['void','arc','solar','strand','stasis','prismatic']);
+const SUPER_SLOT_ELEMENTS=Object.freeze([
+  Object.freeze({slot:'alternate-1',element:'strand'}),
+  Object.freeze({slot:'alternate-3',element:'arc'}),
+  Object.freeze({slot:'alternate-4',element:'void'}),
+  Object.freeze({slot:'alternate-2',element:'solar'})
+]);
 const PRISMATIC_HEADER_ICON_HASH=814121290;
 const PRISMATIC_HEADER_ICON=LOADOUT_DEFINITIONS.icons?.[PRISMATIC_HEADER_ICON_HASH]?.iconImagePath||'';
 const SUBCLASS_PICKER_ICONS=Object.freeze({
@@ -29,9 +35,43 @@ function absoluteIcon(path){
   return /^(?:https?:|data:|blob:)/i.test(value)?value:`${BUNGIE}${value}`;
 }
 function itemKey(item){return String(item?.hash??item?.itemHash??item?.name??resolvedSuperIcon(item)??'');}
-function subclassKey(value,activeSuper){
+function detectedSubclassKey(value,activeSuper){
   const text=[value,activeSuper?.element,activeSuper?.subclass,activeSuper?.damageType,activeSuper?.name].filter(Boolean).join(' ').toLowerCase();
-  return SUBCLASS_KEYS.find(key=>text.includes(key))||'void';
+  return SUBCLASS_KEYS.find(key=>text.includes(key))||'';
+}
+function subclassKey(value,activeSuper){return detectedSubclassKey(value,activeSuper)||'void';}
+function uniqueItems(items){return items.filter(Boolean).filter((item,index,rows)=>rows.findIndex(other=>itemKey(other)===itemKey(item))===index);}
+function subclassBuild(item){return item?.subclassBuild||item?.build||{};}
+function equippedSuper(build,options=[]){return build?.super||options.find(item=>item?.isEquipped===true||item?.equipped===true)||null;}
+
+function resolveSuperFormationSlots({activeSuper=null,superOptions=[],subclass='',subclassCatalog=[]}={}){
+  const activeElement=subclassKey(subclass,activeSuper);
+  const catalog=(Array.isArray(subclassCatalog)?subclassCatalog:[]).filter(Boolean).filter((item,index,rows)=>{
+    const element=detectedSubclassKey([item?.element,item?.subclass,item?.key,item?.name,item?.displayName].filter(Boolean).join(' '),null);
+    return element&&rows.findIndex(other=>detectedSubclassKey([other?.element,other?.subclass,other?.key,other?.name,other?.displayName].filter(Boolean).join(' '),null)===element)===index;
+  });
+  const activeSubclass=catalog.find(item=>detectedSubclassKey([item?.element,item?.subclass,item?.key,item?.name,item?.displayName].filter(Boolean).join(' '),null)===activeElement)||null;
+  const activeBuild=subclassBuild(activeSubclass);
+  const currentOptions=uniqueItems([
+    ...(Array.isArray(superOptions)?superOptions:[]),
+    ...(Array.isArray(activeBuild?.superOptions)?activeBuild.superOptions:[])
+  ]);
+  const resolvedActive=activeSuper||equippedSuper(activeBuild,currentOptions);
+  const activeId=itemKey(resolvedActive);
+  const entries=[{slot:'equipped',item:resolvedActive,role:'equipped-super-large',element:activeElement,selected:false}];
+
+  for(const mapping of SUPER_SLOT_ELEMENTS){
+    const subclassOption=catalog.find(item=>detectedSubclassKey([item?.element,item?.subclass,item?.key,item?.name,item?.displayName].filter(Boolean).join(' '),null)===mapping.element)||null;
+    const build=subclassBuild(subclassOption);
+    const options=uniqueItems(Array.isArray(build?.superOptions)?build.superOptions:[]);
+    const item=mapping.element===activeElement
+      ? uniqueItems([...currentOptions,...options]).find(option=>itemKey(option)!==activeId)||null
+      : equippedSuper(build,options);
+    entries.push({...mapping,item,role:'alternate-super',selected:false});
+  }
+
+  entries.push({slot:'alternate-5',item:resolvedActive,role:'equipped-super-small',element:activeElement,selected:Boolean(resolvedActive)});
+  return {activeElement,activeSuper:resolvedActive,entries};
 }
 
 function renderEquippedSubclass({root,iconNode,nameNode,metaNode,subclass='',subclassName='',characterClass='',icon=''}={}){
@@ -124,19 +164,19 @@ function setDiamondFromItem(diamond,item,fallbackTitle='Super unavailable'){
   diamond.setAttribute('aria-label',title);
 }
 
-function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=[],subclass='',selectKind='',onSelect=null}={}){
+function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=[],subclass='',subclassCatalog=[],selectKind='',onSelect=null}={}){
   if(!host)return;
   const feature=host.closest('.super-feature')||host;
-  feature.dataset.superSubclass=subclassKey(subclass,activeSuper);
-  const options=(Array.isArray(superOptions)?superOptions:[]).filter(Boolean).filter((item,index,rows)=>rows.findIndex(other=>itemKey(other)===itemKey(item))===index);
-  const resolvedActive=activeSuper||options.find(item=>item?.isEquipped===true||item?.equipped===true)||null;
+  const options=uniqueItems(Array.isArray(superOptions)?superOptions:[]);
+  const mapping=resolveSuperFormationSlots({activeSuper,superOptions:options,subclass,subclassCatalog});
+  const resolvedActive=mapping.activeSuper;
   const activeId=itemKey(resolvedActive);
-  const alternates=options.filter(item=>itemKey(item)!==activeId).slice(0,5);
-  const items=resolvedActive?[resolvedActive,...alternates]:[];
+  feature.dataset.superSubclass=mapping.activeElement;
   /* The exact six-slot PSD frame is structural. Unresolved alternates remain
    * visible as transparent frames instead of collapsing the formation. */
   const slots=['equipped','alternate-5','alternate-4','alternate-3','alternate-2','alternate-1'].map(key=>host.querySelector(`[data-super-slot="${key}"]`));
-  const resolvedCount=Math.min(6,items.length);
+  const slotByKey=new Map(slots.map(slot=>[slot?.dataset?.superSlot,slot]));
+  const resolvedCount=mapping.entries.filter(entry=>Boolean(entry.item)).length;
   host.dataset.superCount='6';
   feature.dataset.superCount='6';
   host.dataset.resolvedSuperCount=String(resolvedCount);
@@ -144,19 +184,21 @@ function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=
   host.dataset.activeSuper=activeId;
   host.dataset.superState=resolvedActive?'resolved':'unresolved';
 
-  slots.forEach((slot,index)=>{
-    const item=items[index]||null;
+  mapping.entries.forEach((entry,index)=>{
+    const slot=slotByKey.get(entry.slot)||null;
+    const item=entry.item||null;
     if(slot)slot.hidden=false;
-    setDiamondFromItem(slot,item,index===0?'Equipped Super unavailable':`Alternate Super ${index} unavailable`);
+    setDiamondFromItem(slot,item,entry.role.startsWith('equipped-super')?'Equipped Super unavailable':`${entry.element} Super unavailable`);
     slot?.classList.toggle('is-empty-super',!item);
-    const selected=index===0&&Boolean(item);
+    if(slot){slot.dataset.superRole=entry.role;slot.dataset.superElement=entry.element;}
+    const selected=entry.selected&&Boolean(item);
     slot?.classList.toggle('is-selected',selected);
     slot?.classList.toggle('is-selected-super',selected);
     slot?.setAttribute('aria-current',selected?'true':'false');
     if(!slot||!item)return;
     const optionIndex=options.findIndex(option=>itemKey(option)===itemKey(item));
     if(selectKind&&optionIndex>=0){slot.dataset.selectKind=selectKind;slot.dataset.selectIndex=String(optionIndex);}
-    if(typeof onSelect==='function'){
+    if(optionIndex>=0&&typeof onSelect==='function'){
       const select=()=>{
         slots.forEach(node=>{node?.classList.toggle('is-selected',node===slot);node?.classList.toggle('is-selected-super',node===slot);node?.setAttribute('aria-current',node===slot?'true':'false');});
         if(nameNode)nameNode.textContent=item.name||item.displayName||'SELECTED SUPER';
@@ -170,4 +212,4 @@ function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=
   if(nameNode)nameNode.textContent=resolvedActive?.name||resolvedActive?.displayName||'SELECTED SUPER';
 }
 
-export {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation,resolvedSuperIcon,setDiamondFromItem};
+export {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation,resolveSuperFormationSlots,resolvedSuperIcon,setDiamondFromItem};
