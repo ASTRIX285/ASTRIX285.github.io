@@ -1,14 +1,16 @@
 import {cleanImageElement} from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
 import {LOADOUT_DEFINITIONS} from './guardian-loadout-definitions.mjs';
+import {mergeSuperOptions} from './guardian-super-catalog.mjs?v=20260829-super-catalog-1';
 
 const BUNGIE='https://www.bungie.net';
 const SUBCLASS_KEYS=Object.freeze(['void','arc','solar','strand','stasis','prismatic']);
-const SUPER_SLOT_ELEMENTS=Object.freeze([
-  Object.freeze({slot:'alternate-1',element:'strand'}),
-  Object.freeze({slot:'alternate-3',element:'arc'}),
-  Object.freeze({slot:'alternate-4',element:'void'}),
-  Object.freeze({slot:'alternate-2',element:'solar'})
-]);
+const ALTERNATE_SLOT_LAYOUTS=Object.freeze({
+  0:Object.freeze([]),
+  1:Object.freeze(['alternate-3']),
+  2:Object.freeze(['alternate-3','alternate-4']),
+  3:Object.freeze(['alternate-1','alternate-3','alternate-4']),
+  4:Object.freeze(['alternate-1','alternate-3','alternate-4','alternate-2'])
+});
 const PRISMATIC_HEADER_ICON_HASH=814121290;
 const PRISMATIC_HEADER_ICON=LOADOUT_DEFINITIONS.icons?.[PRISMATIC_HEADER_ICON_HASH]?.iconImagePath||'';
 const SUBCLASS_PICKER_ICONS=Object.freeze({
@@ -44,7 +46,7 @@ function uniqueItems(items){return items.filter(Boolean).filter((item,index,rows
 function subclassBuild(item){return item?.subclassBuild||item?.build||{};}
 function equippedSuper(build,options=[]){return build?.super||options.find(item=>item?.isEquipped===true||item?.equipped===true)||null;}
 
-function resolveSuperFormationSlots({activeSuper=null,superOptions=[],subclass='',subclassCatalog=[]}={}){
+function resolveSuperFormationSlots({activeSuper=null,superOptions=[],subclass='',subclassCatalog=[],characterClass='hunter'}={}){
   const activeElement=subclassKey(subclass,activeSuper);
   const catalog=(Array.isArray(subclassCatalog)?subclassCatalog:[]).filter(Boolean).filter((item,index,rows)=>{
     const element=detectedSubclassKey([item?.element,item?.subclass,item?.key,item?.name,item?.displayName].filter(Boolean).join(' '),null);
@@ -52,26 +54,21 @@ function resolveSuperFormationSlots({activeSuper=null,superOptions=[],subclass='
   });
   const activeSubclass=catalog.find(item=>detectedSubclassKey([item?.element,item?.subclass,item?.key,item?.name,item?.displayName].filter(Boolean).join(' '),null)===activeElement)||null;
   const activeBuild=subclassBuild(activeSubclass);
-  const currentOptions=uniqueItems([
+  const currentOptions=mergeSuperOptions(characterClass,activeElement,uniqueItems([
+    activeSuper,
     ...(Array.isArray(superOptions)?superOptions:[]),
     ...(Array.isArray(activeBuild?.superOptions)?activeBuild.superOptions:[])
-  ]);
-  const resolvedActive=activeSuper||equippedSuper(activeBuild,currentOptions);
+  ]));
+  const requestedActive=activeSuper||equippedSuper(activeBuild,currentOptions);
+  const resolvedActive=currentOptions.find(item=>itemKey(item)===itemKey(requestedActive))||requestedActive||currentOptions[0]||null;
   const activeId=itemKey(resolvedActive);
   const entries=[{slot:'equipped',item:resolvedActive,role:'equipped-super-large',element:activeElement,selected:false}];
-
-  for(const mapping of SUPER_SLOT_ELEMENTS){
-    const subclassOption=catalog.find(item=>detectedSubclassKey([item?.element,item?.subclass,item?.key,item?.name,item?.displayName].filter(Boolean).join(' '),null)===mapping.element)||null;
-    const build=subclassBuild(subclassOption);
-    const options=uniqueItems(Array.isArray(build?.superOptions)?build.superOptions:[]);
-    const item=mapping.element===activeElement
-      ? uniqueItems([...currentOptions,...options]).find(option=>itemKey(option)!==activeId)||null
-      : equippedSuper(build,options);
-    entries.push({...mapping,item,role:'alternate-super',selected:false});
-  }
-
+  const alternatives=currentOptions.filter(item=>itemKey(item)!==activeId).slice(0,4);
+  const alternateSlots=ALTERNATE_SLOT_LAYOUTS[alternatives.length]||ALTERNATE_SLOT_LAYOUTS[4];
+  alternatives.forEach((item,index)=>entries.push({slot:alternateSlots[index],item,role:'alternate-super',element:activeElement,selected:false}));
+  for(const slot of ['alternate-1','alternate-2','alternate-3','alternate-4'])if(!entries.some(entry=>entry.slot===slot))entries.push({slot,item:null,role:'alternate-super',element:activeElement,selected:false});
   entries.push({slot:'alternate-5',item:resolvedActive,role:'equipped-super-small',element:activeElement,selected:Boolean(resolvedActive)});
-  return {activeElement,activeSuper:resolvedActive,entries};
+  return {activeElement,activeSuper:resolvedActive,superOptions:currentOptions,entries};
 }
 
 function renderEquippedSubclass({root,iconNode,nameNode,metaNode,subclass='',subclassName='',characterClass='',icon=''}={}){
@@ -115,6 +112,7 @@ function renderSubclassPicker({root,characterClass='',subclass='',subclassOption
     button.onkeydown=null;
     button.removeAttribute('data-select-kind');
     button.removeAttribute('data-select-index');
+    button.removeAttribute('data-bungie-hash');
     button.disabled=!unlocked;
     button.classList.toggle('is-locked',!unlocked);
     button.classList.toggle('is-active',selected);
@@ -122,6 +120,7 @@ function renderSubclassPicker({root,characterClass='',subclass='',subclassOption
     button.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
     if(icon)icon.style.backgroundImage=iconPath?`url("${absoluteIcon(iconPath)}")`:'';
     if(!option)return;
+    button.dataset.bungieHash=String(option?.bungieHash??option?.hash??option?.itemHash??'');
     if(selectKind){button.dataset.selectKind=selectKind;button.dataset.selectIndex=String(optionIndex);}
     if(typeof onSelect==='function'){
       const select=()=>onSelect(option,optionIndex,button);
@@ -141,6 +140,7 @@ function setDiamondFromItem(diamond,item,fallbackTitle='Super unavailable'){
   diamond.onkeydown=null;
   diamond.removeAttribute('data-select-kind');
   diamond.removeAttribute('data-select-index');
+  diamond.removeAttribute('data-bungie-hash');
   if(src){
     let image=holder.querySelector('img.super-feature__icon');
     if(!image){holder.textContent='';image=document.createElement('img');image.className='super-feature__icon';holder.appendChild(image);}
@@ -151,6 +151,7 @@ function setDiamondFromItem(diamond,item,fallbackTitle='Super unavailable'){
     image.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
     diamond.classList.add('has-live-icon');
     diamond.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
+    diamond.dataset.bungieHash=String(item?.bungieHash??item?.hash??item?.itemHash??'');
     diamond.tabIndex=0;
     diamond.setAttribute('role','button');
   }else{
@@ -164,11 +165,11 @@ function setDiamondFromItem(diamond,item,fallbackTitle='Super unavailable'){
   diamond.setAttribute('aria-label',title);
 }
 
-function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=[],subclass='',subclassCatalog=[],selectKind='',onSelect=null}={}){
+function renderSuperFormation({host,nameNode=null,activeSuper=null,superOptions=[],subclass='',subclassCatalog=[],characterClass='hunter',selectKind='',onSelect=null}={}){
   if(!host)return;
   const feature=host.closest('.super-feature')||host;
-  const options=uniqueItems(Array.isArray(superOptions)?superOptions:[]);
-  const mapping=resolveSuperFormationSlots({activeSuper,superOptions:options,subclass,subclassCatalog});
+  const mapping=resolveSuperFormationSlots({activeSuper,superOptions,subclass,subclassCatalog,characterClass});
+  const options=mapping.superOptions;
   const resolvedActive=mapping.activeSuper;
   const activeId=itemKey(resolvedActive);
   feature.dataset.superSubclass=mapping.activeElement;

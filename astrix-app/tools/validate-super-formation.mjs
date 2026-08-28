@@ -5,6 +5,7 @@ const ROOT=new URL('../',import.meta.url);
 const PAGE_ROOT=new URL('pages/guardian-workspace-v2/',ROOT);
 const SHARED_CSS_URL=new URL('guardian-super-formation.css',PAGE_ROOT);
 const SHARED_MODULE_URL=new URL('guardian-super-formation.mjs',PAGE_ROOT);
+const CATALOG_MODULE_URL=new URL('guardian-super-catalog.mjs',PAGE_ROOT);
 const LOADOUT_DEFINITIONS_URL=new URL('guardian-loadout-definitions.mjs',PAGE_ROOT);
 const MAIN_HTML_URL=new URL('index.html',PAGE_ROOT);
 const BUILD_HTML_URL=new URL('paradox-build-space/index.html',PAGE_ROOT);
@@ -13,15 +14,17 @@ const SYNC_MODULE_URL=new URL('guardian-super-feature-sync.mjs',PAGE_ROOT);
 const BUILD_MODULE_URL=new URL('paradox-build-space/paradox-build-space.mjs',PAGE_ROOT);
 const read=url=>readFile(url,'utf8');
 
-const [css,moduleSource,mainHtml,buildHtml,mainModule,syncModule,buildModule,{LOADOUT_DEFINITIONS}]=await Promise.all([
+const [css,moduleSource,catalogSource,mainHtml,buildHtml,mainModule,syncModule,buildModule,{LOADOUT_DEFINITIONS},catalogApi]=await Promise.all([
   read(SHARED_CSS_URL),
   read(SHARED_MODULE_URL),
+  read(CATALOG_MODULE_URL),
   read(MAIN_HTML_URL),
   read(BUILD_HTML_URL),
   read(MAIN_MODULE_URL),
   read(SYNC_MODULE_URL),
   read(BUILD_MODULE_URL),
-  import(LOADOUT_DEFINITIONS_URL.href)
+  import(LOADOUT_DEFINITIONS_URL.href),
+  import(CATALOG_MODULE_URL.href)
 ]);
 
 const expectedColours={
@@ -78,7 +81,7 @@ assert.match(css,/flex:0 0 auto!important;/,'Equipped subclass/Super wrapper mus
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
   assert.match(html,/guardian-super-formation\.css/,`${label} does not load the shared stylesheet`);
-  assert.match(html,/20260828-super-map-2/,`${label} does not load the corrected shared Super mapper`);
+  assert.match(html,/20260829-super-catalog-1/,`${label} does not load the verified Super catalogue`);
   assert.match(html,/equipped-subclass-stack/,`${label} does not use the equipped-only subclass stack`);
   assert.equal((html.match(/data-super-slot=/g)||[]).length,6,`${label} must expose six fixed Super slots`);
   assert.doesNotMatch(html,/class="subclass-rail"|id="subclassSummary"|data-subclass-option=/,`${label} still contains the removed subclass selector panel`);
@@ -98,11 +101,44 @@ assert.match(css,/\.super-diamond--equipped>span\{[\s\S]*?inset:-20\.7107%!impor
 
 for(const [label,source] of [['Main renderer',mainModule],['Main sync bridge',syncModule],['Build renderer',buildModule]]){
   assert.match(source,/subclassCatalog:/,`${label} does not pass the verified subclass catalogue to the shared Super mapper`);
+  assert.match(source,/characterClass(?::|,)/,`${label} does not bind Super hashes to the selected character class`);
 }
 assert.match(moduleSource,/strand:'\/common\/destiny2_content\/icons\/41c0024ce809085ac16f4e0777ea0ac4\.png'/,'Shared subclass picker lost its verified Strand fallback');
 assert.match(syncModule,/if\(node&&icon\)node\.style\.backgroundImage=/,'Character sync can still erase a missing-catalogue subclass fallback');
 
 const {renderSubclassPicker,resolveSuperFormationSlots}=await import(SHARED_MODULE_URL.href);
+const {CLASS_NAMES,ELEMENT_ORDER,MANIFEST_VERSION,mergeSubclassCatalog,subclassDefinitionsFor,superDefinitionsFor}=catalogApi;
+assert.equal(MANIFEST_VERSION,'244213.26.06.29.2000-1-bnet.65583','Audited Bungie manifest version drifted');
+assert.match(catalogSource,/Source: Bungie DestinyInventoryItemDefinition manifest/,'Super hash catalogue lost its Bungie provenance');
+const expectedSuperHashes={
+  hunter:{arc:[3769507632,3769507633,3769507635],solar:[375052468,375052469,375052471],void:[2722573681,2722573682,2722573683],stasis:[2625980631],strand:[2463983862],prismatic:[2370269384,2370269388,2370269389,2370269390,2370269391]},
+  titan:{arc:[119041298,119041299],solar:[2747500760,2747500761],void:[4260353952,4260353953,4260353955],stasis:[2021620139],strand:[3574662354],prismatic:[2529942642,2529942644,2529942645,2529942646,2529942647]},
+  warlock:{arc:[1081893460,1081893461],solar:[2274196884,2274196886,2274196887],void:[1656118680,1656118681,1656118682],stasis:[3683904166],strand:[1885339915],prismatic:[1869939001,1869939004,1869939005,1869939006,1869939007]}
+};
+const expectedSubclassHashes={
+  hunter:[2328211300,2240888816,2453351420,873720784,3785442599,4282591831],
+  titan:[2932390016,2550323932,2842471112,613647804,242419885,1616346845],
+  warlock:[3168997075,3941205951,2849050827,3291545503,4204413574,3893112950]
+};
+const expectedClassTotals={hunter:16,titan:14,warlock:15};
+assert.equal(CLASS_NAMES.length,3,'All three Destiny character classes must be represented');
+for(const characterClass of CLASS_NAMES){
+  const subclasses=subclassDefinitionsFor(characterClass);
+  assert.equal(subclasses.length,6,`${characterClass} must expose all six subclasses`);
+  assert.deepEqual(subclasses.map(item=>item.hash),expectedSubclassHashes[characterClass],`${characterClass} subclass hashes drifted`);
+  const total=ELEMENT_ORDER.reduce((count,element)=>count+superDefinitionsFor(characterClass,element).length,0);
+  assert.equal(total,expectedClassTotals[characterClass],`${characterClass} Super total drifted`);
+  for(const element of ELEMENT_ORDER){
+    const options=superDefinitionsFor(characterClass,element);
+    assert.deepEqual(options.map(item=>item.hash),expectedSuperHashes[characterClass][element],`${characterClass} ${element} Super hashes drifted`);
+    for(const item of options){
+      assert.ok(Number.isInteger(item.hash)&&item.hash>0,`${characterClass} ${element} contains an invalid Super hash`);
+      assert.match(item.icon,/^\/common\/destiny2_content\/icons\/[a-f0-9]+\.png$/,`${item.name} lost its Bungie icon path`);
+      assert.equal(item.bungieHash,item.hash,`${item.name} does not expose its exact Bungie hash`);
+    }
+  }
+}
+assert.equal(Object.values(expectedClassTotals).reduce((sum,count)=>sum+count,0),45,'Exactly 45 current Super plug hashes must be audited');
 const fallbackIcon={style:{}};
 const strandButton={
   dataset:{element:'strand'},
@@ -111,27 +147,39 @@ const strandButton={
   setAttribute(){},
   removeAttribute(){}
 };
-renderSubclassPicker({root:{querySelectorAll:()=>[strandButton]},characterClass:'hunter',subclass:'solar',subclassOptions:[]});
+const hunterCatalog=mergeSubclassCatalog([],'hunter');
+renderSubclassPicker({root:{querySelectorAll:()=>[strandButton]},characterClass:'hunter',subclass:'solar',subclassOptions:hunterCatalog});
 assert.match(fallbackIcon.style.backgroundImage,/41c0024ce809085ac16f4e0777ea0ac4\.png/,'Strand subclass diamond does not retain its Bungie fallback icon');
+assert.equal(strandButton.disabled,false,'Verified Strand subclass must be active and clickable');
+assert.equal(strandButton.dataset.bungieHash,'3785442599','Strand picker must expose the Hunter Threadrunner hash');
 
-const superItem=(name,hash)=>({name,hash,icon:`/${hash}.png`});
-const arcActive=superItem('Arc Active',101),arcAlternate=superItem('Arc Alternate',102);
-const catalog=[
-  {name:'Strand Subclass',element:'strand',subclassBuild:{super:superItem('Strand Equipped',201),superOptions:[superItem('Strand Equipped',201)]}},
-  {name:'Arc Subclass',element:'arc',subclassBuild:{super:arcActive,superOptions:[arcActive,arcAlternate]}},
-  {name:'Void Subclass',element:'void',subclassBuild:{super:superItem('Void Equipped',301),superOptions:[superItem('Void Equipped',301)]}},
-  {name:'Solar Subclass',element:'solar',subclassBuild:{super:superItem('Solar Equipped',401),superOptions:[superItem('Solar Equipped',401)]}}
-];
-const mapped=resolveSuperFormationSlots({activeSuper:arcActive,superOptions:[arcActive,arcAlternate],subclass:'arc',subclassCatalog:catalog});
-const bySlot=Object.fromEntries(mapped.entries.map(entry=>[entry.slot,entry]));
-assert.equal(bySlot.equipped.item,arcActive,'The large diamond must retain the equipped Super');
-assert.equal(bySlot['alternate-1'].item.name,'Strand Equipped','Strand must occupy the far-left small diamond');
-assert.equal(bySlot['alternate-3'].item.name,'Arc Alternate','The active element alternative must occupy the lower-left small diamond');
-assert.equal(bySlot['alternate-5'].item,arcActive,'The bottom small diamond must repeat the equipped Super');
-assert.equal(bySlot['alternate-4'].item.name,'Void Equipped','Void must occupy the lower-right small diamond');
-assert.equal(bySlot['alternate-2'].item.name,'Solar Equipped','Solar must occupy the far-right small diamond');
-assert.equal(mapped.entries.filter(entry=>entry.selected).length,1,'Exactly one small Super slot must own equipped state');
-assert.equal(bySlot['alternate-5'].selected,true,'The bottom small diamond must own equipped state');
+for(const characterClass of CLASS_NAMES){
+  const subclassCatalog=mergeSubclassCatalog([],characterClass);
+  for(const element of ELEMENT_ORDER){
+    const options=superDefinitionsFor(characterClass,element);
+    for(const selected of options){
+      const mapped=resolveSuperFormationSlots({activeSuper:selected,superOptions:options,subclass:element,subclassCatalog,characterClass});
+      const bySlot=Object.fromEntries(mapped.entries.map(entry=>[entry.slot,entry]));
+      assert.equal(bySlot.equipped.item.hash,selected.hash,`${characterClass} ${element}: large diamond did not accept ${selected.name}`);
+      assert.equal(bySlot['alternate-5'].item.hash,selected.hash,`${characterClass} ${element}: bottom diamond did not accept ${selected.name}`);
+      assert.equal(bySlot['alternate-5'].selected,true,`${characterClass} ${element}: bottom diamond lost selected state`);
+      assert.equal(mapped.entries.filter(entry=>entry.selected).length,1,`${characterClass} ${element}: selected state must have one owner`);
+      const sideItems=mapped.entries.filter(entry=>entry.role==='alternate-super'&&entry.item).map(entry=>entry.item.hash).sort((a,b)=>a-b);
+      const expectedAlternates=options.filter(item=>item.hash!==selected.hash).map(item=>item.hash).sort((a,b)=>a-b);
+      assert.deepEqual(sideItems,expectedAlternates,`${characterClass} ${element}: compatible alternatives disappeared or crossed subclasses`);
+      for(const next of options.filter(item=>item.hash!==selected.hash)){
+        const swapped=resolveSuperFormationSlots({activeSuper:next,superOptions:options,subclass:element,subclassCatalog,characterClass});
+        const swappedBySlot=Object.fromEntries(swapped.entries.map(entry=>[entry.slot,entry]));
+        assert.equal(swappedBySlot.equipped.item.hash,next.hash,`${characterClass} ${element}: clicked Super did not replace the large diamond`);
+        assert.equal(swappedBySlot['alternate-5'].item.hash,next.hash,`${characterClass} ${element}: clicked Super did not replace the bottom diamond`);
+        assert.ok(swapped.entries.some(entry=>entry.role==='alternate-super'&&entry.item?.hash===selected.hash),`${characterClass} ${element}: previous Super did not return to a side diamond`);
+      }
+    }
+  }
+}
+assert.match(syncModule,/onSelect:item=>\{const nextBuild=/,'Character page does not stage clicked Super state');
+assert.match(syncModule,/dispatchGuardianSelection/,'Character page does not publish clicked subclass/Super state');
+assert.match(buildModule,/working\.super=candidate/,'Build Forge does not synchronise its top-level Super after a click');
 
 const obsoleteFiles=[
   'guardian-main-correction.css',
@@ -152,7 +200,8 @@ for(const filename of cssFiles){
 console.log('SUPER_FORMATION_SHARED_OWNER=PASS');
 console.log('SUPER_FORMATION_PSD_RATIOS=PASS');
 console.log('SUPER_FORMATION_MAIN_BUILD_PARITY=PASS');
-console.log('SUPER_FORMATION_ELEMENT_MAPPING=PASS');
+console.log('SUPER_FORMATION_ALL_CLASS_HASH_CATALOG=PASS');
+console.log('SUPER_FORMATION_CLICK_SWAP=PASS');
 console.log('SUPER_FORMATION_EQUIPPED_DUPLICATION=PASS');
 console.log('SUBCLASS_PICKER_STRAND_MAPPING=PASS');
 console.log('EQUIPPED_SUBCLASS_HEADER_AND_PADDING=PASS');
