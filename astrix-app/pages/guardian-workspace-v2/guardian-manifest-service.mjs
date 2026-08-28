@@ -132,6 +132,7 @@ class GuardianManifestService{
     this.storage=storage;
     this.authOrigin=authOrigin;
     this.tables=new Map();
+    this.cachedTypes=new Set();
     this.fallbackDefinitions=new Map();
     this.readyPromise=null;
     this.version="";
@@ -160,13 +161,14 @@ class GuardianManifestService{
       const paths=metadata?.jsonWorldComponentContentPaths?.en||metadata?.paths||{};
       const version=String(metadata?.version||"").trim();
       if(!version)throw new Error("Bungie manifest version is missing.");
-      for(const type of COMPONENT_TYPES)if(!paths[type])throw new Error(`Bungie manifest path is missing for ${type}.`);
+      const downloadableTypes=COMPONENT_TYPES.filter(type=>paths[type]);
+      if(downloadableTypes.length===0)throw new Error("Bungie manifest exposes no known component paths.");
       this.version=version;
       const current=await this.storage.readCurrent();
       if(current?.version===version){
-        const records=await Promise.all(COMPONENT_TYPES.map(type=>this.storage.readTable(version,type)));
+        const records=await Promise.all(downloadableTypes.map(type=>this.storage.readTable(version,type)));
         if(records.every(record=>record?.definitions&&typeof record.definitions==="object")){
-          records.forEach((record,index)=>this.tables.set(COMPONENT_TYPES[index],record.definitions));
+          downloadableTypes.forEach((type,index)=>{this.tables.set(type,records[index].definitions);this.cachedTypes.add(type);});
           this.mode="indexeddb";
           this.versionMatched=true;
           emitProgress({status:"ready",percent:58,label:`Bungie manifest ${version} loaded from IndexedDB`,version,versionMatched:true});
@@ -174,24 +176,31 @@ class GuardianManifestService{
         }
       }
       this.versionMatched=false;
-      for(let index=0;index<COMPONENT_TYPES.length;index++){
-        const type=COMPONENT_TYPES[index];
-        const start=18+(index/COMPONENT_TYPES.length)*36;
+      for(let index=0;index<downloadableTypes.length;index++){
+        const type=downloadableTypes[index];
+        const start=18+(index/downloadableTypes.length)*36;
         emitProgress({status:"downloading",percent:Math.round(start),label:`Downloading ${type}`,type,version});
-        const url=new URL(`${this.authOrigin}/bungie/manifest/component`);
-        url.searchParams.set("type",type);
-        url.searchParams.set("version",version);
-        const response=await this.fetchImpl(url,{credentials:"include",headers:{Accept:"application/json"}});
-        if(!response.ok)throw new Error(`${type} download failed (${response.status}).`);
-        const definitions=await responseJsonWithProgress(response,ratio=>{
-          const percent=ratio===null?start:start+ratio*(36/COMPONENT_TYPES.length);
-          emitProgress({status:"downloading",percent:Math.round(percent),label:`Downloading ${type}`,type,version});
-        });
-        if(!definitions||typeof definitions!=="object"||Array.isArray(definitions))throw new Error(`${type} did not return a definition table.`);
-        if(!await this.storage.writeTable(version,type,definitions))throw new Error(`${type} could not be stored in IndexedDB.`);
-        this.tables.set(type,definitions);
-        emitProgress({status:"indexing",percent:Math.round(start+36/COMPONENT_TYPES.length),label:`Indexed ${type}`,type,version});
+        try{
+          const url=new URL(`${this.authOrigin}/bungie/manifest/component`);
+          url.searchParams.set("type",type);
+          url.searchParams.set("version",version);
+          const response=await this.fetchImpl(url,{credentials:"include",headers:{Accept:"application/json"}});
+          if(!response.ok)throw new Error(`${type} download failed (${response.status}).`);
+          const definitions=await responseJsonWithProgress(response,ratio=>{
+            const percent=ratio===null?start:start+ratio*(36/downloadableTypes.length);
+            emitProgress({status:"downloading",percent:Math.round(percent),label:`Downloading ${type}`,type,version});
+          });
+          if(!definitions||typeof definitions!=="object"||Array.isArray(definitions))throw new Error(`${type} did not return a definition table.`);
+          if(!await this.storage.writeTable(version,type,definitions))throw new Error(`${type} could not be stored in IndexedDB.`);
+          this.tables.set(type,definitions);
+          this.cachedTypes.add(type);
+          emitProgress({status:"indexing",percent:Math.round(start+36/downloadableTypes.length),label:`Indexed ${type}`,type,version});
+        }catch(tableError){
+          console.warn("manifest_table_skipped",{type,error:String(tableError?.message||tableError)});
+          emitProgress({status:"downloading",percent:Math.round(start+36/downloadableTypes.length),label:`Skipped ${type} · resolving live`,type,version});
+        }
       }
+      if(this.cachedTypes.size===0)throw new Error("No manifest component tables could be cached.");
       if(!await this.storage.commitVersion(version))throw new Error("Manifest version marker could not be stored.");
       await this.storage.removeOtherVersions(version);
       this.mode="indexeddb";
@@ -239,7 +248,7 @@ class GuardianManifestService{
     const numeric=numericHash(hash);
     if(numeric===null)return null;
     const local=this.get(type,numeric);
-    if(local||COMPONENT_SET.has(type)&&this.mode==="indexeddb")return local;
+    if(local||this.cachedTypes.has(type)&&this.mode==="indexeddb")return local;
     const key=`${type}:${numeric}`;
     if(this.fallbackDefinitions.has(key))return this.fallbackDefinitions.get(key);
     if(!this.fetchImpl)return null;
