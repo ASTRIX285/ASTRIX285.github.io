@@ -4,6 +4,7 @@ import {access,readdir,readFile} from 'node:fs/promises';
 const ROOT=new URL('../',import.meta.url);
 const PAGE_ROOT=new URL('pages/guardian-workspace-v2/',ROOT);
 const SHARED_CSS_URL=new URL('guardian-super-formation.css',PAGE_ROOT);
+const PICKER_CSS_URL=new URL('subclass-picker.css',PAGE_ROOT);
 const SHARED_MODULE_URL=new URL('guardian-super-formation.mjs',PAGE_ROOT);
 const CATALOG_MODULE_URL=new URL('guardian-super-catalog.mjs',PAGE_ROOT);
 const LOADOUT_DEFINITIONS_URL=new URL('guardian-loadout-definitions.mjs',PAGE_ROOT);
@@ -14,8 +15,9 @@ const SYNC_MODULE_URL=new URL('guardian-super-feature-sync.mjs',PAGE_ROOT);
 const BUILD_MODULE_URL=new URL('paradox-build-space/paradox-build-space.mjs',PAGE_ROOT);
 const read=url=>readFile(url,'utf8');
 
-const [css,moduleSource,catalogSource,mainHtml,buildHtml,mainModule,syncModule,buildModule,{LOADOUT_DEFINITIONS},catalogApi]=await Promise.all([
+const [css,pickerCss,moduleSource,catalogSource,mainHtml,buildHtml,mainModule,syncModule,buildModule,{LOADOUT_DEFINITIONS},catalogApi]=await Promise.all([
   read(SHARED_CSS_URL),
+  read(PICKER_CSS_URL),
   read(SHARED_MODULE_URL),
   read(CATALOG_MODULE_URL),
   read(MAIN_HTML_URL),
@@ -94,6 +96,7 @@ assert.match(moduleSource,/key==='prismatic'\?PRISMATIC_HEADER_ICON:icon/,'Prism
 assert.match(moduleSource,/prismatic:PRISMATIC_HEADER_ICON/,'Lower Prismatic picker is not routed through the same class-neutral icon');
 assert.match(moduleSource,/iconPath=SUBCLASS_PICKER_ICONS\[element\]/,'Subclass picker does not bind artwork to the selected subclass identity');
 assert.doesNotMatch(moduleSource,/resolvedSuperIcon\(option\)/,'Subclass picker can still substitute a stale Super icon');
+assert.match(pickerCss,/\.subclass-picker \.el\[data-element="prismatic"\] \.icon\{background-size:78% 78%\}/,'Lower Prismatic picker icon scale drifted');
 assert.match(css,/\.equipped-subclass:not\(\[data-subclass="prismatic"\]\) \.equipped-subclass__crest img\{[\s\S]*?position:absolute;[\s\S]*?left:50%;[\s\S]*?top:50%;[\s\S]*?transform:translate\(-50%,-50%\) rotate\(-45deg\);/,'Non-Prismatic header artwork is not explicitly centred');
 assert.match(moduleSource,/function renderSuperFormation/,'Shared Super renderer is missing');
 assert.match(moduleSource,/function resolveSuperFormationSlots/,'Shared Super slot mapper is missing');

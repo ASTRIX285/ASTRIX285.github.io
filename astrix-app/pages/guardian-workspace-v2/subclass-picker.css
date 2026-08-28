@@ -91,6 +91,7 @@
 .subclass-picker .el[data-element="stasis"]{--el:var(--el-stasis)}
 .subclass-picker .el[data-element="strand"]{--el:var(--el-strand)}
 .subclass-picker .el[data-element="prismatic"]{--el:var(--el-prismatic)}
+.subclass-picker .el[data-element="prismatic"] .icon{background-size:78% 78%}
 
 .subclass-picker .el[disabled],
 .subclass-picker .el.is-locked{opacity:.32;cursor:default}
