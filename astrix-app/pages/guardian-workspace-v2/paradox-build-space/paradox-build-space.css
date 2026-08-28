@@ -24,8 +24,8 @@
 .design-canvas .armour-design-section .eq-head h3{margin:0;font:700 .72rem Orbitron;letter-spacing:.16em}
 .design-canvas .armour-design-section .eq-head .tools{color:var(--dim);font:700 .58rem Orbitron;letter-spacing:.1em}
 
-/* Build-only fit: the shared Character armour tile remains locked at 92px. */
-.design-canvas .armour-design-section .gear-arm-anchor .arm{width:82.8px!important;height:82.8px!important}
+/* Build-only fit: preserve the shared 92px tile and centre its artwork at 90%. */
+.design-canvas .armour-design-section .gear-arm-anchor .arm>img{transform:scale(.9);transform-origin:center}
 
 
 /* Shared Guardian weapon overlays must be contained by their Build Space card. */

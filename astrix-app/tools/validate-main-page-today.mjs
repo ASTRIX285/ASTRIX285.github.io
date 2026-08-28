@@ -146,7 +146,7 @@ assert.match(buildModule,/createBuildState\(detail\)/,'Selected Build Tool chara
 assert.match(buildModule,/let volatileState=null/,'Build must retain a protected in-page snapshot when Web Storage rejects the handoff');
 assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuildState\(next\);/,'Build writes must protect the in-page fallback before attempting Web Storage');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
-assert.match(buildHtml,/paradox-build-space\.css\?v=20260829-armour-mirror-1/,'Build must load the mirrored Armour layout CSS without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.css\?v=20260829-armour-art-fit-1/,'Build must load the corrected Armour artwork fit without a stale cache');
 assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260829-subclass-identity-1-weapon-perk-hash-1-background-ready-1-armour-mirror-1/,'Build must load the current Armour renderer import without a stale module cache');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
@@ -172,7 +172,8 @@ assert.match(sharedRailCss,/body\.guardian-main-page\{[\s\S]*?overflow-y:auto!im
 assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.guardian-loadouts-container\{[\s\S]*?grid-row:1!important/,'The Main loadout container must occupy its own row above Armour');
 assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.gear-combined\{[\s\S]*?grid-row:2!important[\s\S]*?height:auto!important/,'Armour & Mods must retain its natural height below loadouts');
 assert.match(buildCss,/\.design-canvas \.loadouts-design-section,[\s\S]*?\.design-canvas \.armour-design-section\{/,'Build loadouts and Armour must be independent visual containers');
-assert.match(buildCss,/\.design-canvas \.armour-design-section \.gear-arm-anchor \.arm\{width:82\.8px!important;height:82\.8px!important\}/,'Build armour art must be exactly 10 percent smaller than the locked 92px Character tile');
+assert.doesNotMatch(buildCss,/\.design-canvas \.armour-design-section \.gear-arm-anchor \.arm\{[^}]*?(?:width|height):82\.8px/,'Build must not shrink the shared 92px armour tile');
+assert.match(buildCss,/\.design-canvas \.armour-design-section \.gear-arm-anchor \.arm>img\{transform:scale\(\.9\);transform-origin:center\}/,'Build must centre the armour artwork at 90 percent inside the shared tile');
 assert.match(buildModule,/markGuardianFastReturn\(\);location\.href='\.\.\/'/,'Build Back must mark the authenticated cached return before opening Main');
 
 for(const [label,html] of [['Main',workspaceHtml],['Build',buildHtml]]){
