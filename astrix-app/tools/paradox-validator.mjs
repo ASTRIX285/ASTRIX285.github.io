@@ -4,6 +4,9 @@ import {fileURLToPath} from 'node:url';
 const tools=fileURLToPath(new URL('./',import.meta.url));
 const validators=[
   'validate-scope-guard.mjs',
+  'validate-guardian-adaptive-layout.py',
+  'validate-guardian-character-cards.py',
+  'validate-guardian-complete-loadout.py',
   'validate-main-page-today.mjs',
   'validate-super-formation.mjs',
   'validate-responsive-layout-contract.mjs',
@@ -20,7 +23,8 @@ const validators=[
 ];
 
 for(const validator of validators){
-  const result=spawnSync(process.execPath,[`${tools}${validator}`],{cwd:fileURLToPath(new URL('../../',import.meta.url)),stdio:'inherit'});
+  const executable=validator.endsWith('.py')?'python3':process.execPath;
+  const result=spawnSync(executable,[`${tools}${validator}`],{cwd:fileURLToPath(new URL('../../',import.meta.url)),stdio:'inherit'});
   if(result.error)throw result.error;
   if(result.status!==0)process.exit(result.status??1);
 }
