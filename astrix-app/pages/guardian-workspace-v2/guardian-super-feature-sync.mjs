@@ -4,7 +4,7 @@
  */
 
 import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
-import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from './guardian-super-formation.mjs?v=20260826-four-fixes-1';
+import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from './guardian-super-formation.mjs?v=20260828-super-map-1';
 import './guardian-artifact.mjs?v=20260824-artifact-state-2';
 import './paradox-build-space-handoff.mjs';
 
@@ -81,7 +81,7 @@ function syncTranscendence(host,detail,isPrismatic){
     setDiamondFromItem(slot,item,item?.name||`Prismatic Transcendence slot ${index+1} unresolved`);
   });
 }
-function populateSuperChain(detail={}){const host=document.getElementById('superFeatureCluster');const build=detail?.subclassBuild||{};if(!host||!build)return;const active=build.super||detail.super||null;const options=(Array.isArray(build.superOptions)?build.superOptions:Array.isArray(detail.superOptions)?detail.superOptions:[]).filter(Boolean);const subclass=String(detail.subclass||'').trim().toLowerCase();renderSuperFormation({host,nameNode:document.getElementById('subclassName'),activeSuper:active,superOptions:options,subclass,onSelect:()=>{}});syncTranscendence(host,detail,subclass==='prismatic');const label=document.getElementById('subclassName');if(label&&active?.name)label.dataset.superName=active.name;}
+function populateSuperChain(detail={}){const host=document.getElementById('superFeatureCluster');const build=detail?.subclassBuild||{};if(!host||!build)return;const active=build.super||detail.super||null;const options=(Array.isArray(build.superOptions)?build.superOptions:Array.isArray(detail.superOptions)?detail.superOptions:[]).filter(Boolean);const subclass=String(detail.subclass||'').trim().toLowerCase();renderSuperFormation({host,nameNode:document.getElementById('subclassName'),activeSuper:active,superOptions:options,subclass,subclassCatalog:detail.subclassCatalog,subclassIdentity:detail.subclassIdentity||{name:detail.subclassName,icon:detail.subclassIcon,element:subclass}});syncTranscendence(host,detail,subclass==='prismatic');const label=document.getElementById('subclassName');if(label&&active?.name)label.dataset.superName=active.name;}
 document.addEventListener('astrix:guardian-selection-changed',event=>{const detail=event.detail||{};syncEquippedSubclass(detail);enforceLeftPanelSlots();queueMicrotask(()=>populateSuperChain(detail));});
 document.addEventListener('astrix:artifact-recommendations-changed',enforceLeftPanelSlots);
 enforceLeftPanelSlots();

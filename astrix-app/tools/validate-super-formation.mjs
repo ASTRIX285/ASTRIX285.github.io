@@ -7,13 +7,19 @@ const SHARED_CSS_URL=new URL('guardian-super-formation.css',PAGE_ROOT);
 const SHARED_MODULE_URL=new URL('guardian-super-formation.mjs',PAGE_ROOT);
 const MAIN_HTML_URL=new URL('index.html',PAGE_ROOT);
 const BUILD_HTML_URL=new URL('paradox-build-space/index.html',PAGE_ROOT);
+const MAIN_MODULE_URL=new URL('guardian-workspace-v2.mjs',PAGE_ROOT);
+const SYNC_MODULE_URL=new URL('guardian-super-feature-sync.mjs',PAGE_ROOT);
+const BUILD_MODULE_URL=new URL('paradox-build-space/paradox-build-space.mjs',PAGE_ROOT);
 const read=url=>readFile(url,'utf8');
 
-const [css,moduleSource,mainHtml,buildHtml]=await Promise.all([
+const [css,moduleSource,mainHtml,buildHtml,mainModule,syncModule,buildModule]=await Promise.all([
   read(SHARED_CSS_URL),
   read(SHARED_MODULE_URL),
   read(MAIN_HTML_URL),
-  read(BUILD_HTML_URL)
+  read(BUILD_HTML_URL),
+  read(MAIN_MODULE_URL),
+  read(SYNC_MODULE_URL),
+  read(BUILD_MODULE_URL)
 ]);
 
 const expectedColours={
@@ -77,10 +83,41 @@ for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
 
 assert.match(moduleSource,/function renderEquippedSubclass/,'Shared equipped subclass renderer is missing');
 assert.match(moduleSource,/function renderSuperFormation/,'Shared Super renderer is missing');
+assert.match(moduleSource,/function resolveSuperFormationSlots/,'Shared Super slot mapper is missing');
 assert.match(moduleSource,/holder\.replaceChildren\(\)/,'Empty Super slots must clear placeholder glyphs');
 assert.match(moduleSource,/slot\.hidden=false/,'Every PSD Super frame must remain visible');
 assert.match(moduleSource,/is-empty-super/,'Unresolved Super frames must remain transparent and explicit');
 assert.match(css,/\.super-diamond--equipped>span\{[\s\S]*?inset:-20\.7107%!important;[\s\S]*?width:141\.4214%!important;[\s\S]*?height:141\.4214%!important/,'Equipped Super artwork must fill the rotated diamond without inner padding');
+
+for(const [label,source] of [['Main renderer',mainModule],['Main sync bridge',syncModule],['Build renderer',buildModule]]){
+  assert.match(source,/subclassCatalog:/,`${label} does not pass the verified subclass catalogue to the shared Super mapper`);
+}
+assert.match(buildModule,/function stageMappedSuper/,'Build Forge does not stage mapped cross-element Super selections through the shared formation');
+
+const {resolveSuperFormationSlots}=await import(SHARED_MODULE_URL.href);
+const superItem=(name,hash)=>({name,hash,icon:`/${hash}.png`});
+const arcActive=superItem('Arc Active',101),arcAlternate=superItem('Arc Alternate',102);
+const catalog=[
+  {name:'Strand Subclass',element:'strand',hash:1,icon:'/strand-subclass.png',subclassBuild:{super:superItem('Strand Equipped',201),superOptions:[superItem('Strand Equipped',201)]}},
+  {name:'Arc Subclass',element:'arc',hash:2,icon:'/arc-subclass.png',subclassBuild:{super:arcActive,superOptions:[arcActive,arcAlternate]}},
+  {name:'Void Subclass',element:'void',hash:3,icon:'/void-subclass.png',subclassBuild:{super:superItem('Void Equipped',301),superOptions:[superItem('Void Equipped',301)]}},
+  {name:'Solar Subclass',element:'solar',hash:4,icon:'/solar-subclass.png',subclassBuild:{super:superItem('Solar Equipped',401),superOptions:[superItem('Solar Equipped',401)]}}
+];
+const mapped=resolveSuperFormationSlots({activeSuper:arcActive,superOptions:[arcActive,arcAlternate],subclass:'arc',subclassCatalog:catalog});
+const bySlot=Object.fromEntries(mapped.entries.map(entry=>[entry.slot,entry]));
+assert.equal(bySlot.equipped.item.name,'Arc Subclass','The large diamond must show the equipped subclass identity');
+assert.equal(bySlot['alternate-1'].item.name,'Strand Equipped','Strand must occupy the far-left small diamond');
+assert.equal(bySlot['alternate-3'].item.name,'Arc Alternate','The active element alternative must occupy the lower-left small diamond');
+assert.equal(bySlot['alternate-5'].item.name,'Arc Active','The equipped Super must occupy the bottom small diamond');
+assert.equal(bySlot['alternate-4'].item.name,'Void Equipped','Void must occupy the lower-right small diamond');
+assert.equal(bySlot['alternate-2'].item.name,'Solar Equipped','Solar must occupy the far-right small diamond');
+assert.equal(mapped.entries.filter(entry=>entry.selected).length,1,'Exactly one Super slot must be selected');
+assert.equal(bySlot['alternate-5'].selected,true,'Only the bottom small diamond may own the equipped Super selection');
+const staleActive=resolveSuperFormationSlots({activeSuper:arcActive,superOptions:[arcActive],subclass:'void',subclassCatalog:catalog});
+assert.equal(Object.fromEntries(staleActive.entries.map(entry=>[entry.slot,entry]))['alternate-5'].item.name,'Void Equipped','The active subclass catalogue must correct a stale cross-element Super input');
+assert.equal(Object.fromEntries(staleActive.entries.map(entry=>[entry.slot,entry]))['alternate-4'].item,null,'A stale cross-element Super must not leak into the active element alternative slot');
+const unverifiedSolar=resolveSuperFormationSlots({activeSuper:arcActive,superOptions:[arcActive],subclass:'arc',subclassCatalog:[catalog[1],{name:'Solar Subclass',element:'solar',subclassBuild:{super:null,superOptions:[superItem('Solar Available',402)]}}]});
+assert.equal(Object.fromEntries(unverifiedSolar.entries.map(entry=>[entry.slot,entry]))['alternate-2'].item,null,'An available Super must not be guessed as equipped for another element');
 
 const obsoleteFiles=[
   'guardian-main-correction.css',
@@ -101,6 +138,7 @@ for(const filename of cssFiles){
 console.log('SUPER_FORMATION_SHARED_OWNER=PASS');
 console.log('SUPER_FORMATION_PSD_RATIOS=PASS');
 console.log('SUPER_FORMATION_MAIN_BUILD_PARITY=PASS');
+console.log('SUPER_FORMATION_ELEMENT_MAPPING=PASS');
 console.log('EQUIPPED_SUBCLASS_HEADER_AND_PADDING=PASS');
 console.log('SUPER_FORMATION_ROTATED_BOUNDS=PASS');
 console.log('SUPER_FORMATION_RESPONSIVE_SOURCE=PASS');
