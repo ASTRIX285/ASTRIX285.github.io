@@ -2,6 +2,13 @@
 // Keep this module deterministic and conservative: unknown evidence stays unknown.
 
 const norm=value=>String(value??"").trim().toLowerCase();
+const WEAPON_PERK_MANIFEST_AUDIT=Object.freeze({
+  manifestVersion:'244213.26.06.29.2000-1-bnet.65583',
+  candidateDefinitions:2423,
+  iconDefinitions:2136,
+  iconlessDefinitions:287,
+  hashMismatches:0
+});
 const uniq=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>Number(other?.hash)===Number(row?.hash))===index);
 const uniqSockets=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>{
   if(Number(other?.hash)!==Number(row?.hash))return false;
@@ -9,6 +16,22 @@ const uniqSockets=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>{
   if(Number.isInteger(rowSocket)&&Number.isInteger(otherSocket))return rowSocket===otherSocket;
   return other===row;
 })===index);
+
+function weaponPerkIdentity(plug){
+  if(!plug)return null;
+  const hash=Number(plug?.hash??plug?.itemHash??plug?.bungieHash);
+  const verifiedHash=Number.isInteger(hash)&&hash>0?hash:null;
+  const definitionIcon=plug?.definition?.displayProperties?.icon||plug?.displayProperties?.icon||'';
+  const icon=verifiedHash?(definitionIcon||plug?.icon||''):'';
+  return {
+    ...plug,
+    hash:verifiedHash,
+    bungieHash:verifiedHash,
+    icon,
+    iconHash:icon?verifiedHash:null,
+    iconSource:icon?'DestinyInventoryItemDefinition':null
+  };
+}
 
 function semanticText(item){
   return [item?.name,item?.description,item?.itemTypeDisplayName,item?.definition?.plug?.plugCategoryIdentifier,item?.socketCategoryHash,item?.socketCategoryDefinition?.displayProperties?.name,item?.socketCategoryDefinition?.displayProperties?.description,...(item?.definition?.traitIds||[])].filter(Boolean).join(" ").toLowerCase();
@@ -94,13 +117,15 @@ function enhancementState(item){
 function normaliseAlternativeColumns(columns={}){
   return Object.entries(columns||{}).map(([socketIndex,plugs])=>({
     socketIndex:Number(socketIndex),
-    options:uniq((plugs||[]).filter(plug=>["perk","intrinsic","weapon-mod","catalyst"].includes(classifyWeaponPlug(plug))))
+    options:uniq((plugs||[]).map(weaponPerkIdentity).filter(plug=>plug?.bungieHash&&["perk","intrinsic","weapon-mod","catalyst"].includes(classifyWeaponPlug(plug))))
   })).filter(column=>column.options.length);
 }
 
 function normaliseWeaponSemantics({profile=null,item=null,plugs=[],instance=null,stats=null,alternativeColumns={}}={}){
   const groups={intrinsic:[],perks:[],masterwork:[],mod:[],catalyst:[],unknown:[]};
-  for(const plug of plugs){
+  for(const sourcePlug of plugs){
+    const plug=weaponPerkIdentity(sourcePlug);
+    if(!plug?.bungieHash){groups.unknown.push(plug);continue;}
     const role=classifyWeaponPlug(plug);
     if(role==="appearance")continue;
     if(role==="intrinsic")groups.intrinsic.push(plug);
@@ -111,8 +136,11 @@ function normaliseWeaponSemantics({profile=null,item=null,plugs=[],instance=null
     else groups.unknown.push(plug);
   }
   const catalyst=groups.catalyst[0]||null;
+  const alternativePerkColumns=normaliseAlternativeColumns(alternativeColumns);
+  const iconItems=uniq([...groups.intrinsic,...groups.perks,...groups.masterwork,...groups.mod,...groups.catalyst,...alternativePerkColumns.flatMap(column=>column.options)]);
+  const perkIconHashMap=Object.fromEntries(iconItems.filter(item=>item.icon&&item.iconHash===item.bungieHash).map(item=>[String(item.bungieHash),item.icon]));
   return {
-    intrinsic:groups.intrinsic[0]||null,selectedPerks:uniq(groups.perks),alternativePerkColumns:normaliseAlternativeColumns(alternativeColumns),
+    intrinsic:groups.intrinsic[0]||null,selectedPerks:uniq(groups.perks),alternativePerkColumns,perkIconHashMap,
     enhancementState:enhancementState(item),masterwork:groups.masterwork[0]||null,mod:groups.mod[0]||null,
     catalyst:catalyst?{...catalyst,progress:catalystProgress(profile,item?.itemInstanceId,catalyst)}:null,
     champion:(instance?.breakerTypeHash||instance?.breakerType)?{breakerType:instance.breakerType??null,breakerTypeHash:instance.breakerTypeHash??null,source:"bungie-item-instance"}:null,
@@ -128,4 +156,4 @@ function validateArtifact(artifact){
   return {activeCount:active.length,uniqueActiveCount:new Set(hashes).size,noDuplicateActiveHashes:new Set(hashes).size===hashes.length};
 }
 
-export {semanticText,plugCategory,classifyArmourPlug,normaliseArmourSemantics,classifyWeaponPlug,normaliseWeaponSemantics,normaliseGuardianStats,validateArtifact,enhancementState};
+export {WEAPON_PERK_MANIFEST_AUDIT,semanticText,plugCategory,classifyArmourPlug,normaliseArmourSemantics,classifyWeaponPlug,weaponPerkIdentity,normaliseWeaponSemantics,normaliseGuardianStats,validateArtifact,enhancementState};

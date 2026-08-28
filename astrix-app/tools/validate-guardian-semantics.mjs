@@ -2,6 +2,8 @@
 // This is the mechanical counterpart to Paradox Validator reasoning rules:
 // unresolved/inactive evidence must never become a verified causal claim.
 
+import {readFile} from 'node:fs/promises';
+
 const failures=[];
 const fail=message=>failures.push(message);
 
@@ -89,6 +91,24 @@ try{
   const result=semantics.normaliseWeaponSemantics({profile,item:{itemInstanceId:'abc'},plugs:[catalyst]});
   if(result.catalyst?.progress?.completed!==false||result.catalyst?.progress?.active!==false)fail('G3: incomplete catalyst received active credit');
 }catch(error){fail(`G3 threw: ${error.message}`);}
+
+// G3b — Every rendered weapon socket icon remains bound to its exact Bungie
+// DestinyInventoryItemDefinition hash. Iconless definitions stay iconless.
+try{
+  const selected={hash:2401,bungieHash:2401,name:'Selected Trait',icon:'/common/wrong.png',definition:{displayProperties:{icon:'/common/selected-2401.png'},plug:{plugCategoryIdentifier:'traits'}}};
+  const alternative={hash:2402,bungieHash:2402,name:'Alternative Trait',definition:{displayProperties:{icon:'/common/alternative-2402.png'},plug:{plugCategoryIdentifier:'traits'}}};
+  const result=semantics.normaliseWeaponSemantics({plugs:[selected],alternativeColumns:{3:[alternative]}});
+  const normalised=result.selectedPerks[0],normalisedAlternative=result.alternativePerkColumns[0]?.options?.[0];
+  if(normalised?.bungieHash!==2401||normalised?.iconHash!==2401||normalised?.icon!=='/common/selected-2401.png')fail('G3b: selected weapon perk icon is not bound to definition hash 2401');
+  if(normalisedAlternative?.bungieHash!==2402||normalisedAlternative?.iconHash!==2402)fail('G3b: alternative weapon perk icon is not bound to definition hash 2402');
+  if(result.perkIconHashMap?.['2401']!=='/common/selected-2401.png'||result.perkIconHashMap?.['2402']!=='/common/alternative-2402.png')fail('G3b: weapon perk hash→icon model is incomplete');
+  const invalid=semantics.normaliseWeaponSemantics({plugs:[{hash:'not-a-hash',icon:'/common/guessed.png',definition:{plug:{plugCategoryIdentifier:'traits'}}}]});
+  if(invalid.selectedPerks.length||invalid.perkIconHashMap?.['not-a-hash']||invalid.unknownPlugs.length!==1)fail('G3b: hashless weapon perk received a guessed icon identity');
+  const audit=semantics.WEAPON_PERK_MANIFEST_AUDIT;
+  if(audit.candidateDefinitions!==2423||audit.iconDefinitions!==2136||audit.iconlessDefinitions!==287||audit.hashMismatches!==0)fail('G3b: 2026-08-28 weapon perk manifest audit totals drifted');
+  const uiSource=await readFile(new URL('../pages/guardian-workspace-v2/guardian-semantic-ui.mjs',import.meta.url),'utf8');
+  if(!/data-bungie-hash/.test(uiSource)||!/hashAttribute\(perk\)/.test(uiSource)||!/hashAttribute\(semantics\.intrinsic\)/.test(uiSource))fail('G3b: weapon perk/intrinsic DOM icons do not expose their Bungie hash');
+}catch(error){fail(`G3b threw: ${error.message}`);}
 
 // G4 — Stat threshold is above 100, not merely at 100.
 try{

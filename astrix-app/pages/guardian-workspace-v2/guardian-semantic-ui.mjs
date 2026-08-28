@@ -5,12 +5,14 @@
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const bungieIcon=v=>{const s=String(v??"");return !s?"":s.startsWith("http")?s:`https://www.bungie.net${s}`;};
 const text=v=>String(v?.name??v?.displayName??v??"").trim();
+const bungieHash=v=>{const hash=Number(v?.bungieHash??v?.hash??v?.itemHash);return Number.isInteger(hash)&&hash>0?hash:null;};
+const hashAttribute=v=>{const hash=bungieHash(v);return hash?` data-bungie-hash="${hash}"`:"";};
 const WEAPON_STATS=[[4043523819,"Impact"],[1240592695,"Range"],[155624089,"Stability"],[943549884,"Handling"],[4188031367,"Reload Speed"],[1345609583,"Aim Assistance"],[3555269338,"Zoom"],[2715839340,"Airborne Effectiveness"],[4284893193,"Rounds Per Minute"],[3871231066,"Magazine"],[2714457168,"Recoil Direction"]];
 
 function weaponDetailTile(item,label=""){
   if(!item)return "";
-  const icon=bungieIcon(item.icon??item.displayProperties?.icon);
-  return `<div class="weapon-detail-tile" title="${esc([text(item),item.description].filter(Boolean).join(" — "))}">${icon?`<img src="${esc(icon)}" alt="">`:"◆"}<span>${esc(label||text(item)||"Resolved item")}</span></div>`;
+  const icon=bungieHash(item)?bungieIcon(item.icon??item.displayProperties?.icon):"";
+  return `<div class="weapon-detail-tile"${hashAttribute(item)} title="${esc([text(item),item.description].filter(Boolean).join(" — "))}">${icon?`<img src="${esc(icon)}"${hashAttribute(item)} alt="">`:"◆"}<span>${esc(label||text(item)||"Resolved item")}</span></div>`;
 }
 
 function openWeaponDetail(item){
@@ -26,7 +28,7 @@ function openWeaponDetail(item){
   const perks=[s.intrinsic,...(s.selectedPerks||[])].filter(Boolean);
   const mods=[s.masterwork,s.mod,s.catalyst].filter(Boolean);
   const advice=item?.weaponRollAdvice||null;
-  const adviceMarkup=advice?.hasVerifiedRecommendation?`<h3>PARADOX PERK RECOMMENDATION</h3><div class="weapon-roll-advice"><b>${esc(advice.alreadySelected?"Current selected perks already support this build":"Verified owned-roll match")}</b><p>${esc(advice.best?.reasons?.join(" · ")||"")}</p><div class="weapon-detail-tiles">${(advice.best?.options||[]).map(option=>`<span class="weapon-advice-option">${esc(option.name||`Perk ${option.hash}`)}</span>`).join("")}</div><small>${esc(advice.action?.remotePerkMutationSupported?"Requires confirmation before applying.":"Recommendation staged; live Bungie apply route is not yet enabled.")}</small></div>`:`<h3>PARADOX PERK RECOMMENDATION</h3><p class="weapon-detail-empty">No verified selectable perk match is currently supported by curated Paradox intelligence.</p>`;
+  const adviceMarkup=advice?.hasVerifiedRecommendation?`<h3>PARADOX PERK RECOMMENDATION</h3><div class="weapon-roll-advice"><b>${esc(advice.alreadySelected?"Current selected perks already support this build":"Verified owned-roll match")}</b><p>${esc(advice.best?.reasons?.join(" · ")||"")}</p><div class="weapon-detail-tiles">${(advice.best?.options||[]).map(option=>`<span class="weapon-advice-option"${hashAttribute(option)}>${esc(option.name||`Perk ${option.hash}`)}</span>`).join("")}</div><small>${esc(advice.action?.remotePerkMutationSupported?"Requires confirmation before applying.":"Recommendation staged; live Bungie apply route is not yet enabled.")}</small></div>`:`<h3>PARADOX PERK RECOMMENDATION</h3><p class="weapon-detail-empty">No verified selectable perk match is currently supported by curated Paradox intelligence.</p>`;
   const content=host.querySelector(".weapon-detail-content");
   if(content)content.innerHTML=`<header class="weapon-detail-head"><div class="weapon-detail-icon"><img src="${esc(bungieIcon(item.icon))}" alt=""></div><div><h2>${esc(item.name||"Weapon")}</h2><p>${esc(item.itemTypeDisplayName||item.weaponType||"Weapon")}</p></div><div class="weapon-detail-power"><small>POWER</small><b>${esc(item.power??"—")}</b></div></header><p class="weapon-flavour">${esc(item.description||"")}</p><div class="weapon-detail-grid"><section><h3>WEAPON PERKS</h3><div class="weapon-detail-tiles">${perks.map(x=>weaponDetailTile(x)).join("")||'<p class="weapon-detail-empty">No resolved perk evidence.</p>'}</div><h3>WEAPON MODS</h3><div class="weapon-detail-tiles">${mods.map(x=>weaponDetailTile(x)).join("")||'<p class="weapon-detail-empty">No resolved mod evidence.</p>'}</div>${s.intrinsic?`<h3>INTRINSIC TRAIT</h3>${weaponDetailTile(s.intrinsic)}`:""}${adviceMarkup}</section><section><h3>WEAPON STATS</h3><div class="weapon-stats">${statRows||'<p class="weapon-detail-empty">Stats unresolved.</p>'}</div></section></div>`;
   host.setAttribute("aria-hidden","false");document.body.classList.add("weapon-detail-open");
@@ -93,29 +95,29 @@ function renderWeapons(weapons=[]){
     const gearTier=Math.max(0,Math.min(5,Number(item.gearTier)||0));
     card.classList.toggle("is-level-gold",hasRank&&rank>=10);
     const semantics=item.weaponSemantics||{};
-    const intrinsicIcon=bungieIcon(semantics.intrinsic?.icon);
+    const intrinsicIcon=bungieHash(semantics.intrinsic)?bungieIcon(semantics.intrinsic?.icon):"";
     const championIcon=bungieIcon(item.breakerDefinition?.displayProperties?.icon);
     const equippedMod=semantics.mod||semantics.selectedMod||item.weaponMod||item.mod;
-    const equippedModIcon=bungieIcon(equippedMod?.icon||equippedMod?.displayProperties?.icon);
+    const equippedModIcon=bungieHash(equippedMod)?bungieIcon(equippedMod?.icon||equippedMod?.displayProperties?.icon):"";
     const masterwork=semantics.masterwork;
-    const masterworkIcon=bungieIcon(masterwork?.icon||masterwork?.displayProperties?.icon||masterwork?.definition?.displayProperties?.icon);
+    const masterworkIcon=bungieHash(masterwork)?bungieIcon(masterwork?.icon||masterwork?.displayProperties?.icon||masterwork?.definition?.displayProperties?.icon):"";
     const masterworkName=text(masterwork)||masterwork?.definition?.displayProperties?.name||"Resolved masterwork";
     const elementIcon=bungieIcon(item.elementDefinition?.displayProperties?.icon||item.elementDefinition?.transparentIconPath);
     if(art){
       art.classList.toggle("ph",!icon);
       const power=Number(item.power)||"—";
-      art.innerHTML=`${icon?`<img class="weapon-art-image" src="${esc(icon)}" alt="${esc(item.name||"Weapon")}">`:'<span class="ph-glyph">⌖</span>'}${seasonIcon||gearTier?`<span class="weapon-tier-rail">${seasonIcon?`<span class="weapon-season-icon" title="Season/source emblem"><img src="${esc(seasonIcon)}" alt=""></span>`:""}${Array.from({length:gearTier},()=>'<i class="weapon-tier-diamond" aria-hidden="true"></i>').join("")}</span>`:""}<span class="weapon-right-rail">${intrinsicIcon?`<span class="weapon-corner-icon is-intrinsic" title="Intrinsic trait"><img src="${esc(intrinsicIcon)}" alt=""></span>`:""}${championIcon?`<span class="weapon-corner-icon is-champion" title="Champion capability"><img src="${esc(championIcon)}" alt=""></span>`:""}</span>${hasRank&&rank<10?`<span class="weapon-rank" title="Weapon mod rank">LVL ${esc(rank)}</span>`:""}<span class="weapon-power">${elementIcon?`<img src="${esc(elementIcon)}" alt="">`:""}<b>${esc(power)}</b></span>`;
+      art.innerHTML=`${icon?`<img class="weapon-art-image" src="${esc(icon)}" alt="${esc(item.name||"Weapon")}">`:'<span class="ph-glyph">⌖</span>'}${seasonIcon||gearTier?`<span class="weapon-tier-rail">${seasonIcon?`<span class="weapon-season-icon" title="Season/source emblem"><img src="${esc(seasonIcon)}" alt=""></span>`:""}${Array.from({length:gearTier},()=>'<i class="weapon-tier-diamond" aria-hidden="true"></i>').join("")}</span>`:""}<span class="weapon-right-rail">${intrinsicIcon?`<span class="weapon-corner-icon is-intrinsic"${hashAttribute(semantics.intrinsic)} title="Intrinsic trait"><img src="${esc(intrinsicIcon)}"${hashAttribute(semantics.intrinsic)} alt=""></span>`:""}${championIcon?`<span class="weapon-corner-icon is-champion" title="Champion capability"><img src="${esc(championIcon)}" alt=""></span>`:""}</span>${hasRank&&rank<10?`<span class="weapon-rank" title="Weapon mod rank">LVL ${esc(rank)}</span>`:""}<span class="weapon-power">${elementIcon?`<img src="${esc(elementIcon)}" alt="">`:""}<b>${esc(power)}</b></span>`;
     }
     const cap=card.querySelector(".cap");
     if(cap)cap.innerHTML=`<b>${esc(item.name||"Weapon")}</b><small title="${esc(weaponSubtitle(item))}">${esc(weaponSubtitle(item))}</small>`;
     let perkStrip=card.querySelector(".weapon-perk-strip");
     if(!perkStrip){perkStrip=document.createElement("div");perkStrip.className="weapon-perk-strip";perkStrip.setAttribute("aria-label","Resolved weapon perks");card.append(perkStrip);}
-    const selectedPerks=(semantics.selectedPerks||[]).filter(perk=>bungieIcon(perk?.icon));
-    perkStrip.innerHTML=selectedPerks.map(perk=>`<span class="weapon-perk-icon ${isEnhancedPerk(perk)?"is-enhanced":""}" title="${esc(perk.name||"Resolved perk")}"><img src="${esc(bungieIcon(perk.icon))}" alt="${esc(perk.name||"")}"></span>`).join("");
+    const selectedPerks=(semantics.selectedPerks||[]).filter(perk=>bungieHash(perk)&&bungieIcon(perk?.icon));
+    perkStrip.innerHTML=selectedPerks.map(perk=>`<span class="weapon-perk-icon ${isEnhancedPerk(perk)?"is-enhanced":""}"${hashAttribute(perk)} title="${esc(perk.name||"Resolved perk")}"><img src="${esc(bungieIcon(perk.icon))}"${hashAttribute(perk)} alt="${esc(perk.name||"")}"></span>`).join("");
     perkStrip.hidden=selectedPerks.length===0;
     let supportStrip=card.querySelector(".weapon-support-icons");
     if(!supportStrip){supportStrip=document.createElement("div");supportStrip.className="weapon-support-icons";supportStrip.setAttribute("aria-label","Equipped weapon mod and masterwork");card.append(supportStrip);}
-    supportStrip.innerHTML=`${equippedModIcon?`<span class="weapon-support-icon is-mod" title="${esc(text(equippedMod)||"Equipped weapon mod")}"><img src="${esc(equippedModIcon)}" alt=""></span>`:""}${masterworkIcon?`<span class="weapon-support-icon is-masterwork" title="${esc(masterworkName)}"><img src="${esc(masterworkIcon)}" alt=""></span>`:""}`;
+    supportStrip.innerHTML=`${equippedModIcon?`<span class="weapon-support-icon is-mod"${hashAttribute(equippedMod)} title="${esc(text(equippedMod)||"Equipped weapon mod")}"><img src="${esc(equippedModIcon)}"${hashAttribute(equippedMod)} alt=""></span>`:""}${masterworkIcon?`<span class="weapon-support-icon is-masterwork"${hashAttribute(masterwork)} title="${esc(masterworkName)}"><img src="${esc(masterworkIcon)}"${hashAttribute(masterwork)} alt=""></span>`:""}`;
     supportStrip.hidden=!equippedModIcon&&!masterworkIcon;
   });
 }

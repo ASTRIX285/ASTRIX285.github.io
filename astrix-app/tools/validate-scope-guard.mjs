@@ -4,17 +4,16 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
-  'astrix-app/pages/guardian-workspace-v2/guardian-super-feature-sync.mjs',
-  'astrix-app/pages/guardian-workspace-v2/guardian-super-catalog.mjs',
-  'astrix-app/pages/guardian-workspace-v2/guardian-super-formation.css',
-  'astrix-app/pages/guardian-workspace-v2/guardian-super-formation.mjs',
-  'astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-gear-layout.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-semantic-interceptor.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-semantic-resolver.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-semantic-ui.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-workspace-v2.mjs',
   'astrix-app/pages/guardian-workspace-v2/index.html',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
-  'astrix-app/tools/validate-super-formation.mjs'
+  'astrix-app/tools/validate-guardian-semantics.mjs'
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);

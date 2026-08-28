@@ -1,4 +1,4 @@
-import "./guardian-semantic-interceptor.mjs?v=20260825-armour-data-recovery-1";
+import "./guardian-semantic-interceptor.mjs?v=20260829-weapon-perk-hash-1";
 import {
   normaliseLiveProfile,
   loadSelectedLoadout,
