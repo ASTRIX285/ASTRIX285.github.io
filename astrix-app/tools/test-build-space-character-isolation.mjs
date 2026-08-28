@@ -11,7 +11,13 @@ class MemoryStore{
 
 globalThis.sessionStorage=new MemoryStore();
 globalThis.localStorage=new MemoryStore();
-globalThis.document={addEventListener(){}};
+const documentListeners=new Map();
+globalThis.document={
+  addEventListener(type,listener){const rows=documentListeners.get(type)||[];rows.push(listener);documentListeners.set(type,rows);},
+  querySelector(){return null;},
+  dispatchEvent(){}
+};
+globalThis.requestAnimationFrame=callback=>{callback();return 1;};
 globalThis.location={href:''};
 
 const {
@@ -21,6 +27,7 @@ const {
   rememberArtifactSelection,
   resolveBuildSource,
   currentProfileBuildSource,
+  BUILD_SPACE_KEY,
   BUILD_SNAPSHOT_KEY,
   LAST_LOADOUT_KEY
 }=await import('../pages/guardian-workspace-v2/paradox-build-space-handoff.mjs');
@@ -100,5 +107,15 @@ sessionStorage.setItem(BUILD_SNAPSHOT_KEY,JSON.stringify(createHandoffEnvelope(c
 const currentPaintedSource=currentProfileBuildSource();
 assert.deepEqual(currentPaintedSource.armour[0].armourSemantics.set,exactArmourSet,'Build handoff must use the current painted armour set evidence');
 assert.deepEqual(currentPaintedSource.armour[0].mods.map(row=>row.hash),[99,1,2,3,4,5],'Build handoff must retain every current armour socket in order');
+
+const staleState=createBuildState({...warlockLoadout,armour:[{name:'Stale helmet',mods:[]}]});
+for(const store of [sessionStorage,localStorage])store.setItem(BUILD_SPACE_KEY,JSON.stringify(createHandoffEnvelope(staleState)));
+const improveClick=documentListeners.get('click')?.at(-1);
+assert.equal(typeof improveClick,'function','Build handoff must own the Improve My Guardian click');
+await improveClick({target:{closest:selector=>selector==='.improve-cta'?{}:null},preventDefault(){},stopPropagation(){},stopImmediatePropagation(){}});
+assert.match(location.href,/^\.\/paradox-build-space\/\?characterId=warlock-1/,'Improve My Guardian must navigate with the current Guardian binding');
+assert.equal(sessionStorage.getItem(BUILD_SPACE_KEY),null,'stale session Build copy must be cleared before navigation');
+assert.equal(localStorage.getItem(BUILD_SPACE_KEY),null,'stale durable Build copy must be cleared before navigation');
+assert.ok(sessionStorage.getItem(BUILD_SNAPSHOT_KEY),'the already-protected current Character snapshot must remain available for Build Forge');
 
 console.log('Build Space character isolation tests passed.');

@@ -11,6 +11,7 @@ let latestExplicitLoadout=null;
 let activeCharacterId='';
 const safeStore=(key,value,{durable=false}={})=>{const json=JSON.stringify(createHandoffEnvelope(value));let stored=false;try{sessionStorage.setItem(key,json);stored=true;}catch{}if(durable)try{localStorage.setItem(key,json);stored=true;}catch{}return stored;};
 const safeRead=(key,options={})=>{for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){try{const parsed=JSON.parse(store.getItem(key)||'null');const value=validateHandoffEnvelope(parsed,{...options,allowLegacy:!durable});if(value)return value;if(parsed)store.removeItem(key);}catch{}}return null;};
+const clearStored=key=>{for(const store of [sessionStorage,localStorage])try{store.removeItem(key);}catch{}};
 
 function compactBuild(detail={}){
   const subclassBuild=detail.subclassBuild&&typeof detail.subclassBuild==='object'?detail.subclassBuild:{
@@ -86,7 +87,8 @@ async function openBuildSpace(event){
   // guardian-bungie-profile persists the currently painted, post-enrichment
   // build earlier in this same capture phase. Prefer it over an older in-memory
   // listener snapshot so every resolved armour set and socket crosses intact.
-  const source=currentProfileBuildSource()||resolveBuildSource(),characterId=bindingOf(source).characterId;
+  const profileSource=currentProfileBuildSource();
+  const source=profileSource||resolveBuildSource(),characterId=bindingOf(source).characterId;
   if(!source||!characterId){
     console.error('[ASTRIX Build Forge] A selected Guardian with a resolved characterId is required.');
     document.dispatchEvent(new CustomEvent('astrix:build-handoff-error',{detail:{message:'Select a loaded Guardian before opening Build Forge.'}}));
@@ -98,7 +100,12 @@ async function openBuildSpace(event){
     const boundSource={...source,characterId},state=createBuildState(boundSource),binding=bindingOf(state.originalBuild);
     if(!binding.characterId||binding.characterId!==characterId||bindingOf(state.workingBuild).characterId!==characterId){console.error('[ASTRIX Build Forge] Build binding could not be preserved.');return;}
     state.sourcePriority=source.source==='bungie-loadout'?'selected-or-last-bungie-loadout':'current-equipped-guardian';
-    if(!safeStore(BUILD_SPACE_KEY,state,{durable:true})){
+    // The current protected profile snapshot is already safely stored under
+    // BUILD_SNAPSHOT_KEY. Do not duplicate the same large build into a second
+    // storage key: that can exhaust Web Storage and make the CTA appear dead.
+    // Clear only the stale explicit copy so Build Forge consumes the fresh key.
+    if(profileSource)clearStored(BUILD_SPACE_KEY);
+    else if(!safeStore(BUILD_SPACE_KEY,state,{durable:true})){
       globalThis.AstrixLoader?.status?.('Build snapshot could not be secured');
       document.dispatchEvent(new CustomEvent('astrix:build-handoff-error',{detail:{message:'Build Forge could not secure the current Guardian snapshot on this device.'}}));
       return;
