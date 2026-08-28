@@ -146,7 +146,7 @@ assert.match(buildModule,/createBuildState\(detail\)/,'Selected Build Tool chara
 assert.match(buildModule,/let volatileState=null/,'Build must retain a protected in-page snapshot when Web Storage rejects the handoff');
 assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuildState\(next\);/,'Build writes must protect the in-page fallback before attempting Web Storage');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
-assert.match(buildHtml,/paradox-build-space\.css\?v=20260829-armour-art-fit-1/,'Build must load the corrected Armour artwork fit without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.css\?v=20260829-armour-art-fit-2/,'Build must load the corrected Armour artwork fit without a stale cache');
 assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260829-subclass-identity-1-weapon-perk-hash-1-background-ready-1-armour-mirror-1/,'Build must load the current Armour renderer import without a stale module cache');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');

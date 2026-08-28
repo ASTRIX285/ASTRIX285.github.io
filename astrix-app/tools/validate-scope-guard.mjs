@@ -5,7 +5,6 @@ import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
-  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.css',
   'astrix-app/tools/validate-scope-guard.mjs',
   'astrix-app/tools/validate-main-page-today.mjs'
 ]);
