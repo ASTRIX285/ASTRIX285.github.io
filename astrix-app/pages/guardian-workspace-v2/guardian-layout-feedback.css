@@ -45,29 +45,48 @@ html{font-size:clamp(16px,.52vw,22px)}
 /* Large desktop and 4K displays: the grid already expands, so lift the old
    component caps as well. This keeps the page readable at native scale. */
 @media (min-width:2400px) and (min-height:1100px){
-  .topbar{height:clamp(64px,4.2vh,84px)!important}
-  .workspace{
+  html:has(body.guardian-main-page){font-size:max(16px,.75vw)}
+  html body.guardian-main-page .topbar{
+    grid-template-columns:auto auto minmax(0,50vw) auto!important;
+    height:max(108px,5.6vw)!important;
+    min-height:max(108px,5.6vw)!important;
+  }
+  html body.guardian-main-page .topbar>#guardianCharacterCards{max-width:50vw!important}
+  html body.guardian-main-page header.topbar>#guardianCharacterCards .guardian-character-card{
+    height:4.6vw!important;
+    min-height:4.6vw!important;
+    max-height:4.6vw!important;
+  }
+  body.guardian-main-page .workspace{
     min-height:calc(100dvh - clamp(64px,4.2vh,84px))!important;
+    grid-template-columns:minmax(320px,22%) minmax(0,1fr)!important;
   }
-  .workspace > .left{
-    --rail-icon:clamp(60px,15cqw,88px)!important;
+  body.guardian-main-page .workspace > .left{
+    --rail-icon:var(--guardian-square)!important;
   }
-  .left .super-focus-icon,
-  .left .super-focus-icon .ico-badge{
-    width:clamp(86px,22cqw,124px)!important;
-    height:clamp(86px,22cqw,124px)!important;
+  body.guardian-main-page .stage-state-container{max-width:none;width:34cqw}
+  body.guardian-main-page .stage-state-card{padding:max(24px,1.8cqw) max(28px,2.1cqw)}
+  body.guardian-main-page .stage-state-card .icon{font-size:max(26px,2cqw)}
+  body.guardian-main-page .stage-state-card h3{font-size:max(14px,1.05cqw)}
+  body.guardian-main-page .stage-state-card p{font-size:max(12px,.9cqw)}
+  html body.guardian-main-page .equip.gear-layout-active{
+    grid-template-columns:25% minmax(0,1fr)!important;
   }
-  .stage > .guardian-platform{
-    --size:clamp(480px,43cqw,860px)!important;
+  body.guardian-main-page .gear-weapons{container-type:inline-size}
+  body.guardian-main-page .gear-weapons .weap-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    width:100%!important;
   }
-  .gear-weapons .weap-grid{
-    grid-template-columns:repeat(3,clamp(84px,5vw,118px))!important;
+  body.guardian-main-page .gear-weapons .weap,
+  body.guardian-main-page .gear-weapons .weap .art,
+  body.guardian-main-page .gear-weapons .weap .cap{
+    width:100%!important;
+    max-width:none!important;
   }
-  .gear-weapons .weap,
-  .gear-weapons .weap .art,
-  .gear-weapons .weap .cap{
-    width:clamp(84px,5vw,118px)!important;
-    max-width:118px!important;
-  }
-  .gear-weapons .weap .art{height:clamp(84px,5vw,118px)!important}
+  body.guardian-main-page .gear-weapons .weap .art{height:auto!important;aspect-ratio:1/1!important}
+  body.guardian-main-page .gear-weapons .weapon-perk-icon{width:12cqw;height:12cqw}
+  body.guardian-main-page .gear-weapons .weapon-support-icon{width:16cqw;height:16cqw}
+  body.guardian-main-page .gear-combined .gear-slot{container-type:inline-size}
+  body.guardian-main-page .gear-combined .gear-arm-anchor .arm{width:46cqw!important;height:46cqw!important}
+  body.guardian-main-page .gear-combined .gear-intrinsic{width:22cqw!important;height:22cqw!important}
 }
