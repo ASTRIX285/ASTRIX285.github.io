@@ -15,7 +15,8 @@ const MANIFEST_COMPONENT_TYPES = new Set([
   "DestinySandboxPerkDefinition",
   "DestinyArtifactDefinition",
   "DestinyStatDefinition",
-  "DestinySocketCategoryDefinition"
+  "DestinySocketCategoryDefinition",
+  "DestinyEquipableItemSetDefinition"
 ]);
 const LIVE_DEFINITION_TYPES = new Set([
   ...MANIFEST_COMPONENT_TYPES,
