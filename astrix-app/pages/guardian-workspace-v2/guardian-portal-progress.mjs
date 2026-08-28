@@ -5,8 +5,30 @@ const loader=window.AstrixLoader;
 const manifestReady=guardianManifest.ready();
 const isBuildSpace=Boolean(document.querySelector('.build-space'));
 const set=(percent,label)=>{loader?.set(percent);if(label)loader?.status(label);};
+const sceneBackgroundUrls=()=>{
+  const urls=new Set();
+  const pattern=/url\((?:"([^"]+)"|'([^']+)'|([^)]*))\)/g;
+  document.querySelectorAll('.scene.immersive').forEach(node=>{
+    const value=getComputedStyle(node).backgroundImage||'';
+    for(const match of value.matchAll(pattern)){
+      const path=String(match[1]||match[2]||match[3]||'').trim();
+      if(path&&!path.startsWith('data:'))urls.add(new URL(path,document.baseURI).href);
+    }
+  });
+  return [...urls];
+};
+const decodeBackground=url=>new Promise(resolve=>{
+  const image=new Image();
+  const finish=()=>resolve();
+  image.decoding='async';
+  image.addEventListener('load',async()=>{try{await image.decode();}catch{}finish();},{once:true});
+  image.addEventListener('error',finish,{once:true});
+  image.src=url;
+});
+const sceneBackgroundReady=Promise.all(sceneBackgroundUrls().map(decodeBackground));
 const finishAfterPaint=async label=>{
   await manifestReady;
+  await sceneBackgroundReady;
   set(96,label);
   requestAnimationFrame(()=>requestAnimationFrame(()=>loader?.done()));
 };

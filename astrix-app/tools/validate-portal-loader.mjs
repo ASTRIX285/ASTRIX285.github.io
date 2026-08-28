@@ -40,6 +40,9 @@ assert.match(portalCss,/\.apx-auth-panel/,'Portal must render the full-screen Bu
 assert.doesNotMatch(mainHtml,/guardian-loading-gate|guardianLoadingProgress|data-lit-edges/,'Main legacy red-diamond gate must be removed');
 assert.doesNotMatch(buildHtml,/build-loading-gate|buildLoadingProgress|data-lit-edges/,'Build legacy hex gate must be removed');
 assert.match(mainProgress,/astrix:guardian-render-complete',\(\)=>finishAfterPaint/,'Main must finish from its existing render-complete contract');
+assert.match(mainProgress,/document\.querySelectorAll\('\.scene\.immersive'\)/,'Portal completion must inspect the shared scene background');
+assert.match(mainProgress,/image\.addEventListener\('load',async\(\)=>\{try\{await image\.decode\(\);\}/,'Portal completion must wait for CSS background decoding');
+assert.match(mainProgress,/await manifestReady;[\s\S]*?await sceneBackgroundReady;/,'Portal must retain its cover until manifest and scene background are both ready');
 assert.match(mainProgress,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>loader\?\.done\(\)\)\)/,'Main completion must clear after the final painted frame');
 assert.match(mainProgress,/else set\(8,'Bungie authentication required'\)/,'Main portal must remain gated until Bungie authentication completes');
 assert.match(mainProgress,/currentSession=window\.ASTRIX_BUNGIE_SESSION[\s\S]*?guardianRenderComplete/,'Main portal must reconcile a session or render that completed before listener registration');
@@ -49,6 +52,7 @@ assert.match(buildHtml,/astrix:guardian-fast-return:v1/,'Build must consume the 
 assert.match(buildModule,/markGuardianFastReturn\(\)/,'Build Back must preserve the authenticated Guardian session return path');
 assert.doesNotMatch(mainProgress,/setTimeout|window\.addEventListener\('load'/,'Main progress must not use fake timing or window load');
 assert.match(buildModule,/completeBuildRender\(build\)[\s\S]*?emitLoad\('render',LOAD_STAGES\.READY/,'Build must finish only from its image-settled render pass');
+assert.match(buildModule,/guardian-portal-progress\.mjs\?v=20260829-background-ready-1/,'Build must load the background-gated portal progress module');
 assert.match(buildModule,/window\.AstrixLoader\?\.set\(percent\)/,'Build real milestones must update the shared portal');
 
 assert.match(appModule,/astrix:build-catalogue-rendered/,'Build library must publish catalogue render completion');

@@ -4,11 +4,12 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'astrix-app/pages/guardian-workspace-v2/guardian-portal-progress.mjs',
   'astrix-app/pages/guardian-workspace-v2/index.html',
-  'astrix-app/pages/guardian-workspace-v2/subclass-picker.css',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
-  'astrix-app/tools/validate-super-formation.mjs'
+  'astrix-app/tools/validate-portal-loader.mjs'
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
