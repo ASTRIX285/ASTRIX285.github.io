@@ -5,15 +5,17 @@ const ROOT=new URL('../',import.meta.url);
 const PAGE_ROOT=new URL('pages/guardian-workspace-v2/',ROOT);
 const SHARED_CSS_URL=new URL('guardian-super-formation.css',PAGE_ROOT);
 const SHARED_MODULE_URL=new URL('guardian-super-formation.mjs',PAGE_ROOT);
+const LOADOUT_DEFINITIONS_URL=new URL('guardian-loadout-definitions.mjs',PAGE_ROOT);
 const MAIN_HTML_URL=new URL('index.html',PAGE_ROOT);
 const BUILD_HTML_URL=new URL('paradox-build-space/index.html',PAGE_ROOT);
 const read=url=>readFile(url,'utf8');
 
-const [css,moduleSource,mainHtml,buildHtml]=await Promise.all([
+const [css,moduleSource,mainHtml,buildHtml,{LOADOUT_DEFINITIONS}]=await Promise.all([
   read(SHARED_CSS_URL),
   read(SHARED_MODULE_URL),
   read(MAIN_HTML_URL),
-  read(BUILD_HTML_URL)
+  read(BUILD_HTML_URL),
+  import(LOADOUT_DEFINITIONS_URL.href)
 ]);
 
 const expectedColours={
@@ -70,12 +72,17 @@ assert.match(css,/flex:0 0 auto!important;/,'Equipped subclass/Super wrapper mus
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
   assert.match(html,/guardian-super-formation\.css/,`${label} does not load the shared stylesheet`);
+  assert.match(html,/20260828-subclass-header-1/,`${label} does not load the subclass header correction`);
   assert.match(html,/equipped-subclass-stack/,`${label} does not use the equipped-only subclass stack`);
   assert.equal((html.match(/data-super-slot=/g)||[]).length,6,`${label} must expose six fixed Super slots`);
   assert.doesNotMatch(html,/class="subclass-rail"|id="subclassSummary"|data-subclass-option=/,`${label} still contains the removed subclass selector panel`);
 }
 
 assert.match(moduleSource,/function renderEquippedSubclass/,'Shared equipped subclass renderer is missing');
+assert.equal(LOADOUT_DEFINITIONS.icons?.[814121290]?.iconImagePath,'/common/destiny2_content/icons/8f8283c4f518dbd2239ba1f60b91d14f.png','Prismatic header icon hash 814121290 drifted');
+assert.match(moduleSource,/PRISMATIC_HEADER_ICON_HASH=814121290/,'Shared renderer does not use the Bungie Prismatic loadout icon hash');
+assert.match(moduleSource,/key==='prismatic'\?PRISMATIC_HEADER_ICON:icon/,'Prismatic header is not routed through the shared class-neutral icon');
+assert.match(css,/\.equipped-subclass:not\(\[data-subclass="prismatic"\]\) \.equipped-subclass__crest img\{[\s\S]*?position:absolute;[\s\S]*?left:50%;[\s\S]*?top:50%;[\s\S]*?transform:translate\(-50%,-50%\) rotate\(-45deg\);/,'Non-Prismatic header artwork is not explicitly centred');
 assert.match(moduleSource,/function renderSuperFormation/,'Shared Super renderer is missing');
 assert.match(moduleSource,/holder\.replaceChildren\(\)/,'Empty Super slots must clear placeholder glyphs');
 assert.match(moduleSource,/slot\.hidden=false/,'Every PSD Super frame must remain visible');
@@ -104,3 +111,5 @@ console.log('SUPER_FORMATION_MAIN_BUILD_PARITY=PASS');
 console.log('EQUIPPED_SUBCLASS_HEADER_AND_PADDING=PASS');
 console.log('SUPER_FORMATION_ROTATED_BOUNDS=PASS');
 console.log('SUPER_FORMATION_RESPONSIVE_SOURCE=PASS');
+console.log('SUBCLASS_HEADER_ICON_PROVENANCE=PASS');
+console.log('SUBCLASS_HEADER_ICON_ALIGNMENT=PASS');
