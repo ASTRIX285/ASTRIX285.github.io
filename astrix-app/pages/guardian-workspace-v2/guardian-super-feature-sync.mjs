@@ -4,7 +4,7 @@
  */
 
 import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
-import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from './guardian-super-formation.mjs?v=20260828-subclass-header-1';
+import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from './guardian-super-formation.mjs?v=20260828-super-map-2';
 import './guardian-artifact.mjs?v=20260824-artifact-state-2';
 import './paradox-build-space-handoff.mjs';
 
@@ -37,7 +37,7 @@ function resolvedDisplayIcon(item){if(!item)return '';const display=item?.defini
 function elementKey(item){const text=[item?.element,item?.subclass,item?.key,item?.name,item?.displayName,item?.definition?.displayProperties?.name].filter(Boolean).join(' ').toLowerCase();return SUBCLASS_KEYS.find(key=>text.includes(key))||'';}
 function manifestElementIcon(item){if(!item)return '';const definition=item?.definition||{};const itemType=Number(definition.itemType??item?.itemType);const itemTypeName=String(definition.itemTypeDisplayName||item?.itemTypeDisplayName||'').toLowerCase();if(itemType!==16&&!itemTypeName.includes('subclass'))return '';const display=definition.displayProperties||item?.displayProperties||{};const sequenceFrame=Array.isArray(display?.iconSequences)?display.iconSequences.flatMap(sequence=>Array.isArray(sequence?.frames)?sequence.frames:[]).find(Boolean):'';return display.icon||display.highResIcon||sequenceFrame||item.icon||'';}
 function manifestElementCatalog(catalog){return catalog.map(item=>({...item,icon:manifestElementIcon(item)}));}
-function applyManifestElementIcons(root,catalog){if(!root)return;root.querySelectorAll('.el[data-element]').forEach(button=>{const element=String(button.dataset.element||'').toLowerCase();const option=catalog.find(item=>elementKey(item)===element)||null;const icon=manifestElementIcon(option);const node=button.querySelector('.icon');if(node)node.style.backgroundImage=icon?`url("${bungieUrl(icon)}")`:'';if(icon)button.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';else delete button.dataset.bungieArtworkSource;});}
+function applyManifestElementIcons(root,catalog){if(!root)return;root.querySelectorAll('.el[data-element]').forEach(button=>{const element=String(button.dataset.element||'').toLowerCase();const option=catalog.find(item=>elementKey(item)===element)||null;const icon=manifestElementIcon(option);const node=button.querySelector('.icon');if(node&&icon)node.style.backgroundImage=`url("${bungieUrl(icon)}")`;if(icon)button.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';});}
 function bungieUrl(path){if(!path)return '';return path.startsWith('http')?path:`https://www.bungie.net${path}`;}
 function subclassCacheId(characterClass,element){return `${String(characterClass||'unknown').toLowerCase()}:${String(element||'').toLowerCase()}`;}
 function cacheSubclassIcon(characterClass,element,icon){const src=bungieUrl(icon);if(!src||!SUBCLASS_KEYS.includes(element))return;subclassIconCache.set(subclassCacheId(characterClass,element),src);persistSubclassIconCache();}
@@ -81,7 +81,7 @@ function syncTranscendence(host,detail,isPrismatic){
     setDiamondFromItem(slot,item,item?.name||`Prismatic Transcendence slot ${index+1} unresolved`);
   });
 }
-function populateSuperChain(detail={}){const host=document.getElementById('superFeatureCluster');const build=detail?.subclassBuild||{};if(!host||!build)return;const active=build.super||detail.super||null;const options=(Array.isArray(build.superOptions)?build.superOptions:Array.isArray(detail.superOptions)?detail.superOptions:[]).filter(Boolean);const subclass=String(detail.subclass||'').trim().toLowerCase();renderSuperFormation({host,nameNode:document.getElementById('subclassName'),activeSuper:active,superOptions:options,subclass,onSelect:()=>{}});syncTranscendence(host,detail,subclass==='prismatic');const label=document.getElementById('subclassName');if(label&&active?.name)label.dataset.superName=active.name;}
+function populateSuperChain(detail={}){const host=document.getElementById('superFeatureCluster');const build=detail?.subclassBuild||{};if(!host||!build)return;const active=build.super||detail.super||null;const options=(Array.isArray(build.superOptions)?build.superOptions:Array.isArray(detail.superOptions)?detail.superOptions:[]).filter(Boolean);const subclass=String(detail.subclass||'').trim().toLowerCase();renderSuperFormation({host,nameNode:document.getElementById('subclassName'),activeSuper:active,superOptions:options,subclass,subclassCatalog:detail.subclassCatalog,onSelect:()=>{}});syncTranscendence(host,detail,subclass==='prismatic');const label=document.getElementById('subclassName');if(label&&active?.name)label.dataset.superName=active.name;}
 document.addEventListener('astrix:guardian-selection-changed',event=>{const detail=event.detail||{};syncEquippedSubclass(detail);enforceLeftPanelSlots();queueMicrotask(()=>populateSuperChain(detail));});
 document.addEventListener('astrix:artifact-recommendations-changed',enforceLeftPanelSlots);
 enforceLeftPanelSlots();
