@@ -17,11 +17,21 @@ def workspace_blocks(css: str) -> list[str]:
 def main() -> int:
     index = (PAGE / "index.html").read_text(encoding="utf-8")
     adaptive = (PAGE / AUTHORITY).read_text(encoding="utf-8")
+    final_layout = (PAGE / "guardian-layout-final.css").read_text(encoding="utf-8")
+    left_lock = (PAGE / "guardian-left-panel-lock.css").read_text(encoding="utf-8")
+    super_sync = (PAGE / "guardian-super-feature-sync.mjs").read_text(encoding="utf-8")
     hero = (PAGE / "guardian-hero.css").read_text(encoding="utf-8")
 
     assert '<meta name="viewport" content="width=device-width, initial-scale=1.0">' in index
-    assert '<link rel="stylesheet" href="./guardian-adaptive-layout.css">' in index
-    assert index.index(AUTHORITY) > index.index("guardian-mobile.css")
+    assert re.search(
+        r'<link rel="stylesheet" href="\./guardian-adaptive-layout\.css(?:\?v=[^"]+)?">',
+        index,
+    )
+    assert index.index(AUTHORITY) < index.index("guardian-mobile.css") < index.index("guardian-layout-final.css")
+    assert '.workspace>.right[hidden]{display:none!important}' in final_layout
+    assert 'grid-template-areas:"left stage" "left equip"!important' in final_layout
+    assert "leftPanelLockLink.href = './guardian-left-panel-lock.css?v=" in super_sync
+    assert "grid-template-columns:clamp(400px,22vw,420px) minmax(0,1fr)!important" in left_lock
 
     for marker in (
         ".workspace>*{min-width:0}",
@@ -31,12 +41,16 @@ def main() -> int:
         "@media (min-width:981px) and (max-width:1280px)",
         "@media (max-width:980px)",
         '@container (max-width:780px)',
-        '@container (max-width:340px)',
-        'grid-template-areas:"left stage right" "equip equip right"',
+        '@container (max-width:560px)',
+        '@container (max-width:900px)',
+        '@container (max-width:680px)',
+        '@container (max-width:460px)',
+        '@container (max-width:520px)',
+        'grid-template-areas:"left stage right" "left equip right"',
         'grid-template-areas:"left" "stage" "right" "equip"',
         "clamp(420px,30vw,600px)",
-        "grid-template-columns:repeat(3,minmax(150px,1fr))",
-        "grid-template-columns:repeat(2,minmax(145px,1fr))",
+        "grid-template-columns:repeat(3,minmax(220px,1fr))",
+        "grid-template-columns:repeat(2,minmax(220px,1fr))",
         "overflow-wrap:anywhere",
     ):
         assert marker in adaptive, f"Adaptive layout marker missing: {marker}"
@@ -48,7 +62,8 @@ def main() -> int:
         css = css_path.read_text(encoding="utf-8")
         if any("grid-template-columns" in block for block in workspace_blocks(css)):
             competing.append(css_path.name)
-    assert not competing, f"Competing .workspace grid-column owners: {', '.join(competing)}"
+    expected_layers = ["guardian-layout-final.css", "guardian-left-panel-lock.css"]
+    assert competing == expected_layers, f"Workspace grid layer drift: {', '.join(competing)}"
 
     for marker in (
         "left:50%",
@@ -71,10 +86,9 @@ def main() -> int:
         assert css.count("{") == css.count("}"), f"Unbalanced CSS blocks: {css_path.name}"
 
     print("PARADOX_ADAPTIVE_LAYOUT=PASS")
-    print("WORKSPACE_COLUMN_OWNER=guardian-adaptive-layout.css")
-    print("DESKTOP_RIGHT_RAIL_PRIORITY=PASS")
-    print("STACK_ORDER_LEFT_STAGE_RIGHT_EQUIP=PASS")
-    print("RIGHT_RAIL_CAP_600PX=PASS")
+    print("WORKSPACE_COLUMN_LAYERS=guardian-adaptive-layout.css,guardian-layout-final.css,guardian-left-panel-lock.css")
+    print("DESKTOP_LIVE_EQUIPMENT_LAYOUT=PASS")
+    print("MOBILE_STACK_ORDER=PASS")
     print("GUARDIAN_STAGE_CONTAINMENT=PASS")
     print("GUARDIAN_HORIZONTAL_CENTER=PASS")
     print("RENDER_STATUS_CENTER=PASS")
