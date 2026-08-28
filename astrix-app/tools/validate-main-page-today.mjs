@@ -145,9 +145,10 @@ assert.match(buildModule,/import '\.\.\/guardian-bungie-profile\.mjs(?:\?[^']+)?
 assert.match(buildModule,/createBuildState\(detail\)/,'Selected Build Tool character must create a new protected build snapshot');
 assert.match(buildModule,/let volatileState=null/,'Build must retain a protected in-page snapshot when Web Storage rejects the handoff');
 assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuildState\(next\);/,'Build writes must protect the in-page fallback before attempting Web Storage');
+assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
 assert.match(buildHtml,/paradox-build-space\.css\?v=20260829-armour-art-fit-2/,'Build must load the corrected Armour artwork fit without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260829-subclass-identity-1-weapon-perk-hash-1-background-ready-1-armour-mirror-1/,'Build must load the current Armour renderer import without a stale module cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260829-subclass-identity-1-weapon-perk-hash-1-background-ready-1-armour-mirror-1-armour-set-handoff-1/,'Build must load the set-bonus-preserving handoff priority without a stale module cache');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/resolvedOptions\(build,'artifact'\)\.slice\(0,6\)/,'Build Artifact catalogue must use the specified 2-2-2 six-card field');

@@ -54,7 +54,10 @@ function readState(){
   const params=new URLSearchParams(location.search),expectedCharacterId=params.get('characterId')||'',expectedMembershipId=params.get('membershipId')||'',expectedMembershipType=params.get('membershipType')||'';
   const expectedBinding={characterId:expectedCharacterId,membershipId:expectedMembershipId,membershipType:expectedMembershipType};
   if(volatileState){const state=validateBuildState(volatileState,expectedBinding);if(state)return state;volatileState=null;}
-  for(const key of [BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY]){
+  // The explicit Character -> Build handoff contains the post-enrichment armour
+  // state (including resolved set bonuses). The generic profile snapshot is a
+  // recovery fallback only and must not replace that selected build.
+  for(const key of [BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY]){
     for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){
       try{const raw=JSON.parse(store.getItem(key)||'null'),state=decodeState(raw,{durable,expectedBinding});if(state){volatileState=state;if(key===BUILD_SNAPSHOT_KEY){writeState(state);for(const target of [sessionStorage,localStorage]){try{target.removeItem(BUILD_SNAPSHOT_KEY);}catch{}}}return state;}if(raw)store.removeItem(key);}
       catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
