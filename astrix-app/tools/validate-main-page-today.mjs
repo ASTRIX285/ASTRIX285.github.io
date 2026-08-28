@@ -127,7 +127,8 @@ assert.match(handoff,/latestGuardian&&Number\.isInteger\(latestGuardian\.selecte
 assert.match(handoff,/loadoutsAvailable:detail\.loadoutsAvailable===true/,'Build handoff must carry the exact Bungie in-game loadout catalogue');
 assert.match(handoff,/super:detail\.super\|\|null/,'Build handoff must preserve fixture and legacy subclass fields without an empty subclassBuild');
 assert.match(handoff,/subclassCatalog:clone\(detail\.subclassCatalog\|\|\[\]\)/,'Build handoff must preserve verified subclass choices');
-assert.match(handoff,/currentProfileBuildSource\(\)\|\|resolveBuildSource\(\)/,'Main to Build must prefer the freshly persisted, post-enrichment Character snapshot');
+assert.match(handoff,/const profileSource=currentProfileBuildSource\(\);[\s\S]*?const source=profileSource\|\|resolveBuildSource\(\)/,'Main to Build must prefer the freshly persisted, post-enrichment Character snapshot');
+assert.match(handoff,/if\(profileSource\)clearStored\(BUILD_SPACE_KEY\);[\s\S]*?else if\(!safeStore\(BUILD_SPACE_KEY,state,\{durable:true\}\)\)/,'A fresh protected Character snapshot must replace the stale Build key without duplicating the full payload');
 assert.match(handoff,/if\(!safeStore\(BUILD_SPACE_KEY,state,\{durable:true\}\)\)[\s\S]*?return;/,'Main to Build must not navigate when the exact protected handoff cannot be secured');
 assert.match(handoff,/await afterPortalPaint\(\);[\s\S]*?markGuardianFastReturn\(\);location\.href=target;/,'Main to Build must paint the portal before entering Build Forge');
 assert.doesNotMatch(superSync,/paradox-build-space-handoff\.mjs/,'The subclass bridge must not register a duplicate Build handoff owner');
