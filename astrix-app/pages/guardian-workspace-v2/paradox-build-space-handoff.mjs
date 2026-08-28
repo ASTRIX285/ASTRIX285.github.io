@@ -3,12 +3,13 @@ import {markGuardianFastReturn} from './guardian-session-cache.mjs';
 import {bindingOf,createHandoffEnvelope,validateHandoffEnvelope} from './paradox-build-binding.mjs';
 
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
+const BUILD_SNAPSHOT_KEY='astrix:guardian-build-snapshot:v1';
 const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
 let latestGuardian=null;
 let latestExplicitLoadout=null;
 let activeCharacterId='';
-const safeStore=(key,value,{durable=false}={})=>{const json=JSON.stringify(createHandoffEnvelope(value));try{sessionStorage.setItem(key,json);}catch{}if(durable)try{localStorage.setItem(key,json);}catch{}};
+const safeStore=(key,value,{durable=false}={})=>{const json=JSON.stringify(createHandoffEnvelope(value));let stored=false;try{sessionStorage.setItem(key,json);stored=true;}catch{}if(durable)try{localStorage.setItem(key,json);stored=true;}catch{}return stored;};
 const safeRead=(key,options={})=>{for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){try{const parsed=JSON.parse(store.getItem(key)||'null');const value=validateHandoffEnvelope(parsed,{...options,allowLegacy:!durable});if(value)return value;if(parsed)store.removeItem(key);}catch{}}return null;};
 
 function compactBuild(detail={}){
@@ -71,12 +72,21 @@ function resolveBuildSource(){
   const remembered=safeRead(LAST_LOADOUT_KEY);
   return bindSourceToCharacter(remembered,selectedId);
 }
+function currentProfileBuildSource(){
+  const selectedId=selectedCharacterId();
+  const state=safeRead(BUILD_SNAPSHOT_KEY,{expectedCharacterId:selectedId});
+  return bindSourceToCharacter(state?.workingBuild||state?.originalBuild||null,selectedId);
+}
 function armBuildSpacePortal(){globalThis.AstrixLoader?.mount?.();globalThis.AstrixLoader?.set?.(0);globalThis.AstrixLoader?.status?.('Opening Build Forge');}
-function openBuildSpace(event){
+const afterPortalPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+async function openBuildSpace(event){
   const button=event.target?.closest?.('.improve-cta');
   if(!button)return;
   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
-  const source=resolveBuildSource(),characterId=bindingOf(source).characterId;
+  // guardian-bungie-profile persists the currently painted, post-enrichment
+  // build earlier in this same capture phase. Prefer it over an older in-memory
+  // listener snapshot so every resolved armour set and socket crosses intact.
+  const source=currentProfileBuildSource()||resolveBuildSource(),characterId=bindingOf(source).characterId;
   if(!source||!characterId){
     console.error('[ASTRIX Build Forge] A selected Guardian with a resolved characterId is required.');
     document.dispatchEvent(new CustomEvent('astrix:build-handoff-error',{detail:{message:'Select a loaded Guardian before opening Build Forge.'}}));
@@ -88,13 +98,19 @@ function openBuildSpace(event){
     const boundSource={...source,characterId},state=createBuildState(boundSource),binding=bindingOf(state.originalBuild);
     if(!binding.characterId||binding.characterId!==characterId||bindingOf(state.workingBuild).characterId!==characterId){console.error('[ASTRIX Build Forge] Build binding could not be preserved.');return;}
     state.sourcePriority=source.source==='bungie-loadout'?'selected-or-last-bungie-loadout':'current-equipped-guardian';
-    safeStore(BUILD_SPACE_KEY,state,{durable:true});
+    if(!safeStore(BUILD_SPACE_KEY,state,{durable:true})){
+      globalThis.AstrixLoader?.status?.('Build snapshot could not be secured');
+      document.dispatchEvent(new CustomEvent('astrix:build-handoff-error',{detail:{message:'Build Forge could not secure the current Guardian snapshot on this device.'}}));
+      return;
+    }
     const params=new URLSearchParams();
     params.set('characterId',binding.characterId);
     if(binding.membershipId)params.set('membershipId',binding.membershipId);
     if(binding.membershipType)params.set('membershipType',binding.membershipType);
     const query=params.toString();
-    if(query)target+='?'+query;}markGuardianFastReturn();location.href=target;
+    if(query)target+='?'+query;}
+  await afterPortalPaint();
+  markGuardianFastReturn();location.href=target;
 }
 
 document.addEventListener('astrix:guardian-selection-changed',e=>rememberGuardian(e.detail||{}));
@@ -104,4 +120,4 @@ document.addEventListener('astrix:paradox-live-analysis-changed',e=>rememberAnal
 document.addEventListener('astrix:weapon-roll-advice-changed',e=>rememberWeaponAdvice(e.detail||{}));
 document.addEventListener('astrix:artifact-selection-changed',e=>rememberArtifactSelection(e.detail||{}));
 document.addEventListener('click',openBuildSpace,true);
-export {compactBuild,rememberGuardian,rememberExplicitLoadout,rememberWeaponAdvice,rememberArtifactSelection,resolveBuildSource,BUILD_SPACE_KEY,LAST_LOADOUT_KEY};
+export {compactBuild,rememberGuardian,rememberExplicitLoadout,rememberWeaponAdvice,rememberArtifactSelection,resolveBuildSource,currentProfileBuildSource,BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY,LAST_LOADOUT_KEY};

@@ -7,7 +7,6 @@ import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs?v=20260824
 import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from './guardian-super-formation.mjs?v=20260829-subclass-identity-1';
 import {mergeSubclassCatalog,mergeSuperOptions} from './guardian-super-catalog.mjs?v=20260829-subclass-identity-1';
 import './guardian-artifact.mjs?v=20260824-artifact-state-2';
-import './paradox-build-space-handoff.mjs';
 
 const leftPanelLockLink = document.querySelector('link[data-astrix-left-panel-lock]') || document.createElement('link');
 leftPanelLockLink.rel = 'stylesheet';

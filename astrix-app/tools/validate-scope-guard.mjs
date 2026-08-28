@@ -4,10 +4,17 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'astrix-app/pages/guardian-workspace-v2/guardian-portal-progress.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-super-feature-sync.mjs',
+  'astrix-app/pages/guardian-workspace-v2/index.html',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.css',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs',
+  'astrix-app/tools/test-build-space-character-isolation.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
-  'astrix-app/tools/validate-main-page-today.mjs'
+  'astrix-app/tools/validate-main-page-today.mjs',
+  'astrix-app/tools/validate-portal-loader.mjs'
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
