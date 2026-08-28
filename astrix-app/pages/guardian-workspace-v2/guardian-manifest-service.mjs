@@ -8,7 +8,8 @@ const COMPONENT_TYPES=Object.freeze([
   "DestinySandboxPerkDefinition",
   "DestinyArtifactDefinition",
   "DestinyStatDefinition",
-  "DestinySocketCategoryDefinition"
+  "DestinySocketCategoryDefinition",
+  "DestinyEquipableItemSetDefinition"
 ]);
 const COMPONENT_SET=new Set(COMPONENT_TYPES);
 
