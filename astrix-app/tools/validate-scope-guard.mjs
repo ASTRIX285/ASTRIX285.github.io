@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
-  'astrix-app/tools/paradox-validator.mjs',
+  'astrix-app/package-lock.json',
   'astrix-app/tools/validate-scope-guard.mjs'
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
