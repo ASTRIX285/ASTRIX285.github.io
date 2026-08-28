@@ -13,6 +13,7 @@ def main() -> int:
     advisor = (PAGE / "guardian-advisor-layer.mjs").read_text(encoding="utf-8")
     gear = (PAGE / "guardian-gear-layout.mjs").read_text(encoding="utf-8")
     cards_css = (PAGE / "guardian-character-cards.css").read_text(encoding="utf-8")
+    gear_compact = "".join(gear.split())
 
     # Subclass socket data must be promoted to the renderer's public contract.
     for field in (
@@ -73,10 +74,9 @@ def main() -> int:
     assert ".super-option.is-active" in cards_css
     assert ".super-option.is-inactive" in cards_css
     assert ".super-options::-webkit-scrollbar{display:none" in cards_css
-    assert "const mods=Array.isArray(item?.mods)?item.mods:[]" in gear
-    assert "Array.from({length:slotCount}" in gear
-    assert "modTile(mods[i])" in gear
-    assert "appearancePlugs" in gear
+    assert "constmods=armourModSequence(item,armourTier,archetype);" in gear_compact
+    assert 'Array.from({length:slotCount},(_,i)=>modTile(mods[i])).join("")' in gear_compact
+    assert "consticon=bungieIcon(item?.icon??item?.iconUrl??item?.displayProperties?.icon);" in gear_compact
 
     print("PARADOX_COMPLETE_LOADOUT=PASS")
     print("SUPER_ABILITIES_ASPECTS_FRAGMENTS=PASS")

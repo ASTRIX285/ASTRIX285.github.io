@@ -28,10 +28,11 @@ def main() -> int:
     assert "function selectLiveCharacter(" in profile
     assert 'publishCharacterRoster(liveProfilePayload,detail.characterId)' in profile
     assert 'grid-template-columns:repeat(3' in styles
-    assert 'scroll-snap-type:x mandatory' in styles
+    assert "scroll-snap-type" not in styles
+    assert "overflow-x:auto" not in styles
     assert "border-color:rgba(var(--stage-accent-rgb" in styles
     assert "background:rgba(7,9,14,.52)" in styles
-    assert "font:800 .78rem Inter,sans-serif" in styles
+    assert "font:800 11px Inter,sans-serif" in styles
     assert "background:var(--character-emblem) left center/cover no-repeat" in styles
     assert "gap:5px" in styles
     assert "left:34px;\n  right:50px" in styles
@@ -55,7 +56,7 @@ def main() -> int:
     print("EMBLEM_BACKGROUND=PASS")
     print("FULL_WORKSPACE_SELECTION_EVENT=PASS")
     print("DESKTOP_THREE_CARD_ROW=PASS")
-    print("MOBILE_HORIZONTAL_STRIP=PASS")
+    print("MOBILE_FIXED_CARD_RIBBON=PASS")
     print("LEGACY_IDENTITY_STATS_REMOVED=PASS")
     print("GUARDIAN_RANK_DEFERRED=PASS")
     print("STAT_ICON_BUNGIE_ARTWORK=PASS")
