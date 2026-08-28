@@ -4,9 +4,9 @@ import {
   loadSelectedLoadout,
   characterRoster,
   selectLiveCharacter
-} from "./guardian-bungie-profile.mjs?v=20260829-super-catalog-1";
+} from "./guardian-bungie-profile.mjs?v=20260829-subclass-identity-1";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
-import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260829-super-catalog-1";
+import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260829-subclass-identity-1";
 
 const PLAYER_POWER_CAP = 550;
 const VALID_CLASSES = ["hunter", "titan", "warlock"];
@@ -117,6 +117,7 @@ function renderVerifiedPreview(data = {}) {
 
 function renderSubclassBuild(build = {}, subclassName = "Subclass") {
   const activeElement = (workspaceState.subclass || "arc").toLowerCase();
+  const subclassIdentity = (Array.isArray(workspaceState.subclassCatalog) ? workspaceState.subclassCatalog : []).find(item => [item?.element,item?.subclass,item?.key,item?.name].filter(Boolean).join(" ").toLowerCase().includes(activeElement)) || null;
   document.documentElement.dataset.subclass = activeElement;
 
   renderEquippedSubclass({
@@ -127,7 +128,7 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
     subclass: activeElement,
     subclassName,
     characterClass: workspaceState.characterClass,
-    icon: workspaceState.subclassIcon || resolvedDisplayIcon(build.subclassDefinition || build.subclass || workspaceState.subclassDefinition || workspaceState.subclassItem)
+    icon: resolvedDisplayIcon(subclassIdentity) || workspaceState.subclassIcon || resolvedDisplayIcon(build.subclassDefinition || build.subclass || workspaceState.subclassDefinition || workspaceState.subclassItem)
   });
 
   const activeSuper = build.super || workspaceState.super || null;
@@ -141,9 +142,6 @@ function renderSubclassBuild(build = {}, subclassName = "Subclass") {
   if (featureHost) {
     renderSuperFormation({host:featureHost,nameNode:byId("subclassName"),activeSuper,superOptions,subclass:activeElement,subclassCatalog:workspaceState.subclassCatalog,characterClass:workspaceState.characterClass,onSelect:()=>{}});
   }
-
-  const subclassNameNode = byId("subclassName");
-  if (subclassNameNode) subclassNameNode.textContent = activeSuper?.name || subclassName || "SELECTED SUPER";
 
   const abilities = Array.isArray(build.abilities) ? build.abilities.slice(0, 4) : [];
   const abilityHost = byId("abilityList");

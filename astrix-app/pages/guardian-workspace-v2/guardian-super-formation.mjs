@@ -1,6 +1,6 @@
 import {cleanImageElement} from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
 import {LOADOUT_DEFINITIONS} from './guardian-loadout-definitions.mjs';
-import {mergeSuperOptions} from './guardian-super-catalog.mjs?v=20260829-super-catalog-1';
+import {mergeSuperOptions} from './guardian-super-catalog.mjs?v=20260829-subclass-identity-1';
 
 const BUNGIE='https://www.bungie.net';
 const SUBCLASS_KEYS=Object.freeze(['void','arc','solar','strand','stasis','prismatic']);
@@ -19,7 +19,7 @@ const SUBCLASS_PICKER_ICONS=Object.freeze({
   void:'/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png',
   stasis:'/common/destiny2_content/icons/6e441ffa8c8171ce9caf71e51b72fc19.png',
   strand:'/common/destiny2_content/icons/41c0024ce809085ac16f4e0777ea0ac4.png',
-  prismatic:Object.freeze({hunter:'/common/destiny2_content/icons/fab506e62fa4f188bfe2fb6d56b39614.png',warlock:'/common/destiny2_content/icons/652406349e99e3db0c3198f78af4eeae.png',titan:'/common/destiny2_content/icons/c1740d829e62afc40a9e57af4e3cad4c.png'})
+  prismatic:PRISMATIC_HEADER_ICON
 });
 
 function resolvedSuperIcon(item){
@@ -41,7 +41,7 @@ function detectedSubclassKey(value,activeSuper){
   const text=[value,activeSuper?.element,activeSuper?.subclass,activeSuper?.damageType,activeSuper?.name].filter(Boolean).join(' ').toLowerCase();
   return SUBCLASS_KEYS.find(key=>text.includes(key))||'';
 }
-function subclassKey(value,activeSuper){return detectedSubclassKey(value,activeSuper)||'void';}
+function subclassKey(value,activeSuper){return detectedSubclassKey(value,null)||detectedSubclassKey('',activeSuper)||'void';}
 function uniqueItems(items){return items.filter(Boolean).filter((item,index,rows)=>rows.findIndex(other=>itemKey(other)===itemKey(item))===index);}
 function subclassBuild(item){return item?.subclassBuild||item?.build||{};}
 function equippedSuper(build,options=[]){return build?.super||options.find(item=>item?.isEquipped===true||item?.equipped===true)||null;}
@@ -59,8 +59,8 @@ function resolveSuperFormationSlots({activeSuper=null,superOptions=[],subclass='
     ...(Array.isArray(superOptions)?superOptions:[]),
     ...(Array.isArray(activeBuild?.superOptions)?activeBuild.superOptions:[])
   ]));
-  const requestedActive=activeSuper||equippedSuper(activeBuild,currentOptions);
-  const resolvedActive=currentOptions.find(item=>itemKey(item)===itemKey(requestedActive))||requestedActive||currentOptions[0]||null;
+  const requestedActive=[activeSuper,equippedSuper(activeBuild,currentOptions)].find(candidate=>currentOptions.some(item=>itemKey(item)===itemKey(candidate)))||null;
+  const resolvedActive=currentOptions.find(item=>itemKey(item)===itemKey(requestedActive))||currentOptions[0]||null;
   const activeId=itemKey(resolvedActive);
   const entries=[{slot:'equipped',item:resolvedActive,role:'equipped-super-large',element:activeElement,selected:false}];
   const alternatives=currentOptions.filter(item=>itemKey(item)!==activeId).slice(0,4);
@@ -98,13 +98,12 @@ function renderEquippedSubclass({root,iconNode,nameNode,metaNode,subclass='',sub
 function renderSubclassPicker({root,characterClass='',subclass='',subclassOptions=[],selectKind='',onSelect=null}={}){
   if(!root)return;
   const active=subclassKey(subclass,null);
-  const classKey=String(characterClass||'hunter').trim().toLowerCase();
   const options=Array.isArray(subclassOptions)?subclassOptions.filter(Boolean):[];
   root.querySelectorAll('.el[data-element]').forEach(button=>{
     const element=String(button.dataset.element||'').toLowerCase();
     const optionIndex=options.findIndex(item=>subclassKey([item?.element,item?.subclass,item?.key,item?.name,item?.displayName].filter(Boolean).join(' '),null)===element);
     const option=options[optionIndex]||null;
-    const iconPath=resolvedSuperIcon(option)||(element==='prismatic'?SUBCLASS_PICKER_ICONS.prismatic[classKey]:SUBCLASS_PICKER_ICONS[element]);
+    const iconPath=SUBCLASS_PICKER_ICONS[element]||'';
     const icon=button.querySelector('.icon');
     const selected=element===active;
     const unlocked=Boolean(option)||(!options.length&&selected);
@@ -117,7 +116,8 @@ function renderSubclassPicker({root,characterClass='',subclass='',subclassOption
     button.classList.toggle('is-locked',!unlocked);
     button.classList.toggle('is-active',selected);
     button.setAttribute('aria-selected',String(selected));
-    button.dataset.bungieArtworkSource='DestinyInventoryItemDefinition';
+    button.dataset.bungieArtworkSource=element==='prismatic'?'DestinyLoadoutIconDefinition':'DestinyInventoryItemDefinition';
+    button.dataset.bungieArtworkHash=element==='prismatic'?String(PRISMATIC_HEADER_ICON_HASH):String(option?.bungieHash??option?.hash??option?.itemHash??'');
     if(icon)icon.style.backgroundImage=iconPath?`url("${absoluteIcon(iconPath)}")`:'';
     if(!option)return;
     button.dataset.bungieHash=String(option?.bungieHash??option?.hash??option?.itemHash??'');

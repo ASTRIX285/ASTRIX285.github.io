@@ -3,7 +3,7 @@ import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {guardianManifest} from "./guardian-manifest-service.mjs";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
-import {mergeSubclassCatalog} from "./guardian-super-catalog.mjs?v=20260829-super-catalog-1";
+import {mergeSubclassCatalog} from "./guardian-super-catalog.mjs?v=20260829-subclass-identity-1";
 import {
   cacheBungieProfile,
   readCachedBungieProfile,

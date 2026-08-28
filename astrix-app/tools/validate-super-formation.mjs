@@ -81,7 +81,7 @@ assert.match(css,/flex:0 0 auto!important;/,'Equipped subclass/Super wrapper mus
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
   assert.match(html,/guardian-super-formation\.css/,`${label} does not load the shared stylesheet`);
-  assert.match(html,/20260829-super-catalog-1/,`${label} does not load the verified Super catalogue`);
+  assert.match(html,/20260829-subclass-identity-1/,`${label} does not load the strict subclass identity mapper`);
   assert.match(html,/equipped-subclass-stack/,`${label} does not use the equipped-only subclass stack`);
   assert.equal((html.match(/data-super-slot=/g)||[]).length,6,`${label} must expose six fixed Super slots`);
   assert.doesNotMatch(html,/class="subclass-rail"|id="subclassSummary"|data-subclass-option=/,`${label} still contains the removed subclass selector panel`);
@@ -91,6 +91,9 @@ assert.match(moduleSource,/function renderEquippedSubclass/,'Shared equipped sub
 assert.equal(LOADOUT_DEFINITIONS.icons?.[814121290]?.iconImagePath,'/common/destiny2_content/icons/8f8283c4f518dbd2239ba1f60b91d14f.png','Prismatic header icon hash 814121290 drifted');
 assert.match(moduleSource,/PRISMATIC_HEADER_ICON_HASH=814121290/,'Shared renderer does not use the Bungie Prismatic loadout icon hash');
 assert.match(moduleSource,/key==='prismatic'\?PRISMATIC_HEADER_ICON:icon/,'Prismatic header is not routed through the shared class-neutral icon');
+assert.match(moduleSource,/prismatic:PRISMATIC_HEADER_ICON/,'Lower Prismatic picker is not routed through the same class-neutral icon');
+assert.match(moduleSource,/iconPath=SUBCLASS_PICKER_ICONS\[element\]/,'Subclass picker does not bind artwork to the selected subclass identity');
+assert.doesNotMatch(moduleSource,/resolvedSuperIcon\(option\)/,'Subclass picker can still substitute a stale Super icon');
 assert.match(css,/\.equipped-subclass:not\(\[data-subclass="prismatic"\]\) \.equipped-subclass__crest img\{[\s\S]*?position:absolute;[\s\S]*?left:50%;[\s\S]*?top:50%;[\s\S]*?transform:translate\(-50%,-50%\) rotate\(-45deg\);/,'Non-Prismatic header artwork is not explicitly centred');
 assert.match(moduleSource,/function renderSuperFormation/,'Shared Super renderer is missing');
 assert.match(moduleSource,/function resolveSuperFormationSlots/,'Shared Super slot mapper is missing');
@@ -104,10 +107,10 @@ for(const [label,source] of [['Main renderer',mainModule],['Main sync bridge',sy
   assert.match(source,/characterClass(?::|,)/,`${label} does not bind Super hashes to the selected character class`);
 }
 assert.match(moduleSource,/strand:'\/common\/destiny2_content\/icons\/41c0024ce809085ac16f4e0777ea0ac4\.png'/,'Shared subclass picker lost its verified Strand fallback');
-assert.match(syncModule,/if\(node&&icon\)node\.style\.backgroundImage=/,'Character sync can still erase a missing-catalogue subclass fallback');
+assert.doesNotMatch(syncModule,/applyManifestElementIcons/,'Character sync can still overwrite verified subclass picker artwork');
 
 const {renderSubclassPicker,resolveSuperFormationSlots}=await import(SHARED_MODULE_URL.href);
-const {CLASS_NAMES,ELEMENT_ORDER,MANIFEST_VERSION,mergeSubclassCatalog,subclassDefinitionsFor,superDefinitionsFor}=catalogApi;
+const {CLASS_NAMES,ELEMENT_ORDER,MANIFEST_VERSION,mergeSubclassCatalog,mergeSuperOptions,subclassDefinitionsFor,superDefinitionsFor}=catalogApi;
 assert.equal(MANIFEST_VERSION,'244213.26.06.29.2000-1-bnet.65583','Audited Bungie manifest version drifted');
 assert.match(catalogSource,/Source: Bungie DestinyInventoryItemDefinition manifest/,'Super hash catalogue lost its Bungie provenance');
 const expectedSuperHashes={
@@ -119,6 +122,14 @@ const expectedSubclassHashes={
   hunter:[2328211300,2240888816,2453351420,873720784,3785442599,4282591831],
   titan:[2932390016,2550323932,2842471112,613647804,242419885,1616346845],
   warlock:[3168997075,3941205951,2849050827,3291545503,4204413574,3893112950]
+};
+const expectedSubclassIcons={
+  arc:'949af7a61d60a8e6071282daafa9e6e9.png',
+  solar:'fedcb91b7ab0584c12f0e9fec730702b.png',
+  void:'32b112a9460e6f0e2b9ee15dc53fe1c1.png',
+  stasis:'6e441ffa8c8171ce9caf71e51b72fc19.png',
+  strand:'41c0024ce809085ac16f4e0777ea0ac4.png',
+  prismatic:'8f8283c4f518dbd2239ba1f60b91d14f.png'
 };
 const expectedClassTotals={hunter:16,titan:14,warlock:15};
 assert.equal(CLASS_NAMES.length,3,'All three Destiny character classes must be represented');
@@ -137,6 +148,20 @@ for(const characterClass of CLASS_NAMES){
       assert.equal(item.bungieHash,item.hash,`${item.name} does not expose its exact Bungie hash`);
     }
   }
+  const pickerIcons=new Map();
+  const pickerButtons=ELEMENT_ORDER.map(element=>{
+    const icon={style:{}};
+    const button={dataset:{element},classList:{toggle(){}},querySelector:selector=>selector==='.icon'?icon:null,setAttribute(){},removeAttribute(){}};
+    pickerIcons.set(element,{icon,button});
+    return button;
+  });
+  renderSubclassPicker({root:{querySelectorAll:()=>pickerButtons},characterClass,subclass:'arc',subclassOptions:mergeSubclassCatalog([],characterClass)});
+  for(const [index,element] of ELEMENT_ORDER.entries()){
+    const {icon,button}=pickerIcons.get(element);
+    assert.match(icon.style.backgroundImage,new RegExp(expectedSubclassIcons[element].replace('.','\\.')),`${characterClass} ${element} picker uses the wrong subclass artwork`);
+    assert.equal(button.dataset.bungieHash,String(expectedSubclassHashes[characterClass][index]),`${characterClass} ${element} picker uses the wrong subclass hash`);
+    assert.equal(button.disabled,false,`${characterClass} ${element} picker is not clickable`);
+  }
 }
 assert.equal(Object.values(expectedClassTotals).reduce((sum,count)=>sum+count,0),45,'Exactly 45 current Super plug hashes must be audited');
 const fallbackIcon={style:{}};
@@ -152,6 +177,51 @@ renderSubclassPicker({root:{querySelectorAll:()=>[strandButton]},characterClass:
 assert.match(fallbackIcon.style.backgroundImage,/41c0024ce809085ac16f4e0777ea0ac4\.png/,'Strand subclass diamond does not retain its Bungie fallback icon');
 assert.equal(strandButton.disabled,false,'Verified Strand subclass must be active and clickable');
 assert.equal(strandButton.dataset.bungieHash,'3785442599','Strand picker must expose the Hunter Threadrunner hash');
+
+const prismaticIcon={style:{}};
+const prismaticButton={
+  dataset:{element:'prismatic'},
+  classList:{toggle(){}},
+  querySelector:selector=>selector==='.icon'?prismaticIcon:null,
+  setAttribute(){},
+  removeAttribute(){}
+};
+renderSubclassPicker({root:{querySelectorAll:()=>[prismaticButton]},characterClass:'titan',subclass:'void',subclassOptions:mergeSubclassCatalog([],'titan')});
+assert.match(prismaticIcon.style.backgroundImage,/8f8283c4f518dbd2239ba1f60b91d14f\.png/,'Lower Prismatic picker does not use generic loadout icon hash 814121290');
+assert.equal(prismaticButton.dataset.bungieArtworkHash,'814121290','Lower Prismatic picker lost its exact loadout icon hash');
+assert.equal(prismaticButton.dataset.bungieArtworkSource,'DestinyLoadoutIconDefinition','Lower Prismatic picker reports the wrong manifest definition type');
+
+const titanThundercrash=superDefinitionsFor('titan','arc')[0];
+const corruptedTitanVoid=mergeSubclassCatalog([{
+  hash:2932390016,
+  bungieHash:2932390016,
+  name:'Void Titan',
+  element:'void',
+  icon:'/common/destiny2_content/icons/949af7a61d60a8e6071282daafa9e6e9.png',
+  definition:{itemType:16,itemTypeDisplayName:'Subclass',displayProperties:{name:'Striker',icon:'/common/destiny2_content/icons/949af7a61d60a8e6071282daafa9e6e9.png'}},
+  subclassBuild:{super:titanThundercrash,superOptions:[titanThundercrash]}
+}],'titan').find(item=>item.element==='void');
+assert.equal(corruptedTitanVoid.hash,2842471112,'Titan Void accepted the stale Arc subclass hash');
+assert.equal(corruptedTitanVoid.icon,'/common/destiny2_content/icons/32b112a9460e6f0e2b9ee15dc53fe1c1.png','Titan Void accepted the stale Arc subclass icon');
+assert.equal(corruptedTitanVoid.subclassBuild.super.hash,4260353952,'Titan Void accepted Thundercrash as its equipped Super');
+assert.deepEqual(corruptedTitanVoid.subclassBuild.superOptions.map(item=>item.hash),expectedSuperHashes.titan.void,'Titan Void alternatives contain a cross-subclass Super');
+const correctedTitanVoid=resolveSuperFormationSlots({activeSuper:titanThundercrash,superOptions:[titanThundercrash],subclass:'void',subclassCatalog:[corruptedTitanVoid],characterClass:'titan'});
+assert.equal(correctedTitanVoid.activeSuper.hash,4260353952,'Arc-to-Void switch can still leave Thundercrash in the large and bottom diamonds');
+assert.ok(correctedTitanVoid.superOptions.every(item=>expectedSuperHashes.titan.void.includes(item.hash)),'Titan Void formation still contains an Arc Super');
+
+const everySuper=CLASS_NAMES.flatMap(characterClass=>ELEMENT_ORDER.flatMap(element=>superDefinitionsFor(characterClass,element)));
+for(const characterClass of CLASS_NAMES){
+  const subclassCatalog=mergeSubclassCatalog([],characterClass);
+  for(const element of ELEMENT_ORDER){
+    const expected=expectedSuperHashes[characterClass][element];
+    const foreign=everySuper.find(item=>!expected.includes(item.hash));
+    const compatible=mergeSuperOptions(characterClass,element,[foreign]);
+    assert.deepEqual(compatible.map(item=>item.hash),expected,`${characterClass} ${element} accepted a foreign Super hash`);
+    const mapped=resolveSuperFormationSlots({activeSuper:foreign,superOptions:[foreign],subclass:element,subclassCatalog,characterClass});
+    assert.ok(expected.includes(mapped.activeSuper.hash),`${characterClass} ${element} rendered a foreign Super as active`);
+    assert.ok(mapped.superOptions.every(item=>expected.includes(item.hash)),`${characterClass} ${element} rendered a foreign alternate Super`);
+  }
+}
 
 for(const characterClass of CLASS_NAMES){
   const subclassCatalog=mergeSubclassCatalog([],characterClass);
@@ -201,9 +271,13 @@ console.log('SUPER_FORMATION_SHARED_OWNER=PASS');
 console.log('SUPER_FORMATION_PSD_RATIOS=PASS');
 console.log('SUPER_FORMATION_MAIN_BUILD_PARITY=PASS');
 console.log('SUPER_FORMATION_ALL_CLASS_HASH_CATALOG=PASS');
+console.log('SUPER_FORMATION_CROSS_SUBCLASS_REJECTION=PASS');
+console.log('TITAN_VOID_STALE_ARC_REJECTION=PASS');
 console.log('SUPER_FORMATION_CLICK_SWAP=PASS');
 console.log('SUPER_FORMATION_EQUIPPED_DUPLICATION=PASS');
 console.log('SUBCLASS_PICKER_STRAND_MAPPING=PASS');
+console.log('SUBCLASS_PICKER_ALL_CLASS_HASHES=PASS');
+console.log('SUBCLASS_PICKER_PRISMATIC_GENERIC_HASH=PASS');
 console.log('EQUIPPED_SUBCLASS_HEADER_AND_PADDING=PASS');
 console.log('SUPER_FORMATION_ROTATED_BOUNDS=PASS');
 console.log('SUPER_FORMATION_RESPONSIVE_SOURCE=PASS');
