@@ -8,5 +8,6 @@ astrix-app/data/*.raw.json
 astrix-app/.tmp/
 
 # Worker dependencies & build artifacts
+astrix-app/node_modules/
 astrix-worker/node_modules/
 astrix-worker/.wrangler/
