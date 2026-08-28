@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
+import {createHandoffEnvelope,validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
+import {createBuildState} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 
 class MemoryStore{
   constructor(){this.values=new Map();}
@@ -19,6 +20,8 @@ const {
   rememberWeaponAdvice,
   rememberArtifactSelection,
   resolveBuildSource,
+  currentProfileBuildSource,
+  BUILD_SNAPSHOT_KEY,
   LAST_LOADOUT_KEY
 }=await import('../pages/guardian-workspace-v2/paradox-build-space-handoff.mjs');
 
@@ -89,5 +92,13 @@ assert.equal(persistedWarlock.weaponRollAdvice,undefined,'Titan weapon advice ca
 
 rememberGuardian({...warlockLoadout,selectedLoadoutIndex:null});
 assert.equal(resolveBuildSource().selectedLoadoutIndex,null,'returning to a character current-equipped view does not silently reopen its old saved loadout');
+
+const exactArmourSet={identity:{hash:7001,name:'Seventh Seraph',icon:'/set.png'},twoPiece:{hash:7002,icon:'/two.png',active:true},fourPiece:{hash:7004,icon:'/four.png',active:true}};
+const exactSockets=[1,2,3,4,5].map(hash=>({hash,name:`Armour socket ${hash}`,semanticRole:hash<3?'general-mod':'slot-mod'}));
+const currentPaintedBuild={...warlockLoadout,selectedLoadoutIndex:null,armour:[{name:'Current helmet',armourSemantics:{set:exactArmourSet,generalMods:exactSockets.slice(0,2),slotMods:exactSockets.slice(2)},setBonus:exactArmourSet,generalMods:exactSockets.slice(0,2),slotMods:exactSockets.slice(2),mods:[{hash:99,semanticRole:'masterwork'},...exactSockets]}]};
+sessionStorage.setItem(BUILD_SNAPSHOT_KEY,JSON.stringify(createHandoffEnvelope(createBuildState(currentPaintedBuild))));
+const currentPaintedSource=currentProfileBuildSource();
+assert.deepEqual(currentPaintedSource.armour[0].armourSemantics.set,exactArmourSet,'Build handoff must use the current painted armour set evidence');
+assert.deepEqual(currentPaintedSource.armour[0].mods.map(row=>row.hash),[99,1,2,3,4,5],'Build handoff must retain every current armour socket in order');
 
 console.log('Build Space character isolation tests passed.');

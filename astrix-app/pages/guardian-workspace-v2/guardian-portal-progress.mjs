@@ -52,11 +52,11 @@ document.addEventListener('astrix:bungie-profile-loaded',event=>{
 });
 document.addEventListener('astrix:guardian-selection-changed',()=>set(86,'Painting Guardian build'));
 document.addEventListener('astrix:beta-fixture-loaded',()=>set(86,'Painting Guardian preview'));
-document.addEventListener('astrix:guardian-render-complete',()=>finishAfterPaint('Guardian build rendered'),{once:true});
+document.addEventListener('astrix:guardian-render-complete',()=>{if(!isBuildSpace)finishAfterPaint('Guardian build rendered');},{once:true});
 document.addEventListener('astrix:build-render-complete',()=>finishAfterPaint('Build Forge rendered'),{once:true});
 document.addEventListener('astrix:guardian-error',()=>{if(!isBuildSpace)finishAfterPaint('Guardian state rendered');},{once:true});
 
 const currentSession=window.ASTRIX_BUNGIE_SESSION;
-if(document.documentElement.dataset.guardianRenderComplete==='true')finishAfterPaint('Guardian build rendered');
+if(!isBuildSpace&&document.documentElement.dataset.guardianRenderComplete==='true')finishAfterPaint('Guardian build rendered');
 else if(currentSession?.authenticated)set(32,'Bungie session ready');
 else if(currentSession)set(8,'Bungie authentication required');
