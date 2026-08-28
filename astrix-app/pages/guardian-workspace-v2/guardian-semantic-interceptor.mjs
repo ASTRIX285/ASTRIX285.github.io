@@ -6,7 +6,7 @@ import {
   normaliseWeaponSemantics,
   normaliseGuardianStats,
   validateArtifact
-} from "./guardian-semantic-resolver.mjs";
+} from "./guardian-semantic-resolver.mjs?v=20260829-weapon-perk-hash-1";
 
 const rawFetch=globalThis.fetch?.bind(globalThis);
 let livePayload=null;

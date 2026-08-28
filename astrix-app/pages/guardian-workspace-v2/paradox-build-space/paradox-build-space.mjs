@@ -4,7 +4,7 @@ import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMat
 import {renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
 import {createPerkChangePlan,confirmPerkChangePlan,applyConfirmedPerkChangePlan} from '../guardian-perk-change-plan.mjs';
 import {armourCard} from '../guardian-gear-layout.mjs?v=20260825-armour-data-recovery-1';
-import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260824-artifact-state-2';
+import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260829-weapon-perk-hash-1';
 import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260829-super-catalog-1';
 import {mergeSubclassCatalog,mergeSuperOptions} from '../guardian-super-catalog.mjs?v=20260829-super-catalog-1';
 import {markGuardianFastReturn} from '../guardian-session-cache.mjs';
