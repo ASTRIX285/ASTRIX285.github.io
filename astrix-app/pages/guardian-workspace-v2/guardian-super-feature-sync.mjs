@@ -4,7 +4,7 @@
  */
 
 import { cleanImageElement } from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
-import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from './guardian-super-formation.mjs?v=20260826-four-fixes-1';
+import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from './guardian-super-formation.mjs?v=20260828-subclass-header-1';
 import './guardian-artifact.mjs?v=20260824-artifact-state-2';
 import './paradox-build-space-handoff.mjs';
 

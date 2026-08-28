@@ -1,7 +1,10 @@
 import {cleanImageElement} from './guardian-bungie-icon-cleaner.mjs?v=20260824-icon-cleaner-2';
+import {LOADOUT_DEFINITIONS} from './guardian-loadout-definitions.mjs';
 
 const BUNGIE='https://www.bungie.net';
 const SUBCLASS_KEYS=Object.freeze(['void','arc','solar','strand','stasis','prismatic']);
+const PRISMATIC_HEADER_ICON_HASH=814121290;
+const PRISMATIC_HEADER_ICON=LOADOUT_DEFINITIONS.icons?.[PRISMATIC_HEADER_ICON_HASH]?.iconImagePath||'';
 const SUBCLASS_PICKER_ICONS=Object.freeze({
   arc:'/common/destiny2_content/icons/949af7a61d60a8e6071282daafa9e6e9.png',
   solar:'/common/destiny2_content/icons/fedcb91b7ab0584c12f0e9fec730702b.png',
@@ -46,7 +49,7 @@ function renderEquippedSubclass({root,iconNode,nameNode,metaNode,subclass='',sub
   if(nameNode)nameNode.textContent=identity.toUpperCase();
   if(metaNode)metaNode.textContent=`${classLabel} SUBCLASS`.toUpperCase();
   if(iconNode){
-    const src=absoluteIcon(icon);
+    const src=absoluteIcon(key==='prismatic'?PRISMATIC_HEADER_ICON:icon);
     iconNode.alt=src?`${identity} subclass icon`:'';
     iconNode.hidden=!src;
     root.classList.toggle('has-live-icon',Boolean(src));

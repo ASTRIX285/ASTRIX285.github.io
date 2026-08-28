@@ -74,11 +74,15 @@ html body .workspace .left .subclass-super-shell.equipped-subclass-stack{
 }
 .equipped-subclass:not([data-subclass="prismatic"]) .equipped-subclass__crest::after{border-radius:0}
 .equipped-subclass:not([data-subclass="prismatic"]) .equipped-subclass__crest img{
+  position:absolute;
+  left:50%;
+  top:50%;
   width:141.4214%;
   height:141.4214%;
   max-width:none;
   max-height:none;
-  transform:rotate(-45deg);
+  transform:translate(-50%,-50%) rotate(-45deg);
+  transform-origin:center;
 }
 .equipped-subclass__copy{display:grid;gap:5px;min-width:0}
 .equipped-subclass__copy strong{

@@ -5,7 +5,7 @@ import {renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
 import {createPerkChangePlan,confirmPerkChangePlan,applyConfirmedPerkChangePlan} from '../guardian-perk-change-plan.mjs';
 import {armourCard} from '../guardian-gear-layout.mjs?v=20260825-armour-data-recovery-1';
 import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260824-artifact-state-2';
-import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260826-four-fixes-1';
+import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260828-subclass-header-1';
 import {markGuardianFastReturn} from '../guardian-session-cache.mjs';
 import {guardianManifest} from '../guardian-manifest-service.mjs';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope} from '../paradox-build-binding.mjs';

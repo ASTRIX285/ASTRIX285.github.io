@@ -6,7 +6,7 @@ import {
   selectLiveCharacter
 } from "./guardian-bungie-profile.mjs?v=20260827-manifest-service-1";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
-import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260826-four-fixes-1";
+import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260828-subclass-header-1";
 
 const PLAYER_POWER_CAP = 550;
 const VALID_CLASSES = ["hunter", "titan", "warlock"];
