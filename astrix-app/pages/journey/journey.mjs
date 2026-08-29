@@ -7,11 +7,7 @@ const dashboard=document.getElementById('journeyDashboard');
 const status=document.getElementById('journeyAuthStatus');
 
 function showSignedOut(){
-  resolving.hidden=true;
-  dashboard.hidden=true;
-  signedOut.hidden=false;
-  status.textContent='BUNGIE CONNECTION REQUIRED';
-  document.querySelector('.bungie-auth-control')?.remove();
+  location.replace('https://astrixparadox.com/astrix-app/pages/guardian-workspace-v2/');
 }
 
 let locationSelectorReady=false;
