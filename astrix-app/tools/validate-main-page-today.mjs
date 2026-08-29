@@ -127,13 +127,17 @@ assert.match(loadoutsCss,/background-image:var\(--loadout-color-image/,'Saved lo
 assert.match(loadoutsCss,/guardian-loadout-icon\{width:var\(--pf-mod-size,36px\)/,'Loadout icon must match armour mod size');
 assert.match(loadoutsModule,/data-bungie-icon-hash/,'Rendered loadouts must retain Bungie iconHash provenance');
 assert.match(loadoutsModule,/data-bungie-color-hash/,'Rendered loadouts must retain Bungie colorHash provenance');
+assert.match(workspaceHtml,/<a class="improve-cta" href="\.\/paradox-build-space\/">✦ IMPROVE MY GUARDIAN<\/a>/,'Improve My Guardian must retain a native Build Forge link when JavaScript or storage fails');
+assert.match(workspaceHtml,/guardian-workspace-v2-compact\.css\?v=20260829-build-cta-anchor-1/,'Main must load the native Build Forge link styling without stale button CSS');
+assert.match(await read('guardian-workspace-v2-compact.css'),/\.improve-cta\{[^}]*display:inline-flex;[^}]*text-decoration:none/,'The native Build Forge link must preserve the approved button presentation');
+assert.match(workspaceHtml,/paradox-build-space-handoff\.mjs\?v=20260829-build-cta-native-navigation-1/,'Main must load the native-navigation handoff correction without a stale module cache');
 assert.match(handoff,/latestGuardian&&Number\.isInteger\(latestGuardian\.selectedLoadoutIndex\)/,'Improve My Guardian must prefer the active selected loadout');
 assert.match(handoff,/loadoutsAvailable:detail\.loadoutsAvailable===true/,'Build handoff must carry the exact Bungie in-game loadout catalogue');
 assert.match(handoff,/super:detail\.super\|\|null/,'Build handoff must preserve fixture and legacy subclass fields without an empty subclassBuild');
 assert.match(handoff,/subclassCatalog:clone\(detail\.subclassCatalog\|\|\[\]\)/,'Build handoff must preserve verified subclass choices');
 assert.match(handoff,/const profileSource=currentProfileBuildSource\(\);[\s\S]*?const source=profileSource\|\|resolveBuildSource\(\)/,'Main to Build must prefer the freshly persisted, post-enrichment Character snapshot');
 assert.match(handoff,/if\(profileSource\)clearStored\(BUILD_SPACE_KEY\);[\s\S]*?else if\(!safeStore\(BUILD_SPACE_KEY,state,\{durable:true\}\)\)/,'A fresh protected Character snapshot must replace the stale Build key without duplicating the full payload');
-assert.match(handoff,/if\(!safeStore\(BUILD_SPACE_KEY,state,\{durable:true\}\)\)[\s\S]*?return;/,'Main to Build must not navigate when the exact protected handoff cannot be secured');
+assert.match(handoff,/else if\(!safeStore\(BUILD_SPACE_KEY,state,\{durable:true\}\)\)\{[\s\S]*?Recovering current Guardian[\s\S]*?\}[\s\S]*?await afterPortalPaint\(\)/,'Main to Build must continue to native navigation and authenticated recovery when Web Storage rejects the handoff');
 assert.match(handoff,/await afterPortalPaint\(\);[\s\S]*?markGuardianFastReturn\(\);location\.href=target;/,'Main to Build must paint the portal before entering Build Forge');
 assert.doesNotMatch(superSync,/paradox-build-space-handoff\.mjs/,'The subclass bridge must not register a duplicate Build handoff owner');
 

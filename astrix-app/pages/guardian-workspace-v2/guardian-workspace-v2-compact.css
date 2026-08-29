@@ -127,7 +127,7 @@
 .actionbar .grp{display:flex;gap:8px}
 .ab-btn{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;color:var(--muted);border:1px solid transparent;font-weight:600;font-size:.78rem}
 .ab-btn:hover{color:#fff;border-color:var(--line-2);background:var(--panel)}
-.improve-cta{padding:14px 46px;border-radius:14px;font-family:Orbitron;font-weight:800;font-size:.94rem;letter-spacing:.08em;color:#fff;
+.improve-cta{display:inline-flex;align-items:center;justify-content:center;padding:14px 46px;border-radius:14px;font-family:Orbitron;font-weight:800;font-size:.94rem;letter-spacing:.08em;color:#fff;text-decoration:none;
   background:linear-gradient(135deg,var(--violet),#6d28d9);box-shadow:0 12px 34px var(--violet-glow);display:flex;align-items:center;gap:12px;
   border:1px solid rgba(196,181,253,.4)}
 .improve-cta:hover{transform:translateY(-2px)}

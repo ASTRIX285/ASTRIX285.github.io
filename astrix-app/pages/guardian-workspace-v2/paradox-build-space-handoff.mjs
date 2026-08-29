@@ -84,38 +84,39 @@ async function openBuildSpace(event){
   const button=event.target?.closest?.('.improve-cta');
   if(!button)return;
   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+  armBuildSpacePortal();
   // guardian-bungie-profile persists the currently painted, post-enrichment
   // build earlier in this same capture phase. Prefer it over an older in-memory
   // listener snapshot so every resolved armour set and socket crosses intact.
   const profileSource=currentProfileBuildSource();
-  const source=profileSource||resolveBuildSource(),characterId=bindingOf(source).characterId;
-  if(!source||!characterId){
-    console.error('[ASTRIX Build Forge] A selected Guardian with a resolved characterId is required.');
-    document.dispatchEvent(new CustomEvent('astrix:build-handoff-error',{detail:{message:'Select a loaded Guardian before opening Build Forge.'}}));
-    return;
-  }
-  armBuildSpacePortal();
-  let target='./paradox-build-space/';
-  if(source){
+  const source=profileSource||resolveBuildSource(),sourceBinding=bindingOf(source),characterId=sourceBinding.characterId||selectedCharacterId();
+  let target=button.getAttribute?.('href')||'./paradox-build-space/';
+  if(source&&characterId){
     const boundSource={...source,characterId},state=createBuildState(boundSource),binding=bindingOf(state.originalBuild);
-    if(!binding.characterId||binding.characterId!==characterId||bindingOf(state.workingBuild).characterId!==characterId){console.error('[ASTRIX Build Forge] Build binding could not be preserved.');return;}
-    state.sourcePriority=source.source==='bungie-loadout'?'selected-or-last-bungie-loadout':'current-equipped-guardian';
-    // The current protected profile snapshot is already safely stored under
-    // BUILD_SNAPSHOT_KEY. Do not duplicate the same large build into a second
-    // storage key: that can exhaust Web Storage and make the CTA appear dead.
-    // Clear only the stale explicit copy so Build Forge consumes the fresh key.
-    if(profileSource)clearStored(BUILD_SPACE_KEY);
-    else if(!safeStore(BUILD_SPACE_KEY,state,{durable:true})){
-      globalThis.AstrixLoader?.status?.('Build snapshot could not be secured');
-      document.dispatchEvent(new CustomEvent('astrix:build-handoff-error',{detail:{message:'Build Forge could not secure the current Guardian snapshot on this device.'}}));
-      return;
+    if(binding.characterId&&binding.characterId===characterId&&bindingOf(state.workingBuild).characterId===characterId){
+      state.sourcePriority=source.source==='bungie-loadout'?'selected-or-last-bungie-loadout':'current-equipped-guardian';
+      // The current protected profile snapshot is already safely stored under
+      // BUILD_SNAPSHOT_KEY. Do not duplicate the same large build into a second
+      // storage key: that can exhaust Web Storage and make the CTA appear dead.
+      // Clear only the stale explicit copy so Build Forge consumes the fresh key.
+      if(profileSource)clearStored(BUILD_SPACE_KEY);
+      else if(!safeStore(BUILD_SPACE_KEY,state,{durable:true})){
+        console.warn('[ASTRIX Build Forge] Build snapshot storage was rejected; recovering from the authenticated Bungie session.');
+        globalThis.AstrixLoader?.status?.('Recovering current Guardian');
+      }
+    }else{
+      console.warn('[ASTRIX Build Forge] Build binding will be recovered from the authenticated Bungie session.');
     }
-    const params=new URLSearchParams();
-    params.set('characterId',binding.characterId);
-    if(binding.membershipId)params.set('membershipId',binding.membershipId);
-    if(binding.membershipType)params.set('membershipType',binding.membershipType);
-    const query=params.toString();
-    if(query)target+='?'+query;}
+  }else{
+    console.warn('[ASTRIX Build Forge] Direct navigation will recover the current Guardian from the authenticated Bungie session.');
+    globalThis.AstrixLoader?.status?.('Recovering current Guardian');
+  }
+  const params=new URLSearchParams();
+  if(characterId)params.set('characterId',characterId);
+  if(sourceBinding.membershipId)params.set('membershipId',sourceBinding.membershipId);
+  if(sourceBinding.membershipType)params.set('membershipType',sourceBinding.membershipType);
+  const query=params.toString();
+  if(query)target+=(target.includes('?')?'&':'?')+query;
   await afterPortalPaint();
   markGuardianFastReturn();location.href=target;
 }

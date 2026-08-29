@@ -3,9 +3,9 @@ import {createHandoffEnvelope,validateHandoffEnvelope} from '../pages/guardian-w
 import {createBuildState} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 
 class MemoryStore{
-  constructor(){this.values=new Map();}
+  constructor(){this.values=new Map();this.rejectWrites=false;}
   getItem(key){return this.values.has(key)?this.values.get(key):null;}
-  setItem(key,value){this.values.set(key,String(value));}
+  setItem(key,value){if(this.rejectWrites)throw new DOMException('Storage quota exceeded','QuotaExceededError');this.values.set(key,String(value));}
   removeItem(key){this.values.delete(key);}
 }
 
@@ -117,5 +117,11 @@ assert.match(location.href,/^\.\/paradox-build-space\/\?characterId=warlock-1/,'
 assert.equal(sessionStorage.getItem(BUILD_SPACE_KEY),null,'stale session Build copy must be cleared before navigation');
 assert.equal(localStorage.getItem(BUILD_SPACE_KEY),null,'stale durable Build copy must be cleared before navigation');
 assert.ok(sessionStorage.getItem(BUILD_SNAPSHOT_KEY),'the already-protected current Character snapshot must remain available for Build Forge');
+
+for(const store of [sessionStorage,localStorage]){store.removeItem(BUILD_SNAPSHOT_KEY);store.rejectWrites=true;}
+location.href='';
+await improveClick({target:{closest:selector=>selector==='.improve-cta'?{}:null},preventDefault(){},stopPropagation(){},stopImmediatePropagation(){}});
+assert.match(location.href,/^\.\/paradox-build-space\/\?characterId=warlock-1/,'Improve My Guardian must still navigate when Web Storage rejects the handoff');
+for(const store of [sessionStorage,localStorage])store.rejectWrites=false;
 
 console.log('Build Space character isolation tests passed.');
