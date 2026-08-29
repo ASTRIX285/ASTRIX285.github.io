@@ -17,7 +17,7 @@ body.mission-reports-page{
     radial-gradient(circle at 52% 12%,rgba(141,99,216,.07),transparent 28%),
     radial-gradient(circle at 8% 90%,rgba(139,0,0,.12),transparent 30%),
     linear-gradient(180deg,rgba(6,6,6,.72),rgba(6,6,6,.86)),
-    url("../../../img/games/D2_JB.jpg") center/cover fixed no-repeat;
+    url("../../shared/locations/vault_bg.jpg") center/cover fixed no-repeat;
 }
 button,select{font:inherit}
 button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--apx-gold);outline-offset:2px}
