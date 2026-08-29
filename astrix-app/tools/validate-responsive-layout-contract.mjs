@@ -15,6 +15,15 @@ const sources={
 };
 const mainHtml=await readFile(new URL('index.html',ROOT),'utf8');
 const buildHtml=await readFile(new URL('paradox-build-space/index.html',ROOT),'utf8');
+const densityCss=await readFile(new URL('../../shared/astrix-desktop-density.css',ROOT),'utf8');
+const appPages=[
+  ['Journey',await readFile(new URL('../journey/index.html',ROOT),'utf8')],
+  ['Character',mainHtml],
+  ['Build Forge',buildHtml],
+  ['Mission Reports',await readFile(new URL('../mission-reports/index.html',ROOT),'utf8')],
+  ['Vault',await readFile(new URL('../vault/index.html',ROOT),'utf8')],
+  ['Loadout',await readFile(new URL('../loadout/index.html',ROOT),'utf8')]
+];
 const combined=Object.values(sources).join('\n');
 
 const squareOwners=Object.entries(sources).filter(([,source])=>/--guardian-square\s*:/.test(source)).map(([name])=>name);
@@ -32,6 +41,10 @@ assert.match(sources.shared,/guardian-loadout-slot\{[\s\S]*?aspect-ratio:1!impor
 assert.doesNotMatch(combined,/(?:^|[;{])\s*zoom\s*:/m,'Page-level CSS zoom is forbidden');
 const pageLayoutCss=[sources.adaptive,sources.gear,sources.layout,sources.leftLock,sources.mobile,sources.shared,sources.super,sources.build].join('\n');
 assert.doesNotMatch(pageLayoutCss,/(?:html|body|\.workspace|\.build-space|\.design-canvas|\.guardian-left-rail)\s*\{[^{}]*transform\s*:\s*scale\(/,'Page containers must not be scaled to simulate responsiveness');
+assert.match(densityCss,/--astrix-desktop-density:\.75/,'The shared desktop density must match the approved 75% showcase target');
+assert.match(densityCss,/@media\s*\(min-width:1500px\)\{[\s\S]*?body\{zoom:var\(--astrix-desktop-density\)\}/,'Desktop density must be shared, layout-aware and desktop-only');
+assert.match(densityCss,/body\.apx-destination-page \.apx-page-shell\{width:100%;max-width:none\}/,'Scaffold destinations must use the full desktop monitor');
+assert.doesNotMatch(densityCss,/transform\s*:\s*scale\(/,'The shared density layer must not use transform scaling');
 
 assert.match(sources.characters,/html body \.topbar\{[\s\S]*?position:sticky!important/,'The character-card ribbon must remain anchored to the tool header');
 assert.match(sources.characters,/@media\s*\(max-width:860px\)\{[\s\S]*?#guardianCharacterCards\.guardian-character-cards\{[^}]*display:grid!important;[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;[^}]*overflow:hidden!important/,'All three character cards must remain fixed and contained in the phone ribbon');
@@ -44,8 +57,13 @@ for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
   assert.match(html,/<meta\s+name="viewport"\s+content="[^"]*width=device-width[^"]*initial-scale=1(?:\.0)?[^"]*"\s*\/?>/,label+' must declare a device-width viewport');
   assert.doesNotMatch(html,/guardian-resolution-adaptive\.css/,label+' must not load the rejected broad scaling override');
 }
+for(const [label,html] of appPages){
+  const styles=[...html.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map(match=>match[1]);
+  assert.match(styles.at(-1)||'',/astrix-desktop-density\.css$/,label+' must load the shared desktop density layer last');
+}
 
 console.log('RESPONSIVE_SINGLE_OWNER=PASS');
-console.log('RESPONSIVE_NO_PAGE_SCALE=PASS');
+console.log('RESPONSIVE_NO_TRANSFORM_PAGE_SCALE=PASS');
+console.log('RESPONSIVE_DESKTOP_DENSITY=PASS');
 console.log('RESPONSIVE_LOADOUT_ROW=PASS');
 console.log('RESPONSIVE_TABLET_PHONE_SOURCE=PASS');
