@@ -6,11 +6,11 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
   'astrix-app/pages/journey/index.html',
   'astrix-app/pages/journey/journey.mjs',
-  'astrix-app/pages/loadout/index.html',
-  'astrix-app/pages/mission-reports/index.html',
-  'astrix-app/pages/vault/index.html',
-  'astrix-app/shared/astrix-destination-ribbon.css',
-  'astrix-app/shared/astrix-destination-ribbon.js',
+  'astrix-app/shared/astrix-deep-space.jpg',
+  'astrix-app/shared/astrix-location-atmosphere.css',
+  'astrix-app/shared/astrix-location-selector.mjs',
+  'astrix-app/shared/astrix-location-visuals.js',
+  'astrix-app/shared/locations/README.md',
   'astrix-app/tools/validate-scope-guard.mjs'
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
