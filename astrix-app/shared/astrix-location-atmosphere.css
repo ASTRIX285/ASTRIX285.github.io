@@ -1,0 +1,40 @@
+/* =====================================================================
+   ASTRIX PARADOX — location-reactive atmosphere (SHARED, all pages)
+   The UI stays constant across every page; only the --loc atmosphere
+   tint changes with the Guardian's current/selected destination.
+   Our own treatment, NOT Braytech map imagery.
+   Set by astrix-location-atmosphere.mjs via html[data-location="..."].
+   Default (no/unknown location) = blue. Tower + social areas never tint
+   (the resolver skips them and keeps the last real destination).
+   ===================================================================== */
+:root{ --loc:#5fa8e6; --loc-2:#8fd0ff; }                               /* default = blue */
+html[data-location="pale-heart"]    { --loc:#d1a25a; --loc-2:#e6c98a; } /* Traveler, warm */
+html[data-location="europa"]        { --loc:#5fa8e6; --loc-2:#9fd4ff; } /* icy blue */
+html[data-location="dreaming-city"] { --loc:#9a6fd0; --loc-2:#c79af0; } /* purple */
+html[data-location="edz"]           { --loc:#6fae5c; --loc-2:#a6d68f; } /* forest green */
+html[data-location="cosmodrome"]    { --loc:#c07a45; --loc-2:#e0a26a; } /* rust */
+html[data-location="moon"]          { --loc:#8f9ea0; --loc-2:#c2cec9; } /* pale grey */
+html[data-location="neomuna"]       { --loc:#35d6ff; --loc-2:#ff6fd0; } /* neon cyber */
+html[data-location="nessus"]        { --loc:#c85a3a; --loc-2:#e88a5a; } /* Vex coral */
+html[data-location="throne-world"]  { --loc:#6fae8f; --loc-2:#a6d6bf; } /* Savathun teal */
+
+/* Atmosphere: a DARK neutral base (constant) + a CONTROLLED location glow.
+   Restrained on purpose — a tint, not a wash. Attaches to a fixed layer so
+   it reads through translucent panels without ever washing out data.
+   Optional immersive vista: set --loc-img to a Bungie location image; it sits
+   UNDER the glow and is off by default (never muddies the palette). */
+.astrix-atmosphere{
+  position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background-size:cover; background-position:center;
+  background:
+    var(--loc-img,none),
+    radial-gradient(1100px 760px at 72% 4%,  color-mix(in srgb, var(--loc) 26%, transparent), transparent 62%),
+    radial-gradient(900px 700px at 12% 100%, color-mix(in srgb, var(--loc) 12%, transparent), transparent 60%),
+    linear-gradient(162deg,#0f1626 0%,#0a1120 82%);
+  transition:background .6s ease;
+}
+.astrix-atmosphere::after{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(128% 128% at 50% 34%, transparent 52%, rgba(0,0,0,.58));
+}
+@media (prefers-reduced-motion:reduce){ .astrix-atmosphere{ transition:none } }
