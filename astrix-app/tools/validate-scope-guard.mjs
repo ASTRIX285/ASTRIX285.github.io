@@ -4,6 +4,8 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'astrix-app/pages/guardian-workspace-v2/index.html',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
   'astrix-app/pages/journey/index.html',
   'astrix-app/pages/journey/journey.mjs',
   'astrix-app/shared/astrix-deep-space.jpg',
