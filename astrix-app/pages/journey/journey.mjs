@@ -5,15 +5,13 @@ const resolving=document.getElementById('journeyResolving');
 const signedOut=document.getElementById('journeySignedOut');
 const dashboard=document.getElementById('journeyDashboard');
 const status=document.getElementById('journeyAuthStatus');
-const connectAction=document.getElementById('journeyConnectAction');
 
 function showSignedOut(){
   resolving.hidden=true;
   dashboard.hidden=true;
   signedOut.hidden=false;
   status.textContent='BUNGIE CONNECTION REQUIRED';
-  const control=document.querySelector('.bungie-auth-control');
-  if(control&&connectAction&&!connectAction.contains(control))connectAction.append(control);
+  document.querySelector('.bungie-auth-control')?.remove();
 }
 
 let locationSelectorReady=false;
