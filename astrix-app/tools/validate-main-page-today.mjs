@@ -37,6 +37,10 @@ assert.match(profile,/readCachedBungieProfile/,'Guardian profile must reuse the 
 assert.match(profile,/readCachedBungieLoadoutDetail/,'Selected Bungie loadout detail must survive Main and Build navigation');
 assert.match(sessionCache,/indexedDB\.open\(DB_NAME,DB_VERSION\)/,'Guardian session data must use browser storage capable of holding the full Bungie profile');
 assert.match(sessionCache,/PROFILE_TTL_MS=12\*60\*60\*1000/,'Cached Guardian evidence must survive the complete browser work session');
+assert.match(profile,/const BUILD_SPACE_KEY="astrix:paradox-build-space:v1";/,'Character must identify the stale explicit Build snapshot before securing a fresh handoff');
+assert.match(profile,/function persistResolvedBuildSnapshot\(\)\{[\s\S]*?store\.removeItem\(BUILD_SPACE_KEY\);store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Improve My Guardian must free the stale Build snapshot before writing the full current Character payload');
+assert.match(workspace,/guardian-bungie-profile\.mjs\?v=20260829-subclass-identity-1-build-handoff-storage-order-1/,'Main must load the storage-order correction without a stale profile-module cache');
+assert.match(workspaceHtml,/guardian-workspace-v2\.mjs\?v=20260829-subclass-identity-1-weapon-perk-hash-1-build-handoff-storage-order-1/,'Main must load the corrected workspace dependency graph without a stale module cache');
 assert.match(profile,/PROFILE_REQUEST_TIMEOUT_MS=60_000/,'Authenticated Bungie profile resolution must allow manifest enrichment to finish');
 assert.match(profile,/return ensureLiveProfile\(session,\{background:false,silent:false\}\)/,'Authenticated profile recovery must issue one visible request rather than duplicate retries');
 assert.doesNotMatch(profile,/ensureLiveProfile\(globalThis\.ASTRIX_BUNGIE_SESSION\|\|null/,'Profile bootstrap must not make an unauthenticated profile request before session resolution');

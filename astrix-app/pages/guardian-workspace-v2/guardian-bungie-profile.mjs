@@ -27,6 +27,7 @@ const STAT_ORDER=[
 ];
 const SELECTED_CHARACTER_KEY="astrix:selected-character-id";
 const SELECTED_LOADOUT_KEY="astrix:selected-bungie-loadout-v1";
+const BUILD_SPACE_KEY="astrix:paradox-build-space:v1";
 const BUILD_SNAPSHOT_KEY="astrix:guardian-build-snapshot:v1";
 const loadoutCache=new Map();
 let liveProfilePayload=null;
@@ -89,7 +90,7 @@ function persistResolvedBuildSnapshot(){
   const envelope=createHandoffEnvelope(createBuildState(latestResolvedBuild));
   const json=JSON.stringify(envelope);
   let stored=false;
-  for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SNAPSHOT_KEY,json);stored=true;}catch{}}
+  for(const store of [sessionStorage,localStorage]){try{store.removeItem(BUILD_SPACE_KEY);store.setItem(BUILD_SNAPSHOT_KEY,json);stored=true;}catch{}}
   return stored;
 }
 
