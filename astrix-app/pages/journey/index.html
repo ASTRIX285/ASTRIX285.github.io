@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ASTRIX PARADOX Journey scaffold">
+  <title>Journey — ASTRIX PARADOX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Questrial&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css">
+  <script src="../../shared/astrix-destination-ribbon.js" defer></script>
+</head>
+<body class="apx-destination-page">
+  <header class="apx-destination-header topbar">
+    <a class="apx-destination-brand" href="./" aria-label="ASTRIX PARADOX Journey"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a>
+    <div class="apx-destination-header-copy"><strong>JOURNEY</strong><small>GUARDIAN COMMAND CONSOLE</small></div>
+    <span class="apx-destination-header-state" id="journeyAuthStatus" aria-live="polite">CHECKING CONNECTION</span>
+  </header>
+  <div data-astrix-destination-ribbon data-active-destination="journey"></div>
+
+  <main class="apx-page-shell">
+    <section class="apx-auth-resolving" id="journeyResolving" aria-live="polite"><p class="apx-eyebrow">SECURE TRANSMISSION</p><p>Checking the existing Bungie session before selecting the landing state.</p></section>
+
+    <section class="apx-landing" id="journeySignedOut" hidden>
+      <p class="apx-eyebrow">ENTER THE PARADOX</p>
+      <h1>Connect your Guardian.</h1>
+      <p>Journey requires an authenticated Bungie session. No Guardian data is displayed until the existing secure connection confirms access.</p>
+      <div class="apx-landing-actions" id="journeyConnectAction" aria-label="Bungie connection action"></div>
+    </section>
+
+    <section id="journeyDashboard" hidden>
+      <div class="apx-page-heading"><div><p class="apx-eyebrow">AUTHENTICATED HOME · SCAFFOLD</p><h1>Journey</h1><p>Your personal Guardian dashboard structure is ready. Live values remain empty until verified Journey data sources are wired in a later scope.</p></div><span class="apx-status-chip">PLACEHOLDERS ONLY</span></div>
+
+      <div class="apx-card-grid">
+        <article class="apx-scaffold-card"><h2>Equipped title and seal</h2><span class="apx-empty-state">No verified title or seal source is connected to Journey.</span></article>
+        <article class="apx-scaffold-card"><h2>Progress to next titles</h2><span class="apx-empty-state">Title progression data is not connected.</span></article>
+        <article class="apx-scaffold-card"><h2>Triumph and progression statistics</h2><span class="apx-empty-state">No verified Triumph or progression values are available.</span></article>
+        <article class="apx-scaffold-card"><h2>Favourite character</h2><span class="apx-empty-state">No usage history has been recorded for this scaffold.</span></article>
+        <article class="apx-scaffold-card"><h2>Most used since connecting ASTRIX PARADOX</h2><span class="apx-empty-state">No ASTRIX PARADOX loadout history has been recorded.</span></article>
+        <article class="apx-scaffold-card"><h2>Recent activity</h2><span class="apx-empty-state">Recent activity data is not connected.</span></article>
+        <article class="apx-scaffold-card"><h2>Milestones and achievements</h2><span class="apx-empty-state">No verified milestone or achievement source is connected.</span></article>
+        <article class="apx-scaffold-card"><h2>Build Forge summary</h2><span class="apx-empty-state">No Build Forge summary is available in Journey yet.</span></article>
+        <article class="apx-scaffold-card"><h2>Vault capacity and Postmaster warning</h2><span class="apx-empty-state">Capacity and Postmaster warning states require verified inventory data.</span></article>
+        <article class="apx-scaffold-card"><h2>Mission Report highlights</h2><span class="apx-empty-state">No Mission Report evidence is connected.</span></article>
+      </div>
+
+      <section class="apx-section" aria-labelledby="journeyDestinations"><div class="apx-section-heading"><h2 id="journeyDestinations">Destinations</h2><span class="apx-status-chip">SIX AREAS</span></div><div class="apx-destination-links">
+        <a class="apx-destination-link" href="./"><strong>Journey</strong><span>Authenticated Guardian dashboard scaffold.</span></a>
+        <a class="apx-destination-link" href="../guardian-workspace-v2/"><strong>Character</strong><span>Open the existing live Guardian workspace.</span></a>
+        <a class="apx-destination-link" href="../guardian-workspace-v2/paradox-build-space/"><strong>Build Forge</strong><span>Open the existing build analysis workspace.</span></a>
+        <a class="apx-destination-link" href="../mission-reports/"><strong>Mission Reports</strong><span>Open the early activity reporting scaffold.</span></a>
+        <a class="apx-destination-link" href="../vault/"><strong>Vault</strong><span>Open the inventory management scaffold.</span></a>
+        <a class="apx-destination-link" href="../loadout/"><strong>Loadout</strong><span>Open the saved build scaffold.</span></a>
+      </div></section>
+    </section>
+  </main>
+  <script type="module" src="./journey.mjs"></script>
+</body>
+</html>
