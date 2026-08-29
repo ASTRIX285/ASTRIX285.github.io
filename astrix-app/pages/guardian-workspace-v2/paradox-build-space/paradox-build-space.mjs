@@ -166,7 +166,7 @@ document.addEventListener('astrix:loadout-loading',event=>{const slot=Number(eve
 document.addEventListener('astrix:loadout-error',()=>{byId('sourcePill').textContent='BUILD SOURCE · LOADOUT ERROR';});
 document.querySelectorAll('[data-test-domain]').forEach(button=>button.addEventListener('click',()=>{testDomain=button.dataset.testDomain==='pvp'?'pvp':'pve';renderTestConfiguration();}));
 byId('expectedDestination')?.addEventListener('change',event=>globalThis.AstrixDestinations?.set?.(event.target.value));
-byId('backToGuardian')?.addEventListener('click',()=>{markGuardianFastReturn();location.href='../?destination=character';});
+byId('backToGuardian')?.addEventListener('click',()=>{markGuardianFastReturn();location.href='../';});
 byId('armRangeTest')?.addEventListener('click',armRange);
 byId('pullRangeResults')?.addEventListener('click',pullRange);
 byId('downloadRangeEvidence')?.addEventListener('click',downloadRangeEvidence);

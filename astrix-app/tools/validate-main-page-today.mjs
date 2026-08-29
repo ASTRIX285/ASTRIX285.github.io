@@ -13,10 +13,6 @@ const [workspace,workspaceHtml,loader,profile,auth,sessionCache,formationModule,
   read('astrix-token-branch-preview.css'),read('../../shared/astrix-portal-loader.css'),read('../../shared/astrix-portal-loader.js')
 ]);
 const interceptor=await read('guardian-semantic-interceptor.mjs');
-const [ribbonCss,destinationPageCss,journeyHtml,missionReportsHtml,vaultHtml,loadoutHtml]=await Promise.all([
-  read('guardian-destination-ribbon.css'),read('guardian-destination-page.css'),read('journey/index.html'),
-  read('mission-reports/index.html'),read('vault/index.html'),read('loadout/index.html')
-]);
 
 assert.match(workspace,/astrix:guardian-render-complete/,'Main must publish render completion');
 assert.match(workspace,/Promise\.all\(images\.map\(settleImage\)\)/,'Main render completion must wait for visible images');
@@ -191,21 +187,7 @@ assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.gear-combined\{[\s\S]*
 assert.match(buildCss,/\.design-canvas \.loadouts-design-section,[\s\S]*?\.design-canvas \.armour-design-section\{/,'Build loadouts and Armour must be independent visual containers');
 assert.doesNotMatch(buildCss,/\.design-canvas \.armour-design-section \.gear-arm-anchor \.arm\{[^}]*?(?:width|height):82\.8px/,'Build must not shrink the shared 92px armour tile');
 assert.doesNotMatch(buildCss,/\.armour-design-section[^{]*\.arm>img|transform:scale\(\.9\)/,'Build must not shrink or override the locked shared Armour image slot');
-assert.match(buildModule,/markGuardianFastReturn\(\);location\.href='\.\.\/\?destination=character'/,'Build Back must return to the selectable Character destination');
-
-const destinationLabels=['JOURNEY','CHARACTER','BUILD FORGE','MISSION REPORTS','VAULT','LOADOUT'];
-for(const [label,html] of [['Character',workspaceHtml],['Build Forge',buildHtml],['Journey',journeyHtml],['Mission Reports',missionReportsHtml],['Vault',vaultHtml],['Loadout',loadoutHtml]]){
-  const nav=html.match(/<nav class="destination-ribbon"[^>]*>([\s\S]*?)<\/nav>/)?.[1]||'';
-  const labels=[...nav.matchAll(/<a\b[^>]*>([^<]+)<\/a>/g)].map(match=>match[1]);
-  assert.deepEqual(labels,destinationLabels,`${label} must expose every destination in the shared order`);
-  assert.equal((nav.match(/aria-current="page"/g)||[]).length,1,`${label} must identify one active destination`);
-  assert.match(html,/guardian-destination-ribbon\.css/,`${label} must load the shared destination ribbon`);
-}
-assert.match(ribbonCss,/height:25px;/,'The destination ribbon must remain exactly 25px high');
-assert.match(ribbonCss,/min-height:25px;/,'The destination ribbon must not collapse below 25px');
-assert.match(destinationPageCss,/min-height:calc\(100vh - 89px\)/,'Destination pages must account for the 64px header and 25px ribbon');
-assert.match(workspaceHtml,/get\('destination'\)!=='character'/,'Workspace loading must default to Journey unless Character is explicitly selected');
-assert.match(workspaceHtml,/location\.replace\(`\.\/journey\/\$\{location\.search\}\$\{location\.hash\}`\)/,'Workspace loading must preserve the query and hash while defaulting to Journey');
+assert.match(buildModule,/markGuardianFastReturn\(\);location\.href='\.\.\/'/,'Build Back must mark the authenticated cached return before opening Main');
 
 for(const [label,html] of [['Main',workspaceHtml],['Build',buildHtml]]){
   assert.match(html,/astrix-tokens\.css/,`${label} must load the supplied token sheet on this branch`);
