@@ -1,0 +1,11 @@
+/* ASTRIX PARADOX desktop density
+   Matches the approved 75% showcase view at normal browser zoom while fluid
+   grids continue to use the full monitor. Mobile and tablet remain at 100%. */
+:root{--astrix-desktop-density:.75}
+
+html,body{max-width:100%;overflow-x:hidden}
+
+@media (min-width:1500px){
+  body{zoom:var(--astrix-desktop-density)}
+  body.apx-destination-page .apx-page-shell{width:100%;max-width:none}
+}
