@@ -9,7 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Questrial&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css">
+  <link rel="stylesheet" href="../../shared/astrix-location-atmosphere.css">
   <script src="../../shared/astrix-destination-ribbon.js" defer></script>
+  <script src="../../shared/astrix-destination-theme.js" defer></script>
+  <script src="../../shared/astrix-location-visuals.js" defer></script>
 </head>
 <body class="apx-destination-page">
   <header class="apx-destination-header topbar">
@@ -26,11 +29,22 @@
       <p class="apx-eyebrow">ENTER THE PARADOX</p>
       <h1>Connect your Guardian.</h1>
       <p>Journey requires an authenticated Bungie session. No Guardian data is displayed until the existing secure connection confirms access.</p>
-      <div class="apx-landing-actions" id="journeyConnectAction" aria-label="Bungie connection action"></div>
+      <div class="apx-landing-actions" id="journeyConnectAction" aria-label="Bungie connection action"><a class="bungie-auth-btn" href="https://astrixparadox.com/astrix-app/pages/guardian-workspace-v2/">CONNECT BUNGIE</a></div>
     </section>
 
     <section id="journeyDashboard" hidden>
       <div class="apx-page-heading"><div><p class="apx-eyebrow">AUTHENTICATED HOME · SCAFFOLD</p><h1>Journey</h1><p>Your personal Guardian dashboard structure is ready. Live values remain empty until verified Journey data sources are wired in a later scope.</p></div><span class="apx-status-chip">PLACEHOLDERS ONLY</span></div>
+
+      <section class="apx-section" aria-labelledby="journeyFocusHeading">
+        <div class="apx-section-heading"><h2 id="journeyFocusHeading">Destination focus</h2><span class="apx-status-chip">LOCATION</span></div>
+        <div class="apx-loc-layout">
+          <div class="apx-loc-panel">
+            <div class="apx-loc-select-head"><b>Destinations</b><span>Select to focus</span></div>
+            <div id="journeyLocationSelector"></div>
+          </div>
+          <div class="apx-loc-detail" id="journeyLocationDetail"></div>
+        </div>
+      </section>
 
       <div class="apx-card-grid">
         <article class="apx-scaffold-card"><h2>Equipped title and seal</h2><span class="apx-empty-state">No verified title or seal source is connected to Journey.</span></article>
