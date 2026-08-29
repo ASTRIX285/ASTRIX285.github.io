@@ -13,6 +13,15 @@ const allowed=new Set([
   'astrix-app/shared/astrix-location-selector.mjs',
   'astrix-app/shared/astrix-location-visuals.js',
   'astrix-app/shared/locations/README.md',
+  'astrix-app/shared/locations/pale-heart.jpeg',
+  'astrix-app/shared/locations/dreaming-city.jpg',
+  'astrix-app/shared/locations/neomuna.jpg',
+  'astrix-app/shared/locations/europa.jpg',
+  'astrix-app/shared/locations/throne-world.webp',
+  'astrix-app/shared/locations/nessus.png',
+  'astrix-app/shared/locations/edz.png',
+  'astrix-app/shared/locations/moon.jpg',
+  'astrix-app/shared/locations/cosmodrome.jpg',
   'astrix-app/tools/validate-scope-guard.mjs'
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
