@@ -6,7 +6,7 @@
   <meta name="description" content="Practical game tools for builds, inventory, progression and activity history, starting with Destiny 2.">
   <title>Tools | ASTRIX PARADOX</title>
   <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="tools.css?v=20260830-large-screen-legibility">
+  <link rel="stylesheet" href="tools.css?v=20260830-mission-popup">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon/favicon-16x16.png">
@@ -61,7 +61,7 @@
         </div>
       </div>
       <div class="tools-actions">
-        <a class="btn-primary" href="#current-platform">See what we are building</a>
+        <button class="btn-primary tools-mission-trigger" type="button" aria-haspopup="dialog" aria-controls="toolsMissionDialog">See what we are building</button>
         <a class="btn-secondary" href="../pages/games.html">Browse Universes</a>
       </div>
     </div>
@@ -97,6 +97,34 @@
   </section>
 </main>
 
+<div class="tools-mission-modal" id="toolsMissionModal" hidden>
+  <div class="tools-mission-backdrop" data-mission-close></div>
+  <section class="tools-mission-dialog" id="toolsMissionDialog" role="dialog" aria-modal="true" aria-labelledby="toolsMissionTitle" aria-describedby="toolsMissionCopy" tabindex="-1">
+    <button class="tools-mission-close" type="button" aria-label="Close the ASTRIX PARADOX mission" data-mission-close>×</button>
+    <div class="tools-mission-brand" aria-hidden="true">
+      <img src="../img/logo.png" alt="">
+      <span>ASTRIX <strong>PARADOX</strong></span>
+    </div>
+    <div class="section-eyebrow">The ASTRIX PARADOX mission</div>
+    <h2 id="toolsMissionTitle">Gaming is better with<br><span>an intelligent partner.</span></h2>
+    <div class="tools-mission-copy" id="toolsMissionCopy">
+      <p>
+        ASTRIX PARADOX is building AI gaming companions that help players understand their character, gear,
+        builds, progress and choices in one clear place. The goal is not to play the game for you. It is to give
+        you the information and insight to play it your way.
+      </p>
+      <p>
+        Destiny 2 is our first proving ground. Every tool that follows will be built around its own game, its own
+        systems and the way its community plays.
+      </p>
+    </div>
+    <div class="tools-mission-actions">
+      <a class="btn-primary" href="../astrix-app/pages/guardian-alpha/">ENTER DESTINY ALPHA</a>
+      <button class="btn-secondary" type="button" data-mission-close>CLOSE</button>
+    </div>
+  </section>
+</div>
+
 <footer class="footer">
   <div class="footer-social">
     <a href="https://x.com/ASTRIX285" target="_blank">X / Twitter</a>
@@ -110,5 +138,6 @@
 </footer>
 
 <script src="../js/main.js"></script>
+<script type="module" src="tools.mjs"></script>
 </body>
 </html>

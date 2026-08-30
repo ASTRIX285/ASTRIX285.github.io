@@ -21,8 +21,9 @@ for(const [path,toolsLink] of publicPages){
 
 const tools=read('tools/index.html');
 const toolsCss=read('tools/tools.css');
+const toolsMission=read('tools/tools.mjs');
 assert.ok(tools.includes('href="index.html" class="active">Tools</a>'),'Tools navigation item must be active');
-assert.ok(tools.includes('href="tools.css?v=20260830-large-screen-legibility"'),'Tools page must request the legible large-screen stylesheet without stale cache reuse');
+assert.ok(tools.includes('href="tools.css?v=20260830-mission-popup"'),'Tools page must request the mission-popup stylesheet without stale cache reuse');
 assert.ok(tools.includes('Tools for the games we play'),'Tools page must explain the multi-game purpose');
 assert.doesNotMatch(tools,/astrix-desktop-density\.css/,'Public Tools page must remain at native scale on large monitors');
 assert.equal((tools.match(/<section class="tools-hero">/g)??[]).length,1,'Tools introduction must use one hero section');
@@ -32,6 +33,14 @@ assert.ok(tools.includes('ASTRIX PARADOX builds focused companion tools'),'Tools
 assert.ok(tools.includes('class="tools-intro-summary"'),'Tools introduction must use one concise summary block');
 assert.doesNotMatch(tools,/principle-grid|<article class="principle /,'Separate principle cards must remain removed');
 assert.ok(tools.indexOf('class="tools-actions"')>tools.indexOf('class="tools-intro-summary"'),'Tools actions must follow the complete introduction');
+assert.ok(tools.includes('class="btn-primary tools-mission-trigger"'),'Primary Tools action must open the ASTRIX PARADOX mission');
+assert.ok(tools.includes('aria-controls="toolsMissionDialog"'),'Mission trigger must identify its dialog');
+assert.ok(tools.includes('id="toolsMissionDialog" role="dialog" aria-modal="true"'),'Mission message must be exposed as a modal dialog');
+assert.ok(tools.includes('Gaming is better with<br><span>an intelligent partner.</span>'),'Mission popup must carry the approved campaign headline');
+assert.ok(tools.includes('The goal is not to play the game for you.'),'Mission popup must explain the AI partner boundary');
+assert.ok(tools.includes('ENTER DESTINY ALPHA'),'Mission popup must retain a direct Alpha action');
+assert.equal((tools.match(/data-mission-close/g)??[]).length,3,'Mission popup must provide backdrop, icon and button close controls');
+assert.ok(tools.includes('<script type="module" src="tools.mjs"></script>'),'Tools page must load its isolated mission controller');
 assert.ok(tools.includes('Destiny 2 Guardian Platform'),'Tools page must identify the current platform');
 assert.ok(tools.includes('Alpha · Invitation Only'),'Tools page must state the current access level');
 assert.ok(tools.includes('../astrix-app/pages/guardian-alpha/'),'Tools page must retain access to the current Alpha page');
@@ -51,12 +60,19 @@ assert.match(toolsCss,/\.tools-hero-inner,[\s\S]*?\.tools-shell\s*\{[\s\S]*?max-
 assert.match(toolsCss,/\.tools-intro-layout\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1\.05fr\) minmax\(440px, 0\.95fr\);/,'Combined Tools introduction must use the approved wider desktop composition');
 assert.match(toolsCss,/\.section-copy\s*\{[\s\S]*?font-size:\s*clamp\(17px, 0\.78vw, 20px\);/,'Public Tools summary must scale for high-resolution monitors');
 assert.match(toolsCss,/\.tools-actions \.btn-primary,[\s\S]*?font-size:\s*clamp\(11px, 0\.52vw, 13px\);/,'Public Tools actions must remain legible on high-resolution monitors');
+assert.match(toolsCss,/\.tools-mission-dialog\s*\{[\s\S]*?width:\s*min\(1080px, calc\(100vw - 48px\)\);/,'Mission popup must use the approved readable desktop width');
+assert.match(toolsCss,/\.tools-mission-copy p\s*\{[\s\S]*?font-size:\s*clamp\(18px, 0\.85vw, 22px\);/,'Mission popup copy must scale for high-resolution monitors');
 assert.match(toolsCss,/\.platform-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,'Tool catalogue must use two equal desktop columns');
 assert.match(toolsCss,/\.platform-card\s*\{[\s\S]*?min-height:\s*340px;/,'Tool cards must use the approved compact height');
 assert.doesNotMatch(toolsCss,/\.principle-grid|\.platform-overview/,'Retired long-form presentation rules must remain removed');
 assert.match(toolsCss,/@media \(max-width: 1100px\)[\s\S]*?\.platform-grid\s*\{[\s\S]*?grid-template-columns:\s*1fr;/,'Tool cards must stack before their content becomes cramped');
 assert.match(toolsCss,/@media \(max-width: 768px\)[\s\S]*?\.tools-intro-layout\s*\{[\s\S]*?grid-template-columns:\s*1fr;/,'Tools introduction must stack on phone and tablet widths');
 assert.match(toolsCss,/@media \(max-width: 560px\)[\s\S]*?\.platform-card-active\s*\{[\s\S]*?grid-template-columns:\s*1fr;/,'Active tool card must stack at phone widths');
+assert.match(toolsCss,/@media \(max-width: 560px\)[\s\S]*?\.tools-mission-dialog\s*\{[\s\S]*?width:\s*calc\(100vw - 24px\);/,'Mission popup must fit phone widths');
+assert.ok(toolsMission.includes("trigger.addEventListener('click',openMission)"),'Primary action must open the mission popup');
+assert.ok(toolsMission.includes("event.key==='Escape'"),'Mission popup must close with Escape');
+assert.ok(toolsMission.includes("event.key!=='Tab'"),'Mission popup must manage keyboard focus');
+assert.ok(toolsMission.includes("document.body.classList.add('tools-mission-open')"),'Mission popup must prevent background scrolling');
 
 const games=read('pages/games.html');
 assert.doesNotMatch(games,/guardian-alpha|tools-section|Guardian Build Forge/,'Universes page must remain separate from the Tools catalogue');
@@ -87,6 +103,7 @@ console.log('MULTI_GAME_TOOLS_HUB=PASS');
 console.log('COMPACT_TOOLS_INTRO=PASS');
 console.log('REUSABLE_PLATFORM_CARD_GRID=PASS');
 console.log('TOOLS_NATIVE_LARGE_SCREEN_SCALE=PASS');
+console.log('TOOLS_MISSION_POPUP=PASS');
 console.log('ALPHA_ACCESS_BEFORE_BUNGIE=PASS');
 console.log('ALPHA_DIRECT_BUILD_FORGE=PASS');
 console.log('DESTINATION_SELECTOR_REMOVED=PASS');

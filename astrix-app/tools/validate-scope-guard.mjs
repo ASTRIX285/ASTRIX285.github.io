@@ -8,6 +8,7 @@ const allowed=new Set([
   'astrix-app/tools/validate-tools-hub.mjs',
   'tools/index.html',
   'tools/tools.css',
+  'tools/tools.mjs',
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
