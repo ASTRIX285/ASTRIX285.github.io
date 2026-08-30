@@ -1,6 +1,6 @@
 import {getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
-import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-cosmodrome-progress-indicators';
+import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-all-destination-progress';
 
 const resolving=document.getElementById('journeyResolving');
 const signedOut=document.getElementById('journeySignedOut');
