@@ -13,6 +13,7 @@ const validators=[
   'validate-destination-theming.mjs',
   'validate-portal-loader.mjs',
   'validate-tools-hub.mjs',
+  'validate-journey-visual-pass.mjs',
   'validate-public-deep-space.mjs',
   'validate-live-artifact-contract.mjs',
   'validate-manifest-service.mjs',
