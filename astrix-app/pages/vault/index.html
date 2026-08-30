@@ -7,13 +7,14 @@
   <title>Vault — ASTRIX PARADOX</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Questrial&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&family=Orbitron:wght@700;800&family=Questrial&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css">
+  <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260830-global-hero-cards">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <script src="../../shared/astrix-destination-ribbon.js" defer></script>
 </head>
 <body class="apx-destination-page">
-  <header class="apx-destination-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>VAULT</strong><small>INVENTORY COMMAND</small></div><span class="apx-destination-header-state">SCAFFOLD</span></header>
+  <header class="apx-destination-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>VAULT</strong><small>INVENTORY COMMAND</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state">SCAFFOLD</span></header>
   <div data-astrix-destination-ribbon data-active-destination="vault"></div>
   <main class="apx-page-shell">
     <div class="apx-page-heading"><div><p class="apx-eyebrow">INVENTORY SCAFFOLD</p><h1>Vault</h1><p>This page defines the planned inventory structure only. No Guardian inventory, item instance, capacity or Postmaster value is loaded.</p></div><span class="apx-status-chip">NO LIVE INVENTORY</span></div>
@@ -39,5 +40,6 @@
       <h3 style="margin-top:24px">Equipment</h3><div class="apx-subpanel"><span class="apx-empty-state">No shared equipment source is connected.</span></div>
     </section>
   </main>
+  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260830-global-hero-cards"></script>
 </body>
 </html>
