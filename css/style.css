@@ -1048,3 +1048,114 @@ body.stream-locked .nav {
     font-size: 8px;
   }
 }
+
+/* ============================================================
+   PUBLIC SITE DEEP-SPACE BACKGROUND
+   One fixed image sits behind every public page. Page content
+   scrolls normally while the background remains locked in place.
+   ============================================================ */
+html {
+  background: #02050a;
+}
+
+body {
+  position: relative;
+  isolation: isolate;
+  background: transparent !important;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(2,5,10,0.38), rgba(2,5,10,0.56)),
+    url('../astrix-app/shared/astrix-deep-space.jpg') center center / cover no-repeat;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 72% 30%, transparent 0%, rgba(0,0,0,0.12) 48%, rgba(0,0,0,0.46) 100%);
+}
+
+/* The homepage now uses the same fixed site background. */
+.hero {
+  background: transparent !important;
+}
+
+.hero-bg,
+.hero-bg-video {
+  background: transparent !important;
+}
+
+.hero-bg-video video {
+  display: none !important;
+}
+
+.hero-bg-gradient {
+  background:
+    linear-gradient(to right, rgba(2,4,8,0.88) 12%, rgba(2,4,8,0.55) 50%, rgba(2,4,8,0.12) 86%),
+    linear-gradient(to top, rgba(2,4,8,0.62) 0%, transparent 48%) !important;
+}
+
+/* Existing sections remain readable without hiding the universe. */
+body > section:not(.hero),
+body > main > section,
+.section,
+.games-hero,
+.news-hero,
+.reviews-hero,
+.clips-hero,
+.join-hero,
+.stream-section,
+.stream-offline-full,
+.stream-live-full,
+.stream-actions-live,
+#vodSection,
+.stream-offline-full.has-vod {
+  background: rgba(4,7,13,0.58) !important;
+}
+
+.games-hero,
+.news-hero,
+.reviews-hero,
+.clips-hero,
+.join-hero,
+.tools-hero {
+  background: rgba(3,6,12,0.34) !important;
+}
+
+.tools-principles,
+.current-platform,
+.tools-future,
+.filter-wrap {
+  background: rgba(4,7,13,0.62) !important;
+}
+
+.review-card,
+.news-card,
+.clip-card,
+.join-card,
+.principle,
+.destination,
+.platform-overview,
+.join-grid + .reveal {
+  background: rgba(5,8,14,0.82) !important;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  background: rgba(5,8,14,0.84) !important;
+}
+
+.footer {
+  background: rgba(3,5,10,0.72) !important;
+}
