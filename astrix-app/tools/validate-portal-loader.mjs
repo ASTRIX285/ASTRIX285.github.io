@@ -41,6 +41,8 @@ assert.match(portalCss,/\.apx-auth-panel/,'Portal must render the full-screen Bu
 assert.doesNotMatch(mainHtml,/guardian-loading-gate|guardianLoadingProgress|data-lit-edges/,'Main legacy red-diamond gate must be removed');
 assert.doesNotMatch(buildHtml,/build-loading-gate|buildLoadingProgress|data-lit-edges/,'Build legacy hex gate must be removed');
 assert.match(mainProgress,/astrix:guardian-render-complete',\(\)=>\{if\(!isBuildSpace\)finishAfterPaint/,'Character completion must not reveal Build Forge before its own render completes');
+assert.match(mainProgress,/astrix:build-render-complete',event=>\{if\(event\.detail\?\.status==='ready'\)finishAfterPaint/,'Build loader must ignore the temporary snapshot render and wait for a ready build');
+assert.match(mainProgress,/astrix:guardian-error',\(\)=>finishAfterPaint\(isBuildSpace\?'Build Forge state rendered':'Guardian state rendered'\)/,'A genuine profile error must reveal the rendered error state');
 assert.match(mainProgress,/document\.querySelectorAll\('\.scene\.immersive'\)/,'Portal completion must inspect the shared scene background');
 assert.match(mainProgress,/image\.addEventListener\('load',async\(\)=>\{try\{await image\.decode\(\);\}/,'Portal completion must wait for CSS background decoding');
 assert.match(mainProgress,/await manifestReady;[\s\S]*?await sceneBackgroundReady;/,'Portal must retain its cover until manifest and scene background are both ready');
@@ -52,8 +54,9 @@ assert.match(mainHtml,/astrix:guardian-fast-return:v1/,'Main must consume the Bu
 assert.match(buildHtml,/astrix:guardian-fast-return:v1/,'Build must consume the authenticated Main-to-Build fast-return marker before the portal mounts');
 assert.match(buildModule,/markGuardianFastReturn\(\)/,'Build Back must preserve the authenticated Guardian session return path');
 assert.doesNotMatch(mainProgress,/setTimeout|window\.addEventListener\('load'/,'Main progress must not use fake timing or window load');
-assert.match(buildModule,/completeBuildRender\(build\)[\s\S]*?emitLoad\('render',LOAD_STAGES\.READY/,'Build must finish only from its image-settled render pass');
-assert.match(buildModule,/guardian-portal-progress\.mjs\?v=20260829-build-render-gate-1/,'Build must load the Build-render-gated portal progress module');
+assert.match(buildModule,/const ready=Boolean\(build\),status=ready\?'ready':'pending'/,'An empty initial Build render must remain pending while the live profile resolves');
+assert.match(buildModule,/emitLoad\('render',ready\?LOAD_STAGES\.READY:LOAD_STAGES\.SNAPSHOT,label,status\)/,'Only a populated Build render may report the ready milestone');
+assert.match(buildModule,/guardian-portal-progress\.mjs\?v=20260830-build-render-gate-2/,'Build must load the corrected Build-render-gated portal progress module');
 assert.match(buildModule,/window\.AstrixLoader\?\.set\(percent\)/,'Build real milestones must update the shared portal');
 
 assert.match(appModule,/astrix:build-catalogue-rendered/,'Build library must publish catalogue render completion');
