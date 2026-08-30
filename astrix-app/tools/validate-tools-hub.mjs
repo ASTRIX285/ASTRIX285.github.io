@@ -49,7 +49,9 @@ assert.ok(alpha.includes('id="alphaAccessForm"'),'Alpha page must present the ac
 assert.ok(alpha.includes('id="alphaAccessCode"'),'Alpha page must include the access-code input');
 assert.ok(alpha.includes('src="./guardian-alpha.mjs"'),'Alpha page must load its access-flow controller');
 assert.ok(alpha.includes('id="guardianDestinationPopup"'),'Alpha page must contain the post-auth Destiny selector');
+assert.ok(alpha.includes('id="guardianDestinationPopup" hidden aria-hidden="true"'),'Destiny selector must begin closed and hidden from assistive technology');
 assert.equal((alpha.match(/<a class="destination" /g)??[]).length,6,'Authenticated Destiny selector must contain six destinations');
+assert.match(alpha,/\.destination-backdrop\.is-open\{display:grid\}/,'Destiny selector must use an explicit visible state');
 assert.match(alpha,/@media\(max-width:820px\)[\s\S]*?\.destination-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/,'Destiny selector must use two columns at tablet widths');
 assert.match(alpha,/@media\(max-width:560px\)[\s\S]*?\.destination-grid\{grid-template-columns:1fr\}/,'Destiny selector must use one column at phone widths');
 assert.match(alpha,/@media\(max-width:560px\)[\s\S]*?\.access-row\{grid-template-columns:1fr\}/,'Alpha access form must stack at phone widths');
@@ -73,8 +75,11 @@ assert.ok(alphaFlow.indexOf("input.value.trim()!==ACCESS_CODE")<alphaFlow.indexO
 assert.ok(alphaFlow.includes("location.assign(authStartUrl())"),'Valid Alpha access must continue into Bungie authentication');
 assert.ok(alphaFlow.includes("if(!hasAlphaAccess())return"),'Post-auth selector must remain behind Alpha access');
 assert.match(alphaFlow,/if\(!session\?\.authenticated\)[\s\S]*?return;[\s\S]*?showConnectedState\(\);[\s\S]*?openDestinationSelector\(\);/,'Destiny selector must open only after Bungie authentication');
+assert.match(alphaFlow,/function openDestinationSelector\(\)\{[\s\S]*?removeAttribute\('hidden'\);[\s\S]*?setAttribute\('aria-hidden','false'\);[\s\S]*?classList\.add\('is-open'\);/,'Connected Bungie sessions must explicitly reveal the Destiny selector');
+assert.match(alphaFlow,/if\(session\?\.authenticated\)\{[\s\S]*?showConnectedState\(\);[\s\S]*?openDestinationSelector\(\);[\s\S]*?return;/,'Valid Alpha access with an active Bungie session must open the Destiny selector immediately');
 
 console.log('MULTI_GAME_TOOLS_HUB=PASS');
 console.log('ALPHA_ACCESS_BEFORE_BUNGIE=PASS');
 console.log('DESTINY_SELECTOR_AFTER_AUTH=PASS');
+console.log('CONNECTED_TOKEN_IMMEDIATE_SELECTOR=PASS');
 console.log('RESPONSIVE_TOOLS_ALPHA_CONTRACT=PASS');

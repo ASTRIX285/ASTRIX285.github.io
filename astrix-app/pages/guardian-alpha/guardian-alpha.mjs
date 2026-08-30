@@ -50,13 +50,17 @@ async function getBungieSession(){
 }
 
 function openDestinationSelector(){
-  popup.hidden=false;
+  popup.removeAttribute('hidden');
+  popup.setAttribute('aria-hidden','false');
+  popup.classList.add('is-open');
   document.body.classList.add('selector-open');
   closeButton.focus();
 }
 
 function closeDestinationSelector(){
-  popup.hidden=true;
+  popup.classList.remove('is-open');
+  popup.setAttribute('aria-hidden','true');
+  popup.setAttribute('hidden','');
   document.body.classList.remove('selector-open');
   submit.focus();
 }

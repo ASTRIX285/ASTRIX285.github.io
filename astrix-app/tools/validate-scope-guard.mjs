@@ -4,8 +4,6 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
-  'tools/index.html',
-  'tools/tools.css',
   'astrix-app/pages/guardian-alpha/index.html',
   'astrix-app/pages/guardian-alpha/guardian-alpha.mjs',
   'astrix-app/tools/validate-tools-hub.mjs',
