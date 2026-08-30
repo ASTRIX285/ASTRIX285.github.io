@@ -9,6 +9,7 @@ const allowed=new Set([
   'astrix-app/pages/journey/journey-location-maps.mjs',
   'astrix-app/pages/journey/journey-2560-visual.css',
   'astrix-app/pages/journey/assets/maps/cosmodrome-director-map-4k.webp',
+  'astrix-app/pages/journey/assets/maps/cosmodrome-director-map-6k.webp',
   'astrix-app/tools/paradox-validator.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
   'astrix-app/tools/validate-journey-visual-pass.mjs',

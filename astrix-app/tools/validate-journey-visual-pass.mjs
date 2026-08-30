@@ -10,9 +10,11 @@ const journey=read('astrix-app/pages/journey/journey.mjs');
 const mapModule=read('astrix-app/pages/journey/journey-location-maps.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const cosmodromeMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-4k.webp`);
+const cosmodromeDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260830-cosmodrome-activity-markers"'),'Journey must load the versioned visual correction');
+assert.ok(html.includes('src="./journey.mjs?v=20260830-crisp-map-zoom"'),'Journey must load the cache-busted crisp map module');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -33,9 +35,11 @@ assert.ok(journey.includes('initLocationSelector({'),'Journey must retain the lo
 assert.ok(journey.includes("mount:document.getElementById('journeyLocationSelector')"),'Journey selector mount must remain unchanged');
 assert.ok(journey.includes("detail:document.getElementById('journeyLocationDetail')"),'Journey detail mount must remain unchanged');
 assert.ok(journey.includes('const session=await getBungieSession();'),'Journey authentication must remain unchanged');
-assert.ok(journey.includes("import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-static-activities'"),'Journey must load its versioned page-owned map registry');
+assert.ok(journey.includes("import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-static-activities-crisp-map'"),'Journey must load its versioned page-owned map registry');
 assert.ok(journey.includes('initJourneyLocationMaps('),'Journey must initialise its page-owned interactive map layer');
 assert.ok(mapModule.includes("src:'./assets/maps/cosmodrome-director-map-4k.webp'"),'Journey map registry must mount the page-owned Cosmodrome map asset');
+assert.ok(mapModule.includes("detailSrc:'./assets/maps/cosmodrome-director-map-6k.webp'"),'Journey map registry must provide its high-resolution zoom asset');
+assert.ok(mapModule.includes("if(state.scale>1)requestDetailSource();"),'Journey map must request its high-resolution asset only after zoom begins');
 assert.ok(mapModule.includes("addEventListener('pointermove'"),'Journey map must support pointer panning');
 assert.ok(mapModule.includes("addEventListener('wheel'"),'Journey map must support wheel zooming');
 for(const marker of [
@@ -66,6 +70,11 @@ assert.equal(cosmodromeMap.subarray(8,12).toString('ascii'),'WEBP','Cosmodrome m
 assert.equal(cosmodromeMap.subarray(12,16).toString('ascii'),'VP8 ','Cosmodrome map must use the validated WebP encoding');
 assert.equal(cosmodromeMap.readUInt16LE(26)&0x3fff,3840,'Cosmodrome map must be exactly 3840px wide');
 assert.equal(cosmodromeMap.readUInt16LE(28)&0x3fff,2160,'Cosmodrome map must be exactly 2160px high');
+assert.equal(cosmodromeDetailMap.subarray(0,4).toString('ascii'),'RIFF','Cosmodrome zoom map must be a valid WebP asset');
+assert.equal(cosmodromeDetailMap.subarray(8,12).toString('ascii'),'WEBP','Cosmodrome zoom map must be a valid WebP asset');
+assert.equal(cosmodromeDetailMap.subarray(12,16).toString('ascii'),'VP8 ','Cosmodrome zoom map must use the validated WebP encoding');
+assert.equal(cosmodromeDetailMap.readUInt16LE(26)&0x3fff,5760,'Cosmodrome zoom map must be exactly 5760px wide');
+assert.equal(cosmodromeDetailMap.readUInt16LE(28)&0x3fff,3240,'Cosmodrome zoom map must be exactly 3240px high');
 
 assert.match(css,/@media \(min-width:1500px\)\{[\s\S]*?body\.journey-page\.apx-destination-page\{[\s\S]*?zoom:1;/,'Journey must restore native scale on large monitors');
 assert.match(css,/body\.journey-page\.apx-destination-page \.apx-atmo\{[\s\S]*?width:100vw;[\s\S]*?max-width:none;/,'Journey atmosphere must cover the full viewport');
@@ -90,6 +99,7 @@ console.log('JOURNEY_COMPACT_RIBBON=PASS');
 console.log('JOURNEY_DUPLICATE_DESTINATIONS_REMOVED=PASS');
 console.log('JOURNEY_DATA_MECHANICS_UNCHANGED=PASS');
 console.log('JOURNEY_COSMODROME_MAP_4K=PASS');
+console.log('JOURNEY_COSMODROME_MAP_CRISP_ZOOM=PASS');
 console.log('JOURNEY_COSMODROME_MAP_INTERACTIVE=PASS');
 console.log('JOURNEY_COSMODROME_STATIC_ACTIVITY_MARKERS=PASS');
 console.log('JOURNEY_COSMODROME_LIVE_ACTIVITY_LAYER_DEFERRED=PASS');

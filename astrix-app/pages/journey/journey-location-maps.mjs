@@ -4,6 +4,7 @@
 const JOURNEY_LOCATION_MAPS=Object.freeze({
   cosmodrome:Object.freeze({
     src:'./assets/maps/cosmodrome-director-map-4k.webp',
+    detailSrc:'./assets/maps/cosmodrome-director-map-6k.webp',
     alt:'Cosmodrome Director map showing Mothyards, The Steps, Skywatch, Forgotten Shore, The Divide and The Breach.',
     markers:Object.freeze([
       Object.freeze({key:'grasp-of-avarice',type:'dungeon',name:'Grasp of Avarice',x:42,y:22}),
@@ -135,6 +136,12 @@ function createLocationMap(key,spec){
   const state={scale:1,x:0,y:0,dragging:false,startX:0,startY:0,originX:0,originY:0};
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 
+  function requestDetailSource(){
+    if(!spec.detailSrc||image.dataset.detailRequested==='true')return;
+    image.dataset.detailRequested='true';
+    image.src=spec.detailSrc;
+  }
+
   function applyMapPosition(){
     const maxX=viewport.clientWidth*(state.scale-1)/2;
     const maxY=viewport.clientHeight*(state.scale-1)/2;
@@ -149,6 +156,7 @@ function createLocationMap(key,spec){
 
   function setScale(next){
     state.scale=Math.round(clamp(next,1,3)*4)/4;
+    if(state.scale>1)requestDetailSource();
     if(state.scale===1){state.x=0;state.y=0;}
     applyMapPosition();
   }
