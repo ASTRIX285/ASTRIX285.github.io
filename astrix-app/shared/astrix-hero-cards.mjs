@@ -1,0 +1,149 @@
+import {getBungieSession} from '../pages/guardian-workspace-v2/guardian-bungie-auth.mjs';
+
+const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||'https://auth.astrixparadox.com';
+const BUNGIE_ORIGIN='https://www.bungie.net';
+const CLASS_NAMES=['titan','hunter','warlock'];
+const CLASS_ORDER={hunter:0,warlock:1,titan:2};
+const STAT_ORDER=[2996146975,392767087,1943323491,1735777505,144602215,4244567218];
+const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
+const MAX_CHARACTERS=3;
+
+const host=()=>document.querySelector('[data-astrix-hero-cards]');
+const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+const classLabel=value=>String(value||'Guardian').replace(/^./,letter=>letter.toUpperCase());
+const absoluteIcon=path=>path?new URL(path,BUNGIE_ORIGIN).toString():'';
+
+function renderStatus(message,state='unavailable'){
+  const target=host();
+  if(!target)return;
+  target.innerHTML=`<div class="guardian-character-cards__status is-${escapeHtml(state)}" role="status">${escapeHtml(message)}</div>`;
+}
+
+async function fetchJson(url){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),60000);
+  try{
+    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload?.error||`Bungie request failed (${response.status}).`);
+    return payload;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+async function statDefinitions(){
+  const rows=await Promise.all(STAT_ORDER.map(async hash=>{
+    const url=new URL('/bungie/manifest/definition',AUTH_ORIGIN);
+    url.searchParams.set('type','DestinyStatDefinition');
+    url.searchParams.set('hash',String(hash));
+    try{
+      const payload=await fetchJson(url);
+      return [String(hash),payload?.definition||null];
+    }catch{
+      return [String(hash),null];
+    }
+  }));
+  return Object.fromEntries(rows);
+}
+
+function selectedCharacterId(characters){
+  try{
+    const remembered=String(sessionStorage.getItem(SELECTED_CHARACTER_KEY)||'');
+    if(remembered&&characters.some(character=>String(character.characterId||'')===remembered))return remembered;
+  }catch{}
+  return String([...characters].sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0]?.characterId||'');
+}
+
+function rememberCharacterId(characterId){
+  try{sessionStorage.setItem(SELECTED_CHARACTER_KEY,String(characterId||''));}
+  catch{}
+}
+
+function characterRoster(payload,definitions){
+  return Object.values(payload?.profile?.characters?.data||{}).map(character=>{
+    const characterClass=CLASS_NAMES[Number(character.classType)]||'hunter';
+    return {
+      characterId:String(character.characterId||''),
+      characterClass,
+      dateLastPlayed:character.dateLastPlayed||'',
+      power:character.light??null,
+      stats:STAT_ORDER.map(hash=>{
+        const definition=definitions?.[String(hash)]||null;
+        return [definition?.displayProperties?.name||`Unresolved Destiny stat ${hash}`,Number(character?.stats?.[hash]??0),absoluteIcon(definition?.displayProperties?.icon)];
+      }),
+      emblem:{icon:absoluteIcon(character.emblemPath),background:absoluteIcon(character.emblemBackgroundPath)}
+    };
+  }).sort((left,right)=>(CLASS_ORDER[left.characterClass]??9)-(CLASS_ORDER[right.characterClass]??9));
+}
+
+function statMarkup(stats=[]){
+  return stats.slice(0,6).map(([name,value,icon])=>{
+    const iconMarkup=icon
+      ?`<img class="guardian-stat-icon" src="${escapeHtml(icon)}" alt="" aria-hidden="true" decoding="async">`
+      :'<span class="guardian-stat-icon is-unavailable" aria-hidden="true"></span>';
+    return `<span class="guardian-character-card__stat" title="${escapeHtml(name)}" aria-label="${escapeHtml(name)} ${Number(value||0)}">${iconMarkup}<b>${Number(value||0)}</b></span>`;
+  }).join('');
+}
+
+function render(characters,selectedId){
+  const target=host();
+  if(!target)return;
+  const supplied=Array.isArray(characters)?characters.slice(0,MAX_CHARACTERS):[];
+  if(!supplied.length){
+    renderStatus('BUNGIE CHARACTERS UNAVAILABLE');
+    return;
+  }
+
+  target.innerHTML=supplied.map(character=>{
+    const selected=String(character.characterId)===String(selectedId||'');
+    const emblemBackground=character.emblem?.background||character.emblem?.icon||'';
+    const emblemStyle=emblemBackground?` style="--character-emblem:url('${escapeHtml(emblemBackground)}')"`:'';
+    return `<button type="button" class="guardian-character-card${selected?' is-selected':''}" data-character-id="${escapeHtml(character.characterId)}" data-class="${escapeHtml(character.characterClass)}" aria-pressed="${selected}" aria-label="Select ${escapeHtml(classLabel(character.characterClass))}, power ${escapeHtml(character.power??'unavailable')}"${emblemStyle}>
+      <span class="guardian-character-card__head">
+        <span class="guardian-character-card__identity"><strong>${escapeHtml(classLabel(character.characterClass).toUpperCase())}</strong></span>
+        <span class="guardian-character-card__power"><i aria-hidden="true">✦</i>${escapeHtml(character.power??'550')}</span>
+      </span>
+      <span class="guardian-character-card__stats">${statMarkup(character.stats)}</span>
+    </button>`;
+  }).join('');
+
+  target.querySelectorAll('[data-character-id]').forEach(button=>button.addEventListener('click',()=>{
+    const characterId=String(button.dataset.characterId||'');
+    const characterClass=String(button.dataset.class||'');
+    if(!characterId||!characterClass)return;
+    target.querySelectorAll('[data-character-id]').forEach(card=>{
+      const active=String(card.dataset.characterId)===characterId;
+      card.classList.toggle('is-selected',active);
+      card.setAttribute('aria-pressed',String(active));
+    });
+    rememberCharacterId(characterId);
+    document.dispatchEvent(new CustomEvent('astrix:character-selected',{detail:{characterId,characterClass,className:classLabel(characterClass)}}));
+  }));
+}
+
+async function initAstrixHeroCards(){
+  const target=host();
+  if(!target)return;
+  renderStatus('LOADING BUNGIE CHARACTERS','pending');
+  const session=await getBungieSession();
+  if(session?.authenticated!==true){
+    renderStatus('CONNECT BUNGIE TO LOAD CHARACTERS');
+    return;
+  }
+  try{
+    const [payload,definitions]=await Promise.all([
+      fetchJson(new URL('/bungie/profile',AUTH_ORIGIN)),
+      statDefinitions()
+    ]);
+    const characters=characterRoster(payload,definitions);
+    const selectedId=selectedCharacterId(characters);
+    rememberCharacterId(selectedId);
+    render(characters,selectedId);
+  }catch(error){
+    console.info('[ASTRIX Hero Cards] Bungie character cards unavailable',error);
+    renderStatus('BUNGIE CHARACTERS UNAVAILABLE');
+  }
+}
+
+initAstrixHeroCards();
