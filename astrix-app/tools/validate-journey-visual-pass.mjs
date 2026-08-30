@@ -14,7 +14,7 @@ const cosmodromeDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/m
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260830-region-chest-overlay-readable"'),'Journey must load the versioned visual correction');
-assert.ok(html.includes('src="./journey.mjs?v=20260830-region-chest-overlay"'),'Journey must load the cache-busted crisp map module');
+assert.ok(html.includes('src="./journey.mjs?v=20260830-cosmodrome-progress-indicators"'),'Journey must load the cache-busted progress indicator module');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -35,7 +35,7 @@ assert.ok(journey.includes('initLocationSelector({'),'Journey must retain the lo
 assert.ok(journey.includes("mount:document.getElementById('journeyLocationSelector')"),'Journey selector mount must remain unchanged');
 assert.ok(journey.includes("detail:document.getElementById('journeyLocationDetail')"),'Journey detail mount must remain unchanged');
 assert.ok(journey.includes('const session=await getBungieSession();'),'Journey authentication must remain unchanged');
-assert.ok(journey.includes("import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-region-chest-overlay'"),'Journey must load its versioned page-owned map registry');
+assert.ok(journey.includes("import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-cosmodrome-progress-indicators'"),'Journey must load its versioned page-owned map registry');
 assert.ok(journey.includes('initJourneyLocationMaps('),'Journey must initialise its page-owned interactive map layer');
 assert.ok(mapModule.includes("src:'./assets/maps/cosmodrome-director-map-4k.webp'"),'Journey map registry must mount the page-owned Cosmodrome map asset');
 assert.ok(mapModule.includes("detailSrc:'./assets/maps/cosmodrome-director-map-6k.webp'"),'Journey map registry must provide its high-resolution zoom asset');
@@ -68,6 +68,14 @@ assert.ok(mapModule.includes("stage.style.setProperty('--journey-marker-scale',S
 assert.ok(mapModule.includes("viewport.append(stage,createRegionChestOverlay(key))"),'Regional chest progress must remain outside the moving map stage');
 assert.ok(mapModule.includes("const REGION_CHEST_EVENT='astrix:journey-region-chests'"),'Regional chest progress must accept a verified data event');
 assert.ok(mapModule.includes("Waiting for verified Bungie chest records."),'Regional chest progress must keep an honest pending state before live records arrive');
+assert.ok(mapModule.includes('class="journey-region-chests-zones journey-region-progress-indicators"'),'Cosmodrome permanent progress indicators must remain inside the existing overlay');
+for(const indicator of [
+  'PERMANENT COSMODROME TRIUMPHS',
+  'LOST SECTORS',
+  'COLLECTIBLES · LORE · SECRETS',
+  'ACTIVE COSMODROME QUEST OBJECTIVES'
+])assert.ok(mapModule.includes(indicator),`Cosmodrome overlay must retain the ${indicator} indication`);
+assert.ok(mapModule.includes('<span><b>LOST SECTORS</b><i>-- / 2 PENDING</i></span>'),'Cosmodrome overlay must show two verified Lost Sector locations without inventing completion');
 assert.doesNotMatch(mapModule,/total\s*:\s*15|discovered\s*:\s*\d+/,'Regional chest progress must not hard-code unverified counts');
 assert.equal(cosmodromeMap.subarray(0,4).toString('ascii'),'RIFF','Cosmodrome map must be a valid WebP asset');
 assert.equal(cosmodromeMap.subarray(8,12).toString('ascii'),'WEBP','Cosmodrome map must be a valid WebP asset');
@@ -109,4 +117,5 @@ console.log('JOURNEY_COSMODROME_MAP_INTERACTIVE=PASS');
 console.log('JOURNEY_COSMODROME_STATIC_ACTIVITY_MARKERS=PASS');
 console.log('JOURNEY_REGION_CHEST_OVERLAY=PASS');
 console.log('JOURNEY_REGION_CHEST_DATA_HONEST=PASS');
+console.log('JOURNEY_COSMODROME_PROGRESS_INDICATORS=PASS');
 console.log('JOURNEY_COSMODROME_LIVE_ACTIVITY_LAYER_DEFERRED=PASS');

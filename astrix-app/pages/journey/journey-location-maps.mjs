@@ -61,6 +61,12 @@ function createRegionChestOverlay(key){
       <span><strong data-region-chest-total>--</strong><small>TOTAL</small></span>
     </div>
     <p class="journey-region-chests-note" data-region-chest-note>Waiting for verified Bungie chest records.</p>
+    <div class="journey-region-chests-zones journey-region-progress-indicators" aria-label="Additional permanent Cosmodrome progress indicators">
+      <span><b>PERMANENT COSMODROME TRIUMPHS</b><i>DATA PENDING</i></span>
+      <span><b>LOST SECTORS</b><i>-- / 2 PENDING</i></span>
+      <span><b>COLLECTIBLES · LORE · SECRETS</b><i>DATA PENDING</i></span>
+      <span><b>ACTIVE COSMODROME QUEST OBJECTIVES</b><i>OPTIONAL · PENDING</i></span>
+    </div>
     <div class="journey-region-chests-zones" data-region-chest-zones hidden></div>`;
 
   const status=overlay.querySelector('[data-region-chest-status]');
