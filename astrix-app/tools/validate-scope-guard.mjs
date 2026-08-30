@@ -4,8 +4,8 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
-  'astrix-app/pages/guardian-workspace-v2/index.html',
-  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
+  'index.html',
+  'astrix-app/tools/validate-portal-loader.mjs',
   'astrix-app/tools/validate-scope-guard.mjs'
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})

@@ -4,13 +4,13 @@ import {readFile} from 'node:fs/promises';
 const ROOT=new URL('../../',import.meta.url);
 const read=path=>readFile(new URL(path,ROOT),'utf8');
 const pages={
-  'Operations hub':'index.html',
   'Build library':'astrix-app/index.html',
   'Guardian Journey':'astrix-app/components/guardian-workspace/guardian-workspace.html',
   'Guardian Main':'astrix-app/pages/guardian-workspace-v2/index.html',
   'Build Space':'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
   'Shooting Range':'astrix-app/pages/guardian-workspace-v2/shooting-range-test/index.html'
 };
+const operationsHtml=await read('index.html');
 const [portalCss,portalJs,mainProgress,buildModule,mainHtml,buildHtml,appModule,subclassModule,journeyModule]=await Promise.all([
   read('astrix-app/shared/astrix-portal-loader.css'),
   read('astrix-app/shared/astrix-portal-loader.js'),
@@ -26,6 +26,7 @@ for(const [label,path] of Object.entries(pages)){
   assert.match(html,/window\.APX_LOGO=/,`${label} must configure the real site logo`);
   assert.match(html,/astrix-portal-loader\.js/,`${label} must load the shared portal controller early`);
 }
+assert.doesNotMatch(operationsHtml,/astrix-portal-loader\.(?:css|js)|window\.APX_LOGO=/,'Public homepage must not mount the tool portal loader');
 
 assert.match(portalCss,/body\.apx-loading\{overflow:hidden!important\}/,'Portal must lock body scroll above page-specific layout rules');
 assert.match(portalCss,/@media\(prefers-reduced-motion:reduce\)/,'Portal must freeze animation for reduced motion');
@@ -61,5 +62,6 @@ assert.match(journeyModule,/renderGuardian\(root, state\);[\s\S]*?AstrixLoader\?
 
 console.log('GLOBAL_PORTAL_SINGLE_OWNER=PASS');
 console.log('GLOBAL_PORTAL_ALL_DATA_PAGES=PASS');
+console.log('GLOBAL_PORTAL_PUBLIC_HOMEPAGE_BYPASS=PASS');
 console.log('GLOBAL_PORTAL_REAL_RENDER_COMPLETION=PASS');
 console.log('GLOBAL_PORTAL_ACCESSIBILITY_MOTION=PASS');
