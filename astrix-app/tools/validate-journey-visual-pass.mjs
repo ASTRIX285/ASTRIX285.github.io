@@ -11,10 +11,12 @@ const mapModule=read('astrix-app/pages/journey/journey-location-maps.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const cosmodromeMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-4k.webp`);
 const cosmodromeDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-6k.webp`);
+const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-4k.webp`);
+const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260830-region-chest-overlay-readable"'),'Journey must load the versioned visual correction');
-assert.ok(html.includes('src="./journey.mjs?v=20260830-cosmodrome-progress-indicators"'),'Journey must load the cache-busted progress indicator module');
+assert.ok(html.includes('src="./journey.mjs?v=20260830-all-destination-progress"'),'Journey must load the cache-busted all-destination progress module');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -35,8 +37,14 @@ assert.ok(journey.includes('initLocationSelector({'),'Journey must retain the lo
 assert.ok(journey.includes("mount:document.getElementById('journeyLocationSelector')"),'Journey selector mount must remain unchanged');
 assert.ok(journey.includes("detail:document.getElementById('journeyLocationDetail')"),'Journey detail mount must remain unchanged');
 assert.ok(journey.includes('const session=await getBungieSession();'),'Journey authentication must remain unchanged');
-assert.ok(journey.includes("import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-cosmodrome-progress-indicators'"),'Journey must load its versioned page-owned map registry');
+assert.ok(journey.includes("import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-all-destination-progress'"),'Journey must load its versioned page-owned map registry');
 assert.ok(journey.includes('initJourneyLocationMaps('),'Journey must initialise its page-owned interactive map layer');
+assert.ok(mapModule.includes("src:'./assets/maps/astrix-paradox-map-placeholder-4k.webp'"),'Journey must mount the shared 4K ASTRIX PARADOX placeholder');
+assert.ok(mapModule.includes("detailSrc:'./assets/maps/astrix-paradox-map-placeholder-6k.webp'"),'Journey must provide the shared 6K ASTRIX PARADOX placeholder for zoom');
+for(const key of ['pale-heart','dreaming-city','neomuna','europa','throne-world','nessus','edz','moon']){
+  assert.ok(mapModule.includes(`'${key}':JOURNEY_PLACEHOLDER_MAP`),`Journey must retain the ${key} placeholder registration`);
+}
+assert.equal((mapModule.match(/:JOURNEY_PLACEHOLDER_MAP/g)??[]).length,8,'Journey must use one shared placeholder for exactly eight pending destination maps');
 assert.ok(mapModule.includes("src:'./assets/maps/cosmodrome-director-map-4k.webp'"),'Journey map registry must mount the page-owned Cosmodrome map asset');
 assert.ok(mapModule.includes("detailSrc:'./assets/maps/cosmodrome-director-map-6k.webp'"),'Journey map registry must provide its high-resolution zoom asset');
 assert.ok(mapModule.includes("if(state.scale>1)requestDetailSource();"),'Journey map must request its high-resolution asset only after zoom begins');
@@ -65,17 +73,18 @@ assert.equal((mapModule.match(/type:'vendor'/g)??[]).length,1,'Cosmodrome pilot 
 assert.doesNotMatch(mapModule,/type:'raid'|fetch\(|setInterval\(|getBungieSession|Date\(/,'Cosmodrome pilot must not invent a raid or add live activity mechanics');
 assert.ok(mapModule.includes("stage.style.transform=`translate3d(${state.x}px,${state.y}px,0) scale(${state.scale})`"),'Map image and static markers must pan and zoom as one stage');
 assert.ok(mapModule.includes("stage.style.setProperty('--journey-marker-scale',String(1/state.scale))"),'Static marker labels must retain a readable screen size while zooming');
-assert.ok(mapModule.includes("viewport.append(stage,createRegionChestOverlay(key))"),'Regional chest progress must remain outside the moving map stage');
+assert.ok(mapModule.includes("const label=globalThis.AstrixDestinations?.labelOf(key)||key;"),'Journey map labels must come from the selected destination registry');
+assert.ok(mapModule.includes("viewport.append(stage,createRegionChestOverlay(key,label,spec.lostSectorTotal))"),'Regional chest progress must remain outside the moving map stage and receive the selected destination label');
 assert.ok(mapModule.includes("const REGION_CHEST_EVENT='astrix:journey-region-chests'"),'Regional chest progress must accept a verified data event');
 assert.ok(mapModule.includes("Waiting for verified Bungie chest records."),'Regional chest progress must keep an honest pending state before live records arrive');
-assert.ok(mapModule.includes('class="journey-region-chests-zones journey-region-progress-indicators"'),'Cosmodrome permanent progress indicators must remain inside the existing overlay');
-for(const indicator of [
-  'PERMANENT COSMODROME TRIUMPHS',
-  'LOST SECTORS',
-  'COLLECTIBLES · LORE · SECRETS',
-  'ACTIVE COSMODROME QUEST OBJECTIVES'
-])assert.ok(mapModule.includes(indicator),`Cosmodrome overlay must retain the ${indicator} indication`);
-assert.ok(mapModule.includes('<span><b>LOST SECTORS</b><i>-- / 2 PENDING</i></span>'),'Cosmodrome overlay must show two verified Lost Sector locations without inventing completion');
+assert.ok(mapModule.includes('class="journey-region-chests-zones journey-region-progress-indicators"'),'Permanent progress indicators must remain inside the existing overlay');
+assert.ok(mapModule.includes('PERMANENT ${destinationHeading} TRIUMPHS'),'Triumph indication must use the selected destination name');
+assert.ok(mapModule.includes('ACTIVE ${destinationHeading} QUEST OBJECTIVES'),'Quest indication must use the selected destination name');
+assert.ok(mapModule.includes('aria-label="Additional permanent ${destinationName} progress indicators"'),'Progress accessibility text must use the selected destination name');
+assert.ok(mapModule.includes('<span><b>LOST SECTORS</b><i>${lostSectorStatus}</i></span>'),'Lost Sector indication must remain pending until a verified total exists');
+assert.ok(mapModule.includes('lostSectorTotal:2'),'Cosmodrome must retain its two verified Lost Sector locations');
+assert.equal((mapModule.match(/lostSectorTotal:/g)??[]).length,1,'Pending destinations must not invent Lost Sector totals');
+assert.doesNotMatch(mapModule,/PERMANENT COSMODROME TRIUMPHS|ACTIVE COSMODROME QUEST OBJECTIVES|Additional permanent Cosmodrome progress indicators/,'Shared progress markup must not hard-code Cosmodrome');
 assert.doesNotMatch(mapModule,/total\s*:\s*15|discovered\s*:\s*\d+/,'Regional chest progress must not hard-code unverified counts');
 assert.equal(cosmodromeMap.subarray(0,4).toString('ascii'),'RIFF','Cosmodrome map must be a valid WebP asset');
 assert.equal(cosmodromeMap.subarray(8,12).toString('ascii'),'WEBP','Cosmodrome map must be a valid WebP asset');
@@ -87,6 +96,14 @@ assert.equal(cosmodromeDetailMap.subarray(8,12).toString('ascii'),'WEBP','Cosmod
 assert.equal(cosmodromeDetailMap.subarray(12,16).toString('ascii'),'VP8 ','Cosmodrome zoom map must use the validated WebP encoding');
 assert.equal(cosmodromeDetailMap.readUInt16LE(26)&0x3fff,5760,'Cosmodrome zoom map must be exactly 5760px wide');
 assert.equal(cosmodromeDetailMap.readUInt16LE(28)&0x3fff,3240,'Cosmodrome zoom map must be exactly 3240px high');
+assert.equal(placeholderMap.subarray(0,4).toString('ascii'),'RIFF','Journey placeholder map must be a valid WebP asset');
+assert.equal(placeholderMap.subarray(8,12).toString('ascii'),'WEBP','Journey placeholder map must be a valid WebP asset');
+assert.equal(placeholderMap.readUInt16LE(26)&0x3fff,3840,'Journey placeholder map must be exactly 3840px wide');
+assert.equal(placeholderMap.readUInt16LE(28)&0x3fff,2160,'Journey placeholder map must be exactly 2160px high');
+assert.equal(placeholderDetailMap.subarray(0,4).toString('ascii'),'RIFF','Journey placeholder zoom map must be a valid WebP asset');
+assert.equal(placeholderDetailMap.subarray(8,12).toString('ascii'),'WEBP','Journey placeholder zoom map must be a valid WebP asset');
+assert.equal(placeholderDetailMap.readUInt16LE(26)&0x3fff,5760,'Journey placeholder zoom map must be exactly 5760px wide');
+assert.equal(placeholderDetailMap.readUInt16LE(28)&0x3fff,3240,'Journey placeholder zoom map must be exactly 3240px high');
 
 assert.match(css,/@media \(min-width:1500px\)\{[\s\S]*?body\.journey-page\.apx-destination-page\{[\s\S]*?zoom:1;/,'Journey must restore native scale on large monitors');
 assert.match(css,/body\.journey-page\.apx-destination-page \.apx-atmo\{[\s\S]*?width:100vw;[\s\S]*?max-width:none;/,'Journey atmosphere must cover the full viewport');
@@ -118,4 +135,8 @@ console.log('JOURNEY_COSMODROME_STATIC_ACTIVITY_MARKERS=PASS');
 console.log('JOURNEY_REGION_CHEST_OVERLAY=PASS');
 console.log('JOURNEY_REGION_CHEST_DATA_HONEST=PASS');
 console.log('JOURNEY_COSMODROME_PROGRESS_INDICATORS=PASS');
+console.log('JOURNEY_ALL_DESTINATION_PROGRESS_INDICATORS=PASS');
+console.log('JOURNEY_PARAMETERISED_DESTINATION_LABELS=PASS');
+console.log('JOURNEY_PLACEHOLDER_MAP_4K=PASS');
+console.log('JOURNEY_PLACEHOLDER_MAP_CRISP_ZOOM=PASS');
 console.log('JOURNEY_COSMODROME_LIVE_ACTIVITY_LAYER_DEFERRED=PASS');

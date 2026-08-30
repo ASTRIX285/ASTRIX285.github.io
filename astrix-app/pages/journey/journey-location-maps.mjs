@@ -1,11 +1,26 @@
 // Journey-owned interactive map registry and viewer.
-// Add destinations one approved map at a time without changing the shared selector.
+// Real destination maps replace the shared placeholder one approved location at a time.
+
+const JOURNEY_PLACEHOLDER_MAP=Object.freeze({
+  src:'./assets/maps/astrix-paradox-map-placeholder-4k.webp',
+  detailSrc:'./assets/maps/astrix-paradox-map-placeholder-6k.webp',
+  markers:Object.freeze([])
+});
 
 const JOURNEY_LOCATION_MAPS=Object.freeze({
+  'pale-heart':JOURNEY_PLACEHOLDER_MAP,
+  'dreaming-city':JOURNEY_PLACEHOLDER_MAP,
+  'neomuna':JOURNEY_PLACEHOLDER_MAP,
+  'europa':JOURNEY_PLACEHOLDER_MAP,
+  'throne-world':JOURNEY_PLACEHOLDER_MAP,
+  'nessus':JOURNEY_PLACEHOLDER_MAP,
+  'edz':JOURNEY_PLACEHOLDER_MAP,
+  'moon':JOURNEY_PLACEHOLDER_MAP,
   cosmodrome:Object.freeze({
     src:'./assets/maps/cosmodrome-director-map-4k.webp',
     detailSrc:'./assets/maps/cosmodrome-director-map-6k.webp',
     alt:'Cosmodrome Director map showing Mothyards, The Steps, Skywatch, Forgotten Shore, The Divide and The Breach.',
+    lostSectorTotal:2,
     markers:Object.freeze([
       Object.freeze({key:'grasp-of-avarice',type:'dungeon',name:'Grasp of Avarice',x:42,y:22}),
       Object.freeze({key:'skywatch-landing-zone',type:'landing',name:'Skywatch',x:56,y:25}),
@@ -44,11 +59,14 @@ function normaliseRegionChestProgress(key,value){
   return {total,discovered,missing:total-discovered,zones};
 }
 
-function createRegionChestOverlay(key){
+function createRegionChestOverlay(key,label,lostSectorTotal){
+  const destinationName=String(label||key).trim()||key;
+  const destinationHeading=destinationName.toLocaleUpperCase('en-GB');
+  const lostSectorStatus=Number.isInteger(lostSectorTotal)&&lostSectorTotal>=0?`-- / ${lostSectorTotal} PENDING`:'DATA PENDING';
   const overlay=document.createElement('aside');
   overlay.className='journey-region-chests';
   overlay.dataset.regionChestKey=key;
-  overlay.setAttribute('aria-label','Regional chest progress');
+  overlay.setAttribute('aria-label',`${destinationName} regional chest progress`);
   overlay.setAttribute('aria-live','polite');
   overlay.innerHTML=`
     <div class="journey-region-chests-head">
@@ -61,11 +79,11 @@ function createRegionChestOverlay(key){
       <span><strong data-region-chest-total>--</strong><small>TOTAL</small></span>
     </div>
     <p class="journey-region-chests-note" data-region-chest-note>Waiting for verified Bungie chest records.</p>
-    <div class="journey-region-chests-zones journey-region-progress-indicators" aria-label="Additional permanent Cosmodrome progress indicators">
-      <span><b>PERMANENT COSMODROME TRIUMPHS</b><i>DATA PENDING</i></span>
-      <span><b>LOST SECTORS</b><i>-- / 2 PENDING</i></span>
+    <div class="journey-region-chests-zones journey-region-progress-indicators" aria-label="Additional permanent ${destinationName} progress indicators">
+      <span><b>PERMANENT ${destinationHeading} TRIUMPHS</b><i>DATA PENDING</i></span>
+      <span><b>LOST SECTORS</b><i>${lostSectorStatus}</i></span>
       <span><b>COLLECTIBLES · LORE · SECRETS</b><i>DATA PENDING</i></span>
-      <span><b>ACTIVE COSMODROME QUEST OBJECTIVES</b><i>OPTIONAL · PENDING</i></span>
+      <span><b>ACTIVE ${destinationHeading} QUEST OBJECTIVES</b><i>OPTIONAL · PENDING</i></span>
     </div>
     <div class="journey-region-chests-zones" data-region-chest-zones hidden></div>`;
 
@@ -127,10 +145,10 @@ function markerIcon(type){
   return svg;
 }
 
-function createStaticMarkers(markers){
+function createStaticMarkers(markers,label){
   const layer=document.createElement('div');
   layer.className='journey-map-marker-layer';
-  layer.setAttribute('aria-label','Cosmodrome activity locations');
+  layer.setAttribute('aria-label',`${label} activity locations`);
   for(const marker of markers||[]){
     const item=document.createElement('span');
     item.className='journey-map-marker';
@@ -159,6 +177,7 @@ function createStaticMarkers(markers){
 }
 
 function createLocationMap(key,spec){
+  const label=globalThis.AstrixDestinations?.labelOf(key)||key;
   const figure=document.createElement('figure');
   figure.className='journey-location-map';
   figure.dataset.mapKey=key;
@@ -203,17 +222,17 @@ function createLocationMap(key,spec){
   const viewport=document.createElement('div');
   viewport.className='journey-map-viewport';
   viewport.tabIndex=0;
-  viewport.setAttribute('aria-label','Interactive Cosmodrome map. Drag to move, use the mouse wheel or controls to zoom, and use arrow keys to pan.');
+  viewport.setAttribute('aria-label',`Interactive ${label} map. Drag to move, use the mouse wheel or controls to zoom, and use arrow keys to pan.`);
 
   const image=document.createElement('img');
   image.className='journey-map-image';
   image.src=spec.src;
-  image.alt=spec.alt;
+  image.alt=spec.alt||`ASTRIX PARADOX placeholder awaiting ${label} Director map.`;
   image.draggable=false;
   const stage=document.createElement('div');
   stage.className='journey-map-stage';
-  stage.append(image,createStaticMarkers(spec.markers));
-  viewport.append(stage,createRegionChestOverlay(key));
+  stage.append(image,createStaticMarkers(spec.markers,label));
+  viewport.append(stage,createRegionChestOverlay(key,label,spec.lostSectorTotal));
   figure.append(toolbar,viewport);
 
   const state={scale:1,x:0,y:0,dragging:false,startX:0,startY:0,originX:0,originY:0};
