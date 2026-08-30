@@ -22,6 +22,7 @@ for(const [path,toolsLink] of publicPages){
 const tools=read('tools/index.html');
 const toolsCss=read('tools/tools.css');
 assert.ok(tools.includes('href="index.html" class="active">Tools</a>'),'Tools navigation item must be active');
+assert.ok(tools.includes('href="tools.css?v=20260830-compact-tools-hub"'),'Tools page must request the compact layout stylesheet without stale cache reuse');
 assert.ok(tools.includes('Tools for the games we play'),'Tools page must explain the multi-game purpose');
 assert.ok(tools.includes('href="../astrix-app/shared/astrix-desktop-density.css"'),'Tools page must load the approved desktop density stylesheet');
 assert.equal((tools.match(/<section class="tools-hero">/g)??[]).length,1,'Tools introduction must use one hero section');
