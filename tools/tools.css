@@ -3,7 +3,7 @@
   min-height: auto;
   display: flex;
   align-items: center;
-  padding: calc(var(--nav-height) + 82px) 40px 92px;
+  padding: calc(var(--nav-height) + 64px) 40px 64px;
   overflow: hidden;
   background:
     radial-gradient(circle at 78% 30%, rgba(139, 0, 0, 0.2), transparent 26%),
@@ -43,14 +43,14 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 1180px;
+  max-width: 1680px;
   margin: 0 auto;
 }
 
 .tools-hero h1 {
-  max-width: 680px;
-  margin: 22px 0 26px;
-  font-size: clamp(46px, 6vw, 82px);
+  max-width: 760px;
+  margin: 22px 0 0;
+  font-size: clamp(46px, 5.5vw, 82px);
   letter-spacing: -0.035em;
   line-height: 0.98;
 }
@@ -59,82 +59,40 @@
   color: var(--crimson-mid);
 }
 
-.tools-lead {
-  max-width: 650px;
-  color: #bbb;
-  font-size: clamp(17px, 2vw, 21px);
-  line-height: 1.72;
-}
-
 .tools-intro-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
-  gap: clamp(52px, 8vw, 112px);
+  grid-template-columns: minmax(0, 1.05fr) minmax(440px, 0.95fr);
+  gap: clamp(48px, 6vw, 96px);
   align-items: center;
 }
 
-.tools-purpose-copy {
-  padding: 12px 0 12px clamp(30px, 4vw, 52px);
+.tools-intro-summary {
+  padding: 10px 0 10px clamp(30px, 4vw, 56px);
   border-left: 1px solid rgba(201, 168, 76, 0.28);
 }
 
-.tools-purpose-copy .section-title {
+.tools-intro-summary .section-title {
   margin-top: 18px;
-  font-size: clamp(28px, 3.2vw, 46px);
+  font-size: clamp(28px, 3vw, 46px);
 }
 
 .tools-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  margin-top: 36px;
+  margin-top: 32px;
 }
 
 .current-platform {
-  padding: 96px 40px;
+  padding: 64px 40px 80px;
 }
 
 .section-copy {
-  max-width: 760px;
-  margin-top: 22px;
+  max-width: 720px;
+  margin-top: 18px;
   color: var(--grey);
-  font-size: 17px;
-  line-height: 1.8;
-}
-
-.principle-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-top: 64px;
-  border-top: 1px solid rgba(201, 168, 76, 0.16);
-  border-left: 1px solid rgba(201, 168, 76, 0.16);
-}
-
-.principle {
-  min-height: 240px;
-  padding: 30px;
-  background: linear-gradient(145deg, rgba(17, 17, 17, 0.88), rgba(7, 7, 7, 0.94));
-  border-right: 1px solid rgba(201, 168, 76, 0.16);
-  border-bottom: 1px solid rgba(201, 168, 76, 0.16);
-}
-
-.principle-number {
-  color: var(--gold);
-  font-family: 'Orbitron', monospace;
-  font-size: 9px;
-  letter-spacing: 0.22em;
-}
-
-.principle h3 {
-  margin: 54px 0 16px;
-  font-size: 18px;
-  letter-spacing: 0.04em;
-}
-
-.principle p {
-  color: var(--grey);
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.72;
 }
 
 .current-platform {
@@ -146,17 +104,28 @@
   border-bottom: 1px solid rgba(139, 0, 0, 0.18);
 }
 
-.platform-overview {
+.platform-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  min-height: 470px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(28px, 3vw, 48px);
+  align-items: stretch;
+}
+
+.platform-card {
+  min-width: 0;
+  min-height: 340px;
   overflow: hidden;
   border: 1px solid rgba(201, 168, 76, 0.28);
   background: #080808;
 }
 
+.platform-card-active {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.82fr) minmax(0, 1.18fr);
+}
+
 .platform-art {
-  min-height: 420px;
+  min-height: 340px;
   background:
     linear-gradient(to right, transparent 45%, #080808 100%),
     linear-gradient(to top, rgba(0, 0, 0, 0.78), transparent 55%),
@@ -167,7 +136,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(34px, 5vw, 68px);
+  padding: clamp(28px, 3vw, 46px);
 }
 
 .platform-meta {
@@ -190,44 +159,74 @@
 }
 
 .platform-copy h2 {
-  margin: 24px 0 20px;
-  font-size: clamp(28px, 4vw, 48px);
+  margin: 20px 0 16px;
+  font-size: clamp(26px, 2.5vw, 38px);
   letter-spacing: -0.025em;
 }
 
 .platform-copy p {
   color: var(--grey);
-  font-size: 16px;
-  line-height: 1.75;
-}
-
-.platform-copy .platform-note {
-  margin-top: 14px;
-  color: #7f7f7f;
-  font-size: 13px;
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 .alpha-entry-link {
   align-self: flex-start;
-  margin-top: 28px;
+  margin-top: 22px;
+}
+
+.platform-card-coming {
+  display: grid;
+  place-items: center;
+  padding: clamp(36px, 5vw, 72px);
+  background:
+    radial-gradient(circle at center, rgba(139, 0, 0, 0.12), transparent 45%),
+    linear-gradient(145deg, rgba(15, 15, 17, 0.96), rgba(5, 5, 7, 0.98));
+}
+
+.platform-brand {
+  text-align: center;
+}
+
+.platform-brand-logo {
+  display: block;
+  width: auto;
+  height: clamp(110px, 11vw, 170px);
+  margin: 0 auto 20px;
+  object-fit: contain;
+}
+
+.platform-brand-name {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(24px, 2.8vw, 44px);
+  font-weight: 700;
+  letter-spacing: 0.035em;
+}
+
+.platform-brand-name span {
+  color: var(--crimson-mid);
+}
+
+.platform-brand p {
+  margin-top: 14px;
+  color: var(--gold);
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
 }
 
 .tools-footer-line {
   margin-bottom: 20px;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .tools-intro-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.82fr);
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 0.88fr);
     gap: 42px;
   }
 
-  .principle-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .platform-overview {
-    grid-template-columns: 0.8fr 1.2fr;
+  .platform-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -242,15 +241,14 @@
   }
 
   .current-platform {
-    padding: 72px 20px;
+    padding: 52px 20px 64px;
   }
 
-  .tools-intro-layout,
-  .platform-overview {
+  .tools-intro-layout {
     grid-template-columns: 1fr;
   }
 
-  .tools-purpose-copy {
+  .tools-intro-summary {
     padding: 32px 0 0;
     border-left: 0;
     border-top: 1px solid rgba(201, 168, 76, 0.28);
@@ -276,12 +274,8 @@
     text-align: center;
   }
 
-  .principle-grid {
+  .platform-card-active {
     grid-template-columns: 1fr;
-  }
-
-  .principle {
-    min-height: 220px;
   }
 
   .platform-art {
@@ -299,7 +293,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .principle,
+  .platform-card,
   .alpha-entry-link {
     transition: none;
   }
