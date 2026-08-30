@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Practical game tools for builds, inventory, progression and activity history, starting with Destiny 2.">
+  <title>Tools | ASTRIX PARADOX</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="tools.css">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="../img/favicon/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="../img/favicon/android-chrome-512x512.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="icon" href="../img/favicon/favicon.ico">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="../img/logo.png" alt="ASTRIX PARADOX">
+    <span>ASTRIX<span class="accent"> PARADOX</span></span>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links">
+    <a href="../index.html">Home</a>
+    <a href="../pages/reviews.html">Reviews</a>
+    <a href="../pages/news.html">News</a>
+    <a href="../pages/clips.html">Clips</a>
+    <a href="../pages/games.html">Universes</a>
+    <a href="index.html" class="active">Tools</a>
+    <a href="../pages/join.html">Join Us</a>
+  </div>
+  <div class="nav-live">
+    <div class="nav-live-dot" id="navDot"></div>
+    <span class="nav-live-text" id="navText">OFFLINE</span>
+  </div>
+</nav>
+
+<main>
+  <section class="tools-hero">
+    <div class="tools-hero-grid" aria-hidden="true"></div>
+    <div class="tools-hero-inner">
+      <div class="section-eyebrow">Tools for the games we play</div>
+      <h1>Better tools.<br><span>Built for each game.</span></h1>
+      <p class="tools-lead">
+        We are building practical companion tools for games with deep characters, builds, inventories and
+        progression. Each one will be designed around the game itself, using its own systems and language,
+        instead of forcing every game into the same mould.
+      </p>
+      <div class="tools-actions">
+        <a class="btn-primary" href="#current-platform">See what we are building</a>
+        <a class="btn-secondary" href="../pages/games.html">Browse Universes</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="tools-principles" aria-labelledby="tools-purpose-title">
+    <div class="tools-shell">
+      <div class="section-eyebrow">Why we are building them</div>
+      <h2 id="tools-purpose-title" class="section-title">Bring the useful information<br><span class="accent">into one place.</span></h2>
+      <p class="section-copy">
+        Games often spread the information players need across character screens, inventories, loadouts,
+        activity records and external services. We want to bring those pieces together, show how they connect
+        and help players make sense of them without taking away what makes each game different.
+      </p>
+
+      <div class="principle-grid">
+        <article class="principle reveal">
+          <span class="principle-number">01</span>
+          <h3>All in one place</h3>
+          <p>Your character, gear, progress and recent activity should work together instead of sitting in separate screens.</p>
+        </article>
+        <article class="principle reveal reveal-delay-1">
+          <span class="principle-number">02</span>
+          <h3>Made for each game</h3>
+          <p>A Destiny tool should feel like it belongs to Destiny. Every future tool will follow the systems and language of its own game.</p>
+        </article>
+        <article class="principle reveal reveal-delay-2">
+          <span class="principle-number">03</span>
+          <h3>Clear and honest</h3>
+          <p>If advice comes from live data, we will show that. If something is missing or still being tested, we will say so.</p>
+        </article>
+        <article class="principle reveal reveal-delay-3">
+          <span class="principle-number">04</span>
+          <h3>Ready to grow</h3>
+          <p>The shared parts can be reused, so we can spend more time building the features that matter for the next game.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="current-platform" id="current-platform" aria-labelledby="destiny-platform-title">
+    <div class="tools-shell">
+      <div class="platform-overview reveal">
+        <div class="platform-art" aria-hidden="true"></div>
+        <div class="platform-copy">
+          <div class="platform-meta">
+            <span>Destiny 2</span>
+            <span class="platform-status">Alpha · Invitation Only</span>
+          </div>
+          <h2 id="destiny-platform-title">Destiny 2 Guardian Platform</h2>
+          <p>
+            The first platform we are building is for Destiny 2. It starts with the Guardian and connects
+            equipped gear, subclasses, saved loadouts, build analysis, recent activities and inventory into
+            one tool instead of treating them as separate features.
+          </p>
+          <p class="platform-note">
+            Some sections are further along than others. The Alpha will remain invitation only while live data,
+            recommendations and each page are checked properly.
+          </p>
+          <a class="platform-link" href="../astrix-app/pages/guardian-alpha/">View the invitation page <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+
+      <div class="destination-heading">
+        <div>
+          <div class="section-eyebrow">Connected destinations</div>
+          <h3>Six parts of the same Guardian story.</h3>
+        </div>
+        <p>Each page has a clear purpose, but they all use the same signed-in Guardian.</p>
+      </div>
+
+      <div class="destination-grid">
+        <article class="destination reveal">
+          <span>01</span>
+          <h4>Journey</h4>
+          <p>The place you start. It will bring together your progress, destinations and personal Guardian story.</p>
+        </article>
+        <article class="destination reveal reveal-delay-1">
+          <span>02</span>
+          <h4>Character</h4>
+          <p>See what your selected Guardian currently has equipped, including subclass, weapons, armour and saved Bungie loadouts.</p>
+        </article>
+        <article class="destination reveal reveal-delay-2">
+          <span>03</span>
+          <h4>Build Forge</h4>
+          <p>Review a selected build, understand what works and see where a practical change could make it stronger.</p>
+        </article>
+        <article class="destination reveal">
+          <span>04</span>
+          <h4>Mission Reports</h4>
+          <p>Look back at recent activities and understand how your Guardian and build performed.</p>
+        </article>
+        <article class="destination reveal reveal-delay-1">
+          <span>05</span>
+          <h4>Vault</h4>
+          <p>Being built to make it easier to find, compare and understand the equipment in your inventory.</p>
+        </article>
+        <article class="destination reveal reveal-delay-2">
+          <span>06</span>
+          <h4>Loadout</h4>
+          <p>Being shaped as the place to manage saved builds and reuse them across characters and activities.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="tools-future" aria-labelledby="future-tools-title">
+    <div class="tools-shell future-layout">
+      <div>
+        <div class="section-eyebrow">More than one game</div>
+        <h2 id="future-tools-title" class="section-title">A shared base.<br><span class="accent">A tool made for its game.</span></h2>
+      </div>
+      <div class="future-copy">
+        <p>
+          When we build for another game, we can reuse the parts that should stay consistent, such as navigation,
+          access, loading and mobile behaviour. The features that help the player will still be designed specifically
+          for that game.
+        </p>
+        <p>
+          If a game offers official live data, we can connect it. If it does not, we will work with what players
+          can provide and be clear about the limits.
+        </p>
+        <div class="future-route" aria-label="Future tool route pattern">
+          <span>Future route pattern</span>
+          <code>astrixparadox.com/tools/{game}/</code>
+        </div>
+        <div class="future-status">We will only announce the next game when we know exactly what its tool needs to do.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-social">
+    <a href="https://x.com/ASTRIX285" target="_blank">X / Twitter</a>
+    <a href="https://discord.com/invite/6dcyrbpdzN" target="_blank">Discord</a>
+    <a href="https://www.twitch.tv/astrix285x" target="_blank">Twitch</a>
+    <a href="https://www.facebook.com/xASTRIX285x" target="_blank">Facebook</a>
+    <a href="https://www.youtube.com/c/ASTRIX285Gaming" target="_blank">YouTube</a>
+  </div>
+  <div class="gold-line tools-footer-line"></div>
+  <div class="footer-copy">© 2026 ASTRIX PARADOX. Built for the community and shaped around the games players understand best.</div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

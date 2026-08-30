@@ -166,6 +166,32 @@ a {
   }
 }
 
+@media (max-width: 1180px) and (min-width: 769px) {
+  .nav {
+    padding: 0 20px;
+  }
+
+  .nav-logo {
+    gap: 8px;
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  .nav-logo img {
+    height: 32px;
+  }
+
+  .nav-links a {
+    padding: 8px 11px;
+    letter-spacing: 1px;
+  }
+
+  .nav-live {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+}
+
 /* ── HERO ── */
 .hero {
   position: relative;

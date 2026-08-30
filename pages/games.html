@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Games | ASTRIX PARADOX</title>
+  <title>Universes | ASTRIX PARADOX</title>
   <link rel="stylesheet" href="../css/style.css">
 
   <!-- Favicons -->
@@ -147,78 +147,6 @@
       .games-grid { grid-template-columns: 1fr; }
     }
 
-    /* ── ACTIVE TOOLS ── */
-    .tools-section {
-      background: var(--dark); padding: 60px 40px 40px;
-      position: relative; overflow: hidden;
-    }
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 2px;
-    }
-    .tool-card {
-      position: relative; overflow: hidden;
-      border: 1px solid rgba(201,168,76,0.2);
-      transition: border-color 0.3s; cursor: pointer;
-      background: var(--dark-3);
-      min-height: 260px;
-      text-decoration: none; display: block;
-    }
-    .tool-card:hover { border-color: rgba(201,168,76,0.55); }
-    .tool-card-bg {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      background-size: cover !important; background-position: center !important;
-      background-repeat: no-repeat !important;
-      filter: grayscale(0.15); transition: transform 0.5s, filter 0.3s;
-    }
-    .tool-card:hover .tool-card-bg { transform: scale(1.05); filter: grayscale(0); }
-    .tool-card-overlay {
-      position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.94) 25%, rgba(0,0,0,0.25) 100%);
-    }
-    .tool-card-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 28px; }
-    .tool-card-eyebrow {
-      font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 3px;
-      color: var(--gold); text-transform: uppercase; margin-bottom: 10px;
-    }
-    .tool-card-title {
-      font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 700;
-      color: var(--white); letter-spacing: 1px; margin-bottom: 10px;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.9);
-    }
-    .tool-card-desc {
-      font-size: 13px; color: var(--grey); line-height: 1.6; max-width: 420px;
-      margin-bottom: 16px;
-    }
-    .tool-card-status {
-      display: inline-block;
-      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
-      padding: 5px 12px; text-transform: uppercase;
-      border: 1px solid var(--gold-dim); color: var(--gold);
-    }
-    .tool-card-corner-tl {
-      position: absolute; top: 14px; left: 14px; width: 18px; height: 18px;
-      border-top: 2px solid var(--gold); border-left: 2px solid var(--gold);
-      opacity: 0.5; transition: opacity 0.3s;
-    }
-    .tool-card-corner-br {
-      position: absolute; bottom: 14px; right: 14px; width: 18px; height: 18px;
-      border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold);
-      opacity: 0.5; transition: opacity 0.3s;
-    }
-    .tool-card:hover .tool-card-corner-tl,
-    .tool-card:hover .tool-card-corner-br { opacity: 1; }
-    .tool-card-empty {
-      display: flex; align-items: center; justify-content: center;
-      border: 1px dashed rgba(201,168,76,0.15);
-      min-height: 260px; background: var(--dark-2);
-      font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
-      color: var(--grey); text-transform: uppercase; text-align: center; padding: 20px;
-    }
-    @media (max-width: 768px) {
-      .tools-grid { grid-template-columns: 1fr; }
-    }
   </style>
 </head>
 <body>
@@ -237,6 +165,7 @@
     <a href="news.html">News</a>
     <a href="clips.html">Clips</a>
     <a href="games.html" class="active">Universes</a>
+    <a href="../tools/">Tools</a>
     <a href="join.html">Join Us</a>
   </div>
   <div class="nav-live">
@@ -247,40 +176,13 @@
 
 <div class="games-hero">
   <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1;">
-    <div class="section-eyebrow" style="animation:fadeUp 0.8s ease 0.2s both;">Guardian Build Forge</div>
-    <h1 class="section-title" style="animation:fadeUp 0.8s ease 0.4s both;">Active <span class="accent">Tools</span></h1>
+    <div class="section-eyebrow" style="animation:fadeUp 0.8s ease 0.2s both;">The Worlds We Explore</div>
+    <h1 class="section-title" style="animation:fadeUp 0.8s ease 0.4s both;">Gaming <span class="accent">Universes</span></h1>
     <p style="color:var(--grey);max-width:500px;margin-top:16px;animation:fadeUp 0.8s ease 0.6s both;">
-      Build advisors and Guardian workspaces, built for the games I actually play.
+      The games, stories and communities behind the reviews, streams and guides.
     </p>
   </div>
 </div>
-
-<section class="tools-section">
-  <div style="max-width:1100px;margin:0 auto;">
-    <div class="tools-grid">
-
-      <!-- DESTINY 2 — GUARDIAN BUILD FORGE -->
-      <a href="/astrix-app/pages/guardian-alpha/" class="tool-card reveal">
-        <div class="tool-card-bg" style="background:url('../img/games/D2_JB.jpg') center/cover no-repeat;"></div>
-        <div class="tool-card-overlay"></div>
-        <div class="tool-card-corner-tl"></div>
-        <div class="tool-card-corner-br"></div>
-        <div class="tool-card-content">
-          <div class="tool-card-eyebrow">Destiny 2</div>
-          <div class="tool-card-title">Guardian Build Forge</div>
-          <div class="tool-card-desc">Source-traced build advice for your Guardian — synergy explained, not just scored.</div>
-          <span class="tool-card-status">Alpha · Invitation Only</span>
-        </div>
-      </a>
-
-      <!-- NEXT UP -->
-      <div class="tool-card-empty">More Universes,<br>More Workspaces —<br>Coming Soon</div>
-
-    </div>
-  </div>
-</section>
-
-<div class="gold-line"></div>
 
 <section class="section" style="background:var(--dark);padding-top:40px;">
   <div style="max-width:1100px;margin:0 auto;">
