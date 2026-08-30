@@ -12,6 +12,7 @@ const validators=[
   'validate-responsive-layout-contract.mjs',
   'validate-destination-theming.mjs',
   'validate-portal-loader.mjs',
+  'validate-tools-hub.mjs',
   'validate-live-artifact-contract.mjs',
   'validate-manifest-service.mjs',
   'test-manifest-service.mjs',

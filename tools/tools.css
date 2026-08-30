@@ -1,0 +1,435 @@
+.tools-hero {
+  position: relative;
+  min-height: 680px;
+  display: flex;
+  align-items: center;
+  padding: calc(var(--nav-height) + 92px) 40px 96px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 30%, rgba(139, 0, 0, 0.2), transparent 26%),
+    radial-gradient(circle at 86% 65%, rgba(201, 168, 76, 0.07), transparent 24%),
+    linear-gradient(135deg, #070707 0%, #0d090b 55%, #050505 100%);
+  border-bottom: 1px solid rgba(139, 0, 0, 0.25);
+}
+
+.tools-hero::after {
+  content: "";
+  position: absolute;
+  right: -180px;
+  top: 50%;
+  width: 620px;
+  height: 620px;
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  transform: translateY(-50%) rotate(45deg);
+  box-shadow:
+    0 0 0 70px rgba(139, 0, 0, 0.025),
+    0 0 0 140px rgba(201, 168, 76, 0.018);
+  pointer-events: none;
+}
+
+.tools-hero-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  background-image:
+    linear-gradient(rgba(139, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to right, black, transparent 82%);
+}
+
+.tools-hero-inner,
+.tools-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.tools-hero h1 {
+  max-width: 940px;
+  margin: 22px 0 26px;
+  font-size: clamp(46px, 7vw, 96px);
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+
+.tools-hero h1 span {
+  color: var(--crimson-mid);
+}
+
+.tools-lead {
+  max-width: 760px;
+  color: #bbb;
+  font-size: clamp(17px, 2vw, 21px);
+  line-height: 1.72;
+}
+
+.tools-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 36px;
+}
+
+.tools-principles,
+.current-platform,
+.tools-future {
+  padding: 96px 40px;
+}
+
+.tools-principles {
+  background: var(--dark);
+}
+
+.section-copy {
+  max-width: 760px;
+  margin-top: 22px;
+  color: var(--grey);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.principle-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 48px;
+  border-top: 1px solid rgba(201, 168, 76, 0.16);
+  border-left: 1px solid rgba(201, 168, 76, 0.16);
+}
+
+.principle {
+  min-height: 260px;
+  padding: 30px;
+  background: linear-gradient(145deg, rgba(17, 17, 17, 0.88), rgba(7, 7, 7, 0.94));
+  border-right: 1px solid rgba(201, 168, 76, 0.16);
+  border-bottom: 1px solid rgba(201, 168, 76, 0.16);
+}
+
+.principle-number,
+.destination > span {
+  color: var(--gold);
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+}
+
+.principle h3 {
+  margin: 54px 0 16px;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+}
+
+.principle p {
+  color: var(--grey);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.current-platform {
+  background:
+    linear-gradient(rgba(6, 6, 6, 0.92), rgba(6, 6, 6, 0.96)),
+    linear-gradient(90deg, rgba(139, 0, 0, 0.07) 1px, transparent 1px);
+  background-size: auto, 72px 72px;
+  border-top: 1px solid rgba(139, 0, 0, 0.18);
+  border-bottom: 1px solid rgba(139, 0, 0, 0.18);
+}
+
+.platform-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  min-height: 470px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  background: #080808;
+}
+
+.platform-art {
+  min-height: 420px;
+  background:
+    linear-gradient(to right, transparent 45%, #080808 100%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.78), transparent 55%),
+    url('../img/games/D2_JB.jpg') center / cover no-repeat;
+}
+
+.platform-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(34px, 5vw, 68px);
+}
+
+.platform-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--gold);
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.platform-status {
+  padding: 7px 10px;
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  color: var(--gold-light);
+}
+
+.platform-copy h2 {
+  margin: 24px 0 20px;
+  font-size: clamp(28px, 4vw, 48px);
+  letter-spacing: -0.025em;
+}
+
+.platform-copy p {
+  color: var(--grey);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.platform-copy .platform-note {
+  margin-top: 14px;
+  color: #7f7f7f;
+  font-size: 13px;
+}
+
+.platform-link {
+  align-self: flex-start;
+  margin-top: 28px;
+  color: var(--white);
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--crimson-mid);
+  padding-bottom: 7px;
+}
+
+.platform-link span {
+  margin-left: 8px;
+  color: var(--gold);
+}
+
+.destination-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
+  margin: 72px 0 30px;
+}
+
+.destination-heading h3 {
+  margin-top: 12px;
+  font-size: clamp(24px, 3vw, 36px);
+}
+
+.destination-heading > p {
+  max-width: 430px;
+  color: var(--grey);
+  line-height: 1.65;
+}
+
+.destination-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.destination {
+  min-height: 210px;
+  padding: 28px;
+  border: 1px solid rgba(139, 0, 0, 0.25);
+  background: rgba(12, 12, 12, 0.88);
+  transition: border-color 0.25s, background 0.25s;
+}
+
+.destination:hover {
+  border-color: rgba(201, 168, 76, 0.38);
+  background: rgba(18, 14, 14, 0.94);
+}
+
+.destination h4 {
+  margin: 30px 0 12px;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+}
+
+.destination p {
+  color: var(--grey);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.tools-future {
+  background: var(--dark-2);
+}
+
+.future-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(48px, 8vw, 110px);
+  align-items: start;
+}
+
+.future-copy {
+  padding-left: 34px;
+  border-left: 1px solid rgba(201, 168, 76, 0.24);
+}
+
+.future-copy p {
+  color: var(--grey);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.future-copy p + p {
+  margin-top: 18px;
+}
+
+.future-copy strong {
+  color: var(--white);
+}
+
+.future-route {
+  margin-top: 30px;
+  padding: 18px;
+  border: 1px solid rgba(139, 0, 0, 0.28);
+  background: #070707;
+}
+
+.future-route span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gold);
+  font-family: 'Orbitron', monospace;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.future-route code {
+  color: #d5d5d5;
+  font-size: 14px;
+}
+
+.future-status {
+  margin-top: 18px;
+  color: #777;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.tools-footer-line {
+  margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+  .principle-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .platform-overview {
+    grid-template-columns: 0.8fr 1.2fr;
+  }
+
+  .destination-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .tools-hero {
+    min-height: 620px;
+    padding: calc(var(--nav-height) + 72px) 20px 72px;
+  }
+
+  .tools-hero::after {
+    right: -360px;
+    opacity: 0.6;
+  }
+
+  .tools-principles,
+  .current-platform,
+  .tools-future {
+    padding: 72px 20px;
+  }
+
+  .platform-overview,
+  .future-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-art {
+    min-height: 300px;
+    background:
+      linear-gradient(to top, #080808 0%, transparent 45%),
+      linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 70%),
+      url('../img/games/D2_JB.jpg') center / cover no-repeat;
+  }
+
+  .destination-heading {
+    display: block;
+  }
+
+  .destination-heading > p {
+    margin-top: 18px;
+  }
+
+  .future-copy {
+    padding-left: 0;
+    padding-top: 28px;
+    border-left: 0;
+    border-top: 1px solid rgba(201, 168, 76, 0.24);
+  }
+}
+
+@media (max-width: 560px) {
+  .tools-hero h1 {
+    font-size: 42px;
+  }
+
+  .tools-actions .btn-primary,
+  .tools-actions .btn-secondary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .principle-grid,
+  .destination-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .principle {
+    min-height: 220px;
+  }
+
+  .platform-art {
+    min-height: 235px;
+  }
+
+  .platform-copy {
+    padding: 30px 22px 36px;
+  }
+
+  .platform-meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .future-route code {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .principle,
+  .destination,
+  .platform-link {
+    transition: none;
+  }
+}
