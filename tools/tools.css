@@ -1,9 +1,9 @@
 .tools-hero {
   position: relative;
-  min-height: 680px;
+  min-height: auto;
   display: flex;
   align-items: center;
-  padding: calc(var(--nav-height) + 92px) 40px 96px;
+  padding: calc(var(--nav-height) + 82px) 40px 92px;
   overflow: hidden;
   background:
     radial-gradient(circle at 78% 30%, rgba(139, 0, 0, 0.2), transparent 26%),
@@ -48,9 +48,9 @@
 }
 
 .tools-hero h1 {
-  max-width: 940px;
+  max-width: 680px;
   margin: 22px 0 26px;
-  font-size: clamp(46px, 7vw, 96px);
+  font-size: clamp(46px, 6vw, 82px);
   letter-spacing: -0.035em;
   line-height: 0.98;
 }
@@ -60,10 +60,27 @@
 }
 
 .tools-lead {
-  max-width: 760px;
+  max-width: 650px;
   color: #bbb;
   font-size: clamp(17px, 2vw, 21px);
   line-height: 1.72;
+}
+
+.tools-intro-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+  gap: clamp(52px, 8vw, 112px);
+  align-items: center;
+}
+
+.tools-purpose-copy {
+  padding: 12px 0 12px clamp(30px, 4vw, 52px);
+  border-left: 1px solid rgba(201, 168, 76, 0.28);
+}
+
+.tools-purpose-copy .section-title {
+  margin-top: 18px;
+  font-size: clamp(28px, 3.2vw, 46px);
 }
 
 .tools-actions {
@@ -73,14 +90,8 @@
   margin-top: 36px;
 }
 
-.tools-principles,
-.current-platform,
-.tools-future {
+.current-platform {
   padding: 96px 40px;
-}
-
-.tools-principles {
-  background: var(--dark);
 }
 
 .section-copy {
@@ -94,21 +105,20 @@
 .principle-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-top: 48px;
+  margin-top: 64px;
   border-top: 1px solid rgba(201, 168, 76, 0.16);
   border-left: 1px solid rgba(201, 168, 76, 0.16);
 }
 
 .principle {
-  min-height: 260px;
+  min-height: 240px;
   padding: 30px;
   background: linear-gradient(145deg, rgba(17, 17, 17, 0.88), rgba(7, 7, 7, 0.94));
   border-right: 1px solid rgba(201, 168, 76, 0.16);
   border-bottom: 1px solid rgba(201, 168, 76, 0.16);
 }
 
-.principle-number,
-.destination > span {
+.principle-number {
   color: var(--gold);
   font-family: 'Orbitron', monospace;
   font-size: 9px;
@@ -197,130 +207,9 @@
   font-size: 13px;
 }
 
-.platform-link {
+.alpha-entry-link {
   align-self: flex-start;
   margin-top: 28px;
-  color: var(--white);
-  font-family: 'Orbitron', monospace;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  border-bottom: 1px solid var(--crimson-mid);
-  padding-bottom: 7px;
-}
-
-.platform-link span {
-  margin-left: 8px;
-  color: var(--gold);
-}
-
-.destination-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 32px;
-  margin: 72px 0 30px;
-}
-
-.destination-heading h3 {
-  margin-top: 12px;
-  font-size: clamp(24px, 3vw, 36px);
-}
-
-.destination-heading > p {
-  max-width: 430px;
-  color: var(--grey);
-  line-height: 1.65;
-}
-
-.destination-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2px;
-}
-
-.destination {
-  min-height: 210px;
-  padding: 28px;
-  border: 1px solid rgba(139, 0, 0, 0.25);
-  background: rgba(12, 12, 12, 0.88);
-  transition: border-color 0.25s, background 0.25s;
-}
-
-.destination:hover {
-  border-color: rgba(201, 168, 76, 0.38);
-  background: rgba(18, 14, 14, 0.94);
-}
-
-.destination h4 {
-  margin: 30px 0 12px;
-  font-size: 17px;
-  letter-spacing: 0.04em;
-}
-
-.destination p {
-  color: var(--grey);
-  font-size: 13px;
-  line-height: 1.65;
-}
-
-.tools-future {
-  background: var(--dark-2);
-}
-
-.future-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: clamp(48px, 8vw, 110px);
-  align-items: start;
-}
-
-.future-copy {
-  padding-left: 34px;
-  border-left: 1px solid rgba(201, 168, 76, 0.24);
-}
-
-.future-copy p {
-  color: var(--grey);
-  font-size: 16px;
-  line-height: 1.8;
-}
-
-.future-copy p + p {
-  margin-top: 18px;
-}
-
-.future-copy strong {
-  color: var(--white);
-}
-
-.future-route {
-  margin-top: 30px;
-  padding: 18px;
-  border: 1px solid rgba(139, 0, 0, 0.28);
-  background: #070707;
-}
-
-.future-route span {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--gold);
-  font-family: 'Orbitron', monospace;
-  font-size: 8px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.future-route code {
-  color: #d5d5d5;
-  font-size: 14px;
-}
-
-.future-status {
-  margin-top: 18px;
-  color: #777;
-  font-size: 12px;
-  letter-spacing: 0.04em;
 }
 
 .tools-footer-line {
@@ -328,6 +217,11 @@
 }
 
 @media (max-width: 1024px) {
+  .tools-intro-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.82fr);
+    gap: 42px;
+  }
+
   .principle-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -335,15 +229,10 @@
   .platform-overview {
     grid-template-columns: 0.8fr 1.2fr;
   }
-
-  .destination-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 768px) {
   .tools-hero {
-    min-height: 620px;
     padding: calc(var(--nav-height) + 72px) 20px 72px;
   }
 
@@ -352,15 +241,19 @@
     opacity: 0.6;
   }
 
-  .tools-principles,
-  .current-platform,
-  .tools-future {
+  .current-platform {
     padding: 72px 20px;
   }
 
-  .platform-overview,
-  .future-layout {
+  .tools-intro-layout,
+  .platform-overview {
     grid-template-columns: 1fr;
+  }
+
+  .tools-purpose-copy {
+    padding: 32px 0 0;
+    border-left: 0;
+    border-top: 1px solid rgba(201, 168, 76, 0.28);
   }
 
   .platform-art {
@@ -369,21 +262,6 @@
       linear-gradient(to top, #080808 0%, transparent 45%),
       linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 70%),
       url('../img/games/D2_JB.jpg') center / cover no-repeat;
-  }
-
-  .destination-heading {
-    display: block;
-  }
-
-  .destination-heading > p {
-    margin-top: 18px;
-  }
-
-  .future-copy {
-    padding-left: 0;
-    padding-top: 28px;
-    border-left: 0;
-    border-top: 1px solid rgba(201, 168, 76, 0.24);
   }
 }
 
@@ -398,8 +276,7 @@
     text-align: center;
   }
 
-  .principle-grid,
-  .destination-grid {
+  .principle-grid {
     grid-template-columns: 1fr;
   }
 
@@ -419,17 +296,11 @@
     align-items: flex-start;
     flex-direction: column;
   }
-
-  .future-route code {
-    font-size: 12px;
-    overflow-wrap: anywhere;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .principle,
-  .destination,
-  .platform-link {
+  .alpha-entry-link {
     transition: none;
   }
 }
