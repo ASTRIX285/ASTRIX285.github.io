@@ -90,6 +90,99 @@
   outline-offset:-2px;
 }
 
+.journey-region-chests{
+  position:absolute;
+  z-index:4;
+  top:18px;
+  left:18px;
+  width:min(300px,calc(100% - 36px));
+  padding:16px;
+  border:1px solid rgba(201,168,76,.34);
+  background:rgba(4,6,7,.95);
+  box-shadow:0 12px 32px rgba(0,0,0,.42);
+  color:#f1eee6;
+  pointer-events:none;
+}
+
+.journey-region-chests-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(201,168,76,.22);
+}
+
+.journey-region-chests-head strong{
+  font:700 10px/1.2 Orbitron,sans-serif;
+  letter-spacing:.12em;
+}
+
+.journey-region-chests-head span{
+  color:rgba(201,168,76,.78);
+  font:700 6px/1.25 Orbitron,sans-serif;
+  letter-spacing:.1em;
+  text-align:right;
+}
+
+.journey-region-chests-summary{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  padding:12px 0 10px;
+}
+
+.journey-region-chests-summary>span{
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+}
+
+.journey-region-chests-summary strong{
+  color:#f1eee6;
+  font:700 20px/1 Orbitron,sans-serif;
+}
+
+.journey-region-chests-summary small{
+  margin-top:5px;
+  color:rgba(241,238,230,.55);
+  font:700 6px/1 Orbitron,sans-serif;
+  letter-spacing:.08em;
+}
+
+.journey-region-chests-note{
+  margin:0;
+  color:rgba(241,238,230,.64);
+  font:600 10px/1.4 Rajdhani,sans-serif;
+}
+
+.journey-region-chests-zones{
+  display:grid;
+  gap:5px;
+  margin-top:10px;
+  padding-top:9px;
+  border-top:1px solid rgba(201,168,76,.16);
+}
+
+.journey-region-chests-zones[hidden]{display:none}
+
+.journey-region-chests-zones span{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:rgba(241,238,230,.68);
+  font:600 9px/1.2 Rajdhani,sans-serif;
+}
+
+.journey-region-chests-zones b{font-weight:600}
+
+.journey-region-chests-zones i{
+  color:var(--apx-gold);
+  font-style:normal;
+  font-weight:700;
+}
+
 .journey-map-stage{
   --journey-marker-scale:1;
   position:absolute;
@@ -231,6 +324,13 @@
   .journey-map-marker-copy{padding:4px 5px 3px}
   .journey-map-marker-copy strong{font-size:6px}
   .journey-map-marker-copy small{display:none}
+  .journey-region-chests{top:10px;left:10px;width:min(250px,calc(100% - 20px));padding:10px}
+  .journey-region-chests-head{padding-bottom:7px}
+  .journey-region-chests-head strong{font-size:8px}
+  .journey-region-chests-summary{padding:8px 0 7px}
+  .journey-region-chests-summary strong{font-size:15px}
+  .journey-region-chests-note{font-size:8px}
+  .journey-region-chests-zones{display:none}
 }
 
 @media (min-width:981px){

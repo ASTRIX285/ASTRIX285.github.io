@@ -28,6 +28,83 @@ const MARKER_TYPE_LABELS=Object.freeze({
   vendor:'Vendor'
 });
 
+const REGION_CHEST_EVENT='astrix:journey-region-chests';
+const verifiedRegionChestProgress=new Map();
+
+function normaliseRegionChestProgress(key,value){
+  if(!value||value.key!==key)return null;
+  const total=Number(value.total);
+  const discovered=Number(value.discovered);
+  if(!Number.isInteger(total)||total<0||!Number.isInteger(discovered)||discovered<0||discovered>total)return null;
+  const zones=Array.isArray(value.zones)?value.zones.map(zone=>({
+    name:String(zone?.name||'').trim(),
+    total:Number(zone?.total),
+    discovered:Number(zone?.discovered)
+  })).filter(zone=>zone.name&&Number.isInteger(zone.total)&&zone.total>=0&&Number.isInteger(zone.discovered)&&zone.discovered>=0&&zone.discovered<=zone.total):[];
+  return {total,discovered,missing:total-discovered,zones};
+}
+
+function createRegionChestOverlay(key){
+  const overlay=document.createElement('aside');
+  overlay.className='journey-region-chests';
+  overlay.dataset.regionChestKey=key;
+  overlay.setAttribute('aria-label','Regional chest progress');
+  overlay.setAttribute('aria-live','polite');
+  overlay.innerHTML=`
+    <div class="journey-region-chests-head">
+      <strong>REGION CHESTS</strong>
+      <span data-region-chest-status>DATA LINK PENDING</span>
+    </div>
+    <div class="journey-region-chests-summary">
+      <span><strong data-region-chest-discovered>--</strong><small>DISCOVERED</small></span>
+      <span><strong data-region-chest-missing>--</strong><small>MISSING</small></span>
+      <span><strong data-region-chest-total>--</strong><small>TOTAL</small></span>
+    </div>
+    <p class="journey-region-chests-note" data-region-chest-note>Waiting for verified Bungie chest records.</p>
+    <div class="journey-region-chests-zones" data-region-chest-zones hidden></div>`;
+
+  const status=overlay.querySelector('[data-region-chest-status]');
+  const discovered=overlay.querySelector('[data-region-chest-discovered]');
+  const missing=overlay.querySelector('[data-region-chest-missing]');
+  const total=overlay.querySelector('[data-region-chest-total]');
+  const note=overlay.querySelector('[data-region-chest-note]');
+  const zones=overlay.querySelector('[data-region-chest-zones]');
+
+  function render(value){
+    const progress=normaliseRegionChestProgress(key,value);
+    if(!progress)return;
+    status.textContent='VERIFIED BUNGIE DATA';
+    discovered.textContent=String(progress.discovered);
+    missing.textContent=String(progress.missing);
+    total.textContent=String(progress.total);
+    note.textContent=`${progress.discovered} of ${progress.total} discovered`;
+    zones.replaceChildren(...progress.zones.map(zone=>{
+      const row=document.createElement('span');
+      const name=document.createElement('b');
+      const count=document.createElement('i');
+      name.textContent=zone.name;
+      count.textContent=`${zone.discovered} / ${zone.total}`;
+      row.append(name,count);
+      return row;
+    }));
+    zones.hidden=progress.zones.length===0;
+  }
+
+  document.addEventListener(REGION_CHEST_EVENT,event=>render(event.detail));
+  render(verifiedRegionChestProgress.get(key));
+  return overlay;
+}
+
+export function publishJourneyRegionChestProgress(progress){
+  const key=String(progress?.key||'');
+  const verified=normaliseRegionChestProgress(key,progress);
+  if(!key||!verified)return false;
+  const detail={key,...verified};
+  verifiedRegionChestProgress.set(key,detail);
+  document.dispatchEvent(new CustomEvent(REGION_CHEST_EVENT,{detail}));
+  return true;
+}
+
 function markerIcon(type){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('viewBox','0 0 32 32');
@@ -130,7 +207,7 @@ function createLocationMap(key,spec){
   const stage=document.createElement('div');
   stage.className='journey-map-stage';
   stage.append(image,createStaticMarkers(spec.markers));
-  viewport.append(stage);
+  viewport.append(stage,createRegionChestOverlay(key));
   figure.append(toolbar,viewport);
 
   const state={scale:1,x:0,y:0,dragging:false,startX:0,startY:0,originX:0,originY:0};
