@@ -51,7 +51,7 @@ assert.ok(alpha.includes('src="./guardian-alpha.mjs"'),'Alpha page must load its
 assert.ok(alpha.includes('id="guardianDestinationPopup"'),'Alpha page must contain the post-auth Destiny selector');
 assert.ok(alpha.includes('id="guardianDestinationPopup" hidden aria-hidden="true"'),'Destiny selector must begin closed and hidden from assistive technology');
 assert.equal((alpha.match(/<a class="destination" /g)??[]).length,6,'Authenticated Destiny selector must contain six destinations');
-assert.match(alpha,/\.destination-backdrop\.is-open\{display:grid\}/,'Destiny selector must use an explicit visible state');
+assert.match(alpha,/\.destination-backdrop\.is-open,\.destination-backdrop:not\(\[hidden\]\)\{display:grid\}/,'Destiny selector must support current and cached controllers');
 assert.match(alpha,/@media\(max-width:820px\)[\s\S]*?\.destination-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/,'Destiny selector must use two columns at tablet widths');
 assert.match(alpha,/@media\(max-width:560px\)[\s\S]*?\.destination-grid\{grid-template-columns:1fr\}/,'Destiny selector must use one column at phone widths');
 assert.match(alpha,/@media\(max-width:560px\)[\s\S]*?\.access-row\{grid-template-columns:1fr\}/,'Alpha access form must stack at phone widths');
