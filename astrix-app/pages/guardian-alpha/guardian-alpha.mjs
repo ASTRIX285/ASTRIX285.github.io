@@ -1,15 +1,12 @@
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||'https://auth.astrixparadox.com';
 const ACCESS_CODE='PARADOX285';
 const ACCESS_STORAGE_KEY='astrix-paradox-beta-access';
+const BUILD_FORGE_URL='../guardian-workspace-v2/paradox-build-space/';
 
 const form=document.getElementById('alphaAccessForm');
 const input=document.getElementById('alphaAccessCode');
 const submit=document.getElementById('alphaAccessSubmit');
 const message=document.getElementById('alphaAccessMessage');
-const popup=document.getElementById('guardianDestinationPopup');
-const closeButton=document.getElementById('guardianDestinationClose');
-
-let bungieConnected=false;
 
 function hasAlphaAccess(){
   try{return sessionStorage.getItem(ACCESS_STORAGE_KEY)==='granted'}catch{return false}
@@ -49,38 +46,12 @@ async function getBungieSession(){
   }
 }
 
-function openDestinationSelector(){
-  popup.removeAttribute('hidden');
-  popup.setAttribute('aria-hidden','false');
-  popup.classList.add('is-open');
-  document.body.classList.add('selector-open');
-  closeButton.focus();
-}
-
-function closeDestinationSelector(){
-  popup.classList.remove('is-open');
-  popup.setAttribute('aria-hidden','true');
-  popup.setAttribute('hidden','');
-  document.body.classList.remove('selector-open');
-  submit.focus();
-}
-
-function showConnectedState(){
-  bungieConnected=true;
-  form.classList.add('is-connected');
-  input.disabled=true;
-  submit.disabled=false;
-  submit.textContent='OPEN GUARDIAN TOOLS';
-  message.textContent='Bungie connected. Choose where you want to go.';
+function openBuildForge(){
+  location.replace(BUILD_FORGE_URL);
 }
 
 form.addEventListener('submit',async event=>{
   event.preventDefault();
-
-  if(bungieConnected){
-    openDestinationSelector();
-    return;
-  }
 
   if(input.value.trim()!==ACCESS_CODE){
     message.textContent='Access code not recognised.';
@@ -94,21 +65,12 @@ form.addEventListener('submit',async event=>{
 
   const session=await getBungieSession();
   if(session?.authenticated){
-    showConnectedState();
-    openDestinationSelector();
+    openBuildForge();
     return;
   }
 
   message.textContent='Opening Bungie secure sign in.';
   location.assign(authStartUrl());
-});
-
-closeButton.addEventListener('click',closeDestinationSelector);
-popup.addEventListener('click',event=>{
-  if(event.target===popup)closeDestinationSelector();
-});
-document.addEventListener('keydown',event=>{
-  if(event.key==='Escape'&&!popup.hidden)closeDestinationSelector();
 });
 
 async function restoreAuthenticatedAccess(){
@@ -121,11 +83,7 @@ async function restoreAuthenticatedAccess(){
     return;
   }
 
-  const cleanUrl=new URL(location.href);
-  cleanUrl.searchParams.delete('bungie');
-  history.replaceState(null,'',cleanUrl.toString());
-  showConnectedState();
-  openDestinationSelector();
+  openBuildForge();
 }
 
 restoreAuthenticatedAccess();

@@ -48,38 +48,24 @@ assert.ok(alpha.includes('href="../../../tools/">BACK TO TOOLS</a>'),'Alpha page
 assert.ok(alpha.includes('id="alphaAccessForm"'),'Alpha page must present the access-code gate');
 assert.ok(alpha.includes('id="alphaAccessCode"'),'Alpha page must include the access-code input');
 assert.ok(alpha.includes('src="./guardian-alpha.mjs"'),'Alpha page must load its access-flow controller');
-assert.ok(alpha.includes('id="guardianDestinationPopup"'),'Alpha page must contain the post-auth Destiny selector');
-assert.ok(alpha.includes('id="guardianDestinationPopup" hidden aria-hidden="true"'),'Destiny selector must begin closed and hidden from assistive technology');
-assert.equal((alpha.match(/<a class="destination" /g)??[]).length,6,'Authenticated Destiny selector must contain six destinations');
-assert.match(alpha,/\.destination-backdrop\.is-open,\.destination-backdrop:not\(\[hidden\]\)\{display:grid\}/,'Destiny selector must support current and cached controllers');
-assert.match(alpha,/@media\(max-width:820px\)[\s\S]*?\.destination-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/,'Destiny selector must use two columns at tablet widths');
-assert.match(alpha,/@media\(max-width:560px\)[\s\S]*?\.destination-grid\{grid-template-columns:1fr\}/,'Destiny selector must use one column at phone widths');
+assert.doesNotMatch(alpha,/guardianDestinationPopup|destination-backdrop|<a class="destination"/,'Alpha page must not stop at a destination selector');
+assert.ok(alpha.includes('continue directly into Guardian Build Forge.'),'Alpha page must describe the direct Build Forge handoff');
 assert.match(alpha,/@media\(max-width:560px\)[\s\S]*?\.access-row\{grid-template-columns:1fr\}/,'Alpha access form must stack at phone widths');
 assert.doesNotMatch(alpha,/—|–|&mdash;|&ndash;/,'Alpha page must not use em or en dashes');
-
-for(const route of [
-  '../journey/',
-  '../guardian-workspace-v2/',
-  '../guardian-workspace-v2/paradox-build-space/',
-  '../mission-reports/',
-  '../vault/',
-  '../loadout/'
-]){
-  assert.ok(alpha.includes(`href="${route}"`),`Authenticated Destiny selector must include ${route}`);
-}
 
 const alphaFlow=read('astrix-app/pages/guardian-alpha/guardian-alpha.mjs');
 assert.ok(alphaFlow.includes("ACCESS_STORAGE_KEY='astrix-paradox-beta-access'"),'Alpha page must reuse the existing workspace access flag');
 assert.ok(alphaFlow.includes("input.value.trim()!==ACCESS_CODE"),'Alpha code must be checked before authentication starts');
 assert.ok(alphaFlow.indexOf("input.value.trim()!==ACCESS_CODE")<alphaFlow.indexOf('getBungieSession();'),'Invalid Alpha access must be rejected before Bungie session handling');
 assert.ok(alphaFlow.includes("location.assign(authStartUrl())"),'Valid Alpha access must continue into Bungie authentication');
-assert.ok(alphaFlow.includes("if(!hasAlphaAccess())return"),'Post-auth selector must remain behind Alpha access');
-assert.match(alphaFlow,/if\(!session\?\.authenticated\)[\s\S]*?return;[\s\S]*?showConnectedState\(\);[\s\S]*?openDestinationSelector\(\);/,'Destiny selector must open only after Bungie authentication');
-assert.match(alphaFlow,/function openDestinationSelector\(\)\{[\s\S]*?removeAttribute\('hidden'\);[\s\S]*?setAttribute\('aria-hidden','false'\);[\s\S]*?classList\.add\('is-open'\);/,'Connected Bungie sessions must explicitly reveal the Destiny selector');
-assert.match(alphaFlow,/if\(session\?\.authenticated\)\{[\s\S]*?showConnectedState\(\);[\s\S]*?openDestinationSelector\(\);[\s\S]*?return;/,'Valid Alpha access with an active Bungie session must open the Destiny selector immediately');
+assert.ok(alphaFlow.includes("if(!hasAlphaAccess())return"),'Post-auth Build Forge handoff must remain behind Alpha access');
+assert.ok(alphaFlow.includes("BUILD_FORGE_URL='../guardian-workspace-v2/paradox-build-space/'"),'Authenticated Alpha access must target Build Forge');
+assert.match(alphaFlow,/function openBuildForge\(\)\{\s*location\.replace\(BUILD_FORGE_URL\);\s*\}/,'Build Forge handoff must replace the Alpha gate in browser history');
+assert.equal((alphaFlow.match(/openBuildForge\(\);/g)??[]).length,2,'Both active-session and post-auth paths must enter Build Forge directly');
+assert.doesNotMatch(alphaFlow,/openDestinationSelector|guardianDestinationPopup|OPEN GUARDIAN TOOLS/,'Destination selector fallback must be removed');
 
 console.log('MULTI_GAME_TOOLS_HUB=PASS');
 console.log('ALPHA_ACCESS_BEFORE_BUNGIE=PASS');
-console.log('DESTINY_SELECTOR_AFTER_AUTH=PASS');
-console.log('CONNECTED_TOKEN_IMMEDIATE_SELECTOR=PASS');
+console.log('ALPHA_DIRECT_BUILD_FORGE=PASS');
+console.log('DESTINATION_SELECTOR_REMOVED=PASS');
 console.log('RESPONSIVE_TOOLS_ALPHA_CONTRACT=PASS');
