@@ -22,9 +22,9 @@ for(const [path,toolsLink] of publicPages){
 const tools=read('tools/index.html');
 const toolsCss=read('tools/tools.css');
 assert.ok(tools.includes('href="index.html" class="active">Tools</a>'),'Tools navigation item must be active');
-assert.ok(tools.includes('href="tools.css?v=20260830-compact-tools-hub"'),'Tools page must request the compact layout stylesheet without stale cache reuse');
+assert.ok(tools.includes('href="tools.css?v=20260830-large-screen-legibility"'),'Tools page must request the legible large-screen stylesheet without stale cache reuse');
 assert.ok(tools.includes('Tools for the games we play'),'Tools page must explain the multi-game purpose');
-assert.ok(tools.includes('href="../astrix-app/shared/astrix-desktop-density.css"'),'Tools page must load the approved desktop density stylesheet');
+assert.doesNotMatch(tools,/astrix-desktop-density\.css/,'Public Tools page must remain at native scale on large monitors');
 assert.equal((tools.match(/<section class="tools-hero">/g)??[]).length,1,'Tools introduction must use one hero section');
 assert.doesNotMatch(tools,/<section class="tools-principles"/,'Tools purpose must not be split into a second section');
 assert.ok(tools.indexOf('Better tools.')<tools.indexOf('Useful information.'),'Tools purpose must be presented inside the combined introduction');
@@ -49,6 +49,8 @@ assert.doesNotMatch(tools,/astrix-portal-loader|APX_LOGO/,'Public Tools hub must
 assert.doesNotMatch(tools,/—|–|&mdash;|&ndash;/,'Tools page must not use em or en dashes');
 assert.match(toolsCss,/\.tools-hero-inner,[\s\S]*?\.tools-shell\s*\{[\s\S]*?max-width:\s*1680px;/,'Tools content must use the approved wider desktop shell');
 assert.match(toolsCss,/\.tools-intro-layout\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1\.05fr\) minmax\(440px, 0\.95fr\);/,'Combined Tools introduction must use the approved wider desktop composition');
+assert.match(toolsCss,/\.section-copy\s*\{[\s\S]*?font-size:\s*clamp\(17px, 0\.78vw, 20px\);/,'Public Tools summary must scale for high-resolution monitors');
+assert.match(toolsCss,/\.tools-actions \.btn-primary,[\s\S]*?font-size:\s*clamp\(11px, 0\.52vw, 13px\);/,'Public Tools actions must remain legible on high-resolution monitors');
 assert.match(toolsCss,/\.platform-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,'Tool catalogue must use two equal desktop columns');
 assert.match(toolsCss,/\.platform-card\s*\{[\s\S]*?min-height:\s*340px;/,'Tool cards must use the approved compact height');
 assert.doesNotMatch(toolsCss,/\.principle-grid|\.platform-overview/,'Retired long-form presentation rules must remain removed');
@@ -84,7 +86,7 @@ assert.doesNotMatch(alphaFlow,/openDestinationSelector|guardianDestinationPopup|
 console.log('MULTI_GAME_TOOLS_HUB=PASS');
 console.log('COMPACT_TOOLS_INTRO=PASS');
 console.log('REUSABLE_PLATFORM_CARD_GRID=PASS');
-console.log('TOOLS_DESKTOP_DENSITY=PASS');
+console.log('TOOLS_NATIVE_LARGE_SCREEN_SCALE=PASS');
 console.log('ALPHA_ACCESS_BEFORE_BUNGIE=PASS');
 console.log('ALPHA_DIRECT_BUILD_FORGE=PASS');
 console.log('DESTINATION_SELECTOR_REMOVED=PASS');
