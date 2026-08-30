@@ -13,7 +13,7 @@ const cosmodromeMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/co
 const cosmodromeDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260830-region-chest-overlay"'),'Journey must load the versioned visual correction');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260830-region-chest-overlay-readable"'),'Journey must load the versioned visual correction');
 assert.ok(html.includes('src="./journey.mjs?v=20260830-region-chest-overlay"'),'Journey must load the cache-busted crisp map module');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
@@ -92,7 +92,7 @@ assert.match(css,/@media \(min-width:981px\)\{[\s\S]*?\.journey-page \[data-astr
 assert.match(css,/\.journey-page \.apx-destination-ribbon a:hover,[\s\S]*?border-color:rgba\(201,168,76,\.68\);[\s\S]*?box-shadow:/,'Journey ribbon must provide the approved block hover state');
 assert.match(css,/\.journey-map-stage\{[\s\S]*?position:absolute;[\s\S]*?transform-origin:center;/,'Map image and markers must share one anchored stage');
 assert.match(css,/\.journey-map-marker\{[\s\S]*?transform:translate\(-50%,-50%\) scale\(var\(--journey-marker-scale\)\);/,'Static activity markers must remain anchored and legible while zooming');
-assert.match(css,/\.journey-region-chests\{[\s\S]*?position:absolute;[\s\S]*?top:18px;[\s\S]*?left:18px;[\s\S]*?background:rgba\(4,6,7,\.95\);[\s\S]*?pointer-events:none;/,'Regional chest progress must remain fixed at the map top left with the approved opacity');
+assert.match(css,/\.journey-region-chests\{[\s\S]*?position:absolute;[\s\S]*?top:18px;[\s\S]*?left:18px;[\s\S]*?width:min\(440px,calc\(100% - 36px\)\);[\s\S]*?background:rgba\(4,6,7,\.05\);[\s\S]*?pointer-events:none;/,'Regional chest progress must remain fixed at the map top left with 95 percent transparency and readable large-screen sizing');
 assert.doesNotMatch(css,/body\.journey-page[^}]*transform\s*:\s*scale\(|\.apx-page-shell[^}]*position\s*:\s*absolute/,'Journey page layout must remain in document flow without transform scaling');
 
 console.log('JOURNEY_2560_NATIVE_SCALE=PASS');
