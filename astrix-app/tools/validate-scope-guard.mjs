@@ -4,10 +4,12 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
-  'css/style.css',
-  'astrix-app/tools/paradox-validator.mjs',
+  'tools/index.html',
+  'tools/tools.css',
+  'astrix-app/pages/guardian-alpha/index.html',
+  'astrix-app/pages/guardian-alpha/guardian-alpha.mjs',
+  'astrix-app/tools/validate-tools-hub.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
-  'astrix-app/tools/validate-public-deep-space.mjs'
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
