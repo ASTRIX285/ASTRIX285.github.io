@@ -90,21 +90,147 @@
   outline-offset:-2px;
 }
 
+.journey-map-stage{
+  --journey-marker-scale:1;
+  position:absolute;
+  inset:0;
+  transform-origin:center;
+  will-change:transform;
+  pointer-events:none;
+}
+
 .journey-map-image{
+  position:absolute;
+  inset:0;
   display:block;
   width:100%;
   height:100%;
   object-fit:cover;
-  transform-origin:center;
-  will-change:transform;
   user-select:none;
   pointer-events:none;
+}
+
+.journey-map-marker-layer{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.journey-map-marker{
+  position:absolute;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  transform:translate(-50%,-50%) scale(var(--journey-marker-scale));
+  transform-origin:center;
+  white-space:nowrap;
+}
+
+.journey-map-marker-icon{
+  display:grid;
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  place-items:center;
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.9));
+}
+
+.journey-map-marker-glyph{
+  display:block;
+  width:100%;
+  height:100%;
+  overflow:visible;
+}
+
+.journey-map-marker-copy{
+  display:flex;
+  min-width:0;
+  padding:5px 7px 4px;
+  border-left:1px solid rgba(236,230,215,.32);
+  background:linear-gradient(90deg,rgba(4,6,7,.88),rgba(4,6,7,.54));
+  box-shadow:0 3px 12px rgba(0,0,0,.42);
+  flex-direction:column;
+}
+
+.journey-map-marker-copy strong{
+  color:#f1eee6;
+  font:700 8px/1.15 Orbitron,sans-serif;
+  letter-spacing:.045em;
+  text-shadow:0 1px 3px #000;
+}
+
+.journey-map-marker-copy small{
+  margin-top:3px;
+  color:rgba(241,238,230,.62);
+  font:700 6px/1 Orbitron,sans-serif;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.journey-map-marker[data-marker-type="landing"] circle{
+  fill:rgba(3,5,6,.94);
+  stroke:rgba(241,238,230,.9);
+  stroke-width:1.5;
+}
+
+.journey-map-marker[data-marker-type="landing"] path{
+  fill:#f1eee6;
+}
+
+.journey-map-marker[data-marker-type="lost-sector"] .journey-map-marker-glyph>path:first-child{
+  fill:rgba(60,48,82,.94);
+  stroke:#c5b8e8;
+  stroke-width:1.2;
+}
+
+.journey-map-marker[data-marker-type="lost-sector"] .journey-map-marker-glyph>path:not(:first-child){
+  fill:none;
+  stroke:#f0eaff;
+  stroke-width:1.4;
+}
+
+.journey-map-marker[data-marker-type="strike"] .journey-map-marker-glyph>path:first-child{
+  fill:#e8edf3;
+  stroke:#58739a;
+  stroke-width:1.2;
+}
+
+.journey-map-marker[data-marker-type="strike"] .journey-map-marker-glyph>path:last-child{
+  fill:#203c65;
+}
+
+.journey-map-marker[data-marker-type="dungeon"] circle{
+  fill:rgba(102,86,72,.96);
+  stroke:#ded4c5;
+  stroke-width:1.2;
+}
+
+.journey-map-marker[data-marker-type="dungeon"] path{
+  fill:none;
+  stroke:#f4eee5;
+  stroke-width:1.5;
+}
+
+.journey-map-marker[data-marker-type="vendor"] .journey-map-marker-glyph>path:first-child{
+  fill:#536a3d;
+  stroke:#e7e4d8;
+  stroke-width:1.2;
+}
+
+.journey-map-marker[data-marker-type="vendor"] circle,
+.journey-map-marker[data-marker-type="vendor"] .journey-map-marker-glyph>path:last-child{
+  fill:#f2efe7;
 }
 
 @media(max-width:720px){
   .journey-map-toolbar{align-items:flex-start;flex-direction:column}
   .journey-map-controls{width:100%}
   .journey-map-controls .journey-map-reset{margin-left:auto}
+  .journey-map-marker-icon{width:24px;height:24px;flex-basis:24px}
+  .journey-map-marker-copy{padding:4px 5px 3px}
+  .journey-map-marker-copy strong{font-size:6px}
+  .journey-map-marker-copy small{display:none}
 }
 
 @media (min-width:981px){

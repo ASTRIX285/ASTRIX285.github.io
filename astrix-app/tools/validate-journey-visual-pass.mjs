@@ -12,7 +12,7 @@ const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const cosmodromeMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-4k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260830-cosmodrome-map"'),'Journey must load the versioned visual correction');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260830-cosmodrome-activity-markers"'),'Journey must load the versioned visual correction');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -33,11 +33,34 @@ assert.ok(journey.includes('initLocationSelector({'),'Journey must retain the lo
 assert.ok(journey.includes("mount:document.getElementById('journeyLocationSelector')"),'Journey selector mount must remain unchanged');
 assert.ok(journey.includes("detail:document.getElementById('journeyLocationDetail')"),'Journey detail mount must remain unchanged');
 assert.ok(journey.includes('const session=await getBungieSession();'),'Journey authentication must remain unchanged');
-assert.ok(journey.includes("import {initJourneyLocationMaps} from './journey-location-maps.mjs'"),'Journey must load its separate page-owned map registry');
+assert.ok(journey.includes("import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-static-activities'"),'Journey must load its versioned page-owned map registry');
 assert.ok(journey.includes('initJourneyLocationMaps('),'Journey must initialise its page-owned interactive map layer');
 assert.ok(mapModule.includes("src:'./assets/maps/cosmodrome-director-map-4k.webp'"),'Journey map registry must mount the page-owned Cosmodrome map asset');
 assert.ok(mapModule.includes("addEventListener('pointermove'"),'Journey map must support pointer panning');
 assert.ok(mapModule.includes("addEventListener('wheel'"),'Journey map must support wheel zooming');
+for(const marker of [
+  ['grasp-of-avarice','Grasp of Avarice'],
+  ['skywatch-landing-zone','Skywatch'],
+  ['the-disgraced','The Disgraced'],
+  ['the-devils-lair',"The Devils' Lair"],
+  ['fallen-saber','Fallen S.A.B.E.R.'],
+  ['veles-labyrinth','Veles Labyrinth'],
+  ['shaw-han','Shaw Han'],
+  ['the-steppes-landing-zone','The Steppes'],
+  ['exodus-garden-2a','Exodus Garden 2A']
+]){
+  assert.ok(mapModule.includes(`key:'${marker[0]}'`),`Journey map must retain the ${marker[1]} marker key`);
+  assert.ok(mapModule.includes(`name:${JSON.stringify(marker[1])}`)||mapModule.includes(`name:'${marker[1]}'`),`Journey map must retain the ${marker[1]} label`);
+}
+assert.equal((mapModule.match(/Object\.freeze\(\{key:/g)??[]).length,9,'Cosmodrome pilot must contain exactly nine permanent static markers');
+assert.equal((mapModule.match(/type:'strike'/g)??[]).length,3,'Cosmodrome pilot must contain the three verified strikes');
+assert.equal((mapModule.match(/type:'lost-sector'/g)??[]).length,2,'Cosmodrome pilot must contain the two verified Lost Sectors');
+assert.equal((mapModule.match(/type:'landing'/g)??[]).length,2,'Cosmodrome pilot must contain the two verified landing zones');
+assert.equal((mapModule.match(/type:'dungeon'/g)??[]).length,1,'Cosmodrome pilot must contain Grasp of Avarice');
+assert.equal((mapModule.match(/type:'vendor'/g)??[]).length,1,'Cosmodrome pilot must contain Shaw Han');
+assert.doesNotMatch(mapModule,/type:'raid'|fetch\(|setInterval\(|getBungieSession|Date\(/,'Cosmodrome pilot must not invent a raid or add live activity mechanics');
+assert.ok(mapModule.includes("stage.style.transform=`translate3d(${state.x}px,${state.y}px,0) scale(${state.scale})`"),'Map image and static markers must pan and zoom as one stage');
+assert.ok(mapModule.includes("stage.style.setProperty('--journey-marker-scale',String(1/state.scale))"),'Static marker labels must retain a readable screen size while zooming');
 assert.equal(cosmodromeMap.subarray(0,4).toString('ascii'),'RIFF','Cosmodrome map must be a valid WebP asset');
 assert.equal(cosmodromeMap.subarray(8,12).toString('ascii'),'WEBP','Cosmodrome map must be a valid WebP asset');
 assert.equal(cosmodromeMap.subarray(12,16).toString('ascii'),'VP8 ','Cosmodrome map must use the validated WebP encoding');
@@ -54,7 +77,9 @@ assert.match(css,/\.journey-page \.apx-loc-layout\{[\s\S]*?grid-template-columns
 assert.match(css,/\.journey-page \.apx-empty-state\{[\s\S]*?font-size:clamp\(15px,\.65vw,17px\);/,'Journey empty states must remain legible at 2560px');
 assert.match(css,/@media \(min-width:981px\)\{[\s\S]*?\.journey-page \[data-astrix-destination-ribbon\]\{[\s\S]*?width:min\(1180px,calc\(100% - 64px\)\);[\s\S]*?margin:18px auto 0;/,'Journey ribbon must be compact, centred and separated from the main header');
 assert.match(css,/\.journey-page \.apx-destination-ribbon a:hover,[\s\S]*?border-color:rgba\(201,168,76,\.68\);[\s\S]*?box-shadow:/,'Journey ribbon must provide the approved block hover state');
-assert.doesNotMatch(css,/position\s*:\s*absolute|transform\s*:\s*scale\(/,'Journey visual correction must remain in document flow');
+assert.match(css,/\.journey-map-stage\{[\s\S]*?position:absolute;[\s\S]*?transform-origin:center;/,'Map image and markers must share one anchored stage');
+assert.match(css,/\.journey-map-marker\{[\s\S]*?transform:translate\(-50%,-50%\) scale\(var\(--journey-marker-scale\)\);/,'Static activity markers must remain anchored and legible while zooming');
+assert.doesNotMatch(css,/body\.journey-page[^}]*transform\s*:\s*scale\(|\.apx-page-shell[^}]*position\s*:\s*absolute/,'Journey page layout must remain in document flow without transform scaling');
 
 console.log('JOURNEY_2560_NATIVE_SCALE=PASS');
 console.log('JOURNEY_FULL_VIEWPORT_ATMOSPHERE=PASS');
@@ -66,3 +91,5 @@ console.log('JOURNEY_DUPLICATE_DESTINATIONS_REMOVED=PASS');
 console.log('JOURNEY_DATA_MECHANICS_UNCHANGED=PASS');
 console.log('JOURNEY_COSMODROME_MAP_4K=PASS');
 console.log('JOURNEY_COSMODROME_MAP_INTERACTIVE=PASS');
+console.log('JOURNEY_COSMODROME_STATIC_ACTIVITY_MARKERS=PASS');
+console.log('JOURNEY_COSMODROME_LIVE_ACTIVITY_LAYER_DEFERRED=PASS');
