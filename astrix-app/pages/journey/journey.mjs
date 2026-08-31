@@ -275,9 +275,7 @@ async function bindHistoricalStats(session){
     const pvpCleared=historicalValue(pvp,'activitiesCleared');
     const kd=historicalValue(pvp,'killsDeathsRatio');
     if(pveEntered!==null&&pvpEntered!==null)setMetric(metricActivities,numberFormatter.format(pveEntered+pvpEntered),'Verified career total');
-    const entered=pveEntered!==null&&pvpEntered!==null?pveEntered+pvpEntered:null;
-    const cleared=pveCleared!==null&&pvpCleared!==null?pveCleared+pvpCleared:null;
-    if(entered!==null&&entered>0&&cleared!==null)setMetric(metricCompletion,`${Math.round(cleared/entered*100)}%`,'Verified career rate');
+    if(pveEntered!==null&&pveEntered>0&&pveCleared!==null)setMetric(metricCompletion,`${Math.round(pveCleared/pveEntered*100)}%`,'Verified PvE completion');
     if(pveCleared!==null)setMetric(metricPve,numberFormatter.format(pveCleared),'Verified career clears');
     if(kd!==null)setMetric(metricPvp,kd.toFixed(2),'Verified career K/D');
   }catch{}
