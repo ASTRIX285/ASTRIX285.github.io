@@ -1,0 +1,151 @@
+html body header:has(>[data-astrix-hero-cards]){
+  position:sticky!important;
+  top:0!important;
+  z-index:90!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 910px minmax(0,1fr)!important;
+  grid-template-rows:88px!important;
+  align-items:center!important;
+  gap:18px!important;
+  height:108px!important;
+  min-height:108px!important;
+  padding:10px 18px!important;
+}
+
+html body header:has(>[data-astrix-hero-cards])>:is(.brand,.apx-destination-brand){grid-column:1!important;grid-row:1!important;justify-self:start!important}
+html body header:has(>[data-astrix-hero-cards])>:is(.ws-label,.workspace-title,.apx-destination-header-copy){grid-column:1!important;grid-row:1!important;justify-self:end!important;text-align:right!important}
+html body header:has(>[data-astrix-hero-cards])>.apx-destination-header-state{grid-column:3!important;grid-row:1!important;justify-self:start!important}
+html body header:has(>[data-astrix-hero-cards])>:is(.topbar-actions,.source-pill,.bungie-auth-control){grid-column:3!important;grid-row:1!important;justify-self:end!important}
+
+html body header:has(>[data-astrix-hero-cards])>#guardianCharacterCards.guardian-character-cards{
+  position:static!important;
+  grid-column:2!important;
+  grid-row:1!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,300px)!important;
+  justify-content:center!important;
+  justify-self:center!important;
+  gap:5px!important;
+  width:910px!important;
+  min-width:910px!important;
+  max-width:910px!important;
+  min-height:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  background:transparent!important;
+  transform:none!important;
+  pointer-events:auto;
+}
+
+.guardian-character-cards__status{
+  grid-column:1/-1;
+  display:grid;
+  place-items:center;
+  min-height:78px;
+  border:1px dashed rgba(194,183,215,.2);
+  border-radius:10px;
+  background:rgba(7,7,12,.7);
+  color:#928aa2;
+  font:700 clamp(.68rem,.68vw,.84rem) Inter,sans-serif;
+  letter-spacing:.1em;
+  text-align:center;
+  backdrop-filter:blur(8px);
+}
+
+.guardian-character-cards__status.is-pending{border-color:rgba(240,191,62,.38);color:#d9c47f}
+.guardian-character-cards__status.is-unavailable{border-color:rgba(255,80,96,.36);color:#e3a1aa}
+
+html body header:has(>[data-astrix-hero-cards]) .guardian-character-card{
+  --character-emblem:none;
+  position:relative;
+  isolation:isolate;
+  display:block;
+  width:300px!important;
+  min-width:300px!important;
+  max-width:300px!important;
+  height:88px!important;
+  min-height:88px!important;
+  max-height:88px!important;
+  padding:0;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:10px;
+  background:#09090d;
+  color:#f7f5fb;
+  text-align:left;
+  cursor:pointer;
+  box-shadow:0 10px 26px rgba(0,0,0,.28);
+  filter:saturate(.94) brightness(.96);
+  opacity:1;
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease,filter .18s ease,opacity .18s ease;
+}
+
+html body header:has(>[data-astrix-hero-cards]) .guardian-character-card::before{
+  content:"";
+  position:absolute;
+  z-index:-2;
+  inset:0;
+  background:var(--character-emblem) left center/cover no-repeat;
+  opacity:.94;
+  filter:saturate(.96) brightness(.94);
+  transition:opacity .18s ease,filter .18s ease,transform .18s ease;
+}
+
+html body header:has(>[data-astrix-hero-cards]) .guardian-character-card::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  background:linear-gradient(90deg,rgba(5,5,9,.04) 0 38%,rgba(5,5,9,.14) 68%,rgba(5,5,9,.28) 100%),linear-gradient(0deg,rgba(5,5,9,.54) 0 36%,rgba(5,5,9,.08) 76%,rgba(5,5,9,.12) 100%);
+  opacity:.2;
+  pointer-events:none;
+}
+
+html body header:has(>[data-astrix-hero-cards]) .guardian-character-card:hover{transform:translateY(-1px);border-color:rgba(var(--stage-accent-rgb,180,70,70),.62);filter:none;opacity:1}
+html body header:has(>[data-astrix-hero-cards]) .guardian-character-card:hover::before{opacity:1;filter:none;transform:scale(1.005)}
+html body header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-selected{border-color:rgba(255,255,255,.26);box-shadow:0 0 0 1px rgba(157,210,255,.16),0 18px 34px -14px rgba(104,190,255,.72),0 0 22px rgba(104,190,255,.18),0 12px 32px rgba(0,0,0,.38);filter:none;opacity:1}
+html body header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-selected::before{opacity:.48;filter:saturate(.48) brightness(.68)}
+html body header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-selected::after{background:linear-gradient(0deg,rgba(6,9,15,.62) 0 38%,rgba(104,190,255,.08) 100%);opacity:.1}
+.guardian-character-card__head{position:absolute;z-index:1;inset:0;display:block;min-width:0;pointer-events:none}
+.guardian-character-card__identity{position:absolute;top:10px;left:34px;right:50px;min-width:0;padding:0;text-align:left;text-shadow:0 1px 5px #000,0 0 10px rgba(0,0,0,.86)}
+.guardian-character-card__head strong{display:block;overflow:hidden;font:800 12px Inter,sans-serif;letter-spacing:.045em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+.guardian-character-card__power{position:absolute;top:10px;right:12px;color:#f2c942;font:800 14px Inter,sans-serif;text-shadow:0 1px 5px #000,0 0 9px rgba(0,0,0,.9);white-space:nowrap}
+.guardian-character-card__power i{margin-right:3px;font-style:normal;font-size:.65em}
+.guardian-character-card__stats{position:absolute;z-index:1;left:39px;right:4px;bottom:8px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.guardian-character-card__stat{display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:28px;padding:2px;border:0;border-radius:3px;background:rgba(7,9,14,.52);text-shadow:0 1px 4px #000}
+.guardian-character-card__stat .guardian-stat-icon{display:block;width:18px;height:18px;flex:0 0 18px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.72))}
+.guardian-character-card__stat .guardian-stat-icon.is-unavailable{border:1px solid rgba(255,255,255,.14);transform:rotate(45deg)}
+.guardian-character-card__stat b{color:#fff;font:800 11px Inter,sans-serif}
+
+body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]{position:sticky!important;top:120px!important;z-index:80!important}
+
+@media(min-width:1500px){
+  body:has(header>[data-astrix-hero-cards]){zoom:1}
+}
+
+@media(max-width:1899px){
+  html body header:has(>[data-astrix-hero-cards]){grid-template-columns:auto minmax(0,1fr) auto auto!important;grid-template-rows:48px 88px!important;height:174px!important;min-height:174px!important}
+  html body header:has(>[data-astrix-hero-cards])>:is(.brand,.apx-destination-brand){grid-column:1!important;grid-row:1!important}
+  html body header:has(>[data-astrix-hero-cards])>:is(.ws-label,.workspace-title,.apx-destination-header-copy){grid-column:2!important;grid-row:1!important;justify-self:center!important;text-align:center!important}
+  html body header:has(>[data-astrix-hero-cards])>.apx-destination-header-state{grid-column:3!important;grid-row:1!important;justify-self:end!important}
+  html body header:has(>[data-astrix-hero-cards])>:is(.topbar-actions,.source-pill,.bungie-auth-control){grid-column:4!important;grid-row:1!important}
+  html body header:has(>[data-astrix-hero-cards])>#guardianCharacterCards.guardian-character-cards{position:absolute!important;left:50%!important;bottom:10px!important;grid-column:auto!important;grid-row:auto!important;transform:translateX(-50%)!important}
+  body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]{top:186px!important}
+}
+
+@media(max-width:960px){
+  html body header:has(>[data-astrix-hero-cards])>#guardianCharacterCards.guardian-character-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important;width:calc(100% - 28px)!important;min-width:0!important;max-width:910px!important}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card{width:100%!important;min-width:0!important;max-width:none!important}
+}
+
+@media(max-width:720px){
+  html body header:has(>[data-astrix-hero-cards]){padding:9px 14px!important}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__identity{left:12px;right:44px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__head strong{font-size:10px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__power{right:7px;font-size:11px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__stats{left:8px;right:3px;gap:1px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__stat{gap:2px;padding:1px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__stat .guardian-stat-icon{width:12px;height:12px;flex-basis:12px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__stat b{font-size:9px}
+  body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]{top:174px!important}
+}

@@ -4,11 +4,16 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'astrix-app/pages/guardian-workspace-v2/index.html',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
   'astrix-app/pages/journey/index.html',
-  'astrix-app/pages/journey/journey.mjs',
-  'astrix-app/pages/journey/journey-location-maps.mjs',
-  'astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-4k.webp',
-  'astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp',
+  'astrix-app/pages/loadout/index.html',
+  'astrix-app/pages/mission-reports/index.html',
+  'astrix-app/pages/vault/index.html',
+  'astrix-app/shared/astrix-destination-ribbon.css',
+  'astrix-app/shared/astrix-hero-cards.css',
+  'astrix-app/shared/astrix-hero-cards.mjs',
+  'astrix-app/shared/astrix-paradox-background.css',
   'astrix-app/tools/validate-scope-guard.mjs',
   'astrix-app/tools/validate-journey-visual-pass.mjs',
 ]);
