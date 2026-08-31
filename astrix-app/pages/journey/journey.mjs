@@ -29,6 +29,26 @@ let selectedCharacterId='';
 let selectedClassName='';
 let verifiedProfile=null;
 
+function waitForHeroCards(){
+  if(!heroCards||!heroCards.querySelector('.guardian-character-cards__status.is-pending'))return Promise.resolve();
+  return new Promise(resolve=>document.addEventListener('astrix:hero-cards-render-complete',resolve,{once:true}));
+}
+
+function waitForJourneyAtmosphere(){
+  const key=globalThis.AstrixDestinations?.current();
+  const src=globalThis.ASTRIX_LOCATION_VISUALS?.[key]?.image;
+  if(!src)return Promise.resolve();
+  return new Promise(resolve=>{
+    const image=new Image();
+    let settled=false;
+    const finish=async()=>{if(settled)return;settled=true;try{if(image.decode)await image.decode();}catch{}resolve();};
+    image.addEventListener('load',finish,{once:true});
+    image.addEventListener('error',resolve,{once:true});
+    image.src=src;
+    if(image.complete)finish();
+  });
+}
+
 const finiteNumber=value=>{
   if(value===null||value===undefined||value==='')return null;
   const number=Number(value);
@@ -215,6 +235,7 @@ function showSignedOut(){
 }
 
 let locationSelectorReady=false;
+let locationMapReady=Promise.resolve();
 function showJourney(){
   resolving.hidden=true;
   signedOut.hidden=true;
@@ -229,8 +250,9 @@ function showJourney(){
       mount:document.getElementById('journeyLocationSelector'),
       detail:document.getElementById('journeyLocationDetail')
     });
-    initJourneyLocationMaps(document.getElementById('journeyLocationDetail'));
+    locationMapReady=initJourneyLocationMaps(document.getElementById('journeyLocationDetail'));
   }
+  return locationMapReady;
 }
 
 try{
@@ -238,14 +260,16 @@ try{
   const session=await getBungieSession();
   const authenticated=session?.authenticated===true&&globalThis.ASTRIX_BUNGIE_SESSION?.authenticated===true;
   if(authenticated){
-    showJourney();
+    const heroCardsReady=waitForHeroCards();
+    const mapReady=showJourney();
     const profile=await readVerifiedProfile(session);
     if(profile){
       verifiedProfile=profile;
       bindProfileCards(profile);
     }
+    await Promise.all([heroCardsReady,mapReady,waitForJourneyAtmosphere()]);
     globalThis.AstrixLoader.set(96);globalThis.AstrixLoader.status('Journey rendered');
-    await globalThis.AstrixLoader.ready(dashboard);
+    await globalThis.AstrixLoader.ready(document);
   }
   else showSignedOut();
 }catch(error){

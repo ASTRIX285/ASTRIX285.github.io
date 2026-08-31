@@ -4,24 +4,8 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
-  'astrix-app/index.html',
-  'astrix-app/components/guardian-workspace/guardian-workspace.html',
-  'astrix-app/shared/astrix-portal-loader.css',
-  'astrix-app/shared/astrix-portal-loader.js',
-  'astrix-app/shared/astrix-hero-cards.mjs',
-  'astrix-app/pages/journey/index.html',
   'astrix-app/pages/journey/journey.mjs',
-  'astrix-app/pages/journey/journey-2560-visual.css',
-  'astrix-app/pages/guardian-workspace-v2/index.html',
-  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
-  'astrix-app/pages/guardian-workspace-v2/shooting-range-test/index.html',
-  'astrix-app/pages/mission-reports/index.html',
-  'astrix-app/pages/mission-reports/mission-reports.mjs',
-  'astrix-app/pages/mission-reports/mission-reports.css',
-  'astrix-app/pages/vault/index.html',
-  'astrix-app/pages/loadout/index.html',
-  'astrix-app/shared/astrix-hero-cards.css',
-  'astrix-app/tools/validate-journey-visual-pass.mjs',
+  'astrix-app/pages/journey/journey-location-maps.mjs',
   'astrix-app/tools/validate-portal-loader.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
 ]);

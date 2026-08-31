@@ -44,6 +44,7 @@ const MARKER_TYPE_LABELS=Object.freeze({
 });
 
 const REGION_CHEST_EVENT='astrix:journey-region-chests';
+const MAP_RENDER_EVENT='astrix:journey-location-map-render-complete';
 const verifiedRegionChestProgress=new Map();
 
 function normaliseRegionChestProgress(key,value){
@@ -310,18 +311,47 @@ function createLocationMap(key,spec){
     if(action==='out')setScale(state.scale-.25);
     if(action==='reset'){state.x=0;state.y=0;setScale(1);}
   });
-  image.addEventListener('load',applyMapPosition,{once:true});
+  const ready=new Promise(resolve=>{
+    let settled=false;
+    const finish=async status=>{
+      if(settled)return;
+      settled=true;
+      try{if(status==='ready'&&image.decode)await image.decode();}catch{}
+      applyMapPosition();
+      const detail={key,status,src:image.currentSrc||image.src};
+      figure.dataset.renderComplete=status;
+      document.dispatchEvent(new CustomEvent(MAP_RENDER_EVENT,{detail}));
+      resolve(detail);
+    };
+    if(image.complete)queueMicrotask(()=>finish(image.naturalWidth>0?'ready':'unavailable'));
+    else{
+      image.addEventListener('load',()=>finish('ready'),{once:true});
+      image.addEventListener('error',()=>finish('unavailable'),{once:true});
+    }
+  });
   applyMapPosition();
-  return figure;
+  return {figure,ready};
 }
 
 export function initJourneyLocationMaps(detail){
   const render=(event)=>{
     const key=event?.detail?.key||globalThis.AstrixDestinations?.current();
     const spec=JOURNEY_LOCATION_MAPS[key];
-    if(!spec||detail.querySelector(`[data-map-key="${key}"]`))return;
-    detail.append(createLocationMap(key,spec));
+    if(!spec)return Promise.resolve({key,status:'unavailable',src:''});
+    const existing=detail.querySelector(`[data-map-key="${key}"]`);
+    if(existing?.dataset.renderComplete)return Promise.resolve({key,status:existing.dataset.renderComplete,src:existing.querySelector('img')?.currentSrc||''});
+    if(existing)return new Promise(resolve=>{
+      const onReady=event=>{
+        if(event.detail?.key!==key)return;
+        document.removeEventListener(MAP_RENDER_EVENT,onReady);
+        resolve(event.detail);
+      };
+      document.addEventListener(MAP_RENDER_EVENT,onReady);
+    });
+    const map=createLocationMap(key,spec);
+    detail.append(map.figure);
+    return map.ready;
   };
   document.addEventListener('astrix:destination-changed',render);
-  render();
+  return render();
 }
