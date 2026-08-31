@@ -9,6 +9,17 @@ const css=read('astrix-app/pages/journey/journey-2560-visual.css');
 const journey=read('astrix-app/pages/journey/journey.mjs');
 const mapModule=read('astrix-app/pages/journey/journey-location-maps.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
+const ribbonCss=read('astrix-app/shared/astrix-destination-ribbon.css');
+const heroCss=read('astrix-app/shared/astrix-hero-cards.css');
+const heroModule=read('astrix-app/shared/astrix-hero-cards.mjs');
+const globalHeroPages=[
+  read('astrix-app/pages/journey/index.html'),
+  read('astrix-app/pages/guardian-workspace-v2/index.html'),
+  read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html'),
+  read('astrix-app/pages/mission-reports/index.html'),
+  read('astrix-app/pages/vault/index.html'),
+  read('astrix-app/pages/loadout/index.html')
+];
 const cosmodromeMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-4k.webp`);
 const cosmodromeDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-6k.webp`);
 const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-4k.webp`);
@@ -17,6 +28,7 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260830-region-chest-overlay-readable"'),'Journey must load the versioned visual correction');
 assert.ok(html.includes('src="./journey.mjs?v=20260830-all-destination-progress"'),'Journey must load the cache-busted all-destination progress module');
+assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260830-global-hero-cards"'),'Journey must load the shared authenticated hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -27,12 +39,27 @@ for(const id of [
   'journeySignedOut',
   'journeyDashboard',
   'journeyConnectAction',
+  'guardianCharacterCards',
   'journeyLocationSelector',
   'journeyLocationDetail'
 ])assert.ok(html.includes(`id="${id}"`),`Journey data mount ${id} must remain available`);
 
 assert.equal((html.match(/class="apx-scaffold-card"/g)??[]).length,10,'Journey must retain all ten future data regions');
 assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,6,'Shared Journey ribbon must retain all six destination routes');
+for(const page of globalHeroPages){
+  assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
+  assert.ok(page.includes('astrix-hero-cards.css?v=20260830-global-hero-cards'),'Every destination page must load the shared hero-card presentation');
+}
+assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260830-global-hero-cards'))).length,3,'Only Journey, Vault and Loadout must use the shared standalone renderer');
+assert.match(heroCss,/position:sticky!important;[\s\S]*?top:0!important;/,'Every hero-card topbar must remain anchored at the viewport top');
+assert.match(heroCss,/grid-template-columns:minmax\(0,1fr\) 910px minmax\(0,1fr\)!important;/,'The three-card track must occupy the exact centre column');
+assert.match(heroCss,/grid-template-columns:repeat\(3,300px\)!important;/,'The desktop hero track must retain three equal Character-format cards');
+assert.match(heroCss,/body:has\(header>\[data-astrix-hero-cards\]\)\{zoom:1\}/,'Hero-card destination pages must remain at native 100 percent scale');
+assert.match(heroCss,/body:has\(header>\[data-astrix-hero-cards\]\)>\[data-astrix-destination-ribbon\]\{position:sticky!important;top:120px!important;/,'The shared destination buttons must remain anchored beneath the hero topbar');
+assert.match(ribbonCss,/@media\(min-width:981px\)\{[\s\S]*?width:min\(1180px,calc\(100% - 64px\)\);[\s\S]*?grid/s,'All pages must use the shared centred desktop destination-button presentation');
+assert.match(heroModule,/const CLASS_ORDER=\{hunter:0,warlock:1,titan:2\}/,'Warlock must remain the middle card in the shared roster');
+assert.match(heroModule,/fetchJson\(new URL\('\/bungie\/profile',AUTH_ORIGIN\)\)/,'Shared hero cards must use the existing confidential profile endpoint');
+assert.doesNotMatch(heroModule,/guardian-bungie-profile|guardian-manifest-service|paradox-build|CLIENT_SECRET|API_KEY/,'Shared hero cards must not load or alter locked Character, manifest, Build Forge or secret internals');
 assert.ok(journey.includes('initLocationSelector({'),'Journey must retain the location-selector wiring');
 assert.ok(journey.includes("mount:document.getElementById('journeyLocationSelector')"),'Journey selector mount must remain unchanged');
 assert.ok(journey.includes("detail:document.getElementById('journeyLocationDetail')"),'Journey detail mount must remain unchanged');
@@ -140,3 +167,7 @@ console.log('JOURNEY_PARAMETERISED_DESTINATION_LABELS=PASS');
 console.log('JOURNEY_PLACEHOLDER_MAP_4K=PASS');
 console.log('JOURNEY_PLACEHOLDER_MAP_CRISP_ZOOM=PASS');
 console.log('JOURNEY_COSMODROME_LIVE_ACTIVITY_LAYER_DEFERRED=PASS');
+console.log('GLOBAL_HERO_CARDS=PASS');
+console.log('GLOBAL_HERO_WARLOCK_CENTRED=PASS');
+console.log('GLOBAL_HERO_TOPBAR_ANCHORED=PASS');
+console.log('GLOBAL_DESTINATION_BUTTONS=PASS');
