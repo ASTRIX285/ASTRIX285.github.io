@@ -4,11 +4,8 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
-  'astrix-app/pages/journey/index.html',
-  'astrix-app/pages/journey/journey.mjs',
-  'astrix-app/pages/journey/journey-location-maps.mjs',
+  'pages/clips.html',
   'astrix-app/tools/validate-scope-guard.mjs',
-  'astrix-app/tools/validate-journey-visual-pass.mjs',
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
