@@ -15,13 +15,15 @@ const pages={
   'Loadout':'astrix-app/pages/loadout/index.html'
 };
 const operationsHtml=await read('index.html');
-const [portalCss,portalJs,mainProgress,buildModule,mainHtml,buildHtml,appModule,subclassModule,journeyModule]=await Promise.all([
+const [portalCss,portalJs,mainProgress,buildModule,mainHtml,buildHtml,appModule,subclassModule,journeyModule,journeyPageModule,journeyMaps]=await Promise.all([
   read('astrix-app/shared/astrix-portal-loader.css'),
   read('astrix-app/shared/astrix-portal-loader.js'),
   read('astrix-app/pages/guardian-workspace-v2/guardian-portal-progress.mjs'),
   read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs'),
   read(pages['Guardian Main']),read(pages['Build Space']),read('astrix-app/app.js'),read('astrix-app/subclass-filter-ui.js'),
-  read('astrix-app/components/guardian-workspace/guardian-workspace.mjs')
+  read('astrix-app/components/guardian-workspace/guardian-workspace.mjs'),
+  read('astrix-app/pages/journey/journey.mjs'),
+  read('astrix-app/pages/journey/journey-location-maps.mjs')
 ]);
 
 for(const [label,path] of Object.entries(pages)){
@@ -71,6 +73,14 @@ assert.match(buildModule,/window\.AstrixLoader\?\.set\(percent\)/,'Build real mi
 assert.match(appModule,/astrix:build-catalogue-rendered/,'Build library must publish catalogue render completion');
 assert.match(subclassModule,/astrix:subclass-filter-rendered/,'Build library must publish subclass-filter render completion');
 assert.match(journeyModule,/renderGuardian\(root, state\);[\s\S]*?AstrixLoader\?\.set\(88\)/,'Guardian Journey must report progress after its state is painted');
+assert.match(journeyPageModule,/function waitForHeroCards\(\)[\s\S]*?astrix:hero-cards-render-complete/,'Journey loader must wait for the header character cards');
+assert.match(journeyPageModule,/function waitForJourneyAtmosphere\(\)[\s\S]*?ASTRIX_LOCATION_VISUALS[\s\S]*?image\.decode/,'Journey loader must decode the active destination atmosphere');
+assert.match(journeyPageModule,/await Promise\.all\(\[heroCardsReady,mapReady,waitForJourneyAtmosphere\(\)\]\)/,'Journey must settle all independently rendered surfaces before completion');
+assert.match(journeyPageModule,/AstrixLoader\.ready\(document\)/,'Journey final readiness must include the header and body-level artwork');
+assert.doesNotMatch(journeyPageModule,/AstrixLoader\.ready\(dashboard\)/,'Journey must not limit loader readiness to the dashboard subtree');
+assert.match(journeyMaps,/astrix:journey-location-map-render-complete/,'Journey location map must publish a durable render-complete event');
+assert.match(journeyMaps,/if\(image\.complete\)queueMicrotask\(\(\)=>finish\(image\.naturalWidth>0\?'ready':'unavailable'\)\)/,'Journey map completion must reconcile cached images');
+assert.match(journeyMaps,/try\{if\(status==='ready'&&image\.decode\)await image\.decode\(\);\}catch\{\}/,'Journey map completion must wait for image decoding');
 
 console.log('GLOBAL_PORTAL_SINGLE_OWNER=PASS');
 console.log('GLOBAL_PORTAL_ALL_DATA_PAGES=PASS');
