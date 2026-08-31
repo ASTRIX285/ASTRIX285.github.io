@@ -1,4 +1,5 @@
-import {getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
+import {AUTH_ORIGIN,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 import {readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
 import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-all-destination-progress';
@@ -20,15 +21,21 @@ const verifiedGuardian=document.getElementById('journeyVerifiedGuardian');
 const guardianCrest=document.getElementById('journeyGuardianCrest');
 const guardianCrestEmpty=document.getElementById('journeyGuardianCrestEmpty');
 const totalPlaytime=document.getElementById('journeyTotalPlaytime');
+const recentActivityCard=document.getElementById('journeyRecentActivity');
 const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
 const MILESTONES_PENDING='No verified milestone or achievement source is connected.';
+const RECENT_ACTIVITY_PENDING='Recent activity data is not connected.';
 const BUNGIE_ORIGIN='https://www.bungie.net';
 const numberFormatter=new Intl.NumberFormat('en-GB');
+const activityDateFormatter=new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+const manifestReady=guardianManifest.ready();
 let activeView='overview';
 let timeFilter='all';
 let selectedCharacterId='';
 let selectedClassName='';
 let verifiedProfile=null;
+let journeySession=null;
+let recentActivityRequest=0;
 
 function waitForHeroCards(){
   if(!heroCards||!heroCards.querySelector('.guardian-character-cards__status.is-pending'))return Promise.resolve();
@@ -136,7 +143,67 @@ function bindActiveGuardian(payload){
 function bindGuardianRank(payload){
   if(!journeyLevel)return;
   const rank=finiteNumber(payload?.profile?.profile?.data?.currentGuardianRank);
-  journeyLevel.textContent=rank!==null?`RANK ${rank}`:'—';
+  if(rank===null||rank<1){journeyLevel.textContent='—';return;}
+  journeyLevel.innerHTML='';
+  const img=document.createElement('img');
+  img.className='journey-rank-badge';
+  img.width=26;img.height=26;
+  img.alt=`Guardian Rank ${rank}`;
+  img.src=`../../../img/guardian-ranks/rank-${rank}.png`;
+  img.onerror=()=>{journeyLevel.textContent=`RANK ${rank}`;};
+  journeyLevel.appendChild(img);
+}
+
+function resetRecentActivity(){
+  if(!recentActivityCard)return null;
+  recentActivityCard.querySelector('[data-journey-recent-list]')?.remove();
+  const fallback=recentActivityCard.querySelector('.apx-empty-state');
+  if(fallback){fallback.hidden=false;fallback.textContent=RECENT_ACTIVITY_PENDING;}
+  return fallback;
+}
+
+async function resolveActivityName(activity){
+  const details=activity?.activityDetails||{};
+  const hash=finiteNumber(details.referenceId??details.directorActivityHash);
+  if(hash===null)return 'ACTIVITY NAME UNAVAILABLE';
+  try{
+    await manifestReady;
+    const definition=await guardianManifest.getAsync('DestinyActivityDefinition',hash);
+    return String(definition?.displayProperties?.name||'').trim()||'ACTIVITY NAME UNAVAILABLE';
+  }catch{return 'ACTIVITY NAME UNAVAILABLE';}
+}
+
+async function bindRecentActivity(session){
+  const fallback=resetRecentActivity();
+  if(!recentActivityCard||session?.authenticated!==true||!selectedCharacterId)return;
+  const requestId=++recentActivityRequest;
+  try{
+    await manifestReady;
+    const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
+    url.searchParams.set('characterId',selectedCharacterId);
+    url.searchParams.set('page','0');
+    if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
+    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}});
+    if(!response.ok)return;
+    const payload=await response.json();
+    const rows=payload?.Response?.activities??payload?.response?.activities??payload?.activities;
+    if(!Array.isArray(rows)||!rows.length)return;
+    const activities=await Promise.all(rows.slice(0,5).map(async activity=>({activity,name:await resolveActivityName(activity)})));
+    if(requestId!==recentActivityRequest)return;
+    const list=document.createElement('div');
+    list.dataset.journeyRecentList='';
+    for(const {activity,name} of activities){
+      const row=document.createElement('p');
+      const period=typeof activity?.period==='string'&&activity.period?new Date(activity.period):null;
+      const date=period&&!Number.isNaN(period.getTime())?activityDateFormatter.format(period):'DATE NOT RETURNED';
+      const completed=finiteNumber(activity?.values?.completed?.basic?.value);
+      const state=completed===null?'COMPLETION NOT RETURNED':completed!==0?'COMPLETED':'NOT COMPLETED';
+      row.textContent=`${name} · ${date} · ${state}`;
+      list.appendChild(row);
+    }
+    if(fallback)fallback.hidden=true;
+    recentActivityCard.appendChild(list);
+  }catch{}
 }
 
 function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);bindGuardianRank(payload);}
@@ -170,6 +237,7 @@ function selectJourneyCharacter(characterId,className){
   selectedCharacterId=String(characterId||'');
   selectedClassName=String(className||'').toUpperCase();
   renderJourneyContext();
+  if(journeySession)void bindRecentActivity(journeySession);
 }
 
 function syncSelectedCharacterFromCards(){
@@ -272,6 +340,7 @@ try{
   const session=await getBungieSession();
   const authenticated=session?.authenticated===true&&globalThis.ASTRIX_BUNGIE_SESSION?.authenticated===true;
   if(authenticated){
+    journeySession=session;
     const heroCardsReady=waitForHeroCards();
     const mapReady=showJourney();
     const profile=await readVerifiedProfile(session);
