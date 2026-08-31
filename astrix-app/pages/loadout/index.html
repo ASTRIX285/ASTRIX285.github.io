@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&family=Orbitron:wght@700;800&family=Questrial&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../shared/astrix-portal-loader.css?v=20260831-paradox-map-crimson-gold">
+  <script>window.APX_LOGO='../../../img/logo.png';</script>
+  <script src="../../shared/astrix-portal-loader.js?v=20260831-render-ready"></script>
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260831-global-fixed-stack">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
@@ -34,6 +37,7 @@
       <li><span>Share link</span><span>Unavailable — no saved build</span></li>
     </ul><span class="apx-empty-state">No saved ASTRIX builds exist in this scaffold.</span></section>
   </main>
-  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260830-global-hero-cards"></script>
+  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"></script>
+  <script>document.addEventListener('astrix:hero-cards-render-complete',()=>{AstrixLoader.set(96);AstrixLoader.status('Loadout rendered');AstrixLoader.ready(document.querySelector('.apx-page-shell'));},{once:true});</script>
 </body>
 </html>

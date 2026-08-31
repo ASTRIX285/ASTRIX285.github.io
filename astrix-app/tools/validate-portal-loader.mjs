@@ -8,7 +8,11 @@ const pages={
   'Guardian Journey':'astrix-app/components/guardian-workspace/guardian-workspace.html',
   'Guardian Main':'astrix-app/pages/guardian-workspace-v2/index.html',
   'Build Space':'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
-  'Shooting Range':'astrix-app/pages/guardian-workspace-v2/shooting-range-test/index.html'
+  'Shooting Range':'astrix-app/pages/guardian-workspace-v2/shooting-range-test/index.html',
+  'Journey':'astrix-app/pages/journey/index.html',
+  'Mission Reports':'astrix-app/pages/mission-reports/index.html',
+  'Vault':'astrix-app/pages/vault/index.html',
+  'Loadout':'astrix-app/pages/loadout/index.html'
 };
 const operationsHtml=await read('index.html');
 const [portalCss,portalJs,mainProgress,buildModule,mainHtml,buildHtml,appModule,subclassModule,journeyModule]=await Promise.all([
@@ -37,6 +41,11 @@ assert.match(portalJs,/APX_SKIP_PORTAL===true[\s\S]*?skipped:true/,'Cached Guard
 assert.match(portalJs,/authRequired:authRequired/,'Portal must expose a dedicated Bungie authentication state');
 assert.match(portalJs,/function done\(\)\{if\(pendingAuthUrl\)return/,'Portal must not reveal an unauthenticated application shell');
 assert.match(portalCss,/\.apx-auth-panel/,'Portal must render the full-screen Bungie authentication panel');
+assert.match(portalCss,/astrix-paradox-map-placeholder-4k\.webp/,'Portal must use the ASTRIX PARADOX map artwork');
+assert.match(portalCss,/--apx-loader-crimson:#d3202f/,'Portal must use the approved bright crimson treatment');
+assert.match(portalCss,/--apx-loader-gold:#ffd36a/,'Portal must use the approved bright gold treatment');
+assert.doesNotMatch(portalCss,/--apx-(?:cyan|blue|glow|deep):/,'Portal must not retain the old blue palette');
+assert.match(portalJs,/function ready\(root\)[\s\S]*?document\.fonts[\s\S]*?querySelectorAll\('img'\)[\s\S]*?requestAnimationFrame/,'Portal ready state must wait for fonts, visible images and final paint');
 
 assert.doesNotMatch(mainHtml,/guardian-loading-gate|guardianLoadingProgress|data-lit-edges/,'Main legacy red-diamond gate must be removed');
 assert.doesNotMatch(buildHtml,/build-loading-gate|buildLoadingProgress|data-lit-edges/,'Build legacy hex gate must be removed');

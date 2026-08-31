@@ -6,13 +6,14 @@
      AstrixLoader.set(pct)       // 0..100, updates ring + %
      AstrixLoader.status(text)   // optional status line
      AstrixLoader.done()         // fade out — call when the page is RENDERED
+     AstrixLoader.ready(root)    // wait for fonts/images + final paint, then fade
    Set the logo path once:  window.APX_LOGO = '/img/logo.png';
    ===================================================================== */
 (function(){
   if(window.APX_SKIP_PORTAL===true){
     var noop=function(){};
     document.documentElement.classList.remove('apx-booting');
-    window.AstrixLoader={mount:noop,set:noop,status:noop,done:noop,authRequired:noop,authResolved:noop,skipped:true};
+    window.AstrixLoader={mount:noop,set:noop,status:noop,done:noop,ready:function(){return Promise.resolve();},authRequired:noop,authResolved:noop,skipped:true};
     return;
   }
   document.documentElement.classList.add('apx-booting');
@@ -92,6 +93,24 @@
     setStatus('Bungie authentication required');applyAuth();
   }
   function authResolved(){pendingAuthUrl='';applyAuth();}
+  function settleImage(image){
+    if(image.complete)return image.decode?image.decode().catch(function(){}):Promise.resolve();
+    return new Promise(function(resolve){
+      var finish=function(){resolve();};
+      image.addEventListener('load',finish,{once:true});
+      image.addEventListener('error',finish,{once:true});
+    }).then(function(){return image.decode?image.decode().catch(function(){}):undefined;});
+  }
+  function ready(root){
+    var target=root&&root.querySelectorAll?root:document;
+    var fonts=document.fonts&&document.fonts.ready?document.fonts.ready.catch(function(){}):Promise.resolve();
+    var images=Array.prototype.slice.call(target.querySelectorAll('img')).filter(function(image){
+      return !image.closest('[hidden]')&&getComputedStyle(image).display!=='none';
+    });
+    return Promise.all([fonts,Promise.all(images.map(settleImage))]).then(function(){
+      return new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(function(){done();resolve();});});});
+    });
+  }
   function finish(){
     if(!gate||gate.classList.contains('is-done'))return;
     pendingPct=100;
@@ -115,5 +134,5 @@
     bodyObserver.observe(document.documentElement,{childList:true});
     document.addEventListener('DOMContentLoaded',function(){bodyObserver.disconnect();mount();},{once:true});
   }
-  window.AstrixLoader={mount:mount,set:set,status:setStatus,done:done,authRequired:authRequired,authResolved:authResolved};
+  window.AstrixLoader={mount:mount,set:set,status:setStatus,done:done,ready:ready,authRequired:authRequired,authResolved:authResolved};
 })();

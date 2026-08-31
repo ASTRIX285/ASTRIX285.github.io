@@ -470,13 +470,18 @@ document.addEventListener('astrix:character-selected',event=>{
 });
 
 try{
+  globalThis.AstrixLoader.set(12);globalThis.AstrixLoader.status('Connecting Mission Reports');
   session=await getBungieSession();
   const authenticated=session?.authenticated===true&&globalThis.ASTRIX_BUNGIE_SESSION?.authenticated===true;
   if(!authenticated){
     showSignedOut();
+    globalThis.AstrixLoader.set(96);globalThis.AstrixLoader.status('Mission Reports connection state rendered');
+    await globalThis.AstrixLoader.ready(signedOut);
   }else{
     showWorkspace();
     await loadReport();
+    globalThis.AstrixLoader.set(96);globalThis.AstrixLoader.status('Mission Reports rendered');
+    await globalThis.AstrixLoader.ready(workspace);
   }
 }catch(error){
   console.info('[ASTRIX Mission Reports] live activity history unavailable',error);
@@ -486,4 +491,6 @@ try{
   sourceState.textContent='WORKER ROUTE REQUIRED';
   renderGuardianCharacterCardStatus('BUNGIE CHARACTERS UNAVAILABLE','unavailable');
   renderUnavailable();
+  globalThis.AstrixLoader.set(96);globalThis.AstrixLoader.status('Mission Reports state rendered');
+  await globalThis.AstrixLoader.ready(workspace);
 }
