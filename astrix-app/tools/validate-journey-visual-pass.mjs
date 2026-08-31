@@ -36,7 +36,7 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260831-fixed-ribbons-destination-subtitle"'),'Journey must load the fixed-ribbon destination-subtitle correction');
 assert.ok(html.includes('src="./journey.mjs?v=20260830-all-destination-progress"'),'Journey must load the cache-busted all-destination progress module');
-assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260830-global-hero-cards"'),'Journey must load the shared authenticated hero-card renderer');
+assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"'),'Journey must load the shared authenticated hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -60,7 +60,7 @@ for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
   assert.ok(page.includes('astrix-hero-cards.css?v=20260831-global-fixed-stack'),'Every destination page must load the shared fixed top-stack presentation');
 }
-assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260830-global-hero-cards'))).length,3,'Only Journey, Vault and Loadout must use the shared standalone renderer');
+assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260831-loader-render-complete'))).length,3,'Only Journey, Vault and Loadout must use the shared standalone renderer');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
 assert.doesNotMatch(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:relative!important;[\s\S]*?top:auto!important;/,'Mission Reports must not reattach the Guardian ribbon to its report columns');

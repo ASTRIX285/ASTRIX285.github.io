@@ -234,6 +234,7 @@ function showJourney(){
 }
 
 try{
+  globalThis.AstrixLoader.set(12);globalThis.AstrixLoader.status('Connecting Journey');
   const session=await getBungieSession();
   const authenticated=session?.authenticated===true&&globalThis.ASTRIX_BUNGIE_SESSION?.authenticated===true;
   if(authenticated){
@@ -243,6 +244,8 @@ try{
       verifiedProfile=profile;
       bindProfileCards(profile);
     }
+    globalThis.AstrixLoader.set(96);globalThis.AstrixLoader.status('Journey rendered');
+    await globalThis.AstrixLoader.ready(dashboard);
   }
   else showSignedOut();
 }catch(error){

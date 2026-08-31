@@ -125,13 +125,13 @@ function render(characters,selectedId){
 async function initAstrixHeroCards(){
   const target=host();
   if(!target)return;
-  renderStatus('LOADING BUNGIE CHARACTERS','pending');
-  const session=await getBungieSession();
-  if(session?.authenticated!==true){
-    renderStatus('CONNECT BUNGIE TO LOAD CHARACTERS');
-    return;
-  }
   try{
+    renderStatus('LOADING BUNGIE CHARACTERS','pending');
+    const session=await getBungieSession();
+    if(session?.authenticated!==true){
+      renderStatus('CONNECT BUNGIE TO LOAD CHARACTERS');
+      return;
+    }
     const [payload,definitions]=await Promise.all([
       fetchJson(new URL('/bungie/profile',AUTH_ORIGIN)),
       statDefinitions()
@@ -143,6 +143,8 @@ async function initAstrixHeroCards(){
   }catch(error){
     console.info('[ASTRIX Hero Cards] Bungie character cards unavailable',error);
     renderStatus('BUNGIE CHARACTERS UNAVAILABLE');
+  }finally{
+    document.dispatchEvent(new CustomEvent('astrix:hero-cards-render-complete'));
   }
 }
 
