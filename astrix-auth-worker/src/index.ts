@@ -108,7 +108,10 @@ const PROFILE_COMPONENTS = [
   304, // ItemStats
   305, // ItemSockets
   309, // ItemPlugObjectives
-  310  // ItemReusablePlugs
+  310, // ItemReusablePlugs
+  700, // PresentationNodes
+  800, // Collectibles
+  900  // Records
 ] as const;
 
 function randomToken(): string {
