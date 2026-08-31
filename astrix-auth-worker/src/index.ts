@@ -1009,6 +1009,40 @@ async function activityHistoryRoute(request: Request, env: Env): Promise<Respons
   return withCors(request, env, json(payload as Record<string, unknown>));
 }
 
+async function historicalStatsRoute(request: Request, env: Env): Promise<Response> {
+  const auth = await authenticatedSession(request, env);
+  if (auth instanceof Response) return auth;
+
+  const membership = auth.session.activeDestinyMembership;
+  if (!membership) {
+    return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
+  }
+
+  const bungieUrl = new URL(
+    `${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Account/${encodeURIComponent(membership.membershipId)}/Stats/`
+  );
+  bungieUrl.searchParams.set("groups", "1");
+
+  const response = await fetch(bungieUrl, { headers: bungieHeaders(auth.session, env) });
+  const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
+  if (!response.ok || !payload?.Response) {
+    console.error("bungie_historical_stats_failed", {
+      status: response.status,
+      errorCode: payload?.ErrorCode,
+      errorStatus: payload?.ErrorStatus
+    });
+    return withCors(request, env, json({
+      error: "bungie_historical_stats_failed",
+      status: response.status,
+      errorCode: payload?.ErrorCode ?? null,
+      errorStatus: payload?.ErrorStatus ?? null
+    }, response.status >= 400 && response.status < 500 ? response.status : 502));
+  }
+
+  await putSession(env, auth.sessionId, { ...auth.session, lastUsedAt: Date.now() });
+  return withCors(request, env, json(payload as Record<string, unknown>));
+}
+
 async function pgcrRoute(request: Request, env: Env, instanceId: string): Promise<Response> {
   const auth = await authenticatedSession(request, env);
   if (auth instanceof Response) return auth;
@@ -1070,6 +1104,9 @@ export default {
       }
       if (request.method === "GET" && url.pathname === "/bungie/activity-history") {
         return activityHistoryRoute(request, env);
+      }
+      if (request.method === "GET" && url.pathname === "/bungie/historical-stats") {
+        return historicalStatsRoute(request, env);
       }
       if (request.method === "GET" && url.pathname.startsWith("/bungie/pgcr/")) {
         return pgcrRoute(request, env, decodeURIComponent(url.pathname.slice("/bungie/pgcr/".length)));
