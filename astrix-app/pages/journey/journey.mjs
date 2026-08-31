@@ -22,6 +22,9 @@ const guardianCrest=document.getElementById('journeyGuardianCrest');
 const guardianCrestEmpty=document.getElementById('journeyGuardianCrestEmpty');
 const totalPlaytime=document.getElementById('journeyTotalPlaytime');
 const recentActivityCard=document.getElementById('journeyRecentActivity');
+const titleSealCard=document.getElementById('journeyTitleSeal');
+const titleProgressCard=document.getElementById('journeyTitleProgress');
+const triumphStatsCard=document.getElementById('journeyTriumphStats');
 const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
 const MILESTONES_PENDING='No verified milestone or achievement source is connected.';
 const RECENT_ACTIVITY_PENDING='Recent activity data is not connected.';
@@ -36,6 +39,7 @@ let selectedClassName='';
 let verifiedProfile=null;
 let journeySession=null;
 let recentActivityRequest=0;
+let profileIdentityRequest=0;
 
 function waitForHeroCards(){
   if(!heroCards||!heroCards.querySelector('.guardian-character-cards__status.is-pending'))return Promise.resolve();
@@ -173,6 +177,14 @@ async function resolveActivityName(activity){
   }catch{return 'ACTIVITY NAME UNAVAILABLE';}
 }
 
+async function resolveManifestDefinition(type,hash){
+  if(hash===null||hash===undefined)return null;
+  try{
+    await manifestReady;
+    return await guardianManifest.getAsync(type,hash);
+  }catch{return null;}
+}
+
 async function bindRecentActivity(session){
   const fallback=resetRecentActivity();
   if(!recentActivityCard||session?.authenticated!==true||!selectedCharacterId)return;
@@ -206,7 +218,65 @@ async function bindRecentActivity(session){
   }catch{}
 }
 
-function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);bindGuardianRank(payload);}
+async function bindTitleAndProgression(payload){
+  const requestId=++profileIdentityRequest;
+  if(titleSealCard)titleSealCard.textContent='No verified title or seal source is connected to Journey.';
+  if(titleProgressCard)titleProgressCard.textContent='Title progression data is not connected.';
+  if(triumphStatsCard)triumphStatsCard.textContent='No verified Triumph or progression values are available.';
+
+  const characters=payload?.profile?.characters?.data||{};
+  const character=characters[selectedCharacterId]
+    ||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
+  const characterId=String(character?.characterId||'');
+  const titleHash=finiteNumber(character?.titleRecordHash);
+  if(titleSealCard&&titleHash!==null){
+    const definition=await resolveManifestDefinition('DestinyRecordDefinition',titleHash);
+    if(requestId!==profileIdentityRequest)return;
+    const genderHash=String(character?.genderHash||'');
+    const titleName=String(definition?.titleInfo?.titlesByGenderHash?.[genderHash]
+      ||definition?.titleInfo?.titlesByGender?.[character?.genderType]
+      ||definition?.displayProperties?.name||'').trim();
+    const profileRecord=payload?.profile?.profileRecords?.data?.records?.[String(titleHash)];
+    const characterRecord=payload?.profile?.characterRecords?.data?.[characterId]?.records?.[String(titleHash)];
+    const record=characterRecord||profileRecord;
+    if(titleName){
+      const state=finiteNumber(record?.state);
+      const gilded=state!==null&&(state&128)===128;
+      const completedCount=finiteNumber(record?.completedCount);
+      const gildLabel=gilded?(completedCount!==null?` · GILDED ×${numberFormatter.format(completedCount)}`:' · GILDED'):'';
+      titleSealCard.textContent=`${titleName.toUpperCase()}${gildLabel}`;
+    }
+  }
+
+  const records=payload?.profile?.profileRecords?.data;
+  const lifetimeScore=finiteNumber(records?.lifetimeScore);
+  if(triumphStatsCard&&lifetimeScore!==null){
+    const activeScore=finiteNumber(records?.activeScore);
+    const legacyScore=finiteNumber(records?.legacyScore);
+    const detail=[activeScore!==null?`ACTIVE ${numberFormatter.format(activeScore)}`:'',legacyScore!==null?`LEGACY ${numberFormatter.format(legacyScore)}`:''].filter(Boolean).join(' · ');
+    triumphStatsCard.textContent=`TRIUMPH SCORE ${numberFormatter.format(lifetimeScore)}${detail?` · ${detail}`:''}`;
+  }
+
+  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes;
+  if(titleProgressCard&&nodes&&typeof nodes==='object'){
+    const candidates=Object.entries(nodes).map(([hash,node])=>({
+      hash,
+      progress:finiteNumber(node?.progressValue),
+      completion:finiteNumber(node?.completionValue)
+    })).filter(candidate=>candidate.progress!==null&&candidate.completion!==null&&candidate.completion>0&&candidate.progress<candidate.completion)
+      .sort((left,right)=>(left.completion-left.progress)-(right.completion-right.progress));
+    for(const candidate of candidates){
+      const definition=await resolveManifestDefinition('DestinyPresentationNodeDefinition',candidate.hash);
+      if(requestId!==profileIdentityRequest)return;
+      const name=String(definition?.displayProperties?.name||'').trim();
+      if(!name||!finiteNumber(definition?.completionRecordHash))continue;
+      titleProgressCard.textContent=`${numberFormatter.format(candidate.progress)} / ${numberFormatter.format(candidate.completion)} TO ${name.toUpperCase()}`;
+      break;
+    }
+  }
+}
+
+function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);bindGuardianRank(payload);void bindTitleAndProgression(payload);}
 
 function renderJourneyContext(){
   dashboard.dataset.journeyView=activeView;
