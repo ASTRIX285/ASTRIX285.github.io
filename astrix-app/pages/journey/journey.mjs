@@ -15,6 +15,7 @@ const feedStatus=document.getElementById('journeyFeedStatus');
 const trendEmpty=document.getElementById('journeyTrendEmpty');
 const guardianClass=document.getElementById('journeyGuardianClass');
 const guardianSubclass=document.getElementById('journeyGuardianSubclass');
+const journeyLevel=document.getElementById('journeyLevel');
 const verifiedGuardian=document.getElementById('journeyVerifiedGuardian');
 const guardianCrest=document.getElementById('journeyGuardianCrest');
 const guardianCrestEmpty=document.getElementById('journeyGuardianCrestEmpty');
@@ -71,6 +72,7 @@ function bindFavouriteCharacter(payload){
 }
 
 const VAULT_BUCKET=138197802, POSTMASTER_BUCKET=215593132;
+const SUBCLASS_BUCKET=3284755031;
 function bindVault(payload){
   if(!vaultCard)return;
   const vaultItems=payload?.profile?.profileInventory?.data?.items;
@@ -125,9 +127,19 @@ function bindActiveGuardian(payload){
     guardianCrest.hidden=false;
     guardianCrestEmpty.hidden=true;
   }
+  const equipped=payload?.profile?.characterEquipment?.data?.[String(selected.characterId||'')]?.items||[];
+  const subclassItem=equipped.find(item=>item?.bucketHash===SUBCLASS_BUCKET);
+  const subclassName=subclassItem&&payload?.definitions?.[String(subclassItem.itemHash)]?.displayProperties?.name;
+  if(subclassName)guardianSubclass.textContent=String(subclassName).toUpperCase();
 }
 
-function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);}
+function bindGuardianRank(payload){
+  if(!journeyLevel)return;
+  const rank=finiteNumber(payload?.profile?.profile?.data?.currentGuardianRank);
+  journeyLevel.textContent=rank!==null?`RANK ${rank}`:'—';
+}
+
+function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);bindGuardianRank(payload);}
 
 function renderJourneyContext(){
   dashboard.dataset.journeyView=activeView;
