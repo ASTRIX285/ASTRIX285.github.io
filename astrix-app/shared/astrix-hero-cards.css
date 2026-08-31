@@ -10,6 +10,7 @@ html body header:has(>[data-astrix-hero-cards]){
   height:108px!important;
   min-height:108px!important;
   padding:10px 18px!important;
+  background:#060606!important;
 }
 
 html body header:has(>[data-astrix-hero-cards])>:is(.brand,.apx-destination-brand){grid-column:1!important;grid-row:1!important;justify-self:start!important}
@@ -117,7 +118,25 @@ html body header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-sele
 .guardian-character-card__stat .guardian-stat-icon.is-unavailable{border:1px solid rgba(255,255,255,.14);transform:rotate(45deg)}
 .guardian-character-card__stat b{color:#fff;font:800 11px Inter,sans-serif}
 
-body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]{position:sticky!important;top:120px!important;z-index:80!important}
+body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]{
+  position:sticky!important;
+  top:120px!important;
+  z-index:80!important;
+  isolation:isolate;
+}
+
+body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  top:-12px;
+  bottom:-24px;
+  left:50%;
+  width:100vw;
+  transform:translateX(-50%);
+  background:linear-gradient(180deg,#060606 0%,#060606 70%,rgba(6,6,6,.94) 82%,transparent 100%);
+  pointer-events:none;
+}
 
 @media(min-width:1500px){
   body:has(header>[data-astrix-hero-cards]){zoom:1}

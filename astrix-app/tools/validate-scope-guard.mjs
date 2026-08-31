@@ -5,12 +5,15 @@ import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
   'astrix-app/pages/journey/index.html',
-  'astrix-app/pages/journey/journey.mjs',
   'astrix-app/pages/journey/journey-2560-visual.css',
+  'astrix-app/pages/guardian-workspace-v2/index.html',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
+  'astrix-app/pages/mission-reports/index.html',
+  'astrix-app/pages/vault/index.html',
+  'astrix-app/pages/loadout/index.html',
+  'astrix-app/shared/astrix-hero-cards.css',
   'astrix-app/tools/validate-journey-visual-pass.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
-  'scripts/build_clips.py',
-  'pages/clips.html',
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
