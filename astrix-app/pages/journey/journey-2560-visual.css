@@ -90,6 +90,13 @@ body.journey-page.apx-destination-page .apx-page-shell{
   max-height:none;
   overflow:visible;
 }
+.journey-location-centre .apx-loc-select-head{
+  align-items:flex-start;
+  justify-content:flex-start;
+  flex-direction:column;
+  gap:.4rem;
+  text-align:left;
+}
 .journey-page .journey-location-centre .apx-loc{height:100%;min-height:3.25rem;margin:0}
 .journey-location-centre .apx-loc-detail{width:100%}
 .journey-page .apx-loc-select-head b,
@@ -504,12 +511,9 @@ body.journey-page.apx-destination-page .apx-page-shell{
 
 @media (min-width:981px){
   .journey-page [data-astrix-destination-ribbon]{
-    position:sticky;
-    top:12px;
     width:min(1180px,calc(100% - 64px));
     height:42px;
     min-height:42px;
-    margin:18px auto 0;
     background:transparent;
   }
 
