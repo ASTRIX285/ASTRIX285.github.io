@@ -17,6 +17,7 @@ const allowed=new Set([
   'astrix-app/shared/astrix-destination-ribbon.css',
   'astrix-app/shared/astrix-hero-cards.css',
   'astrix-app/shared/astrix-hero-cards.mjs',
+  'astrix-app/shared/astrix-paradox-background.css',
   'astrix-app/tools/validate-scope-guard.mjs',
   'astrix-app/tools/validate-journey-visual-pass.mjs',
 ]);

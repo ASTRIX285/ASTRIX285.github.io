@@ -12,14 +12,21 @@ const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const ribbonCss=read('astrix-app/shared/astrix-destination-ribbon.css');
 const heroCss=read('astrix-app/shared/astrix-hero-cards.css');
 const heroModule=read('astrix-app/shared/astrix-hero-cards.mjs');
+const mapBackgroundCss=read('astrix-app/shared/astrix-paradox-background.css');
+const characterHtml=read('astrix-app/pages/guardian-workspace-v2/index.html');
+const buildForgeHtml=read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html');
+const missionReportsHtml=read('astrix-app/pages/mission-reports/index.html');
+const vaultHtml=read('astrix-app/pages/vault/index.html');
+const loadoutHtml=read('astrix-app/pages/loadout/index.html');
 const globalHeroPages=[
-  read('astrix-app/pages/journey/index.html'),
-  read('astrix-app/pages/guardian-workspace-v2/index.html'),
-  read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html'),
-  read('astrix-app/pages/mission-reports/index.html'),
-  read('astrix-app/pages/vault/index.html'),
-  read('astrix-app/pages/loadout/index.html')
+  html,
+  characterHtml,
+  buildForgeHtml,
+  missionReportsHtml,
+  vaultHtml,
+  loadoutHtml
 ];
+const mapBackgroundPages=[characterHtml,buildForgeHtml,missionReportsHtml,vaultHtml,loadoutHtml];
 const cosmodromeMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-4k.webp`);
 const cosmodromeDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-6k.webp`);
 const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-4k.webp`);
@@ -60,6 +67,17 @@ assert.match(ribbonCss,/@media\(min-width:981px\)\{[\s\S]*?width:min\(1180px,cal
 assert.match(heroModule,/const CLASS_ORDER=\{hunter:0,warlock:1,titan:2\}/,'Warlock must remain the middle card in the shared roster');
 assert.match(heroModule,/fetchJson\(new URL\('\/bungie\/profile',AUTH_ORIGIN\)\)/,'Shared hero cards must use the existing confidential profile endpoint');
 assert.doesNotMatch(heroModule,/guardian-bungie-profile|guardian-manifest-service|paradox-build|CLIENT_SECRET|API_KEY/,'Shared hero cards must not load or alter locked Character, manifest, Build Forge or secret internals');
+for(const page of mapBackgroundPages){
+  assert.ok(page.includes('astrix-paradox-background.css?v=20260830-global-map-background'),'Each approved page must load the shared ASTRIX PARADOX map background');
+}
+for(const page of [missionReportsHtml,vaultHtml,loadoutHtml]){
+  assert.ok(page.includes('astrix-paradox-map-background'),'Mission Reports, Vault and Loadout must mount the shared map background layer');
+}
+assert.doesNotMatch(html,/astrix-paradox-background|astrix-paradox-map-background/,'Journey must retain its existing destination background');
+assert.match(mapBackgroundCss,/astrix-paradox-map-placeholder-4k\.webp/,'Shared page backgrounds must use the approved 4K ASTRIX PARADOX map');
+assert.match(mapBackgroundCss,/astrix-paradox-map-placeholder-6k\.webp/,'High-density page backgrounds must use the approved 6K ASTRIX PARADOX map');
+assert.equal((mapBackgroundCss.match(/filter:blur\(2px\)/g)??[]).length,2,'Both shared background layers must use only a slight 2px blur');
+assert.doesNotMatch(mapBackgroundCss,/D2_JB|DESTINATION MAP PENDING/,'Shared page backgrounds must not use the old artwork or removed subtitle');
 assert.ok(journey.includes('initLocationSelector({'),'Journey must retain the location-selector wiring');
 assert.ok(journey.includes("mount:document.getElementById('journeyLocationSelector')"),'Journey selector mount must remain unchanged');
 assert.ok(journey.includes("detail:document.getElementById('journeyLocationDetail')"),'Journey detail mount must remain unchanged');
@@ -171,3 +189,5 @@ console.log('GLOBAL_HERO_CARDS=PASS');
 console.log('GLOBAL_HERO_WARLOCK_CENTRED=PASS');
 console.log('GLOBAL_HERO_TOPBAR_ANCHORED=PASS');
 console.log('GLOBAL_DESTINATION_BUTTONS=PASS');
+console.log('GLOBAL_PARADOX_MAP_BACKGROUND=PASS');
+console.log('GLOBAL_PARADOX_MAP_SLIGHT_BLUR=PASS');
