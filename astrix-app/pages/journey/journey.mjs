@@ -10,8 +10,16 @@ const status=document.getElementById('journeyAuthStatus');
 const favouriteCharacter=document.getElementById('journeyFavouriteCharacter');
 const vaultCard=document.getElementById('journeyVault');
 const milestonesCard=document.getElementById('journeyMilestones');
+const heroCards=document.getElementById('guardianCharacterCards');
+const feedStatus=document.getElementById('journeyFeedStatus');
+const trendEmpty=document.getElementById('journeyTrendEmpty');
 const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
+const MILESTONES_PENDING='No verified milestone or achievement source is connected.';
 const numberFormatter=new Intl.NumberFormat('en-GB');
+let activeView='overview';
+let selectedCharacterId='';
+let selectedClassName='';
+let verifiedProfile=null;
 
 const finiteNumber=value=>{
   if(value===null||value===undefined||value==='')return null;
@@ -50,14 +58,65 @@ function bindVault(payload){
 }
 function bindMilestones(payload){
   if(!milestonesCard)return;
+  milestonesCard.textContent=MILESTONES_PENDING;
   const prog=payload?.profile?.characterProgressions?.data;
   if(!prog)return;
   const hashes=new Set();
-  for(const char of Object.values(prog))for(const h of Object.keys(char?.milestones||{}))hashes.add(h);
+  const characters=selectedCharacterId&&prog[selectedCharacterId]?[prog[selectedCharacterId]]:Object.values(prog);
+  for(const char of characters)for(const h of Object.keys(char?.milestones||{}))hashes.add(h);
   if(!hashes.size)return;
   milestonesCard.textContent=`${hashes.size} MILESTONES AVAILABLE THIS RESET`;
 }
 function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);}
+
+function renderJourneyContext(){
+  dashboard.dataset.journeyView=activeView;
+  if(selectedCharacterId)dashboard.dataset.characterId=selectedCharacterId;
+  else delete dashboard.dataset.characterId;
+  document.querySelectorAll('[data-journey-character-panel]').forEach(panel=>{
+    panel.dataset.characterId=selectedCharacterId;
+    panel.dataset.journeyView=activeView;
+  });
+  const guardian=selectedClassName||'GUARDIAN';
+  feedStatus.textContent=`${guardian} · ${activeView.toUpperCase()} · AWAITING VERIFIED ACTIVITY DATA`;
+  document.querySelectorAll('[data-journey-metric]').forEach(card=>{
+    const lens=card.dataset.journeyMetric;
+    card.hidden=activeView==='pve'&&lens==='pvp'||activeView==='pvp'&&lens==='pve';
+  });
+  document.querySelectorAll('[data-journey-trend]').forEach(item=>{
+    const lens=item.dataset.journeyTrend;
+    item.hidden=activeView==='pve'&&lens==='pvp'||activeView==='pvp'&&lens==='pve';
+  });
+  const lensName=activeView==='pve'?'PVE ':activeView==='pvp'?'PVP ':'';
+  trendEmpty.textContent=`${lensName}performance trends require live dated activity evidence.`;
+  if(verifiedProfile)bindProfileCards(verifiedProfile);
+}
+
+function selectJourneyCharacter(characterId,className){
+  selectedCharacterId=String(characterId||'');
+  selectedClassName=String(className||'').toUpperCase();
+  renderJourneyContext();
+}
+
+function syncSelectedCharacterFromCards(){
+  const selected=heroCards?.querySelector('.guardian-character-card.is-selected');
+  if(!selected)return;
+  selectJourneyCharacter(selected.dataset.characterId,selected.dataset.class);
+}
+
+document.querySelectorAll('[data-journey-view]').forEach(button=>button.addEventListener('click',()=>{
+  activeView=button.dataset.journeyView;
+  document.querySelectorAll('[data-journey-view]').forEach(item=>item.setAttribute('aria-selected',String(item===button)));
+  renderJourneyContext();
+}));
+
+document.addEventListener('astrix:character-selected',event=>{
+  selectJourneyCharacter(event.detail?.characterId,event.detail?.className||event.detail?.characterClass);
+});
+
+if(heroCards){
+  new MutationObserver(syncSelectedCharacterFromCards).observe(heroCards,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+}
 
 async function readVerifiedProfile(session){
   const cached=await readCachedBungieProfile(session);
@@ -95,7 +154,8 @@ function showJourney(){
   resolving.hidden=true;
   signedOut.hidden=true;
   dashboard.hidden=false;
-  status.textContent='AUTHENTICATED SCAFFOLD';
+  status.textContent='AUTHENTICATED JOURNEY';
+  renderJourneyContext();
   if(!locationSelectorReady){
     locationSelectorReady=true;
     // Reactive art-backdrop atmosphere + destination selector. Honest empty checklist
@@ -114,7 +174,10 @@ try{
   if(authenticated){
     showJourney();
     const profile=await readVerifiedProfile(session);
-    if(profile)bindProfileCards(profile);
+    if(profile){
+      verifiedProfile=profile;
+      bindProfileCards(profile);
+    }
   }
   else showSignedOut();
 }catch(error){

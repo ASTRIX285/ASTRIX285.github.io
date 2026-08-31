@@ -2,6 +2,86 @@
    Page-owned presentation only. Shared Journey data, selector and route mechanics
    remain untouched so every scaffold region can receive verified data later. */
 
+.journey-page{
+  --journey-royal-blue:#4169e1;
+  --mission-purple:var(--journey-royal-blue);
+  --mission-purple-soft:rgba(65,105,225,.18);
+  --mission-line:color-mix(in srgb,var(--loc) 26%,transparent);
+  --mission-line-soft:rgba(255,255,255,.07);
+}
+
+.journey-tabs,
+.journey-metrics,
+.journey-overview,
+.journey-dashboard-layout,
+.journey-summary-panels{margin-top:18px}
+
+.journey-tabs{border-color:color-mix(in srgb,var(--loc) 30%,transparent)}
+.journey-tabs button[aria-selected="true"]{
+  border-bottom-color:var(--loc);
+  color:var(--loc);
+  background:color-mix(in srgb,var(--loc) 8%,transparent);
+}
+.journey-tabs .mission-feed-state{color:color-mix(in srgb,var(--loc) 72%,#aaa294)}
+
+.journey-metrics{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.journey-metrics .mission-metric-card{border-color:color-mix(in srgb,var(--loc) 24%,transparent)}
+.journey-metrics .mission-metric-icon{
+  border-color:rgba(65,105,225,.42);
+  color:#91a9ff;
+  background:rgba(65,105,225,.12);
+}
+.journey-metrics .mission-donut-value{stroke:var(--journey-royal-blue)!important}
+
+.journey-overview{border-color:color-mix(in srgb,var(--loc) 26%,transparent)}
+.journey-overview .mission-timeline article i{
+  border-color:color-mix(in srgb,var(--loc) 58%,var(--journey-royal-blue));
+  box-shadow:0 0 18px color-mix(in srgb,var(--loc) 12%,transparent);
+}
+
+.journey-dashboard-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(300px,360px);
+  gap:14px;
+  align-items:start;
+}
+.journey-location-centre{min-width:0;margin-top:0}
+.journey-location-centre .apx-section-heading{border-bottom-color:color-mix(in srgb,var(--loc) 26%,transparent)}
+.journey-location-centre .apx-status-chip{border-color:color-mix(in srgb,var(--loc) 34%,transparent);color:var(--loc)}
+.journey-analysis-rail{width:100%}
+.journey-analysis-rail .mission-panel{border-color:color-mix(in srgb,var(--loc) 26%,transparent)}
+.journey-analysis-rail .mission-chart-line--pve{stroke:var(--loc)}
+.journey-analysis-rail .mission-chart-line--pvp{stroke:var(--journey-royal-blue)}
+.journey-analysis-rail .mission-chart-legend i{background:var(--loc)}
+.journey-analysis-rail .mission-chart-legend i.is-pvp{background:var(--journey-royal-blue)}
+.journey-analysis-rail .mission-confidence-donut .mission-donut-value{stroke:var(--journey-royal-blue)!important}
+
+.journey-summary-panels{padding-top:4px}
+.journey-summary-panels>.apx-section-heading{margin-bottom:14px}
+.journey-summary-panels>.apx-section-heading .apx-status-chip{border-color:rgba(65,105,225,.34);color:#91a9ff}
+.journey-summary-panels .apx-scaffold-card{min-height:118px}
+.journey-summary-panels .apx-empty-state{margin-top:14px}
+
+@media(max-width:1100px){
+  .journey-dashboard-layout{grid-template-columns:1fr}
+  .journey-analysis-rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:840px){
+  .journey-analysis-rail{grid-template-columns:1fr}
+  .journey-overview .mission-timeline-layout{grid-template-columns:1fr}
+  .journey-overview .mission-recent-progression{border-top:1px solid var(--mission-line-soft);border-left:0}
+}
+
+@media(max-width:640px){
+  .journey-tabs{overflow-x:auto}
+  .journey-tabs button{min-height:43px;flex:0 0 auto;padding:0 15px}
+  .journey-tabs .mission-feed-state{display:none}
+  .journey-metrics{grid-template-columns:1fr}
+  .journey-overview .mission-timeline{grid-template-columns:repeat(6,minmax(96px,1fr))}
+  .journey-summary-panels .apx-scaffold-card{min-height:0}
+}
+
 .journey-location-map{
   margin:22px 0 0;
   overflow:hidden;
@@ -554,6 +634,17 @@
     margin-top:20px;
     padding:15px;
     font-size:clamp(15px,.65vw,17px);
+  }
+
+  .journey-page .journey-summary-panels .apx-scaffold-card{
+    min-height:122px;
+    padding:20px;
+  }
+
+  .journey-page .journey-summary-panels .apx-empty-state{
+    margin-top:12px;
+    padding:11px;
+    font-size:14px;
   }
 
 }
