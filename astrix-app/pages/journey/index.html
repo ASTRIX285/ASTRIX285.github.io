@@ -62,12 +62,12 @@
           <section class="mission-guardian-stats" aria-label="Guardian Journey statistics">
             <dl>
               <div><dt>Total playtime</dt><dd id="journeyTotalPlaytime">—</dd></div>
-              <div><dt>Account age</dt><dd>—</dd></div>
-              <div><dt>Journey level</dt><dd>—</dd></div>
+              <div><dt>Account age</dt><dd id="journeyAccountAge">—</dd></div>
+              <div><dt>Journey level</dt><dd id="journeyLevel">—</dd></div>
             </dl>
             <div class="mission-xp" aria-label="Journey XP unavailable">
-              <div class="mission-xp-track"><span></span></div>
-              <span>XP source unavailable</span>
+              <div class="mission-xp-track"><span id="journeyXpFill"></span></div>
+              <span id="journeyXpLabel">XP source unavailable</span>
             </div>
           </section>
 
@@ -89,9 +89,9 @@
 
           <section class="journey-column-summaries journey-left-summaries" aria-labelledby="journeyIdentitySummariesTitle">
             <h2 id="journeyIdentitySummariesTitle">IDENTITY &amp; PROGRESSION</h2>
-            <article class="apx-scaffold-card"><h2>Equipped title and seal</h2><span class="apx-empty-state">No verified title or seal source is connected to Journey.</span></article>
-            <article class="apx-scaffold-card"><h2>Progress to next titles</h2><span class="apx-empty-state">Title progression data is not connected.</span></article>
-            <article class="apx-scaffold-card"><h2>Triumph and progression statistics</h2><span class="apx-empty-state">No verified Triumph or progression values are available.</span></article>
+            <article class="apx-scaffold-card"><h2>Equipped title and seal</h2><span class="apx-empty-state" id="journeyTitleSeal">No verified title or seal source is connected to Journey.</span></article>
+            <article class="apx-scaffold-card"><h2>Progress to next titles</h2><span class="apx-empty-state" id="journeyTitleProgress">Title progression data is not connected.</span></article>
+            <article class="apx-scaffold-card"><h2>Triumph and progression statistics</h2><span class="apx-empty-state" id="journeyTriumphStats">No verified Triumph or progression values are available.</span></article>
             <article class="apx-scaffold-card"><h2>Favourite character</h2><span class="apx-empty-state" id="journeyFavouriteCharacter">No usage history has been recorded for this scaffold.</span></article>
             <article class="apx-scaffold-card"><h2>Milestones and achievements</h2><span class="apx-empty-state" id="journeyMilestones">No verified milestone or achievement source is connected.</span></article>
           </section>
@@ -178,11 +178,11 @@
 
           <section class="journey-column-summaries journey-right-summaries" aria-labelledby="journeyEvidenceSummariesTitle">
             <h2 id="journeyEvidenceSummariesTitle">EVIDENCE &amp; TOOLS</h2>
-            <article class="apx-scaffold-card"><h2>Most used since connecting ASTRIX PARADOX</h2><span class="apx-empty-state">No ASTRIX PARADOX loadout history has been recorded.</span></article>
+            <article class="apx-scaffold-card"><h2>Most used since connecting ASTRIX PARADOX</h2><span class="apx-empty-state" id="journeyMostUsed">No ASTRIX PARADOX loadout history has been recorded.</span></article>
             <article class="apx-scaffold-card" id="journeyRecentActivity"><h2>Recent activity</h2><span class="apx-empty-state">Recent activity data is not connected.</span></article>
             <article class="apx-scaffold-card" id="journeyBuildSummary"><h2>Build Forge summary</h2><span class="apx-empty-state">No Build Forge summary is available in Journey yet.</span></article>
             <article class="apx-scaffold-card"><h2>Vault capacity and Postmaster warning</h2><span class="apx-empty-state" id="journeyVault">Capacity and Postmaster warning states require verified inventory data.</span></article>
-            <article class="apx-scaffold-card"><h2>Mission Report highlights</h2><span class="apx-empty-state">No Mission Report evidence is connected.</span></article>
+            <article class="apx-scaffold-card"><h2>Mission Report highlights</h2><span class="apx-empty-state" id="journeyMissionHighlights">No Mission Report evidence is connected.</span></article>
           </section>
         </aside>
       </div>
