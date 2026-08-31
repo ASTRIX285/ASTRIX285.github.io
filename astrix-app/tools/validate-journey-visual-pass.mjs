@@ -157,7 +157,17 @@ assert.match(css,/\.journey-page \.apx-atmo-photo\{[\s\S]*?filter:blur\(5px\) br
 assert.match(css,/body\.journey-page\.apx-destination-page \.apx-page-shell\{[\s\S]*?width:min\(1920px,calc\(100% - 64px\)\);[\s\S]*?max-width:1920px;/,'Journey content must use a controlled large-screen width');
 assert.match(css,/\.journey-page \.apx-card-grid\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\);/,'Journey future data cards must form complete large-screen rows');
 assert.match(css,/\.journey-page \.apx-loc-layout\{[\s\S]*?grid-template-columns:minmax\(360px,420px\) minmax\(0,1fr\);/,'Journey location focus must use balanced large-screen columns');
-assert.match(css,/\.journey-page \.apx-empty-state\{[\s\S]*?font-size:clamp\(15px,\.65vw,17px\);/,'Journey empty states must remain legible at 2560px');
+const fixedReadableFontSize=rule=>{
+  const match=rule.match(/font-size:\s*(\d*\.?\d+)(rem|px)\s*(?:;|})/i);
+  return Boolean(match)&&(match[2].toLowerCase()==='rem'||Number(match[1])>=15);
+};
+const journeyRootFontRule=css.match(/html\{[^}]*\}/)?.[0]??'';
+const journeyBaseFontRule=css.match(/\.journey-page\{[^}]*\}/)?.[0]??'';
+const journeyEmptyStateFontRule=css.match(/\.journey-page \.apx-empty-state\{[^}]*\}/)?.[0]??'';
+assert.ok(fixedReadableFontSize(journeyRootFontRule),'Journey root font must use a fixed rem value or at least 15px');
+assert.ok(fixedReadableFontSize(journeyBaseFontRule),'Journey base font must use a fixed rem value or at least 15px');
+assert.ok(fixedReadableFontSize(journeyEmptyStateFontRule),'Journey empty states must use a fixed readable rem or pixel size');
+assert.doesNotMatch(`${journeyRootFontRule}\n${journeyBaseFontRule}`,/\d*\.?\d+vw\b/i,'Journey root and base font rules must not use viewport-width sizing');
 assert.match(css,/@media \(min-width:981px\)\{[\s\S]*?\.journey-page \[data-astrix-destination-ribbon\]\{[\s\S]*?width:min\(1180px,calc\(100% - 64px\)\);[\s\S]*?margin:18px auto 0;/,'Journey ribbon must be compact, centred and separated from the main header');
 assert.match(css,/\.journey-page \.apx-destination-ribbon a:hover,[\s\S]*?border-color:rgba\(201,168,76,\.68\);[\s\S]*?box-shadow:/,'Journey ribbon must provide the approved block hover state');
 assert.match(css,/\.journey-map-stage\{[\s\S]*?position:absolute;[\s\S]*?transform-origin:center;/,'Map image and markers must share one anchored stage');
