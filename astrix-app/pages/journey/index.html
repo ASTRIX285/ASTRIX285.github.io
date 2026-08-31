@@ -41,72 +41,128 @@
     <section id="journeyDashboard" hidden>
       <div class="apx-page-heading"><div><p class="apx-eyebrow">GUARDIAN JOURNEY · SUMMARY HUB</p><h1>Journey</h1><p>Your top-line Guardian record. Every value remains pending until its verified source is connected.</p></div><span class="apx-status-chip">VERIFIED DATA ONLY</span></div>
 
-      <div class="mission-tabs journey-tabs" role="tablist" aria-label="Journey views">
-        <button type="button" role="tab" aria-selected="true" data-journey-view="overview">OVERVIEW</button>
-        <button type="button" role="tab" aria-selected="false" data-journey-view="pve">PVE</button>
-        <button type="button" role="tab" aria-selected="false" data-journey-view="pvp">PVP</button>
-        <span class="mission-feed-state" id="journeyFeedStatus" aria-live="polite">AWAITING VERIFIED ACTIVITY DATA</span>
-      </div>
-
-      <section class="mission-metrics journey-metrics" data-journey-character-panel aria-label="Guardian Journey summary">
-        <article class="mission-metric-card" data-journey-metric="all">
-          <span class="mission-metric-icon" aria-hidden="true">◫</span>
-          <div><small>TOTAL ACTIVITIES</small><strong id="journeyMetricActivities">—</strong><span>Awaiting live history</span></div>
-          <i class="mission-verified-tick" title="Verified live value" hidden>✓</i>
-        </article>
-        <article class="mission-metric-card mission-metric-card--donut" data-journey-metric="all">
-          <svg class="mission-mini-donut" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="17"/><circle class="mission-donut-value" cx="22" cy="22" r="17" pathLength="100"/></svg>
-          <div><small>COMPLETION RATE</small><strong id="journeyMetricCompletion">—</strong><span>Awaiting completion evidence</span></div>
-          <i class="mission-verified-tick" title="Verified live value" hidden>✓</i>
-        </article>
-        <article class="mission-metric-card" data-journey-metric="pve">
-          <span class="mission-metric-icon" aria-hidden="true">⬡</span>
-          <div><small>PVE CLEARS</small><strong id="journeyMetricPve">—</strong><span>Awaiting PVE evidence</span></div>
-          <i class="mission-verified-tick" title="Verified live value" hidden>✓</i>
-        </article>
-        <article class="mission-metric-card" data-journey-metric="pvp">
-          <span class="mission-metric-icon" aria-hidden="true">◇</span>
-          <div><small>PVP K/D</small><strong id="journeyMetricPvp">—</strong><span>Awaiting PVP evidence</span></div>
-          <i class="mission-verified-tick" title="Verified live value" hidden>✓</i>
-        </article>
-      </section>
-
-      <section class="mission-panel mission-journey-overview journey-overview" data-journey-character-panel aria-labelledby="journeyOverviewTitle">
-        <header class="mission-panel-heading">
-          <div><p class="mission-eyebrow">MILESTONE RECORD</p><h2 id="journeyOverviewTitle">JOURNEY OVERVIEW</h2></div>
-          <span>VERIFIED PROGRESSION ONLY</span>
-        </header>
-        <div class="mission-timeline-layout">
-          <div class="mission-timeline" id="journeyMilestoneTimeline">
-            <article data-milestone="light-reforged"><i></i><h3>Light Reforged</h3><p>Awaiting verified milestone</p><time>—</time></article>
-            <article data-milestone="vanguard"><i></i><h3>Vanguard</h3><p>Awaiting verified milestone</p><time>—</time></article>
-            <article data-milestone="dungeon-conqueror"><i></i><h3>Dungeon Conqueror</h3><p>Awaiting verified milestone</p><time>—</time></article>
-            <article data-milestone="flawless-warrior"><i></i><h3>Flawless Warrior</h3><p>Awaiting verified milestone</p><time>—</time></article>
-            <article data-milestone="raid-master"><i></i><h3>Raid Master</h3><p>Awaiting verified milestone</p><time>—</time></article>
-            <article data-milestone="journey-level"><i></i><h3>Journey Level</h3><p>Awaiting verified milestone</p><time>—</time></article>
-          </div>
-          <aside class="mission-recent-progression">
-            <h3>RECENT PROGRESSION</h3>
-            <div class="mission-inline-empty" id="journeyRecentProgression">No verified progression milestones are available.</div>
-          </aside>
-        </div>
-        <div class="mission-pagination" aria-label="Journey overview pages"><span class="is-active"></span><span></span><span></span></div>
-      </section>
-
-      <div class="journey-dashboard-layout">
-        <section class="apx-section journey-location-centre" data-journey-character-panel aria-labelledby="journeyFocusHeading">
-          <div class="apx-section-heading"><h2 id="journeyFocusHeading">Destination focus</h2><span class="apx-status-chip">PERMANENT CENTRE</span></div>
-          <div class="apx-loc-layout">
-            <div class="apx-loc-panel">
-              <div class="apx-loc-select-head"><b>Destinations</b><span>Select to focus</span></div>
-              <div id="journeyLocationSelector"></div>
+      <div class="journey-console">
+        <aside class="mission-left-rail journey-left-rail" data-journey-character-panel aria-label="Guardian Journey navigation and identity">
+          <section class="mission-identity-card">
+            <div class="mission-crest" aria-hidden="true">
+              <img id="journeyGuardianCrest" alt="" hidden>
+              <span id="journeyGuardianCrestEmpty">◇</span>
             </div>
-            <div class="apx-loc-detail" id="journeyLocationDetail"></div>
-          </div>
+            <div class="mission-identity-copy">
+              <p class="mission-kicker">ACTIVE GUARDIAN</p>
+              <h1 id="journeyGuardianClass">Guardian unavailable</h1>
+              <p id="journeyGuardianSubclass">Subclass awaiting verified data</p>
+            </div>
+            <span class="mission-verified-badge" id="journeyVerifiedGuardian" hidden>✓ VERIFIED GUARDIAN</span>
+          </section>
+
+          <section class="mission-guardian-stats" aria-label="Guardian Journey statistics">
+            <dl>
+              <div><dt>Total playtime</dt><dd id="journeyTotalPlaytime">—</dd></div>
+              <div><dt>Account age</dt><dd>—</dd></div>
+              <div><dt>Journey level</dt><dd>—</dd></div>
+            </dl>
+            <div class="mission-xp" aria-label="Journey XP unavailable">
+              <div class="mission-xp-track"><span></span></div>
+              <span>XP source unavailable</span>
+            </div>
+          </section>
+
+          <nav class="mission-section-nav journey-section-nav" aria-label="Journey sections">
+            <a class="is-active" href="#journeyTopSummary" aria-current="page"><span aria-hidden="true">⌂</span>OVERVIEW</a>
+            <a href="#journeyRecentActivity"><span aria-hidden="true">◫</span>ACTIVITY HISTORY</a>
+            <a href="#journeyTopSummary" data-journey-view-link="pve"><span aria-hidden="true">⬡</span>PVE MASTERY</a>
+            <a href="#journeyCurrentForm" data-journey-view-link="pvp"><span aria-hidden="true">◇</span>PVP PERFORMANCE</a>
+            <a href="#journeyBuildSummary"><span aria-hidden="true">△</span>BUILD EVOLUTION</a>
+            <a href="#journeyOverview"><span aria-hidden="true">✦</span>TRIUMPHS &amp; MILESTONES</a>
+          </nav>
+
+          <fieldset class="mission-time-filter journey-time-filter">
+            <legend>TIME FILTER</legend>
+            <label><input type="radio" name="journeyTime" value="all" checked><span>All Time</span></label>
+            <label title="Season boundaries are not returned by the current activity feed"><input type="radio" name="journeyTime" value="season" disabled><span>Season</span></label>
+            <label><input type="radio" name="journeyTime" value="30-days"><span>Last 30 Days</span></label>
+          </fieldset>
+
+          <section class="journey-column-summaries journey-left-summaries" aria-labelledby="journeyIdentitySummariesTitle">
+            <h2 id="journeyIdentitySummariesTitle">IDENTITY &amp; PROGRESSION</h2>
+            <article class="apx-scaffold-card"><h2>Equipped title and seal</h2><span class="apx-empty-state">No verified title or seal source is connected to Journey.</span></article>
+            <article class="apx-scaffold-card"><h2>Progress to next titles</h2><span class="apx-empty-state">Title progression data is not connected.</span></article>
+            <article class="apx-scaffold-card"><h2>Triumph and progression statistics</h2><span class="apx-empty-state">No verified Triumph or progression values are available.</span></article>
+            <article class="apx-scaffold-card"><h2>Favourite character</h2><span class="apx-empty-state" id="journeyFavouriteCharacter">No usage history has been recorded for this scaffold.</span></article>
+            <article class="apx-scaffold-card"><h2>Milestones and achievements</h2><span class="apx-empty-state" id="journeyMilestones">No verified milestone or achievement source is connected.</span></article>
+          </section>
+        </aside>
+
+        <section class="mission-center journey-centre" aria-label="Journey destination and progression summary">
+          <section class="mission-panel journey-top-summary" id="journeyTopSummary" data-journey-character-panel aria-label="Journey activity summary">
+            <div class="mission-tabs journey-tabs" role="tablist" aria-label="Journey views">
+              <button type="button" role="tab" aria-selected="true" data-journey-view="overview">OVERVIEW</button>
+              <button type="button" role="tab" aria-selected="false" data-journey-view="pve">PVE</button>
+              <button type="button" role="tab" aria-selected="false" data-journey-view="pvp">PVP</button>
+              <span class="mission-feed-state" id="journeyFeedStatus" aria-live="polite">AWAITING VERIFIED ACTIVITY DATA</span>
+            </div>
+
+            <section class="mission-metrics journey-metrics" aria-label="Guardian Journey summary">
+              <article class="mission-metric-card" data-journey-metric="all">
+                <span class="mission-metric-icon" aria-hidden="true">◫</span>
+                <div><small>TOTAL ACTIVITIES</small><strong id="journeyMetricActivities">—</strong><span>Awaiting live history</span></div>
+                <i class="mission-verified-tick" title="Verified live value" hidden>✓</i>
+              </article>
+              <article class="mission-metric-card mission-metric-card--donut" data-journey-metric="all">
+                <svg class="mission-mini-donut" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="17"/><circle class="mission-donut-value" cx="22" cy="22" r="17" pathLength="100"/></svg>
+                <div><small>COMPLETION RATE</small><strong id="journeyMetricCompletion">—</strong><span>Awaiting completion evidence</span></div>
+                <i class="mission-verified-tick" title="Verified live value" hidden>✓</i>
+              </article>
+              <article class="mission-metric-card" data-journey-metric="pve">
+                <span class="mission-metric-icon" aria-hidden="true">⬡</span>
+                <div><small>PVE CLEARS</small><strong id="journeyMetricPve">—</strong><span>Awaiting PVE evidence</span></div>
+                <i class="mission-verified-tick" title="Verified live value" hidden>✓</i>
+              </article>
+              <article class="mission-metric-card" data-journey-metric="pvp">
+                <span class="mission-metric-icon" aria-hidden="true">◇</span>
+                <div><small>PVP K/D</small><strong id="journeyMetricPvp">—</strong><span>Awaiting PVP evidence</span></div>
+                <i class="mission-verified-tick" title="Verified live value" hidden>✓</i>
+              </article>
+            </section>
+          </section>
+
+          <section class="mission-panel mission-journey-overview journey-overview" id="journeyOverview" data-journey-character-panel aria-labelledby="journeyOverviewTitle">
+            <header class="mission-panel-heading">
+              <div><p class="mission-eyebrow">MILESTONE RECORD</p><h2 id="journeyOverviewTitle">JOURNEY OVERVIEW</h2></div>
+              <span>VERIFIED PROGRESSION ONLY</span>
+            </header>
+            <div class="mission-timeline-layout">
+              <div class="mission-timeline" id="journeyMilestoneTimeline">
+                <article data-milestone="light-reforged"><i></i><h3>Light Reforged</h3><p>Awaiting verified milestone</p><time>—</time></article>
+                <article data-milestone="vanguard"><i></i><h3>Vanguard</h3><p>Awaiting verified milestone</p><time>—</time></article>
+                <article data-milestone="dungeon-conqueror"><i></i><h3>Dungeon Conqueror</h3><p>Awaiting verified milestone</p><time>—</time></article>
+                <article data-milestone="flawless-warrior"><i></i><h3>Flawless Warrior</h3><p>Awaiting verified milestone</p><time>—</time></article>
+                <article data-milestone="raid-master"><i></i><h3>Raid Master</h3><p>Awaiting verified milestone</p><time>—</time></article>
+                <article data-milestone="journey-level"><i></i><h3>Journey Level</h3><p>Awaiting verified milestone</p><time>—</time></article>
+              </div>
+              <aside class="mission-recent-progression">
+                <h3>RECENT PROGRESSION</h3>
+                <div class="mission-inline-empty" id="journeyRecentProgression">No verified progression milestones are available.</div>
+              </aside>
+            </div>
+            <div class="mission-pagination" aria-label="Journey overview pages"><span class="is-active"></span><span></span><span></span></div>
+          </section>
+
+          <section class="apx-section journey-location-centre" id="journeyDestinationFocus" data-journey-character-panel aria-labelledby="journeyFocusHeading">
+            <div class="apx-section-heading"><h2 id="journeyFocusHeading">Destination focus</h2><span class="apx-status-chip">PERMANENT CENTRE</span></div>
+            <div class="apx-loc-layout">
+              <div class="apx-loc-panel">
+                <div class="apx-loc-select-head"><b>Destinations</b><span>Select to focus</span></div>
+                <div id="journeyLocationSelector"></div>
+              </div>
+              <div class="apx-loc-detail" id="journeyLocationDetail"></div>
+            </div>
+          </section>
         </section>
 
-        <aside class="mission-right-rail journey-analysis-rail" data-journey-character-panel aria-label="Journey analysis summary">
-          <section class="mission-panel mission-current-form" aria-labelledby="journeyCurrentFormTitle">
+        <aside class="mission-right-rail journey-right-rail" data-journey-character-panel aria-label="Journey analysis and evidence summaries">
+          <section class="mission-panel mission-current-form" id="journeyCurrentForm" aria-labelledby="journeyCurrentFormTitle">
             <header class="mission-panel-heading">
               <div><p class="mission-eyebrow">LAST 30 DAYS</p><h2 id="journeyCurrentFormTitle">CURRENT FORM</h2></div>
               <select aria-label="Current form range" disabled><option>Last 30 Days</option></select>
@@ -138,24 +194,17 @@
             </div>
             <div class="mission-inline-empty">Confidence is calculated only from returned live activity fields.</div>
           </section>
+
+          <section class="journey-column-summaries journey-right-summaries" aria-labelledby="journeyEvidenceSummariesTitle">
+            <h2 id="journeyEvidenceSummariesTitle">EVIDENCE &amp; TOOLS</h2>
+            <article class="apx-scaffold-card"><h2>Most used since connecting ASTRIX PARADOX</h2><span class="apx-empty-state">No ASTRIX PARADOX loadout history has been recorded.</span></article>
+            <article class="apx-scaffold-card" id="journeyRecentActivity"><h2>Recent activity</h2><span class="apx-empty-state">Recent activity data is not connected.</span></article>
+            <article class="apx-scaffold-card" id="journeyBuildSummary"><h2>Build Forge summary</h2><span class="apx-empty-state">No Build Forge summary is available in Journey yet.</span></article>
+            <article class="apx-scaffold-card"><h2>Vault capacity and Postmaster warning</h2><span class="apx-empty-state" id="journeyVault">Capacity and Postmaster warning states require verified inventory data.</span></article>
+            <article class="apx-scaffold-card"><h2>Mission Report highlights</h2><span class="apx-empty-state">No Mission Report evidence is connected.</span></article>
+          </section>
         </aside>
       </div>
-
-      <section class="journey-summary-panels" data-journey-character-panel aria-labelledby="journeySummaryPanelsTitle">
-        <div class="apx-section-heading"><h2 id="journeySummaryPanelsTitle">Guardian summaries</h2><span class="apx-status-chip">TOP-LINE ONLY</span></div>
-        <div class="apx-card-grid">
-        <article class="apx-scaffold-card"><h2>Equipped title and seal</h2><span class="apx-empty-state">No verified title or seal source is connected to Journey.</span></article>
-        <article class="apx-scaffold-card"><h2>Progress to next titles</h2><span class="apx-empty-state">Title progression data is not connected.</span></article>
-        <article class="apx-scaffold-card"><h2>Triumph and progression statistics</h2><span class="apx-empty-state">No verified Triumph or progression values are available.</span></article>
-        <article class="apx-scaffold-card"><h2>Favourite character</h2><span class="apx-empty-state" id="journeyFavouriteCharacter">No usage history has been recorded for this scaffold.</span></article>
-        <article class="apx-scaffold-card"><h2>Most used since connecting ASTRIX PARADOX</h2><span class="apx-empty-state">No ASTRIX PARADOX loadout history has been recorded.</span></article>
-        <article class="apx-scaffold-card"><h2>Recent activity</h2><span class="apx-empty-state">Recent activity data is not connected.</span></article>
-        <article class="apx-scaffold-card"><h2>Milestones and achievements</h2><span class="apx-empty-state" id="journeyMilestones">No verified milestone or achievement source is connected.</span></article>
-        <article class="apx-scaffold-card"><h2>Build Forge summary</h2><span class="apx-empty-state">No Build Forge summary is available in Journey yet.</span></article>
-        <article class="apx-scaffold-card"><h2>Vault capacity and Postmaster warning</h2><span class="apx-empty-state" id="journeyVault">Capacity and Postmaster warning states require verified inventory data.</span></article>
-        <article class="apx-scaffold-card"><h2>Mission Report highlights</h2><span class="apx-empty-state">No Mission Report evidence is connected.</span></article>
-        </div>
-      </section>
     </section>
   </main>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260830-global-hero-cards"></script>

@@ -1,6 +1,7 @@
-/* Journey large-screen visual correction.
-   Page-owned presentation only. Shared Journey data, selector and route mechanics
-   remain untouched so every scaffold region can receive verified data later. */
+/* Journey responsive three-column presentation.
+   The location selector and map mechanics remain page-owned and unchanged. */
+
+html{font-size:16px}
 
 .journey-page{
   --journey-royal-blue:#4169e1;
@@ -8,29 +9,61 @@
   --mission-purple-soft:rgba(65,105,225,.18);
   --mission-line:color-mix(in srgb,var(--loc) 26%,transparent);
   --mission-line-soft:rgba(255,255,255,.07);
+  font-size:1rem;
 }
 
-.journey-tabs,
-.journey-metrics,
-.journey-overview,
-.journey-dashboard-layout,
-.journey-summary-panels{margin-top:18px}
+body.journey-page.apx-destination-page .apx-page-shell{
+  width:min(1920px,100%);
+  max-width:1920px;
+  padding:2rem .625rem 4.5rem;
+}
 
+.journey-page .apx-page-heading{margin-inline:1rem}
+.journey-page .apx-page-heading h1{font-size:3rem}
+.journey-page .apx-page-heading p{font-size:1.125rem}
+.journey-page .apx-destination-brand strong{font-size:.875rem}
+.journey-page .apx-destination-brand small{font-size:.75rem}
+.journey-page .apx-destination-header-copy strong{font-size:.75rem}
+.journey-page .apx-destination-header-copy small{font-size:.8125rem}
+.journey-page .apx-destination-header-state{font-size:.75rem}
+.journey-page .apx-destination-ribbon a{font-size:.75rem}
+.journey-page .apx-eyebrow,
+.journey-page .mission-eyebrow,
+.journey-page .mission-kicker{font-size:.75rem}
+.journey-page .apx-status-chip{font-size:.75rem}
+
+.journey-console{
+  display:grid;
+  grid-template-columns:280px minmax(720px,1fr) 340px;
+  gap:.625rem;
+  width:100%;
+  padding:.625rem;
+  align-items:start;
+}
+
+.journey-left-rail{position:static;min-height:0}
+.journey-centre{display:grid;min-width:0;gap:.625rem;align-content:start}
+.journey-right-rail{display:grid;width:100%;min-width:0;gap:.625rem;align-self:start}
+.journey-top-summary{display:grid;gap:.5rem;padding:0 0 .625rem}
 .journey-tabs{border-color:color-mix(in srgb,var(--loc) 30%,transparent)}
+.journey-tabs button{font-size:.75rem}
 .journey-tabs button[aria-selected="true"]{
   border-bottom-color:var(--loc);
   color:var(--loc);
   background:color-mix(in srgb,var(--loc) 8%,transparent);
 }
-.journey-tabs .mission-feed-state{color:color-mix(in srgb,var(--loc) 72%,#aaa294)}
+.journey-tabs .mission-feed-state{color:color-mix(in srgb,var(--loc) 72%,#aaa294);font-size:.75rem}
 
-.journey-metrics{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.journey-metrics{grid-template-columns:repeat(4,minmax(0,1fr));padding:0 .625rem}
 .journey-metrics .mission-metric-card{border-color:color-mix(in srgb,var(--loc) 24%,transparent)}
 .journey-metrics .mission-metric-icon{
   border-color:rgba(65,105,225,.42);
   color:#91a9ff;
   background:rgba(65,105,225,.12);
 }
+.journey-metrics .mission-metric-card small{font-size:.75rem}
+.journey-metrics .mission-metric-card strong{font-size:1.5rem}
+.journey-metrics .mission-metric-card div>span{font-size:.75rem}
 .journey-metrics .mission-donut-value{stroke:var(--journey-royal-blue)!important}
 
 .journey-overview{border-color:color-mix(in srgb,var(--loc) 26%,transparent)}
@@ -38,48 +71,93 @@
   border-color:color-mix(in srgb,var(--loc) 58%,var(--journey-royal-blue));
   box-shadow:0 0 18px color-mix(in srgb,var(--loc) 12%,transparent);
 }
+.journey-page .mission-panel-heading h2{font-size:.875rem}
+.journey-page .mission-panel-heading>span{font-size:.75rem}
+.journey-page .mission-panel-heading select{font-size:.75rem}
+.journey-page .mission-timeline article h3{font-size:.75rem}
+.journey-page .mission-timeline article p{font-size:.8125rem}
+.journey-page .mission-timeline article time{font-size:.75rem}
+.journey-page .mission-recent-progression h3{font-size:.75rem}
+.journey-page .mission-inline-empty{font-size:.8125rem}
 
-.journey-dashboard-layout{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(300px,360px);
-  gap:14px;
-  align-items:start;
-}
 .journey-location-centre{min-width:0;margin-top:0}
 .journey-location-centre .apx-section-heading{border-bottom-color:color-mix(in srgb,var(--loc) 26%,transparent)}
 .journey-location-centre .apx-status-chip{border-color:color-mix(in srgb,var(--loc) 34%,transparent);color:var(--loc)}
-.journey-analysis-rail{width:100%}
-.journey-analysis-rail .mission-panel{border-color:color-mix(in srgb,var(--loc) 26%,transparent)}
-.journey-analysis-rail .mission-chart-line--pve{stroke:var(--loc)}
-.journey-analysis-rail .mission-chart-line--pvp{stroke:var(--journey-royal-blue)}
-.journey-analysis-rail .mission-chart-legend i{background:var(--loc)}
-.journey-analysis-rail .mission-chart-legend i.is-pvp{background:var(--journey-royal-blue)}
-.journey-analysis-rail .mission-confidence-donut .mission-donut-value{stroke:var(--journey-royal-blue)!important}
+.journey-location-centre .apx-section-heading h2{font-size:.9375rem}
+.journey-page .apx-loc-select-head b,
+.journey-page .apx-loc-select-head span{font-size:.75rem}
+.journey-page .apx-loc-name{font-size:1rem}
+.journey-page .apx-loc-meta{font-size:.75rem}
+.journey-page .apx-loc-band{font-size:.875rem}
+.journey-page .apx-loc-desc{font-size:1rem}
+.journey-page .apx-loc-prog span,
+.journey-page .apx-loc-item{font-size:.875rem}
+.journey-page .apx-loc-group,
+.journey-page .apx-loc-item .where{font-size:.75rem}
 
-.journey-summary-panels{padding-top:4px}
-.journey-summary-panels>.apx-section-heading{margin-bottom:14px}
-.journey-summary-panels>.apx-section-heading .apx-status-chip{border-color:rgba(65,105,225,.34);color:#91a9ff}
-.journey-summary-panels .apx-scaffold-card{min-height:118px}
-.journey-summary-panels .apx-empty-state{margin-top:14px}
+.journey-right-rail .mission-panel{border-color:color-mix(in srgb,var(--loc) 26%,transparent)}
+.journey-right-rail .mission-chart-line--pve{stroke:var(--loc)}
+.journey-right-rail .mission-chart-line--pvp{stroke:var(--journey-royal-blue)}
+.journey-right-rail .mission-chart-empty{font-size:.8125rem}
+.journey-right-rail .mission-chart-dates{font-size:.75rem}
+.journey-right-rail .mission-chart-legend{font-size:.75rem}
+.journey-right-rail .mission-chart-legend i{background:var(--loc)}
+.journey-right-rail .mission-chart-legend i.is-pvp{background:var(--journey-royal-blue)}
+.journey-right-rail .mission-confidence-donut .mission-donut-value{stroke:var(--journey-royal-blue)!important}
+.journey-page .mission-confidence-donut strong{font-size:1.25rem}
+.journey-page .mission-confidence-donut small{font-size:.75rem}
+.journey-page .mission-confidence-rows dt,
+.journey-page .mission-confidence-rows dd{font-size:.75rem}
 
-@media(max-width:1100px){
-  .journey-dashboard-layout{grid-template-columns:1fr}
-  .journey-analysis-rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+.journey-page .mission-identity-copy h1{font-size:1.0625rem}
+.journey-page .mission-identity-copy>p:last-child{font-size:.8125rem}
+.journey-page .mission-crest span{font-size:1.625rem}
+.journey-page .mission-verified-badge{font-size:.75rem}
+.journey-page .mission-guardian-stats dt{font-size:.875rem}
+.journey-page .mission-guardian-stats dd{font-size:.875rem}
+.journey-page .mission-xp>span{font-size:.75rem}
+.journey-page .mission-section-nav a{font-size:.75rem}
+.journey-page .mission-time-filter legend{font-size:.75rem}
+.journey-page .mission-time-filter label{font-size:.875rem}
+.journey-page .mission-verified-tick{font-size:.75rem}
+.journey-page .apx-landing p,
+.journey-page .apx-auth-resolving{font-size:1rem}
+
+.journey-column-summaries{display:grid;gap:.5rem;padding:.875rem;border-top:1px solid var(--mission-line)}
+.journey-column-summaries>h2{margin:0;color:var(--loc);font:700 .75rem/1.2 Orbitron,sans-serif;letter-spacing:.1em}
+.journey-column-summaries .apx-scaffold-card{min-height:0;padding:.875rem;border-color:color-mix(in srgb,var(--loc) 22%,transparent)}
+.journey-column-summaries .apx-scaffold-card h2{font-size:.8125rem}
+.journey-column-summaries .apx-empty-state{margin-top:.625rem;padding:.625rem;font-size:.8125rem;line-height:1.45}
+
+@media(max-width:1390px){
+  .journey-console{grid-template-columns:250px minmax(0,1fr)}
+  .journey-right-rail{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .journey-right-summaries{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .journey-right-summaries>h2{grid-column:1/-1}
 }
 
-@media(max-width:840px){
-  .journey-analysis-rail{grid-template-columns:1fr}
+@media(max-width:900px){
+  .journey-console{grid-template-columns:1fr}
+  .journey-left-rail,.journey-centre,.journey-right-rail{grid-column:1}
+  .journey-left-summaries{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .journey-left-summaries>h2{grid-column:1/-1}
+}
+
+@media(max-width:720px){
+  .journey-tabs{overflow-x:auto}
+  .journey-tabs button{min-height:2.75rem;flex:0 0 auto;padding:0 .9375rem}
+  .journey-tabs .mission-feed-state{display:none}
+  .journey-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
   .journey-overview .mission-timeline-layout{grid-template-columns:1fr}
   .journey-overview .mission-recent-progression{border-top:1px solid var(--mission-line-soft);border-left:0}
+  .journey-overview .mission-timeline{grid-template-columns:repeat(6,minmax(96px,1fr))}
+  .journey-right-rail,.journey-right-summaries{grid-template-columns:1fr}
+  .journey-right-summaries>h2{grid-column:1}
 }
 
-@media(max-width:640px){
-  .journey-tabs{overflow-x:auto}
-  .journey-tabs button{min-height:43px;flex:0 0 auto;padding:0 15px}
-  .journey-tabs .mission-feed-state{display:none}
-  .journey-metrics{grid-template-columns:1fr}
-  .journey-overview .mission-timeline{grid-template-columns:repeat(6,minmax(96px,1fr))}
-  .journey-summary-panels .apx-scaffold-card{min-height:0}
+@media(max-width:520px){
+  .journey-metrics,.journey-left-summaries{grid-template-columns:1fr}
+  .journey-left-summaries>h2{grid-column:1}
 }
 
 .journey-location-map{
@@ -104,7 +182,7 @@
 
 .journey-map-instruction{
   color:rgba(244,239,228,.62);
-  font:700 9px/1 Orbitron,sans-serif;
+  font:700 .75rem/1 Orbitron,sans-serif;
   letter-spacing:.12em;
 }
 
@@ -123,7 +201,7 @@
   border-radius:0;
   background:rgba(255,255,255,.035);
   color:var(--apx-text);
-  font:700 13px/1 Orbitron,sans-serif;
+  font:700 .875rem/1 Orbitron,sans-serif;
   cursor:pointer;
 }
 
@@ -142,14 +220,14 @@
 .journey-map-controls .journey-map-reset{
   min-width:68px;
   padding:0 10px;
-  font-size:8px;
+  font-size:.75rem;
   letter-spacing:.1em;
 }
 
 .journey-map-zoom{
   width:48px;
   color:var(--apx-gold);
-  font:700 9px/1 Orbitron,sans-serif;
+  font:700 .75rem/1 Orbitron,sans-serif;
   text-align:center;
 }
 
@@ -195,13 +273,13 @@
 }
 
 .journey-region-chests-head strong{
-  font:700 15px/1.2 Orbitron,sans-serif;
+  font:700 1rem/1.2 Orbitron,sans-serif;
   letter-spacing:.12em;
 }
 
 .journey-region-chests-head span{
   color:rgba(201,168,76,.78);
-  font:700 9px/1.25 Orbitron,sans-serif;
+  font:700 .75rem/1.25 Orbitron,sans-serif;
   letter-spacing:.1em;
   text-align:right;
 }
@@ -221,20 +299,20 @@
 
 .journey-region-chests-summary strong{
   color:#f1eee6;
-  font:700 32px/1 Orbitron,sans-serif;
+  font:700 2rem/1 Orbitron,sans-serif;
 }
 
 .journey-region-chests-summary small{
   margin-top:5px;
   color:rgba(241,238,230,.55);
-  font:700 9px/1 Orbitron,sans-serif;
+  font:700 .75rem/1 Orbitron,sans-serif;
   letter-spacing:.08em;
 }
 
 .journey-region-chests-note{
   margin:0;
   color:rgba(241,238,230,.64);
-  font:600 14px/1.4 Rajdhani,sans-serif;
+  font:600 .875rem/1.4 Rajdhani,sans-serif;
 }
 
 .journey-region-chests-zones{
@@ -253,7 +331,7 @@
   justify-content:space-between;
   gap:12px;
   color:rgba(241,238,230,.68);
-  font:600 13px/1.2 Rajdhani,sans-serif;
+  font:600 .8125rem/1.2 Rajdhani,sans-serif;
 }
 
 .journey-region-chests-zones b{font-weight:600}
@@ -329,7 +407,7 @@
 
 .journey-map-marker-copy strong{
   color:#f1eee6;
-  font:700 8px/1.15 Orbitron,sans-serif;
+  font:700 .75rem/1.15 Orbitron,sans-serif;
   letter-spacing:.045em;
   text-shadow:0 1px 3px #000;
 }
@@ -337,7 +415,7 @@
 .journey-map-marker-copy small{
   margin-top:3px;
   color:rgba(241,238,230,.62);
-  font:700 6px/1 Orbitron,sans-serif;
+  font:700 .75rem/1 Orbitron,sans-serif;
   letter-spacing:.12em;
   text-transform:uppercase;
 }
@@ -403,16 +481,16 @@
   .journey-map-controls .journey-map-reset{margin-left:auto}
   .journey-map-marker-icon{width:24px;height:24px;flex-basis:24px}
   .journey-map-marker-copy{padding:4px 5px 3px}
-  .journey-map-marker-copy strong{font-size:6px}
+  .journey-map-marker-copy strong{font-size:.75rem}
   .journey-map-marker-copy small{display:none}
   .journey-region-chests{top:10px;left:10px;width:min(300px,calc(100% - 20px));padding:12px}
   .journey-region-chests-head{padding-bottom:7px}
-  .journey-region-chests-head strong{font-size:11px}
-  .journey-region-chests-head span{font-size:7px}
+  .journey-region-chests-head strong{font-size:.875rem}
+  .journey-region-chests-head span{font-size:.75rem}
   .journey-region-chests-summary{padding:8px 0 7px}
-  .journey-region-chests-summary strong{font-size:20px}
-  .journey-region-chests-summary small{font-size:7px}
-  .journey-region-chests-note{font-size:10px}
+  .journey-region-chests-summary strong{font-size:1.5rem}
+  .journey-region-chests-summary small{font-size:.75rem}
+  .journey-region-chests-note{font-size:.75rem}
   .journey-region-chests-zones{display:none}
 }
 
@@ -444,7 +522,7 @@
     padding:0 16px;
     border:1px solid rgba(201,168,76,.18);
     background:rgba(6,6,6,.8);
-    font-size:10px;
+    font-size:.75rem;
     transition:border-color .2s ease,background .2s ease,box-shadow .2s ease,color .2s ease;
   }
 
@@ -483,12 +561,12 @@
   body.journey-page.apx-destination-page .apx-page-shell{
     width:min(1920px,calc(100% - 64px));
     max-width:1920px;
-    padding:clamp(46px,3vw,68px) 0 84px;
+    padding:3rem 0 5.25rem;
   }
 
   .journey-page .apx-destination-header{
     min-height:76px;
-    padding:12px clamp(24px,2.4vw,54px);
+    padding:.75rem 2rem;
   }
 
   .journey-page .apx-destination-brand img{
@@ -497,23 +575,23 @@
   }
 
   .journey-page .apx-destination-brand strong{
-    font-size:clamp(15px,.7vw,18px);
+    font-size:1rem;
   }
 
   .journey-page .apx-destination-brand small{
-    font-size:9px;
+    font-size:.75rem;
   }
 
   .journey-page .apx-destination-header-copy strong{
-    font-size:clamp(12px,.58vw,15px);
+    font-size:.875rem;
   }
 
   .journey-page .apx-destination-header-copy small{
-    font-size:14px;
+    font-size:.875rem;
   }
 
   .journey-page .apx-destination-header-state{
-    font-size:10px;
+    font-size:.75rem;
   }
 
   .journey-page .apx-page-heading{
@@ -522,17 +600,17 @@
   }
 
   .journey-page .apx-eyebrow{
-    font-size:11px;
+    font-size:.75rem;
   }
 
   .journey-page .apx-page-heading p{
     max-width:900px;
-    font-size:clamp(18px,.75vw,20px);
+    font-size:1.125rem;
   }
 
   .journey-page .apx-status-chip{
     padding:10px 14px;
-    font-size:10px;
+    font-size:.75rem;
   }
 
   .journey-page .apx-section,
@@ -553,7 +631,7 @@
 
   .journey-page .apx-scaffold-card h2,
   .journey-page .apx-section h2{
-    font-size:clamp(14px,.62vw,16px);
+    font-size:.875rem;
   }
 
   .journey-page .apx-loc-layout{
@@ -572,11 +650,11 @@
   }
 
   .journey-page .apx-loc-select-head b{
-    font-size:11px;
+    font-size:.75rem;
   }
 
   .journey-page .apx-loc-select-head span{
-    font-size:10px;
+    font-size:.75rem;
   }
 
   .journey-page .apx-loc-list{
@@ -590,11 +668,11 @@
   }
 
   .journey-page .apx-loc-name{
-    font-size:16px;
+    font-size:1rem;
   }
 
   .journey-page .apx-loc-meta{
-    font-size:10px;
+    font-size:.75rem;
   }
 
   .journey-page .apx-loc-detail{
@@ -608,14 +686,14 @@
     margin-bottom:18px;
     padding-bottom:16px;
     border-bottom:1px solid rgba(201,168,76,.14);
-    font-size:14px;
+    font-size:.875rem;
     letter-spacing:.28em;
     text-align:left;
   }
 
   .journey-page .apx-loc-desc{
     margin-bottom:18px;
-    font-size:17px;
+    font-size:1rem;
     line-height:1.6;
   }
 
@@ -633,18 +711,18 @@
   .journey-page .apx-empty-state{
     margin-top:20px;
     padding:15px;
-    font-size:clamp(15px,.65vw,17px);
+    font-size:.875rem;
   }
 
-  .journey-page .journey-summary-panels .apx-scaffold-card{
-    min-height:122px;
-    padding:20px;
+  .journey-page .journey-column-summaries .apx-scaffold-card{
+    min-height:0;
+    padding:.875rem;
   }
 
-  .journey-page .journey-summary-panels .apx-empty-state{
-    margin-top:12px;
-    padding:11px;
-    font-size:14px;
+  .journey-page .journey-column-summaries .apx-empty-state{
+    margin-top:.625rem;
+    padding:.625rem;
+    font-size:.875rem;
   }
 
 }
