@@ -200,7 +200,11 @@ async function bindRecentActivity(session){
   const requestId=++recentActivityRequest;
   try{
     await manifestReady;
+    const membership=session?.activeDestinyMembership;
+    if(!membership?.membershipType||!membership?.membershipId)return;
     const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
+    url.searchParams.set('membershipType',String(membership.membershipType));
+    url.searchParams.set('membershipId',String(membership.membershipId));
     url.searchParams.set('characterId',selectedCharacterId);
     url.searchParams.set('page','0');
     if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
@@ -294,7 +298,11 @@ async function bindCurrentForm(session){
   trendChart.querySelectorAll('.mission-chart-line').forEach(path=>path.setAttribute('d',''));
   trendEmpty.hidden=false;
   try{
+    const membership=session?.activeDestinyMembership;
+    if(!membership?.membershipType||!membership?.membershipId)return;
     const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
+    url.searchParams.set('membershipType',String(membership.membershipType));
+    url.searchParams.set('membershipId',String(membership.membershipId));
     url.searchParams.set('characterId',selectedCharacterId);
     url.searchParams.set('page','0');
     const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}});
