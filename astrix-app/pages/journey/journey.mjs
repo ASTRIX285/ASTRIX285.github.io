@@ -8,6 +8,8 @@ const signedOut=document.getElementById('journeySignedOut');
 const dashboard=document.getElementById('journeyDashboard');
 const status=document.getElementById('journeyAuthStatus');
 const favouriteCharacter=document.getElementById('journeyFavouriteCharacter');
+const vaultCard=document.getElementById('journeyVault');
+const milestonesCard=document.getElementById('journeyMilestones');
 const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
 const numberFormatter=new Intl.NumberFormat('en-GB');
 
@@ -31,6 +33,31 @@ function bindFavouriteCharacter(payload){
   favouriteCharacter.textContent=`${label} · ${numberFormatter.format(highestMinutes)} MINUTES PLAYED${powers.length===1?` · POWER ${numberFormatter.format(powers[0])}`:''}`;
   return true;
 }
+
+const VAULT_BUCKET=138197802, POSTMASTER_BUCKET=215593132;
+function bindVault(payload){
+  if(!vaultCard)return;
+  const vaultItems=payload?.profile?.profileInventory?.data?.items;
+  if(!Array.isArray(vaultItems))return;
+  const vaultCount=vaultItems.filter(i=>i?.bucketHash===VAULT_BUCKET).length;
+  let postmasterMax=0;
+  for(const char of Object.values(payload?.profile?.characterInventories?.data||{})){
+    const pm=(char?.items||[]).filter(i=>i?.bucketHash===POSTMASTER_BUCKET).length;
+    if(pm>postmasterMax)postmasterMax=pm;
+  }
+  const warn=postmasterMax>=18?` · POSTMASTER ${postmasterMax}/21`:'';
+  vaultCard.textContent=`${numberFormatter.format(vaultCount)} ITEMS IN VAULT${warn}`;
+}
+function bindMilestones(payload){
+  if(!milestonesCard)return;
+  const prog=payload?.profile?.characterProgressions?.data;
+  if(!prog)return;
+  const hashes=new Set();
+  for(const char of Object.values(prog))for(const h of Object.keys(char?.milestones||{}))hashes.add(h);
+  if(!hashes.size)return;
+  milestonesCard.textContent=`${hashes.size} MILESTONES AVAILABLE THIS RESET`;
+}
+function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);}
 
 async function readVerifiedProfile(session){
   const cached=await readCachedBungieProfile(session);
@@ -87,7 +114,7 @@ try{
   if(authenticated){
     showJourney();
     const profile=await readVerifiedProfile(session);
-    if(profile)bindFavouriteCharacter(profile);
+    if(profile)bindProfileCards(profile);
   }
   else showSignedOut();
 }catch(error){
