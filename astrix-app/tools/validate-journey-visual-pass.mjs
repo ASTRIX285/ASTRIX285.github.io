@@ -33,7 +33,7 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260830-region-chest-overlay-readable"'),'Journey must load the versioned visual correction');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260831-expanded-destination-centre"'),'Journey must load the expanded destination-centre correction');
 assert.ok(html.includes('src="./journey.mjs?v=20260830-all-destination-progress"'),'Journey must load the cache-busted all-destination progress module');
 assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260830-global-hero-cards"'),'Journey must load the shared authenticated hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
@@ -52,6 +52,8 @@ for(const id of [
 ])assert.ok(html.includes(`id="${id}"`),`Journey data mount ${id} must remain available`);
 
 assert.equal((html.match(/class="apx-scaffold-card"/g)??[]).length,10,'Journey must retain all ten future data regions');
+assert.doesNotMatch(html,/id="journeyOverview"|MILESTONE RECORD|id="journeyMilestoneTimeline"/,'Journey must not duplicate the Mission Reports milestone record');
+assert.ok(html.includes('href="#journeyMilestones"'),'Journey milestone navigation must target the compact milestone summary');
 assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,6,'Shared Journey ribbon must retain all six destination routes');
 for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
@@ -150,13 +152,14 @@ assert.equal(placeholderDetailMap.subarray(8,12).toString('ascii'),'WEBP','Journ
 assert.equal(placeholderDetailMap.readUInt16LE(26)&0x3fff,5760,'Journey placeholder zoom map must be exactly 5760px wide');
 assert.equal(placeholderDetailMap.readUInt16LE(28)&0x3fff,3240,'Journey placeholder zoom map must be exactly 3240px high');
 
-assert.match(css,/@media \(min-width:1500px\)\{[\s\S]*?body\.journey-page\.apx-destination-page\{[\s\S]*?zoom:1;/,'Journey must restore native scale on large monitors');
+assert.match(css,/@media \(min-width:1500px\)\{[\s\S]*?body\.journey-page\.apx-destination-page\{[\s\S]*?zoom:1!important;/,'Journey must force native scale on large monitors');
 assert.match(css,/body\.journey-page\.apx-destination-page \.apx-atmo\{[\s\S]*?width:100vw;[\s\S]*?max-width:none;/,'Journey atmosphere must cover the full viewport');
 assert.match(css,/\.journey-page \.apx-atmo-base\{[\s\S]*?-webkit-mask-image:linear-gradient\(to bottom,#000 0%,#000 46%,rgba\(0,0,0,\.72\) 65%,rgba\(0,0,0,\.22\) 86%,transparent 100%\);[\s\S]*?mask-image:linear-gradient\(to bottom,#000 0%,#000 46%,rgba\(0,0,0,\.72\) 65%,rgba\(0,0,0,\.22\) 86%,transparent 100%\);/,'Journey deep-space base must fade toward the bottom without altering location art');
 assert.match(css,/\.journey-page \.apx-atmo-photo\{[\s\S]*?filter:blur\(5px\) brightness\(\.67\) saturate\(1\.08\);/,'Journey location art must remain softly recognisable on large screens');
-assert.match(css,/body\.journey-page\.apx-destination-page \.apx-page-shell\{[\s\S]*?width:min\(1920px,calc\(100% - 64px\)\);[\s\S]*?max-width:1920px;/,'Journey content must use a controlled large-screen width');
+assert.match(css,/body\.journey-page\.apx-destination-page \.apx-page-shell\{[\s\S]*?width:calc\(100% - 2rem\);[\s\S]*?max-width:none;/,'Journey columns must expand toward the viewport margins');
 assert.match(css,/\.journey-page \.apx-card-grid\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\);/,'Journey future data cards must form complete large-screen rows');
-assert.match(css,/\.journey-page \.apx-loc-layout\{[\s\S]*?grid-template-columns:minmax\(360px,420px\) minmax\(0,1fr\);/,'Journey location focus must use balanced large-screen columns');
+assert.match(css,/\.journey-page \.apx-loc-layout\{[\s\S]*?grid-template-columns:1fr;/,'Journey location detail and map must occupy the full centre column');
+assert.match(css,/\.journey-page \.apx-loc-list\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\);/,'Journey destination choices must form a compact three-column selector above the map');
 const fixedReadableFontSize=rule=>{
   const match=rule.match(/font-size:\s*(\d*\.?\d+)(rem|px)\s*(?:;|})/i);
   return Boolean(match)&&(match[2].toLowerCase()==='rem'||Number(match[1])>=15);
