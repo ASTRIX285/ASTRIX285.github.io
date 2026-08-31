@@ -23,9 +23,9 @@ button,select{font:inherit}
 button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--apx-gold);outline-offset:2px}
 
 .mission-topbar.topbar{
-  position:relative!important;
-  top:auto!important;
-  z-index:50!important;
+  position:fixed!important;
+  top:0!important;
+  z-index:90!important;
   border-bottom:1px solid rgba(201,168,76,.2)!important;
   background:linear-gradient(180deg,rgba(7,7,9,.98),rgba(4,4,5,.98))!important;
   box-shadow:0 18px 40px rgba(0,0,0,.34);

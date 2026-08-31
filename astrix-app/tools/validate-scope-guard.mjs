@@ -9,6 +9,7 @@ const allowed=new Set([
   'astrix-app/pages/guardian-workspace-v2/index.html',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
   'astrix-app/pages/mission-reports/index.html',
+  'astrix-app/pages/mission-reports/mission-reports.css',
   'astrix-app/pages/vault/index.html',
   'astrix-app/pages/loadout/index.html',
   'astrix-app/shared/astrix-hero-cards.css',

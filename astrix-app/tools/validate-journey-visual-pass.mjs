@@ -16,6 +16,7 @@ const mapBackgroundCss=read('astrix-app/shared/astrix-paradox-background.css');
 const characterHtml=read('astrix-app/pages/guardian-workspace-v2/index.html');
 const buildForgeHtml=read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html');
 const missionReportsHtml=read('astrix-app/pages/mission-reports/index.html');
+const missionReportsCss=read('astrix-app/pages/mission-reports/mission-reports.css');
 const vaultHtml=read('astrix-app/pages/vault/index.html');
 const loadoutHtml=read('astrix-app/pages/loadout/index.html');
 const globalHeroPages=[
@@ -60,6 +61,9 @@ for(const page of globalHeroPages){
   assert.ok(page.includes('astrix-hero-cards.css?v=20260831-global-fixed-stack'),'Every destination page must load the shared fixed top-stack presentation');
 }
 assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260830-global-hero-cards'))).length,3,'Only Journey, Vault and Loadout must use the shared standalone renderer');
+assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
+assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
+assert.doesNotMatch(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:relative!important;[\s\S]*?top:auto!important;/,'Mission Reports must not reattach the Guardian ribbon to its report columns');
 assert.match(heroCss,/position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?left:0!important;[\s\S]*?right:0!important;/,'Every hero-card topbar must remain fixed to the viewport top');
 assert.match(heroCss,/grid-template-columns:minmax\(0,1fr\) 910px minmax\(0,1fr\)!important;/,'The three-card track must occupy the exact centre column');
 assert.match(heroCss,/grid-template-columns:repeat\(3,300px\)!important;/,'The desktop hero track must retain three equal Character-format cards');
