@@ -33,7 +33,7 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260831-wide-rails-left-destinations"'),'Journey must load the wide-rail left-destination correction');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260831-fixed-ribbons-destination-subtitle"'),'Journey must load the fixed-ribbon destination-subtitle correction');
 assert.ok(html.includes('src="./journey.mjs?v=20260830-all-destination-progress"'),'Journey must load the cache-busted all-destination progress module');
 assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260830-global-hero-cards"'),'Journey must load the shared authenticated hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
@@ -57,16 +57,20 @@ assert.ok(html.includes('href="#journeyMilestones"'),'Journey milestone navigati
 assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,6,'Shared Journey ribbon must retain all six destination routes');
 for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
-  assert.ok(page.includes('astrix-hero-cards.css?v=20260831-global-sticky-stack'),'Every destination page must load the shared fixed top-stack presentation');
+  assert.ok(page.includes('astrix-hero-cards.css?v=20260831-global-fixed-stack'),'Every destination page must load the shared fixed top-stack presentation');
 }
 assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260830-global-hero-cards'))).length,3,'Only Journey, Vault and Loadout must use the shared standalone renderer');
-assert.match(heroCss,/position:sticky!important;[\s\S]*?top:0!important;/,'Every hero-card topbar must remain anchored at the viewport top');
+assert.match(heroCss,/position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?left:0!important;[\s\S]*?right:0!important;/,'Every hero-card topbar must remain fixed to the viewport top');
 assert.match(heroCss,/grid-template-columns:minmax\(0,1fr\) 910px minmax\(0,1fr\)!important;/,'The three-card track must occupy the exact centre column');
 assert.match(heroCss,/grid-template-columns:repeat\(3,300px\)!important;/,'The desktop hero track must retain three equal Character-format cards');
 assert.match(heroCss,/body:has\(header>\[data-astrix-hero-cards\]\)\{zoom:1\}/,'Hero-card destination pages must remain at native 100 percent scale');
-assert.match(heroCss,/body:has\(header>\[data-astrix-hero-cards\]\)>\[data-astrix-destination-ribbon\]\{[\s\S]*?position:sticky!important;[\s\S]*?top:120px!important;/,'The shared destination buttons must remain anchored beneath the hero topbar');
+assert.match(heroCss,/body:has\(header>\[data-astrix-hero-cards\]\)>\[data-astrix-destination-ribbon\]\{[\s\S]*?position:fixed!important;[\s\S]*?top:120px!important;[\s\S]*?left:0!important;[\s\S]*?right:0!important;/,'The shared destination buttons must remain fixed beneath the hero topbar');
 assert.match(heroCss,/header:has\(>\[data-astrix-hero-cards\]\)\{[\s\S]*?background:#060606!important;/,'Every hero destination header must form an opaque scrolling boundary');
-assert.match(heroCss,/\[data-astrix-destination-ribbon\]::before\{[\s\S]*?width:100vw;[\s\S]*?background:linear-gradient\(180deg,#060606 0%,#060606 70%,rgba\(6,6,6,\.94\) 82%,transparent 100%\);/,'The fixed destination ribbon must hide and fade scrolling content across the full viewport');
+assert.match(heroCss,/body:has\(header>\[data-astrix-hero-cards\]\)\{[\s\S]*?padding-top:180px!important;/,'The fixed global stack must preserve document space below the viewport anchors');
+assert.match(heroCss,/\[data-astrix-destination-ribbon\] \.apx-destination-ribbon\{[\s\S]*?background:transparent!important;/,'The second ribbon container must remain transparent');
+assert.match(heroCss,/\[data-astrix-destination-ribbon\] \.apx-destination-ribbon a\{[\s\S]*?background:rgba\(6,6,6,\.8\);/,'Only the destination buttons may retain the dark background');
+assert.match(heroCss,/\[data-astrix-destination-ribbon\]::after\{[\s\S]*?width:100vw;[\s\S]*?background:transparent;[\s\S]*?backdrop-filter:blur\(8px\) brightness\(\.58\);[\s\S]*?mask-image:linear-gradient\(to bottom,#000,transparent\);/,'The transparent second ribbon edge must fade scrolling content across the viewport');
+assert.doesNotMatch(heroCss,/\[data-astrix-destination-ribbon\]::(?:before|after)\{[\s\S]*?background:linear-gradient\(180deg,#060606/,'The second ribbon must not restore a full-width black strip');
 assert.match(ribbonCss,/@media\(min-width:981px\)\{[\s\S]*?width:min\(1180px,calc\(100% - 64px\)\);[\s\S]*?grid/s,'All pages must use the shared centred desktop destination-button presentation');
 assert.match(heroModule,/const CLASS_ORDER=\{hunter:0,warlock:1,titan:2\}/,'Warlock must remain the middle card in the shared roster');
 assert.match(heroModule,/fetchJson\(new URL\('\/bungie\/profile',AUTH_ORIGIN\)\)/,'Shared hero cards must use the existing confidential profile endpoint');
@@ -166,6 +170,7 @@ assert.match(css,/\.journey-page \.apx-card-grid\{[\s\S]*?grid-template-columns:
 assert.match(css,/\.journey-page \.apx-loc-layout\{[\s\S]*?grid-template-columns:220px minmax\(0,1fr\);/,'Journey destination selector must remain a compact left rail beside the map');
 assert.match(css,/\.journey-page \.apx-loc-list\{[\s\S]*?display:flex;[\s\S]*?flex-direction:column;/,'Journey destinations must remain a vertical left-side list');
 assert.match(css,/\.journey-page \.apx-loc-meta\{[\s\S]*?display:none/,'Journey destination buttons must not repeat awaiting-data labels');
+assert.match(css,/\.journey-location-centre \.apx-loc-select-head\{[\s\S]*?align-items:flex-start;[\s\S]*?flex-direction:column;[\s\S]*?text-align:left;/,'Select to focus must remain a subtitle beneath Destinations');
 const fixedReadableFontSize=rule=>{
   const match=rule.match(/font-size:\s*(\d*\.?\d+)(rem|px)\s*(?:;|})/i);
   return Boolean(match)&&(match[2].toLowerCase()==='rem'||Number(match[1])>=15);
@@ -177,7 +182,7 @@ assert.ok(fixedReadableFontSize(journeyRootFontRule),'Journey root font must use
 assert.ok(fixedReadableFontSize(journeyBaseFontRule),'Journey base font must use a fixed rem value or at least 15px');
 assert.ok(fixedReadableFontSize(journeyEmptyStateFontRule),'Journey empty states must use a fixed readable rem or pixel size');
 assert.doesNotMatch(`${journeyRootFontRule}\n${journeyBaseFontRule}`,/\d*\.?\d+vw\b/i,'Journey root and base font rules must not use viewport-width sizing');
-assert.match(css,/@media \(min-width:981px\)\{[\s\S]*?\.journey-page \[data-astrix-destination-ribbon\]\{[\s\S]*?width:min\(1180px,calc\(100% - 64px\)\);[\s\S]*?margin:18px auto 0;/,'Journey ribbon must be compact, centred and separated from the main header');
+assert.match(css,/@media \(min-width:981px\)\{[\s\S]*?\.journey-page \[data-astrix-destination-ribbon\]\{[\s\S]*?width:min\(1180px,calc\(100% - 64px\)\);[\s\S]*?background:transparent;/,'Journey ribbon must be compact, centred and transparent beneath the main header');
 assert.match(css,/\.journey-page \.apx-destination-ribbon a:hover,[\s\S]*?border-color:rgba\(201,168,76,\.68\);[\s\S]*?box-shadow:/,'Journey ribbon must provide the approved block hover state');
 assert.match(css,/\.journey-map-stage\{[\s\S]*?position:absolute;[\s\S]*?transform-origin:center;/,'Map image and markers must share one anchored stage');
 assert.match(css,/\.journey-map-marker\{[\s\S]*?transform:translate\(-50%,-50%\) scale\(var\(--journey-marker-scale\)\);/,'Static activity markers must remain anchored and legible while zooming');
