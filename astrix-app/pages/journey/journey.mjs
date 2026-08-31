@@ -136,7 +136,15 @@ function bindActiveGuardian(payload){
 function bindGuardianRank(payload){
   if(!journeyLevel)return;
   const rank=finiteNumber(payload?.profile?.profile?.data?.currentGuardianRank);
-  journeyLevel.textContent=rank!==null?`RANK ${rank}`:'—';
+  if(rank===null||rank<1){journeyLevel.textContent='—';return;}
+  journeyLevel.innerHTML='';
+  const img=document.createElement('img');
+  img.className='journey-rank-badge';
+  img.width=26;img.height=26;
+  img.alt=`Guardian Rank ${rank}`;
+  img.src=`../../../img/guardian-ranks/rank-${rank}.png`;
+  img.onerror=()=>{journeyLevel.textContent=`RANK ${rank}`;};
+  journeyLevel.appendChild(img);
 }
 
 function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);bindGuardianRank(payload);}
