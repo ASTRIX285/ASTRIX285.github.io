@@ -13,10 +13,18 @@ const milestonesCard=document.getElementById('journeyMilestones');
 const heroCards=document.getElementById('guardianCharacterCards');
 const feedStatus=document.getElementById('journeyFeedStatus');
 const trendEmpty=document.getElementById('journeyTrendEmpty');
+const guardianClass=document.getElementById('journeyGuardianClass');
+const guardianSubclass=document.getElementById('journeyGuardianSubclass');
+const verifiedGuardian=document.getElementById('journeyVerifiedGuardian');
+const guardianCrest=document.getElementById('journeyGuardianCrest');
+const guardianCrestEmpty=document.getElementById('journeyGuardianCrestEmpty');
+const totalPlaytime=document.getElementById('journeyTotalPlaytime');
 const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
 const MILESTONES_PENDING='No verified milestone or achievement source is connected.';
+const BUNGIE_ORIGIN='https://www.bungie.net';
 const numberFormatter=new Intl.NumberFormat('en-GB');
 let activeView='overview';
+let timeFilter='all';
 let selectedCharacterId='';
 let selectedClassName='';
 let verifiedProfile=null;
@@ -67,7 +75,39 @@ function bindMilestones(payload){
   if(!hashes.size)return;
   milestonesCard.textContent=`${hashes.size} MILESTONES AVAILABLE THIS RESET`;
 }
-function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);}
+
+function formatPlaytime(minutes){
+  if(!Number.isFinite(minutes))return '—';
+  const total=Math.max(0,Math.round(minutes));
+  const hours=Math.floor(total/60);
+  return `${numberFormatter.format(hours)}h ${total%60}m`;
+}
+
+function bindActiveGuardian(payload){
+  guardianClass.textContent='Guardian unavailable';
+  guardianSubclass.textContent='Subclass awaiting verified data';
+  verifiedGuardian.hidden=true;
+  guardianCrest.hidden=true;
+  guardianCrest.removeAttribute('src');
+  guardianCrestEmpty.hidden=false;
+  totalPlaytime.textContent='—';
+
+  const characters=Object.values(payload?.profile?.characters?.data||{});
+  const selected=characters.find(character=>String(character?.characterId||'')===selectedCharacterId)
+    ||[...characters].sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
+  if(!selected)return;
+
+  guardianClass.textContent=CLASS_NAMES[Number(selected.classType)]||'Guardian';
+  verifiedGuardian.hidden=false;
+  totalPlaytime.textContent=formatPlaytime(finiteNumber(selected.minutesPlayedTotal));
+  if(selected.emblemPath){
+    guardianCrest.src=new URL(selected.emblemPath,BUNGIE_ORIGIN).toString();
+    guardianCrest.hidden=false;
+    guardianCrestEmpty.hidden=true;
+  }
+}
+
+function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);}
 
 function renderJourneyContext(){
   dashboard.dataset.journeyView=activeView;
@@ -76,9 +116,11 @@ function renderJourneyContext(){
   document.querySelectorAll('[data-journey-character-panel]').forEach(panel=>{
     panel.dataset.characterId=selectedCharacterId;
     panel.dataset.journeyView=activeView;
+    panel.dataset.timeFilter=timeFilter;
   });
   const guardian=selectedClassName||'GUARDIAN';
-  feedStatus.textContent=`${guardian} · ${activeView.toUpperCase()} · AWAITING VERIFIED ACTIVITY DATA`;
+  const period=timeFilter==='30-days'?'LAST 30 DAYS':'ALL TIME';
+  feedStatus.textContent=`${guardian} · ${activeView.toUpperCase()} · ${period} · AWAITING VERIFIED ACTIVITY DATA`;
   document.querySelectorAll('[data-journey-metric]').forEach(card=>{
     const lens=card.dataset.journeyMetric;
     card.hidden=activeView==='pve'&&lens==='pvp'||activeView==='pvp'&&lens==='pve';
@@ -104,9 +146,32 @@ function syncSelectedCharacterFromCards(){
   selectJourneyCharacter(selected.dataset.characterId,selected.dataset.class);
 }
 
-document.querySelectorAll('[data-journey-view]').forEach(button=>button.addEventListener('click',()=>{
+function selectJourneyView(view){
+  const button=document.querySelector(`[data-journey-view="${view}"]`);
+  if(!button)return;
   activeView=button.dataset.journeyView;
   document.querySelectorAll('[data-journey-view]').forEach(item=>item.setAttribute('aria-selected',String(item===button)));
+  renderJourneyContext();
+}
+
+document.querySelectorAll('[data-journey-view]').forEach(button=>button.addEventListener('click',()=>{
+  selectJourneyView(button.dataset.journeyView);
+}));
+
+document.querySelectorAll('.journey-section-nav a').forEach(link=>link.addEventListener('click',()=>{
+  document.querySelectorAll('.journey-section-nav a').forEach(item=>{
+    const active=item===link;
+    item.classList.toggle('is-active',active);
+    if(active)item.setAttribute('aria-current','page');
+    else item.removeAttribute('aria-current');
+  });
+  const view=link.dataset.journeyViewLink;
+  if(view)selectJourneyView(view);
+}));
+
+document.querySelectorAll('input[name="journeyTime"]').forEach(input=>input.addEventListener('change',()=>{
+  if(!input.checked)return;
+  timeFilter=input.value;
   renderJourneyContext();
 }));
 
