@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'astrix-auth-worker/src/index.ts',
   'astrix-app/pages/journey/index.html',
   'astrix-app/pages/journey/journey-2560-visual.css',
   'astrix-app/pages/journey/journey-location-maps.mjs',
