@@ -254,7 +254,7 @@ function titleRecordFor(payload,characterId,hash){
 const RECORD_SECTION_DEFINITIONS=[
   {key:'medals',name:'Medals',description:'Verified activity medals and earned counts.'},
   {key:'patterns-catalysts',name:'Patterns & Catalysts',description:'Weapon-pattern and catalyst objective progress.'},
-  {key:'lore',name:'Lore',description:'Unlocked lore entries and collection progress.'},
+  {key:'lore',name:'Lore',description:'Unlocked lore entries and collection progress.',optional:true},
   {key:'stat-trackers',name:'Stat Trackers',description:'Verified Guardian statistics with Mission Reports links.'}
 ];
 const STAT_TRACKER_CATEGORIES=['Seasons','Account','Crucible','Destination','Gambit','Raids','Strikes','Trials of Osiris'];
@@ -373,10 +373,11 @@ function renderDetailHero(host,{name,icon='',description='',completed=null,total
 }
 
 function normalizedProgressItem(item={},defaultUnit='OBJECTIVES'){
+  const objectiveProgress=item?.objectiveProgress&&typeof item.objectiveProgress==='object'?item.objectiveProgress:{};
   const explicitCompleted=typeof item.completed==='number'?item.completed:null;
-  let completed=finiteNumber(item.completedCount??item.completedObjectives??item.progressValue??explicitCompleted);
-  let total=finiteNumber(item.totalCount??item.totalObjectives??item.completionValue??item.total);
-  const complete=item.complete===true||item.completed===true;
+  let completed=finiteNumber(item.completedCount??item.completedObjectives??objectiveProgress.progress??item.progressValue??explicitCompleted);
+  let total=finiteNumber(item.totalCount??item.totalObjectives??objectiveProgress.completionValue??item.completionValue??item.total);
+  const complete=item.complete===true||item.completed===true||objectiveProgress.complete===true;
   if(complete&&completed===null&&total===null){completed=1;total=1;}
   return {
     hash:item.recordHash??item.presentationNodeHash??item.metricHash??item.trackerHash??item.itemHash??item.hash,
@@ -387,7 +388,8 @@ function normalizedProgressItem(item={},defaultUnit='OBJECTIVES'){
     total,
     unit:String(item.unit||defaultUnit).trim().toUpperCase(),
     complete,
-    value:item.value??null,
+    gilded:item.gilded===true,
+    value:item.value??(completed!==null&&!(total!==null&&total>0)?completed:null),
     missionReportFilters:item.missionReportFilters&&typeof item.missionReportFilters==='object'?item.missionReportFilters:null
   };
 }
@@ -586,14 +588,20 @@ function recordsFrameworkSections(payload){
     const source=byKey.get(definition.key)||{};
     const completed=finiteNumber(source.completed);
     const total=finiteNumber(source.total);
-    let categories=Array.isArray(source.categories)?source.categories.map(category=>({
-      key:String(category?.key||category?.name||''),
-      name:String(category?.name||'').trim(),
-      items:(category?.items||[]).map(item=>normalizedProgressItem(item,definition.key==='stat-trackers'?'TRACKER VALUE':'PROGRESS')).filter(item=>item.name)
-    })).filter(category=>category.name):[];
+    const sourceCategories=Array.isArray(source.categories)?source.categories:[];
+    const hasVerifiedData=source.available===true||completed!==null||total!==null||sourceCategories.some(category=>[category?.allItems,category?.all?.items,category?.all,category?.items].some(items=>Array.isArray(items)&&items.length));
+    if(definition.optional&&!hasVerifiedData)return null;
+    let categories=sourceCategories.map(category=>{
+      const allItems=Array.isArray(category?.allItems)?category.allItems:Array.isArray(category?.all?.items)?category.all.items:Array.isArray(category?.all)?category.all:Array.isArray(category?.items)?category.items:[];
+      const rows=(definition.key==='stat-trackers'?allItems:category?.items||[]).map(item=>{
+        const row=normalizedProgressItem(item,definition.key==='stat-trackers'?'TRACKER VALUE':'PROGRESS');
+        return definition.key==='stat-trackers'?{...row,gilded:row.gilded||row.complete}:row;
+      }).filter(item=>item.name);
+      return {key:String(category?.key||category?.name||''),name:String(category?.name||'').trim(),items:rows};
+    }).filter(category=>category.name);
     if(definition.key==='stat-trackers'&&!categories.length)categories=STAT_TRACKER_CATEGORIES.map(name=>({key:name.toLowerCase().replaceAll(' ','-'),name,items:[]}));
     return {key:definition.key,name:String(source.name||definition.name),description:String(source.description||definition.description),icon:bungieIconUrl(source.iconPath),completed,total,unit:completed!==null&&total!==null&&total>0?'RECORDS':'',categories};
-  });
+  }).filter(Boolean);
 }
 
 function showRecordsDetail(section){
@@ -609,7 +617,7 @@ function showRecordsDetail(section){
 function bindRecordsPanel(payload){
   const sections=recordsFrameworkSections(payload);
   renderJourneyRecordList(recordsSections,sections,'Record sections are unavailable.',showRecordsDetail);
-  if(recordsStatus)recordsStatus.textContent='4 RECORD SECTIONS';
+  if(recordsStatus)recordsStatus.textContent=`${sections.length} RECORD SECTIONS${sections.some(section=>section.key==='lore')?'':' · LORE AWAITING VERIFIED DATA'}`;
 }
 
 function setRecordSelectorState(view){
