@@ -237,10 +237,3 @@ html[data-subclass="prismatic"] .subclass-option[data-subclass-option="prismatic
   .workspace>.stage{grid-column:2!important;grid-row:1!important}
   .workspace>.equip{grid-column:2!important;grid-row:2!important}
 }
-
-@media (min-width:1500px) and (min-height:900px){
-  body.guardian-main-page{--astrix-desktop-density:.85}
-  body.guardian-main-page .workspace{grid-template-columns:390px minmax(0,1fr)!important;grid-template-rows:600px minmax(0,1fr)!important}
-  body.guardian-main-page .workspace>.stage{width:1080px!important;max-width:100%!important;height:600px!important;justify-self:center!important;align-self:start!important}
-  body.guardian-main-page .workspace>.equip{align-self:start!important}
-}
