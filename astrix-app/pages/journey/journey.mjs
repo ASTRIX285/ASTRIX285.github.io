@@ -52,7 +52,10 @@ const guardianRankHero=document.getElementById('journeyGuardianRankHero');
 const guardianRankStrip=document.getElementById('journeyGuardianRankStrip');
 const guardianRankObjectives=document.getElementById('journeyGuardianRankObjectives');
 const recordsSections=document.getElementById('journeyRecordsSections');
+const recordsDetailGroup=document.getElementById('journeyRecordsDetailGroup');
 const recordsDetailHero=document.getElementById('journeyRecordsDetailHero');
+const recordsTypes=document.getElementById('journeyRecordsTypes');
+const recordsDetailHeading=document.getElementById('journeyRecordsDetailHeading');
 const recordsSubcategories=document.getElementById('journeyRecordsSubcategories');
 const recordsDetailList=document.getElementById('journeyRecordsDetailList');
 const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
@@ -257,6 +260,12 @@ const RECORD_SECTION_DEFINITIONS=[
   {key:'lore',name:'Lore',description:'Unlocked lore entries and collection progress.',optional:true},
   {key:'stat-trackers',name:'Stat Trackers',description:'Verified Guardian statistics with Mission Reports links.'}
 ];
+const PATTERN_CATALYST_TYPE_DEFINITIONS=[
+  {key:'primary',name:'Primary Weapon Patterns',shortName:'Primary',categories:['Auto Rifles','Bows','Hand Cannons','Pulse Rifles','Scout Rifles','Sidearms','Submachine Guns']},
+  {key:'special',name:'Special Weapon Patterns',shortName:'Special',categories:['Fusion Rifles','Glaives','Grenade Launchers','Shotguns','Sniper Rifles','Trace Rifles']},
+  {key:'heavy',name:'Heavy Weapon Patterns',shortName:'Heavy',categories:['Grenade Launchers','Linear Fusion Rifles','Machine Guns','Rocket Launchers','Swords']},
+  {key:'catalysts',name:'Exotic Catalysts',shortName:'Catalysts',categories:['Kinetic Weapons','Energy Weapons','Power Weapons']}
+];
 const STAT_TRACKER_CATEGORIES=['Seasons','Account','Crucible','Destination','Gambit','Raids','Strikes','Trials of Osiris'];
 const MISSION_REPORT_FILTERS=new Set(['view','category','mode','activity','activityHash','metricHash','trackerHash','period']);
 
@@ -269,11 +278,11 @@ function missionReportHref(filters){
   return url.search?url.toString():'';
 }
 
-function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,unit='',gilded=false,complete=false,value=null,onSelect=null,missionReportFilters=null}){
+function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,unit='',gilded=false,complete=false,crafted=false,value=null,onSelect=null,missionReportFilters=null}){
   const interactive=typeof onSelect==='function';
   const row=document.createElement(interactive?'button':'article');
   if(interactive){row.type='button';row.addEventListener('click',onSelect);}
-  row.className=`journey-record-row${gilded?' is-gilded':''}${complete?' is-complete':''}${icon?'':' has-no-icon'}`;
+  row.className=`journey-record-row${gilded?' is-gilded':''}${complete?' is-complete':''}${crafted?' is-crafted':''}${icon?'':' has-no-icon'}`;
   if(hash!==null&&hash!==undefined)row.dataset.presentationNodeHash=String(hash);
   if(icon){
     const image=document.createElement('img');
@@ -287,8 +296,8 @@ function makeJourneyRecordRow({hash,name,icon,description='',completed=null,tota
   copy.className='journey-record-copy';
   const title=document.createElement('strong');
   title.className='journey-record-title';
-  title.textContent=`${name}${gilded?' · GILDED':''}`;
-  if(complete){const check=document.createElement('span');check.className='journey-record-check';check.textContent='✓';title.appendChild(check);}
+  title.textContent=`${name}${gilded?' · GILDED':crafted?' · CRAFTED':''}`;
+  if(complete||crafted){const check=document.createElement('span');check.className='journey-record-check';check.textContent='✓';title.appendChild(check);}
   copy.appendChild(title);
   if(description){const text=document.createElement('span');text.className='journey-record-description';text.textContent=description;copy.appendChild(text);}
   const verifiedProgress=completed!==null&&total!==null&&total>0;
@@ -375,10 +384,9 @@ function renderDetailHero(host,{name,icon='',description='',completed=null,total
 function normalizedProgressItem(item={},defaultUnit='OBJECTIVES'){
   const objectiveProgress=item?.objectiveProgress&&typeof item.objectiveProgress==='object'?item.objectiveProgress:{};
   const explicitCompleted=typeof item.completed==='number'?item.completed:null;
-  let completed=finiteNumber(item.completedCount??item.completedObjectives??objectiveProgress.progress??item.progressValue??explicitCompleted);
-  let total=finiteNumber(item.totalCount??item.totalObjectives??objectiveProgress.completionValue??item.completionValue??item.total);
-  const complete=item.complete===true||item.completed===true||objectiveProgress.complete===true;
-  if(complete&&completed===null&&total===null){completed=1;total=1;}
+  let completed=finiteNumber(item.completedCount??item.completedObjectives??item.patternProgress??item.catalystProgress??objectiveProgress.progress??item.progressValue??explicitCompleted);
+  let total=finiteNumber(item.totalCount??item.totalObjectives??item.patternTotal??item.catalystTotal??objectiveProgress.completionValue??item.completionValue??item.total);
+  const complete=item.complete===true||item.completed===true||item.patternUnlocked===true||item.catalystComplete===true||objectiveProgress.complete===true;
   return {
     hash:item.recordHash??item.presentationNodeHash??item.metricHash??item.trackerHash??item.itemHash??item.hash,
     name:String(item.name||'').trim(),
@@ -388,6 +396,7 @@ function normalizedProgressItem(item={},defaultUnit='OBJECTIVES'){
     total,
     unit:String(item.unit||defaultUnit).trim().toUpperCase(),
     complete,
+    crafted:item.crafted===true,
     gilded:item.gilded===true,
     value:item.value??(completed!==null&&!(total!==null&&total>0)?completed:null),
     missionReportFilters:item.missionReportFilters&&typeof item.missionReportFilters==='object'?item.missionReportFilters:null
@@ -455,6 +464,35 @@ function renderSubmenu(host,sections,onSelect){
   });
   host.appendChild(fragment);
   if(sections[0])onSelect(sections[0]);
+}
+
+function renderRecordTypes(host,types,onSelect){
+  if(!host)return;
+  host.replaceChildren();
+  const fragment=document.createDocumentFragment();
+  types.forEach((type,index)=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.setAttribute('role','tab');
+    button.setAttribute('aria-label',type.name);
+    button.setAttribute('aria-current',String(index===0));
+    button.setAttribute('aria-selected',String(index===0));
+    if(type.icon){const image=document.createElement('img');image.src=type.icon;image.alt='';button.appendChild(image);}
+    const label=document.createElement('span');
+    label.textContent=type.shortName||type.name;
+    button.appendChild(label);
+    const counts=[];
+    if(type.completed!==null&&type.total!==null&&type.total>0)counts.push(`${numberFormatter.format(type.completed)} / ${numberFormatter.format(type.total)}`);
+    if(type.craftedCount!==null)counts.push(`${numberFormatter.format(type.craftedCount)} CRAFTED`);
+    if(counts.length){const status=document.createElement('small');status.textContent=counts.join(' · ');button.appendChild(status);}
+    button.addEventListener('click',()=>{
+      host.querySelectorAll('button').forEach(item=>{const selected=item===button;item.setAttribute('aria-current',String(selected));item.setAttribute('aria-selected',String(selected));});
+      onSelect(type);
+    });
+    fragment.appendChild(button);
+  });
+  host.appendChild(fragment);
+  if(types[0])onSelect(types[0]);
 }
 
 function recordRootView(view){
@@ -581,6 +619,32 @@ function bindGuardianRankPanel(payload){
   if(recordsStatus)recordsStatus.textContent=data.currentRank===null?'GUARDIAN RANK DATA UNAVAILABLE':`CURRENT GUARDIAN RANK ${data.currentRank}`;
 }
 
+function recordCategoryKey(value){return String(value||'').trim().toLowerCase().replaceAll('&','and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+
+function patternsCatalystsTypes(source){
+  const supplied=Array.isArray(source.types)?source.types:Array.isArray(source.categories)?source.categories:[];
+  const byKey=new Map(supplied.map(type=>[recordCategoryKey(type?.key||type?.name),type]));
+  return PATTERN_CATALYST_TYPE_DEFINITIONS.map(definition=>{
+    const alternateKey=definition.key==='catalysts'?'exotic-catalysts':`${definition.key}-patterns`;
+    const type=byKey.get(definition.key)||byKey.get(alternateKey)||byKey.get(recordCategoryKey(definition.name))||{};
+    const suppliedCategories=Array.isArray(type.categories)?type.categories:Array.isArray(type.groups)?type.groups:[];
+    const categoryByKey=new Map(suppliedCategories.map(category=>[recordCategoryKey(category?.key||category?.name),category]));
+    const used=new Set();
+    const categories=definition.categories.map(name=>{
+      const key=recordCategoryKey(name);
+      const category=categoryByKey.get(key)||{};
+      used.add(key);
+      return {key,name:String(category.name||name),items:(category.items||[]).map(item=>normalizedProgressItem(item,definition.key==='catalysts'?'CATALYST PROGRESS':'PATTERN PROGRESS')).filter(item=>item.name)};
+    });
+    suppliedCategories.forEach(category=>{
+      const key=recordCategoryKey(category?.key||category?.name);
+      if(!key||used.has(key)||!String(category?.name||'').trim())return;
+      categories.push({key,name:String(category.name).trim(),items:(category.items||[]).map(item=>normalizedProgressItem(item,definition.key==='catalysts'?'CATALYST PROGRESS':'PATTERN PROGRESS')).filter(item=>item.name)});
+    });
+    return {key:definition.key,name:String(type.name||definition.name),shortName:String(type.shortName||definition.shortName),icon:bungieIconUrl(type.iconPath),completed:finiteNumber(type.completed??type.unlockedPatterns??type.completedCatalysts),total:finiteNumber(type.total??type.totalPatterns??type.totalCatalysts),craftedCount:finiteNumber(type.craftedCount),categories};
+  });
+}
+
 function recordsFrameworkSections(payload){
   const supplied=payload?.journeyRecordOverview?.records?.sections;
   const byKey=new Map((Array.isArray(supplied)?supplied:[]).map(section=>[String(section?.key||''),section]));
@@ -591,7 +655,7 @@ function recordsFrameworkSections(payload){
     const sourceCategories=Array.isArray(source.categories)?source.categories:[];
     const hasVerifiedData=source.available===true||completed!==null||total!==null||sourceCategories.some(category=>[category?.allItems,category?.all?.items,category?.all,category?.items].some(items=>Array.isArray(items)&&items.length));
     if(definition.optional&&!hasVerifiedData)return null;
-    let categories=sourceCategories.map(category=>{
+    let categories=definition.key==='patterns-catalysts'?[]:sourceCategories.map(category=>{
       const allItems=Array.isArray(category?.allItems)?category.allItems:Array.isArray(category?.all?.items)?category.all.items:Array.isArray(category?.all)?category.all:Array.isArray(category?.items)?category.items:[];
       const rows=(definition.key==='stat-trackers'?allItems:category?.items||[]).map(item=>{
         const row=normalizedProgressItem(item,definition.key==='stat-trackers'?'TRACKER VALUE':'PROGRESS');
@@ -600,7 +664,7 @@ function recordsFrameworkSections(payload){
       return {key:String(category?.key||category?.name||''),name:String(category?.name||'').trim(),items:rows};
     }).filter(category=>category.name);
     if(definition.key==='stat-trackers'&&!categories.length)categories=STAT_TRACKER_CATEGORIES.map(name=>({key:name.toLowerCase().replaceAll(' ','-'),name,items:[]}));
-    return {key:definition.key,name:String(source.name||definition.name),description:String(source.description||definition.description),icon:bungieIconUrl(source.iconPath),completed,total,unit:completed!==null&&total!==null&&total>0?'RECORDS':'',categories};
+    return {key:definition.key,name:String(source.name||definition.name),description:String(source.description||definition.description),icon:bungieIconUrl(source.iconPath),completed,total,unit:completed!==null&&total!==null&&total>0?'RECORDS':'',categories,types:definition.key==='patterns-catalysts'?patternsCatalystsTypes(source):[]};
   }).filter(Boolean);
 }
 
@@ -608,6 +672,18 @@ function showRecordsDetail(section){
   selectedRecordSection=section;
   activateRecordView('records-detail');
   renderDetailHero(recordsDetailHero,{name:section.name,icon:section.icon,description:section.description,completed:section.completed,total:section.total,unit:'SECTION PROGRESS'});
+  const patternsCatalysts=section.key==='patterns-catalysts';
+  recordsDetailGroup?.classList.toggle('is-patterns-catalysts',patternsCatalysts);
+  if(recordsTypes)recordsTypes.hidden=!patternsCatalysts;
+  if(patternsCatalysts){
+    renderRecordTypes(recordsTypes,section.types||[],type=>{
+      if(recordsDetailHeading)recordsDetailHeading.textContent=type.name;
+      renderSubmenu(recordsSubcategories,type.categories||[],category=>renderJourneyRecordList(recordsDetailList,category.items||[],type.key==='catalysts'?'Verified catalyst progress for this weapon group is not yet connected.':'Verified pattern progress for this weapon type is not yet connected.'));
+    });
+    return;
+  }
+  recordsTypes?.replaceChildren();
+  if(recordsDetailHeading)recordsDetailHeading.textContent='Record Categories';
   renderSubmenu(recordsSubcategories,section.categories||[],category=>{
     renderJourneyRecordList(recordsDetailList,category.items||[],section.key==='stat-trackers'?'Verified Stat Trackers for this category are not yet connected.':'Verified individual Record progress is not yet connected.');
   });
