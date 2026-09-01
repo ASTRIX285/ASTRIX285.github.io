@@ -36,7 +36,7 @@ body.journey-page.apx-destination-page .apx-page-shell{
 
 .journey-console{
   display:grid;
-  grid-template-columns:392px minmax(720px,1fr) 476px;
+  grid-template-columns:minmax(360px,20%) minmax(720px,1fr) minmax(420px,24%);
   gap:.625rem;
   width:100%;
   padding:.625rem;
@@ -82,7 +82,7 @@ body.journey-page.apx-destination-page .apx-page-shell{
 .journey-location-centre .apx-section-heading{border-bottom-color:color-mix(in srgb,var(--loc) 26%,transparent)}
 .journey-location-centre .apx-status-chip{border-color:color-mix(in srgb,var(--loc) 34%,transparent);color:var(--loc)}
 .journey-location-centre .apx-section-heading h2{font-size:.9375rem}
-.journey-location-centre .apx-loc-layout{grid-template-columns:220px minmax(0,1fr);gap:1rem;align-items:start}
+.journey-location-centre .apx-loc-layout{grid-template-columns:minmax(220px,20%) minmax(0,1fr);gap:1rem;align-items:start}
 .journey-location-centre .apx-loc-list{
   display:flex;
   flex-direction:column;
@@ -143,6 +143,11 @@ body.journey-page.apx-destination-page .apx-page-shell{
 .journey-column-summaries .apx-scaffold-card{min-height:0;padding:.875rem;border-color:color-mix(in srgb,var(--loc) 22%,transparent)}
 .journey-column-summaries .apx-scaffold-card h2{font-size:.8125rem}
 .journey-column-summaries .apx-empty-state{margin-top:.625rem;padding:.625rem;font-size:.8125rem;line-height:1.45}
+
+@media(min-width:1761px){
+  .journey-console{align-items:stretch}
+  .journey-left-rail,.journey-right-rail{align-self:stretch}
+}
 
 @media(max-width:1760px){
   .journey-console{grid-template-columns:392px minmax(0,1fr)}
@@ -268,7 +273,8 @@ body.journey-page.apx-destination-page .apx-page-shell{
   z-index:4;
   top:18px;
   left:18px;
-  width:min(440px,calc(100% - 36px));
+  box-sizing:border-box;
+  width:35%;
   padding:20px;
   border:1px solid rgba(201,168,76,.62);
   background:rgba(4,6,7,.05);
