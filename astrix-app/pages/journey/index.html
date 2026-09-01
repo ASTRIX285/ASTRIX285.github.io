@@ -31,18 +31,36 @@
     .journey-page .journey-records-group>h3{margin:0 0 12px;color:var(--apx-gold);font-size:.875rem;letter-spacing:.1em}
     .journey-page .journey-records-list{display:flex;flex-direction:column;gap:8px}
     .journey-page .journey-record-row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center;min-height:76px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018)}
+    .journey-page button.journey-record-row{width:100%;color:inherit;font:inherit;text-align:left;cursor:pointer}
+    .journey-page button.journey-record-row:hover,.journey-page button.journey-record-row:focus-visible{border-color:rgba(201,168,76,.55);background:rgba(201,168,76,.06);outline:none}
     .journey-page .journey-record-row.has-no-icon{grid-template-columns:1fr}
     .journey-page .journey-record-row.is-gilded{border-color:rgba(244,211,123,.34);background:linear-gradient(90deg,rgba(184,115,33,.12),rgba(255,240,177,.025))}
+    .journey-page .journey-record-row.is-complete{border-color:rgba(201,168,76,.32)}
     .journey-page .journey-record-icon{display:block;width:48px;height:48px;object-fit:contain}
     .journey-page .journey-record-copy{min-width:0}
     .journey-page .journey-record-title{display:block;overflow:hidden;color:#f4efe4;font:800 .875rem/1.15 Orbitron,sans-serif;letter-spacing:.04em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+    .journey-page .journey-record-description{display:block;margin-top:5px;overflow:hidden;color:#8e887e;font:.8125rem/1.25 Rajdhani,sans-serif;text-overflow:ellipsis;white-space:nowrap}
     .journey-page .journey-record-progress{display:flex;justify-content:space-between;gap:12px;margin-top:7px;color:#8e887e;font:.8125rem/1 Rajdhani,sans-serif}
     .journey-page .journey-record-progress b{color:var(--apx-gold);font-weight:700}
     .journey-page .journey-record-track{height:7px;margin-top:7px;overflow:hidden;background:rgba(255,255,255,.08)}
     .journey-page .journey-record-fill{display:block;height:100%;background:linear-gradient(90deg,#8b0000,#d3202f 48%,#c9a84c)}
     .journey-page .journey-record-row.is-gilded .journey-record-fill{background:linear-gradient(90deg,#b87321,#f4d37b 56%,#fff0b1)}
+    .journey-page .journey-record-check{float:right;color:var(--apx-gold)}
+    .journey-page .journey-record-link{display:inline-block;margin-top:9px;color:var(--apx-gold);font:700 .6875rem/1 Orbitron,sans-serif;letter-spacing:.08em;text-decoration:none}
+    .journey-page .journey-record-link:hover,.journey-page .journey-record-link:focus-visible{text-decoration:underline;outline:none}
+    .journey-page .journey-record-detail-hero{display:grid;grid-template-columns:96px minmax(0,1fr);gap:16px;align-items:center;margin-bottom:16px;padding:14px;border:1px solid rgba(201,168,76,.18);background:rgba(255,255,255,.018)}
+    .journey-page .journey-record-detail-hero.has-no-icon{grid-template-columns:1fr}
+    .journey-page .journey-record-detail-icon{display:block;width:88px;height:88px;object-fit:contain}
+    .journey-page .journey-record-detail-copy h4{margin:0;color:#f4efe4;font:800 1rem/1.2 Orbitron,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+    .journey-page .journey-record-detail-copy p{margin:7px 0 0;color:#8e887e;font:.875rem/1.35 Rajdhani,sans-serif}
+    .journey-page .journey-record-submenu{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+    .journey-page .journey-record-submenu button{min-height:38px;padding:8px 12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:700 .75rem/1 Orbitron,sans-serif;letter-spacing:.08em;text-align:left;cursor:pointer}
+    .journey-page .journey-record-submenu button[aria-current="true"]{border-left:3px solid var(--apx-gold);background:rgba(201,168,76,.1);color:#f4efe4}
+    .journey-page .journey-rank-strip{display:grid;grid-template-columns:repeat(11,minmax(40px,1fr));gap:5px;margin-bottom:14px;overflow-x:auto}
+    .journey-page .journey-rank-strip button{min-width:40px;min-height:40px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:800 .75rem/1 Orbitron,sans-serif;cursor:pointer}
+    .journey-page .journey-rank-strip button[aria-current="true"]{border-color:rgba(201,168,76,.7);background:rgba(201,168,76,.12);color:var(--apx-gold)}
     .journey-page .journey-records-empty{margin:0}
-    @media(max-width:720px){.journey-page .journey-records-toolbar{align-items:flex-start;flex-direction:column}.journey-page .journey-records-status{text-align:left}}
+    @media(max-width:720px){.journey-page .journey-records-toolbar{align-items:flex-start;flex-direction:column}.journey-page .journey-records-status{text-align:left}.journey-page .journey-record-detail-hero{grid-template-columns:1fr}.journey-page .journey-rank-strip{grid-template-columns:repeat(11,40px)}}
   </style>
   <script src="../../shared/astrix-destination-ribbon.js" defer></script>
   <script src="../../shared/astrix-destination-theme.js" defer></script>
@@ -169,6 +187,8 @@
                   <div class="apx-loc-list" role="listbox" aria-label="Guardian records">
                     <button class="apx-loc" id="journeyTitlesOpen" type="button" role="option" aria-controls="journeyRecordsPanel" aria-expanded="false" aria-current="false" style="--c:201,168,76"><span class="apx-loc-name">Titles</span></button>
                     <button class="apx-loc" id="journeyTriumphsOpen" type="button" role="option" aria-controls="journeyRecordsPanel" aria-expanded="false" aria-current="false" style="--c:201,168,76"><span class="apx-loc-name">Triumphs</span></button>
+                    <button class="apx-loc" id="journeyGuardianRankOpen" type="button" role="option" aria-controls="journeyRecordsPanel" aria-expanded="false" aria-current="false" style="--c:201,168,76"><span class="apx-loc-name">Guardian Rank</span></button>
+                    <button class="apx-loc" id="journeyRecordsOpen" type="button" role="option" aria-controls="journeyRecordsPanel" aria-expanded="false" aria-current="false" style="--c:201,168,76"><span class="apx-loc-name">Records</span></button>
                   </div>
                 </div>
               </div>
@@ -177,7 +197,12 @@
                 <section class="journey-records-panel" id="journeyRecordsPanel" aria-label="Destiny 2 Guardian records" hidden>
                   <div class="journey-records-toolbar"><button class="journey-records-back" id="journeyRecordsBack" type="button">Back to Destination</button><span class="journey-records-status" id="journeyRecordsStatus" role="status">AWAITING VERIFIED BUNGIE RECORDS</span></div>
                   <div class="journey-records-group" data-journey-record-view="titles" aria-labelledby="journeyTitlesHeading"><h3 id="journeyTitlesHeading">Destiny 2 Titles</h3><div class="journey-records-list" id="journeyTitlesList"><span class="apx-empty-state journey-records-empty">Title presentation nodes are awaiting verified profile data.</span></div></div>
+                  <div class="journey-records-group" data-journey-record-view="title-detail" aria-labelledby="journeyTitleRequirementsHeading" hidden><div class="journey-record-detail-hero" id="journeyTitleDetailHero"></div><h3 id="journeyTitleRequirementsHeading">Title Requirements</h3><div class="journey-records-list" id="journeyTitleRequirementsList"><span class="apx-empty-state journey-records-empty">Verified title requirements are awaiting data.</span></div></div>
                   <div class="journey-records-group" data-journey-record-view="triumphs" aria-labelledby="journeyTriumphCategoriesHeading" hidden><h3 id="journeyTriumphCategoriesHeading">Triumph Categories</h3><div class="journey-records-list" id="journeyTriumphCategoriesList"><span class="apx-empty-state journey-records-empty">Triumph presentation nodes are awaiting verified profile data.</span></div></div>
+                  <div class="journey-records-group" data-journey-record-view="triumph-detail" aria-labelledby="journeyTriumphDetailHeading" hidden><div class="journey-record-detail-hero" id="journeyTriumphDetailHero"></div><h3 id="journeyTriumphDetailHeading">Triumph Subcategories</h3><div class="journey-record-submenu" id="journeyTriumphSubcategories"></div><div class="journey-records-list" id="journeyTriumphDetailList"><span class="apx-empty-state journey-records-empty">Verified Triumph records are awaiting data.</span></div></div>
+                  <div class="journey-records-group" data-journey-record-view="guardian-rank" aria-labelledby="journeyGuardianRankHeading" hidden><div class="journey-record-detail-hero" id="journeyGuardianRankHero"></div><div class="journey-rank-strip" id="journeyGuardianRankStrip" aria-label="Guardian Ranks"></div><h3 id="journeyGuardianRankHeading">Guardian Rank Objectives</h3><div class="journey-records-list" id="journeyGuardianRankObjectives"><span class="apx-empty-state journey-records-empty">Verified Guardian Rank objectives are awaiting data.</span></div></div>
+                  <div class="journey-records-group" data-journey-record-view="records" aria-labelledby="journeyRecordsHeading" hidden><h3 id="journeyRecordsHeading">Records</h3><div class="journey-records-list" id="journeyRecordsSections"><span class="apx-empty-state journey-records-empty">Record sections are awaiting verified data.</span></div></div>
+                  <div class="journey-records-group" data-journey-record-view="records-detail" aria-labelledby="journeyRecordsDetailHeading" hidden><div class="journey-record-detail-hero" id="journeyRecordsDetailHero"></div><h3 id="journeyRecordsDetailHeading">Record Categories</h3><div class="journey-record-submenu" id="journeyRecordsSubcategories"></div><div class="journey-records-list" id="journeyRecordsDetailList"><span class="apx-empty-state journey-records-empty">Verified individual Record progress is awaiting data.</span></div></div>
                 </section>
               </div>
             </div>

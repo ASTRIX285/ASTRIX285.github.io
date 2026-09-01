@@ -36,11 +36,25 @@ const locationSelector=document.getElementById('journeyLocationSelector');
 const destinationDetail=document.getElementById('journeyLocationDetail');
 const titlesOpen=document.getElementById('journeyTitlesOpen');
 const triumphsOpen=document.getElementById('journeyTriumphsOpen');
+const guardianRankOpen=document.getElementById('journeyGuardianRankOpen');
+const recordsOpen=document.getElementById('journeyRecordsOpen');
 const recordsPanel=document.getElementById('journeyRecordsPanel');
 const recordsBack=document.getElementById('journeyRecordsBack');
 const recordsStatus=document.getElementById('journeyRecordsStatus');
 const titlesList=document.getElementById('journeyTitlesList');
+const titleDetailHero=document.getElementById('journeyTitleDetailHero');
+const titleRequirementsList=document.getElementById('journeyTitleRequirementsList');
 const triumphCategoriesList=document.getElementById('journeyTriumphCategoriesList');
+const triumphDetailHero=document.getElementById('journeyTriumphDetailHero');
+const triumphSubcategories=document.getElementById('journeyTriumphSubcategories');
+const triumphDetailList=document.getElementById('journeyTriumphDetailList');
+const guardianRankHero=document.getElementById('journeyGuardianRankHero');
+const guardianRankStrip=document.getElementById('journeyGuardianRankStrip');
+const guardianRankObjectives=document.getElementById('journeyGuardianRankObjectives');
+const recordsSections=document.getElementById('journeyRecordsSections');
+const recordsDetailHero=document.getElementById('journeyRecordsDetailHero');
+const recordsSubcategories=document.getElementById('journeyRecordsSubcategories');
+const recordsDetailList=document.getElementById('journeyRecordsDetailList');
 const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
 const MILESTONES_PENDING='No verified milestone or achievement source is connected.';
 const RECENT_ACTIVITY_PENDING='Recent activity data is not connected.';
@@ -62,6 +76,9 @@ let historicalStatsRequest=0;
 let currentFormRequest=0;
 let titleTriumphRequest=0;
 let activeRecordView='';
+let selectedTitle=null;
+let selectedTriumphCategory=null;
+let selectedRecordSection=null;
 
 function waitForHeroCards(){
   if(!heroCards||!heroCards.querySelector('.guardian-character-cards__status.is-pending'))return Promise.resolve();
@@ -234,15 +251,36 @@ function titleRecordFor(payload,characterId,hash){
     ||payload?.profile?.profileRecords?.data?.records?.[String(hash)];
 }
 
-function makeJourneyRecordRow({hash,name,icon,completed,total,unit,gilded=false}){
-  const row=document.createElement('article');
-  row.className=`journey-record-row${gilded?' is-gilded':''}${icon?'':' has-no-icon'}`;
-  row.dataset.presentationNodeHash=String(hash);
+const RECORD_SECTION_DEFINITIONS=[
+  {key:'medals',name:'Medals',description:'Verified activity medals and earned counts.'},
+  {key:'patterns-catalysts',name:'Patterns & Catalysts',description:'Weapon-pattern and catalyst objective progress.'},
+  {key:'lore',name:'Lore',description:'Unlocked lore entries and collection progress.'},
+  {key:'stat-trackers',name:'Stat Trackers',description:'Verified Guardian statistics with Mission Reports links.'}
+];
+const STAT_TRACKER_CATEGORIES=['Seasons','Account','Crucible','Destination','Gambit','Raids','Strikes','Trials of Osiris'];
+const MISSION_REPORT_FILTERS=new Set(['view','category','mode','activity','activityHash','metricHash','trackerHash','period']);
+
+function missionReportHref(filters){
+  if(!filters||typeof filters!=='object')return '';
+  const url=new URL('../mission-reports/',globalThis.location.href);
+  Object.entries(filters).forEach(([key,value])=>{
+    if(MISSION_REPORT_FILTERS.has(key)&&value!==null&&value!==undefined&&String(value).trim())url.searchParams.set(key,String(value));
+  });
+  return url.search?url.toString():'';
+}
+
+function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,unit='',gilded=false,complete=false,value=null,onSelect=null,missionReportFilters=null}){
+  const interactive=typeof onSelect==='function';
+  const row=document.createElement(interactive?'button':'article');
+  if(interactive){row.type='button';row.addEventListener('click',onSelect);}
+  row.className=`journey-record-row${gilded?' is-gilded':''}${complete?' is-complete':''}${icon?'':' has-no-icon'}`;
+  if(hash!==null&&hash!==undefined)row.dataset.presentationNodeHash=String(hash);
   if(icon){
     const image=document.createElement('img');
     image.className='journey-record-icon';
     image.src=icon;
     image.alt='';
+    image.loading='lazy';
     row.appendChild(image);
   }
   const copy=document.createElement('div');
@@ -250,37 +288,49 @@ function makeJourneyRecordRow({hash,name,icon,completed,total,unit,gilded=false}
   const title=document.createElement('strong');
   title.className='journey-record-title';
   title.textContent=`${name}${gilded?' · GILDED':''}`;
-  const progress=document.createElement('div');
-  progress.className='journey-record-progress';
-  const label=document.createElement('span');
-  label.textContent=unit;
-  const value=document.createElement('b');
-  const verified=completed!==null&&total!==null&&total>0;
-  value.textContent=verified?`${numberFormatter.format(completed)} / ${numberFormatter.format(total)}`:'AWAITING VERIFIED COUNTS';
-  progress.append(label,value);
-  const track=document.createElement('div');
-  track.className='journey-record-track';
-  track.setAttribute('role','progressbar');
-  track.setAttribute('aria-label',`${name} ${unit.toLowerCase()}`);
-  const fill=document.createElement('i');
-  fill.className='journey-record-fill';
-  if(verified){
+  if(complete){const check=document.createElement('span');check.className='journey-record-check';check.textContent='✓';title.appendChild(check);}
+  copy.appendChild(title);
+  if(description){const text=document.createElement('span');text.className='journey-record-description';text.textContent=description;copy.appendChild(text);}
+  const verifiedProgress=completed!==null&&total!==null&&total>0;
+  const hasValue=value!==null&&value!==undefined&&String(value)!=='';
+  if(unit||verifiedProgress||hasValue){
+    const progress=document.createElement('div');
+    progress.className='journey-record-progress';
+    const label=document.createElement('span');
+    label.textContent=unit||'VERIFIED VALUE';
+    const output=document.createElement('b');
+    output.textContent=verifiedProgress?`${numberFormatter.format(completed)} / ${numberFormatter.format(total)}`:hasValue?(typeof value==='number'?numberFormatter.format(value):String(value)):'AWAITING VERIFIED COUNTS';
+    progress.append(label,output);
+    copy.appendChild(progress);
+  }
+  if(verifiedProgress){
     const bounded=Math.max(0,Math.min(total,completed));
+    const track=document.createElement('div');
+    track.className='journey-record-track';
+    track.setAttribute('role','progressbar');
+    track.setAttribute('aria-label',`${name} ${unit.toLowerCase()}`);
     track.setAttribute('aria-valuemin','0');
     track.setAttribute('aria-valuemax',String(total));
     track.setAttribute('aria-valuenow',String(bounded));
+    const fill=document.createElement('i');
+    fill.className='journey-record-fill';
     fill.style.width=`${bounded/total*100}%`;
-  }else{
-    track.setAttribute('aria-valuetext','Verified progress unavailable');
-    fill.style.width='0%';
+    track.appendChild(fill);
+    copy.appendChild(track);
   }
-  track.appendChild(fill);
-  copy.append(title,progress,track);
+  const reportHref=interactive?'':missionReportHref(missionReportFilters);
+  if(reportHref){
+    const link=document.createElement('a');
+    link.className='journey-record-link';
+    link.href=reportHref;
+    link.textContent='VIEW MISSION REPORTS';
+    copy.appendChild(link);
+  }
   row.appendChild(copy);
   return row;
 }
 
-function renderJourneyRecordList(list,rows,emptyText){
+function renderJourneyRecordList(list,rows,emptyText,onSelect=null){
   if(!list)return;
   list.replaceChildren();
   if(!rows.length){
@@ -291,30 +341,163 @@ function renderJourneyRecordList(list,rows,emptyText){
     return;
   }
   const fragment=document.createDocumentFragment();
-  rows.forEach(row=>fragment.appendChild(makeJourneyRecordRow(row)));
+  rows.forEach(row=>fragment.appendChild(makeJourneyRecordRow({...row,onSelect:onSelect?()=>onSelect(row):null})));
   list.appendChild(fragment);
+}
+
+function renderDetailHero(host,{name,icon='',description='',completed=null,total=null,unit=''}){
+  if(!host)return;
+  host.replaceChildren();
+  host.classList.toggle('has-no-icon',!icon);
+  if(icon){const image=document.createElement('img');image.className='journey-record-detail-icon';image.src=icon;image.alt='';host.appendChild(image);}
+  const copy=document.createElement('div');
+  copy.className='journey-record-detail-copy';
+  const heading=document.createElement('h4');
+  heading.textContent=name;
+  copy.appendChild(heading);
+  if(description){const text=document.createElement('p');text.textContent=description;copy.appendChild(text);}
+  const verified=completed!==null&&total!==null&&total>0;
+  if(verified){
+    const progress=document.createElement('div');
+    progress.className='journey-record-progress';
+    progress.innerHTML=`<span>${unit}</span><b>${numberFormatter.format(completed)} / ${numberFormatter.format(total)}</b>`;
+    const track=document.createElement('div');
+    track.className='journey-record-track';
+    const fill=document.createElement('i');
+    fill.className='journey-record-fill';
+    fill.style.width=`${Math.max(0,Math.min(total,completed))/total*100}%`;
+    track.appendChild(fill);
+    copy.append(progress,track);
+  }
+  host.appendChild(copy);
+}
+
+function normalizedProgressItem(item={},defaultUnit='OBJECTIVES'){
+  const explicitCompleted=typeof item.completed==='number'?item.completed:null;
+  let completed=finiteNumber(item.completedCount??item.completedObjectives??item.progressValue??explicitCompleted);
+  let total=finiteNumber(item.totalCount??item.totalObjectives??item.completionValue??item.total);
+  const complete=item.complete===true||item.completed===true;
+  if(complete&&completed===null&&total===null){completed=1;total=1;}
+  return {
+    hash:item.recordHash??item.presentationNodeHash??item.metricHash??item.trackerHash??item.itemHash??item.hash,
+    name:String(item.name||'').trim(),
+    icon:bungieIconUrl(item.iconPath),
+    description:String(item.description||'').trim(),
+    completed,
+    total,
+    unit:String(item.unit||defaultUnit).trim().toUpperCase(),
+    complete,
+    value:item.value??null,
+    missionReportFilters:item.missionReportFilters&&typeof item.missionReportFilters==='object'?item.missionReportFilters:null
+  };
 }
 
 function journeyRecordHookRows(payload,view){
   const source=view==='titles'?payload?.journeyRecordOverview?.titles:payload?.journeyRecordOverview?.triumphCategories;
   if(!Array.isArray(source))return null;
-  return source.map(item=>({
-    hash:item?.presentationNodeHash,
-    name:String(item?.name||'').trim(),
-    icon:bungieIconUrl(item?.iconPath),
-    completed:finiteNumber(view==='titles'?item?.completedActivities:item?.completedTriumphs),
-    total:finiteNumber(view==='titles'?item?.totalActivities:item?.totalTriumphs),
-    unit:view==='titles'?'ACTIVITIES':'TRIUMPHS',
-    gilded:view==='titles'&&item?.gilded===true
-  })).filter(item=>item.hash!==null&&item.hash!==undefined&&item.name&&item.icon).sort((left,right)=>left.name.localeCompare(right.name));
+  return source.map(item=>{
+    if(view==='titles'){
+      const requirements=Array.isArray(item?.requirements)?item.requirements.map(row=>normalizedProgressItem(row,'OBJECTIVES')).filter(row=>row.name):[];
+      const usesRequirements=item?.completedRequirements!==undefined||item?.totalRequirements!==undefined||requirements.length>0;
+      const completed=finiteNumber(item?.completedRequirements??item?.completedActivities);
+      const total=finiteNumber(item?.totalRequirements??item?.totalActivities);
+      return {
+        hash:item?.presentationNodeHash,
+        name:String(item?.titleName||item?.name||'').trim(),
+        detailName:String(item?.collectionName||item?.name||item?.titleName||'').trim(),
+        icon:bungieIconUrl(item?.iconPath),
+        description:String(item?.description||'').trim(),
+        completed:completed??(requirements.length?requirements.filter(row=>row.complete).length:null),
+        total:total??(requirements.length?requirements.length:null),
+        unit:usesRequirements?'TITLE REQUIREMENTS':'ACTIVITIES',
+        gilded:item?.gilded===true,
+        requirements
+      };
+    }
+    const subcategories=Array.isArray(item?.subcategories)?item.subcategories.map(section=>({
+      hash:section?.presentationNodeHash??section?.hash,
+      name:String(section?.name||'').trim(),
+      icon:bungieIconUrl(section?.iconPath),
+      completed:finiteNumber(section?.completedTriumphs),
+      total:finiteNumber(section?.totalTriumphs),
+      items:(section?.triumphs||section?.records||section?.items||[]).map(row=>normalizedProgressItem(row,'TRIUMPHS')).filter(row=>row.name)
+    })).filter(section=>section.name):[];
+    const direct=(item?.triumphs||item?.records||[]).map(row=>normalizedProgressItem(row,'TRIUMPHS')).filter(row=>row.name);
+    return {
+      hash:item?.presentationNodeHash,
+      name:String(item?.name||'').trim(),
+      icon:bungieIconUrl(item?.iconPath),
+      description:String(item?.description||'').trim(),
+      completed:finiteNumber(item?.completedTriumphs),
+      total:finiteNumber(item?.totalTriumphs),
+      unit:'TRIUMPHS',
+      subcategories:subcategories.length?subcategories:(direct.length?[{name:String(item?.name||'Triumphs'),items:direct}]:[])
+    };
+  }).filter(item=>item.hash!==null&&item.hash!==undefined&&item.name).sort((left,right)=>left.name.localeCompare(right.name));
 }
 
-async function bindTitleTriumphPanel(payload,view=activeRecordView){
+function renderSubmenu(host,sections,onSelect){
+  if(!host)return;
+  host.replaceChildren();
+  const fragment=document.createDocumentFragment();
+  sections.forEach((section,index)=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.textContent=section.name;
+    button.setAttribute('aria-current',String(index===0));
+    button.addEventListener('click',()=>{
+      host.querySelectorAll('button').forEach(item=>item.setAttribute('aria-current',String(item===button)));
+      onSelect(section);
+    });
+    fragment.appendChild(button);
+  });
+  host.appendChild(fragment);
+  if(sections[0])onSelect(sections[0]);
+}
+
+function recordRootView(view){
+  if(view==='title-detail')return 'titles';
+  if(view==='triumph-detail')return 'triumphs';
+  if(view==='records-detail')return 'records';
+  return view;
+}
+
+function activateRecordView(view){
+  activeRecordView=view;
+  recordsPanel?.querySelectorAll('[data-journey-record-view]').forEach(group=>group.hidden=group.dataset.journeyRecordView!==view);
+  const root=recordRootView(view);
+  const headings={titles:'Titles',triumphs:'Triumphs','guardian-rank':'Guardian Rank',records:'Records'};
+  if(focusHeading)focusHeading.textContent=headings[root]||'Guardian Records';
+  if(focusStatus)focusStatus.textContent='VERIFIED BUNGIE RECORDS';
+  if(recordsBack)recordsBack.textContent=view==='title-detail'?'Back to Titles':view==='triumph-detail'?'Back to Triumph Categories':view==='records-detail'?'Back to Records':'Back to Destination';
+  setRecordSelectorState(root);
+}
+
+function showTitleDetail(title){
+  selectedTitle=title;
+  activateRecordView('title-detail');
+  const detailName=title.detailName||title.name;
+  const description=[title.description,title.name!==detailName?`TITLE · ${title.name}`:''].filter(Boolean).join(' · ');
+  renderDetailHero(titleDetailHero,{name:detailName,icon:title.icon,description,completed:title.completed,total:title.total,unit:'TITLE PROGRESS'});
+  renderJourneyRecordList(titleRequirementsList,title.requirements||[],'Verified requirements for this title are not yet connected.');
+}
+
+function showTriumphDetail(category){
+  selectedTriumphCategory=category;
+  activateRecordView('triumph-detail');
+  renderDetailHero(triumphDetailHero,{name:category.name,icon:category.icon,description:category.description,completed:category.completed,total:category.total,unit:'TRIUMPHS'});
+  renderSubmenu(triumphSubcategories,category.subcategories||[],section=>{
+    renderJourneyRecordList(triumphDetailList,section.items||[],'Verified Triumphs for this subcategory are not yet connected.');
+  });
+  if(!(category.subcategories||[]).length)renderJourneyRecordList(triumphDetailList,[],'Verified Triumph subcategories are not yet connected.');
+}
+
+async function bindTitleTriumphPanel(payload,view=recordRootView(activeRecordView)){
   const requestId=++titleTriumphRequest;
   if(recordsStatus)recordsStatus.textContent='LOADING VERIFIED BUNGIE DEFINITIONS';
   const hookedRows=journeyRecordHookRows(payload,view);
   if(hookedRows){
-    renderJourneyRecordList(view==='titles'?titlesList:triumphCategoriesList,hookedRows,view==='titles'?'No verified Destiny title rows were returned.':'No verified Triumph category rows were returned.');
+    renderJourneyRecordList(view==='titles'?titlesList:triumphCategoriesList,hookedRows,view==='titles'?'No verified Destiny title rows were returned.':'No verified Triumph category rows were returned.',view==='titles'?showTitleDetail:showTriumphDetail);
     if(recordsStatus)recordsStatus.textContent=view==='titles'?`${hookedRows.length} TITLES`:`${hookedRows.length} TRIUMPH CATEGORIES`;
     return;
   }
@@ -325,16 +508,13 @@ async function bindTitleTriumphPanel(payload,view=activeRecordView){
     if(recordsStatus)recordsStatus.textContent='VERIFIED RECORD DATA UNAVAILABLE';
     return;
   }
-
   const characters=payload?.profile?.characters?.data||{};
-  const character=characters[selectedCharacterId]
-    ||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
+  const character=characters[selectedCharacterId]||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
   const characterId=String(character?.characterId||'');
   await manifestReady;
   const presentationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
   const resolved=Object.entries(nodes).map(([hash,node])=>({hash,node,definition:presentationDefinitions[hash]})).filter(item=>item.definition);
   if(requestId!==titleTriumphRequest)return;
-
   const titleCandidates=resolved.filter(item=>finiteNumber(item.definition?.completionRecordHash)!==null);
   if(view==='titles'){
     const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',titleCandidates.map(item=>item.definition.completionRecordHash));
@@ -348,43 +528,92 @@ async function bindTitleTriumphPanel(payload,view=activeRecordView){
       const activityTotal=finiteNumber(activityProgress?.totalActivities);
       const hasActivityCounts=activityCompleted!==null&&activityTotal!==null&&activityTotal>0;
       const state=finiteNumber(titleRecordFor(payload,characterId,completionRecordHash)?.state);
-      return {
-        hash:item.hash,
-        name,
-        icon:bungiePresentationIcon(item.definition),
-        completed:hasActivityCounts?activityCompleted:finiteNumber(item.node?.progressValue),
-        total:hasActivityCounts?activityTotal:finiteNumber(item.node?.completionValue),
-        unit:hasActivityCounts?'ACTIVITIES':'TITLE REQUIREMENTS',
-        gilded:state!==null&&(state&128)===128
-      };
+      return {hash:item.hash,name,detailName:String(item.definition?.displayProperties?.name||name),icon:bungiePresentationIcon(item.definition),description:String(item.definition?.displayProperties?.description||''),completed:hasActivityCounts?activityCompleted:finiteNumber(item.node?.progressValue),total:hasActivityCounts?activityTotal:finiteNumber(item.node?.completionValue),unit:hasActivityCounts?'ACTIVITIES':'TITLE REQUIREMENTS',gilded:state!==null&&(state&128)===128,requirements:[]};
     }).filter(Boolean).sort((left,right)=>left.name.localeCompare(right.name));
     if(requestId!==titleTriumphRequest)return;
-    renderJourneyRecordList(titlesList,titles,'No Destiny title presentation nodes were returned for this profile.');
+    renderJourneyRecordList(titlesList,titles,'No Destiny title presentation nodes were returned for this profile.',showTitleDetail);
     if(recordsStatus)recordsStatus.textContent=`${titles.length} TITLES`;
     return;
   }
-
   const titleHashes=new Set(titleCandidates.map(item=>String(item.hash)));
   const categories=resolved.filter(item=>{
     const children=item.definition?.children||{};
-    const hasChildren=(children.records?.length||0)+(children.presentationNodes?.length||0)>0;
-    return Number(item.definition?.presentationNodeType)===3&&!titleHashes.has(String(item.hash))&&hasChildren;
-  }).map(item=>({
-    hash:item.hash,
-    name:String(item.definition?.displayProperties?.name||'').trim(),
-    icon:bungiePresentationIcon(item.definition),
-    completed:finiteNumber(item.node?.progressValue),
-    total:finiteNumber(item.node?.completionValue),
-    unit:'TRIUMPHS'
-  })).filter(item=>item.name).sort((left,right)=>left.name.localeCompare(right.name));
-
+    return Number(item.definition?.presentationNodeType)===3&&!titleHashes.has(String(item.hash))&&((children.records?.length||0)+(children.presentationNodes?.length||0)>0);
+  }).map(item=>({hash:item.hash,name:String(item.definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(item.definition),description:String(item.definition?.displayProperties?.description||''),completed:finiteNumber(item.node?.progressValue),total:finiteNumber(item.node?.completionValue),unit:'TRIUMPHS',subcategories:[]})).filter(item=>item.name).sort((left,right)=>left.name.localeCompare(right.name));
   if(requestId!==titleTriumphRequest)return;
-  renderJourneyRecordList(triumphCategoriesList,categories,'No Triumph category presentation nodes were returned for this profile.');
+  renderJourneyRecordList(triumphCategoriesList,categories,'No Triumph category presentation nodes were returned for this profile.',showTriumphDetail);
   if(recordsStatus)recordsStatus.textContent=`${categories.length} TRIUMPH CATEGORIES`;
 }
 
+function guardianRankRows(payload){
+  const hook=payload?.journeyRecordOverview?.guardianRank||{};
+  const profileRank=finiteNumber(payload?.profile?.profile?.data?.currentGuardianRank);
+  const currentRank=finiteNumber(hook.currentRank)??profileRank;
+  const supplied=Array.isArray(hook.ranks)?hook.ranks:[];
+  const byRank=new Map(supplied.map(item=>[Number(item?.rank),item]));
+  return {currentRank,currentRankName:String(hook.currentRankName||'').trim(),nextRank:finiteNumber(hook.nextRank),ranks:Array.from({length:11},(_,index)=>{
+    const rank=index+1;
+    const item=byRank.get(rank)||{};
+    return {rank,name:String(item.name||`Rank ${rank}`).trim(),icon:bungieIconUrl(item.iconPath),description:String(item.description||'').trim(),completed:finiteNumber(item.completedObjectives),total:finiteNumber(item.totalObjectives),objectives:(item.objectives||[]).map(row=>normalizedProgressItem(row,'OBJECTIVES')).filter(row=>row.name)};
+  })};
+}
+
+function bindGuardianRankPanel(payload){
+  const data=guardianRankRows(payload);
+  const fallbackRank=data.currentRank===null?1:Math.min(11,Math.max(1,data.currentRank+1));
+  const selected=data.ranks.find(item=>item.rank===(data.nextRank??fallbackRank))||data.ranks[0];
+  guardianRankStrip?.replaceChildren();
+  data.ranks.forEach(item=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.textContent=String(item.rank);
+    button.setAttribute('aria-current',String(item===selected));
+    button.addEventListener('click',()=>{
+      guardianRankStrip.querySelectorAll('button').forEach(row=>row.setAttribute('aria-current',String(row===button)));
+      renderDetailHero(guardianRankHero,{name:item.name,icon:item.icon,description:data.currentRank===null?'Current Guardian Rank unavailable':`CURRENT RANK ${data.currentRank}${data.currentRankName?` · ${data.currentRankName}`:''}`,completed:item.completed,total:item.total,unit:'RANK PROGRESS'});
+      renderJourneyRecordList(guardianRankObjectives,item.objectives,'Verified objectives for this Guardian Rank are not yet connected.');
+    });
+    guardianRankStrip?.appendChild(button);
+  });
+  guardianRankStrip?.querySelector('button[aria-current="true"]')?.click();
+  if(recordsStatus)recordsStatus.textContent=data.currentRank===null?'GUARDIAN RANK DATA UNAVAILABLE':`CURRENT GUARDIAN RANK ${data.currentRank}`;
+}
+
+function recordsFrameworkSections(payload){
+  const supplied=payload?.journeyRecordOverview?.records?.sections;
+  const byKey=new Map((Array.isArray(supplied)?supplied:[]).map(section=>[String(section?.key||''),section]));
+  return RECORD_SECTION_DEFINITIONS.map(definition=>{
+    const source=byKey.get(definition.key)||{};
+    const completed=finiteNumber(source.completed);
+    const total=finiteNumber(source.total);
+    let categories=Array.isArray(source.categories)?source.categories.map(category=>({
+      key:String(category?.key||category?.name||''),
+      name:String(category?.name||'').trim(),
+      items:(category?.items||[]).map(item=>normalizedProgressItem(item,definition.key==='stat-trackers'?'TRACKER VALUE':'PROGRESS')).filter(item=>item.name)
+    })).filter(category=>category.name):[];
+    if(definition.key==='stat-trackers'&&!categories.length)categories=STAT_TRACKER_CATEGORIES.map(name=>({key:name.toLowerCase().replaceAll(' ','-'),name,items:[]}));
+    return {key:definition.key,name:String(source.name||definition.name),description:String(source.description||definition.description),icon:bungieIconUrl(source.iconPath),completed,total,unit:completed!==null&&total!==null&&total>0?'RECORDS':'',categories};
+  });
+}
+
+function showRecordsDetail(section){
+  selectedRecordSection=section;
+  activateRecordView('records-detail');
+  renderDetailHero(recordsDetailHero,{name:section.name,icon:section.icon,description:section.description,completed:section.completed,total:section.total,unit:'SECTION PROGRESS'});
+  renderSubmenu(recordsSubcategories,section.categories||[],category=>{
+    renderJourneyRecordList(recordsDetailList,category.items||[],section.key==='stat-trackers'?'Verified Stat Trackers for this category are not yet connected.':'Verified individual Record progress is not yet connected.');
+  });
+  if(!(section.categories||[]).length)renderJourneyRecordList(recordsDetailList,[],'Verified Record categories are not yet connected.');
+}
+
+function bindRecordsPanel(payload){
+  const sections=recordsFrameworkSections(payload);
+  renderJourneyRecordList(recordsSections,sections,'Record sections are unavailable.',showRecordsDetail);
+  if(recordsStatus)recordsStatus.textContent='4 RECORD SECTIONS';
+}
+
 function setRecordSelectorState(view){
-  [[titlesOpen,'titles'],[triumphsOpen,'triumphs']].forEach(([button,key])=>{
+  [[titlesOpen,'titles'],[triumphsOpen,'triumphs'],[guardianRankOpen,'guardian-rank'],[recordsOpen,'records']].forEach(([button,key])=>{
     if(!button)return;
     const selected=view===key;
     button.setAttribute('aria-current',String(selected));
@@ -393,24 +622,30 @@ function setRecordSelectorState(view){
   locationSelector?.querySelectorAll('.apx-loc[data-loc]').forEach(button=>button.setAttribute('aria-current','false'));
 }
 
-function showTitleTriumphPanel(view){
-  if(!destinationDetail||!recordsPanel||!['titles','triumphs'].includes(view))return;
+function showGuardianRecordPanel(view){
+  if(!destinationDetail||!recordsPanel||!['titles','triumphs','guardian-rank','records'].includes(view))return;
   const destinationHeight=Math.ceil(destinationDetail.getBoundingClientRect().height);
   if(destinationHeight>0)recordsPanel.style.height=`${destinationHeight}px`;
-  activeRecordView=view;
   destinationDetail.hidden=true;
   recordsPanel.hidden=false;
-  recordsPanel.querySelectorAll('[data-journey-record-view]').forEach(group=>group.hidden=group.dataset.journeyRecordView!==view);
-  if(focusHeading)focusHeading.textContent=view==='titles'?'Titles':'Triumphs';
-  if(focusStatus)focusStatus.textContent='VERIFIED BUNGIE RECORDS';
-  setRecordSelectorState(view);
-  if(verifiedProfile)void bindTitleTriumphPanel(verifiedProfile,view);
-  else if(recordsStatus)recordsStatus.textContent='AWAITING VERIFIED BUNGIE RECORDS';
+  activateRecordView(view);
+  if(view==='titles'||view==='triumphs'){
+    if(verifiedProfile)void bindTitleTriumphPanel(verifiedProfile,view);
+    else if(recordsStatus)recordsStatus.textContent='AWAITING VERIFIED BUNGIE RECORDS';
+  }else if(view==='guardian-rank')bindGuardianRankPanel(verifiedProfile||{});
+  else bindRecordsPanel(verifiedProfile||{});
   recordsBack?.focus();
 }
 
+function handleRecordBack(){
+  if(activeRecordView==='title-detail'){activateRecordView('titles');selectedTitle=null;return;}
+  if(activeRecordView==='triumph-detail'){activateRecordView('triumphs');selectedTriumphCategory=null;return;}
+  if(activeRecordView==='records-detail'){activateRecordView('records');selectedRecordSection=null;return;}
+  showDestinationPanel();
+}
+
 function showDestinationPanel(returnFocus=true){
-  const previousView=activeRecordView;
+  const previousRoot=recordRootView(activeRecordView);
   titleTriumphRequest+=1;
   if(!destinationDetail||!recordsPanel)return;
   recordsPanel.hidden=true;
@@ -422,7 +657,7 @@ function showDestinationPanel(returnFocus=true){
   setRecordSelectorState('');
   const currentLocation=globalThis.AstrixDestinations?.current();
   locationSelector?.querySelector(`.apx-loc[data-loc="${currentLocation}"]`)?.setAttribute('aria-current','true');
-  if(returnFocus)(previousView==='titles'?titlesOpen:triumphsOpen)?.focus();
+  if(returnFocus)({titles:titlesOpen,triumphs:triumphsOpen,'guardian-rank':guardianRankOpen,records:recordsOpen}[previousRoot])?.focus();
 }
 
 async function bindRecentActivity(session){
@@ -635,7 +870,15 @@ async function bindTitleAndProgression(payload){
   }
 }
 
-function bindProfileCards(payload){bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);bindGuardianRank(payload);void bindTitleAndProgression(payload);if(recordsPanel&&!recordsPanel.hidden)void bindTitleTriumphPanel(payload,activeRecordView);}
+function bindProfileCards(payload){
+  bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);bindGuardianRank(payload);void bindTitleAndProgression(payload);
+  if(recordsPanel&&!recordsPanel.hidden){
+    const root=recordRootView(activeRecordView);
+    if(root==='titles'||root==='triumphs')void bindTitleTriumphPanel(payload,root);
+    else if(root==='guardian-rank')bindGuardianRankPanel(payload);
+    else if(root==='records')bindRecordsPanel(payload);
+  }
+}
 
 function renderJourneyContext(){
   dashboard.dataset.journeyView=activeView;
@@ -688,9 +931,11 @@ document.querySelectorAll('[data-journey-view]').forEach(button=>button.addEvent
   selectJourneyView(button.dataset.journeyView);
 }));
 
-titlesOpen?.addEventListener('click',()=>showTitleTriumphPanel('titles'));
-triumphsOpen?.addEventListener('click',()=>showTitleTriumphPanel('triumphs'));
-recordsBack?.addEventListener('click',showDestinationPanel);
+titlesOpen?.addEventListener('click',()=>showGuardianRecordPanel('titles'));
+triumphsOpen?.addEventListener('click',()=>showGuardianRecordPanel('triumphs'));
+guardianRankOpen?.addEventListener('click',()=>showGuardianRecordPanel('guardian-rank'));
+recordsOpen?.addEventListener('click',()=>showGuardianRecordPanel('records'));
+recordsBack?.addEventListener('click',handleRecordBack);
 locationSelector?.addEventListener('click',event=>{if(event.target.closest('.apx-loc[data-loc]'))showDestinationPanel(false);});
 
 document.querySelectorAll('.journey-section-nav a').forEach(link=>link.addEventListener('click',()=>{
