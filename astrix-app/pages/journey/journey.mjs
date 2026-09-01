@@ -2,7 +2,7 @@ import {AUTH_ORIGIN,getBungieSession} from '../guardian-workspace-v2/guardian-bu
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 import {readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
-import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-all-destination-progress';
+import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260901-destination-data-panels';
 
 const resolving=document.getElementById('journeyResolving');
 const signedOut=document.getElementById('journeySignedOut');
