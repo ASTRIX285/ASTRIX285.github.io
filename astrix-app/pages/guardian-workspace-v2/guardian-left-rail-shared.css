@@ -458,14 +458,19 @@
   body.guardian-main-page .workspace>.improve-cta{grid-column:2!important;grid-row:3!important;justify-self:center!important;align-self:start!important;margin:12px 0!important}
 }
 
+.stage-companion{display:none}
+
 @media (min-width:1500px) and (min-height:900px){
-  body.guardian-main-page{--astrix-desktop-density:.85;--guardian-stage-height:440px}
-  body.guardian-main-page .workspace{min-height:0!important}
-  body.guardian-main-page .workspace>.left{height:max-content!important;min-height:0!important;max-height:none!important;align-self:start!important;overflow:visible!important}
-  body.guardian-main-page .workspace>.stage{width:min(1080px,calc(100% - 360px))!important;max-width:1080px!important;height:440px!important;min-height:440px!important;justify-self:end!important;align-self:start!important}
-  body.guardian-main-page .workspace>.equip{align-self:start!important}
-  body.guardian-main-page .equip.gear-layout-active>.gear-weapons{height:auto!important;align-self:stretch!important}
-  body.guardian-main-page .workspace>.improve-cta{grid-row:1!important;justify-self:start!important;align-self:end!important;width:340px!important;margin:0!important;padding:16px 20px!important;border-radius:4px!important;border-color:rgba(201,168,76,.55)!important;background:linear-gradient(135deg,rgba(139,0,0,.78),rgba(30,10,12,.94))!important;box-shadow:0 12px 28px rgba(0,0,0,.38)!important;z-index:2!important;text-align:center!important}
+  body.guardian-main-page{--astrix-desktop-density:.85;--guardian-stage-height:440px;--guardian-hero-width:min(1080px,calc(100% - 360px))}
+  body.guardian-main-page .workspace{min-height:0!important;align-items:stretch!important}
+  body.guardian-main-page .workspace>.left{grid-row:1 / 3!important;height:auto!important;min-height:0!important;max-height:none!important;align-self:stretch!important;overflow:visible!important}
+  body.guardian-main-page .workspace>.stage-companion{display:block!important;grid-column:2!important;grid-row:1!important;height:440px!important;margin-left:352px!important;margin-right:var(--guardian-hero-width)!important;border:1px solid rgba(201,168,76,.18)!important;border-radius:14px!important;background:linear-gradient(180deg,rgba(20,15,25,.42),rgba(9,7,12,.58))!important;box-shadow:inset 0 0 48px rgba(0,0,0,.28),0 18px 44px rgba(0,0,0,.22)!important;backdrop-filter:blur(3px)!important;align-self:end!important;overflow:hidden!important}
+  body.guardian-main-page .workspace>.stage{width:var(--guardian-hero-width)!important;max-width:1080px!important;height:440px!important;min-height:440px!important;justify-self:end!important;align-self:end!important;z-index:2!important}
+  body.guardian-main-page .workspace>.equip{grid-column:2!important;grid-row:1 / 3!important;grid-template-columns:340px minmax(0,1fr)!important;grid-template-rows:440px auto auto!important;gap:12px!important;height:auto!important;align-self:stretch!important;overflow:visible!important}
+  body.guardian-main-page .equip.gear-layout-active>.gear-weapons{grid-column:1!important;grid-row:1 / 4!important;height:auto!important;min-height:0!important;margin-top:62px!important;align-self:stretch!important}
+  body.guardian-main-page .equip.gear-layout-active>.guardian-loadouts-container{grid-column:2!important;grid-row:2!important}
+  body.guardian-main-page .equip.gear-layout-active>.gear-combined{grid-column:2!important;grid-row:3!important}
+  body.guardian-main-page .workspace>.improve-cta{grid-row:1!important;justify-self:start!important;align-self:start!important;width:340px!important;margin:0!important;padding:16px 20px!important;border-radius:4px!important;border-color:rgba(201,168,76,.55)!important;background:linear-gradient(135deg,rgba(139,0,0,.78),rgba(30,10,12,.94))!important;box-shadow:0 12px 28px rgba(0,0,0,.38)!important;z-index:3!important;text-align:center!important}
   body.guardian-main-page .equip .eq-head h3{font-size:.8rem!important}
   body.guardian-main-page .equip .eq-head .tools{font-size:.72rem!important}
   body.guardian-main-page .equip .gear-subhead{font-size:.58rem!important}
