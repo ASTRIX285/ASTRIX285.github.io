@@ -304,7 +304,7 @@ function createDestinationDataView(key,label,mapFigure){
     button.setAttribute('aria-selected','false');
     button.setAttribute('aria-controls',panel.id);
     button.tabIndex=section.key==='triumphs'?0:-1;
-    button.textContent=`${label.toLocaleUpperCase('en-GB')} ${section.label}`;
+    button.textContent=section.label;
     button.addEventListener('click',()=>selectSection(section));
     buttons.set(section.key,button);
     actions.append(button);
