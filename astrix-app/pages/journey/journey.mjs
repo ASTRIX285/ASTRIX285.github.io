@@ -68,6 +68,9 @@ const RECENT_ACTIVITY_PENDING='Recent activity data is not connected.';
 const BUNGIE_ORIGIN='https://www.bungie.net';
 const JOURNEY_BACKGROUND_REFRESH_MS=5*60*1000;
 const JOURNEY_REFRESH_TIMEOUT_MS=60*1000;
+const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12*1000;
+const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6*1000;
+const JOURNEY_LOADER_READY_WAIT_MS=6*1000;
 const numberFormatter=new Intl.NumberFormat('en-GB');
 const activityDateFormatter=new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 const manifestReady=guardianManifest.ready();
@@ -98,6 +101,24 @@ let journeyBackgroundRefreshTimer=0;
 let journeyBackgroundRefreshRequest=null;
 let journeyBackgroundRefreshPending=false;
 let journeyLastRefreshAt=0;
+
+function waitWithin(promise,timeoutMs){
+  let timer=0;
+  return Promise.race([
+    Promise.resolve(promise).catch(error=>{console.info('[ASTRIX Journey] noncritical bootstrap task unavailable',error);return null;}),
+    new Promise(resolve=>{timer=globalThis.setTimeout(()=>resolve(null),timeoutMs);})
+  ]).finally(()=>globalThis.clearTimeout(timer));
+}
+
+async function finishJourneyLoader(root=document){
+  globalThis.AstrixLoader.set(96);
+  globalThis.AstrixLoader.status('Journey rendered');
+  let timer=0;
+  await Promise.race([
+    Promise.resolve(globalThis.AstrixLoader.ready(root)).catch(()=>globalThis.AstrixLoader.done()),
+    new Promise(resolve=>{timer=globalThis.setTimeout(()=>{globalThis.AstrixLoader.done();resolve();},JOURNEY_LOADER_READY_WAIT_MS);})
+  ]).finally(()=>globalThis.clearTimeout(timer));
+}
 
 function waitForHeroCards(){
   if(!heroCards||!heroCards.querySelector('.guardian-character-cards__status.is-pending'))return Promise.resolve();
@@ -1793,6 +1814,8 @@ function showSignedOut(){
   signedOut.hidden=false;
   status.textContent='BUNGIE CONNECTION REQUIRED';
   if(connectButton)connectButton.href=authStartUrl();
+  globalThis.AstrixLoader.authResolved();
+  void finishJourneyLoader(signedOut);
 }
 
 let locationSelectorReady=false;
@@ -1819,25 +1842,46 @@ function showJourney(){
 try{
   globalThis.AstrixLoader.set(12);globalThis.AstrixLoader.status('Connecting Journey');
   const session=await getBungieSession();
+  globalThis.AstrixLoader.set(28);globalThis.AstrixLoader.status('Opening Journey');
   const authenticated=session?.authenticated===true&&globalThis.ASTRIX_BUNGIE_SESSION?.authenticated===true;
   if(authenticated){
     journeySession=session;
     void bindHistoricalStats(session);
     const heroCardsReady=waitForHeroCards();
     const mapReady=showJourney();
-    const profile=await readVerifiedProfile(session);
+    globalThis.AstrixLoader.set(42);globalThis.AstrixLoader.status('Loading verified Guardian data');
+    const profilePromise=readVerifiedProfile(session);
+    const profile=await waitWithin(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
     if(profile){
       verifiedProfile=profile;
       bindProfileCards(profile);
       void bindDestinationProgress(profile);
+    }else{
+      void profilePromise.then(lateProfile=>{
+        if(!lateProfile?.profile?.characters?.data){void refreshJourneyProfile();return;}
+        verifiedProfile=lateProfile;
+        bindProfileCards(lateProfile);
+        void bindDestinationProgress(lateProfile);
+      }).catch(error=>console.info('[ASTRIX Journey] deferred verified profile unavailable',error));
     }
     startJourneyBackgroundRefresh();
-    await Promise.all([heroCardsReady,mapReady,waitForJourneyAtmosphere()]);
-    globalThis.AstrixLoader.set(96);globalThis.AstrixLoader.status('Journey rendered');
-    await globalThis.AstrixLoader.ready(document);
+    globalThis.AstrixLoader.set(78);globalThis.AstrixLoader.status('Finalising Journey');
+    await Promise.all([
+      waitWithin(heroCardsReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS),
+      waitWithin(mapReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS),
+      waitWithin(waitForJourneyAtmosphere(),JOURNEY_BOOTSTRAP_UI_WAIT_MS)
+    ]);
+    await finishJourneyLoader(document);
   }
   else showSignedOut();
 }catch(error){
   console.info('[ASTRIX Journey] existing Bungie session unavailable',error);
-  showSignedOut();
+  if(journeySession?.authenticated===true){
+    resolving.hidden=true;
+    signedOut.hidden=true;
+    dashboard.hidden=false;
+    status.textContent='AUTHENTICATED JOURNEY · LIVE REFRESH PENDING';
+    startJourneyBackgroundRefresh();
+    void finishJourneyLoader(document);
+  }else showSignedOut();
 }
