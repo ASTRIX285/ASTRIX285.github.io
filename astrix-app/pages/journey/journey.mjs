@@ -92,7 +92,9 @@ const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';
 const BUILD_EVIDENCE_STORAGE_KEYS=new Set([BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY,LAST_LOADOUT_KEY,'astrix:shooting-range-capture:v1','astrix:shooting-range-capture-archive:v1']);
 const numberFormatter=new Intl.NumberFormat('en-GB');
 const activityDateFormatter=new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-const manifestReady=guardianManifest.ready();
+// Journey resolves only the record definitions it needs. Downloading the full
+// Character/Build equipment manifest here delayed profile and Triumph binding.
+const manifestReady=Promise.resolve(guardianManifest);
 let activeView='overview';
 let selectedCharacterId='';
 let selectedClassName='';
@@ -2186,37 +2188,24 @@ if(heroCards){
 }
 
 function hasJourneyRecordComponents(payload){
-  return payload?.profile?.metrics?.data&&payload?.profile?.characterCraftables?.data;
+  return payload?.profile?.profilePresentationNodes?.data?.nodes&&payload?.profile?.profileRecords?.data;
 }
 
 async function readVerifiedProfile(session){
   const cached=await readCachedBungieProfile(session);
   if(cached?.profile?.characters?.data&&hasJourneyRecordComponents(cached))return cached;
-  return new Promise(async resolve=>{
-    let settled=false;
-    const fallback=cached?.profile?.characters?.data?cached:null;
-    const finish=(payload,force=false)=>{
-      if(settled)return;
-      const verified=payload?.profile?.characters?.data?payload:fallback;
-      if(!force&&!hasJourneyRecordComponents(verified))return;
-      settled=true;
-      document.removeEventListener('astrix:bungie-profile-loaded',onLoaded);
-      document.removeEventListener('astrix:profile-error',onError);
-      resolve(verified);
-    };
-    const onLoaded=event=>readCachedBungieProfile(session).then(payload=>finish(payload,event.detail?.sessionCacheRestored!==true)).catch(()=>finish(null,true));
-    const onError=()=>finish(null,true);
-    document.addEventListener('astrix:bungie-profile-loaded',onLoaded);
-    document.addEventListener('astrix:profile-error',onError);
-    try{
-      await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260902-recent-guardian-emblem-1');
-      const loaded=await readCachedBungieProfile(session);
-      if(loaded?.profile?.characters?.data)finish(loaded);
-    }catch(error){
-      console.info('[ASTRIX Journey] verified Bungie profile unavailable',error);
-      finish(null,true);
-    }
-  });
+  const sharedProfile=await waitWithin(globalThis.ASTRIX_HERO_PROFILE_PROMISE,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
+  if(sharedProfile?.profile?.characters?.data){
+    await cacheBungieProfile(session,sharedProfile);
+    return sharedProfile;
+  }
+  try{
+    const refreshed=await fetchJourneyProfileRefresh();
+    return refreshed?.profile?.characters?.data?refreshed:(cached?.profile?.characters?.data?cached:null);
+  }catch(error){
+    console.info('[ASTRIX Journey] verified Bungie profile unavailable',error);
+    return cached?.profile?.characters?.data?cached:null;
+  }
 }
 
 async function fetchJourneyProfileRefresh(){
@@ -2226,11 +2215,13 @@ async function fetchJourneyProfileRefresh(){
     await manifestReady;
     const url=new URL('/bungie/profile',AUTH_ORIGIN);
     url.searchParams.set('scope','journey');
-    if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
     const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
     const payload=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(payload?.error||`Journey refresh failed (${response.status}).`);
-    await guardianManifest.hydratePayload(payload);
+    const availableStats=payload?.statDefinitions||verifiedProfile?.statDefinitions||globalThis.ASTRIX_HERO_PROFILE_PAYLOAD?.statDefinitions;
+    payload.statDefinitions=availableStats&&Object.keys(availableStats).length
+      ?availableStats
+      :await guardianManifest.getMany('DestinyStatDefinition',STAT_ORDER);
     await cacheBungieProfile(journeySession,payload);
     return payload;
   }finally{

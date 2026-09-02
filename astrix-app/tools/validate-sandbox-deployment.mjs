@@ -41,7 +41,10 @@ assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidde
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
 assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-recent-guardian-emblem-1/,'Journey must load the cache-busted latest-Guardian and emblem styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-recent-guardian-emblem-1/,'Journey must load the cache-busted latest-Guardian module graph');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-journey-fast-records-1/,'Journey must load the cache-busted nonblocking Triumph and Records module graph');
+assert.match(journeyModule,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey must not block on the full equipment manifest');
+assert.match(journeyModule,/ASTRIX_HERO_PROFILE_PROMISE/,'Journey must reuse the authenticated hero-card profile request');
+assert.doesNotMatch(journeyModule,/guardianManifest\.hydratePayload\(payload\)/,'Journey must not hydrate every equipment definition before binding records');
 assert.match(journeyModule,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journeyModule,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
