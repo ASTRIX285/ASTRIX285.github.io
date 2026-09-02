@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../../astrix-destinations.css">
   <link rel="stylesheet" href="../../shared/astrix-location-atmosphere.css">
   <link rel="stylesheet" href="../mission-reports/mission-reports.css">
-  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260902-complete-title-catalogue-1">
+  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260902-guardian-command-cards-1">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260831-global-fixed-stack">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <style>
@@ -116,29 +116,13 @@
             <article class="journey-record-detail-hero journey-guardian-rank-summary has-no-icon" id="journeyGuardianRankSummary" aria-live="polite"><div class="journey-record-detail-copy"><h4>Guardian Rank unavailable</h4><p>Highest completed Guardian Rank awaiting verified Bungie data.</p><a class="journey-record-link" id="journeyGuardianRankDetailsLink" href="#journeyGuardianRankHeading">VIEW GUARDIAN RANK DETAILS</a></div></article>
           </section>
 
-          <nav class="mission-section-nav journey-section-nav" aria-label="Journey sections">
-            <a class="is-active" href="#journeyTopSummary" aria-current="page"><span aria-hidden="true">⌂</span>OVERVIEW</a>
-            <a href="#journeyRecentActivity"><span aria-hidden="true">◫</span>ACTIVITY HISTORY</a>
-            <a href="#journeyTopSummary" data-journey-view-link="pve"><span aria-hidden="true">⬡</span>PVE MASTERY</a>
-            <a href="#journeyCurrentForm" data-journey-view-link="pvp"><span aria-hidden="true">◇</span>PVP PERFORMANCE</a>
-            <a href="#journeyBuildSummary"><span aria-hidden="true">△</span>BUILD EVOLUTION</a>
-            <a href="#journeyMilestones"><span aria-hidden="true">✦</span>TRIUMPHS &amp; MILESTONES</a>
-          </nav>
-
-          <fieldset class="mission-time-filter journey-time-filter">
-            <legend>TIME FILTER</legend>
-            <label><input type="radio" name="journeyTime" value="all" checked><span>All Time</span></label>
-            <label title="Season boundaries are not returned by the current activity feed"><input type="radio" name="journeyTime" value="season" disabled><span>Season</span></label>
-            <label><input type="radio" name="journeyTime" value="30-days"><span>Last 30 Days</span></label>
-          </fieldset>
-
           <section class="journey-column-summaries journey-left-summaries" aria-labelledby="journeyIdentitySummariesTitle">
             <h2 id="journeyIdentitySummariesTitle">IDENTITY &amp; PROGRESSION</h2>
             <article class="apx-scaffold-card" data-journey-equipped-title><h2>Equipped title and seal</h2><div class="journey-record-detail-hero journey-equipped-title-summary has-no-icon" id="journeyTitleSeal" aria-live="polite"><div class="journey-record-detail-copy"><h4>Equipped title unavailable</h4><p>Equipped title awaiting verified Bungie data.</p><a class="journey-record-link" id="journeyEquippedTitleDetailsLink" href="#journeyTitlesHeading">VIEW ALL TITLES</a></div></div></article>
-            <article class="apx-scaffold-card"><h2>Progress to next titles</h2><span class="apx-empty-state" id="journeyTitleProgress">Title progression data is not connected.</span></article>
-            <article class="apx-scaffold-card"><h2>Triumph and progression statistics</h2><span class="apx-empty-state" id="journeyTriumphStats">No verified Triumph or progression values are available.</span></article>
-            <article class="apx-scaffold-card"><h2>Favourite character</h2><span class="apx-empty-state" id="journeyFavouriteCharacter">No usage history has been recorded for this scaffold.</span></article>
-            <article class="apx-scaffold-card"><h2>Milestones and achievements</h2><span class="apx-empty-state" id="journeyMilestones">No verified milestone or achievement source is connected.</span></article>
+            <article class="apx-scaffold-card" data-journey-next-title><h2>Progress to next title</h2><div class="journey-record-detail-hero journey-next-title-summary has-no-icon" id="journeyTitleProgress" aria-live="polite"><div class="journey-record-detail-copy"><h4>Next title unavailable</h4><p>Verified title progress is not available.</p><a class="journey-record-link" id="journeyNextTitleDetailsLink" href="#journeyTitlesHeading">VIEW ALL TITLES</a></div></div></article>
+            <article class="apx-scaffold-card journey-triumph-card"><h2>Triumph and progression statistics</h2><div class="journey-triumph-summary" id="journeyTriumphStats" aria-live="polite"><span class="apx-empty-state">No verified Triumph or progression values are available.</span></div></article>
+            <article class="apx-scaffold-card journey-usage-card"><h2>Guardian class usage</h2><div class="journey-usage-summary" id="journeyGuardianUsage" aria-live="polite"><span class="apx-empty-state">Verified class playtime is not available.</span></div></article>
+            <article class="apx-scaffold-card journey-season-card"><h2>Current Season Rank</h2><div class="journey-record-detail-hero journey-season-rank-summary has-no-icon" id="journeySeasonRank" aria-live="polite"><div class="journey-record-detail-copy"><h4>Season Rank unavailable</h4><p>Current seasonal progression is awaiting verified Bungie data.</p></div></div></article>
           </section>
         </aside>
 
@@ -259,6 +243,6 @@
     </section>
   </main>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"></script>
-  <script type="module" src="./journey.mjs?v=20260902-complete-title-catalogue-1"></script>
+  <script type="module" src="./journey.mjs?v=20260902-guardian-command-cards-1"></script>
 </body>
 </html>

@@ -160,6 +160,7 @@ body.journey-page.apx-destination-page .apx-page-shell{
   padding:1.125rem 1rem 2rem;
   overflow:hidden;
   isolation:isolate;
+  box-sizing:border-box;
 }
 .journey-page .mission-identity-card::after{
   content:"";
@@ -192,11 +193,27 @@ body.journey-page.apx-destination-page .apx-page-shell{
 .journey-page .mission-identity-copy{
   position:relative;
   z-index:1;
+  box-sizing:border-box;
   width:66.667%;
+  min-width:0;
+  max-width:66.667%;
   margin-left:33.333%;
+  padding-right:.75rem;
   align-self:center;
 }
-.journey-page .mission-identity-card>.mission-verified-badge{z-index:1}
+.journey-page .mission-identity-copy h1,
+.journey-page .mission-identity-copy p{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.journey-page .mission-identity-card>.mission-verified-badge{
+  z-index:1;
+  right:1rem;
+  bottom:.75rem;
+  box-sizing:border-box;
+  max-width:calc(100% - 2rem);
+  overflow:hidden;
+  text-align:right;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
 .journey-page .mission-guardian-stats dt{font-size:.875rem}
 .journey-page .mission-guardian-stats dd{font-size:.875rem}
 .journey-page .journey-account-summary{display:grid;gap:.875rem}
@@ -213,9 +230,6 @@ body.journey-page.apx-destination-page .apx-page-shell{
 .journey-page .journey-account-summary .journey-record-detail-copy h4{font-size:.875rem}
 .journey-page .journey-account-summary .journey-record-detail-copy p{font-size:.75rem;letter-spacing:.04em}
 .journey-page .journey-account-summary .journey-record-link{font-size:.625rem}
-.journey-page .mission-section-nav a{font-size:.75rem}
-.journey-page .mission-time-filter legend{font-size:.75rem}
-.journey-page .mission-time-filter label{font-size:.875rem}
 .journey-page .mission-verified-tick{font-size:.75rem}
 .journey-page .apx-landing p,
 .journey-page .apx-auth-resolving{font-size:1rem}
@@ -225,7 +239,9 @@ body.journey-page.apx-destination-page .apx-page-shell{
 .journey-column-summaries .apx-scaffold-card{min-height:0;padding:.875rem;border-color:color-mix(in srgb,var(--loc) 22%,transparent)}
 .journey-column-summaries .apx-scaffold-card h2{font-size:.8125rem}
 .journey-column-summaries .apx-empty-state{margin-top:.625rem;padding:.625rem;font-size:.8125rem;line-height:1.45}
-.journey-page .journey-left-summaries .journey-equipped-title-summary{
+.journey-page .journey-left-summaries .journey-equipped-title-summary,
+.journey-page .journey-left-summaries .journey-next-title-summary,
+.journey-page .journey-left-summaries .journey-season-rank-summary{
   grid-template-columns:4.25rem minmax(0,1fr);
   gap:.75rem;
   margin:.625rem 0 0;
@@ -233,12 +249,62 @@ body.journey-page.apx-destination-page .apx-page-shell{
   border-color:rgba(201,168,76,.28);
   background:linear-gradient(100deg,rgba(139,0,0,.12),rgba(255,255,255,.018));
 }
-.journey-page .journey-left-summaries .journey-equipped-title-summary.has-no-icon{grid-template-columns:1fr}
-.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-detail-icon{width:4rem;height:4rem}
-.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-detail-copy h4{font-size:.875rem}
-.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-detail-copy p{font-size:.75rem;letter-spacing:.04em}
-.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-progress{font-size:.75rem}
-.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-link{font-size:.625rem}
+.journey-page .journey-left-summaries .journey-record-detail-hero.has-no-icon{grid-template-columns:1fr}
+.journey-page .journey-left-summaries .journey-record-detail-hero .journey-record-detail-icon{width:4rem;height:4rem}
+.journey-page .journey-left-summaries .journey-record-detail-hero .journey-record-detail-copy{min-width:0}
+.journey-page .journey-left-summaries .journey-record-detail-hero .journey-record-detail-copy h4{font-size:.875rem}
+.journey-page .journey-left-summaries .journey-record-detail-hero .journey-record-detail-copy p{font-size:.75rem;letter-spacing:.04em}
+.journey-page .journey-left-summaries .journey-record-detail-hero .journey-record-progress{font-size:.75rem}
+.journey-page .journey-left-summaries .journey-record-detail-hero .journey-record-link{font-size:.625rem}
+
+.journey-page .journey-rank-badge{
+  display:grid;
+  place-items:center;
+  width:4.5rem;
+  height:4.5rem;
+  box-sizing:border-box;
+  border:2px solid #c9a84c;
+  border-radius:50%;
+  background:radial-gradient(circle at 38% 30%,#f6dc86 0 42%,#d5ad3e 64%,#7a0b14 67% 81%,#c9a84c 84% 100%);
+  box-shadow:0 0 0 3px rgba(139,0,0,.45),0 0 22px rgba(201,168,76,.22),inset 0 0 14px rgba(74,0,7,.34);
+}
+.journey-page .journey-rank-badge strong{
+  color:#b51222;
+  font:800 1.625rem/1 Orbitron,sans-serif;
+  letter-spacing:-.06em;
+  text-shadow:0 1px 0 rgba(255,240,177,.75),0 0 8px rgba(139,0,0,.18);
+}
+.journey-page .journey-record-detail-hero>.journey-rank-badge{width:5.5rem;height:5.5rem}
+.journey-page .journey-record-detail-hero>.journey-rank-badge strong{font-size:2rem}
+.journey-page .journey-account-summary .journey-rank-badge,
+.journey-page .journey-left-summaries .journey-rank-badge{width:4rem;height:4rem}
+.journey-page .journey-account-summary .journey-rank-badge strong,
+.journey-page .journey-left-summaries .journey-rank-badge strong{font-size:1.45rem}
+
+.journey-page .journey-triumph-summary{margin-top:.625rem;border:1px solid rgba(201,168,76,.24);background:linear-gradient(120deg,rgba(139,0,0,.2),rgba(201,168,76,.05))}
+.journey-page .journey-triumph-total{padding:.8rem .85rem;border-bottom:1px solid rgba(201,168,76,.22)}
+.journey-page .journey-triumph-total span{display:block;color:#8e887e;font:700 .6875rem/1 Orbitron,sans-serif;letter-spacing:.09em;text-transform:uppercase}
+.journey-page .journey-triumph-total strong{display:block;margin-top:.4rem;color:#f4d37b;font:800 1.55rem/1 Orbitron,sans-serif;letter-spacing:.03em;text-shadow:0 0 18px rgba(201,168,76,.18)}
+.journey-page .journey-triumph-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:0}
+.journey-page .journey-triumph-breakdown div{min-width:0;padding:.7rem .85rem}
+.journey-page .journey-triumph-breakdown div+div{border-left:1px solid rgba(201,168,76,.18)}
+.journey-page .journey-triumph-breakdown dt{color:#8e887e;font:700 .625rem/1 Orbitron,sans-serif;letter-spacing:.09em;text-transform:uppercase}
+.journey-page .journey-triumph-breakdown dd{margin:.35rem 0 0;color:#d3202f;font:800 1rem/1 Orbitron,sans-serif}
+
+.journey-page .journey-usage-layout{display:grid;grid-template-columns:7.75rem minmax(0,1fr);gap:.75rem;align-items:center;margin-top:.625rem;padding:.75rem;border:1px solid rgba(201,168,76,.24);background:linear-gradient(120deg,rgba(139,0,0,.18),rgba(255,255,255,.018))}
+.journey-page .journey-usage-chart{position:relative;display:grid;place-items:center;width:7rem;height:7rem;margin:auto;border-radius:50%;background:conic-gradient(#d3202f 0 var(--titan-end),#c9a84c var(--titan-end) var(--hunter-end),#4169e1 var(--hunter-end) 100%);box-shadow:0 0 0 1px rgba(201,168,76,.4),0 0 22px rgba(139,0,0,.2)}
+.journey-page .journey-usage-chart::after{content:"";position:absolute;inset:1.15rem;border:1px solid rgba(201,168,76,.28);border-radius:50%;background:#090809}
+.journey-page .journey-usage-chart span{position:relative;z-index:1;display:grid;gap:.22rem;text-align:center}
+.journey-page .journey-usage-chart small{color:#8e887e;font:700 .55rem/1 Orbitron,sans-serif;letter-spacing:.08em}
+.journey-page .journey-usage-chart strong{max-width:4.5rem;overflow:hidden;color:#f4efe4;font:800 .7rem/1 Orbitron,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+.journey-page .journey-usage-table{width:100%;border-collapse:collapse}
+.journey-page .journey-usage-table th,.journey-page .journey-usage-table td{padding:.4rem .2rem;border-bottom:1px solid rgba(255,255,255,.07);font:.7rem/1.1 Rajdhani,sans-serif;text-align:right;white-space:nowrap}
+.journey-page .journey-usage-table th{text-align:left;color:#c3bdb2;font-weight:700;letter-spacing:.05em}
+.journey-page .journey-usage-table td{color:#8e887e}
+.journey-page .journey-usage-table td strong{color:var(--apx-gold);font-family:Orbitron,sans-serif;font-size:.65rem}
+.journey-page .journey-usage-dot{display:inline-block;width:.5rem;height:.5rem;margin-right:.38rem;border-radius:50%;background:var(--usage-colour);box-shadow:0 0 8px color-mix(in srgb,var(--usage-colour) 60%,transparent)}
+
+@media(max-width:400px){.journey-page .journey-usage-layout{grid-template-columns:1fr}}
 
 @media(min-width:1761px){
   .journey-console{align-items:stretch}

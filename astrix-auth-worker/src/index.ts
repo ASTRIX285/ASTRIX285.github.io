@@ -206,6 +206,75 @@ async function manifestComponentRoute(request: Request, env: Env): Promise<Respo
   return withCors(request, env, new Response(upstream.body, { status: 200, headers }));
 }
 
+async function manifestDefinitionTable(env: Env, manifest: DestinyManifestResponse, type: string): Promise<Record<string, Record<string, any>>> {
+  const path = manifest.jsonWorldComponentContentPaths?.en?.[type] || "";
+  if (!path.startsWith("/common/destiny2_content/json/")) throw new Error(`bungie_${type}_path_missing`);
+  const bungieUrl = new URL(path, "https://www.bungie.net");
+  if (bungieUrl.origin !== "https://www.bungie.net") throw new Error(`bungie_${type}_origin_invalid`);
+  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/manifest/${encodeURIComponent(manifest.version || "unknown")}/${encodeURIComponent(type)}`);
+  const defaultCache = (caches as unknown as { default: Cache }).default;
+  let response = await defaultCache.match(cacheKey);
+  if (!response) {
+    const upstream = await fetch(bungieUrl, { headers: { "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)" } });
+    if (!upstream.ok) throw new Error(`bungie_${type}_failed:${upstream.status}`);
+    const headers = new Headers(upstream.headers);
+    headers.set("Cache-Control", "public, max-age=3600");
+    response = new Response(upstream.body, { status: 200, headers });
+    await defaultCache.put(cacheKey, response.clone());
+  }
+  const table = await response.json<Record<string, Record<string, any>>>().catch(() => null);
+  if (!table || typeof table !== "object" || Array.isArray(table)) throw new Error(`bungie_${type}_invalid`);
+  return table;
+}
+
+async function currentSeasonRoute(request: Request, env: Env): Promise<Response> {
+  const manifest = await destinyManifest(env);
+  const seasons = Object.values(await manifestDefinitionTable(env, manifest, "DestinySeasonDefinition"));
+  const now = Date.now();
+  const started = seasons.filter(season => {
+    const start = Date.parse(String(season.startDate || ""));
+    return Number.isFinite(start) && start <= now;
+  }).sort((left, right) => Date.parse(String(right.startDate || "")) - Date.parse(String(left.startDate || "")));
+  const activeSeason = started.find(season => {
+    const end = Date.parse(String(season.endDate || ""));
+    return !Number.isFinite(end) || now < end;
+  }) || started[0];
+  if (!activeSeason) return withCors(request, env, json({ error: "current_season_not_found" }, 404));
+
+  const passEntries = Array.isArray(activeSeason.seasonPassList) ? activeSeason.seasonPassList : [];
+  const activePassEntry = passEntries.find((entry: Record<string, any>) => {
+    const start = Date.parse(String(entry.seasonPassStartDate || ""));
+    const end = Date.parse(String(entry.seasonPassEndDate || ""));
+    return (!Number.isFinite(start) || start <= now) && (!Number.isFinite(end) || now < end);
+  }) || passEntries[passEntries.length - 1] || null;
+  const passHash = Number(activePassEntry?.seasonPassHash ?? activeSeason.seasonPassHash);
+  let seasonPass: Record<string, any> | null = null;
+  if (Number.isInteger(passHash)) {
+    const passes = await manifestDefinitionTable(env, manifest, "DestinySeasonPassDefinition");
+    seasonPass = passes[String(passHash)] || null;
+  }
+  const seasonDisplay = activeSeason.displayProperties || {};
+  const passImages = seasonPass?.images || {};
+  return withCors(request, env, json({
+    manifestVersion: manifest.version,
+    season: {
+      hash: activeSeason.hash ?? null,
+      seasonNumber: activeSeason.seasonNumber ?? null,
+      name: seasonDisplay.name || "",
+      startDate: activeSeason.startDate || null,
+      endDate: activeSeason.endDate || null,
+      seasonPassProgressionHash: activeSeason.seasonPassProgressionHash ?? null
+    },
+    pass: seasonPass ? {
+      hash: passHash,
+      rewardProgressionHash: seasonPass.rewardProgressionHash ?? null,
+      prestigeProgressionHash: seasonPass.prestigeProgressionHash ?? null,
+      iconPath: passImages.iconImagePath || "",
+      backgroundImagePath: passImages.themeBackgroundImagePath || ""
+    } : null
+  }, 200, { "Cache-Control": "public, max-age=300" }));
+}
+
 async function manifestDefinitionRoute(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const type = url.searchParams.get("type") || "";
@@ -1133,6 +1202,7 @@ export default {
       if (request.method === "GET" && url.pathname === "/bungie/manifest") return manifestMetadataRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/component") return manifestComponentRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/definition") return manifestDefinitionRoute(request, env);
+      if (request.method === "GET" && url.pathname === "/bungie/current-season") return currentSeasonRoute(request, env);
       if (request.method === "GET" && (url.pathname === "/bungie/profile" || url.pathname === "/v1/destiny/profile")) {
         return profileRoute(request, env);
       }
