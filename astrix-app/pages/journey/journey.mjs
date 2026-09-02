@@ -2,7 +2,7 @@ import {AUTH_ORIGIN,getBungieSession} from '../guardian-workspace-v2/guardian-bu
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 import {readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
-import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260901-destination-data-panels';
+import {initJourneyLocationMaps,publishJourneyDestinationData,publishJourneyRegionChestProgress} from './journey-location-maps.mjs?v=20260901-destination-data-panels';
 
 const resolving=document.getElementById('journeyResolving');
 const signedOut=document.getElementById('journeySignedOut');
@@ -82,6 +82,7 @@ let triumphSectionRequest=0;
 let recordsCategoryRequest=0;
 let guardianRankRequest=0;
 let guardianRankObjectiveRequest=0;
+let destinationProgressRequest=0;
 let activeRecordView='';
 let selectedTitle=null;
 let selectedTriumphCategory=null;
@@ -265,7 +266,7 @@ function titleRequirementRow(payload,characterId,entry,definition,objectiveDefin
   if(!definition||state!==null&&(state&16)===16)return null;
   const objectives=(Array.isArray(component?.objectives)?component.objectives:[]).filter(objective=>objective?.visible!==false).map(objective=>{
     const objectiveDefinition=objectiveDefinitions[String(objective?.objectiveHash)];
-    return {name:String(objectiveDefinition?.progressDescription||objectiveDefinition?.displayProperties?.name||'OBJECTIVE PROGRESS').trim(),completed:finiteNumber(objective?.progress),total:finiteNumber(objective?.completionValue),complete:objective?.complete===true};
+    return {hash:finiteNumber(objective?.objectiveHash),name:String(objectiveDefinition?.progressDescription||objectiveDefinition?.displayProperties?.name||'OBJECTIVE PROGRESS').trim(),completed:finiteNumber(objective?.progress),total:finiteNumber(objective?.completionValue),complete:objective?.complete===true};
   }).filter(objective=>objective.completed!==null&&objective.total!==null&&objective.total>0);
   const complete=state!==null?(state&4)!==4:objectives.length>0&&objectives.every(objective=>objective.complete);
   return {hash,name:String(definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(definition),description:String(state!==null&&(state&8)===8?definition?.stateInfo?.obscuredDescription||'':definition?.displayProperties?.description||''),complete,objectives};
@@ -286,13 +287,209 @@ async function presentationRecordCategories(entries,nodes,characterId,recordKind
       const definition=definitions[hash];
       const name=String(definition?.displayProperties?.name||'').trim();
       if(!definition||!name)return;
+      const node=nodes?.[hash];
+      const state=finiteNumber(node?.state);
+      if(state!==null&&(state&1)===1)return;
       const path=[...item.path,name];
       const recordEntries=(definition?.children?.records||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
-      if(recordEntries.length){const node=nodes?.[hash];sections.push({key:hash,name:path.join(' · '),icon:bungiePresentationIcon(definition),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),recordEntries,items:null,characterId,recordKind});}
+      if(recordEntries.length)sections.push({key:hash,name:path.join(' · '),icon:bungiePresentationIcon(definition),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),recordEntries,items:null,characterId,recordKind});
       pending.push(...(definition?.children?.presentationNodes||[]).map(entry=>({entry,path})));
     });
   }
   return sections;
+}
+
+const DESTINATION_NAME_ALIASES=Object.freeze({
+  'pale-heart':['Pale Heart','The Pale Heart'],
+  'dreaming-city':['Dreaming City','The Dreaming City'],
+  neomuna:['Neomuna'],europa:['Europa'],'throne-world':['Throne World',"Savathûn's Throne World","Savathun's Throne World"],
+  nessus:['Nessus'],edz:['EDZ','European Dead Zone'],moon:['Moon','The Moon'],cosmodrome:['Cosmodrome']
+});
+const destinationNameKey=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+function destinationNameMatches(key,value){
+  const names=DESTINATION_NAME_ALIASES[key]||[globalThis.AstrixDestinations?.labelOf(key)||key];
+  return names.some(name=>destinationNameKey(name)===destinationNameKey(value));
+}
+
+function journeyCharacterFor(payload){
+  const characters=payload?.profile?.characters?.data||{};
+  return characters[selectedCharacterId]||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0]||null;
+}
+
+function destinationRecordItem(row){
+  return {name:row.name,icon:row.icon,description:row.description,completed:row.complete,objectives:(row.objectives||[]).map(objective=>({name:objective.name,current:objective.completed,total:objective.total,completed:objective.complete}))};
+}
+
+function destinationCategoryItem(section,label){
+  const complete=section.completed!==null&&section.total!==null&&section.total>0&&section.completed>=section.total;
+  return {name:section.name,icon:section.icon,description:label,current:section.completed,total:section.total,completed:complete};
+}
+
+async function destinationRecordSections(payload,key,characterId){
+  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
+  const presentationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
+  const resolved=Object.entries(nodes).map(([hash,node])=>({hash,node,definition:presentationDefinitions[hash]})).filter(item=>item.definition);
+  const definitionByHash=Object.fromEntries(resolved.map(item=>[String(item.hash),item.definition]));
+  const recordsRootHash=finiteNumber(payload?.profile?.profileRecords?.data?.recordCategoriesRootNodeHash);
+  const recordsRoot=resolved.find(item=>String(item.hash)===String(recordsRootHash))||resolved.find(item=>!(item.definition?.parentNodeHashes||[]).length&&(item.definition?.children?.presentationNodes||[]).length>2&&(item.definition?.children?.presentationNodes||[]).some(entry=>{const definition=definitionByHash[String(entry.presentationNodeHash)];return definition?.displayProperties?.name===item.definition?.displayProperties?.name&&(definition?.children?.presentationNodes||[]).length;}));
+  const currentEntry=(recordsRoot?.definition?.children?.presentationNodes||[]).find(entry=>definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name===recordsRoot?.definition?.displayProperties?.name);
+  const currentDefinition=definitionByHash[String(currentEntry?.presentationNodeHash||'')];
+  const destinationEntry=(currentDefinition?.children?.presentationNodes||[]).find(entry=>destinationNameMatches(key,definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name));
+  const destinationDefinition=definitionByHash[String(destinationEntry?.presentationNodeHash||'')];
+  const destinationNode=nodes[String(destinationEntry?.presentationNodeHash||'')];
+  const destinationState=finiteNumber(destinationNode?.state);
+  if(!destinationDefinition||destinationState!==null&&(destinationState&1)===1)return {triumphs:[],records:[],endgame:[]};
+  const sections=await presentationRecordCategories(destinationDefinition?.children?.presentationNodes||[],nodes,characterId,'destination');
+  const directEntries=(destinationDefinition?.children?.records||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
+  if(directEntries.length)sections.unshift({key:String(destinationEntry.presentationNodeHash),name:String(destinationDefinition?.displayProperties?.name||''),icon:bungiePresentationIcon(destinationDefinition),completed:finiteNumber(destinationNode?.progressValue),total:finiteNumber(destinationNode?.completionValue),recordEntries:directEntries,characterId,recordKind:'destination'});
+  const recordEntries=sections.flatMap(section=>section.recordEntries);
+  const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',recordEntries.map(entry=>entry.recordHash));
+  const objectiveDefinitions=await guardianManifest.getMany('DestinyObjectiveDefinition',Object.values(recordDefinitions).flatMap(definition=>definition?.objectiveHashes||[]));
+  const recordsBySection=sections.map(section=>({section,records:section.recordEntries.map(entry=>{
+    const definition=recordDefinitions[String(entry.recordHash)];
+    const row=titleRequirementRow(payload,characterId,entry,definition,objectiveDefinitions);
+    return row?{entry,definition,row,component:titleRecordFor(payload,characterId,entry.recordHash)}:null;
+  }).filter(Boolean)}));
+  const triumphs=[];
+  const records=[];
+  recordsBySection.forEach(({section,records:sectionRecords})=>{
+    const triumphRows=sectionRecords.filter(item=>!String(item.definition?.recordTypeName||'').trim()||destinationNameKey(item.definition.recordTypeName)==='triumphs');
+    const recordRows=sectionRecords.filter(item=>String(item.definition?.recordTypeName||'').trim()&&destinationNameKey(item.definition.recordTypeName)!=='triumphs');
+    if(triumphRows.length)triumphs.push(destinationCategoryItem(section,'TRIUMPH SUBCATEGORY'),...triumphRows.map(item=>destinationRecordItem(item.row)));
+    if(recordRows.length)records.push(destinationCategoryItem(section,'RECORD CATEGORY'),...recordRows.map(item=>destinationRecordItem(item.row)));
+  });
+  const activityHashes=[...new Set(recordsBySection.flatMap(({records})=>records.flatMap(item=>(item.component?.objectives||[]).map(objective=>finiteNumber(objective?.activityHash)).filter(hash=>hash!==null))))];
+  const activityDefinitions=await guardianManifest.getMany('DestinyActivityDefinition',activityHashes);
+  const destinationDefinitions=await guardianManifest.getMany('DestinyDestinationDefinition',Object.values(activityDefinitions).map(definition=>definition?.destinationHash));
+  const groups=new Map();
+  recordsBySection.flatMap(({records})=>records).forEach(item=>{
+    (item.component?.objectives||[]).filter(objective=>objective?.visible!==false).forEach(objective=>{
+      const activityHash=finiteNumber(objective?.activityHash);
+      const activity=activityDefinitions[String(activityHash)];
+      const modes=activity?.activityModeTypes||[];
+      const type=modes.includes(4)?'RAID':modes.includes(82)?'DUNGEON':'';
+      const destination=destinationDefinitions[String(activity?.destinationHash||'')];
+      const name=String(activity?.displayProperties?.name||'').trim();
+      if(!type||!name||!destinationNameMatches(key,destination?.displayProperties?.name))return;
+      const groupKey=`${type}:${name}`;
+      if(!groups.has(groupKey))groups.set(groupKey,{type,name,icon:bungiePresentationIcon(activity),records:new Map()});
+      const group=groups.get(groupKey);
+      if(!group.records.has(item.row.hash))group.records.set(item.row.hash,{item,objectiveHashes:new Set()});
+      group.records.get(item.row.hash).objectiveHashes.add(finiteNumber(objective?.objectiveHash));
+    });
+  });
+  const endgame=[];
+  [...groups.values()].sort((left,right)=>left.type.localeCompare(right.type)||left.name.localeCompare(right.name)).forEach(group=>{
+    const groupRecords=[...group.records.values()];
+    endgame.push({name:`${group.type} · ${group.name}`,icon:group.icon,description:'ACTIVITY',current:groupRecords.filter(({item})=>item.row.complete).length,total:groupRecords.length,completed:groupRecords.length>0&&groupRecords.every(({item})=>item.row.complete)});
+    groupRecords.forEach(({item,objectiveHashes})=>endgame.push(destinationRecordItem({...item.row,objectives:item.row.objectives.filter(objective=>objectiveHashes.has(objective.hash))})));
+  });
+  return {triumphs,records,endgame};
+}
+
+async function destinationQuestRows(payload,key,characterId){
+  const progression=payload?.profile?.characterProgressions?.data?.[characterId]||{};
+  const statuses=(progression.quests||[]).map(status=>({status,questHash:finiteNumber(status?.questHash),stepHash:finiteNumber(status?.stepHash),objectives:status?.stepObjectives||[]}));
+  Object.entries(progression.uninstancedItemObjectives||{}).forEach(([stepHash,objectives])=>statuses.push({status:{},questHash:null,stepHash:finiteNumber(stepHash),objectives:Array.isArray(objectives)?objectives:[]}));
+  const itemDefinitions=await guardianManifest.getMany('DestinyInventoryItemDefinition',statuses.flatMap(item=>[item.questHash,item.stepHash]));
+  const questHashes=statuses.map(item=>item.questHash??finiteNumber(itemDefinitions[String(item.stepHash)]?.objectives?.questlineItemHash)).filter(hash=>hash!==null);
+  Object.assign(itemDefinitions,await guardianManifest.getMany('DestinyInventoryItemDefinition',questHashes));
+  const objectiveDefinitions=await guardianManifest.getMany('DestinyObjectiveDefinition',statuses.flatMap(item=>item.objectives.map(objective=>objective?.objectiveHash)));
+  const activityDefinitions=await guardianManifest.getMany('DestinyActivityDefinition',statuses.flatMap(item=>item.objectives.map(objective=>objective?.activityHash)));
+  const destinationDefinitions=await guardianManifest.getMany('DestinyDestinationDefinition',[
+    ...statuses.flatMap(item=>item.objectives.map(objective=>objective?.destinationHash)),
+    ...Object.values(activityDefinitions).map(definition=>definition?.destinationHash)
+  ]);
+  const groups=new Map();
+  statuses.forEach(item=>{
+    const destinationObjectives=item.objectives.filter(objective=>objective?.visible!==false).filter(objective=>{
+      const direct=destinationDefinitions[String(objective?.destinationHash||'')];
+      const activity=activityDefinitions[String(objective?.activityHash||'')];
+      const activityDestination=destinationDefinitions[String(activity?.destinationHash||'')];
+      return destinationNameMatches(key,direct?.displayProperties?.name)||destinationNameMatches(key,activityDestination?.displayProperties?.name);
+    });
+    if(!destinationObjectives.length)return;
+    const stepDefinition=itemDefinitions[String(item.stepHash)];
+    const questHash=item.questHash??finiteNumber(stepDefinition?.objectives?.questlineItemHash);
+    if(questHash===null)return;
+    const questDefinition=itemDefinitions[String(questHash)]||stepDefinition;
+    const groupName=String(questDefinition?.itemTypeAndTierDisplayName||stepDefinition?.itemTypeAndTierDisplayName||'QUESTS').trim();
+    const objectives=destinationObjectives.map(objective=>({name:String(objectiveDefinitions[String(objective?.objectiveHash)]?.progressDescription||'OBJECTIVE PROGRESS').trim(),current:finiteNumber(objective?.progress),total:finiteNumber(objective?.completionValue),completed:objective?.complete===true})).filter(objective=>objective.current!==null&&objective.total!==null&&objective.total>0);
+    const visibleObjectives=item.objectives.filter(objective=>objective?.visible!==false);
+    const stepComplete=visibleObjectives.length>0&&visibleObjectives.every(objective=>objective?.complete===true);
+    const questComplete=item.status?.completed===true;
+    const quest={name:String(questDefinition?.displayProperties?.name||stepDefinition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(questDefinition),description:String(questDefinition?.displayProperties?.description||''),completed:questComplete};
+    const step={name:String(stepDefinition?.displayProperties?.name||quest.name).trim(),icon:bungiePresentationIcon(stepDefinition),description:String(stepDefinition?.displayProperties?.description||''),completed:stepComplete,objectives};
+    if(!quest.name||!step.name)return;
+    if(!groups.has(groupName))groups.set(groupName,[]);
+    groups.get(groupName).push({quest,step});
+  });
+  const rows=[];
+  for(const [groupName,quests] of groups){
+    rows.push({name:groupName,description:'QUEST GROUP',current:quests.filter(item=>item.quest.completed).length,total:quests.length,completed:quests.length>0&&quests.every(item=>item.quest.completed)});
+    quests.forEach(item=>rows.push(item.quest,item.step));
+  }
+  return rows;
+}
+
+async function bindRegionChestProgress(payload,key,characterId,requestId){
+  const checklistStates={...(payload?.profile?.profileProgression?.data?.checklists||{}),...(payload?.profile?.characterProgressions?.data?.[characterId]?.checklists||{})};
+  const checklistHashes=Object.keys(checklistStates);
+  if(!checklistHashes.length)return;
+  const checklistDefinitions=await guardianManifest.getMany('DestinyChecklistDefinition',checklistHashes);
+  if(!Object.keys(checklistDefinitions).length)return;
+  const entries=[];
+  let regionChecklistFound=false;
+  checklistHashes.forEach(hash=>{
+    const definition=checklistDefinitions[hash];
+    const label=`${definition?.displayProperties?.name||''} ${definition?.viewActionString||''}`;
+    if(!/region chests?/i.test(label))return;
+    regionChecklistFound=true;
+    (definition?.entries||[]).forEach(entry=>entries.push({entry,state:checklistStates[hash]?.[String(entry?.hash)]}));
+  });
+  if(!regionChecklistFound)return;
+  const activityDefinitions=await guardianManifest.getMany('DestinyActivityDefinition',entries.map(item=>item.entry?.activityHash));
+  const locationDefinitions=await guardianManifest.getMany('DestinyLocationDefinition',entries.map(item=>item.entry?.locationHash));
+  const destinationDefinitions=await guardianManifest.getMany('DestinyDestinationDefinition',[
+    ...entries.map(item=>item.entry?.destinationHash),
+    ...Object.values(activityDefinitions).map(definition=>definition?.destinationHash),
+    ...Object.values(locationDefinitions).flatMap(definition=>(definition?.locationReleases||[]).map(release=>release?.destinationHash))
+  ]);
+  const matching=entries.filter(({entry})=>{
+    const direct=destinationDefinitions[String(entry?.destinationHash||'')];
+    const activity=activityDefinitions[String(entry?.activityHash||'')];
+    const activityDestination=destinationDefinitions[String(activity?.destinationHash||'')];
+    const location=locationDefinitions[String(entry?.locationHash||'')];
+    return destinationNameMatches(key,direct?.displayProperties?.name)
+      ||destinationNameMatches(key,activityDestination?.displayProperties?.name)
+      ||(location?.locationReleases||[]).some(release=>destinationNameMatches(key,destinationDefinitions[String(release?.destinationHash||'')]?.displayProperties?.name));
+  });
+  const chests=matching.map(({entry,state})=>{
+    const direct=destinationDefinitions[String(entry?.destinationHash||'')];
+    const activity=activityDefinitions[String(entry?.activityHash||'')];
+    const activityDestination=destinationDefinitions[String(activity?.destinationHash||'')];
+    const locationDefinition=locationDefinitions[String(entry?.locationHash||'')];
+    const locationDestination=(locationDefinition?.locationReleases||[]).map(release=>destinationDefinitions[String(release?.destinationHash||'')]).find(definition=>destinationNameMatches(key,definition?.displayProperties?.name));
+    const destination=direct||activityDestination||locationDestination;
+    const bubble=(destination?.bubbles||[]).find(item=>String(item?.hash)===String(entry?.bubbleHash));
+    const location=String(bubble?.displayProperties?.name||locationDefinition?.displayProperties?.name||entry?.displayProperties?.description||activity?.displayProperties?.name||'').trim();
+    return {name:String(entry?.displayProperties?.name||'').trim(),location,collected:typeof state==='boolean'?state:null};
+  });
+  if(requestId!==destinationProgressRequest||entries.length>0&&!matching.length||chests.some(chest=>!chest.name||!chest.location||chest.collected===null))return;
+  publishJourneyRegionChestProgress({key,total:chests.length,discovered:chests.filter(chest=>chest.collected).length,chests});
+}
+
+async function bindDestinationProgress(payload,key=globalThis.AstrixDestinations?.current()){
+  if(!payload||!key)return;
+  const requestId=++destinationProgressRequest;
+  await manifestReady;
+  const character=journeyCharacterFor(payload);
+  const characterId=String(character?.characterId||'');
+  const regionChests=bindRegionChestProgress(payload,key,characterId,requestId);
+  const [recordSections,quests]=await Promise.all([destinationRecordSections(payload,key,characterId),destinationQuestRows(payload,key,characterId)]);
+  if(requestId!==destinationProgressRequest)return;
+  publishJourneyDestinationData({key,sections:{triumphs:recordSections.triumphs,records:recordSections.records,quests,endgame:recordSections.endgame}});
+  await regionChests;
 }
 
 const RECORD_SECTION_DEFINITIONS=[
@@ -1207,6 +1404,7 @@ function selectJourneyCharacter(characterId,className){
   selectedCharacterId=String(characterId||'');
   selectedClassName=String(className||'').toUpperCase();
   renderJourneyContext();
+  if(verifiedProfile)void bindDestinationProgress(verifiedProfile);
   if(journeySession)void bindRecentActivity(journeySession);
   if(journeySession)void bindCurrentForm(journeySession);
 }
@@ -1256,6 +1454,7 @@ document.querySelectorAll('input[name="journeyTime"]').forEach(input=>input.addE
 document.addEventListener('astrix:character-selected',event=>{
   selectJourneyCharacter(event.detail?.characterId,event.detail?.className||event.detail?.characterClass);
 });
+document.addEventListener('astrix:destination-changed',event=>{if(verifiedProfile)void bindDestinationProgress(verifiedProfile,event.detail?.key);});
 
 if(heroCards){
   new MutationObserver(syncSelectedCharacterFromCards).observe(heroCards,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
@@ -1326,6 +1525,7 @@ try{
     if(profile){
       verifiedProfile=profile;
       bindProfileCards(profile);
+      void bindDestinationProgress(profile);
     }
     await Promise.all([heroCardsReady,mapReady,waitForJourneyAtmosphere()]);
     globalThis.AstrixLoader.set(96);globalThis.AstrixLoader.status('Journey rendered');
