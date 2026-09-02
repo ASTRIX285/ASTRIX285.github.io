@@ -19,6 +19,8 @@ const allowed=new Set([
   'astrix-app/pages/guardian-workspace-v2/index.html',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs',
+  'astrix-app/pages/guardian-alpha/guardian-alpha.mjs',
+  'astrix-app/pages/guardian-alpha/index.html',
   'astrix-app/pages/journey/index.html',
   'astrix-app/pages/journey/journey-2560-visual.css',
   'astrix-app/pages/journey/journey-location-maps.mjs',
@@ -35,6 +37,7 @@ const allowed=new Set([
   'astrix-app/tools/validate-sandbox-deployment.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
   'astrix-app/tools/validate-super-formation.mjs',
+  'astrix-app/tools/validate-tools-hub.mjs',
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);

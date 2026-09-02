@@ -80,31 +80,31 @@ assert.ok(games.includes('Gaming <span class="accent">Universes</span>'),'Univer
 
 const alpha=read('astrix-app/pages/guardian-alpha/index.html');
 assert.ok(alpha.includes('href="../../../tools/">BACK TO TOOLS</a>'),'Alpha page must return to the Tools hub');
-assert.ok(alpha.includes('id="alphaAccessForm"'),'Alpha page must present the access-code gate');
-assert.ok(alpha.includes('id="alphaAccessCode"'),'Alpha page must include the access-code input');
-assert.ok(alpha.includes('src="./guardian-alpha.mjs"'),'Alpha page must load its access-flow controller');
+assert.doesNotMatch(alpha,/tester access code|Alpha access code|alphaAccessForm|alphaAccessCode|ENTER ALPHA/,'Legacy tester access-code controls must remain removed');
+assert.ok(alpha.includes('id="guardianAccessMessage"'),'Guardian entry must expose the Bungie handoff status');
+assert.ok(alpha.includes('src="./guardian-alpha.mjs?v=20260902-access-gate-removed-1"'),'Guardian entry must request the gate-free handoff controller without stale cache reuse');
 assert.doesNotMatch(alpha,/guardianDestinationPopup|destination-backdrop|<a class="destination"/,'Alpha page must not stop at a destination selector');
-assert.ok(alpha.includes('continue directly into Guardian Build Forge.'),'Alpha page must describe the direct Build Forge handoff');
-assert.match(alpha,/@media\(max-width:560px\)[\s\S]*?\.access-row\{grid-template-columns:1fr\}/,'Alpha access form must stack at phone widths');
+assert.ok(alpha.includes('continue directly to the Journey command console.'),'Entry page must describe the direct Journey handoff');
 assert.doesNotMatch(alpha,/—|–|&mdash;|&ndash;/,'Alpha page must not use em or en dashes');
 
 const alphaFlow=read('astrix-app/pages/guardian-alpha/guardian-alpha.mjs');
-assert.ok(alphaFlow.includes("ACCESS_STORAGE_KEY='astrix-paradox-beta-access'"),'Alpha page must reuse the existing workspace access flag');
-assert.ok(alphaFlow.includes("input.value.trim()!==ACCESS_CODE"),'Alpha code must be checked before authentication starts');
-assert.ok(alphaFlow.indexOf("input.value.trim()!==ACCESS_CODE")<alphaFlow.indexOf('getBungieSession();'),'Invalid Alpha access must be rejected before Bungie session handling');
-assert.ok(alphaFlow.includes("location.assign(authStartUrl())"),'Valid Alpha access must continue into Bungie authentication');
-assert.ok(alphaFlow.includes("if(!hasAlphaAccess())return"),'Post-auth Build Forge handoff must remain behind Alpha access');
-assert.ok(alphaFlow.includes("BUILD_FORGE_URL='../guardian-workspace-v2/paradox-build-space/'"),'Authenticated Alpha access must target Build Forge');
-assert.match(alphaFlow,/function openBuildForge\(\)\{\s*location\.replace\(BUILD_FORGE_URL\);\s*\}/,'Build Forge handoff must replace the Alpha gate in browser history');
-assert.equal((alphaFlow.match(/openBuildForge\(\);/g)??[]).length,2,'Both active-session and post-auth paths must enter Build Forge directly');
+assert.doesNotMatch(alphaFlow,/PARADOX285|ACCESS_CODE|ACCESS_STORAGE_KEY|hasAlphaAccess|grantAlphaAccess/,'Legacy tester access-code logic must remain removed');
+assert.ok(alphaFlow.includes("location.assign(authStartUrl())"),'Unauthenticated entry must continue into Bungie authentication');
+assert.ok(alphaFlow.includes("JOURNEY_URL='../journey/'"),'Authenticated entry must target Journey');
+assert.match(alphaFlow,/function openJourney\(\)\{\s*location\.replace\(JOURNEY_URL\);\s*\}/,'Journey handoff must replace the entry page in browser history');
+assert.ok(alphaFlow.includes('continueToGuardianJourney();'),'Guardian entry must start the session handoff automatically');
 assert.doesNotMatch(alphaFlow,/openDestinationSelector|guardianDestinationPopup|OPEN GUARDIAN TOOLS/,'Destination selector fallback must be removed');
+
+const workspaceReadiness=read('astrix-app/pages/guardian-workspace-v2/guardian-beta-readiness.mjs');
+assert.doesNotMatch(workspaceReadiness,/PARADOX285|astrix-paradox-beta-access|beta-access-gate|Enter the tester access code|accessGate/,'Workspace must not restore the tester access-code overlay');
+assert.match(workspaceReadiness,/waitForBungieAuthentication\(\)\.then\(wireControls\);/,'Workspace controls must initialise after Bungie authentication without a tester gate');
 
 console.log('MULTI_GAME_TOOLS_HUB=PASS');
 console.log('COMPACT_TOOLS_INTRO=PASS');
 console.log('REUSABLE_PLATFORM_CARD_GRID=PASS');
 console.log('TOOLS_NATIVE_LARGE_SCREEN_SCALE=PASS');
 console.log('TOOLS_MISSION_POPUP=PASS');
-console.log('ALPHA_ACCESS_BEFORE_BUNGIE=PASS');
-console.log('ALPHA_DIRECT_BUILD_FORGE=PASS');
+console.log('TESTER_ACCESS_GATE_REMOVED=PASS');
+console.log('BUNGIE_DIRECT_JOURNEY=PASS');
 console.log('DESTINATION_SELECTOR_REMOVED=PASS');
 console.log('RESPONSIVE_TOOLS_ALPHA_CONTRACT=PASS');
