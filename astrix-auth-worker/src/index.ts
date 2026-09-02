@@ -29,6 +29,7 @@ const LIVE_DEFINITION_TYPES = new Set([
   "DestinyActivityDefinition",
   "DestinyChecklistDefinition",
   "DestinyLocationDefinition",
+  "DestinyMetricDefinition",
   "DestinyDamageTypeDefinition",
   "DestinyBreakerTypeDefinition",
   "DestinyEquipableItemSetDefinition"
@@ -120,7 +121,9 @@ const PROFILE_COMPONENTS = [
   310, // ItemReusablePlugs
   700, // PresentationNodes
   800, // Collectibles
-  900  // Records
+  900, // Records
+  1100, // Metrics
+  1300  // Craftables
 ] as const;
 
 function randomToken(): string {
