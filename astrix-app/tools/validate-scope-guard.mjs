@@ -10,6 +10,7 @@ const allowed=new Set([
   'astrix-sandbox/cloudflare-pages.mjs',
   'astrix-sandbox/pages-worker.js',
   'astrix-sandbox/prepare-deployment.mjs',
+  'astrix-sandbox/wrangler.toml',
   'astrix-app/pages/guardian-workspace-v2/index.html',
   'astrix-app/pages/journey/index.html',
   'astrix-app/pages/journey/journey-2560-visual.css',

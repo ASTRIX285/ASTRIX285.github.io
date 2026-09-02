@@ -14,7 +14,7 @@ const skippedTopLevel=new Set([
 const streamedFiles=new Set([
   'astrix-app/data/armor-information.json',
 ]);
-const pagesFileLimit=25*1024*1024;
+const assetFileLimit=25*1024*1024;
 let fileCount=0;
 let totalBytes=0;
 
@@ -32,7 +32,7 @@ function copyDirectory(source,target,relative=''){
     }
     if(!entry.isFile()&&!entry.isSymbolicLink())continue;
     const size=lstatSync(childSource).size;
-    if(size>pagesFileLimit)throw new Error(`Cloudflare Pages file limit exceeded: ${childRelative} (${size} bytes)`);
+    if(size>assetFileLimit)throw new Error(`Cloudflare asset file limit exceeded: ${childRelative} (${size} bytes)`);
     copyFileSync(childSource,childTarget);
     fileCount+=1;
     totalBytes+=size;
@@ -41,6 +41,5 @@ function copyDirectory(source,target,relative=''){
 
 rmSync(output,{recursive:true,force:true});
 copyDirectory(root,output);
-copyFileSync(`${root}astrix-sandbox/pages-worker.js`,`${output}/_worker.js`);
 
 console.log(`SANDBOX_DEPLOYMENT_READY=${fileCount} files ${totalBytes} bytes`);

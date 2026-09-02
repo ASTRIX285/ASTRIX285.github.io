@@ -36,22 +36,14 @@ jobs:
           npm run check --if-present
       - name: Prepare static sandbox
         run: node astrix-sandbox/prepare-deployment.mjs
-      - name: Ensure Cloudflare Pages project
-        run: node astrix-sandbox/cloudflare-pages.mjs ensure-project
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      - name: Deploy sandbox Pages
+      - name: Deploy sandbox Worker
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .sandbox-dist --project-name astrix-paradox-sandbox --branch sandbox --commit-dirty=true
-      - name: Attach sandbox custom domain
-        run: node astrix-sandbox/cloudflare-pages.mjs ensure-domain
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: astrix-sandbox
+          wranglerVersion: 4.114.0
+          command: deploy
       - name: Deploy sandbox auth origin
         uses: cloudflare/wrangler-action@v3
         with:
