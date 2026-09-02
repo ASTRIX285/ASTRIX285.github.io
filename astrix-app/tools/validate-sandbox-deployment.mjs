@@ -40,8 +40,8 @@ assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2F
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
-assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-account-rank-summary-1/,'Journey must load the account-and-rank summary styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-account-rank-summary-1/,'Journey must load the account-and-rank summary module');
+assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-complete-title-catalogue-1/,'Journey must load the complete-title-catalogue styling');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-complete-title-catalogue-1/,'Journey must load the complete-title-catalogue module');
 assert.match(journeyModule,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journeyModule,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -57,6 +57,16 @@ assert.match(journeyModule,/accountMinutes=characters\.map[\s\S]*?reduce\(\(sum,
 assert.match(journeyModule,/lifetimeHighestGuardianRank[\s\S]*?currentGuardianRank,profile\.renewedGuardianRank/,'Journey must use the highest completed Guardian Rank instead of an in-progress target');
 assert.match(journeyModule,/DestinyGuardianRankConstantsDefinition[\s\S]*?DestinyGuardianRankDefinition[\s\S]*?bungiePresentationIcon/,'Journey must source Guardian Rank names and badge icons from the Bungie manifest');
 assert.match(journeyHtml,/id="journeyGuardianRankSummary"[\s\S]*?VIEW GUARDIAN RANK DETAILS/,'Journey must retain a linked Guardian Rank summary without replacing the full details panel');
+assert.match(journeyHtml,/data-journey-equipped-title[\s\S]*?id="journeyTitleSeal"[\s\S]*?id="journeyEquippedTitleDetailsLink"/,'Journey must render the equipped title inside a linked seal-detail summary');
+assert.match(journeyCss,/\.journey-page \.journey-left-summaries \.journey-equipped-title-summary\{[\s\S]*?grid-template-columns:4\.25rem minmax\(0,1fr\)/,'The sandbox must include the compact equipped-title seal-card style');
+assert.match(journeyModule,/profileRecords\?\.data\?\.recordSealsRootNodeHash[\s\S]*?titlePresentationCatalog/,'The sandbox must enumerate Titles from Bungie’s authoritative Triumph Seals root');
+assert.match(journeyModule,/const hookedRows=isTitleCollection\?null:journeyRecordHookRows\(payload,view\)/,'The sandbox must not replace the full title catalogue with a partial supplied row list');
+assert.match(journeyModule,/titlePresentationCatalog[\s\S]*?definition\?\.children\?\.presentationNodes[\s\S]*?completionRecordHash/,'The sandbox must traverse all seal definitions instead of only earned profile nodes');
+assert.match(journeyModule,/requirementStates[\s\S]*?\(state&4\)!==4[\s\S]*?requirementEntries\.length/,'All title rows must retain verified requirement progress when presentation totals are absent');
+assert.match(journeyModule,/const earned=view==='titles'&&state!==null&&\(state&64\)===64/,'The sandbox must count earned Titles with Bungie’s CanEquipTitle flag');
+assert.match(journeyModule,/recordsStatus\.textContent=view==='titles'\?`\$\{titles\.length\} TITLES · \$\{earned\} EARNED`/,'The sandbox must display complete and earned title totals separately');
+assert.match(journeyModule,/titleHash=finiteNumber\(character\?\.titleRecordHash\)[\s\S]*?titles\.find\(title=>title\.completionRecordHash===titleHash\)[\s\S]*?renderEquippedTitleSummary\(equipped\)/,'The sandbox summary must show the selected Guardian’s equipped title');
+assert.match(journeyModule,/journeyEquippedTitleDetailsLink[\s\S]*?showGuardianRecordPanel\('titles'\)[\s\S]*?showTitleDetail\(equippedTitleSummary,'titles'\)/,'The sandbox equipped-title card must link into the full title details');
 assert.match(journeyCss,/\.journey-page \.mission-crest\{[\s\S]*?position:absolute;[\s\S]*?inset:0;[\s\S]*?transform:none/,'Journey must remove the inherited decorative diamond and let the emblem own the whole card');
 assert.match(journeyCss,/\.journey-page \.mission-crest img\{[\s\S]*?width:100%;[\s\S]*?height:100%;[\s\S]*?object-fit:cover;[\s\S]*?transform:none/,'Verified Bungie emblem artwork must fill the whole identity card');
 assert.match(journeyCss,/\.journey-page \.mission-identity-copy\{[\s\S]*?width:66\.667%;[\s\S]*?margin-left:33\.333%/,'Guardian class and subclass must overlay the emblem beginning one third into the card');

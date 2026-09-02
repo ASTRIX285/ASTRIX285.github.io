@@ -34,8 +34,8 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-account-rank-summary-1"'),'Journey must load the account-and-rank summary styling');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-account-rank-summary-1"'),'Journey must load the cache-busted account-and-rank summary module');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-complete-title-catalogue-1"'),'Journey must load the complete-title-catalogue styling');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-complete-title-catalogue-1"'),'Journey must load the cache-busted complete-title-catalogue module');
 assert.match(journey,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journey,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journey,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -58,6 +58,16 @@ assert.match(journey,/accountMinutes=characters\.map[\s\S]*?reduce\(\(sum,minute
 assert.match(journey,/lifetimeHighestGuardianRank[\s\S]*?currentGuardianRank,profile\.renewedGuardianRank/,'Journey must prefer the lifetime-highest completed Guardian Rank with verified fallbacks');
 assert.match(journey,/DestinyGuardianRankConstantsDefinition[\s\S]*?DestinyGuardianRankDefinition[\s\S]*?bungiePresentationIcon/,'Journey must resolve official Guardian Rank names and badge icons from the Bungie manifest');
 assert.match(html,/id="journeyGuardianRankSummary"[\s\S]*?VIEW GUARDIAN RANK DETAILS/,'Journey must copy the Guardian Rank detail-card style into its account summary and link to the full details');
+assert.match(html,/data-journey-equipped-title[\s\S]*?id="journeyTitleSeal"[\s\S]*?id="journeyEquippedTitleDetailsLink"/,'Journey must copy the title detail-card style into the equipped-title summary');
+assert.match(css,/\.journey-page \.journey-left-summaries \.journey-equipped-title-summary\{[\s\S]*?grid-template-columns:4\.25rem minmax\(0,1fr\)/,'Equipped title artwork and details must use the compact seal-card layout');
+assert.match(journey,/profileRecords\?\.data\?\.recordSealsRootNodeHash[\s\S]*?titlePresentationCatalog/,'Journey Titles must start from Bungie’s authoritative Triumph Seals root');
+assert.match(journey,/const hookedRows=isTitleCollection\?null:journeyRecordHookRows\(payload,view\)/,'The complete title catalogue must not be replaced by a partial supplied row list');
+assert.match(journey,/titlePresentationCatalog[\s\S]*?definition\?\.children\?\.presentationNodes[\s\S]*?completionRecordHash/,'Journey must traverse the complete manifest seal hierarchy rather than only returned progress nodes');
+assert.match(journey,/requirementStates[\s\S]*?\(state&4\)!==4[\s\S]*?requirementEntries\.length/,'Missing presentation-node totals must be derived from verified title requirement records');
+assert.match(journey,/const earned=view==='titles'&&state!==null&&\(state&64\)===64/,'Journey must use Bungie’s CanEquipTitle record state for earned titles');
+assert.match(journey,/recordsStatus\.textContent=view==='titles'\?`\$\{titles\.length\} TITLES · \$\{earned\} EARNED`/,'Titles status must distinguish the complete catalogue from the earned subset');
+assert.match(journey,/titleHash=finiteNumber\(character\?\.titleRecordHash\)[\s\S]*?titles\.find\(title=>title\.completionRecordHash===titleHash\)[\s\S]*?renderEquippedTitleSummary\(equipped\)/,'The summary must resolve the selected Guardian’s equipped title from the complete catalogue');
+assert.match(journey,/journeyEquippedTitleDetailsLink[\s\S]*?showGuardianRecordPanel\('titles'\)[\s\S]*?showTitleDetail\(equippedTitleSummary,'titles'\)/,'The equipped title summary must open its full verified title details');
 assert.match(journey,/if\(!lateProfile\?\.profile\?\.characters\?\.data\)\{void refreshJourneyProfile\(\);return;\}/,'Journey must retry its lightweight profile feed when the deferred initial profile returns empty');
 assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"'),'Journey must load the shared authenticated hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');

@@ -225,6 +225,20 @@ body.journey-page.apx-destination-page .apx-page-shell{
 .journey-column-summaries .apx-scaffold-card{min-height:0;padding:.875rem;border-color:color-mix(in srgb,var(--loc) 22%,transparent)}
 .journey-column-summaries .apx-scaffold-card h2{font-size:.8125rem}
 .journey-column-summaries .apx-empty-state{margin-top:.625rem;padding:.625rem;font-size:.8125rem;line-height:1.45}
+.journey-page .journey-left-summaries .journey-equipped-title-summary{
+  grid-template-columns:4.25rem minmax(0,1fr);
+  gap:.75rem;
+  margin:.625rem 0 0;
+  padding:.75rem;
+  border-color:rgba(201,168,76,.28);
+  background:linear-gradient(100deg,rgba(139,0,0,.12),rgba(255,255,255,.018));
+}
+.journey-page .journey-left-summaries .journey-equipped-title-summary.has-no-icon{grid-template-columns:1fr}
+.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-detail-icon{width:4rem;height:4rem}
+.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-detail-copy h4{font-size:.875rem}
+.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-detail-copy p{font-size:.75rem;letter-spacing:.04em}
+.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-progress{font-size:.75rem}
+.journey-page .journey-left-summaries .journey-equipped-title-summary .journey-record-link{font-size:.625rem}
 
 @media(min-width:1761px){
   .journey-console{align-items:stretch}
