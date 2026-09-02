@@ -34,8 +34,12 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-emblem-identity-card-1"'),'Journey must load the emblem-led identity card correction');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-journey-ribbon-title-1"'),'Journey must load the consolidated ribbon-title styling');
 assert.ok(html.includes('src="./journey.mjs?v=20260902-tracker-thresholds-1"'),'Journey must load the cache-busted verified Stat Tracker threshold module');
+assert.doesNotMatch(html,/GUARDIAN JOURNEY · SUMMARY HUB|Your top-line Guardian record|VERIFIED DATA ONLY/,'Journey must not repeat its title in a standalone dashboard banner');
+assert.match(css,/\.journey-page \.apx-destination-header-copy\{[\s\S]*?display:flex;[\s\S]*?align-items:baseline;[\s\S]*?justify-content:center/,'Journey ribbon title and descriptor must read left to right');
+assert.match(css,/\.journey-page \.apx-destination-header-copy strong\{[\s\S]*?color:var\(--apx-crimson-bright\);[\s\S]*?font-size:1\.25rem;[\s\S]*?font-weight:800/,'Journey ribbon title must use the larger bold crimson treatment');
+assert.match(css,/@media \(min-width:1900px\)\{[\s\S]*?grid-template-columns:max-content minmax\(190px,1fr\) 910px minmax\(0,1fr\)!important;[\s\S]*?\.apx-destination-header-copy\{[\s\S]*?grid-column:2!important;[\s\S]*?#guardianCharacterCards\.guardian-character-cards\{[\s\S]*?grid-column:3!important/,'Large-screen Journey title must sit between branding and the first Guardian card');
 assert.match(journey,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash/,'Journey patterns must use the verified character Craftables component');
 assert.match(journey,/presentationLeafCategories\(rootHash,nodes,'records'\)[\s\S]*?verifiedCraftablePatternTypes/,'Journey patterns must follow the official Craftables presentation root to its current Record leaves');
 assert.match(journey,/profile\?\.metrics\?\.data[\s\S]*?DestinyMetricDefinition[\s\S]*?trackingObjectiveHash/,'Journey Stat Trackers must join verified Metrics to their manifest and objective definitions');

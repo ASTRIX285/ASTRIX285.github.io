@@ -25,8 +25,27 @@ body.journey-page.apx-destination-page .apx-page-shell{
 .journey-page .apx-page-heading p{font-size:1.125rem}
 .journey-page .apx-destination-brand strong{font-size:.875rem}
 .journey-page .apx-destination-brand small{font-size:.75rem}
-.journey-page .apx-destination-header-copy strong{font-size:.75rem}
-.journey-page .apx-destination-header-copy small{font-size:.8125rem}
+.journey-page .apx-destination-header-copy{
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  gap:.75rem;
+  white-space:nowrap;
+}
+.journey-page .apx-destination-header-copy strong{
+  color:var(--apx-crimson-bright);
+  font-size:1.25rem;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-shadow:0 0 18px rgba(211,32,47,.3);
+}
+.journey-page .apx-destination-header-copy small{
+  display:inline;
+  margin-top:0;
+  color:#b53642;
+  font:800 .75rem/1 Orbitron,sans-serif;
+  letter-spacing:.1em;
+}
 .journey-page .apx-destination-header-state{font-size:.75rem}
 .journey-page .apx-destination-ribbon a{font-size:.75rem}
 .journey-page .apx-eyebrow,
@@ -705,7 +724,7 @@ body.journey-page.apx-destination-page .apx-page-shell{
   }
 
   .journey-page .apx-destination-header-copy strong{
-    font-size:.875rem;
+    font-size:1.75rem;
   }
 
   .journey-page .apx-destination-header-copy small{
@@ -851,4 +870,29 @@ body.journey-page.apx-destination-page .apx-page-shell{
     font-size:.875rem;
   }
 
+}
+
+@media (min-width:1900px){
+  html body.journey-page header:has(>[data-astrix-hero-cards]){
+    grid-template-columns:max-content minmax(190px,1fr) 910px minmax(0,1fr)!important;
+  }
+
+  html body.journey-page header:has(>[data-astrix-hero-cards])>.apx-destination-header-copy{
+    grid-column:2!important;
+    justify-self:stretch!important;
+    text-align:center!important;
+  }
+
+  html body.journey-page header:has(>[data-astrix-hero-cards])>#guardianCharacterCards.guardian-character-cards{
+    grid-column:3!important;
+  }
+
+  html body.journey-page header:has(>[data-astrix-hero-cards])>.apx-destination-header-state{
+    grid-column:4!important;
+  }
+}
+
+@media (max-width:720px){
+  .journey-page .apx-destination-header-copy strong{font-size:.875rem}
+  .journey-page .apx-destination-header-copy small{display:none}
 }
