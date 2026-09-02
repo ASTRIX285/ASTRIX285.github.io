@@ -126,8 +126,51 @@ body.journey-page.apx-destination-page .apx-page-shell{
 
 .journey-page .mission-identity-copy h1{font-size:1.0625rem}
 .journey-page .mission-identity-copy>p:last-child{font-size:.8125rem}
-.journey-page .mission-crest span{font-size:1.625rem}
 .journey-page .mission-verified-badge{font-size:.75rem}
+.journey-page .mission-identity-card{
+  display:grid;
+  grid-template-columns:1fr;
+  min-height:7.5rem;
+  padding:1.125rem 1rem 2rem;
+  overflow:hidden;
+  isolation:isolate;
+}
+.journey-page .mission-identity-card::after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:0;
+  background:linear-gradient(90deg,rgba(5,5,7,.12) 0,rgba(5,5,7,.7) 34%,rgba(5,5,7,.86) 100%);
+  pointer-events:none;
+}
+.journey-page .mission-crest{
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  border:0;
+  background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(139,0,0,.1));
+  box-shadow:none;
+  transform:none;
+}
+.journey-page .mission-crest img{
+  width:100%;
+  height:100%;
+  padding:0;
+  object-fit:cover;
+  transform:none;
+}
+.journey-page .mission-crest span{font-size:2.5rem;transform:none}
+.journey-page .mission-identity-copy{
+  position:relative;
+  z-index:1;
+  width:66.667%;
+  margin-left:33.333%;
+  align-self:center;
+}
+.journey-page .mission-identity-card>.mission-verified-badge{z-index:1}
 .journey-page .mission-guardian-stats dt{font-size:.875rem}
 .journey-page .mission-guardian-stats dd{font-size:.875rem}
 .journey-page .mission-xp>span{font-size:.75rem}

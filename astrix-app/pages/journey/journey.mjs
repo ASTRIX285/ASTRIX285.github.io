@@ -185,8 +185,9 @@ function bindActiveGuardian(payload){
   guardianClass.textContent=CLASS_NAMES[Number(selected.classType)]||'Guardian';
   verifiedGuardian.hidden=false;
   totalPlaytime.textContent=formatPlaytime(finiteNumber(selected.minutesPlayedTotal));
-  if(selected.emblemPath){
-    guardianCrest.src=new URL(selected.emblemPath,BUNGIE_ORIGIN).toString();
+  const emblemArtwork=selected.emblemBackgroundPath||selected.emblemPath;
+  if(emblemArtwork){
+    guardianCrest.src=new URL(emblemArtwork,BUNGIE_ORIGIN).toString();
     guardianCrest.hidden=false;
     guardianCrestEmpty.hidden=true;
   }

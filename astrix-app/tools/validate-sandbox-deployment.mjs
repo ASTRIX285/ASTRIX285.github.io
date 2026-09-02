@@ -14,6 +14,7 @@ const guardianAuth=read('astrix-app/pages/guardian-workspace-v2/guardian-bungie-
 const guardianProfile=read('astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs');
 const journeyHtml=read('astrix-app/pages/journey/index.html');
 const journeyModule=read('astrix-app/pages/journey/journey.mjs');
+const journeyCss=read('astrix-app/pages/journey/journey-2560-visual.css');
 
 assert.match(workflow,/push:\s*\n\s*branches:\s*\n\s*- sandbox/,'Sandbox deployment must trigger only from the sandbox branch');
 assert.doesNotMatch(workflow,/branches:\s*\n\s*- main/,'Sandbox deployment must not trigger from main');
@@ -38,6 +39,12 @@ assert.match(guardianAuth,/const JOURNEY_PATH = "\/astrix-app\/pages\/journey\/"
 assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2Fastrixparadox\.com%2Fastrix-app%2Fpages%2Fjourney%2F/,'Journey must provide a no-script Bungie connection fallback that returns to Journey');
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
+assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
+assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-emblem-identity-card-1/,'Journey must load the emblem-led identity card styling');
+assert.match(journeyModule,/selected\.emblemBackgroundPath\|\|selected\.emblemPath/,'Journey must prefer Bungie emblem artwork and fall back only to the verified emblem icon');
+assert.match(journeyCss,/\.journey-page \.mission-crest\{[\s\S]*?position:absolute;[\s\S]*?inset:0;[\s\S]*?transform:none/,'Journey must remove the inherited decorative diamond and let the emblem own the whole card');
+assert.match(journeyCss,/\.journey-page \.mission-crest img\{[\s\S]*?width:100%;[\s\S]*?height:100%;[\s\S]*?object-fit:cover;[\s\S]*?transform:none/,'Verified Bungie emblem artwork must fill the whole identity card');
+assert.match(journeyCss,/\.journey-page \.mission-identity-copy\{[\s\S]*?width:66\.667%;[\s\S]*?margin-left:33\.333%/,'Guardian class and subclass must overlay the emblem beginning one third into the card');
 
 console.log('SANDBOX_BRANCH_DEPLOYMENT=PASS');
 console.log('SANDBOX_OVERSIZED_DATA_STREAM=PASS');
