@@ -44,26 +44,33 @@ const MARKER_TYPE_LABELS=Object.freeze({
 });
 
 const REGION_CHEST_EVENT='astrix:journey-region-chests';
+const DESTINATION_DATA_EVENT='astrix:journey-destination-data';
 const MAP_RENDER_EVENT='astrix:journey-location-map-render-complete';
 const verifiedRegionChestProgress=new Map();
+const verifiedDestinationData=new Map();
+const destinationDataViews=new Set();
+const DESTINATION_DATA_SECTIONS=Object.freeze([
+  Object.freeze({key:'triumphs',label:'TRIUMPHS'}),
+  Object.freeze({key:'records',label:'RECORDS'}),
+  Object.freeze({key:'quests',label:'QUESTS'}),
+  Object.freeze({key:'endgame',label:'DUNGEONS & RAIDS'})
+]);
 
 function normaliseRegionChestProgress(key,value){
   if(!value||value.key!==key)return null;
   const total=Number(value.total);
   const discovered=Number(value.discovered);
   if(!Number.isInteger(total)||total<0||!Number.isInteger(discovered)||discovered<0||discovered>total)return null;
-  const zones=Array.isArray(value.zones)?value.zones.map(zone=>({
-    name:String(zone?.name||'').trim(),
-    total:Number(zone?.total),
-    discovered:Number(zone?.discovered)
-  })).filter(zone=>zone.name&&Number.isInteger(zone.total)&&zone.total>=0&&Number.isInteger(zone.discovered)&&zone.discovered>=0&&zone.discovered<=zone.total):[];
-  return {total,discovered,missing:total-discovered,zones};
+  const chests=Array.isArray(value.chests)?value.chests.map(chest=>({
+    name:String(chest?.name||'').trim(),
+    location:String(chest?.location||'').trim(),
+    collected:typeof chest?.collected==='boolean'?chest.collected:null
+  })).filter(chest=>chest.name&&chest.location&&chest.collected!==null):[];
+  return {total,discovered,missing:total-discovered,chests};
 }
 
-function createRegionChestOverlay(key,label,lostSectorTotal){
+function createRegionChestOverlay(key,label){
   const destinationName=String(label||key).trim()||key;
-  const destinationHeading=destinationName.toLocaleUpperCase('en-GB');
-  const lostSectorStatus=Number.isInteger(lostSectorTotal)&&lostSectorTotal>=0?`-- / ${lostSectorTotal} PENDING`:'DATA PENDING';
   const overlay=document.createElement('aside');
   overlay.className='journey-region-chests';
   overlay.dataset.regionChestKey=key;
@@ -72,49 +79,47 @@ function createRegionChestOverlay(key,label,lostSectorTotal){
   overlay.innerHTML=`
     <div class="journey-region-chests-head">
       <strong>REGION CHESTS</strong>
-      <span data-region-chest-status>DATA LINK PENDING</span>
     </div>
     <div class="journey-region-chests-summary">
       <span><strong data-region-chest-discovered>--</strong><small>DISCOVERED</small></span>
       <span><strong data-region-chest-missing>--</strong><small>MISSING</small></span>
       <span><strong data-region-chest-total>--</strong><small>TOTAL</small></span>
     </div>
-    <p class="journey-region-chests-note" data-region-chest-note>Waiting for verified Bungie chest records.</p>
-    <div class="journey-region-chests-zones journey-region-progress-indicators" aria-label="Additional permanent ${destinationName} progress indicators">
-      <span><b>PERMANENT ${destinationHeading} TRIUMPHS</b><i>DATA PENDING</i></span>
-      <span><b>LOST SECTORS</b><i>${lostSectorStatus}</i></span>
-      <span><b>COLLECTIBLES · LORE · SECRETS</b><i>DATA PENDING</i></span>
-      <span><b>ACTIVE ${destinationHeading} QUEST OBJECTIVES</b><i>OPTIONAL · PENDING</i></span>
-    </div>
-    <div class="journey-region-chests-zones" data-region-chest-zones hidden></div>`;
+    <div class="journey-region-chests-list" data-region-chest-list hidden></div>`;
 
-  const status=overlay.querySelector('[data-region-chest-status]');
   const discovered=overlay.querySelector('[data-region-chest-discovered]');
   const missing=overlay.querySelector('[data-region-chest-missing]');
   const total=overlay.querySelector('[data-region-chest-total]');
-  const note=overlay.querySelector('[data-region-chest-note]');
-  const zones=overlay.querySelector('[data-region-chest-zones]');
+  const list=overlay.querySelector('[data-region-chest-list]');
 
   function render(value){
     const progress=normaliseRegionChestProgress(key,value);
     if(!progress)return;
-    status.textContent='VERIFIED BUNGIE DATA';
     discovered.textContent=String(progress.discovered);
     missing.textContent=String(progress.missing);
     total.textContent=String(progress.total);
-    note.textContent=`${progress.discovered} of ${progress.total} discovered`;
-    zones.replaceChildren(...progress.zones.map(zone=>{
-      const row=document.createElement('span');
+    list.replaceChildren(...progress.chests.map(chest=>{
+      const row=document.createElement('div');
+      row.className=`journey-region-chest ${chest.collected?'is-collected':'is-missing'}`;
+      const tick=document.createElement('span');
+      tick.className='journey-region-chest-tick';
+      tick.textContent=chest.collected?'✓':'';
+      tick.setAttribute('aria-hidden','true');
+      const copy=document.createElement('span');
+      copy.className='journey-region-chest-copy';
       const name=document.createElement('b');
-      const count=document.createElement('i');
-      name.textContent=zone.name;
-      count.textContent=`${zone.discovered} / ${zone.total}`;
-      row.append(name,count);
+      const location=document.createElement('small');
+      name.textContent=chest.name;
+      location.textContent=chest.location;
+      copy.append(name,location);
+      row.append(tick,copy);
       return row;
     }));
-    zones.hidden=progress.zones.length===0;
+    list.hidden=progress.chests.length===0;
   }
 
+  overlay.addEventListener('pointerdown',event=>event.stopPropagation());
+  overlay.addEventListener('wheel',event=>event.stopPropagation(),{passive:true});
   document.addEventListener(REGION_CHEST_EVENT,event=>render(event.detail));
   render(verifiedRegionChestProgress.get(key));
   return overlay;
@@ -129,6 +134,229 @@ export function publishJourneyRegionChestProgress(progress){
   document.dispatchEvent(new CustomEvent(REGION_CHEST_EVENT,{detail}));
   return true;
 }
+
+function bungieIconUrl(value){
+  const icon=String(value||'').trim();
+  if(icon.startsWith('/common/destiny2_content/'))return `https://www.bungie.net${icon}`;
+  if(icon.startsWith('https://www.bungie.net/common/destiny2_content/'))return icon;
+  return '';
+}
+
+function normaliseDestinationDataItem(value){
+  const name=String(value?.name||'').trim();
+  if(!name)return null;
+  const current=Number(value?.current);
+  const total=Number(value?.total);
+  const hasProgress=value?.current!==null&&value?.current!==undefined&&value?.total!==null&&value?.total!==undefined&&Number.isInteger(current)&&current>=0&&Number.isInteger(total)&&total>0&&current<=total;
+  const hasCompletion=typeof value?.completed==='boolean';
+  if(!hasProgress&&!hasCompletion)return null;
+  return {
+    name,
+    description:String(value?.description||'').trim(),
+    location:String(value?.location||'').trim(),
+    icon:bungieIconUrl(value?.icon),
+    current:hasProgress?current:null,
+    total:hasProgress?total:null,
+    completed:hasCompletion?value.completed:current===total,
+    objectives:(value?.objectives||[]).map(objective=>{
+      const objectiveName=String(objective?.name||'').trim();
+      const objectiveCurrent=Number(objective?.current);
+      const objectiveTotal=Number(objective?.total);
+      if(!objectiveName||objective?.current===null||objective?.current===undefined||objective?.total===null||objective?.total===undefined||!Number.isInteger(objectiveCurrent)||objectiveCurrent<0||!Number.isInteger(objectiveTotal)||objectiveTotal<=0)return null;
+      return {name:objectiveName,current:objectiveCurrent,total:objectiveTotal,completed:objective?.completed===true};
+    }).filter(Boolean)
+  };
+}
+
+function normaliseDestinationData(key,value){
+  if(!value||value.key!==key)return null;
+  const source=value.sections&&typeof value.sections==='object'?value.sections:value;
+  const sections={};
+  for(const section of DESTINATION_DATA_SECTIONS){
+    sections[section.key]=Array.isArray(source[section.key])
+      ?source[section.key].map(normaliseDestinationDataItem).filter(Boolean)
+      :[];
+  }
+  return {key,sections};
+}
+
+export function publishJourneyDestinationData(value){
+  const key=String(value?.key||'');
+  const verified=normaliseDestinationData(key,value);
+  if(!key||!verified)return false;
+  verifiedDestinationData.set(key,verified);
+  document.dispatchEvent(new CustomEvent(DESTINATION_DATA_EVENT,{detail:verified}));
+  return true;
+}
+
+function createDestinationProgressRow(item){
+  const row=document.createElement('article');
+  row.className=`journey-record-row${item.icon?'':' has-no-icon'}${item.completed?' is-complete':''}`;
+  if(item.icon){
+    const icon=document.createElement('img');
+    icon.className='journey-record-icon';
+    icon.src=item.icon;
+    icon.alt='';
+    row.append(icon);
+  }
+
+  const copy=document.createElement('div');
+  copy.className='journey-record-copy';
+  const title=document.createElement('strong');
+  title.className='journey-record-title';
+  title.textContent=item.name;
+  if(item.completed){
+    const check=document.createElement('span');
+    check.className='journey-record-check';
+    check.textContent='✓';
+    check.setAttribute('aria-label','Completed');
+    title.append(check);
+  }
+  copy.append(title);
+
+  const supportingText=item.description||item.location;
+  if(supportingText){
+    const description=document.createElement('span');
+    description.className='journey-record-description';
+    description.textContent=supportingText;
+    copy.append(description);
+  }
+
+  if(item.current!==null&&item.total!==null){
+    const progress=document.createElement('span');
+    progress.className='journey-record-progress';
+    const label=document.createElement('span');
+    label.textContent='Progress';
+    const count=document.createElement('b');
+    count.textContent=`${item.current} / ${item.total}`;
+    progress.append(label,count);
+    const track=document.createElement('span');
+    track.className='journey-record-track';
+    const fill=document.createElement('span');
+    fill.className='journey-record-fill';
+    fill.style.width=`${Math.round(item.current/item.total*100)}%`;
+    track.append(fill);
+    copy.append(progress,track);
+  }
+  item.objectives.forEach(objective=>{
+    const progress=document.createElement('span');
+    progress.className='journey-record-progress';
+    const label=document.createElement('span');
+    label.textContent=objective.name;
+    const count=document.createElement('b');
+    count.textContent=`${objective.current} / ${objective.total}`;
+    progress.append(label,count);
+    const track=document.createElement('span');
+    track.className='journey-record-track';
+    const fill=document.createElement('span');
+    fill.className='journey-record-fill';
+    fill.style.width=`${Math.round(Math.min(objective.current,objective.total)/objective.total*100)}%`;
+    track.append(fill);
+    copy.append(progress,track);
+  });
+  row.append(copy);
+  return row;
+}
+
+function createDestinationDataView(key,label,mapFigure){
+  const actions=document.createElement('div');
+  actions.className='journey-destination-actions';
+  actions.setAttribute('role','tablist');
+  actions.setAttribute('aria-label',`${label} progress sections`);
+
+  const panel=document.createElement('section');
+  panel.className='journey-destination-data-panel';
+  panel.id=`journeyDestinationData-${key}`;
+  panel.dataset.destinationDataKey=key;
+  panel.setAttribute('role','tabpanel');
+  panel.setAttribute('aria-live','polite');
+  panel.hidden=true;
+
+  const toolbar=document.createElement('div');
+  toolbar.className='journey-map-toolbar journey-destination-data-toolbar';
+  const back=document.createElement('button');
+  back.type='button';
+  back.className='journey-records-back';
+  back.textContent='Back to Map';
+  const heading=document.createElement('strong');
+  heading.className='journey-destination-data-heading';
+  toolbar.append(back,heading);
+
+  const body=document.createElement('div');
+  body.className='journey-destination-data-body';
+  const list=document.createElement('div');
+  list.className='journey-records-list journey-destination-data-list';
+  body.append(list);
+  panel.append(toolbar,body);
+
+  let activeSection='';
+  const buttons=new Map();
+
+  function renderSection(){
+    const section=DESTINATION_DATA_SECTIONS.find(item=>item.key===activeSection);
+    if(!section)return;
+    heading.textContent=`${label.toLocaleUpperCase('en-GB')} ${section.label}`;
+    const items=verifiedDestinationData.get(key)?.sections?.[section.key]||[];
+    if(items.length){
+      list.replaceChildren(...items.map(createDestinationProgressRow));
+      return;
+    }
+    const empty=document.createElement('span');
+    empty.className='apx-empty-state journey-records-empty';
+    empty.textContent=`No verified ${label} ${section.label.toLocaleLowerCase('en-GB')} are available.`;
+    list.replaceChildren(empty);
+  }
+
+  function selectSection(section){
+    activeSection=section.key;
+    for(const [sectionKey,button] of buttons){
+      const selected=sectionKey===activeSection;
+      button.setAttribute('aria-selected',String(selected));
+      button.tabIndex=selected?0:-1;
+    }
+    mapFigure.hidden=true;
+    panel.hidden=false;
+    renderSection();
+  }
+
+  for(const section of DESTINATION_DATA_SECTIONS){
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='journey-destination-action';
+    button.setAttribute('role','tab');
+    button.setAttribute('aria-selected','false');
+    button.setAttribute('aria-controls',panel.id);
+    button.tabIndex=section.key==='triumphs'?0:-1;
+    button.textContent=section.label;
+    button.addEventListener('click',()=>selectSection(section));
+    buttons.set(section.key,button);
+    actions.append(button);
+  }
+
+  back.addEventListener('click',()=>{
+    activeSection='';
+    for(const [sectionKey,button] of buttons){
+      button.setAttribute('aria-selected','false');
+      button.tabIndex=sectionKey==='triumphs'?0:-1;
+    }
+    panel.hidden=true;
+    mapFigure.hidden=false;
+  });
+
+  destinationDataViews.add({key,panel,render:renderSection});
+  return {actions,panel};
+}
+
+document.addEventListener(DESTINATION_DATA_EVENT,event=>{
+  const key=String(event.detail?.key||'');
+  const verified=normaliseDestinationData(key,event.detail);
+  if(!verified)return;
+  verifiedDestinationData.set(key,verified);
+  for(const view of [...destinationDataViews]){
+    if(!view.panel.isConnected){destinationDataViews.delete(view);continue;}
+    if(view.key===key&&!view.panel.hidden)view.render();
+  }
+});
 
 function markerIcon(type){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -233,7 +461,7 @@ function createLocationMap(key,spec){
   const stage=document.createElement('div');
   stage.className='journey-map-stage';
   stage.append(image,createStaticMarkers(spec.markers,label));
-  viewport.append(stage,createRegionChestOverlay(key,label,spec.lostSectorTotal));
+  viewport.append(stage,createRegionChestOverlay(key,label));
   figure.append(toolbar,viewport);
 
   const state={scale:1,x:0,y:0,dragging:false,startX:0,startY:0,originX:0,originY:0};
@@ -349,7 +577,12 @@ export function initJourneyLocationMaps(detail){
       document.addEventListener(MAP_RENDER_EVENT,onReady);
     });
     const map=createLocationMap(key,spec);
-    detail.append(map.figure);
+    const label=globalThis.AstrixDestinations?.labelOf(key)||key;
+    const dataView=createDestinationDataView(key,label,map.figure);
+    for(const child of [...detail.children]){
+      if(!child.matches('.apx-loc-band,.apx-loc-desc'))child.remove();
+    }
+    detail.append(dataView.actions,map.figure,dataView.panel);
     return map.ready;
   };
   document.addEventListener('astrix:destination-changed',render);

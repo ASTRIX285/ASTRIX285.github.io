@@ -20,6 +20,15 @@ const MANIFEST_COMPONENT_TYPES = new Set([
 ]);
 const LIVE_DEFINITION_TYPES = new Set([
   ...MANIFEST_COMPONENT_TYPES,
+  "DestinyPresentationNodeDefinition",
+  "DestinyRecordDefinition",
+  "DestinyObjectiveDefinition",
+  "DestinyGuardianRankDefinition",
+  "DestinyGuardianRankConstantsDefinition",
+  "DestinyDestinationDefinition",
+  "DestinyActivityDefinition",
+  "DestinyChecklistDefinition",
+  "DestinyLocationDefinition",
   "DestinyDamageTypeDefinition",
   "DestinyBreakerTypeDefinition",
   "DestinyEquipableItemSetDefinition"
