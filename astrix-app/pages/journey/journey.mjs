@@ -1,4 +1,4 @@
-import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-journey-landing-1';
+import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
@@ -11,9 +11,6 @@ const status=document.getElementById('journeyAuthStatus');
 const connectButton=document.getElementById('journeyConnectButton');
 const journeyHeader=document.querySelector('.journey-page .apx-destination-header');
 const journeyBrand=document.querySelector('.journey-page .apx-destination-brand');
-const journeyAccountVisual=document.getElementById('journeyAccountVisual');
-const journeyAccountAvatar=document.getElementById('journeyAccountAvatar');
-const journeyAccountAvatarFallback=document.getElementById('journeyAccountAvatarFallback');
 const guardianUsage=document.getElementById('journeyGuardianUsage');
 const vaultCard=document.getElementById('journeyVault');
 const seasonRankCard=document.getElementById('journeySeasonRank');
@@ -170,54 +167,6 @@ function installJourneyHeaderBalance(){
     observer.observe(heroCards);
   }
   requestAnimationFrame(balanceJourneyHeader);
-}
-
-function accountInitials(value){
-  const words=String(value||'AP').trim().split(/\s+/).filter(Boolean);
-  return (words.length>1?`${words[0][0]}${words.at(-1)[0]}`:words[0]?.slice(0,2)||'AP').toUpperCase();
-}
-
-function bungieAvatarUrl(path){
-  if(!path)return '';
-  try{
-    const url=new URL(String(path),BUNGIE_ORIGIN);
-    return url.protocol==='https:'&&(url.hostname==='bungie.net'||url.hostname.endsWith('.bungie.net'))?url.toString():'';
-  }catch{return '';}
-}
-
-function setJourneyAccountVisual(account,session){
-  if(!journeyAccountVisual||!journeyAccountAvatar||!journeyAccountAvatarFallback)return;
-  journeyAccountVisual.hidden=false;
-  const displayName=String(account?.displayName||account?.uniqueName||session?.activeDestinyMembership?.displayName||'Bungie Guardian');
-  journeyAccountVisual.setAttribute('aria-label',`${displayName} · connected Bungie account`);
-  journeyAccountVisual.title=displayName;
-  journeyAccountAvatarFallback.textContent=accountInitials(displayName);
-  journeyAccountVisual.classList.add('is-ready');
-  const source=bungieAvatarUrl(account?.profilePicturePath);
-  if(!source)return;
-  journeyAccountAvatar.addEventListener('load',()=>{
-    journeyAccountAvatar.hidden=false;
-    journeyAccountAvatarFallback.hidden=true;
-    journeyAccountVisual.classList.add('has-avatar');
-  },{once:true});
-  journeyAccountAvatar.addEventListener('error',()=>{
-    journeyAccountAvatar.hidden=true;
-    journeyAccountAvatarFallback.hidden=false;
-    journeyAccountVisual.classList.remove('has-avatar');
-  },{once:true});
-  journeyAccountAvatar.src=source;
-}
-
-async function loadJourneyAccountVisual(session){
-  setJourneyAccountVisual(null,session);
-  try{
-    const response=await fetch(new URL('/bungie/account',AUTH_ORIGIN),{credentials:'include',headers:{Accept:'application/json'}});
-    const account=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(account?.error||`Bungie account request failed (${response.status}).`);
-    setJourneyAccountVisual(account,session);
-  }catch(error){
-    console.info('[ASTRIX Journey] Bungie account avatar unavailable',error);
-  }
 }
 
 installJourneyHeaderBalance();
@@ -1995,7 +1944,7 @@ async function readVerifiedProfile(session){
     document.addEventListener('astrix:bungie-profile-loaded',onLoaded);
     document.addEventListener('astrix:profile-error',onError);
     try{
-      await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260902-page-profile-scopes-2');
+      await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260902-shared-account-orbit-1');
       const loaded=await readCachedBungieProfile(session);
       if(loaded?.profile?.characters?.data)finish(loaded);
     }catch(error){
@@ -2069,7 +2018,6 @@ function showSignedOut(){
   dashboard.hidden=true;
   signedOut.hidden=false;
   status.textContent='BUNGIE CONNECTION REQUIRED';
-  if(journeyAccountVisual)journeyAccountVisual.hidden=true;
   if(connectButton)connectButton.href=authStartUrl();
   globalThis.AstrixLoader.authResolved();
   void finishJourneyLoader(signedOut);
@@ -2103,7 +2051,6 @@ try{
   const authenticated=session?.authenticated===true&&globalThis.ASTRIX_BUNGIE_SESSION?.authenticated===true;
   if(authenticated){
     journeySession=session;
-    void loadJourneyAccountVisual(session);
     void bindHistoricalStats(session);
     const heroCardsReady=waitForHeroCards();
     const mapReady=showJourney();

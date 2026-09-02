@@ -1,4 +1,4 @@
-import {getBungieSession} from '../pages/guardian-workspace-v2/guardian-bungie-auth.mjs';
+import {getBungieSession} from '../pages/guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||'https://auth.astrixparadox.com';
 const BUNGIE_ORIGIN='https://www.bungie.net';

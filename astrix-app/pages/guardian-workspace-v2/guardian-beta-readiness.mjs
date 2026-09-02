@@ -1,4 +1,4 @@
-import {getBungieSession} from "./guardian-bungie-auth.mjs";
+import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1";
 
 const BETA_ACCESS_CODE="PARADOX285";
 const STORAGE_KEY="astrix-paradox-beta-access";

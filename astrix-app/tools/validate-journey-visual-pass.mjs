@@ -12,6 +12,7 @@ const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const ribbonCss=read('astrix-app/shared/astrix-destination-ribbon.css');
 const heroCss=read('astrix-app/shared/astrix-hero-cards.css');
 const heroModule=read('astrix-app/shared/astrix-hero-cards.mjs');
+const guardianAuth=read('astrix-app/pages/guardian-workspace-v2/guardian-bungie-auth.mjs');
 const mapBackgroundCss=read('astrix-app/shared/astrix-paradox-background.css');
 const characterHtml=read('astrix-app/pages/guardian-workspace-v2/index.html');
 const buildForgeHtml=read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html');
@@ -34,8 +35,8 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-journey-header-balance-1"'),'Journey must load the cache-busted account-avatar and header treatment');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-journey-header-balance-1"'),'Journey must load the cache-busted account-avatar and header module');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-shared-account-orbit-1"'),'Journey must load the cache-busted shared account-orbit treatment');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-shared-account-orbit-1"'),'Journey must load the cache-busted shared account-orbit module graph');
 assert.match(journey,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journey,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journey,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -46,11 +47,13 @@ assert.match(css,/\.journey-page \.apx-destination-header-copy strong\{[\s\S]*?c
 assert.match(css,/\.journey-page \.apx-destination-header-copy small\{[\s\S]*?color:var\(--apx-gold\)/,'Journey command-console descriptor must use the gold brand colour');
 assert.doesNotMatch(css,/grid-template-columns:max-content minmax\(190px,1fr\) 910px/,'Journey must not move the globally centred Guardian-card rail');
 assert.match(css,/\.journey-page \.apx-destination-header-state\{[\s\S]*?position:absolute!important;[\s\S]*?clip-path:inset\(50%\)/,'Journey connection state must remain accessible without displaying redundant authenticated copy');
-assert.match(html,/id="journeyAccountVisual"[\s\S]*?id="journeyAccountAvatar"[\s\S]*?id="journeyAccountAvatarFallback"/,'Journey must replace the text connection pill with a circular Bungie account visual');
-assert.match(css,/\.journey-page \.journey-account-visual\{[\s\S]*?border-radius:50%;[\s\S]*?background:conic-gradient/,'The Bungie account avatar must use the original Astrix crimson-and-gold orbital frame');
+assert.doesNotMatch(html,/id="journeyAccountVisual"|id="journeyAccountAvatar"/,'Journey must not duplicate the shared Bungie account visual');
+assert.match(guardianAuth,/\.bungie-account-visual\{[\s\S]*?background:conic-gradient\(from 218deg,#063d2e[\s\S]*?#16bd82[\s\S]*?#9dffda/,'The shared Bungie account visual must use a complete green connected-state ring');
+assert.match(guardianAuth,/\.bungie-account-visual::before\{[\s\S]*?rgba\(237,198,83,\.76\)[\s\S]*?rgba\(126,10,23,\.82\)/,'The account avatar must retain an Astrix crimson-and-gold inner treatment');
 assert.match(journey,/function balanceJourneyHeader\(\)[\s\S]*?--journey-command-centre[\s\S]*?brandBounds\.right\+cardsBounds\.left\)\/2/,'Journey must centre its command title in the live space between branding and the first Guardian card');
-assert.match(journey,/function bungieAvatarUrl\(path\)[\s\S]*?url\.protocol==='https:'[\s\S]*?hostname\.endsWith\('\.bungie\.net'\)/,'Journey must constrain account-avatar assets to Bungie HTTPS hosts');
-assert.match(journey,/fetch\(new URL\('\/bungie\/account',AUTH_ORIGIN\)[\s\S]*?setJourneyAccountVisual\(account,session\)/,'Journey must request Bungie’s own profile picture for the current session');
+assert.match(guardianAuth,/function bungieAvatarUrl\(path\)[\s\S]*?url\.protocol==="https:"[\s\S]*?hostname\.endsWith\("\.bungie\.net"\)/,'The shared account visual must constrain avatar assets to Bungie HTTPS hosts');
+assert.match(guardianAuth,/fetch\(new URL\("\/bungie\/account",AUTH_ORIGIN\)[\s\S]*?setAccountVisual\(control,account,session\)/,'Every destination must request Bungie’s own profile picture for the current session');
+assert.match(guardianAuth,/if\(session\?\.authenticated\)\{[\s\S]*?control\.button\.hidden=true;[\s\S]*?control\.visual\.hidden=false;/,'Connected destinations must replace the text button with only the account visual');
 assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card\.is-selected::before\{[\s\S]*?opacity:1!important;[\s\S]*?brightness\(1\.1\)!important/,'The active Journey Guardian card must retain bright, visible emblem artwork');
 assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card::after\{[\s\S]*?inset:0 0 0 42%!important/,'Journey card shading must stay on a narrow telemetry field instead of covering the emblem');
 assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__identity\{[\s\S]*?left:38%!important;[\s\S]*?width:max-content/,'Journey class labels must remain compact and clear of the emblem focal area');
@@ -88,7 +91,7 @@ assert.match(journey,/function createRankBadge[\s\S]*?journey-rank-badge[\s\S]*?
 assert.match(css,/\.journey-page \.journey-rank-badge\{[\s\S]*?background:radial-gradient[\s\S]*?\.journey-page \.journey-rank-badge strong\{[\s\S]*?color:#b51222/,'Rank medallions must use the requested gold/crimson background and crimson number');
 assert.match(css,/\.journey-page \.mission-identity-card>\.mission-verified-badge\{[\s\S]*?max-width:calc\(100% - 2rem\)[\s\S]*?overflow:hidden/,'Guardian identity overlays must remain inside the emblem card boundaries');
 assert.match(journey,/if\(!lateProfile\?\.profile\?\.characters\?\.data\)\{void refreshJourneyProfile\(\);return;\}/,'Journey must retry its lightweight profile feed when the deferred initial profile returns empty');
-assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"'),'Journey must load the shared authenticated hero-card renderer');
+assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260902-shared-account-orbit-1"'),'Journey must load the shared authenticated hero-card renderer and account visual');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -100,7 +103,6 @@ for(const id of [
   'journeyDashboard',
   'journeyConnectAction',
   'guardianCharacterCards',
-  'journeyAccountVisual',
   'journeyLocationSelector',
   'journeyLocationDetail'
 ])assert.ok(html.includes(`id="${id}"`),`Journey data mount ${id} must remain available`);
@@ -112,7 +114,10 @@ for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
   assert.ok(page.includes('astrix-hero-cards.css?v=20260831-global-fixed-stack'),'Every destination page must load the shared fixed top-stack presentation');
 }
-assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260831-loader-render-complete'))).length,3,'Only Journey, Vault and Loadout must use the shared standalone renderer');
+assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-shared-account-orbit-1'))).length,3,'Journey, Vault and Loadout must load the same cache-busted account visual through the standalone renderer');
+assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260902-shared-account-orbit-1'),'Character must load the shared account visual without a stale module graph');
+assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260902-shared-account-orbit-1'),'Build Forge must load the shared account visual without a stale module graph');
+assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260902-shared-account-orbit-1'),'Mission Reports must load the shared account visual without a stale module graph');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
 assert.doesNotMatch(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:relative!important;[\s\S]*?top:auto!important;/,'Mission Reports must not reattach the Guardian ribbon to its report columns');

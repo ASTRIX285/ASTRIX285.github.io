@@ -1,4 +1,4 @@
-import {getBungieSession} from "./guardian-bungie-auth.mjs";
+import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1";
 import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {guardianManifest} from "./guardian-manifest-service.mjs";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";

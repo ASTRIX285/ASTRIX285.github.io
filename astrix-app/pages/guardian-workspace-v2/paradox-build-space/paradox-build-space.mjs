@@ -1,6 +1,6 @@
 import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,protectBuildState,restoreWorkingBuild} from './paradox-build-state.mjs';
 import {mountForgeShell} from '../platform-forge-shell.mjs';
-import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs';
+import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs?v=20260902-shared-account-orbit-1';
 import {renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
 import {createPerkChangePlan,confirmPerkChangePlan,applyConfirmedPerkChangePlan} from '../guardian-perk-change-plan.mjs';
 import {armourCard} from '../guardian-gear-layout.mjs?v=20260829-weapon-perk-hash-1';
@@ -12,7 +12,7 @@ import {guardianManifest} from '../guardian-manifest-service.mjs';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope} from '../paradox-build-binding.mjs';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
-import '../guardian-bungie-profile.mjs?v=20260902-page-profile-scopes-2';
+import '../guardian-bungie-profile.mjs?v=20260902-shared-account-orbit-1';
 import '../guardian-portal-progress.mjs?v=20260830-build-render-gate-2';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
