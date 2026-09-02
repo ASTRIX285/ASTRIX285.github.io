@@ -54,8 +54,8 @@ body.journey-page.apx-destination-page .apx-page-shell{
   clip-path:inset(50%);
   white-space:nowrap;
 }
-/* Journey owns a brighter, emblem-first character rail. The shared Character
-   and Build Forge cards deliberately remain untouched. */
+/* Journey owns a brighter, emblem-first character rail while retaining the
+   shared centred emblem focal point. */
 html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card{
   border-color:rgba(201,168,76,.22)!important;
   border-radius:.5rem!important;
@@ -65,7 +65,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card::before{
   opacity:.96!important;
   filter:saturate(1.04) brightness(1)!important;
-  background-position:left center!important;
+  background-position:28px center!important;
 }
 html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card::after{
   inset:0 0 0 42%!important;

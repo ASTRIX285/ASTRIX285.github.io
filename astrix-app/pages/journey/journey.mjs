@@ -2209,7 +2209,7 @@ async function readVerifiedProfile(session){
     document.addEventListener('astrix:bungie-profile-loaded',onLoaded);
     document.addEventListener('astrix:profile-error',onError);
     try{
-      await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260902-shared-account-orbit-1');
+      await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260902-recent-guardian-emblem-1');
       const loaded=await readCachedBungieProfile(session);
       if(loaded?.profile?.characters?.data)finish(loaded);
     }catch(error){

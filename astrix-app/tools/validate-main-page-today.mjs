@@ -39,8 +39,8 @@ assert.match(sessionCache,/indexedDB\.open\(DB_NAME,DB_VERSION\)/,'Guardian sess
 assert.match(sessionCache,/PROFILE_TTL_MS=12\*60\*60\*1000/,'Cached Guardian evidence must survive the complete browser work session');
 assert.match(profile,/const BUILD_SPACE_KEY="astrix:paradox-build-space:v1";/,'Character must identify the stale explicit Build snapshot before securing a fresh handoff');
 assert.match(profile,/function persistResolvedBuildSnapshot\(\)\{[\s\S]*?store\.removeItem\(BUILD_SPACE_KEY\);store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Improve My Guardian must free the stale Build snapshot before writing the full current Character payload');
-assert.match(workspace,/guardian-bungie-profile\.mjs\?v=20260902-shared-account-orbit-1/,'Main must load the page-scoped profile correction without a stale profile-module cache');
-assert.match(workspaceHtml,/guardian-workspace-v2\.mjs\?v=20260902-shared-account-orbit-1/,'Main must load the corrected workspace dependency graph without a stale module cache');
+assert.match(workspace,/guardian-bungie-profile\.mjs\?v=20260902-recent-guardian-emblem-1/,'Main must load the latest-played Guardian correction without a stale profile-module cache');
+assert.match(workspaceHtml,/guardian-workspace-v2\.mjs\?v=20260902-recent-guardian-emblem-1/,'Main must load the corrected workspace dependency graph without a stale module cache');
 assert.match(profile,/PROFILE_REQUEST_TIMEOUT_MS=60_000/,'Authenticated Bungie profile resolution must allow manifest enrichment to finish');
 assert.match(profile,/return ensureLiveProfile\(session,\{background:false,silent:false\}\)/,'Authenticated profile recovery must issue one visible request rather than duplicate retries');
 assert.doesNotMatch(profile,/ensureLiveProfile\(globalThis\.ASTRIX_BUNGIE_SESSION\|\|null/,'Profile bootstrap must not make an unauthenticated profile request before session resolution');
@@ -50,6 +50,9 @@ assert.match(profile,/SELECTED_LOADOUT_KEY/,'Selected Bungie loadout must be per
 assert.match(profile,/rememberLoadoutSelection\(characterId,index\)/,'Loadout selection must update the persisted default');
 assert.match(profile,/Selected \$\{expected\} card resolved \$\{detail\.characterClass\}/,'Character class mismatch must fail loudly');
 assert.match(profile,/character selection cannot fall back to last played/,'Missing roster must not silently fall back');
+assert.doesNotMatch(profile,/function rememberedCharacterId/,'A previous tab selection must not override Bungie’s newest dateLastPlayed Guardian on a fresh profile load');
+assert.match(profile,/const explicitCharacter=payload\.profile\?\.characters\?\.data\?\.\[explicitlySelectedCharacterId\][\s\S]*?activeCharacter\(payload\.profile\)\?\.characterId/,'Fresh profile activation must prefer an explicit in-page choice, then Bungie’s latest-played Guardian');
+assert.match(profile,/explicitlySelectedCharacterId=detail\.characterId/,'Manual character selection must remain available after automatic latest-played resolution');
 assert.match(profile,/transcendenceSlots=transcendenceOptions\.slice\(0,2\)/,'Prismatic Transcendence must retain its exact equipped socket mapping');
 assert.match(profile,/itemType==="utility ability"\|\|itemType==="prismatic grenade"/,'Prismatic Transcendence must capture both the utility ability and equipped Prismatic grenade');
 assert.match(workspaceHtml,/id="mainTranscendence"[\s\S]*?hidden/,'Main must contain a deterministic Prismatic-only Transcendence field');
@@ -100,10 +103,12 @@ assert.match(gearCss,/weapon-perk-strip\{[^}]*border:0[^}]*background:transparen
 assert.match(gearCss,/weapon-support-icon\{width:var\(--pf-mod-size,36px\);height:var\(--pf-mod-size,36px\)/,'Weapon mod/masterwork icons must match armour mod size');
 
 assert.match(characterModule,/emblemBackground = character\.emblem\?\.background/,'Hero card must use the Bungie emblem background');
-assert.match(characterCss,/var\(--character-emblem\) left center\/cover no-repeat/,'The Bungie emblem banner must fill the complete rounded card without distorting or cropping its left-side icon');
+assert.match(characterCss,/var\(--character-emblem\) 28px center\/cover no-repeat/,'The Bungie emblem focal icon must be centred horizontally and vertically in its artwork zone');
 assert.match(characterCss,/\.guardian-character-cards\{[\s\S]*?gap:5px;/,'Desktop character-card spacing must be reduced by 50 percent');
 assert.match(characterCss,/\.guardian-character-card__identity\{[\s\S]*?left:34px;[\s\S]*?right:50px;/,'Character identity text must move another 10px right');
 assert.match(characterCss,/\.guardian-character-card__stats\{[\s\S]*?left:39px;[\s\S]*?right:4px;/,'Character stat overlay must preserve the emblem with the requested additional 15px inset');
+assert.match(characterCss,/\.guardian-character-card__stats\{[\s\S]*?bottom:5px;[\s\S]*?gap:3px/,'The enlarged stat row must stay padded inside the card’s lower boundary');
+assert.match(characterCss,/\.guardian-character-card__stat\{[^}]*min-height:32px[\s\S]*?\.guardian-character-card__stat \.guardian-stat-icon\{[^}]*width:20px;height:20px;flex:0 0 20px[\s\S]*?\.guardian-character-card__stat b\{[^}]*font:800 13px/,'Stat cells, Bungie icons and values must use the enlarged contained treatment');
 assert.match(characterCss,/\.guardian-character-card\.is-selected::after\{[^}]*opacity:\.1/,'Selected character overlay must remain 90 percent transparent');
 assert.match(characterCss,/\.guardian-character-card\.is-selected::before\{opacity:\.48;filter:saturate\(\.48\) brightness\(\.68\)\}/,'Selected card artwork must use the approved passive treatment');
 assert.match(characterCss,/0 18px 34px -14px rgba\(104,190,255,\.72\)/,'Selected card must use a restrained glow behind the card');
@@ -160,7 +165,7 @@ assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuil
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
 assert.match(buildHtml,/paradox-build-space\.css\?v=20260829-armour-slot-fill-1/,'Build must load the full-slot Armour artwork rule without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260902-shared-account-orbit-1/,'Build must load the lightweight Character profile scope without a stale module cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260902-recent-guardian-emblem-1/,'Build must load the latest-played Character profile scope without a stale module cache');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/resolvedOptions\(build,'artifact'\)\.slice\(0,6\)/,'Build Artifact catalogue must use the specified 2-2-2 six-card field');

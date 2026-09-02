@@ -40,8 +40,8 @@ assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2F
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
-assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-journey-data-hooks-1/,'Journey must load the cache-busted data-hook styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-journey-data-hooks-1/,'Journey must load the cache-busted data-hook module graph');
+assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-recent-guardian-emblem-1/,'Journey must load the cache-busted latest-Guardian and emblem styling');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-recent-guardian-emblem-1/,'Journey must load the cache-busted latest-Guardian module graph');
 assert.match(journeyModule,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journeyModule,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');

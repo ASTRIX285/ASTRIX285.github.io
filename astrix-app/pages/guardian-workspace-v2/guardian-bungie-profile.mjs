@@ -36,6 +36,7 @@ const manifestReady=guardianManifest.ready();
 let fixtureProfileDetail=null;
 let latestResolvedBuild=null;
 let authenticatedSession=globalThis.ASTRIX_BUNGIE_SESSION?.authenticated?globalThis.ASTRIX_BUNGIE_SESSION:null;
+let explicitlySelectedCharacterId="";
 
 const currentAuthenticatedSession=()=>authenticatedSession?.authenticated?authenticatedSession:(globalThis.ASTRIX_BUNGIE_SESSION?.authenticated?globalThis.ASTRIX_BUNGIE_SESSION:null);
 const isFixtureDetail=detail=>detail?.source==="paradox-beta-fixture";
@@ -187,15 +188,6 @@ function activeCharacter(profile){
   return rows.sort((a,b)=>String(b.dateLastPlayed||"").localeCompare(String(a.dateLastPlayed||"")))[0]||null;
 }
 
-function rememberedCharacterId(profile){
-  try{
-    const id=String(sessionStorage.getItem(SELECTED_CHARACTER_KEY)||"");
-    return id&&profile?.characters?.data?.[id]?id:"";
-  }catch{
-    return "";
-  }
-}
-
 function rememberCharacterId(characterId){
   try{sessionStorage.setItem(SELECTED_CHARACTER_KEY,String(characterId||""));}
   catch{}
@@ -251,6 +243,7 @@ function characterRoster(payload,selectedCharacterId=null){
     return {
       characterId:String(character.characterId||""),
       characterClass,
+      dateLastPlayed:String(character.dateLastPlayed||""),
       power:character.light??null,
       guardianRank:rank,
       titleHash:title.hash,
@@ -695,7 +688,8 @@ async function activateLiveProfile(payload,session,{fromCache=false}={}){
   liveProfilePayload=payload;
   liveProfileSession=session;
   const rememberedLoadout=rememberedLoadoutSelection(payload.profile);
-  const selectedCharacterId=rememberedCharacterId(payload.profile)||rememberedLoadout?.characterId||String(activeCharacter(payload.profile)?.characterId||"");
+  const explicitCharacter=payload.profile?.characters?.data?.[explicitlySelectedCharacterId]||null;
+  const selectedCharacterId=String(explicitCharacter?.characterId||activeCharacter(payload.profile)?.characterId||"");
   if(selectedCharacterId)rememberCharacterId(selectedCharacterId);
   publishCharacterRoster(payload,selectedCharacterId);
 
@@ -766,6 +760,7 @@ function selectLiveCharacter(characterId,expectedClass=""){
   const detail=normaliseLiveProfile(liveProfilePayload,liveProfileSession,characterId);
   const expected=String(expectedClass||"").trim().toLowerCase();
   if(expected&&detail.characterClass!==expected)throw new Error(`Selected ${expected} card resolved ${detail.characterClass} data for character ${characterId}.`);
+  explicitlySelectedCharacterId=detail.characterId;
   forgetLoadoutSelection();
   rememberCharacterId(detail.characterId);
   document.documentElement.dataset.guardianSource="bungie-live";

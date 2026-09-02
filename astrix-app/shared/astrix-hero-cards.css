@@ -93,7 +93,7 @@ html body header:has(>[data-astrix-hero-cards]) .guardian-character-card::before
   position:absolute;
   z-index:-2;
   inset:0;
-  background:var(--character-emblem) left center/cover no-repeat;
+  background:var(--character-emblem) 28px center/cover no-repeat;
   opacity:.94;
   filter:saturate(.96) brightness(.94);
   transition:opacity .18s ease,filter .18s ease,transform .18s ease;
@@ -119,11 +119,11 @@ html body header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-sele
 .guardian-character-card__head strong{display:block;overflow:hidden;font:800 12px Inter,sans-serif;letter-spacing:.045em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
 .guardian-character-card__power{position:absolute;top:10px;right:12px;color:#f2c942;font:800 14px Inter,sans-serif;text-shadow:0 1px 5px #000,0 0 9px rgba(0,0,0,.9);white-space:nowrap}
 .guardian-character-card__power i{margin-right:3px;font-style:normal;font-size:.65em}
-.guardian-character-card__stats{position:absolute;z-index:1;left:39px;right:4px;bottom:8px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
-.guardian-character-card__stat{display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:28px;padding:2px;border:0;border-radius:3px;background:rgba(7,9,14,.52);text-shadow:0 1px 4px #000}
-.guardian-character-card__stat .guardian-stat-icon{display:block;width:18px;height:18px;flex:0 0 18px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.72))}
+.guardian-character-card__stats{position:absolute;z-index:1;left:39px;right:4px;bottom:5px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px}
+.guardian-character-card__stat{display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:32px;padding:2px;border:0;border-radius:3px;background:rgba(7,9,14,.52);text-shadow:0 1px 4px #000}
+.guardian-character-card__stat .guardian-stat-icon{display:block;width:20px;height:20px;flex:0 0 20px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.72))}
 .guardian-character-card__stat .guardian-stat-icon.is-unavailable{border:1px solid rgba(255,255,255,.14);transform:rotate(45deg)}
-.guardian-character-card__stat b{color:#fff;font:800 11px Inter,sans-serif}
+.guardian-character-card__stat b{color:#fff;font:800 13px Inter,sans-serif}
 
 body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]{
   position:fixed!important;

@@ -18,6 +18,7 @@ const characterHtml=read('astrix-app/pages/guardian-workspace-v2/index.html');
 const buildForgeHtml=read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html');
 const missionReportsHtml=read('astrix-app/pages/mission-reports/index.html');
 const missionReportsCss=read('astrix-app/pages/mission-reports/mission-reports.css');
+const missionReportsData=read('astrix-app/pages/mission-reports/mission-reports-data.mjs');
 const vaultHtml=read('astrix-app/pages/vault/index.html');
 const loadoutHtml=read('astrix-app/pages/loadout/index.html');
 const globalHeroPages=[
@@ -35,8 +36,8 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-journey-data-hooks-1"'),'Journey must load the cache-busted data-hook treatment');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-journey-data-hooks-1"'),'Journey must load the cache-busted data-hook module graph');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-recent-guardian-emblem-1"'),'Journey must load the cache-busted emblem alignment treatment');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-recent-guardian-emblem-1"'),'Journey must load the latest-played Guardian module graph');
 assert.match(journey,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journey,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journey,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -99,7 +100,7 @@ assert.match(css,/\.journey-page \.journey-vault-summary\{[\s\S]*?linear-gradien
 assert.match(journey,/function createRankBadge[\s\S]*?journey-rank-badge[\s\S]*?renderGuardianRankSummary[\s\S]*?createRankBadge\(rank/,'Guardian Rank summaries must use the custom crimson-and-gold number medallion');
 assert.match(css,/\.journey-page \.journey-rank-badge\{[\s\S]*?background:radial-gradient[\s\S]*?\.journey-page \.journey-rank-badge strong\{[\s\S]*?color:#b51222/,'Rank medallions must use the requested gold/crimson background and crimson number');
 assert.match(journey,/if\(!lateProfile\?\.profile\?\.characters\?\.data\)\{void refreshJourneyProfile\(\);return;\}/,'Journey must retry its lightweight profile feed when the deferred initial profile returns empty');
-assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260902-shared-account-orbit-1"'),'Journey must load the shared authenticated hero-card renderer and account visual');
+assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260902-recent-guardian-emblem-1"'),'Journey must load the latest-played shared hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -132,12 +133,12 @@ assert.match(css,/\.journey-column-summaries \.journey-evidence-rows[\s\S]*?grid
 assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,6,'Shared Journey ribbon must retain all six destination routes');
 for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
-  assert.ok(page.includes('astrix-hero-cards.css?v=20260831-global-fixed-stack'),'Every destination page must load the shared fixed top-stack presentation');
+  assert.ok(page.includes('astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1'),'Every destination page must load the centred-emblem top-stack presentation');
 }
-assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-shared-account-orbit-1'))).length,3,'Journey, Vault and Loadout must load the same cache-busted account visual through the standalone renderer');
-assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260902-shared-account-orbit-1'),'Character must load the shared account visual without a stale module graph');
-assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260902-shared-account-orbit-1'),'Build Forge must load the shared account visual without a stale module graph');
-assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260902-shared-account-orbit-1'),'Mission Reports must load the shared account visual without a stale module graph');
+assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-recent-guardian-emblem-1'))).length,3,'Journey, Vault and Loadout must load the same latest-played Guardian renderer');
+assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260902-recent-guardian-emblem-1'),'Character must load the latest-played Guardian module graph');
+assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260902-recent-guardian-emblem-1'),'Build Forge must load the latest-played Guardian module graph');
+assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260902-recent-guardian-emblem-1'),'Mission Reports must load the latest-played Guardian module graph');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
 assert.doesNotMatch(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:relative!important;[\s\S]*?top:auto!important;/,'Mission Reports must not reattach the Guardian ribbon to its report columns');
@@ -155,6 +156,11 @@ assert.doesNotMatch(heroCss,/\[data-astrix-destination-ribbon\]::(?:before|after
 assert.match(ribbonCss,/@media\(min-width:981px\)\{[\s\S]*?width:min\(1180px,calc\(100% - 64px\)\);[\s\S]*?grid/s,'All pages must use the shared centred desktop destination-button presentation');
 assert.match(heroModule,/const CLASS_ORDER=\{hunter:0,warlock:1,titan:2\}/,'Warlock must remain the middle card in the shared roster');
 assert.match(heroModule,/fetchJson\(new URL\('\/bungie\/profile',AUTH_ORIGIN\)\)/,'Shared hero cards must use the existing confidential profile endpoint');
+assert.match(heroModule,/function mostRecentCharacterId\(characters\)[\s\S]*?dateLastPlayed[\s\S]*?const selectedId=mostRecentCharacterId\(characters\)/,'Shared hero cards must automatically select Bungie’s newest dateLastPlayed Guardian');
+assert.doesNotMatch(heroModule,/sessionStorage\.getItem\(SELECTED_CHARACTER_KEY\)/,'A prior tab choice must not replace the newest Bungie Guardian during fresh hero-card startup');
+assert.match(missionReportsData,/preferredCharacterId\|\|mostRecentCharacterId\(rawCharacters\)/,'Mission Reports must use latest-played by default while preserving explicit in-page selection');
+assert.match(heroCss,/var\(--character-emblem\) 28px center\/cover no-repeat/,'Shared hero cards must centre the emblem focal icon horizontally and vertically');
+assert.match(heroCss,/\.guardian-character-card__stat\{[^}]*min-height:32px[\s\S]*?\.guardian-character-card__stat \.guardian-stat-icon\{[^}]*width:20px;height:20px;flex:0 0 20px[\s\S]*?\.guardian-character-card__stat b\{[^}]*font:800 13px/,'Shared Character-format stat cells, icons and values must use the enlarged contained treatment');
 assert.doesNotMatch(heroModule,/guardian-bungie-profile|guardian-manifest-service|paradox-build|CLIENT_SECRET|API_KEY/,'Shared hero cards must not load or alter locked Character, manifest, Build Forge or secret internals');
 for(const page of mapBackgroundPages){
   assert.ok(page.includes('astrix-paradox-background.css?v=20260830-global-map-background'),'Each approved page must load the shared ASTRIX PARADOX map background');

@@ -47,11 +47,7 @@ async function statDefinitions(){
   return Object.fromEntries(rows);
 }
 
-function selectedCharacterId(characters){
-  try{
-    const remembered=String(sessionStorage.getItem(SELECTED_CHARACTER_KEY)||'');
-    if(remembered&&characters.some(character=>String(character.characterId||'')===remembered))return remembered;
-  }catch{}
+function mostRecentCharacterId(characters){
   return String([...characters].sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0]?.characterId||'');
 }
 
@@ -137,7 +133,7 @@ async function initAstrixHeroCards(){
       statDefinitions()
     ]);
     const characters=characterRoster(payload,definitions);
-    const selectedId=selectedCharacterId(characters);
+    const selectedId=mostRecentCharacterId(characters);
     rememberCharacterId(selectedId);
     render(characters,selectedId);
   }catch(error){
