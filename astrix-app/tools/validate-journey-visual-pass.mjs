@@ -35,8 +35,8 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-journey-identity-vault-1"'),'Journey must load the cache-busted identity and Vault treatment');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-journey-identity-vault-1"'),'Journey must load the cache-busted identity and Vault module graph');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-journey-data-hooks-1"'),'Journey must load the cache-busted data-hook treatment');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-journey-data-hooks-1"'),'Journey must load the cache-busted data-hook module graph');
 assert.match(journey,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journey,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journey,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -117,6 +117,18 @@ for(const id of [
 
 assert.equal((html.match(/class="apx-scaffold-card(?:\s[^"]*)?"/g)??[]).length,10,'Journey must retain all ten Guardian data regions');
 assert.doesNotMatch(html,/id="journeyOverview"|MILESTONE RECORD|id="journeyMilestoneTimeline"/,'Journey must not duplicate the Mission Reports milestone record');
+assert.equal((journey.match(/new URL\('\/bungie\/activity-history',AUTH_ORIGIN\)/g)??[]).length,1,'Journey must fetch activity history once and fan the normalized evidence out to every summary');
+assert.match(journey,/function fetchJourneyActivityEvidence[\s\S]*?cached\?\.promise[\s\S]*?Date\.now\(\)-cached\.fetchedAt<JOURNEY_BACKGROUND_REFRESH_MS[\s\S]*?normaliseActivityHistory\(payload\)[\s\S]*?buildMissionReportView\(activities\)/,'Journey must cache one normalized activity evidence model for five minutes');
+assert.match(journey,/function renderJourneyActivityEvidence[\s\S]*?renderRecentActivity\(activities\)[\s\S]*?renderCurrentForm\(view\)[\s\S]*?renderEvidenceConfidence\(view\?\.confidence\|\|null\)[\s\S]*?renderMissionHighlights\(activities,view\)[\s\S]*?renderMostUsed\(activities\)/,'Recent Activity, Current Form, confidence, Mission highlights and build usage must share one evidence model');
+assert.match(journey,/await bindJourneyActivityEvidence\(journeySession,\{force:true\}\)/,'The silent five-minute refresh must also update activity-backed Journey summaries');
+assert.match(html,/id="journeyConfidenceDonutValue"[\s\S]*?id="journeyConfidenceHighPercent"[\s\S]*?id="journeyConfidenceHigh"[\s\S]*?id="journeyConfidenceMedium"[\s\S]*?id="journeyConfidenceLow"/,'Evidence Confidence must expose live activity-backed display mounts');
+assert.match(journey,/function renderEvidenceConfidence[\s\S]*?confidence\.highPercent[\s\S]*?confidence\.mediumPercent[\s\S]*?confidence\.lowPercent/,'Evidence Confidence must render only calculated live-source coverage');
+assert.match(journey,/const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';[\s\S]*?const BUILD_SNAPSHOT_KEY='astrix:guardian-build-snapshot:v1';[\s\S]*?const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';/,'Journey must recognize every existing Build Forge handoff source');
+assert.match(journey,/validateHandoffEnvelope[\s\S]*?function readJourneyBuildState[\s\S]*?expectedCharacterId[\s\S]*?expectedMembershipId[\s\S]*?expectedMembershipType[\s\S]*?allowLegacy:false/,'Build Forge summaries must reject stale, legacy or cross-account build state');
+assert.match(journey,/function captureEvidenceRows[\s\S]*?readCapture\(\)[\s\S]*?readCaptureArchive\(\)[\s\S]*?const completed=[\s\S]*?capture\?\.status!=='collected'/,'Most-used build tracking must count only completed verified Build Test evidence');
+assert.match(journey,/function renderMostUsed[\s\S]*?activity\?\.buildSnapshot[\s\S]*?winner\.count\/evidence\.length\*100/,'Most-used build tracking must combine future Mission Report snapshots with verified Build Test samples');
+assert.match(html,/id="journeyMostUsed"[\s\S]*?No verified Build Test or Mission Report loadout evidence[\s\S]*?id="journeyBuildSummary"[\s\S]*?No verified Build Forge state[\s\S]*?id="journeyMissionHighlights"[\s\S]*?No verified activity history/,'Unreturned cross-page evidence must retain explicit honest empty states');
+assert.match(css,/\.journey-column-summaries \.journey-evidence-rows[\s\S]*?grid-template-columns:minmax\(0,\.8fr\) minmax\(0,1\.2fr\)/,'Connected Journey evidence must remain readable inside the existing compact cards');
 assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,6,'Shared Journey ribbon must retain all six destination routes');
 for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');

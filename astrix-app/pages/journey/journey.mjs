@@ -1,6 +1,9 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
+import {validateHandoffEnvelope} from '../guardian-workspace-v2/paradox-build-binding.mjs';
+import {readCapture,readCaptureArchive} from '../guardian-workspace-v2/guardian-shooting-range-capture.mjs?v=20260902-journey-data-hooks-1';
+import {buildMissionReportView,normaliseActivityHistory} from '../mission-reports/mission-reports-data.mjs?v=20260902-journey-data-hooks-1';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
 import {initJourneyLocationMaps,publishJourneyDestinationData,publishJourneyRegionChestProgress} from './journey-location-maps.mjs?v=20260901-destination-data-panels';
 
@@ -33,6 +36,15 @@ const metricCompletion=document.getElementById('journeyMetricCompletion');
 const metricPve=document.getElementById('journeyMetricPve');
 const metricPvp=document.getElementById('journeyMetricPvp');
 const trendChart=document.getElementById('journeyTrendChart');
+const confidenceDonutValue=document.getElementById('journeyConfidenceDonutValue');
+const confidenceHighPercent=document.getElementById('journeyConfidenceHighPercent');
+const confidenceHigh=document.getElementById('journeyConfidenceHigh');
+const confidenceMedium=document.getElementById('journeyConfidenceMedium');
+const confidenceLow=document.getElementById('journeyConfidenceLow');
+const confidenceStatus=document.getElementById('journeyConfidenceStatus');
+const mostUsedCard=document.getElementById('journeyMostUsed');
+const buildSummaryCard=document.getElementById('journeyBuildSummary');
+const missionHighlightsCard=document.getElementById('journeyMissionHighlights');
 const focusHeading=document.getElementById('journeyFocusHeading');
 const focusStatus=document.getElementById('journeyFocusStatus');
 const locationSelector=document.getElementById('journeyLocationSelector');
@@ -74,20 +86,21 @@ const JOURNEY_REFRESH_TIMEOUT_MS=60*1000;
 const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12*1000;
 const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6*1000;
 const JOURNEY_LOADER_READY_WAIT_MS=6*1000;
+const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
+const BUILD_SNAPSHOT_KEY='astrix:guardian-build-snapshot:v1';
+const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';
+const BUILD_EVIDENCE_STORAGE_KEYS=new Set([BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY,LAST_LOADOUT_KEY,'astrix:shooting-range-capture:v1','astrix:shooting-range-capture-archive:v1']);
 const numberFormatter=new Intl.NumberFormat('en-GB');
 const activityDateFormatter=new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 const manifestReady=guardianManifest.ready();
-const PVP_MODES=new Set([5,10,12,15,19,25,31,32,37,38,39,41,42,43,44,45,48,49,50,51,52,53,54,55,56,57,59,60,61,62,65,67,68,69,70,71,72,73,74,80,81,84,88,89,90,91,92]);
-const GAMBIT_MODES=new Set([63,75]);
 let activeView='overview';
 let selectedCharacterId='';
 let selectedClassName='';
 let verifiedProfile=null;
 let journeySession=null;
-let recentActivityRequest=0;
+let journeyActivityRequest=0;
 let profileIdentityRequest=0;
 let historicalStatsRequest=0;
-let currentFormRequest=0;
 let titleTriumphRequest=0;
 let triumphSectionRequest=0;
 let recordsCategoryRequest=0;
@@ -110,6 +123,8 @@ let journeyBackgroundRefreshTimer=0;
 let journeyBackgroundRefreshRequest=null;
 let journeyBackgroundRefreshPending=false;
 let journeyLastRefreshAt=0;
+const journeyActivityCache=new Map();
+let currentActivityEvidence=null;
 
 function waitWithin(promise,timeoutMs){
   let timer=0;
@@ -434,17 +449,6 @@ function resetRecentActivity(){
   const fallback=recentActivityCard.querySelector('.apx-empty-state');
   if(fallback){fallback.hidden=false;fallback.textContent=RECENT_ACTIVITY_PENDING;}
   return fallback;
-}
-
-async function resolveActivityName(activity){
-  const details=activity?.activityDetails||{};
-  const hash=finiteNumber(details.referenceId??details.directorActivityHash);
-  if(hash===null)return 'ACTIVITY NAME UNAVAILABLE';
-  try{
-    await manifestReady;
-    const definition=await guardianManifest.getAsync('DestinyActivityDefinition',hash);
-    return String(definition?.displayProperties?.name||'').trim()||'ACTIVITY NAME UNAVAILABLE';
-  }catch{return 'ACTIVITY NAME UNAVAILABLE';}
 }
 
 async function resolveManifestDefinition(type,hash){
@@ -1679,41 +1683,21 @@ function showDestinationPanel(returnFocus=true){
   if(returnFocus)({titles:titlesOpen,badges:badgesOpen,triumphs:triumphsOpen,'guardian-rank':guardianRankOpen,records:recordsOpen}[previousRoot])?.focus();
 }
 
-async function bindRecentActivity(session){
+function renderRecentActivity(activities=[]){
   const fallback=resetRecentActivity();
-  if(!recentActivityCard||session?.authenticated!==true||!selectedCharacterId)return;
-  const requestId=++recentActivityRequest;
-  try{
-    await manifestReady;
-    const membership=session?.activeDestinyMembership;
-    if(!membership?.membershipType||!membership?.membershipId)return;
-    const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
-    url.searchParams.set('membershipType',String(membership.membershipType));
-    url.searchParams.set('membershipId',String(membership.membershipId));
-    url.searchParams.set('characterId',selectedCharacterId);
-    url.searchParams.set('page','0');
-    if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
-    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}});
-    if(!response.ok)return;
-    const payload=await response.json();
-    const rows=payload?.Response?.activities??payload?.response?.activities??payload?.activities;
-    if(!Array.isArray(rows)||!rows.length)return;
-    const activities=await Promise.all(rows.slice(0,5).map(async activity=>({activity,name:await resolveActivityName(activity)})));
-    if(requestId!==recentActivityRequest)return;
-    const list=document.createElement('div');
-    list.dataset.journeyRecentList='';
-    for(const {activity,name} of activities){
-      const row=document.createElement('p');
-      const period=typeof activity?.period==='string'&&activity.period?new Date(activity.period):null;
-      const date=period&&!Number.isNaN(period.getTime())?activityDateFormatter.format(period):'DATE NOT RETURNED';
-      const completed=finiteNumber(activity?.values?.completed?.basic?.value);
-      const state=completed===null?'COMPLETION NOT RETURNED':completed!==0?'COMPLETED':'NOT COMPLETED';
-      row.textContent=`${name} · ${date} · ${state}`;
-      list.appendChild(row);
-    }
-    if(fallback)fallback.hidden=true;
-    recentActivityCard.appendChild(list);
-  }catch{}
+  if(!recentActivityCard||!activities.length)return;
+  const list=document.createElement('div');
+  list.dataset.journeyRecentList='';
+  for(const activity of activities.slice(0,5)){
+    const row=document.createElement('p');
+    const period=typeof activity?.period==='string'&&activity.period?new Date(activity.period):null;
+    const date=period&&!Number.isNaN(period.getTime())?activityDateFormatter.format(period):'DATE NOT RETURNED';
+    const state=activity?.completed===null||activity?.completed===undefined?'COMPLETION NOT RETURNED':activity.completed?'COMPLETED':'NOT COMPLETED';
+    row.textContent=`${String(activity?.activityName||'ACTIVITY NAME UNAVAILABLE').toLocaleUpperCase('en-GB')} · ${date} · ${state}`;
+    list.appendChild(row);
+  }
+  if(fallback)fallback.hidden=true;
+  recentActivityCard.appendChild(list);
 }
 
 const historicalValue=(mode,key)=>finiteNumber(mode?.allTime?.[key]?.basic?.value);
@@ -1775,60 +1759,278 @@ function trendPath(values,maxValue){
   }).join(' ');
 }
 
-async function bindCurrentForm(session){
-  if(!trendChart||!trendEmpty||session?.authenticated!==true||!selectedCharacterId)return;
-  const requestId=++currentFormRequest;
+function resetCurrentForm(){
+  if(!trendChart||!trendEmpty)return;
   trendChart.querySelectorAll('.mission-chart-line').forEach(path=>path.setAttribute('d',''));
+  trendChart.setAttribute('aria-label','No verified performance trend available');
   trendEmpty.hidden=false;
+  const dates=trendChart.closest('.mission-current-form')?.querySelectorAll('.mission-chart-dates span');
+  if(dates?.length===2){dates[0].textContent='—';dates[1].textContent='—';}
+}
+
+function renderCurrentForm(view){
+  resetCurrentForm();
+  if(!trendChart||!trendEmpty||!view)return;
+  const pveSeries=Array.isArray(view?.trends?.pve)?view.trends.pve:[];
+  const pvpSeries=Array.isArray(view?.trends?.pvp)?view.trends.pvp:[];
+  const pvePath=trendPath(pveSeries.map(point=>point.value),100);
+  const pvpValues=pvpSeries.map(point=>point.value);
+  const pvpPath=trendPath(pvpValues,Math.max(1,...pvpValues));
+  if(!pvePath&&!pvpPath)return;
+  trendChart.querySelector('[data-journey-trend="pve"]')?.setAttribute('d',pvePath);
+  trendChart.querySelector('[data-journey-trend="pvp"]')?.setAttribute('d',pvpPath);
+  trendChart.setAttribute('aria-label','Verified 30-day PVE success and PVP K/D trends');
+  trendEmpty.hidden=true;
+  const dated=[...pveSeries,...pvpSeries].filter(point=>point?.date).sort((left,right)=>left.date.localeCompare(right.date));
+  const dates=trendChart.closest('.mission-current-form')?.querySelectorAll('.mission-chart-dates span');
+  if(dates?.length===2&&dated.length){
+    dates[0].textContent=activityDateFormatter.format(new Date(`${dated[0].date}T00:00:00Z`));
+    dates[1].textContent=activityDateFormatter.format(new Date(`${dated[dated.length-1].date}T00:00:00Z`));
+  }
+}
+
+function resetEvidenceConfidence(){
+  confidenceDonutValue?.setAttribute('stroke-dasharray','0 100');
+  if(confidenceHighPercent)confidenceHighPercent.textContent='—';
+  if(confidenceHigh)confidenceHigh.textContent='—';
+  if(confidenceMedium)confidenceMedium.textContent='—';
+  if(confidenceLow)confidenceLow.textContent='—';
+  if(confidenceStatus)confidenceStatus.textContent='Confidence is calculated only from returned live activity fields.';
+}
+
+function renderEvidenceConfidence(confidence){
+  resetEvidenceConfidence();
+  if(!confidence)return;
+  confidenceDonutValue?.setAttribute('stroke-dasharray',`${confidence.highPercent} ${100-confidence.highPercent}`);
+  if(confidenceHighPercent)confidenceHighPercent.textContent=`${confidence.highPercent}%`;
+  if(confidenceHigh)confidenceHigh.textContent=`${numberFormatter.format(confidence.high)} · ${confidence.highPercent}%`;
+  if(confidenceMedium)confidenceMedium.textContent=`${numberFormatter.format(confidence.medium)} · ${confidence.mediumPercent}%`;
+  if(confidenceLow)confidenceLow.textContent=`${numberFormatter.format(confidence.low)} · ${confidence.lowPercent}%`;
+  if(confidenceStatus)confidenceStatus.textContent=`Coverage across ${numberFormatter.format(confidence.total)} returned live activity records.`;
+}
+
+function setEvidenceEmpty(mount,text){
+  if(!mount)return;
+  mount.className='apx-empty-state';
+  mount.replaceChildren(document.createTextNode(text));
+}
+
+function renderEvidenceRows(mount,rows=[]){
+  if(!mount||!rows.length)return;
+  const list=document.createElement('dl');
+  list.className='journey-evidence-rows';
+  for(const row of rows){
+    const item=document.createElement('div');
+    const label=document.createElement('dt');
+    const value=document.createElement('dd');
+    label.textContent=row.label;
+    value.textContent=row.value;
+    item.append(label,value);
+    list.appendChild(item);
+  }
+  mount.className='journey-evidence-list';
+  mount.replaceChildren(list);
+}
+
+function renderMissionHighlights(activities=[],view=null){
+  setEvidenceEmpty(missionHighlightsCard,'No verified activity history is available for Mission Report highlights.');
+  if(!activities.length||!view)return;
+  const rows=[];
+  const leader=view.mastery?.[0];
+  if(leader)rows.push({label:'ACTIVITY LEADER',value:`${leader.activityName} · ${numberFormatter.format(leader.evidenceCount)} RUN${leader.evidenceCount===1?'':'S'}`});
+  const latest=[...activities].filter(activity=>activity?.period).sort((left,right)=>String(right.period).localeCompare(String(left.period)))[0];
+  if(latest){
+    const date=new Date(latest.period);
+    const dateLabel=Number.isNaN(date.getTime())?'DATE NOT RETURNED':activityDateFormatter.format(date);
+    const state=typeof latest.completed==='boolean'?(latest.completed?'COMPLETED':'NOT COMPLETED'):'COMPLETION NOT RETURNED';
+    rows.push({label:'LATEST RESULT',value:`${latest.activityName} · ${dateLabel} · ${state}`});
+  }
+  if(view.summary?.completionRate!==null)rows.push({label:'RETURNED COMPLETION',value:`${view.summary.completionRate}% ACROSS ${numberFormatter.format(view.summary.totalActivities)} RECORDS`});
+  else if(view.summary?.pvpKd!==null)rows.push({label:'RETURNED PVP K/D',value:Number(view.summary.pvpKd).toFixed(2)});
+  renderEvidenceRows(missionHighlightsCard,rows);
+}
+
+function storageValue(store,key,options){
   try{
-    const membership=session?.activeDestinyMembership;
-    if(!membership?.membershipType||!membership?.membershipId)return;
-    const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
-    url.searchParams.set('membershipType',String(membership.membershipType));
-    url.searchParams.set('membershipId',String(membership.membershipId));
-    url.searchParams.set('characterId',selectedCharacterId);
-    url.searchParams.set('page','0');
-    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}});
-    if(!response.ok)return;
-    const payload=await response.json();
-    const rows=payload?.Response?.activities??payload?.response?.activities??payload?.activities;
-    if(!Array.isArray(rows)||!rows.length||requestId!==currentFormRequest)return;
-    const cutoff=Date.now()-30*24*60*60*1000;
-    const buckets=new Map();
-    for(const activity of rows){
-      const date=new Date(activity?.period||'');
-      if(Number.isNaN(date.getTime())||date.getTime()<cutoff)continue;
-      const day=date.toISOString().slice(0,10);
-      if(!buckets.has(day))buckets.set(day,{day,pveTotal:0,pveCleared:0,kills:0,deaths:0,pvpEvidence:false});
-      const bucket=buckets.get(day);
-      const mode=finiteNumber(activity?.activityDetails?.mode);
-      if(mode===null)continue;
-      const values=activity?.values||{};
-      if(PVP_MODES.has(mode)){
-        const kills=finiteNumber(values?.kills?.basic?.value);
-        const deaths=finiteNumber(values?.deaths?.basic?.value);
-        if(kills!==null&&deaths!==null){bucket.kills+=kills;bucket.deaths+=deaths;bucket.pvpEvidence=true;}
-      }else if(!GAMBIT_MODES.has(mode)){
-        const completed=finiteNumber(values?.completed?.basic?.value);
-        if(completed!==null){bucket.pveTotal+=1;if(completed!==0)bucket.pveCleared+=1;}
-      }
+    const parsed=JSON.parse(store.getItem(key)||'null');
+    return parsed?validateHandoffEnvelope(parsed,options):null;
+  }catch{return null;}
+}
+
+function readJourneyBuildState(session,characterId){
+  const membership=session?.activeDestinyMembership||{};
+  const expected={
+    expectedCharacterId:String(characterId||''),
+    expectedMembershipId:String(membership.membershipId||''),
+    expectedMembershipType:String(membership.membershipType||'')
+  };
+  const sources=[
+    [BUILD_SPACE_KEY,'WORKING BUILD'],
+    [LAST_LOADOUT_KEY,'BUNGIE LOADOUT'],
+    [BUILD_SNAPSHOT_KEY,'CURRENT EQUIPPED']
+  ];
+  for(const [key,label] of sources){
+    for(const store of [sessionStorage,localStorage]){
+      const payload=storageValue(store,key,{...expected,allowLegacy:false});
+      const build=payload?.workingBuild||payload?.originalBuild||payload;
+      if(build&&String(build.characterId||'')===String(characterId||''))return {build,label,key};
     }
-    const daily=[...buckets.values()].sort((left,right)=>left.day.localeCompare(right.day));
-    const pve=daily.filter(day=>day.pveTotal>0).map(day=>day.pveCleared/day.pveTotal*100);
-    const pvp=daily.filter(day=>day.pvpEvidence&&day.deaths>0).map(day=>day.kills/day.deaths);
-    const pvePath=trendPath(pve,100);
-    const pvpPath=trendPath(pvp,Math.max(1,...pvp));
-    if(requestId!==currentFormRequest||(!pvePath&&!pvpPath))return;
-    trendChart.querySelector('[data-journey-trend="pve"]')?.setAttribute('d',pvePath);
-    trendChart.querySelector('[data-journey-trend="pvp"]')?.setAttribute('d',pvpPath);
-    trendChart.setAttribute('aria-label','Verified 30-day PVE success and PVP K/D trends');
-    trendEmpty.hidden=true;
-    const dates=trendChart.closest('.mission-current-form')?.querySelectorAll('.mission-chart-dates span');
-    if(dates?.length===2&&daily.length){
-      dates[0].textContent=activityDateFormatter.format(new Date(`${daily[0].day}T00:00:00Z`));
-      dates[1].textContent=activityDateFormatter.format(new Date(`${daily[daily.length-1].day}T00:00:00Z`));
+  }
+  return null;
+}
+
+function renderBuildSummary(session=journeySession){
+  setEvidenceEmpty(buildSummaryCard,'No verified Build Forge state is available for this Guardian.');
+  if(session?.authenticated!==true||!selectedCharacterId)return;
+  const result=readJourneyBuildState(session,selectedCharacterId);
+  if(!result)return;
+  const build=result.build;
+  const className=String(build.characterClass||build.className||selectedClassName||'GUARDIAN').toLocaleUpperCase('en-GB');
+  const subclass=String(build.subclassName||build.subclass||'SUBCLASS NOT RETURNED').toLocaleUpperCase('en-GB');
+  const loadout=Number.isInteger(build.selectedLoadoutIndex)?`BUNGIE LOADOUT ${build.selectedLoadoutIndex+1}`:result.label;
+  const weapons=Array.isArray(build.weapons)?build.weapons.length:0;
+  const armour=Array.isArray(build.armour)?build.armour.length:Array.isArray(build.armor)?build.armor.length:0;
+  const rows=[
+    {label:'LINKED BUILD',value:`${className} · ${subclass}`},
+    {label:'SOURCE',value:loadout},
+    {label:'EQUIPMENT SNAPSHOT',value:`${weapons} WEAPONS · ${armour} ARMOUR`}
+  ];
+  if(build.paradoxAnalysis)rows.push({label:'PARADOX EVIDENCE',value:'LIVE ANALYSIS LINKED'});
+  renderEvidenceRows(buildSummaryCard,rows);
+}
+
+function buildSnapshotIdentity(snapshot={}){
+  const itemIdentity=item=>String(item?.itemInstanceId??item?.instanceId??item?.itemHash??item?.hash??item?.name??'').trim();
+  const items=[
+    ...(Array.isArray(snapshot.weapons)?snapshot.weapons:[]),
+    ...(Array.isArray(snapshot.armour)?snapshot.armour:[]),
+    ...(Array.isArray(snapshot.armor)?snapshot.armor:[]),
+    ...(Array.isArray(snapshot.items)?snapshot.items:[])
+  ].map(itemIdentity).filter(Boolean).sort();
+  const id=String(snapshot.id??snapshot.snapshotId??snapshot.buildId??'').trim();
+  const name=String(snapshot.name??snapshot.buildName??'').trim();
+  const className=String(snapshot.characterClass??snapshot.className??'').trim();
+  const subclass=String(snapshot.subclassName??snapshot.subclass??'').trim();
+  const loadout=Number.isInteger(snapshot.selectedLoadoutIndex)?snapshot.selectedLoadoutIndex:null;
+  const fingerprint=id||name||[className,subclass,loadout??'',...items].join('|');
+  if(!fingerprint.replaceAll('|',''))return null;
+  const label=name||(loadout!==null?`BUNGIE LOADOUT ${loadout+1}`:[subclass,className,'BUILD'].filter(Boolean).join(' '));
+  return {fingerprint,label:label.toLocaleUpperCase('en-GB')};
+}
+
+function captureEvidenceRows(session=journeySession){
+  const membership=session?.activeDestinyMembership||{};
+  const captures=[readCapture(),...readCaptureArchive()].filter(Boolean);
+  const seen=new Set();
+  const rows=[];
+  for(const capture of captures){
+    const testId=String(capture?.testId||'');
+    if(testId&&seen.has(testId))continue;
+    if(testId)seen.add(testId);
+    if(String(capture?.characterId||'')!==selectedCharacterId)continue;
+    if(String(capture?.membership?.membershipId||'')!==String(membership.membershipId||''))continue;
+    if(String(capture?.membership?.membershipType||'')!==String(membership.membershipType||''))continue;
+    const completed=(capture?.candidates||[]).some(candidate=>candidate?.activity?.completed===true);
+    if(capture?.status!=='collected'||!completed)continue;
+    const identity=buildSnapshotIdentity(capture.buildSnapshot||{});
+    if(identity)rows.push({...identity,source:'BUILD TEST'});
+  }
+  return rows;
+}
+
+function renderMostUsed(activities=[],session=journeySession){
+  setEvidenceEmpty(mostUsedCard,'No verified Build Test or Mission Report loadout evidence has been recorded.');
+  const activityRows=activities.map(activity=>{
+    const identity=buildSnapshotIdentity(activity?.buildSnapshot||{});
+    return identity?{...identity,source:'MISSION REPORT'}:null;
+  }).filter(Boolean);
+  const evidence=[...captureEvidenceRows(session),...activityRows];
+  if(!evidence.length)return;
+  const groups=new Map();
+  for(const row of evidence){
+    const current=groups.get(row.fingerprint)||{...row,count:0,sources:new Set()};
+    current.count+=1;
+    current.sources.add(row.source);
+    groups.set(row.fingerprint,current);
+  }
+  const winner=[...groups.values()].sort((left,right)=>right.count-left.count||left.label.localeCompare(right.label))[0];
+  const percent=Math.round(winner.count/evidence.length*100);
+  renderEvidenceRows(mostUsedCard,[
+    {label:'MOST OBSERVED BUILD',value:winner.label},
+    {label:'VERIFIED USAGE',value:`${winner.count} OF ${evidence.length} SAMPLES · ${percent}%`},
+    {label:'EVIDENCE SOURCE',value:[...winner.sources].join(' + ')}
+  ]);
+}
+
+function bindJourneyCrossPageEvidence(activities=currentActivityEvidence?.activities||[]){
+  renderBuildSummary();
+  renderMostUsed(activities);
+}
+
+function journeyActivityCacheKey(session,characterId){
+  const membership=session?.activeDestinyMembership||{};
+  return `${membership.membershipType||''}:${membership.membershipId||''}:${characterId}`;
+}
+
+async function fetchJourneyActivityEvidence(session,characterId,{force=false}={}){
+  const membership=session?.activeDestinyMembership;
+  if(session?.authenticated!==true||!membership?.membershipType||!membership?.membershipId||!characterId)return null;
+  const key=journeyActivityCacheKey(session,characterId);
+  const cached=journeyActivityCache.get(key);
+  if(cached?.promise)return cached.promise;
+  if(!force&&cached?.status==='ok'&&Date.now()-cached.fetchedAt<JOURNEY_BACKGROUND_REFRESH_MS)return cached;
+  const promise=(async()=>{
+    try{
+      await manifestReady;
+      const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
+      url.searchParams.set('membershipType',String(membership.membershipType));
+      url.searchParams.set('membershipId',String(membership.membershipId));
+      url.searchParams.set('characterId',characterId);
+      url.searchParams.set('count','25');
+      url.searchParams.set('page','0');
+      if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
+      const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}});
+      if(!response.ok)throw new Error(`Journey activity history failed (${response.status}).`);
+      const payload=await response.json();
+      const activities=await normaliseActivityHistory(payload);
+      const evidence={status:'ok',characterId,activities,view:buildMissionReportView(activities),fetchedAt:Date.now()};
+      journeyActivityCache.set(key,evidence);
+      return evidence;
+    }catch(error){
+      console.info('[ASTRIX Journey] activity evidence unavailable',error);
+      if(cached?.status==='ok'){journeyActivityCache.set(key,cached);return cached;}
+      journeyActivityCache.delete(key);
+      return {status:'unavailable',characterId,activities:[],view:null,fetchedAt:Date.now()};
     }
-  }catch{}
+  })();
+  journeyActivityCache.set(key,{...cached,promise});
+  return promise;
+}
+
+function renderJourneyActivityEvidence(evidence){
+  const activities=evidence?.status==='ok'?evidence.activities:[];
+  const view=evidence?.status==='ok'?evidence.view:null;
+  renderRecentActivity(activities);
+  renderCurrentForm(view);
+  renderEvidenceConfidence(view?.confidence||null);
+  renderMissionHighlights(activities,view);
+  renderMostUsed(activities);
+}
+
+async function bindJourneyActivityEvidence(session,{force=false}={}){
+  const characterId=selectedCharacterId;
+  if(session?.authenticated!==true||!characterId){
+    currentActivityEvidence=null;
+    renderJourneyActivityEvidence(null);
+    return null;
+  }
+  const requestId=++journeyActivityRequest;
+  const evidence=await fetchJourneyActivityEvidence(session,characterId,{force});
+  if(requestId!==journeyActivityRequest||characterId!==selectedCharacterId)return null;
+  currentActivityEvidence=evidence;
+  renderJourneyActivityEvidence(evidence);
+  renderJourneyContextStatus();
+  return evidence;
 }
 
 async function bindTitleAndProgression(payload){
@@ -1884,6 +2086,16 @@ function bindProfileCards(payload){
   }
 }
 
+function renderJourneyContextStatus(){
+  if(!feedStatus)return;
+  const guardian=selectedClassName||'GUARDIAN';
+  const evidence=currentActivityEvidence?.characterId===selectedCharacterId?currentActivityEvidence:null;
+  const source=evidence?.status==='ok'
+    ?`${numberFormatter.format(evidence.activities.length)} VERIFIED ACTIVITY RECORDS`
+    :evidence?.status==='unavailable'?'ACTIVITY EVIDENCE UNAVAILABLE':'AWAITING VERIFIED ACTIVITY DATA';
+  feedStatus.textContent=`${guardian} · ${activeView.toUpperCase()} · ${source}`;
+}
+
 function renderJourneyContext(){
   dashboard.dataset.journeyView=activeView;
   if(selectedCharacterId)dashboard.dataset.characterId=selectedCharacterId;
@@ -1892,8 +2104,7 @@ function renderJourneyContext(){
     panel.dataset.characterId=selectedCharacterId;
     panel.dataset.journeyView=activeView;
   });
-  const guardian=selectedClassName||'GUARDIAN';
-  feedStatus.textContent=`${guardian} · ${activeView.toUpperCase()} · AWAITING VERIFIED ACTIVITY DATA`;
+  renderJourneyContextStatus();
   document.querySelectorAll('[data-journey-metric]').forEach(card=>{
     const lens=card.dataset.journeyMetric;
     card.hidden=activeView==='pve'&&lens==='pvp'||activeView==='pvp'&&lens==='pve';
@@ -1908,12 +2119,18 @@ function renderJourneyContext(){
 }
 
 function selectJourneyCharacter(characterId,className){
-  selectedCharacterId=String(characterId||'');
+  const nextCharacterId=String(characterId||'');
+  const characterChanged=nextCharacterId!==selectedCharacterId;
+  selectedCharacterId=nextCharacterId;
   selectedClassName=String(className||'').toUpperCase();
+  if(characterChanged){
+    currentActivityEvidence=null;
+    renderJourneyActivityEvidence(null);
+  }
   renderJourneyContext();
   if(verifiedProfile)void bindDestinationProgress(verifiedProfile);
-  if(journeySession)void bindRecentActivity(journeySession);
-  if(journeySession)void bindCurrentForm(journeySession);
+  bindJourneyCrossPageEvidence();
+  if(journeySession)void bindJourneyActivityEvidence(journeySession);
 }
 
 function syncSelectedCharacterFromCards(){
@@ -2036,6 +2253,8 @@ async function refreshJourneyProfile(){
       verifiedProfile=profile;
       bindProfileCards(profile);
       await bindDestinationProgress(profile);
+      await bindJourneyActivityEvidence(journeySession,{force:true});
+      bindJourneyCrossPageEvidence();
       document.dispatchEvent(new CustomEvent('astrix:journey-profile-refreshed',{detail:{refreshedAt:Date.now()}}));
       return profile;
     }catch(error){
@@ -2055,10 +2274,14 @@ function startJourneyBackgroundRefresh(){
   journeyBackgroundRefreshTimer=globalThis.setInterval(()=>void refreshJourneyProfile(),JOURNEY_BACKGROUND_REFRESH_MS);
   const refreshWhenVisible=()=>{
     if(document.visibilityState==='hidden')return;
+    bindJourneyCrossPageEvidence();
     if(journeyBackgroundRefreshPending||Date.now()-journeyLastRefreshAt>=JOURNEY_BACKGROUND_REFRESH_MS)void refreshJourneyProfile();
   };
   document.addEventListener('visibilitychange',refreshWhenVisible);
   globalThis.addEventListener('focus',refreshWhenVisible);
+  globalThis.addEventListener('storage',event=>{
+    if(BUILD_EVIDENCE_STORAGE_KEYS.has(event.key))bindJourneyCrossPageEvidence();
+  });
 }
 
 function showSignedOut(){
@@ -2079,6 +2302,7 @@ function showJourney(){
   dashboard.hidden=false;
   status.textContent='AUTHENTICATED JOURNEY';
   renderJourneyContext();
+  bindJourneyCrossPageEvidence();
   if(!locationSelectorReady){
     locationSelectorReady=true;
     // Reactive art-backdrop atmosphere + destination selector. Honest empty checklist

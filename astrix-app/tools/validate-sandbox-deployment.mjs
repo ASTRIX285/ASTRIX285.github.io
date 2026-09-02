@@ -40,8 +40,8 @@ assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2F
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
-assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-journey-identity-vault-1/,'Journey must load the identity, Vault and balanced-header styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-journey-identity-vault-1/,'Journey must load the identity and Vault module graph');
+assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-journey-data-hooks-1/,'Journey must load the cache-busted data-hook styling');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-journey-data-hooks-1/,'Journey must load the cache-busted data-hook module graph');
 assert.match(journeyModule,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journeyModule,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -100,6 +100,11 @@ assert.match(journeyModule,/const JOURNEY_BACKGROUND_REFRESH_MS=5\*60\*1000;/,'J
 assert.match(journeyModule,/url\.searchParams\.set\('scope','journey'\)/,'Background refreshes must request the lightweight Journey component scope');
 assert.match(journeyModule,/setInterval\(\(\)=>void refreshJourneyProfile\(\),JOURNEY_BACKGROUND_REFRESH_MS\)/,'Journey must schedule the silent profile refresh without reloading the page');
 assert.match(journeyModule,/journeyBackgroundRefreshPending\|\|Date\.now\(\)-journeyLastRefreshAt>=JOURNEY_BACKGROUND_REFRESH_MS[\s\S]*?visibilitychange/,'A hidden Journey tab must defer its background request until visible');
+assert.equal((journeyModule.match(/new URL\('\/bungie\/activity-history',AUTH_ORIGIN\)/g)??[]).length,1,'Journey must use one cached activity-history request for all activity-backed cards');
+assert.match(journeyModule,/function renderJourneyActivityEvidence[\s\S]*?renderRecentActivity\(activities\)[\s\S]*?renderCurrentForm\(view\)[\s\S]*?renderEvidenceConfidence[\s\S]*?renderMissionHighlights[\s\S]*?renderMostUsed/,'Every activity-backed Journey card must share the normalized Mission Report view');
+assert.match(journeyModule,/validateHandoffEnvelope[\s\S]*?function readJourneyBuildState[\s\S]*?BUILD_SPACE_KEY[\s\S]*?LAST_LOADOUT_KEY[\s\S]*?BUILD_SNAPSHOT_KEY/,'Build Forge state must remain bound to the authenticated account and selected Guardian');
+assert.match(journeyModule,/function captureEvidenceRows[\s\S]*?readCaptureArchive\(\)[\s\S]*?const completed=[\s\S]*?status!=='collected'/,'Journey must map existing completed Build Test captures without fabricating usage');
+assert.match(journeyHtml,/id="journeyConfidenceDonutValue"[\s\S]*?id="journeyMostUsed"[\s\S]*?id="journeyBuildSummary"[\s\S]*?id="journeyMissionHighlights"/,'All previously missing Journey evidence mounts must now have data hooks');
 const refreshSource=journeyModule.slice(journeyModule.indexOf('async function refreshJourneyProfile'),journeyModule.indexOf('function showSignedOut'));
 assert.doesNotMatch(refreshSource,/AstrixLoader|location\.(?:reload|replace)|window\.location/,'Background profile refresh must never replay the portal loader or reload Journey');
 assert.match(journeyModule,/profileRecords\?\.data\?\.recordCategoriesRootNodeHash[\s\S]*?recordPresentationTree/,'Triumphs and Records must start from Bungie’s authoritative profile Records root');

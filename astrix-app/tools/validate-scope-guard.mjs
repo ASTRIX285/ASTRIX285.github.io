@@ -31,6 +31,7 @@ const allowed=new Set([
   'astrix-app/shared/astrix-hero-cards.mjs',
   'astrix-app/tools/validate-journey-visual-pass.mjs',
   'astrix-app/tools/validate-main-page-today.mjs',
+  'astrix-app/tools/validate-portal-loader.mjs',
   'astrix-app/tools/validate-sandbox-deployment.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
   'astrix-app/tools/validate-super-formation.mjs',

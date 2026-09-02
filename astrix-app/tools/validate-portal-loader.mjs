@@ -75,8 +75,8 @@ assert.match(subclassModule,/astrix:subclass-filter-rendered/,'Build library mus
 assert.match(journeyModule,/renderGuardian\(root, state\);[\s\S]*?AstrixLoader\?\.set\(88\)/,'Guardian Journey must report progress after its state is painted');
 assert.match(journeyPageModule,/function waitForHeroCards\(\)[\s\S]*?astrix:hero-cards-render-complete/,'Journey loader must wait for the header character cards');
 assert.match(journeyPageModule,/function waitForJourneyAtmosphere\(\)[\s\S]*?ASTRIX_LOCATION_VISUALS[\s\S]*?image\.decode/,'Journey loader must decode the active destination atmosphere');
-assert.match(journeyPageModule,/await Promise\.all\(\[heroCardsReady,mapReady,waitForJourneyAtmosphere\(\)\]\)/,'Journey must settle all independently rendered surfaces before completion');
-assert.match(journeyPageModule,/AstrixLoader\.ready\(document\)/,'Journey final readiness must include the header and body-level artwork');
+assert.match(journeyPageModule,/await Promise\.all\(\[[\s\S]*?waitWithin\(heroCardsReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS\)[\s\S]*?waitWithin\(mapReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS\)[\s\S]*?waitWithin\(waitForJourneyAtmosphere\(\),JOURNEY_BOOTSTRAP_UI_WAIT_MS\)[\s\S]*?\]\)/,'Journey must settle every independently rendered surface behind bounded waits');
+assert.match(journeyPageModule,/function finishJourneyLoader\(root=document\)[\s\S]*?AstrixLoader\.ready\(root\)[\s\S]*?finishJourneyLoader\(document\)/,'Journey final readiness must include the header and body-level artwork');
 assert.doesNotMatch(journeyPageModule,/AstrixLoader\.ready\(dashboard\)/,'Journey must not limit loader readiness to the dashboard subtree');
 assert.match(journeyMaps,/astrix:journey-location-map-render-complete/,'Journey location map must publish a durable render-complete event');
 assert.match(journeyMaps,/if\(image\.complete\)queueMicrotask\(\(\)=>finish\(image\.naturalWidth>0\?'ready':'unavailable'\)\)/,'Journey map completion must reconcile cached images');
