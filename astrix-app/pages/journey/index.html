@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../../astrix-destinations.css">
   <link rel="stylesheet" href="../../shared/astrix-location-atmosphere.css">
   <link rel="stylesheet" href="../mission-reports/mission-reports.css">
-  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260902-shared-account-orbit-1">
+  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260902-journey-identity-vault-1">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260831-global-fixed-stack">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <style>
@@ -106,7 +106,7 @@
               <h1 id="journeyGuardianClass">Guardian unavailable</h1>
               <p id="journeyGuardianSubclass">Subclass awaiting verified data</p>
             </div>
-            <span class="mission-verified-badge" id="journeyVerifiedGuardian" hidden>✓ VERIFIED GUARDIAN</span>
+            <div class="journey-identity-stats" id="journeyGuardianStats" aria-label="Selected Guardian statistics" aria-live="polite"></div>
           </section>
 
           <section class="mission-guardian-stats journey-account-summary" aria-label="Account Journey statistics">
@@ -235,7 +235,7 @@
             <article class="apx-scaffold-card"><h2>Most used since connecting ASTRIX PARADOX</h2><span class="apx-empty-state" id="journeyMostUsed">No ASTRIX PARADOX loadout history has been recorded.</span></article>
             <article class="apx-scaffold-card" id="journeyRecentActivity"><h2>Recent activity</h2><span class="apx-empty-state">Recent activity data is not connected.</span></article>
             <article class="apx-scaffold-card" id="journeyBuildSummary"><h2>Build Forge summary</h2><span class="apx-empty-state">No Build Forge summary is available in Journey yet.</span></article>
-            <article class="apx-scaffold-card"><h2>Vault capacity and Postmaster warning</h2><span class="apx-empty-state" id="journeyVault">Capacity and Postmaster warning states require verified inventory data.</span></article>
+            <article class="apx-scaffold-card journey-vault-card"><h2>Vault inventory</h2><div class="journey-vault-summary" id="journeyVault" aria-live="polite"><span class="apx-empty-state">Vault inventory is awaiting verified Bungie data.</span></div></article>
             <article class="apx-scaffold-card"><h2>Mission Report highlights</h2><span class="apx-empty-state" id="journeyMissionHighlights">No Mission Report evidence is connected.</span></article>
           </section>
         </aside>
@@ -243,6 +243,6 @@
     </section>
   </main>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-shared-account-orbit-1"></script>
-  <script type="module" src="./journey.mjs?v=20260902-shared-account-orbit-1"></script>
+  <script type="module" src="./journey.mjs?v=20260902-journey-identity-vault-1"></script>
 </body>
 </html>

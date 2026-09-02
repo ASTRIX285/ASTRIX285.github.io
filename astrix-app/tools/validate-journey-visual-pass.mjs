@@ -35,8 +35,8 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-shared-account-orbit-1"'),'Journey must load the cache-busted shared account-orbit treatment');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-shared-account-orbit-1"'),'Journey must load the cache-busted shared account-orbit module graph');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-journey-identity-vault-1"'),'Journey must load the cache-busted identity and Vault treatment');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-journey-identity-vault-1"'),'Journey must load the cache-busted identity and Vault module graph');
 assert.match(journey,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journey,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journey,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -56,8 +56,9 @@ assert.match(guardianAuth,/fetch\(new URL\("\/bungie\/account",AUTH_ORIGIN\)[\s\
 assert.match(guardianAuth,/if\(session\?\.authenticated\)\{[\s\S]*?control\.button\.hidden=true;[\s\S]*?control\.visual\.hidden=false;/,'Connected destinations must replace the text button with only the account visual');
 assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card\.is-selected::before\{[\s\S]*?opacity:1!important;[\s\S]*?brightness\(1\.1\)!important/,'The active Journey Guardian card must retain bright, visible emblem artwork');
 assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card::after\{[\s\S]*?inset:0 0 0 42%!important/,'Journey card shading must stay on a narrow telemetry field instead of covering the emblem');
-assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__identity\{[\s\S]*?left:38%!important;[\s\S]*?width:max-content/,'Journey class labels must remain compact and clear of the emblem focal area');
-assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__stats\{[\s\S]*?left:34%!important;[\s\S]*?bottom:\.25rem!important/,'Journey stats must align to the card floor with protected padding and no emblem spill');
+assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__identity\{[\s\S]*?bottom:\.625rem!important;[\s\S]*?left:38%!important;[\s\S]*?right:4\.5rem!important/,'Journey class labels must be larger, lower and clear of the emblem focal area');
+assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__power\{[\s\S]*?bottom:\.625rem!important;[\s\S]*?font-size:1rem!important/,'Journey Power must be larger and aligned to the lower card edge');
+assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__stats\{[\s\S]*?display:none!important/,'Journey hero cards must move their stat strip into the selected Guardian identity panel');
 assert.match(journey,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash/,'Journey patterns must use the verified character Craftables component');
 assert.match(journey,/presentationLeafCategories\(rootHash,nodes,'records'\)[\s\S]*?verifiedCraftablePatternTypes/,'Journey patterns must follow the official Craftables presentation root to its current Record leaves');
 assert.match(journey,/profile\?\.metrics\?\.data[\s\S]*?DestinyMetricDefinition[\s\S]*?trackingObjectiveHash/,'Journey Stat Trackers must join verified Metrics to their manifest and objective definitions');
@@ -87,9 +88,16 @@ assert.doesNotMatch(html,/journey-section-nav|journey-time-filter|TIME FILTER|MI
 assert.match(journey,/CLASS_USAGE_COLOURS[\s\S]*?item\.percent=item\.minutes\/total\*100[\s\S]*?journey-usage-chart[\s\S]*?formatPlaytime\(item\.minutes\)/,'Guardian class usage must show all three verified playtime percentages and exact durations');
 assert.match(journey,/currentSeasonMetadata[\s\S]*?profileProgression\?\.data\?\.progressions[\s\S]*?rewardProgressionHash[\s\S]*?prestigeProgressionHash[\s\S]*?XP TO RANK/,'Current Season Rank must join live season progression hashes to verified profile XP');
 assert.match(journey,/journey-triumph-total[\s\S]*?journey-triumph-breakdown[\s\S]*?ACTIVE[\s\S]*?LEGACY/,'Triumph statistics must emphasise the total and split Active and Legacy scores');
+assert.match(html,/id="journeyGuardianStats"[\s\S]*?aria-label="Selected Guardian statistics"/,'The identity panel must own the selected Guardian stat strip');
+assert.doesNotMatch(html,/VERIFIED GUARDIAN|id="journeyVerifiedGuardian"/,'Journey must remove the redundant visible verified-Guardian label');
+assert.match(journey,/const STAT_ORDER=\[2996146975,392767087,1943323491,1735777505,144602215,4244567218\];[\s\S]*?function bindGuardianStats[\s\S]*?payload\?\.statDefinitions[\s\S]*?character\?\.stats/,'The identity stat strip must bind all six official Bungie stats for the selected Guardian');
+assert.match(css,/\.journey-page \.journey-identity-stats\{[\s\S]*?left:33\.333%;[\s\S]*?grid-template-columns:repeat\(6,minmax\(0,1fr\)\)[\s\S]*?overflow:hidden/,'Selected Guardian stats must remain inside the lower identity-card boundary');
+assert.match(html,/journey-vault-card[\s\S]*?>Vault inventory<[\s\S]*?id="journeyVault"/,'Journey must present Vault inventory as a dedicated data card');
+assert.match(journey,/function bindVault[\s\S]*?ARMOUR_ITEM_TYPE[\s\S]*?journey-vault-total[\s\S]*?>ALL<[\s\S]*?journey-vault-breakdown[\s\S]*?>ARMOUR<[\s\S]*?WEAPONS &amp; EQUIPMENT/,'Vault inventory must split its verified total into Armour and Weapons & Equipment');
+assert.match(journey,/if\(postmasterMax>=18\)[\s\S]*?POSTMASTER NEAR CAPACITY/,'Postmaster must appear only as a conditional near-capacity warning');
+assert.match(css,/\.journey-page \.journey-vault-summary\{[\s\S]*?linear-gradient[\s\S]*?\.journey-page \.journey-vault-breakdown\{[\s\S]*?grid-template-columns/,'Vault inventory must use a distinctive crimson-and-gold split-card treatment');
 assert.match(journey,/function createRankBadge[\s\S]*?journey-rank-badge[\s\S]*?renderGuardianRankSummary[\s\S]*?createRankBadge\(rank/,'Guardian Rank summaries must use the custom crimson-and-gold number medallion');
 assert.match(css,/\.journey-page \.journey-rank-badge\{[\s\S]*?background:radial-gradient[\s\S]*?\.journey-page \.journey-rank-badge strong\{[\s\S]*?color:#b51222/,'Rank medallions must use the requested gold/crimson background and crimson number');
-assert.match(css,/\.journey-page \.mission-identity-card>\.mission-verified-badge\{[\s\S]*?max-width:calc\(100% - 2rem\)[\s\S]*?overflow:hidden/,'Guardian identity overlays must remain inside the emblem card boundaries');
 assert.match(journey,/if\(!lateProfile\?\.profile\?\.characters\?\.data\)\{void refreshJourneyProfile\(\);return;\}/,'Journey must retry its lightweight profile feed when the deferred initial profile returns empty');
 assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260902-shared-account-orbit-1"'),'Journey must load the shared authenticated hero-card renderer and account visual');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');

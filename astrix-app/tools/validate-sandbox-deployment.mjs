@@ -40,8 +40,8 @@ assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2F
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
-assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-shared-account-orbit-1/,'Journey must load the shared account-orbit and balanced-header styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-shared-account-orbit-1/,'Journey must load the shared account-orbit module graph');
+assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-journey-identity-vault-1/,'Journey must load the identity, Vault and balanced-header styling');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-journey-identity-vault-1/,'Journey must load the identity and Vault module graph');
 assert.match(journeyModule,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journeyModule,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -58,7 +58,9 @@ assert.match(authWorker,/function bungieAccountRoute[\s\S]*?membershipData\.Resp
 assert.match(authWorker,/url\.pathname === "\/bungie\/account"[\s\S]*?bungieAccountRoute/,'The Bungie account route must be available to authenticated Journey sessions');
 assert.match(journeyModule,/function balanceJourneyHeader\(\)[\s\S]*?brandBounds\.right\+cardsBounds\.left\)\/2/,'Journey must centre its title between the brand and the first Guardian card');
 assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card\.is-selected::before\{[\s\S]*?opacity:1!important;[\s\S]*?brightness\(1\.1\)!important/,'Journey’s active hero card must keep its verified emblem bright');
-assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card__stats\{[\s\S]*?left:34%!important;[\s\S]*?bottom:\.25rem!important/,'Journey hero stats must remain inside the card floor with padded alignment');
+assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card__identity\{[\s\S]*?bottom:\.625rem!important;[\s\S]*?left:38%!important;[\s\S]*?right:4\.5rem!important/,'Journey class labels must be enlarged and lowered without obscuring emblem artwork');
+assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card__power\{[\s\S]*?bottom:\.625rem!important;[\s\S]*?font-size:1rem!important/,'Journey Power must be enlarged and aligned to the lower card edge');
+assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card__stats\{[\s\S]*?display:none!important/,'Journey hero stat strips must move to the selected Guardian identity panel');
 assert.match(journeyModule,/selected\.emblemBackgroundPath\|\|selected\.emblemPath/,'Journey must prefer Bungie emblem artwork and fall back only to the verified emblem icon');
 assert.match(journeyHtml,/Account playtime[\s\S]*?id="journeyTotalPlaytime"/,'Journey must label verified playtime as account-wide');
 assert.doesNotMatch(journeyHtml,/Account age|Journey level|XP source unavailable/,'Journey must not display unverified account age, generic Journey level or XP placeholders');
@@ -83,7 +85,14 @@ assert.match(authWorker,/function currentSeasonRoute[\s\S]*?DestinySeasonDefinit
 assert.match(authWorker,/url\.pathname === "\/bungie\/current-season"[\s\S]*?currentSeasonRoute/,'The current season metadata route must be publicly addressable through the auth Worker');
 assert.match(journeyModule,/function createRankBadge[\s\S]*?journey-rank-badge[\s\S]*?renderDetailHero\(guardianRankHero,\{name:item\.name,badge:item\.rank/,'Both Guardian Rank summary and detail views must use the custom numeric medallion');
 assert.match(journeyCss,/\.journey-page \.journey-rank-badge\{[\s\S]*?background:radial-gradient[\s\S]*?\.journey-page \.journey-rank-badge strong\{[\s\S]*?color:#b51222/,'Sandbox rank numerals must use the crimson-and-gold treatment');
-assert.match(journeyCss,/\.journey-page \.mission-identity-card>\.mission-verified-badge\{[\s\S]*?max-width:calc\(100% - 2rem\)[\s\S]*?overflow:hidden/,'Identity overlays must remain within the emblem card bounds');
+assert.match(journeyHtml,/id="journeyGuardianStats"[\s\S]*?aria-label="Selected Guardian statistics"/,'The Journey identity panel must provide the selected Guardian stat mount');
+assert.doesNotMatch(journeyHtml,/VERIFIED GUARDIAN|id="journeyVerifiedGuardian"/,'The sandbox must remove the redundant visible verified-Guardian label');
+assert.match(journeyModule,/const STAT_ORDER=\[2996146975,392767087,1943323491,1735777505,144602215,4244567218\];[\s\S]*?function bindGuardianStats[\s\S]*?payload\?\.statDefinitions[\s\S]*?character\?\.stats/,'The sandbox must bind all six official stats for the selected Guardian');
+assert.match(journeyCss,/\.journey-page \.journey-identity-stats\{[\s\S]*?left:33\.333%;[\s\S]*?grid-template-columns:repeat\(6,minmax\(0,1fr\)\)[\s\S]*?overflow:hidden/,'Guardian stats must remain within the identity-card boundary');
+assert.match(journeyHtml,/journey-vault-card[\s\S]*?>Vault inventory<[\s\S]*?id="journeyVault"/,'The sandbox must expose the redesigned Vault inventory card');
+assert.match(journeyModule,/function bindVault[\s\S]*?ARMOUR_ITEM_TYPE[\s\S]*?journey-vault-total[\s\S]*?>ALL<[\s\S]*?journey-vault-breakdown[\s\S]*?>ARMOUR<[\s\S]*?WEAPONS &amp; EQUIPMENT/,'The sandbox must split Vault inventory into All, Armour and Weapons & Equipment');
+assert.match(journeyModule,/if\(postmasterMax>=18\)[\s\S]*?POSTMASTER NEAR CAPACITY/,'Postmaster must remain a conditional warning rather than the card identity');
+assert.match(journeyCss,/\.journey-page \.journey-vault-summary\{[\s\S]*?linear-gradient[\s\S]*?\.journey-page \.journey-vault-breakdown\{[\s\S]*?grid-template-columns/,'Vault inventory must use the approved crimson-and-gold split-card treatment');
 assert.match(journeyCss,/\.journey-page \.mission-crest\{[\s\S]*?position:absolute;[\s\S]*?inset:0;[\s\S]*?transform:none/,'Journey must remove the inherited decorative diamond and let the emblem own the whole card');
 assert.match(journeyCss,/\.journey-page \.mission-crest img\{[\s\S]*?width:100%;[\s\S]*?height:100%;[\s\S]*?object-fit:cover;[\s\S]*?transform:none/,'Verified Bungie emblem artwork must fill the whole identity card');
 assert.match(journeyCss,/\.journey-page \.mission-identity-copy\{[\s\S]*?width:66\.667%;[\s\S]*?margin-left:33\.333%/,'Guardian class and subclass must overlay the emblem beginning one third into the card');

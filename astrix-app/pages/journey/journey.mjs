@@ -20,7 +20,7 @@ const trendEmpty=document.getElementById('journeyTrendEmpty');
 const guardianClass=document.getElementById('journeyGuardianClass');
 const guardianSubclass=document.getElementById('journeyGuardianSubclass');
 const guardianRankSummary=document.getElementById('journeyGuardianRankSummary');
-const verifiedGuardian=document.getElementById('journeyVerifiedGuardian');
+const guardianStats=document.getElementById('journeyGuardianStats');
 const guardianCrest=document.getElementById('journeyGuardianCrest');
 const guardianCrestEmpty=document.getElementById('journeyGuardianCrestEmpty');
 const totalPlaytime=document.getElementById('journeyTotalPlaytime');
@@ -66,6 +66,7 @@ const recordsSubcategories=document.getElementById('journeyRecordsSubcategories'
 const recordsDetailList=document.getElementById('journeyRecordsDetailList');
 const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
 const CLASS_USAGE_COLOURS=['#d3202f','#c9a84c','#4169e1'];
+const STAT_ORDER=[2996146975,392767087,1943323491,1735777505,144602215,4244567218];
 const RECENT_ACTIVITY_PENDING='Recent activity data is not connected.';
 const BUNGIE_ORIGIN='https://www.bungie.net';
 const JOURNEY_BACKGROUND_REFRESH_MS=5*60*1000;
@@ -245,21 +246,68 @@ function bindGuardianUsage(payload){
   table.appendChild(body);layout.append(chart,table);guardianUsage.appendChild(layout);return true;
 }
 
-const VAULT_BUCKET=138197802, POSTMASTER_BUCKET=215593132;
+const VAULT_BUCKET=138197802, POSTMASTER_BUCKET=215593132, ARMOUR_ITEM_TYPE=2;
 const SUBCLASS_BUCKET=3284755031;
 function bindVault(payload){
   if(!vaultCard)return;
   const vaultItems=payload?.profile?.profileInventory?.data?.items;
   if(!Array.isArray(vaultItems))return;
-  const vaultCount=vaultItems.filter(i=>i?.bucketHash===VAULT_BUCKET).length;
+  const stored=vaultItems.filter(item=>item?.bucketHash===VAULT_BUCKET);
+  const armourCount=stored.filter(item=>Number(payload?.definitions?.[String(item?.itemHash)]?.itemType)===ARMOUR_ITEM_TYPE).length;
+  const equipmentCount=stored.length-armourCount;
   let postmasterMax=0;
   for(const char of Object.values(payload?.profile?.characterInventories?.data||{})){
     const pm=(char?.items||[]).filter(i=>i?.bucketHash===POSTMASTER_BUCKET).length;
     if(pm>postmasterMax)postmasterMax=pm;
   }
-  const warn=postmasterMax>=18?` · POSTMASTER ${postmasterMax}/21`:'';
-  vaultCard.textContent=`${numberFormatter.format(vaultCount)} ITEMS IN VAULT${warn}`;
+  vaultCard.replaceChildren();
+  const total=document.createElement('div');
+  total.className='journey-vault-total';
+  total.innerHTML=`<span>ALL</span><strong>${numberFormatter.format(stored.length)}</strong>`;
+  const breakdown=document.createElement('dl');
+  breakdown.className='journey-vault-breakdown';
+  breakdown.innerHTML=`<div><dt>ARMOUR</dt><dd>${numberFormatter.format(armourCount)}</dd></div><div><dt>WEAPONS &amp; EQUIPMENT</dt><dd>${numberFormatter.format(equipmentCount)}</dd></div>`;
+  vaultCard.append(total,breakdown);
+  if(postmasterMax>=18){
+    const warning=document.createElement('p');
+    warning.className='journey-vault-warning';
+    warning.textContent=`POSTMASTER NEAR CAPACITY · ${postmasterMax}/21 ON A GUARDIAN`;
+    vaultCard.appendChild(warning);
+  }
 }
+
+function bindGuardianStats(payload,character){
+  if(!guardianStats)return;
+  guardianStats.replaceChildren();
+  const definitions=payload?.statDefinitions||{};
+  for(const hash of STAT_ORDER){
+    const definition=definitions[String(hash)]||null;
+    const name=String(definition?.displayProperties?.name||`Guardian stat ${hash}`);
+    const value=character?finiteNumber(character?.stats?.[String(hash)]):null;
+    const item=document.createElement('span');
+    item.className='journey-identity-stat';
+    item.title=value===null?`${name} unavailable`:`${name} ${numberFormatter.format(value)}`;
+    item.setAttribute('aria-label',item.title);
+    const iconUrl=bungieIconUrl(definition?.displayProperties?.icon);
+    if(iconUrl){
+      const icon=document.createElement('img');
+      icon.src=iconUrl;
+      icon.alt='';
+      icon.setAttribute('aria-hidden','true');
+      icon.decoding='async';
+      item.appendChild(icon);
+    }else{
+      const icon=document.createElement('i');
+      icon.setAttribute('aria-hidden','true');
+      item.appendChild(icon);
+    }
+    const output=document.createElement('strong');
+    output.textContent=value===null?'—':numberFormatter.format(value);
+    item.appendChild(output);
+    guardianStats.appendChild(item);
+  }
+}
+
 function formatPlaytime(minutes){
   if(!Number.isFinite(minutes))return '—';
   const total=Math.max(0,Math.round(minutes));
@@ -270,7 +318,7 @@ function formatPlaytime(minutes){
 function bindActiveGuardian(payload){
   guardianClass.textContent='Guardian unavailable';
   guardianSubclass.textContent='Subclass awaiting verified data';
-  verifiedGuardian.hidden=true;
+  bindGuardianStats(payload,null);
   guardianCrest.hidden=true;
   guardianCrest.removeAttribute('src');
   guardianCrestEmpty.hidden=false;
@@ -284,7 +332,7 @@ function bindActiveGuardian(payload){
   if(!selected)return;
 
   guardianClass.textContent=CLASS_NAMES[Number(selected.classType)]||'Guardian';
-  verifiedGuardian.hidden=false;
+  bindGuardianStats(payload,selected);
   const emblemArtwork=selected.emblemBackgroundPath||selected.emblemPath;
   if(emblemArtwork){
     guardianCrest.src=new URL(emblemArtwork,BUNGIE_ORIGIN).toString();
