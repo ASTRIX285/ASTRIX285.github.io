@@ -41,10 +41,17 @@ assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidde
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
 assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-emblem-identity-card-1/,'Journey must load the emblem-led identity card styling');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-background-refresh-1/,'Journey must load the silent background-refresh module');
 assert.match(journeyModule,/selected\.emblemBackgroundPath\|\|selected\.emblemPath/,'Journey must prefer Bungie emblem artwork and fall back only to the verified emblem icon');
 assert.match(journeyCss,/\.journey-page \.mission-crest\{[\s\S]*?position:absolute;[\s\S]*?inset:0;[\s\S]*?transform:none/,'Journey must remove the inherited decorative diamond and let the emblem own the whole card');
 assert.match(journeyCss,/\.journey-page \.mission-crest img\{[\s\S]*?width:100%;[\s\S]*?height:100%;[\s\S]*?object-fit:cover;[\s\S]*?transform:none/,'Verified Bungie emblem artwork must fill the whole identity card');
 assert.match(journeyCss,/\.journey-page \.mission-identity-copy\{[\s\S]*?width:66\.667%;[\s\S]*?margin-left:33\.333%/,'Guardian class and subclass must overlay the emblem beginning one third into the card');
+assert.match(journeyModule,/const JOURNEY_BACKGROUND_REFRESH_MS=5\*60\*1000;/,'Journey must refresh its lightweight Bungie profile every five minutes');
+assert.match(journeyModule,/url\.searchParams\.set\('scope','journey'\)/,'Background refreshes must request the lightweight Journey component scope');
+assert.match(journeyModule,/setInterval\(\(\)=>void refreshJourneyProfile\(\),JOURNEY_BACKGROUND_REFRESH_MS\)/,'Journey must schedule the silent profile refresh without reloading the page');
+assert.match(journeyModule,/journeyBackgroundRefreshPending\|\|Date\.now\(\)-journeyLastRefreshAt>=JOURNEY_BACKGROUND_REFRESH_MS[\s\S]*?visibilitychange/,'A hidden Journey tab must defer its background request until visible');
+const refreshSource=journeyModule.slice(journeyModule.indexOf('async function refreshJourneyProfile'),journeyModule.indexOf('function showSignedOut'));
+assert.doesNotMatch(refreshSource,/AstrixLoader|location\.(?:reload|replace)|window\.location/,'Background profile refresh must never replay the portal loader or reload Journey');
 
 console.log('SANDBOX_BRANCH_DEPLOYMENT=PASS');
 console.log('SANDBOX_OVERSIZED_DATA_STREAM=PASS');

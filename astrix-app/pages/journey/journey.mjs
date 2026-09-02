@@ -1,6 +1,6 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-journey-landing-1';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
-import {readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
+import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
 import {initJourneyLocationMaps,publishJourneyDestinationData,publishJourneyRegionChestProgress} from './journey-location-maps.mjs?v=20260901-destination-data-panels';
 
@@ -66,6 +66,8 @@ const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
 const MILESTONES_PENDING='No verified milestone or achievement source is connected.';
 const RECENT_ACTIVITY_PENDING='Recent activity data is not connected.';
 const BUNGIE_ORIGIN='https://www.bungie.net';
+const JOURNEY_BACKGROUND_REFRESH_MS=5*60*1000;
+const JOURNEY_REFRESH_TIMEOUT_MS=60*1000;
 const numberFormatter=new Intl.NumberFormat('en-GB');
 const activityDateFormatter=new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 const manifestReady=guardianManifest.ready();
@@ -92,6 +94,10 @@ let selectedTitle=null;
 let selectedTitleKind='titles';
 let selectedTriumphCategory=null;
 let selectedRecordSection=null;
+let journeyBackgroundRefreshTimer=0;
+let journeyBackgroundRefreshRequest=null;
+let journeyBackgroundRefreshPending=false;
+let journeyLastRefreshAt=0;
 
 function waitForHeroCards(){
   if(!heroCards||!heroCards.querySelector('.guardian-character-cards__status.is-pending'))return Promise.resolve();
@@ -1675,6 +1681,65 @@ async function readVerifiedProfile(session){
   });
 }
 
+async function fetchJourneyProfileRefresh(){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),JOURNEY_REFRESH_TIMEOUT_MS);
+  try{
+    await manifestReady;
+    const url=new URL('/bungie/profile',AUTH_ORIGIN);
+    url.searchParams.set('scope','journey');
+    if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
+    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload?.error||`Journey refresh failed (${response.status}).`);
+    await guardianManifest.hydratePayload(payload);
+    await cacheBungieProfile(journeySession,payload);
+    return payload;
+  }finally{
+    clearTimeout(timeout);
+  }
+}
+
+async function refreshJourneyProfile(){
+  if(journeySession?.authenticated!==true)return null;
+  if(document.visibilityState==='hidden'){
+    journeyBackgroundRefreshPending=true;
+    return null;
+  }
+  if(journeyBackgroundRefreshRequest)return journeyBackgroundRefreshRequest;
+  journeyBackgroundRefreshPending=false;
+  journeyBackgroundRefreshRequest=(async()=>{
+    try{
+      const profile=await fetchJourneyProfileRefresh();
+      if(!profile?.profile?.characters?.data)return null;
+      verifiedProfile=profile;
+      bindProfileCards(profile);
+      await bindDestinationProgress(profile);
+      document.dispatchEvent(new CustomEvent('astrix:journey-profile-refreshed',{detail:{refreshedAt:Date.now()}}));
+      return profile;
+    }catch(error){
+      console.info('[ASTRIX Journey] background profile refresh unavailable',error);
+      return null;
+    }finally{
+      journeyLastRefreshAt=Date.now();
+      journeyBackgroundRefreshRequest=null;
+    }
+  })();
+  return journeyBackgroundRefreshRequest;
+}
+
+function startJourneyBackgroundRefresh(){
+  if(journeyBackgroundRefreshTimer)return;
+  journeyLastRefreshAt=Date.now();
+  journeyBackgroundRefreshTimer=globalThis.setInterval(()=>void refreshJourneyProfile(),JOURNEY_BACKGROUND_REFRESH_MS);
+  const refreshWhenVisible=()=>{
+    if(document.visibilityState==='hidden')return;
+    if(journeyBackgroundRefreshPending||Date.now()-journeyLastRefreshAt>=JOURNEY_BACKGROUND_REFRESH_MS)void refreshJourneyProfile();
+  };
+  document.addEventListener('visibilitychange',refreshWhenVisible);
+  globalThis.addEventListener('focus',refreshWhenVisible);
+}
+
 function showSignedOut(){
   resolving.hidden=true;
   dashboard.hidden=true;
@@ -1719,6 +1784,7 @@ try{
       bindProfileCards(profile);
       void bindDestinationProgress(profile);
     }
+    startJourneyBackgroundRefresh();
     await Promise.all([heroCardsReady,mapReady,waitForJourneyAtmosphere()]);
     globalThis.AstrixLoader.set(96);globalThis.AstrixLoader.status('Journey rendered');
     await globalThis.AstrixLoader.ready(document);
