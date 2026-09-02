@@ -576,7 +576,7 @@ const PATTERN_CATALYST_TYPE_DEFINITIONS=[
   {key:'heavy',name:'Heavy Weapon Patterns',shortName:'Heavy',categories:['Grenade Launchers','Linear Fusion Rifles','Machine Guns','Rocket Launchers','Swords']},
   {key:'catalysts',name:'Exotic Catalysts',shortName:'Catalysts',categories:['Kinetic Weapons','Energy Weapons','Power Weapons']}
 ];
-function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,unit='',gilded=false,complete=false,crafted=false,claimed=false,value=null,onSelect=null,objectives=[]}){
+function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,threshold=null,unit='',gilded=false,complete=false,crafted=false,claimed=false,value=null,onSelect=null,objectives=[]}){
   const interactive=typeof onSelect==='function';
   const row=document.createElement(interactive?'button':'article');
   if(interactive){row.type='button';row.addEventListener('click',onSelect);}
@@ -624,6 +624,30 @@ function makeJourneyRecordRow({hash,name,icon,description='',completed=null,tota
     fill.style.width=`${bounded/total*100}%`;
     track.appendChild(fill);
     copy.appendChild(track);
+  }
+  const verifiedThreshold=finiteNumber(threshold);
+  const thresholdValue=finiteNumber(value);
+  if(verifiedThreshold!==null&&verifiedThreshold>0&&thresholdValue!==null){
+    const bounded=Math.max(0,Math.min(verifiedThreshold,thresholdValue));
+    const progress=document.createElement('div');
+    progress.className='journey-record-progress';
+    const label=document.createElement('span');
+    label.textContent='COMPLETION THRESHOLD';
+    const output=document.createElement('b');
+    output.textContent=`${numberFormatter.format(verifiedThreshold)}${complete?' · MET':''}`;
+    progress.append(label,output);
+    const track=document.createElement('div');
+    track.className='journey-record-track';
+    track.setAttribute('role','progressbar');
+    track.setAttribute('aria-label',`${name} completion threshold`);
+    track.setAttribute('aria-valuemin','0');
+    track.setAttribute('aria-valuemax',String(verifiedThreshold));
+    track.setAttribute('aria-valuenow',String(bounded));
+    const fill=document.createElement('i');
+    fill.className='journey-record-fill';
+    fill.style.width=`${bounded/verifiedThreshold*100}%`;
+    track.appendChild(fill);
+    copy.append(progress,track);
   }
   objectives.forEach(objective=>{
     if(objective.completed===null||objective.total===null||objective.total<=0)return;
@@ -1197,15 +1221,17 @@ async function verifiedStatTrackerSection(payload){
       if(!state||state.invisible===true||!definition||definition.redacted===true||current===null||!name)return null;
       const objective=objectiveDefinitions[String(definition?.trackingObjectiveHash||'')];
       const hasThreshold=total!==null&&total>0;
+      const lifetimeExceedsThreshold=hasThreshold&&current>total;
       return {
         hash,
         name,
         icon:bungiePresentationIcon(definition),
         description:String(definition?.displayProperties?.description||objective?.progressDescription||'').trim(),
-        completed:hasThreshold?current:null,
-        total:hasThreshold?total:null,
-        unit:hasThreshold?'TRACKER PROGRESS':'TRACKER VALUE',
-        value:hasThreshold?null:current,
+        completed:hasThreshold&&!lifetimeExceedsThreshold?current:null,
+        total:hasThreshold&&!lifetimeExceedsThreshold?total:null,
+        threshold:lifetimeExceedsThreshold?total:null,
+        unit:lifetimeExceedsThreshold||!hasThreshold?'TRACKER VALUE':'TRACKER PROGRESS',
+        value:lifetimeExceedsThreshold||!hasThreshold?current:null,
         complete:progress?.complete===true,
         gilded:false
       };

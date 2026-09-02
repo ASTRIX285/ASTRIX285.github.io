@@ -41,7 +41,7 @@ assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidde
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
 assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-emblem-identity-card-1/,'Journey must load the emblem-led identity card styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-pattern-records-1/,'Journey must load the verified weapon-pattern Records module');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-tracker-thresholds-1/,'Journey must load the verified Stat Tracker threshold module');
 assert.match(journeyModule,/selected\.emblemBackgroundPath\|\|selected\.emblemPath/,'Journey must prefer Bungie emblem artwork and fall back only to the verified emblem icon');
 assert.match(journeyCss,/\.journey-page \.mission-crest\{[\s\S]*?position:absolute;[\s\S]*?inset:0;[\s\S]*?transform:none/,'Journey must remove the inherited decorative diamond and let the emblem own the whole card');
 assert.match(journeyCss,/\.journey-page \.mission-crest img\{[\s\S]*?width:100%;[\s\S]*?height:100%;[\s\S]*?object-fit:cover;[\s\S]*?transform:none/,'Verified Bungie emblem artwork must fill the whole identity card');
@@ -59,6 +59,8 @@ assert.match(journeyModule,/destinationRecordSections[\s\S]*?recordPresentationT
 assert.match(journeyModule,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash[\s\S]*?presentationLeafCategories\(rootHash,nodes,'records'\)/,'Weapon patterns must use Bungie’s Craftables root and current Record leaves');
 assert.match(journeyModule,/DestinyRecordDefinition[\s\S]*?DestinyObjectiveDefinition[\s\S]*?titleRequirementRow\(payload,componentCharacterId/,'Pattern rows must join official Record definitions to verified profile objective progress');
 assert.doesNotMatch(journeyModule,/presentationLeafCategories\(rootHash,nodes,'craftables'\)/,'Journey must not read the empty craftables child list from current presentation definitions');
+assert.match(journeyModule,/lifetimeExceedsThreshold=hasThreshold&&current>total[\s\S]*?threshold:lifetimeExceedsThreshold\?total:null[\s\S]*?value:lifetimeExceedsThreshold\|\|!hasThreshold\?current:null/,'Lifetime tracker values above a completion threshold must be displayed separately from that threshold');
+assert.match(journeyModule,/label\.textContent='COMPLETION THRESHOLD'[\s\S]*?output\.textContent=`\$\{numberFormatter\.format\(verifiedThreshold\)\}\$\{complete\?' · MET':''\}`/,'Completed Stat Trackers must label Bungie thresholds without presenting lifetime values as invalid fractions');
 
 console.log('SANDBOX_BRANCH_DEPLOYMENT=PASS');
 console.log('SANDBOX_OVERSIZED_DATA_STREAM=PASS');
