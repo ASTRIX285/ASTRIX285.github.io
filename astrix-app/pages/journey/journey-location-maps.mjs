@@ -147,7 +147,7 @@ function normaliseDestinationDataItem(value){
   if(!name)return null;
   const current=Number(value?.current);
   const total=Number(value?.total);
-  const hasProgress=Number.isInteger(current)&&current>=0&&Number.isInteger(total)&&total>0&&current<=total;
+  const hasProgress=value?.current!==null&&value?.current!==undefined&&value?.total!==null&&value?.total!==undefined&&Number.isInteger(current)&&current>=0&&Number.isInteger(total)&&total>0&&current<=total;
   const hasCompletion=typeof value?.completed==='boolean';
   if(!hasProgress&&!hasCompletion)return null;
   return {
@@ -157,7 +157,14 @@ function normaliseDestinationDataItem(value){
     icon:bungieIconUrl(value?.icon),
     current:hasProgress?current:null,
     total:hasProgress?total:null,
-    completed:hasCompletion?value.completed:current===total
+    completed:hasCompletion?value.completed:current===total,
+    objectives:(value?.objectives||[]).map(objective=>{
+      const objectiveName=String(objective?.name||'').trim();
+      const objectiveCurrent=Number(objective?.current);
+      const objectiveTotal=Number(objective?.total);
+      if(!objectiveName||objective?.current===null||objective?.current===undefined||objective?.total===null||objective?.total===undefined||!Number.isInteger(objectiveCurrent)||objectiveCurrent<0||!Number.isInteger(objectiveTotal)||objectiveTotal<=0)return null;
+      return {name:objectiveName,current:objectiveCurrent,total:objectiveTotal,completed:objective?.completed===true};
+    }).filter(Boolean)
   };
 }
 
@@ -231,6 +238,22 @@ function createDestinationProgressRow(item){
     track.append(fill);
     copy.append(progress,track);
   }
+  item.objectives.forEach(objective=>{
+    const progress=document.createElement('span');
+    progress.className='journey-record-progress';
+    const label=document.createElement('span');
+    label.textContent=objective.name;
+    const count=document.createElement('b');
+    count.textContent=`${objective.current} / ${objective.total}`;
+    progress.append(label,count);
+    const track=document.createElement('span');
+    track.className='journey-record-track';
+    const fill=document.createElement('span');
+    fill.className='journey-record-fill';
+    fill.style.width=`${Math.round(Math.min(objective.current,objective.total)/objective.total*100)}%`;
+    track.append(fill);
+    copy.append(progress,track);
+  });
   row.append(copy);
   return row;
 }
