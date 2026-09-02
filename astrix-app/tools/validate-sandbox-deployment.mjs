@@ -20,6 +20,7 @@ assert.match(pagesWorker,/RAW_BRANCH_ROOT='https:\/\/raw\.githubusercontent\.com
 assert.match(pagesWorker,/env\.ASSETS\.fetch\(request\)/,'All ordinary sandbox requests must fall through to Worker assets');
 assert.match(pagesWorker,/X-Robots-Tag/,'The sandbox must not be indexed');
 assert.match(sandboxConfig,/name = "astrix-paradox-sandbox"/,'Cloudflare Worker name must remain stable');
+assert.match(sandboxConfig,/workers_dev = false/,'The public workers.dev sandbox route must remain disabled');
 assert.match(sandboxConfig,/directory = "\.\.\/\.sandbox-dist"/,'Sandbox Worker must serve only the prepared asset directory');
 assert.match(sandboxConfig,/binding = "ASSETS"/,'Sandbox Worker must expose the static asset binding');
 assert.match(sandboxConfig,/pattern = "sandbox\.astrixparadox\.com"[\s\S]*?custom_domain = true/,'Cloudflare custom domain must remain stable');

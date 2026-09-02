@@ -1,7 +1,7 @@
 name = "astrix-paradox-sandbox"
 main = "pages-worker.js"
 compatibility_date = "2026-09-02"
-workers_dev = true
+workers_dev = false
 
 [assets]
 directory = "../.sandbox-dist"
