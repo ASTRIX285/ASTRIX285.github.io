@@ -9,6 +9,11 @@ const signedOut=document.getElementById('journeySignedOut');
 const dashboard=document.getElementById('journeyDashboard');
 const status=document.getElementById('journeyAuthStatus');
 const connectButton=document.getElementById('journeyConnectButton');
+const journeyHeader=document.querySelector('.journey-page .apx-destination-header');
+const journeyBrand=document.querySelector('.journey-page .apx-destination-brand');
+const journeyAccountVisual=document.getElementById('journeyAccountVisual');
+const journeyAccountAvatar=document.getElementById('journeyAccountAvatar');
+const journeyAccountAvatarFallback=document.getElementById('journeyAccountAvatarFallback');
 const guardianUsage=document.getElementById('journeyGuardianUsage');
 const vaultCard=document.getElementById('journeyVault');
 const seasonRankCard=document.getElementById('journeySeasonRank');
@@ -145,6 +150,77 @@ function waitForJourneyAtmosphere(){
     if(image.complete)finish();
   });
 }
+
+function balanceJourneyHeader(){
+  if(!journeyHeader||!journeyBrand||!heroCards||innerWidth<1900)return;
+  const brandBounds=journeyBrand.getBoundingClientRect();
+  const cardsBounds=heroCards.getBoundingClientRect();
+  if(cardsBounds.left<=brandBounds.right)return;
+  journeyHeader.style.setProperty('--journey-command-centre',`${(brandBounds.right+cardsBounds.left)/2}px`);
+}
+
+function installJourneyHeaderBalance(){
+  if(!journeyHeader||!journeyBrand||!heroCards)return;
+  balanceJourneyHeader();
+  globalThis.addEventListener('resize',balanceJourneyHeader,{passive:true});
+  if('ResizeObserver' in globalThis){
+    const observer=new ResizeObserver(balanceJourneyHeader);
+    observer.observe(journeyHeader);
+    observer.observe(journeyBrand);
+    observer.observe(heroCards);
+  }
+  requestAnimationFrame(balanceJourneyHeader);
+}
+
+function accountInitials(value){
+  const words=String(value||'AP').trim().split(/\s+/).filter(Boolean);
+  return (words.length>1?`${words[0][0]}${words.at(-1)[0]}`:words[0]?.slice(0,2)||'AP').toUpperCase();
+}
+
+function bungieAvatarUrl(path){
+  if(!path)return '';
+  try{
+    const url=new URL(String(path),BUNGIE_ORIGIN);
+    return url.protocol==='https:'&&(url.hostname==='bungie.net'||url.hostname.endsWith('.bungie.net'))?url.toString():'';
+  }catch{return '';}
+}
+
+function setJourneyAccountVisual(account,session){
+  if(!journeyAccountVisual||!journeyAccountAvatar||!journeyAccountAvatarFallback)return;
+  journeyAccountVisual.hidden=false;
+  const displayName=String(account?.displayName||account?.uniqueName||session?.activeDestinyMembership?.displayName||'Bungie Guardian');
+  journeyAccountVisual.setAttribute('aria-label',`${displayName} · connected Bungie account`);
+  journeyAccountVisual.title=displayName;
+  journeyAccountAvatarFallback.textContent=accountInitials(displayName);
+  journeyAccountVisual.classList.add('is-ready');
+  const source=bungieAvatarUrl(account?.profilePicturePath);
+  if(!source)return;
+  journeyAccountAvatar.addEventListener('load',()=>{
+    journeyAccountAvatar.hidden=false;
+    journeyAccountAvatarFallback.hidden=true;
+    journeyAccountVisual.classList.add('has-avatar');
+  },{once:true});
+  journeyAccountAvatar.addEventListener('error',()=>{
+    journeyAccountAvatar.hidden=true;
+    journeyAccountAvatarFallback.hidden=false;
+    journeyAccountVisual.classList.remove('has-avatar');
+  },{once:true});
+  journeyAccountAvatar.src=source;
+}
+
+async function loadJourneyAccountVisual(session){
+  setJourneyAccountVisual(null,session);
+  try{
+    const response=await fetch(new URL('/bungie/account',AUTH_ORIGIN),{credentials:'include',headers:{Accept:'application/json'}});
+    const account=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(account?.error||`Bungie account request failed (${response.status}).`);
+    setJourneyAccountVisual(account,session);
+  }catch(error){
+    console.info('[ASTRIX Journey] Bungie account avatar unavailable',error);
+  }
+}
+
+installJourneyHeaderBalance();
 
 const finiteNumber=value=>{
   if(value===null||value===undefined||value==='')return null;
@@ -1993,6 +2069,7 @@ function showSignedOut(){
   dashboard.hidden=true;
   signedOut.hidden=false;
   status.textContent='BUNGIE CONNECTION REQUIRED';
+  if(journeyAccountVisual)journeyAccountVisual.hidden=true;
   if(connectButton)connectButton.href=authStartUrl();
   globalThis.AstrixLoader.authResolved();
   void finishJourneyLoader(signedOut);
@@ -2026,6 +2103,7 @@ try{
   const authenticated=session?.authenticated===true&&globalThis.ASTRIX_BUNGIE_SESSION?.authenticated===true;
   if(authenticated){
     journeySession=session;
+    void loadJourneyAccountVisual(session);
     void bindHistoricalStats(session);
     const heroCardsReady=waitForHeroCards();
     const mapReady=showJourney();

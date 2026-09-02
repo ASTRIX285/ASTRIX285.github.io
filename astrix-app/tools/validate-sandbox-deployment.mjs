@@ -40,8 +40,8 @@ assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2F
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
-assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-guardian-command-cards-1/,'Journey must load the Guardian-command-card styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-guardian-command-cards-1/,'Journey must load the Guardian-command-card module');
+assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-journey-header-balance-1/,'Journey must load the account-avatar and balanced-header styling');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-journey-header-balance-1/,'Journey must load the account-avatar and balanced-header module');
 assert.match(journeyModule,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journeyModule,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -50,6 +50,13 @@ assert.match(journeyCss,/\.journey-page \.apx-destination-header-copy\{[\s\S]*?d
 assert.match(journeyCss,/\.journey-page \.apx-destination-header-copy small\{[\s\S]*?color:var\(--apx-gold\)/,'Journey command-console descriptor must use the gold brand colour');
 assert.doesNotMatch(journeyCss,/grid-template-columns:max-content minmax\(190px,1fr\) 910px/,'Journey must not move the globally centred Guardian-card rail');
 assert.match(journeyCss,/\.journey-page \.apx-destination-header-state\{[\s\S]*?position:absolute!important;[\s\S]*?clip-path:inset\(50%\)/,'Journey connection state must remain accessible without displaying redundant authenticated copy');
+assert.match(journeyHtml,/id="journeyAccountVisual"[\s\S]*?id="journeyAccountAvatar"/,'Journey must replace the Bungie text pill with a round account avatar');
+assert.match(journeyModule,/fetch\(new URL\('\/bungie\/account',AUTH_ORIGIN\)[\s\S]*?setJourneyAccountVisual\(account,session\)/,'Journey must load the signed-in user’s Bungie account avatar without another OAuth prompt');
+assert.match(authWorker,/function bungieAccountRoute[\s\S]*?membershipData\.Response\?\.bungieNetUser[\s\S]*?profilePicturePath/,'The auth Worker must expose the authenticated Bungie profile picture safely');
+assert.match(authWorker,/url\.pathname === "\/bungie\/account"[\s\S]*?bungieAccountRoute/,'The Bungie account route must be available to authenticated Journey sessions');
+assert.match(journeyModule,/function balanceJourneyHeader\(\)[\s\S]*?brandBounds\.right\+cardsBounds\.left\)\/2/,'Journey must centre its title between the brand and the first Guardian card');
+assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card\.is-selected::before\{[\s\S]*?opacity:1!important;[\s\S]*?brightness\(1\.1\)!important/,'Journey’s active hero card must keep its verified emblem bright');
+assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card__stats\{[\s\S]*?left:34%!important;[\s\S]*?bottom:\.25rem!important/,'Journey hero stats must remain inside the card floor with padded alignment');
 assert.match(journeyModule,/selected\.emblemBackgroundPath\|\|selected\.emblemPath/,'Journey must prefer Bungie emblem artwork and fall back only to the verified emblem icon');
 assert.match(journeyHtml,/Account playtime[\s\S]*?id="journeyTotalPlaytime"/,'Journey must label verified playtime as account-wide');
 assert.doesNotMatch(journeyHtml,/Account age|Journey level|XP source unavailable/,'Journey must not display unverified account age, generic Journey level or XP placeholders');

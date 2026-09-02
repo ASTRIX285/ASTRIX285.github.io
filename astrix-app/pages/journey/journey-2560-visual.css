@@ -54,6 +54,134 @@ body.journey-page.apx-destination-page .apx-page-shell{
   clip-path:inset(50%);
   white-space:nowrap;
 }
+.journey-page .journey-account-visual{
+  position:relative;
+  isolation:isolate;
+  grid-column:3!important;
+  grid-row:1!important;
+  justify-self:end!important;
+  display:grid;
+  width:3.25rem;
+  height:3.25rem;
+  box-sizing:border-box;
+  margin:0;
+  padding:.1875rem;
+  place-items:center;
+  overflow:visible;
+  border:0;
+  border-radius:50%;
+  background:conic-gradient(from 215deg,#4d0008 0 22%,#d3202f 34%,#f0c85a 51%,#7b0b16 70%,#4d0008 100%);
+  box-shadow:0 0 0 1px rgba(201,168,76,.24),0 0 1.25rem rgba(139,0,0,.22);
+}
+.journey-page .journey-account-visual[hidden]{display:none}
+.journey-page .journey-account-visual::after{
+  content:"";
+  position:absolute;
+  z-index:3;
+  right:.0625rem;
+  bottom:.1875rem;
+  width:.5625rem;
+  height:.5625rem;
+  box-sizing:border-box;
+  border:2px solid #080808;
+  border-radius:50%;
+  background:#6f665a;
+  box-shadow:0 0 .5rem rgba(111,102,90,.34);
+}
+.journey-page .journey-account-visual.is-ready::after{
+  background:#d6b24a;
+  box-shadow:0 0 .625rem rgba(214,178,74,.74);
+}
+.journey-page .journey-account-visual__orbit{
+  position:absolute;
+  z-index:-1;
+  inset:-.3125rem;
+  border:1px solid rgba(201,168,76,.28);
+  border-block-color:rgba(211,32,47,.56);
+  border-radius:50%;
+  transform:rotate(-24deg);
+}
+.journey-page .journey-account-visual img,
+.journey-page .journey-account-visual__fallback{
+  display:grid;
+  width:100%;
+  height:100%;
+  box-sizing:border-box;
+  place-items:center;
+  overflow:hidden;
+  border:1px solid rgba(255,239,185,.34);
+  border-radius:50%;
+  background:radial-gradient(circle at 38% 28%,#341016,#10090b 64%,#050505);
+}
+.journey-page .journey-account-visual img{object-fit:cover}
+.journey-page .journey-account-visual img[hidden],
+.journey-page .journey-account-visual__fallback[hidden]{display:none}
+.journey-page .journey-account-visual__fallback{
+  color:#e7c65e;
+  font:800 .6875rem/1 Orbitron,sans-serif;
+  letter-spacing:.04em;
+  text-shadow:0 0 .625rem rgba(211,32,47,.45);
+}
+
+/* Journey owns a brighter, emblem-first character rail. The shared Character
+   and Build Forge cards deliberately remain untouched. */
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card{
+  border-color:rgba(201,168,76,.22)!important;
+  border-radius:.5rem!important;
+  background:#0b0809!important;
+  filter:saturate(1.02) brightness(1)!important;
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card::before{
+  opacity:.96!important;
+  filter:saturate(1.04) brightness(1)!important;
+  background-position:left center!important;
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card::after{
+  inset:0 0 0 42%!important;
+  background:linear-gradient(90deg,rgba(7,5,7,.08),rgba(7,5,7,.5) 42%,rgba(7,5,7,.82))!important;
+  opacity:.72!important;
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-selected{
+  border-color:rgba(232,196,90,.78)!important;
+  box-shadow:0 0 0 1px rgba(211,32,47,.3),0 0 1.375rem rgba(201,168,76,.2),0 .75rem 1.75rem rgba(0,0,0,.36)!important;
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-selected::before{
+  opacity:1!important;
+  filter:saturate(1.12) brightness(1.1)!important;
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-selected::after{
+  inset:0 0 0 42%!important;
+  background:linear-gradient(90deg,rgba(82,3,13,.04),rgba(72,4,12,.34) 48%,rgba(15,7,8,.7))!important;
+  opacity:.64!important;
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__identity{
+  top:.5rem!important;
+  left:38%!important;
+  right:3rem!important;
+  width:max-content;
+  max-width:calc(62% - 3rem);
+  padding:.1875rem .4375rem .1875rem .5rem;
+  overflow:hidden;
+  border-left:2px solid rgba(211,32,47,.88);
+  background:linear-gradient(90deg,rgba(8,5,6,.82),rgba(8,5,6,.18));
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__stats{
+  left:34%!important;
+  right:.3125rem!important;
+  bottom:.25rem!important;
+  gap:.125rem!important;
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__stat{
+  min-height:1.375rem!important;
+  padding:.0625rem!important;
+  background:linear-gradient(180deg,rgba(15,10,12,.56),rgba(5,5,7,.76))!important;
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__stat .guardian-stat-icon{
+  width:.75rem!important;
+  height:.75rem!important;
+  flex-basis:.75rem!important;
+}
+html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__stat b{font-size:.5625rem!important}
 .journey-page .apx-destination-ribbon a{font-size:.75rem}
 .journey-page .apx-eyebrow,
 .journey-page .mission-eyebrow,
@@ -972,7 +1100,27 @@ body.journey-page.apx-destination-page .apx-page-shell{
 
 }
 
+@media (min-width:1900px){
+  .journey-page .apx-destination-header-copy{
+    position:absolute!important;
+    left:var(--journey-command-centre,calc(25% - 5rem))!important;
+    justify-self:auto!important;
+    margin:0!important;
+    text-align:center!important;
+    transform:translateX(-50%);
+  }
+}
+
+@media (max-width:1899px){
+  .journey-page .journey-account-visual{grid-column:4!important}
+}
+
 @media (max-width:720px){
   .journey-page .apx-destination-header-copy strong{font-size:.875rem}
   .journey-page .apx-destination-header-copy small{display:none}
+  .journey-page .journey-account-visual{width:2.25rem;height:2.25rem}
+  html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card::after,
+  html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-selected::after{inset:0!important}
+  html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__identity{left:.75rem!important;max-width:calc(100% - 3.5rem)}
+  html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__stats{left:.25rem!important}
 }

@@ -51,6 +51,13 @@ type BungieMembershipResponse = {
       displayName?: string;
     }>;
     primaryMembershipId?: string;
+    bungieNetUser?: {
+      membershipId?: string;
+      uniqueName?: string;
+      displayName?: string;
+      profilePicturePath?: string;
+      profilePictureWidePath?: string;
+    };
   };
   ErrorCode?: number;
   Message?: string;
@@ -1052,6 +1059,27 @@ function bungieHeaders(session: SessionRecord, env: Env): HeadersInit {
   };
 }
 
+async function bungieAccountRoute(request: Request, env: Env): Promise<Response> {
+  const auth = await authenticatedSession(request, env);
+  if (auth instanceof Response) return auth;
+
+  const membershipData = await fetchMemberships(auth.session.accessToken, env);
+  const account = membershipData.Response?.bungieNetUser;
+  if (!account) {
+    return withCors(request, env, json({ error: "bungie_account_not_found" }, 404));
+  }
+
+  await putSession(env, auth.sessionId, { ...auth.session, lastUsedAt: Date.now() });
+  return withCors(request, env, json({
+    authenticated: true,
+    membershipId: account.membershipId || auth.session.bungieMembershipId,
+    uniqueName: account.uniqueName || null,
+    displayName: account.displayName || account.uniqueName || auth.session.activeDestinyMembership?.displayName || null,
+    profilePicturePath: account.profilePicturePath || null,
+    profilePictureWidePath: account.profilePictureWidePath || null
+  }));
+}
+
 async function activityHistoryRoute(request: Request, env: Env): Promise<Response> {
   const auth = await authenticatedSession(request, env);
   if (auth instanceof Response) return auth;
@@ -1199,6 +1227,7 @@ export default {
       if (request.method === "GET" && url.pathname === "/bungie/start") return startOAuth(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/callback") return oauthCallback(request, env);
       if (request.method === "GET" && url.pathname === "/session") return sessionRoute(request, env);
+      if (request.method === "GET" && url.pathname === "/bungie/account") return bungieAccountRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest") return manifestMetadataRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/component") return manifestComponentRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/definition") return manifestDefinitionRoute(request, env);

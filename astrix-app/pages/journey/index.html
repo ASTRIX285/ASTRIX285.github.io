@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../../astrix-destinations.css">
   <link rel="stylesheet" href="../../shared/astrix-location-atmosphere.css">
   <link rel="stylesheet" href="../mission-reports/mission-reports.css">
-  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260902-guardian-command-cards-1">
+  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260902-journey-header-balance-1">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260831-global-fixed-stack">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <style>
@@ -81,6 +81,11 @@
     <div class="apx-destination-header-copy"><strong>JOURNEY</strong><small>GUARDIAN COMMAND CONSOLE</small></div>
     <div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div>
     <span class="apx-destination-header-state" id="journeyAuthStatus" aria-live="polite">CHECKING CONNECTION</span>
+    <div class="journey-account-visual is-loading" id="journeyAccountVisual" role="img" aria-label="Connected Bungie account" hidden>
+      <span class="journey-account-visual__orbit" aria-hidden="true"></span>
+      <img id="journeyAccountAvatar" alt="" decoding="async" referrerpolicy="no-referrer" hidden>
+      <span class="journey-account-visual__fallback" id="journeyAccountAvatarFallback" aria-hidden="true">AP</span>
+    </div>
   </header>
   <div data-astrix-destination-ribbon data-active-destination="journey"></div>
 
@@ -243,6 +248,6 @@
     </section>
   </main>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"></script>
-  <script type="module" src="./journey.mjs?v=20260902-guardian-command-cards-1"></script>
+  <script type="module" src="./journey.mjs?v=20260902-journey-header-balance-1"></script>
 </body>
 </html>
