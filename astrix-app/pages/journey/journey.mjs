@@ -78,6 +78,7 @@ let profileIdentityRequest=0;
 let historicalStatsRequest=0;
 let currentFormRequest=0;
 let titleTriumphRequest=0;
+let triumphSectionRequest=0;
 let activeRecordView='';
 let selectedTitle=null;
 let selectedTriumphCategory=null;
@@ -291,7 +292,7 @@ function missionReportHref(filters){
   return url.search?url.toString():'';
 }
 
-function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,unit='',gilded=false,complete=false,crafted=false,value=null,onSelect=null,missionReportFilters=null,objectives=[]}){
+function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,unit='',gilded=false,complete=false,crafted=false,claimed=false,value=null,onSelect=null,missionReportFilters=null,objectives=[]}){
   const interactive=typeof onSelect==='function';
   const row=document.createElement(interactive?'button':'article');
   if(interactive){row.type='button';row.addEventListener('click',onSelect);}
@@ -309,7 +310,7 @@ function makeJourneyRecordRow({hash,name,icon,description='',completed=null,tota
   copy.className='journey-record-copy';
   const title=document.createElement('strong');
   title.className='journey-record-title';
-  title.textContent=`${name}${gilded?' · GILDED':crafted?' · CRAFTED':''}`;
+  title.textContent=`${name}${gilded?' · GILDED':crafted?' · CRAFTED':claimed?' · CLAIMED':''}`;
   if(complete||crafted){const check=document.createElement('span');check.className='journey-record-check';check.textContent='✓';title.appendChild(check);}
   copy.appendChild(title);
   if(description){const text=document.createElement('span');text.className='journey-record-description';text.textContent=description;copy.appendChild(text);}
@@ -576,10 +577,53 @@ function showTriumphDetail(category){
   selectedTriumphCategory=category;
   activateRecordView('triumph-detail');
   renderDetailHero(triumphDetailHero,{name:category.name,icon:category.icon,description:category.description,completed:category.completed,total:category.total,unit:'TRIUMPHS'});
-  renderSubmenu(triumphSubcategories,category.subcategories||[],section=>{
-    renderJourneyRecordList(triumphDetailList,section.items||[],'Verified Triumphs for this subcategory are not yet connected.');
-  });
-  if(!(category.subcategories||[]).length)renderJourneyRecordList(triumphDetailList,[],'Verified Triumph subcategories are not yet connected.');
+  const renderSections=()=>{
+    renderSubmenu(triumphSubcategories,category.subcategories||[],section=>{
+      const requestId=++triumphSectionRequest;
+      if(Array.isArray(section.items)){renderJourneyRecordList(triumphDetailList,section.items,'No verified Triumphs were returned for this subcategory.');return;}
+      renderJourneyRecordList(triumphDetailList,[],'Loading verified Triumph records.');
+      void (async()=>{
+        const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',section.recordEntries.map(entry=>entry.recordHash));
+        const objectiveDefinitions=await guardianManifest.getMany('DestinyObjectiveDefinition',Object.values(recordDefinitions).flatMap(definition=>definition?.objectiveHashes||[]));
+        section.items=section.recordEntries.map(entry=>{
+          const definition=recordDefinitions[String(entry.recordHash)];
+          const row=titleRequirementRow(verifiedProfile,category.characterId,entry,definition,objectiveDefinitions);
+          const state=finiteNumber(titleRecordFor(verifiedProfile,category.characterId,entry.recordHash)?.state);
+          const score=finiteNumber(definition?.completionInfo?.ScoreValue);
+          return row?{...row,unit:score===null?'':'TRIUMPH SCORE',value:score,claimed:state!==null&&(state&1)===1}:null;
+        }).filter(item=>item?.name);
+        if(selectedTriumphCategory===category&&requestId===triumphSectionRequest)renderJourneyRecordList(triumphDetailList,section.items,'No verified Triumphs were returned for this subcategory.');
+      })();
+    });
+    if(!(category.subcategories||[]).length)renderJourneyRecordList(triumphDetailList,[],'No verified Triumph subcategories were returned.');
+  };
+  if(Array.isArray(category.subcategories)){renderSections();return;}
+  triumphSubcategories?.replaceChildren();
+  renderJourneyRecordList(triumphDetailList,[],'Loading verified Triumph subcategories.');
+  void (async()=>{
+    const sections=[];
+    const seen=new Set();
+    let pending=(category.nodeEntries||[]).map(entry=>({entry,path:[]}));
+    while(pending.length){
+      const level=pending;
+      pending=[];
+      const definitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',level.map(item=>item.entry.presentationNodeHash));
+      level.sort((left,right)=>Number(left.entry?.nodeDisplayPriority||0)-Number(right.entry?.nodeDisplayPriority||0)).forEach(item=>{
+        const hash=String(item.entry?.presentationNodeHash||'');
+        if(!hash||seen.has(hash))return;
+        seen.add(hash);
+        const definition=definitions[hash];
+        const name=String(definition?.displayProperties?.name||'').trim();
+        if(!definition||!name)return;
+        const path=[...item.path,name];
+        const recordEntries=(definition?.children?.records||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
+        if(recordEntries.length){const node=category.nodes?.[hash];sections.push({hash,name:path.join(' · '),icon:bungiePresentationIcon(definition),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),recordEntries,items:null});}
+        pending.push(...(definition?.children?.presentationNodes||[]).map(entry=>({entry,path})));
+      });
+    }
+    category.subcategories=sections;
+    if(selectedTriumphCategory===category)renderSections();
+  })();
 }
 
 async function bindTitleTriumphPanel(payload,view=recordRootView(activeRecordView)){
@@ -626,11 +670,16 @@ async function bindTitleTriumphPanel(payload,view=recordRootView(activeRecordVie
     if(recordsStatus)recordsStatus.textContent=`${titles.length} TITLES`;
     return;
   }
-  const titleHashes=new Set(titleCandidates.map(item=>String(item.hash)));
-  const categories=resolved.filter(item=>{
-    const children=item.definition?.children||{};
-    return Number(item.definition?.presentationNodeType)===3&&!titleHashes.has(String(item.hash))&&((children.records?.length||0)+(children.presentationNodes?.length||0)>0);
-  }).map(item=>({hash:item.hash,name:String(item.definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(item.definition),description:String(item.definition?.displayProperties?.description||''),completed:finiteNumber(item.node?.progressValue),total:finiteNumber(item.node?.completionValue),unit:'TRIUMPHS',subcategories:[]})).filter(item=>item.name).sort((left,right)=>left.name.localeCompare(right.name));
+  const definitionByHash=Object.fromEntries(resolved.map(item=>[String(item.hash),item.definition]));
+  const triumphRoot=resolved.find(item=>!(item.definition?.parentNodeHashes||[]).length&&(item.definition?.children?.presentationNodes||[]).length>2&&(item.definition?.children?.presentationNodes||[]).some(entry=>{const definition=definitionByHash[String(entry.presentationNodeHash)];return definition?.displayProperties?.name===item.definition?.displayProperties?.name&&(definition?.children?.presentationNodes||[]).length;}));
+  const currentTriumphEntry=(triumphRoot?.definition?.children?.presentationNodes||[]).find(entry=>definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name===triumphRoot?.definition?.displayProperties?.name);
+  const currentTriumphDefinition=definitionByHash[String(currentTriumphEntry?.presentationNodeHash||'')];
+  const categories=(currentTriumphDefinition?.children?.presentationNodes||[]).map(entry=>{
+    const hash=String(entry.presentationNodeHash);
+    const definition=definitionByHash[hash];
+    const node=nodes[hash];
+    return {hash,name:String(definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(definition),description:String(definition?.displayProperties?.description||''),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),unit:'TRIUMPHS',subcategories:null,nodeEntries:definition?.children?.presentationNodes||[],nodes,characterId};
+  }).filter(item=>item.name);
   if(requestId!==titleTriumphRequest)return;
   renderJourneyRecordList(triumphCategoriesList,categories,'No Triumph category presentation nodes were returned for this profile.',showTriumphDetail);
   if(recordsStatus)recordsStatus.textContent=`${categories.length} TRIUMPH CATEGORIES`;
