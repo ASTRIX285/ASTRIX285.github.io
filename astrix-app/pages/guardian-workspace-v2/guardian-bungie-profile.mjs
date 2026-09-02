@@ -153,6 +153,10 @@ async function fetchJsonWithTimeout(url,timeoutMs=PROFILE_REQUEST_TIMEOUT_MS){
 async function manifestRequestUrl(path){
   await manifestReady;
   const url=new URL(path,AUTH_ORIGIN);
+  if(path==="/bungie/profile"){
+    if(location.pathname.includes("/pages/journey/"))url.searchParams.set("scope","journey");
+    else if(location.pathname.includes("/guardian-workspace-v2/"))url.searchParams.set("scope","character");
+  }
   if(guardianManifest.status().mode==="indexeddb")url.searchParams.set("definitions","client-manifest");
   return url;
 }

@@ -58,13 +58,20 @@ jobs:
           const origin='https://sandbox.astrixparadox.com';
           let page;
           for(let attempt=1;attempt<=36;attempt+=1){
-            page=await fetch(pageUrl,{redirect:'follow'}).catch(()=>null);
-            if(page?.ok)break;
+            page=await fetch(pageUrl,{redirect:'manual'}).catch(()=>null);
+            if(page?.ok||[301,302,303,307,308].includes(page?.status))break;
             await new Promise(resolve=>setTimeout(resolve,5000));
           }
-          if(!page?.ok)throw new Error(`sandbox page unavailable: ${page?.status||'network error'}`);
-          const html=await page.text();
-          if(!html.includes('20260902-stat-trackers-no-report-link'))throw new Error('sandbox is not serving the current Journey build');
+          if(!page)throw new Error('sandbox page unavailable: network error');
+          const gated=[301,302,303,307,308].includes(page.status);
+          if(gated){
+            const target=new URL(page.headers.get('location')||'',pageUrl);
+            if(!target.hostname.endsWith('.cloudflareaccess.com')||!target.pathname.includes('/cdn-cgi/access/'))throw new Error(`unexpected sandbox redirect: ${target}`);
+          }else{
+            if(!page.ok)throw new Error(`sandbox page unavailable: ${page.status}`);
+            const html=await page.text();
+            if(!html.includes('20260902-character-scope-journey-landing-1'))throw new Error('sandbox is not serving the current Journey build');
+          }
           const preflight=await fetch('https://auth.astrixparadox.com/bungie/profile',{
             method:'OPTIONS',
             headers:{
@@ -79,6 +86,6 @@ jobs:
           const profile=await fetch('https://auth.astrixparadox.com/bungie/profile',{headers:{Origin:origin}});
           const body=await profile.json();
           if(profile.status!==401||body.error!=='authentication_required')throw new Error(`sandbox profile guard ${profile.status}`);
-          console.log('SANDBOX_LIVE_PAGE=PASS');
+          console.log(gated?'SANDBOX_ACCESS_GATE=PASS':'SANDBOX_LIVE_PAGE=PASS');
           console.log('SANDBOX_AUTH_CORS=PASS');
           NODE

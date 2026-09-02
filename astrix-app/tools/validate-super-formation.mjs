@@ -81,13 +81,18 @@ assert.match(css,/\.super-feature \.super-feature__name\{[\s\S]*?white-space:now
 
 assert.match(css,/flex:0 0 auto!important;/,'Equipped subclass/Super wrapper must not collapse inside the scroll rail');
 
-for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
+for(const [label,html,entryModule] of [
+  ['Main',mainHtml,/guardian-workspace-v2\.mjs\?v=20260902-page-profile-scopes-2/],
+  ['Build',buildHtml,/paradox-build-space\.mjs\?v=20260902-page-profile-scopes-2/]
+]){
   assert.match(html,/guardian-super-formation\.css/,`${label} does not load the shared stylesheet`);
-  assert.match(html,/20260829-subclass-identity-1/,`${label} does not load the strict subclass identity mapper`);
+  assert.match(html,entryModule,`${label} does not load the current profile-scoped entry module`);
   assert.match(html,/equipped-subclass-stack/,`${label} does not use the equipped-only subclass stack`);
   assert.equal((html.match(/data-super-slot=/g)||[]).length,6,`${label} must expose six fixed Super slots`);
   assert.doesNotMatch(html,/class="subclass-rail"|id="subclassSummary"|data-subclass-option=/,`${label} still contains the removed subclass selector panel`);
 }
+assert.match(mainModule,/guardian-super-formation\.mjs\?v=20260829-subclass-identity-1/,'Main does not load the strict subclass identity mapper');
+assert.match(buildModule,/guardian-super-formation\.mjs\?v=20260829-subclass-identity-1/,'Build does not load the strict subclass identity mapper');
 
 assert.match(moduleSource,/function renderEquippedSubclass/,'Shared equipped subclass renderer is missing');
 assert.equal(LOADOUT_DEFINITIONS.icons?.[814121290]?.iconImagePath,'/common/destiny2_content/icons/8f8283c4f518dbd2239ba1f60b91d14f.png','Prismatic header icon hash 814121290 drifted');

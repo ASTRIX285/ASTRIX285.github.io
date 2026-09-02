@@ -4,7 +4,7 @@ import {
   loadSelectedLoadout,
   characterRoster,
   selectLiveCharacter
-} from "./guardian-bungie-profile.mjs?v=20260829-subclass-identity-1-build-handoff-storage-order-1";
+} from "./guardian-bungie-profile.mjs?v=20260902-page-profile-scopes-2";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
 import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260829-subclass-identity-1";
 

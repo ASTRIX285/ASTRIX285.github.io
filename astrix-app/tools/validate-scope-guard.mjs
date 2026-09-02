@@ -11,14 +11,21 @@ const allowed=new Set([
   'astrix-sandbox/pages-worker.js',
   'astrix-sandbox/prepare-deployment.mjs',
   'astrix-sandbox/wrangler.toml',
+  'astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-bungie-auth.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-workspace-v2.mjs',
   'astrix-app/pages/guardian-workspace-v2/index.html',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs',
   'astrix-app/pages/journey/index.html',
   'astrix-app/pages/journey/journey-2560-visual.css',
   'astrix-app/pages/journey/journey-location-maps.mjs',
   'astrix-app/pages/journey/journey.mjs',
   'astrix-app/tools/validate-journey-visual-pass.mjs',
+  'astrix-app/tools/validate-main-page-today.mjs',
   'astrix-app/tools/validate-sandbox-deployment.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
+  'astrix-app/tools/validate-super-formation.mjs',
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);

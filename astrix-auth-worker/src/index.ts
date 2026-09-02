@@ -101,7 +101,7 @@ type DestinyProfilePayload = {
   [key: string]: unknown;
 };
 
-const PROFILE_COMPONENTS = [
+const CHARACTER_PROFILE_COMPONENTS = [
   100, // Profiles
   102, // ProfileInventories
   103, // ProfileCurrencies
@@ -118,7 +118,25 @@ const PROFILE_COMPONENTS = [
   304, // ItemStats
   305, // ItemSockets
   309, // ItemPlugObjectives
-  310, // ItemReusablePlugs
+  310  // ItemReusablePlugs
+] as const;
+
+const JOURNEY_PROFILE_COMPONENTS = [
+  100, // Profiles
+  102, // ProfileInventories
+  104, // ProfileProgression
+  200, // Characters
+  201, // CharacterInventories
+  202, // CharacterProgressions
+  205, // CharacterEquipment
+  700, // PresentationNodes
+  900, // Records
+  1100, // Metrics
+  1300  // Craftables
+] as const;
+
+const PROFILE_COMPONENTS = [
+  ...CHARACTER_PROFILE_COMPONENTS,
   700, // PresentationNodes
   800, // Collectibles
   900, // Records
@@ -572,6 +590,13 @@ async function fetchGearAssetDefinitions(
 }
 
 async function profileRoute(request: Request, env: Env): Promise<Response> {
+  const requestUrl = new URL(request.url);
+  const profileScope = requestUrl.searchParams.get("scope");
+  const requestedComponents = profileScope === "character"
+    ? CHARACTER_PROFILE_COMPONENTS
+    : profileScope === "journey"
+      ? JOURNEY_PROFILE_COMPONENTS
+      : PROFILE_COMPONENTS;
   const sessionId = cookieValue(request, SESSION_COOKIE);
   if (!sessionId) return withCors(request, env, json({ authenticated: false, error: "authentication_required" }, 401));
 
@@ -611,7 +636,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   const profileUrl = new URL(
     `${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Profile/${encodeURIComponent(membership.membershipId)}/`
   );
-  profileUrl.searchParams.set("components", PROFILE_COMPONENTS.join(","));
+  profileUrl.searchParams.set("components", requestedComponents.join(","));
 
   const response = await fetch(profileUrl, {
     headers: {
@@ -635,12 +660,12 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  if (new URL(request.url).searchParams.get("definitions") === "client-manifest") {
+  if (requestUrl.searchParams.get("definitions") === "client-manifest") {
     await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
     return withCors(request, env, json({
       authenticated: true,
       membership,
-      components: PROFILE_COMPONENTS,
+      components: requestedComponents,
       profile: payload.Response,
       definitions: {},
       damageDefinitions: {},
@@ -696,7 +721,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   return withCors(request, env, json({
     authenticated: true,
     membership,
-    components: PROFILE_COMPONENTS,
+    components: requestedComponents,
     profile: payload.Response,
     definitions,
     damageDefinitions,
@@ -749,7 +774,7 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
   const membership = session.activeDestinyMembership;
   if (!membership) return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
   const profileUrl = new URL(`${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Profile/${encodeURIComponent(membership.membershipId)}/`);
-  profileUrl.searchParams.set("components", PROFILE_COMPONENTS.join(","));
+  profileUrl.searchParams.set("components", CHARACTER_PROFILE_COMPONENTS.join(","));
   const response = await fetch(profileUrl, { headers: {
     Authorization: `Bearer ${session.accessToken}`,
     "X-API-Key": env.BUNGIE_API_KEY,

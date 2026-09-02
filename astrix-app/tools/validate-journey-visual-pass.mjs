@@ -35,7 +35,7 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260831-fixed-ribbons-destination-subtitle"'),'Journey must load the fixed-ribbon destination-subtitle correction');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-stat-trackers-no-report-link"'),'Journey must load the cache-busted live-bindings module');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-character-scope-journey-landing-1"'),'Journey must load the cache-busted Character-scope and landing module');
 assert.match(journey,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash/,'Journey patterns must use the verified character Craftables component');
 assert.match(journey,/children\?\.\[childKey\][\s\S]*?verifiedCraftablePatternTypes/,'Journey patterns must follow the official presentation tree to its Craftables leaves');
 assert.match(journey,/profile\?\.metrics\?\.data[\s\S]*?DestinyMetricDefinition[\s\S]*?trackingObjectiveHash/,'Journey Stat Trackers must join verified Metrics to their manifest and objective definitions');
@@ -100,7 +100,7 @@ assert.ok(journey.includes('initLocationSelector({'),'Journey must retain the lo
 assert.ok(journey.includes("mount:document.getElementById('journeyLocationSelector')"),'Journey selector mount must remain unchanged');
 assert.ok(journey.includes("detail:document.getElementById('journeyLocationDetail')"),'Journey detail mount must remain unchanged');
 assert.ok(journey.includes('const session=await getBungieSession();'),'Journey authentication must remain unchanged');
-assert.ok(journey.includes("import {initJourneyLocationMaps} from './journey-location-maps.mjs?v=20260830-all-destination-progress'"),'Journey must load its versioned page-owned map registry');
+assert.ok(journey.includes("from './journey-location-maps.mjs?v=20260901-destination-data-panels'"),'Journey must load its current versioned page-owned destination data registry');
 assert.ok(journey.includes('initJourneyLocationMaps('),'Journey must initialise its page-owned interactive map layer');
 assert.ok(mapModule.includes("src:'./assets/maps/astrix-paradox-map-placeholder-4k.webp'"),'Journey must mount the shared 4K ASTRIX PARADOX placeholder');
 assert.ok(mapModule.includes("detailSrc:'./assets/maps/astrix-paradox-map-placeholder-6k.webp'"),'Journey must provide the shared 6K ASTRIX PARADOX placeholder for zoom');
@@ -127,7 +127,7 @@ for(const marker of [
   assert.ok(mapModule.includes(`key:'${marker[0]}'`),`Journey map must retain the ${marker[1]} marker key`);
   assert.ok(mapModule.includes(`name:${JSON.stringify(marker[1])}`)||mapModule.includes(`name:'${marker[1]}'`),`Journey map must retain the ${marker[1]} label`);
 }
-assert.equal((mapModule.match(/Object\.freeze\(\{key:/g)??[]).length,9,'Cosmodrome pilot must contain exactly nine permanent static markers');
+assert.equal((mapModule.match(/Object\.freeze\(\{key:[^}]*type:/g)??[]).length,9,'Cosmodrome pilot must contain exactly nine permanent static markers');
 assert.equal((mapModule.match(/type:'strike'/g)??[]).length,3,'Cosmodrome pilot must contain the three verified strikes');
 assert.equal((mapModule.match(/type:'lost-sector'/g)??[]).length,2,'Cosmodrome pilot must contain the two verified Lost Sectors');
 assert.equal((mapModule.match(/type:'landing'/g)??[]).length,2,'Cosmodrome pilot must contain the two verified landing zones');
@@ -137,14 +137,13 @@ assert.doesNotMatch(mapModule,/type:'raid'|fetch\(|setInterval\(|getBungieSessio
 assert.ok(mapModule.includes("stage.style.transform=`translate3d(${state.x}px,${state.y}px,0) scale(${state.scale})`"),'Map image and static markers must pan and zoom as one stage');
 assert.ok(mapModule.includes("stage.style.setProperty('--journey-marker-scale',String(1/state.scale))"),'Static marker labels must retain a readable screen size while zooming');
 assert.ok(mapModule.includes("const label=globalThis.AstrixDestinations?.labelOf(key)||key;"),'Journey map labels must come from the selected destination registry');
-assert.ok(mapModule.includes("viewport.append(stage,createRegionChestOverlay(key,label,spec.lostSectorTotal))"),'Regional chest progress must remain outside the moving map stage and receive the selected destination label');
+assert.ok(mapModule.includes("viewport.append(stage,createRegionChestOverlay(key,label))"),'Regional chest progress must remain outside the moving map stage and receive the selected destination label');
 assert.ok(mapModule.includes("const REGION_CHEST_EVENT='astrix:journey-region-chests'"),'Regional chest progress must accept a verified data event');
-assert.ok(mapModule.includes("Waiting for verified Bungie chest records."),'Regional chest progress must keep an honest pending state before live records arrive');
-assert.ok(mapModule.includes('class="journey-region-chests-zones journey-region-progress-indicators"'),'Permanent progress indicators must remain inside the existing overlay');
-assert.ok(mapModule.includes('PERMANENT ${destinationHeading} TRIUMPHS'),'Triumph indication must use the selected destination name');
-assert.ok(mapModule.includes('ACTIVE ${destinationHeading} QUEST OBJECTIVES'),'Quest indication must use the selected destination name');
-assert.ok(mapModule.includes('aria-label="Additional permanent ${destinationName} progress indicators"'),'Progress accessibility text must use the selected destination name');
-assert.ok(mapModule.includes('<span><b>LOST SECTORS</b><i>${lostSectorStatus}</i></span>'),'Lost Sector indication must remain pending until a verified total exists');
+assert.equal((mapModule.match(/<strong data-region-chest-(?:discovered|missing|total)>--<\/strong>/g)??[]).length,3,'Regional chest progress must keep three honest pending placeholders before live records arrive');
+assert.equal((mapModule.match(/Object\.freeze\(\{key:'(?:triumphs|records|quests|endgame)',label:/g)??[]).length,4,'Every destination must expose the four generic data buttons');
+assert.ok(mapModule.includes("back.textContent='Back to Map'"),'Destination data must provide Back to Map navigation');
+assert.ok(mapModule.includes("heading.textContent=`${label.toLocaleUpperCase('en-GB')} ${section.label}`"),'Destination data headings must retain the selected destination context');
+assert.ok(mapModule.includes('mapFigure.hidden=true')&&mapModule.includes('mapFigure.hidden=false'),'Destination data selection must swap the panel without resetting the map state');
 assert.ok(mapModule.includes('lostSectorTotal:2'),'Cosmodrome must retain its two verified Lost Sector locations');
 assert.equal((mapModule.match(/lostSectorTotal:/g)??[]).length,1,'Pending destinations must not invent Lost Sector totals');
 assert.doesNotMatch(mapModule,/PERMANENT COSMODROME TRIUMPHS|ACTIVE COSMODROME QUEST OBJECTIVES|Additional permanent Cosmodrome progress indicators/,'Shared progress markup must not hard-code Cosmodrome');

@@ -1,4 +1,4 @@
-import {AUTH_ORIGIN,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
+import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-journey-landing-1';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 import {readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
@@ -8,6 +8,7 @@ const resolving=document.getElementById('journeyResolving');
 const signedOut=document.getElementById('journeySignedOut');
 const dashboard=document.getElementById('journeyDashboard');
 const status=document.getElementById('journeyAuthStatus');
+const connectButton=document.getElementById('journeyConnectButton');
 const favouriteCharacter=document.getElementById('journeyFavouriteCharacter');
 const vaultCard=document.getElementById('journeyVault');
 const milestonesCard=document.getElementById('journeyMilestones');
@@ -1663,7 +1664,7 @@ async function readVerifiedProfile(session){
     document.addEventListener('astrix:bungie-profile-loaded',onLoaded);
     document.addEventListener('astrix:profile-error',onError);
     try{
-      await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260829-subclass-identity-1-build-handoff-storage-order-1');
+      await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260902-page-profile-scopes-2');
       const loaded=await readCachedBungieProfile(session);
       if(loaded?.profile?.characters?.data)finish(loaded);
     }catch(error){
@@ -1674,7 +1675,11 @@ async function readVerifiedProfile(session){
 }
 
 function showSignedOut(){
-  location.replace('https://astrixparadox.com/astrix-app/pages/guardian-workspace-v2/');
+  resolving.hidden=true;
+  dashboard.hidden=true;
+  signedOut.hidden=false;
+  status.textContent='BUNGIE CONNECTION REQUIRED';
+  if(connectButton)connectButton.href=authStartUrl();
 }
 
 let locationSelectorReady=false;

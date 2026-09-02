@@ -2,17 +2,12 @@ import {cacheBungieSession,readCachedBungieSession} from "./guardian-session-cac
 
 const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
 const CANONICAL_APP_ORIGIN = "https://astrixparadox.com";
+const JOURNEY_PATH = "/astrix-app/pages/journey/";
 
 function authReturnUrl(){
   const current=new URL(location.href);
-  current.searchParams.delete("bungie");
-  // OAuth only accepts the production first-party origin. Netlify deploy-preview
-  // origins are intentionally not allow-listed, so preserve the Forge path while
-  // moving the callback destination onto the canonical application origin.
-  if(current.hostname.endsWith(".netlify.app")){
-    return new URL(`${current.pathname}${current.search}${current.hash}`,CANONICAL_APP_ORIGIN);
-  }
-  return current;
+  const origin=current.hostname.endsWith(".netlify.app")?CANONICAL_APP_ORIGIN:current.origin;
+  return new URL(JOURNEY_PATH,origin);
 }
 
 function authStartUrl(){
@@ -130,4 +125,4 @@ const button=makeControl();
 if(button) refreshAuthState(button);
 if(new URLSearchParams(location.search).has("rangeTest")) import("./guardian-shooting-range-inline.mjs");
 
-export {AUTH_ORIGIN,getBungieSession};
+export {AUTH_ORIGIN,authStartUrl,getBungieSession};

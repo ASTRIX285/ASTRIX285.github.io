@@ -9,6 +9,11 @@ const prepare=read('astrix-sandbox/prepare-deployment.mjs');
 const pagesWorker=read('astrix-sandbox/pages-worker.js');
 const sandboxConfig=read('astrix-sandbox/wrangler.toml');
 const authConfig=read('astrix-auth-worker/wrangler.toml');
+const authWorker=read('astrix-auth-worker/src/index.ts');
+const guardianAuth=read('astrix-app/pages/guardian-workspace-v2/guardian-bungie-auth.mjs');
+const guardianProfile=read('astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs');
+const journeyHtml=read('astrix-app/pages/journey/index.html');
+const journeyModule=read('astrix-app/pages/journey/journey.mjs');
 
 assert.match(workflow,/push:\s*\n\s*branches:\s*\n\s*- sandbox/,'Sandbox deployment must trigger only from the sandbox branch');
 assert.doesNotMatch(workflow,/branches:\s*\n\s*- main/,'Sandbox deployment must not trigger from main');
@@ -25,6 +30,14 @@ assert.match(sandboxConfig,/directory = "\.\.\/\.sandbox-dist"/,'Sandbox Worker 
 assert.match(sandboxConfig,/binding = "ASSETS"/,'Sandbox Worker must expose the static asset binding');
 assert.match(sandboxConfig,/pattern = "sandbox\.astrixparadox\.com"[\s\S]*?custom_domain = true/,'Cloudflare custom domain must remain stable');
 assert.match(authConfig,/APP_ORIGINS = "[^"]*https:\/\/sandbox\.astrixparadox\.com/,'The auth Worker must explicitly allow only the sandbox origin');
+assert.match(authConfig,/DEFAULT_RETURN_URL = "https:\/\/astrixparadox\.com\/astrix-app\/pages\/journey\/"/,'The default Bungie callback must land on Journey');
+assert.match(authWorker,/const CHARACTER_PROFILE_COMPONENTS = \[[\s\S]*?310\s+\/\/ ItemReusablePlugs[\s\S]*?const JOURNEY_PROFILE_COMPONENTS = \[[\s\S]*?1300\s+\/\/ Craftables[\s\S]*?const PROFILE_COMPONENTS = \[[\s\S]*?\.\.\.CHARACTER_PROFILE_COMPONENTS/,'Character and Journey profile components must remain independently scoped');
+assert.match(authWorker,/profileScope === "character"[\s\S]*?CHARACTER_PROFILE_COMPONENTS[\s\S]*?profileScope === "journey"[\s\S]*?JOURNEY_PROFILE_COMPONENTS[\s\S]*?: PROFILE_COMPONENTS/,'The auth Worker must select each lightweight page profile scope explicitly');
+assert.match(guardianProfile,/location\.pathname\.includes\("\/pages\/journey\/"\)[\s\S]*?set\("scope","journey"\)[\s\S]*?location\.pathname\.includes\("\/guardian-workspace-v2\/"\)[\s\S]*?set\("scope","character"\)/,'Journey, Character and Build Forge must request their dedicated Bungie profile scopes');
+assert.match(guardianAuth,/const JOURNEY_PATH = "\/astrix-app\/pages\/journey\/"[\s\S]*?return new URL\(JOURNEY_PATH,origin\)/,'Bungie connections must return to Journey on the active approved origin');
+assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2Fastrixparadox\.com%2Fastrix-app%2Fpages%2Fjourney%2F/,'Journey must provide a no-script Bungie connection fallback that returns to Journey');
+assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
+assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 
 console.log('SANDBOX_BRANCH_DEPLOYMENT=PASS');
 console.log('SANDBOX_OVERSIZED_DATA_STREAM=PASS');
