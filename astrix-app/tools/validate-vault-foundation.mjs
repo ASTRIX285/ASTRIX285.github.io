@@ -87,6 +87,8 @@ assert.match(vaultHtml,/id="vaultItemGrid"/);
 assert.match(vaultHtml,/id="vaultEvaluate"/);
 assert.match(vaultRuntime,/scope','character/);
 assert.match(vaultRuntime,/guardianManifest\.hydratePayload/);
+assert.match(vaultRuntime,/AstrixLoader\?\.done\?\.\(\)/,'Vault must release the loader after its bounded visible-image settle.');
+assert.doesNotMatch(vaultRuntime,/AstrixLoader\?\.ready\?\.\(document\.querySelector\('\.apx-page-shell'\)\)/,'Vault must not wait on off-screen lazy armour images.');
 assert.match(buildRuntime,/applyVaultArmourSelection/);
 assert.match(characterHtml,/guardian-vault-access\.mjs/);
 assert.match(accessRuntime,/SELECT REPLACEMENT FROM VAULT/);

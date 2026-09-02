@@ -246,15 +246,17 @@ async function init(){
     if(ARMOUR_BUCKETS.some(slot=>slot.key===requestedSlot))byId('vaultSlotFilter').value=requestedSlot;
     updateTotals();
     renderAll();
+    loaderProgress(92,'Rendering verified armour catalogue…');
     const unresolved=catalogue.totals.unresolvedDefinitions;
     setStatus(`${catalogue.totals.ownedArmour} verified armour item${catalogue.totals.ownedArmour===1?'':'s'} loaded${unresolved?` · ${unresolved} item definition${unresolved===1?'':'s'} unresolved`:''}${postmasterStatus()}.`,'good');
     await settleVisibleImages();
-    globalThis.AstrixLoader?.ready?.(document.querySelector('.apx-page-shell'));
+    globalThis.AstrixLoader?.done?.();
   }catch(error){
     console.error('[ASTRIX Vault]',error);
     byId('vaultConnectionState').textContent='INVENTORY UNAVAILABLE';
     setStatus(error?.message||'Verified Bungie inventory is unavailable.','error');
     globalThis.AstrixLoader?.status?.(error?.message||'Verified Bungie inventory is unavailable.');
+    globalThis.AstrixLoader?.done?.();
   }
 }
 
