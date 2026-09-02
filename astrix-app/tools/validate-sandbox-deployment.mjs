@@ -40,8 +40,8 @@ assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2F
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
-assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-journey-ribbon-title-2/,'Journey must load the stacked ribbon-title styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-loader-failsafe-1/,'Journey must load the bounded-loader module');
+assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-account-rank-summary-1/,'Journey must load the account-and-rank summary styling');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-account-rank-summary-1/,'Journey must load the account-and-rank summary module');
 assert.match(journeyModule,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journeyModule,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -51,6 +51,12 @@ assert.match(journeyCss,/\.journey-page \.apx-destination-header-copy small\{[\s
 assert.doesNotMatch(journeyCss,/grid-template-columns:max-content minmax\(190px,1fr\) 910px/,'Journey must not move the globally centred Guardian-card rail');
 assert.match(journeyCss,/\.journey-page \.apx-destination-header-state\{[\s\S]*?position:absolute!important;[\s\S]*?clip-path:inset\(50%\)/,'Journey connection state must remain accessible without displaying redundant authenticated copy');
 assert.match(journeyModule,/selected\.emblemBackgroundPath\|\|selected\.emblemPath/,'Journey must prefer Bungie emblem artwork and fall back only to the verified emblem icon');
+assert.match(journeyHtml,/Account playtime[\s\S]*?id="journeyTotalPlaytime"/,'Journey must label verified playtime as account-wide');
+assert.doesNotMatch(journeyHtml,/Account age|Journey level|XP source unavailable/,'Journey must not display unverified account age, generic Journey level or XP placeholders');
+assert.match(journeyModule,/accountMinutes=characters\.map[\s\S]*?reduce\(\(sum,minutes\)=>sum\+minutes,0\)/,'Journey account playtime must sum every returned Bungie character total');
+assert.match(journeyModule,/lifetimeHighestGuardianRank[\s\S]*?currentGuardianRank,profile\.renewedGuardianRank/,'Journey must use the highest completed Guardian Rank instead of an in-progress target');
+assert.match(journeyModule,/DestinyGuardianRankConstantsDefinition[\s\S]*?DestinyGuardianRankDefinition[\s\S]*?bungiePresentationIcon/,'Journey must source Guardian Rank names and badge icons from the Bungie manifest');
+assert.match(journeyHtml,/id="journeyGuardianRankSummary"[\s\S]*?VIEW GUARDIAN RANK DETAILS/,'Journey must retain a linked Guardian Rank summary without replacing the full details panel');
 assert.match(journeyCss,/\.journey-page \.mission-crest\{[\s\S]*?position:absolute;[\s\S]*?inset:0;[\s\S]*?transform:none/,'Journey must remove the inherited decorative diamond and let the emblem own the whole card');
 assert.match(journeyCss,/\.journey-page \.mission-crest img\{[\s\S]*?width:100%;[\s\S]*?height:100%;[\s\S]*?object-fit:cover;[\s\S]*?transform:none/,'Verified Bungie emblem artwork must fill the whole identity card');
 assert.match(journeyCss,/\.journey-page \.mission-identity-copy\{[\s\S]*?width:66\.667%;[\s\S]*?margin-left:33\.333%/,'Guardian class and subclass must overlay the emblem beginning one third into the card');

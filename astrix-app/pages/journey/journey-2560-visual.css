@@ -199,7 +199,20 @@ body.journey-page.apx-destination-page .apx-page-shell{
 .journey-page .mission-identity-card>.mission-verified-badge{z-index:1}
 .journey-page .mission-guardian-stats dt{font-size:.875rem}
 .journey-page .mission-guardian-stats dd{font-size:.875rem}
-.journey-page .mission-xp>span{font-size:.75rem}
+.journey-page .journey-account-summary{display:grid;gap:.875rem}
+.journey-page .journey-account-summary .journey-guardian-rank-summary{
+  grid-template-columns:4.75rem minmax(0,1fr);
+  gap:.875rem;
+  margin:0;
+  padding:.75rem;
+  border-color:rgba(201,168,76,.28);
+  background:linear-gradient(100deg,rgba(139,0,0,.09),rgba(255,255,255,.018));
+}
+.journey-page .journey-account-summary .journey-guardian-rank-summary.has-no-icon{grid-template-columns:1fr}
+.journey-page .journey-account-summary .journey-record-detail-icon{width:4.5rem;height:4.5rem}
+.journey-page .journey-account-summary .journey-record-detail-copy h4{font-size:.875rem}
+.journey-page .journey-account-summary .journey-record-detail-copy p{font-size:.75rem;letter-spacing:.04em}
+.journey-page .journey-account-summary .journey-record-link{font-size:.625rem}
 .journey-page .mission-section-nav a{font-size:.75rem}
 .journey-page .mission-time-filter legend{font-size:.75rem}
 .journey-page .mission-time-filter label{font-size:.875rem}

@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../../astrix-destinations.css">
   <link rel="stylesheet" href="../../shared/astrix-location-atmosphere.css">
   <link rel="stylesheet" href="../mission-reports/mission-reports.css">
-  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260902-journey-ribbon-title-2">
+  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260902-account-rank-summary-1">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260831-global-fixed-stack">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <style>
@@ -109,16 +109,11 @@
             <span class="mission-verified-badge" id="journeyVerifiedGuardian" hidden>✓ VERIFIED GUARDIAN</span>
           </section>
 
-          <section class="mission-guardian-stats" aria-label="Guardian Journey statistics">
+          <section class="mission-guardian-stats journey-account-summary" aria-label="Account Journey statistics">
             <dl>
-              <div><dt>Total playtime</dt><dd id="journeyTotalPlaytime">—</dd></div>
-              <div><dt>Account age</dt><dd id="journeyAccountAge">—</dd></div>
-              <div><dt>Journey level</dt><dd id="journeyLevel">—</dd></div>
+              <div><dt>Account playtime</dt><dd id="journeyTotalPlaytime">—</dd></div>
             </dl>
-            <div class="mission-xp" aria-label="Journey XP unavailable">
-              <div class="mission-xp-track"><span id="journeyXpFill"></span></div>
-              <span id="journeyXpLabel">XP source unavailable</span>
-            </div>
+            <article class="journey-record-detail-hero journey-guardian-rank-summary has-no-icon" id="journeyGuardianRankSummary" aria-live="polite"><div class="journey-record-detail-copy"><h4>Guardian Rank unavailable</h4><p>Highest completed Guardian Rank awaiting verified Bungie data.</p><a class="journey-record-link" id="journeyGuardianRankDetailsLink" href="#journeyGuardianRankHeading">VIEW GUARDIAN RANK DETAILS</a></div></article>
           </section>
 
           <nav class="mission-section-nav journey-section-nav" aria-label="Journey sections">
@@ -264,6 +259,6 @@
     </section>
   </main>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"></script>
-  <script type="module" src="./journey.mjs?v=20260902-loader-failsafe-1"></script>
+  <script type="module" src="./journey.mjs?v=20260902-account-rank-summary-1"></script>
 </body>
 </html>

@@ -34,8 +34,8 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-journey-ribbon-title-2"'),'Journey must load the stacked ribbon-title styling');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-loader-failsafe-1"'),'Journey must load the cache-busted bounded-loader module');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-account-rank-summary-1"'),'Journey must load the account-and-rank summary styling');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-account-rank-summary-1"'),'Journey must load the cache-busted account-and-rank summary module');
 assert.match(journey,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s\S]*?const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6\*1000;[\s\S]*?const JOURNEY_LOADER_READY_WAIT_MS=6\*1000;/,'Journey bootstrap must bound profile, UI and final-image waits');
 assert.match(journey,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journey,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
@@ -52,6 +52,12 @@ assert.match(journey,/profile\?\.metrics\?\.data[\s\S]*?DestinyMetricDefinition[
 assert.match(journey,/name:`\$\{group\.name\} · ALL`/,'Every official Stat Tracker activity group must expose an ALL summary');
 assert.doesNotMatch(journey,/gilded:row\.gilded\|\|row\.complete/,'Journey must not infer gilding from completion');
 assert.doesNotMatch(journey,/VIEW MISSION REPORTS|missionReportFilters|missionReportHref/,'Journey records must not link to the separately designed Mission Reports page');
+assert.match(html,/Account playtime[\s\S]*?id="journeyTotalPlaytime"/,'Journey must identify total playtime as an account-wide value');
+assert.doesNotMatch(html,/Account age|Journey level|XP source unavailable/,'Journey must remove unverified account age, generic Journey level and XP placeholders');
+assert.match(journey,/accountMinutes=characters\.map[\s\S]*?reduce\(\(sum,minutes\)=>sum\+minutes,0\)/,'Journey account playtime must sum all verified Bungie character totals');
+assert.match(journey,/lifetimeHighestGuardianRank[\s\S]*?currentGuardianRank,profile\.renewedGuardianRank/,'Journey must prefer the lifetime-highest completed Guardian Rank with verified fallbacks');
+assert.match(journey,/DestinyGuardianRankConstantsDefinition[\s\S]*?DestinyGuardianRankDefinition[\s\S]*?bungiePresentationIcon/,'Journey must resolve official Guardian Rank names and badge icons from the Bungie manifest');
+assert.match(html,/id="journeyGuardianRankSummary"[\s\S]*?VIEW GUARDIAN RANK DETAILS/,'Journey must copy the Guardian Rank detail-card style into its account summary and link to the full details');
 assert.match(journey,/if\(!lateProfile\?\.profile\?\.characters\?\.data\)\{void refreshJourneyProfile\(\);return;\}/,'Journey must retry its lightweight profile feed when the deferred initial profile returns empty');
 assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"'),'Journey must load the shared authenticated hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
