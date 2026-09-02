@@ -1114,43 +1114,36 @@ async function verifiedCraftablePatternTypes(payload,characterId){
     ...(payload?.profile?.profilePresentationNodes?.data?.nodes||{}),
     ...(payload?.profile?.characterPresentationNodes?.data?.[componentCharacterId]?.nodes||{})
   };
-  const tree=await presentationLeafCategories(rootHash,nodes,'craftables');
+  const tree=await presentationLeafCategories(rootHash,nodes,'records');
   if(!tree)return null;
   const entries=tree.sections.flatMap(section=>section.entries);
-  const definitions=await guardianManifest.getMany('DestinyInventoryItemDefinition',entries.map(entry=>entry.craftableItemHash));
-  const typeByAmmo=new Map([[1,'primary'],[2,'special'],[3,'heavy']]);
+  const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',entries.map(entry=>entry.recordHash));
+  const objectiveDefinitions=await guardianManifest.getMany('DestinyObjectiveDefinition',Object.values(recordDefinitions).flatMap(definition=>definition?.objectiveHashes||[]));
   const types=new Map(PATTERN_CATALYST_TYPE_DEFINITIONS.filter(type=>type.key!=='catalysts').map(type=>[type.key,{key:type.key,icon:'',categories:new Map(),completed:0,total:0}]));
   tree.sections.forEach(section=>{
     const categoryName=String(section.path.at(-1)||section.name||'').trim();
-    if(!categoryName)return;
+    const typeName=String(section.path[0]||'').trim();
+    const type=types.get(recordCategoryKey(typeName).replace(/-weapon-patterns$/,''));
+    if(!categoryName||!type)return;
     section.entries.forEach(entry=>{
-      const hash=finiteNumber(entry?.craftableItemHash);
+      const hash=finiteNumber(entry?.recordHash);
       if(hash===null)return;
-      const state=craftables[String(hash)];
-      const definition=definitions[String(hash)];
-      if(!state||state.visible!==true||!definition||definition.redacted===true)return;
-      const type=types.get(typeByAmmo.get(finiteNumber(definition?.equippingBlock?.ammoType)));
-      const name=String(definition?.displayProperties?.name||'').trim();
-      if(!type||!name)return;
-      const failedRequirements=Array.isArray(state.failedRequirementIndexes)?state.failedRequirementIndexes:null;
-      const unlocked=failedRequirements===null?null:failedRequirements.length===0;
+      const definition=recordDefinitions[String(hash)];
+      const row=titleRequirementRow(payload,componentCharacterId,entry,definition,objectiveDefinitions);
+      if(!row?.name)return;
       const categoryKey=recordCategoryKey(categoryName);
       if(!type.categories.has(categoryKey))type.categories.set(categoryKey,{key:categoryKey,name:categoryName,icon:section.icon,items:[]});
       type.categories.get(categoryKey).items.push({
-        hash,
-        name,
-        icon:bungiePresentationIcon(definition),
-        description:String(definition?.itemTypeDisplayName||definition?.displayProperties?.description||'').trim(),
-        unit:'PATTERN STATUS',
-        value:unlocked===true?'UNLOCKED':unlocked===false?'LOCKED':'VISIBLE',
-        complete:unlocked===true,
-        patternStateVerified:unlocked!==null
+        ...row,
+        unit:'PATTERN PROGRESS',
+        value:row.complete?'UNLOCKED':'INCOMPLETE'
       });
       if(!type.icon)type.icon=section.icon;
-      if(unlocked!==null){type.total+=1;if(unlocked)type.completed+=1;}
+      type.total+=1;
+      if(row.complete)type.completed+=1;
     });
   });
-  return [...types.values()].map(type=>({...type,total:type.total||null,completed:type.total?type.completed:null,categories:[...type.categories.values()].map(category=>({...category,items:category.items.map(({patternStateVerified,...item})=>item)}))}));
+  return [...types.values()].map(type=>({...type,total:type.total||null,completed:type.total?type.completed:null,categories:[...type.categories.values()]}));
 }
 
 function mergeVerifiedPatternTypes(section,verifiedTypes){

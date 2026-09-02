@@ -41,7 +41,7 @@ assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidde
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
 assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-emblem-identity-card-1/,'Journey must load the emblem-led identity card styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-record-root-1/,'Journey must load the verified Records-root module');
+assert.match(journeyHtml,/journey\.mjs\?v=20260902-pattern-records-1/,'Journey must load the verified weapon-pattern Records module');
 assert.match(journeyModule,/selected\.emblemBackgroundPath\|\|selected\.emblemPath/,'Journey must prefer Bungie emblem artwork and fall back only to the verified emblem icon');
 assert.match(journeyCss,/\.journey-page \.mission-crest\{[\s\S]*?position:absolute;[\s\S]*?inset:0;[\s\S]*?transform:none/,'Journey must remove the inherited decorative diamond and let the emblem own the whole card');
 assert.match(journeyCss,/\.journey-page \.mission-crest img\{[\s\S]*?width:100%;[\s\S]*?height:100%;[\s\S]*?object-fit:cover;[\s\S]*?transform:none/,'Verified Bungie emblem artwork must fill the whole identity card');
@@ -56,6 +56,9 @@ assert.match(journeyModule,/profileRecords\?\.data\?\.recordCategoriesRootNodeHa
 assert.doesNotMatch(journeyModule,/parentNodeHashes/,'Journey must not guess the Records root from an incomplete set of returned progress nodes');
 assert.match(journeyModule,/currentRecordBranch\(root,tree\.nodes\)[\s\S]*?sectionKey==='lore'&&categories\.length/,'Medals, Catalysts and verified Lore must resolve from official child definitions while empty Lore stays hidden');
 assert.match(journeyModule,/destinationRecordSections[\s\S]*?recordPresentationTree\(payload\)[\s\S]*?DestinyPresentationNodeDefinition/,'Destination records must use the same verified Records-root hierarchy');
+assert.match(journeyModule,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash[\s\S]*?presentationLeafCategories\(rootHash,nodes,'records'\)/,'Weapon patterns must use Bungie’s Craftables root and current Record leaves');
+assert.match(journeyModule,/DestinyRecordDefinition[\s\S]*?DestinyObjectiveDefinition[\s\S]*?titleRequirementRow\(payload,componentCharacterId/,'Pattern rows must join official Record definitions to verified profile objective progress');
+assert.doesNotMatch(journeyModule,/presentationLeafCategories\(rootHash,nodes,'craftables'\)/,'Journey must not read the empty craftables child list from current presentation definitions');
 
 console.log('SANDBOX_BRANCH_DEPLOYMENT=PASS');
 console.log('SANDBOX_OVERSIZED_DATA_STREAM=PASS');

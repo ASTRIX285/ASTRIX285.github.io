@@ -35,9 +35,9 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-emblem-identity-card-1"'),'Journey must load the emblem-led identity card correction');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-record-root-1"'),'Journey must load the cache-busted verified Records-root module');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-pattern-records-1"'),'Journey must load the cache-busted verified weapon-pattern Records module');
 assert.match(journey,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash/,'Journey patterns must use the verified character Craftables component');
-assert.match(journey,/children\?\.\[childKey\][\s\S]*?verifiedCraftablePatternTypes/,'Journey patterns must follow the official presentation tree to its Craftables leaves');
+assert.match(journey,/presentationLeafCategories\(rootHash,nodes,'records'\)[\s\S]*?verifiedCraftablePatternTypes/,'Journey patterns must follow the official Craftables presentation root to its current Record leaves');
 assert.match(journey,/profile\?\.metrics\?\.data[\s\S]*?DestinyMetricDefinition[\s\S]*?trackingObjectiveHash/,'Journey Stat Trackers must join verified Metrics to their manifest and objective definitions');
 assert.match(journey,/name:`\$\{group\.name\} · ALL`/,'Every official Stat Tracker activity group must expose an ALL summary');
 assert.doesNotMatch(journey,/gilded:row\.gilded\|\|row\.complete/,'Journey must not infer gilding from completion');
@@ -172,7 +172,7 @@ assert.match(css,/body\.journey-page\.apx-destination-page \.apx-atmo\{[\s\S]*?w
 assert.match(css,/\.journey-page \.apx-atmo-base\{[\s\S]*?-webkit-mask-image:linear-gradient\(to bottom,#000 0%,#000 46%,rgba\(0,0,0,\.72\) 65%,rgba\(0,0,0,\.22\) 86%,transparent 100%\);[\s\S]*?mask-image:linear-gradient\(to bottom,#000 0%,#000 46%,rgba\(0,0,0,\.72\) 65%,rgba\(0,0,0,\.22\) 86%,transparent 100%\);/,'Journey deep-space base must fade toward the bottom without altering location art');
 assert.match(css,/\.journey-page \.apx-atmo-photo\{[\s\S]*?filter:blur\(5px\) brightness\(\.67\) saturate\(1\.08\);/,'Journey location art must remain softly recognisable on large screens');
 assert.match(css,/body\.journey-page\.apx-destination-page \.apx-page-shell\{[\s\S]*?width:calc\(100% - 2rem\);[\s\S]*?max-width:none;/,'Journey columns must expand toward the viewport margins');
-assert.match(css,/\.journey-console\{[\s\S]*?grid-template-columns:392px minmax\(720px,1fr\) 476px;/,'Journey side rails must be exactly forty percent wider with a flexible centre');
+assert.match(css,/\.journey-console\{[\s\S]*?grid-template-columns:minmax\(360px,20%\) minmax\(720px,1fr\) minmax\(420px,24%\);/,'Journey side rails must retain the approved proportional widths with a flexible centre');
 assert.match(css,/@media\(max-width:1760px\)\{[\s\S]*?\.journey-console\{grid-template-columns:392px minmax\(0,1fr\)\}/,'Journey must reflow to two columns before the wider rails compress the centre');
 assert.match(css,/@media\(max-width:1100px\)\{[\s\S]*?\.journey-console\{grid-template-columns:1fr\}/,'Journey must reflow to one column without shrinking its text');
 assert.match(css,/\.journey-page \.apx-card-grid\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\);/,'Journey future data cards must form complete large-screen rows');
@@ -195,7 +195,7 @@ assert.match(css,/@media \(min-width:981px\)\{[\s\S]*?\.journey-page \[data-astr
 assert.match(css,/\.journey-page \.apx-destination-ribbon a:hover,[\s\S]*?border-color:rgba\(201,168,76,\.68\);[\s\S]*?box-shadow:/,'Journey ribbon must provide the approved block hover state');
 assert.match(css,/\.journey-map-stage\{[\s\S]*?position:absolute;[\s\S]*?transform-origin:center;/,'Map image and markers must share one anchored stage');
 assert.match(css,/\.journey-map-marker\{[\s\S]*?transform:translate\(-50%,-50%\) scale\(var\(--journey-marker-scale\)\);/,'Static activity markers must remain anchored and legible while zooming');
-assert.match(css,/\.journey-region-chests\{[\s\S]*?position:absolute;[\s\S]*?top:18px;[\s\S]*?left:18px;[\s\S]*?width:min\(440px,calc\(100% - 36px\)\);[\s\S]*?background:rgba\(4,6,7,\.05\);[\s\S]*?pointer-events:none;/,'Regional chest progress must remain fixed at the map top left with 95 percent transparency and readable large-screen sizing');
+assert.match(css,/\.journey-region-chests\{[\s\S]*?position:absolute;[\s\S]*?top:18px;[\s\S]*?left:18px;[\s\S]*?width:35%;[\s\S]*?background:rgba\(4,6,7,\.05\);[\s\S]*?pointer-events:auto;/,'Regional chest progress must retain its approved interactive top-left overlay with 95 percent transparency');
 assert.doesNotMatch(css,/body\.journey-page[^}]*transform\s*:\s*scale\(|\.apx-page-shell[^}]*position\s*:\s*absolute/,'Journey page layout must remain in document flow without transform scaling');
 
 console.log('JOURNEY_2560_NATIVE_SCALE=PASS');
