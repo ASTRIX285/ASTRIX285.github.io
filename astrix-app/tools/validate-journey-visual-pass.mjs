@@ -35,7 +35,12 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260831-fixed-ribbons-destination-subtitle"'),'Journey must load the fixed-ribbon destination-subtitle correction');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-title-badge-selector"'),'Journey must load the cache-busted live-bindings module');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-manifest-record-links"'),'Journey must load the cache-busted live-bindings module');
+assert.match(journey,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash/,'Journey patterns must use the verified character Craftables component');
+assert.match(journey,/children\?\.\[childKey\][\s\S]*?verifiedCraftablePatternTypes/,'Journey patterns must follow the official presentation tree to its Craftables leaves');
+assert.match(journey,/profile\?\.metrics\?\.data[\s\S]*?DestinyMetricDefinition[\s\S]*?trackingObjectiveHash/,'Journey Stat Trackers must join verified Metrics to their manifest and objective definitions');
+assert.match(journey,/name:`\$\{group\.name\} · ALL`/,'Every official Stat Tracker activity group must expose an ALL summary');
+assert.doesNotMatch(journey,/gilded:row\.gilded\|\|row\.complete/,'Journey must not infer gilding from completion');
 assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"'),'Journey must load the shared authenticated hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
