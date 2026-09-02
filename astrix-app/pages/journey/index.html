@@ -195,6 +195,7 @@
                   <div class="apx-loc-select-head"><b>Guardian Records</b><span>Select to focus</span></div>
                   <div class="apx-loc-list" role="listbox" aria-label="Guardian records">
                     <button class="apx-loc" id="journeyTitlesOpen" type="button" role="option" aria-controls="journeyRecordsPanel" aria-expanded="false" aria-current="false" style="--c:201,168,76"><span class="apx-loc-name">Titles</span></button>
+                    <button class="apx-loc" id="journeyBadgesOpen" type="button" role="option" aria-controls="journeyRecordsPanel" aria-expanded="false" aria-current="false" style="--c:201,168,76"><span class="apx-loc-name">Badges</span></button>
                     <button class="apx-loc" id="journeyTriumphsOpen" type="button" role="option" aria-controls="journeyRecordsPanel" aria-expanded="false" aria-current="false" style="--c:201,168,76"><span class="apx-loc-name">Triumphs</span></button>
                     <button class="apx-loc" id="journeyGuardianRankOpen" type="button" role="option" aria-controls="journeyRecordsPanel" aria-expanded="false" aria-current="false" style="--c:201,168,76"><span class="apx-loc-name">Guardian Rank</span></button>
                     <button class="apx-loc" id="journeyRecordsOpen" type="button" role="option" aria-controls="journeyRecordsPanel" aria-expanded="false" aria-current="false" style="--c:201,168,76"><span class="apx-loc-name">Records</span></button>
@@ -206,6 +207,7 @@
                 <section class="journey-records-panel" id="journeyRecordsPanel" aria-label="Destiny 2 Guardian records" hidden>
                   <div class="journey-records-toolbar"><button class="journey-records-back" id="journeyRecordsBack" type="button">Back to Destination</button><span class="journey-records-status" id="journeyRecordsStatus" role="status">AWAITING VERIFIED BUNGIE RECORDS</span></div>
                   <div class="journey-records-group" data-journey-record-view="titles" aria-labelledby="journeyTitlesHeading"><h3 id="journeyTitlesHeading">Destiny 2 Titles</h3><div class="journey-records-list" id="journeyTitlesList"><span class="apx-empty-state journey-records-empty">Title presentation nodes are awaiting verified profile data.</span></div></div>
+                  <div class="journey-records-group" data-journey-record-view="badges" aria-labelledby="journeyBadgesHeading" hidden><h3 id="journeyBadgesHeading">Destiny 2 Badges</h3><div class="journey-records-list" id="journeyBadgesList"><span class="apx-empty-state journey-records-empty">Badge presentation nodes are awaiting verified profile data.</span></div></div>
                   <div class="journey-records-group" data-journey-record-view="title-detail" aria-labelledby="journeyTitleRequirementsHeading" hidden><div class="journey-record-detail-hero" id="journeyTitleDetailHero"></div><h3 id="journeyTitleRequirementsHeading">Title Requirements</h3><div class="journey-records-list" id="journeyTitleRequirementsList"><span class="apx-empty-state journey-records-empty">Verified title requirements are awaiting data.</span></div></div>
                   <div class="journey-records-group" data-journey-record-view="triumphs" aria-labelledby="journeyTriumphCategoriesHeading" hidden><h3 id="journeyTriumphCategoriesHeading">Triumph Categories</h3><div class="journey-records-list" id="journeyTriumphCategoriesList"><span class="apx-empty-state journey-records-empty">Triumph presentation nodes are awaiting verified profile data.</span></div></div>
                   <div class="journey-records-group" data-journey-record-view="triumph-detail" aria-labelledby="journeyTriumphDetailHeading" hidden><div class="journey-record-detail-hero" id="journeyTriumphDetailHero"></div><h3 id="journeyTriumphDetailHeading">Triumph Subcategories</h3><div class="journey-record-submenu" id="journeyTriumphSubcategories"></div><div class="journey-records-list" id="journeyTriumphDetailList"><span class="apx-empty-state journey-records-empty">Verified Triumph records are awaiting data.</span></div></div>
@@ -265,6 +267,6 @@
     </section>
   </main>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"></script>
-  <script type="module" src="./journey.mjs?v=20260901-destination-data-panels"></script>
+  <script type="module" src="./journey.mjs?v=20260902-title-badge-selector"></script>
 </body>
 </html>
