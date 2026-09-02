@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {createBuildState} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 import {VAULT_BUCKET,createVaultCatalogue,filterVaultArmour,prepareArmourSelection} from '../pages/vault/vault-inventory.mjs';
+import {armourTargetMaximums,matchArmourBuilds} from '../pages/vault/vault-armour-matcher.mjs';
 import {applyVaultArmourSelection,createVaultArmourSelection,validateVaultArmourSelection} from '../pages/vault/vault-selection-state.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
@@ -59,6 +60,21 @@ const prepared=prepareArmourSelection(payload,catalogue.armour);
 assert.equal(prepared.length,2);
 assert.equal(prepared[0].setBonus.twoPiece.active,true);
 
+const pickerItems=Array.from({length:5},(_,slot)=>[
+  {slotIndex:slot,itemInstanceId:`slot-${slot}-high`,itemHash:3000+slot,name:slot===0?'Duplicate Helmet':'High Stat Item',isExotic:slot<2,stats:[{name:'Health',value:10},{name:'Grenade',value:1}]},
+  {slotIndex:slot,itemInstanceId:`slot-${slot}-balanced`,itemHash:4000+slot,name:slot===0?'Duplicate Helmet':'Balanced Item',isExotic:false,stats:[{name:'Health',value:8},{name:'Grenade',value:5}]},
+  {slotIndex:slot,itemInstanceId:`slot-${slot}-middle`,itemHash:5000+slot,name:'Middle Item',isExotic:false,stats:[{name:'Health',value:9},{name:'Grenade',value:2}]}
+]).flat();
+const pickerMaximums=armourTargetMaximums(pickerItems);
+assert.equal(pickerMaximums.health,49,'Target limits must respect the one-Exotic armour rule.');
+const pickerMatches=matchArmourBuilds(pickerItems,{health:49},{limit:5,beamLimit:500});
+assert.equal(pickerMatches.length,5,'Armour Picker must return five closest complete sets when five are available.');
+assert.equal(pickerMatches[0].items.length,5,'Every Armour Picker result must contain all five armour slots.');
+assert.equal(pickerMatches[0].stats.health,49,'Closest legal set must satisfy the verified target when owned pieces permit it.');
+assert.equal(pickerMatches[0].items.filter(item=>item.isExotic).length,1,'Armour Picker must never select more than one Exotic.');
+assert.equal(new Set(pickerMatches[0].items.map(item=>item.itemInstanceId)).size,5,'Armour Picker results must retain exact duplicate item instances.');
+assert.deepEqual(matchArmourBuilds(pickerItems,{}),[],'Armour Picker must not invent a target when none was selected.');
+
 const binding={characterId:'c1',membershipId:'m1',membershipType:'3'};
 const selection=createVaultArmourSelection({binding,slots:prepared.map(item=>({slot:item.slotIndex,item})),sourcePage:'build'});
 assert.equal(validateVaultArmourSelection(selection,{expectedBinding:binding})?.slots.length,2);
@@ -79,14 +95,21 @@ assert.equal(result.state.workingBuild.hashCoverage.armour.complete,true);
 
 const vaultHtml=read('astrix-app/pages/vault/index.html');
 const vaultRuntime=read('astrix-app/pages/vault/vault.mjs');
+const vaultCss=read('astrix-app/pages/vault/vault.css');
 const buildRuntime=read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs');
 const characterHtml=read('astrix-app/pages/guardian-workspace-v2/index.html');
 const accessRuntime=read('astrix-app/pages/guardian-workspace-v2/guardian-vault-access.mjs');
 const characterHandoff=read('astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs');
 assert.match(vaultHtml,/id="vaultItemGrid"/);
 assert.match(vaultHtml,/id="vaultEvaluate"/);
+assert.match(vaultHtml,/id="vaultStatTargets"/);
+assert.match(vaultHtml,/id="vaultCandidateBuilds"/);
+assert.match(vaultHtml,/id="vaultItemInspect"/);
 assert.match(vaultRuntime,/scope','character/);
 assert.match(vaultRuntime,/guardianManifest\.hydratePayload/);
+assert.match(vaultRuntime,/matchArmourBuilds\(optimiserItems\(\),targets,\{limit:5\}\)/);
+assert.match(vaultCss,/--vault-item-icon:8rem/,'Vault inventory art must remain anchored instead of filling the grid column.');
+assert.match(vaultCss,/\.vault-item-inspect\{position:fixed/,'Exact item stats require the ASTRIX hover inspection card.');
 assert.match(vaultRuntime,/AstrixLoader\?\.done\?\.\(\)/,'Vault must release the loader after its bounded visible-image settle.');
 assert.doesNotMatch(vaultRuntime,/AstrixLoader\?\.ready\?\.\(document\.querySelector\('\.apx-page-shell'\)\)/,'Vault must not wait on off-screen lazy armour images.');
 assert.match(buildRuntime,/applyVaultArmourSelection/);

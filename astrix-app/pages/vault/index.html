@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
-  <link rel="stylesheet" href="./vault.css?v=20260902-vault-armour-foundation-1">
+  <link rel="stylesheet" href="./vault.css?v=20260902-armour-picker-1">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <script src="../../shared/astrix-destination-ribbon.js" defer></script>
 </head>
@@ -34,6 +34,20 @@
     <section class="apx-section vault-workspace" aria-labelledby="vaultArmourTitle">
       <div class="apx-section-heading"><div><p class="apx-eyebrow">ARMOUR SET BUILDER</p><h2 id="vaultArmourTitle">Select armour for evaluation</h2></div><span class="apx-status-chip" id="vaultResultCount">WAITING FOR BUNGIE</span></div>
       <p class="vault-context" id="vaultReturnContext">Choose up to one verified item per armour slot. The selection will become a separate Working Build; the original build remains protected.</p>
+
+      <section class="vault-optimiser" aria-labelledby="vaultOptimiserTitle">
+        <div class="vault-optimiser-heading"><div><p class="apx-eyebrow">ASTRIX ARMOUR PICKER</p><h3 id="vaultOptimiserTitle">Choose your desired stat distribution</h3><p>Set one or more targets. ASTRIX will compare exact owned item instances and return the five closest legal armour sets.</p></div><span class="vault-optimiser-class" id="vaultOptimiserClass">SELECTED GUARDIAN</span></div>
+        <div class="vault-stat-targets" id="vaultStatTargets">
+          <label data-target-stat="health"><span>HEALTH</span><input type="range" min="0" max="0" value="0" step="1"><output>0 / —</output></label>
+          <label data-target-stat="melee"><span>MELEE</span><input type="range" min="0" max="0" value="0" step="1"><output>0 / —</output></label>
+          <label data-target-stat="grenade"><span>GRENADE</span><input type="range" min="0" max="0" value="0" step="1"><output>0 / —</output></label>
+          <label data-target-stat="super"><span>SUPER</span><input type="range" min="0" max="0" value="0" step="1"><output>0 / —</output></label>
+          <label data-target-stat="class"><span>CLASS</span><input type="range" min="0" max="0" value="0" step="1"><output>0 / —</output></label>
+          <label data-target-stat="weapon"><span>WEAPON</span><input type="range" min="0" max="0" value="0" step="1"><output>0 / —</output></label>
+        </div>
+        <div class="vault-optimiser-actions"><button type="button" id="vaultFindBuilds" disabled>FIND 5 CLOSEST SETS</button><button type="button" id="vaultResetTargets" disabled>RESET TARGETS</button><span id="vaultOptimiserStatus">Load verified armour to calculate available stat ranges.</span></div>
+        <div class="vault-candidate-builds" id="vaultCandidateBuilds" hidden aria-live="polite"></div>
+      </section>
 
       <form class="vault-filters" id="vaultFilters" aria-label="Vault armour filters">
         <label><span>SEARCH</span><input id="vaultSearch" type="search" autocomplete="off" placeholder="Armour, set, archetype or source"></label>
@@ -59,7 +73,8 @@
       <a class="vault-connect" id="vaultConnectButton" href="https://auth.astrixparadox.com/bungie/start">CONNECT BUNGIE</a>
     </section>
   </main>
+  <aside class="vault-item-inspect" id="vaultItemInspect" hidden aria-hidden="true"></aside>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1"></script>
-  <script type="module" src="./vault.mjs?v=20260902-vault-loader-release-2"></script>
+  <script type="module" src="./vault.mjs?v=20260902-armour-picker-1"></script>
 </body>
 </html>

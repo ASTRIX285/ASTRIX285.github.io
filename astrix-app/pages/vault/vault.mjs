@@ -2,6 +2,7 @@ import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {ARMOUR_BUCKETS,createVaultCatalogue,filterVaultArmour,itemKey,prepareArmourSelection} from './vault-inventory.mjs';
+import {ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds,statKey} from './vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from './vault-selection-state.mjs';
 
 const PAGE_SIZE=48;
@@ -18,6 +19,8 @@ let catalogue={armour:[],totals:{all:0,armour:0,other:0,ownedArmour:0,unresolved
 let activeCharacterId=text(params.get('characterId'));
 let activeCharacterClass='';
 let visibleLimit=PAGE_SIZE;
+let matchedBuilds=[];
+let targetMaximums=Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,0]));
 const selectedSlots=new Map();
 
 function membershipBinding(){
@@ -130,14 +133,134 @@ function filters(){
   };
 }
 
+function optimiserItems(){return catalogue.armour.filter(itemCompatible);}
+
+function targetValues(){
+  return Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>{
+    const input=document.querySelector(`[data-target-stat="${key}"] input`);
+    return [key,Number(input?.value||0)];
+  }));
+}
+
+function targetCount(){return ARMOUR_STAT_KEYS.filter(key=>Number(targetValues()[key])>0).length;}
+
+function updateTargetControl(label){
+  const key=label?.dataset?.targetStat;
+  const input=label?.querySelector('input');
+  const output=label?.querySelector('output');
+  if(!key||!input||!output)return;
+  output.textContent=`${input.value} / ${targetMaximums[key]||'—'}`;
+}
+
+function configureOptimiser({reset=false}={}){
+  const items=optimiserItems();
+  targetMaximums=armourTargetMaximums(items);
+  for(const label of document.querySelectorAll('[data-target-stat]')){
+    const key=label.dataset.targetStat;
+    const input=label.querySelector('input');
+    if(!input)continue;
+    const maximum=Number(targetMaximums[key]||0);
+    input.max=String(maximum);
+    input.disabled=maximum<=0;
+    input.value=String(reset?0:Math.min(maximum,Number(input.value||0)));
+    updateTargetControl(label);
+  }
+  const classLabel=activeCharacterClass?activeCharacterClass.toUpperCase():'SELECTED GUARDIAN';
+  byId('vaultOptimiserClass').textContent=`${classLabel} · ${items.length} OWNED PIECES`;
+  const hasRanges=ARMOUR_STAT_KEYS.some(key=>targetMaximums[key]>0);
+  byId('vaultFindBuilds').disabled=!hasRanges||targetCount()===0;
+  byId('vaultResetTargets').disabled=!hasRanges||targetCount()===0;
+  byId('vaultOptimiserStatus').textContent=hasRanges?'Set one or more verified stat targets, then find the five closest sets.':'No recognised Armour 3.0 stat values were returned for this Guardian.';
+  if(reset){matchedBuilds=[];renderCandidateBuilds();}
+}
+
+function statLineMarkup(item){
+  const stats=armourStatVector(item);
+  const strongest=ARMOUR_STAT_KEYS.map(key=>({key,value:Number(stats[key]||0)})).filter(row=>row.value>0).sort((left,right)=>right.value-left.value).slice(0,3);
+  return strongest.length?`<span class="vault-item-statline">${strongest.map(row=>`<span>${esc(ARMOUR_STAT_LABELS[row.key].slice(0,3).toUpperCase())}<strong>${row.value}</strong></span>`).join('')}</span>`:'';
+}
+
+function candidateStatsMarkup(stats={}){
+  return `<div class="vault-candidate-stats">${ARMOUR_STAT_KEYS.map(key=>`<span>${esc(ARMOUR_STAT_LABELS[key])}<b>${Number(stats[key]||0)}</b></span>`).join('')}</div>`;
+}
+
+function candidateItemMarkup(item){
+  return `<button type="button" class="vault-candidate-item" data-inspect-item="${esc(itemKey(item))}" aria-label="Inspect ${esc(item.name)}"><img src="${esc(item.icon)}" alt="" loading="lazy"><span><b>${esc(item.name)}</b><small>${esc(`${item.slotLabel} · ${item.source?.label||'Owned'}`)}</small></span></button>`;
+}
+
+function candidateMarkup(candidate,index){
+  const result=candidate.score;
+  const outcome=result.met?'ALL TARGETS MET':`${result.shortfall} TOTAL POINT${result.shortfall===1?'':'S'} SHORT`;
+  return `<article class="vault-candidate${result.met?' is-target-met':''}"><div class="vault-candidate-rank"><b>MATCH ${index+1}</b><small>${esc(outcome)}</small><small>${result.total} total armour stats</small></div><div><div class="vault-candidate-items">${candidate.items.map(candidateItemMarkup).join('')}</div>${candidateStatsMarkup(candidate.stats)}</div><button class="vault-candidate-select" type="button" data-candidate-build="${index}">SELECT THIS SET</button></article>`;
+}
+
+function renderCandidateBuilds(){
+  const host=byId('vaultCandidateBuilds');
+  if(!host)return;
+  host.hidden=matchedBuilds.length===0;
+  host.innerHTML=matchedBuilds.map(candidateMarkup).join('');
+}
+
+async function findCandidateBuilds(){
+  const targets=targetValues();
+  if(!ARMOUR_STAT_KEYS.some(key=>targets[key]>0))return;
+  const button=byId('vaultFindBuilds');
+  button.disabled=true;
+  button.textContent='CALCULATING VERIFIED SETS…';
+  byId('vaultOptimiserStatus').textContent='Comparing exact owned item instances across all five armour slots…';
+  await new Promise(resolve=>requestAnimationFrame(resolve));
+  matchedBuilds=matchArmourBuilds(optimiserItems(),targets,{limit:5});
+  renderCandidateBuilds();
+  button.textContent='FIND 5 CLOSEST SETS';
+  button.disabled=false;
+  byId('vaultOptimiserStatus').textContent=matchedBuilds.length?`${matchedBuilds.length} closest complete set${matchedBuilds.length===1?'':'s'} found. Select one to stage its exact item instances.`:'No complete five-slot armour set is available for this Guardian.';
+}
+
+function selectCandidateBuild(index){
+  const candidate=matchedBuilds[Number(index)];
+  if(!candidate)return;
+  selectedSlots.clear();
+  for(const item of candidate.items)selectedSlots.set(item.slotIndex,item);
+  renderSelection();
+  renderInventory();
+  setStatus(`Armour Picker match ${Number(index)+1} staged · ${candidate.score.total} total stats · ${candidate.score.met?'all requested targets met':`${candidate.score.shortfall} requested points short`}.`,'good');
+  byId('vaultSelectionSlots')?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function resetTargets(){
+  for(const input of document.querySelectorAll('[data-target-stat] input'))input.value='0';
+  configureOptimiser({reset:true});
+}
+
+function inspectedItem(key){return catalogue.armour.find(item=>itemKey(item)===String(key||''))||null;}
+
+function inspectStatsMarkup(item){
+  const vector=armourStatVector(item);
+  return `<div class="vault-inspect-stats">${ARMOUR_STAT_KEYS.map(key=>`<span>${esc(ARMOUR_STAT_LABELS[key])}<b>${Number(vector[key]||0)}</b></span>`).join('')}</div>`;
+}
+
+function showItemInspect(key){
+  const item=inspectedItem(key),panel=byId('vaultItemInspect');
+  if(!item||!panel)return;
+  const setName=item.setBonus?.identity?.name||'';
+  panel.innerHTML=`<div class="vault-inspect-head">${item.icon?`<img src="${esc(item.icon)}" alt="">`:''}<div class="vault-inspect-copy"><h4>${esc(item.name)}</h4><p>${esc(`${item.slotLabel} · ${item.characterClass==='any'?'Any class':item.characterClass}`)}</p><strong>Σ ${item.totalStats} TOTAL${item.power!==null?` · ✦ ${esc(item.power)}`:''}</strong>${setName?`<p class="vault-inspect-set">${esc(setName)}</p>`:''}</div></div>${inspectStatsMarkup(item)}<div class="vault-inspect-foot"><span>${esc(String(item.source?.label||'Owned').toUpperCase())}</span><span>EXACT BUNGIE INSTANCE</span></div>`;
+  panel.hidden=false;
+  panel.setAttribute('aria-hidden','false');
+}
+
+function hideItemInspect(){
+  const panel=byId('vaultItemInspect');
+  if(panel){panel.hidden=true;panel.setAttribute('aria-hidden','true');}
+}
+
 function itemMarkup(item,selectedKeys){
   const selected=selectedKeys.has(itemKey(item));
   const compatible=itemCompatible(item);
   const setName=item.setBonus?.identity?.name||'';
   const className=['vault-item',selected?'is-selected':'',item.isExotic?'is-exotic':'',compatible?'':'is-incompatible'].filter(Boolean).join(' ');
-  return `<button type="button" class="${className}" data-vault-item="${esc(itemKey(item))}" data-armour-slot="${item.slotIndex}" aria-pressed="${selected}" ${compatible?'':`disabled aria-label="${esc(item.name)} is not compatible with the selected ${activeCharacterClass||'Guardian'}"`}>
+  return `<button type="button" class="${className}" data-vault-item="${esc(itemKey(item))}" data-inspect-item="${esc(itemKey(item))}" data-armour-slot="${item.slotIndex}" aria-pressed="${selected}" ${compatible?'':`disabled aria-label="${esc(item.name)} is not compatible with the selected ${activeCharacterClass||'Guardian'}"`}>
     <span class="vault-item-art">${item.icon?`<img src="${esc(item.icon)}" alt="" loading="lazy" decoding="async">`:''}${item.power!==null?`<span class="vault-item-power">✦ ${esc(item.power)}</span>`:''}<span class="vault-item-source">${esc(String(item.source?.label||'Owned').toUpperCase())}</span><span class="vault-item-total">Σ ${item.totalStats}</span></span>
-    <span class="vault-item-copy"><b>${esc(item.name)}</b><small>${esc(`${item.slotLabel} · ${item.characterClass==='any'?'Any class':item.characterClass}`)}</small>${setName?`<small class="vault-item-set">${esc(setName)}</small>`:''}</span>
+    <span class="vault-item-copy"><b>${esc(item.name)}</b><small>${esc(`${item.slotLabel} · ${item.characterClass==='any'?'Any class':item.characterClass}`)}</small>${setName?`<small class="vault-item-set">${esc(setName)}</small>`:''}${statLineMarkup(item)}</span>
   </button>`;
 }
 
@@ -202,13 +325,32 @@ function clearIncompatibleSelection(){
 function installEvents(){
   byId('vaultFilters')?.addEventListener('input',()=>{visibleLimit=PAGE_SIZE;renderInventory();});
   byId('vaultItemGrid')?.addEventListener('click',event=>{const button=event.target.closest('[data-vault-item]');if(button)selectItem(button.dataset.vaultItem);});
+  byId('vaultStatTargets')?.addEventListener('input',event=>{
+    const label=event.target.closest('[data-target-stat]');
+    if(!label)return;
+    updateTargetControl(label);
+    matchedBuilds=[];
+    renderCandidateBuilds();
+    const count=targetCount();
+    byId('vaultFindBuilds').disabled=count===0;
+    byId('vaultResetTargets').disabled=count===0;
+    byId('vaultOptimiserStatus').textContent=count?`${count} target stat${count===1?'':'s'} active. Find the five closest complete sets.`:'Set one or more verified stat targets.';
+  });
+  byId('vaultFindBuilds')?.addEventListener('click',findCandidateBuilds);
+  byId('vaultResetTargets')?.addEventListener('click',resetTargets);
+  byId('vaultCandidateBuilds')?.addEventListener('click',event=>{const button=event.target.closest('[data-candidate-build]');if(button)selectCandidateBuild(button.dataset.candidateBuild);});
   byId('vaultClearSelection')?.addEventListener('click',()=>{selectedSlots.clear();renderAll();});
   byId('vaultEvaluate')?.addEventListener('click',evaluateInBuildForge);
   byId('vaultLoadMore')?.addEventListener('click',()=>{visibleLimit+=PAGE_SIZE;renderInventory();});
+  document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-inspect-item]');if(target)showItemInspect(target.dataset.inspectItem);});
+  document.addEventListener('pointerout',event=>{const target=event.target.closest('[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideItemInspect();});
+  document.addEventListener('focusin',event=>{const target=event.target.closest('[data-inspect-item]');if(target)showItemInspect(target.dataset.inspectItem);});
+  document.addEventListener('focusout',event=>{const target=event.target.closest('[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideItemInspect();});
   document.addEventListener('astrix:character-selected',event=>{
     resolveActiveCharacter(event.detail?.characterId);
     clearIncompatibleSelection();
     visibleLimit=PAGE_SIZE;
+    configureOptimiser({reset:true});
     renderAll();
     setStatus(`${activeCharacterClass.toUpperCase()} inventory active${postmasterStatus()}.`,'good');
   });
@@ -242,6 +384,7 @@ async function init(){
     loaderProgress(78,'Building verified armour catalogue…');
     catalogue=createVaultCatalogue(payload);
     resolveActiveCharacter(activeCharacterId);
+    configureOptimiser({reset:true});
     const requestedSlot=text(params.get('slot'));
     if(ARMOUR_BUCKETS.some(slot=>slot.key===requestedSlot))byId('vaultSlotFilter').value=requestedSlot;
     updateTotals();

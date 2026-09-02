@@ -33,6 +33,7 @@ const allowed=new Set([
   'astrix-app/pages/mission-reports/mission-reports.mjs',
   'astrix-app/pages/vault/index.html',
   'astrix-app/pages/vault/vault.css',
+  'astrix-app/pages/vault/vault-armour-matcher.mjs',
   'astrix-app/pages/vault/vault-inventory.mjs',
   'astrix-app/pages/vault/vault-selection-state.mjs',
   'astrix-app/pages/vault/vault.mjs',
