@@ -534,7 +534,7 @@ const RECORD_SECTION_DEFINITIONS=[
   {key:'medals',name:'Medals',description:'Verified activity medals and earned counts.'},
   {key:'patterns-catalysts',name:'Patterns & Catalysts',description:'Weapon-pattern and catalyst objective progress.'},
   {key:'lore',name:'Lore',description:'Unlocked lore entries and collection progress.',optional:true},
-  {key:'stat-trackers',name:'Stat Trackers',description:'Verified Guardian statistics with Mission Reports links.'}
+  {key:'stat-trackers',name:'Stat Trackers',description:'Verified Guardian statistics and objective progress.'}
 ];
 const PATTERN_CATALYST_TYPE_DEFINITIONS=[
   {key:'primary',name:'Primary Weapon Patterns',shortName:'Primary',categories:['Auto Rifles','Bows','Hand Cannons','Pulse Rifles','Scout Rifles','Sidearms','Submachine Guns']},
@@ -542,18 +542,7 @@ const PATTERN_CATALYST_TYPE_DEFINITIONS=[
   {key:'heavy',name:'Heavy Weapon Patterns',shortName:'Heavy',categories:['Grenade Launchers','Linear Fusion Rifles','Machine Guns','Rocket Launchers','Swords']},
   {key:'catalysts',name:'Exotic Catalysts',shortName:'Catalysts',categories:['Kinetic Weapons','Energy Weapons','Power Weapons']}
 ];
-const MISSION_REPORT_FILTERS=new Set(['view','category','mode','activity','activityHash','metricHash','trackerHash','period']);
-
-function missionReportHref(filters){
-  if(!filters||typeof filters!=='object')return '';
-  const url=new URL('../mission-reports/',globalThis.location.href);
-  Object.entries(filters).forEach(([key,value])=>{
-    if(MISSION_REPORT_FILTERS.has(key)&&value!==null&&value!==undefined&&String(value).trim())url.searchParams.set(key,String(value));
-  });
-  return url.search?url.toString():'';
-}
-
-function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,unit='',gilded=false,complete=false,crafted=false,claimed=false,value=null,onSelect=null,missionReportFilters=null,objectives=[]}){
+function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,unit='',gilded=false,complete=false,crafted=false,claimed=false,value=null,onSelect=null,objectives=[]}){
   const interactive=typeof onSelect==='function';
   const row=document.createElement(interactive?'button':'article');
   if(interactive){row.type='button';row.addEventListener('click',onSelect);}
@@ -625,14 +614,6 @@ function makeJourneyRecordRow({hash,name,icon,description='',completed=null,tota
     track.appendChild(fill);
     copy.append(progress,track);
   });
-  const reportHref=interactive?'':missionReportHref(missionReportFilters);
-  if(reportHref){
-    const link=document.createElement('a');
-    link.className='journey-record-link';
-    link.href=reportHref;
-    link.textContent='VIEW MISSION REPORTS';
-    copy.appendChild(link);
-  }
   row.appendChild(copy);
   return row;
 }
@@ -696,8 +677,7 @@ function normalizedProgressItem(item={},defaultUnit='OBJECTIVES'){
     complete,
     crafted:item.crafted===true,
     gilded:item.gilded===true,
-    value:item.value??(completed!==null&&!(total!==null&&total>0)?completed:null),
-    missionReportFilters:item.missionReportFilters&&typeof item.missionReportFilters==='object'?item.missionReportFilters:null
+    value:item.value??(completed!==null&&!(total!==null&&total>0)?completed:null)
   };
 }
 
@@ -1198,8 +1178,7 @@ async function verifiedStatTrackerSection(payload){
         unit:hasThreshold?'TRACKER PROGRESS':'TRACKER VALUE',
         value:hasThreshold?null:current,
         complete:progress?.complete===true,
-        gilded:false,
-        missionReportFilters:{view:'stat-trackers',category:String(section.path[0]||section.name),metricHash:hash}
+        gilded:false
       };
     }).filter(Boolean);
     if(!rows.length)return;
