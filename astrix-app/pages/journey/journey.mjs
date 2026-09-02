@@ -345,6 +345,35 @@ async function presentationLeafCategories(rootHash,nodes,childKey){
   };
 }
 
+async function recordPresentationTree(payload){
+  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
+  const rootHash=finiteNumber(payload?.profile?.profileRecords?.data?.recordCategoriesRootNodeHash);
+  if(rootHash===null)return null;
+  const definition=await guardianManifest.getAsync('DestinyPresentationNodeDefinition',rootHash);
+  if(!definition)return null;
+  const entries=(definition?.children?.presentationNodes||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
+  const definitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',entries.map(entry=>entry.presentationNodeHash));
+  return {
+    hash:String(rootHash),
+    definition,
+    node:nodes[String(rootHash)],
+    nodes,
+    roots:entries.map(entry=>({entry,hash:String(entry.presentationNodeHash),definition:definitions[String(entry.presentationNodeHash)],node:nodes[String(entry.presentationNodeHash)]})).filter(item=>item.definition)
+  };
+}
+
+async function currentRecordBranch(root,nodes){
+  if(!root?.definition)return null;
+  const entries=(root.definition?.children?.presentationNodes||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
+  if(!entries.length)return root;
+  const definitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',entries.map(entry=>entry.presentationNodeHash));
+  const rootName=recordCategoryKey(root.definition?.displayProperties?.name);
+  const entry=entries.find(item=>recordCategoryKey(definitions[String(item.presentationNodeHash)]?.displayProperties?.name)===rootName);
+  if(!entry)return root;
+  const hash=String(entry.presentationNodeHash);
+  return {entry,hash,definition:definitions[hash],node:nodes?.[hash]};
+}
+
 const DESTINATION_NAME_ALIASES=Object.freeze({
   'pale-heart':['Pale Heart','The Pale Heart'],
   'dreaming-city':['Dreaming City','The Dreaming City'],
@@ -372,16 +401,13 @@ function destinationCategoryItem(section,label){
 }
 
 async function destinationRecordSections(payload,key,characterId){
-  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
-  const presentationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
-  const resolved=Object.entries(nodes).map(([hash,node])=>({hash,node,definition:presentationDefinitions[hash]})).filter(item=>item.definition);
-  const definitionByHash=Object.fromEntries(resolved.map(item=>[String(item.hash),item.definition]));
-  const recordsRootHash=finiteNumber(payload?.profile?.profileRecords?.data?.recordCategoriesRootNodeHash);
-  const recordsRoot=resolved.find(item=>String(item.hash)===String(recordsRootHash))||resolved.find(item=>!(item.definition?.parentNodeHashes||[]).length&&(item.definition?.children?.presentationNodes||[]).length>2&&(item.definition?.children?.presentationNodes||[]).some(entry=>{const definition=definitionByHash[String(entry.presentationNodeHash)];return definition?.displayProperties?.name===item.definition?.displayProperties?.name&&(definition?.children?.presentationNodes||[]).length;}));
-  const currentEntry=(recordsRoot?.definition?.children?.presentationNodes||[]).find(entry=>definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name===recordsRoot?.definition?.displayProperties?.name);
-  const currentDefinition=definitionByHash[String(currentEntry?.presentationNodeHash||'')];
-  const destinationEntry=(currentDefinition?.children?.presentationNodes||[]).find(entry=>destinationNameMatches(key,definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name));
-  const destinationDefinition=definitionByHash[String(destinationEntry?.presentationNodeHash||'')];
+  const tree=await recordPresentationTree(payload);
+  const nodes=tree?.nodes||{};
+  const triumphRoot=tree?.roots.find(item=>recordCategoryKey(item.definition?.displayProperties?.name)===recordCategoryKey(tree.definition?.displayProperties?.name));
+  const destinationEntries=triumphRoot?.definition?.children?.presentationNodes||[];
+  const destinationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',destinationEntries.map(entry=>entry.presentationNodeHash));
+  const destinationEntry=destinationEntries.find(entry=>destinationNameMatches(key,destinationDefinitions[String(entry.presentationNodeHash)]?.displayProperties?.name));
+  const destinationDefinition=destinationDefinitions[String(destinationEntry?.presentationNodeHash||'')];
   const destinationNode=nodes[String(destinationEntry?.presentationNodeHash||'')];
   const destinationState=finiteNumber(destinationNode?.state);
   if(!destinationDefinition||destinationState!==null&&(destinationState&1)===1)return {triumphs:[],records:[],endgame:[]};
@@ -406,7 +432,7 @@ async function destinationRecordSections(payload,key,characterId){
   });
   const activityHashes=[...new Set(recordsBySection.flatMap(({records})=>records.flatMap(item=>(item.component?.objectives||[]).map(objective=>finiteNumber(objective?.activityHash)).filter(hash=>hash!==null))))];
   const activityDefinitions=await guardianManifest.getMany('DestinyActivityDefinition',activityHashes);
-  const destinationDefinitions=await guardianManifest.getMany('DestinyDestinationDefinition',Object.values(activityDefinitions).map(definition=>definition?.destinationHash));
+  const activityDestinationDefinitions=await guardianManifest.getMany('DestinyDestinationDefinition',Object.values(activityDefinitions).map(definition=>definition?.destinationHash));
   const groups=new Map();
   recordsBySection.flatMap(({records})=>records).forEach(item=>{
     (item.component?.objectives||[]).filter(objective=>objective?.visible!==false).forEach(objective=>{
@@ -414,7 +440,7 @@ async function destinationRecordSections(payload,key,characterId){
       const activity=activityDefinitions[String(activityHash)];
       const modes=activity?.activityModeTypes||[];
       const type=modes.includes(4)?'RAID':modes.includes(82)?'DUNGEON':'';
-      const destination=destinationDefinitions[String(activity?.destinationHash||'')];
+      const destination=activityDestinationDefinitions[String(activity?.destinationHash||'')];
       const name=String(activity?.displayProperties?.name||'').trim();
       if(!type||!name||!destinationNameMatches(key,destination?.displayProperties?.name))return;
       const groupKey=`${type}:${name}`;
@@ -932,16 +958,18 @@ async function bindTitleTriumphPanel(payload,view=recordRootView(activeRecordVie
     if(recordsStatus)recordsStatus.textContent=`${titles.length} ${titleCollectionLabel}`;
     return;
   }
-  const definitionByHash=Object.fromEntries(resolved.map(item=>[String(item.hash),item.definition]));
-  const triumphRoot=resolved.find(item=>!(item.definition?.parentNodeHashes||[]).length&&(item.definition?.children?.presentationNodes||[]).length>2&&(item.definition?.children?.presentationNodes||[]).some(entry=>{const definition=definitionByHash[String(entry.presentationNodeHash)];return definition?.displayProperties?.name===item.definition?.displayProperties?.name&&(definition?.children?.presentationNodes||[]).length;}));
-  const currentTriumphEntry=(triumphRoot?.definition?.children?.presentationNodes||[]).find(entry=>definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name===triumphRoot?.definition?.displayProperties?.name);
-  const currentTriumphDefinition=definitionByHash[String(currentTriumphEntry?.presentationNodeHash||'')];
+  const tree=await recordPresentationTree(payload);
+  const currentTriumph=tree?.roots.find(item=>recordCategoryKey(item.definition?.displayProperties?.name)===recordCategoryKey(tree.definition?.displayProperties?.name));
+  const currentTriumphDefinition=currentTriumph?.definition;
+  const categoryEntries=currentTriumphDefinition?.children?.presentationNodes||[];
+  const categoryDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',categoryEntries.map(entry=>entry.presentationNodeHash));
   const categories=(currentTriumphDefinition?.children?.presentationNodes||[]).map(entry=>{
     const hash=String(entry.presentationNodeHash);
-    const definition=definitionByHash[hash];
+    const definition=categoryDefinitions[hash];
     const node=nodes[hash];
-    return {hash,name:String(definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(definition),description:String(definition?.displayProperties?.description||''),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),unit:'TRIUMPHS',subcategories:null,nodeEntries:definition?.children?.presentationNodes||[],nodes,characterId};
-  }).filter(item=>item.name);
+    const state=finiteNumber(node?.state);
+    return state!==null&&(state&1)===1?null:{hash,name:String(definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(definition),description:String(definition?.displayProperties?.description||''),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),unit:'TRIUMPHS',subcategories:null,nodeEntries:definition?.children?.presentationNodes||[],nodes,characterId};
+  }).filter(item=>item?.name);
   if(requestId!==titleTriumphRequest)return;
   renderJourneyRecordList(triumphCategoriesList,categories,'No Triumph category presentation nodes were returned for this profile.',showTriumphDetail);
   if(recordsStatus)recordsStatus.textContent=`${categories.length} TRIUMPH CATEGORIES`;
@@ -1256,28 +1284,28 @@ async function bindRecordsPanel(payload){
   if(!Array.isArray(payload?.journeyRecordOverview?.records?.sections)&&nodes&&typeof nodes==='object'){
     if(recordsStatus)recordsStatus.textContent='LOADING VERIFIED BUNGIE RECORDS';
     await manifestReady;
-    const presentationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
-    const resolved=Object.entries(nodes).map(([hash,node])=>({hash,node,definition:presentationDefinitions[hash]})).filter(item=>item.definition);
-    const definitionByHash=Object.fromEntries(resolved.map(item=>[String(item.hash),item.definition]));
-    const recordsRoot=resolved.find(item=>!(item.definition?.parentNodeHashes||[]).length&&(item.definition?.children?.presentationNodes||[]).length>2&&(item.definition?.children?.presentationNodes||[]).some(entry=>{const definition=definitionByHash[String(entry.presentationNodeHash)];return definition?.displayProperties?.name===item.definition?.displayProperties?.name&&(definition?.children?.presentationNodes||[]).length;}));
+    const tree=await recordPresentationTree(payload);
     const characters=payload?.profile?.characters?.data||{};
     const character=characters[selectedCharacterId]||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
     const characterId=String(character?.characterId||'');
-    if(recordsRoot){
-      sections=recordsFrameworkSections({...payload,journeyRecordOverview:{...(payload?.journeyRecordOverview||{}),records:{sections:[{key:'medals'},{key:'patterns-catalysts'},{key:'lore',available:true},{key:'stat-trackers'}]}}});
-      const roots=(recordsRoot.definition?.children?.presentationNodes||[]).map(entry=>definitionByHash[String(entry.presentationNodeHash)]).filter(Boolean);
+    if(tree){
       for(const [sectionKey,rootName,recordKind] of [['medals','Medals','medals'],['lore','Lore','lore'],['patterns-catalysts','Exotic Catalysts','catalysts']]){
-        const root=roots.find(definition=>definition?.displayProperties?.name===rootName);
-        const currentEntry=(root?.children?.presentationNodes||[]).find(entry=>definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name===rootName);
-        const currentDefinition=definitionByHash[String(currentEntry?.presentationNodeHash||'')];
+        const root=tree.roots.find(item=>recordCategoryKey(item.definition?.displayProperties?.name)===recordCategoryKey(rootName));
+        const current=await currentRecordBranch(root,tree.nodes);
+        const currentDefinition=current?.definition;
         if(!currentDefinition)continue;
         const categories=await presentationRecordCategories(currentDefinition?.children?.presentationNodes||[],nodes,characterId,recordKind);
-        const currentNode=nodes[String(currentEntry.presentationNodeHash)];
-        const section=sections.find(item=>item.key===sectionKey);
+        const currentNode=current?.node;
+        let section=sections.find(item=>item.key===sectionKey);
+        if(sectionKey==='lore'&&categories.length){
+          const definition=RECORD_SECTION_DEFINITIONS.find(item=>item.key==='lore');
+          section={...definition,icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),unit:'',categories};
+          sections.splice(Math.min(2,sections.length),0,section);
+        }
         if(sectionKey==='patterns-catalysts'){
           const catalysts=section?.types?.find(type=>type.key==='catalysts');
           if(catalysts)Object.assign(catalysts,{icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),categories});
-        }else if(section)Object.assign(section,{icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),categories});
+        }else if(section&&sectionKey!=='lore')Object.assign(section,{icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),categories});
       }
     }
   }

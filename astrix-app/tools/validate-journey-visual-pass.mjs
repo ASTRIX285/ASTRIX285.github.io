@@ -35,7 +35,7 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-emblem-identity-card-1"'),'Journey must load the emblem-led identity card correction');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-background-refresh-1"'),'Journey must load the cache-busted silent background-refresh module');
+assert.ok(html.includes('src="./journey.mjs?v=20260902-record-root-1"'),'Journey must load the cache-busted verified Records-root module');
 assert.match(journey,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash/,'Journey patterns must use the verified character Craftables component');
 assert.match(journey,/children\?\.\[childKey\][\s\S]*?verifiedCraftablePatternTypes/,'Journey patterns must follow the official presentation tree to its Craftables leaves');
 assert.match(journey,/profile\?\.metrics\?\.data[\s\S]*?DestinyMetricDefinition[\s\S]*?trackingObjectiveHash/,'Journey Stat Trackers must join verified Metrics to their manifest and objective definitions');
