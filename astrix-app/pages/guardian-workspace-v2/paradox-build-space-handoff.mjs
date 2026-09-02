@@ -78,6 +78,11 @@ function currentProfileBuildSource(){
   const state=safeRead(BUILD_SNAPSHOT_KEY,{expectedCharacterId:selectedId});
   return bindSourceToCharacter(state?.workingBuild||state?.originalBuild||null,selectedId);
 }
+function persistVaultBuildSource(){
+  const source=resolveBuildSource();
+  if(!source?.characterId)return false;
+  return safeStore(BUILD_SNAPSHOT_KEY,createBuildState(source),{durable:true});
+}
 function armBuildSpacePortal(){globalThis.AstrixLoader?.mount?.();globalThis.AstrixLoader?.set?.(0);globalThis.AstrixLoader?.status?.('Opening Build Forge');}
 const afterPortalPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 async function openBuildSpace(event){
@@ -127,5 +132,6 @@ document.addEventListener('astrix:bungie-loadout-loaded',e=>rememberExplicitLoad
 document.addEventListener('astrix:paradox-live-analysis-changed',e=>rememberAnalysis(e.detail||{}));
 document.addEventListener('astrix:weapon-roll-advice-changed',e=>rememberWeaponAdvice(e.detail||{}));
 document.addEventListener('astrix:artifact-selection-changed',e=>rememberArtifactSelection(e.detail||{}));
+document.addEventListener('astrix:vault-open',persistVaultBuildSource);
 document.addEventListener('click',openBuildSpace,true);
-export {compactBuild,rememberGuardian,rememberExplicitLoadout,rememberWeaponAdvice,rememberArtifactSelection,resolveBuildSource,currentProfileBuildSource,BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY,LAST_LOADOUT_KEY};
+export {compactBuild,rememberGuardian,rememberExplicitLoadout,rememberWeaponAdvice,rememberArtifactSelection,resolveBuildSource,currentProfileBuildSource,persistVaultBuildSource,BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY,LAST_LOADOUT_KEY};

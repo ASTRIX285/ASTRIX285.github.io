@@ -16,10 +16,12 @@ const allowed=new Set([
   'astrix-app/pages/guardian-workspace-v2/guardian-bungie-auth.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-beta-readiness.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-workspace-v2.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-vault-access.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-shooting-range-capture.mjs',
   'astrix-app/pages/guardian-workspace-v2/index.html',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs',
   'astrix-app/pages/guardian-alpha/guardian-alpha.mjs',
   'astrix-app/pages/guardian-alpha/index.html',
   'astrix-app/pages/journey/index.html',
@@ -30,6 +32,10 @@ const allowed=new Set([
   'astrix-app/pages/mission-reports/mission-reports-data.mjs',
   'astrix-app/pages/mission-reports/mission-reports.mjs',
   'astrix-app/pages/vault/index.html',
+  'astrix-app/pages/vault/vault.css',
+  'astrix-app/pages/vault/vault-inventory.mjs',
+  'astrix-app/pages/vault/vault-selection-state.mjs',
+  'astrix-app/pages/vault/vault.mjs',
   'astrix-app/pages/loadout/index.html',
   'astrix-app/shared/astrix-hero-cards.mjs',
   'astrix-app/shared/astrix-hero-cards.css',
@@ -41,6 +47,8 @@ const allowed=new Set([
   'astrix-app/tools/validate-scope-guard.mjs',
   'astrix-app/tools/validate-super-formation.mjs',
   'astrix-app/tools/validate-tools-hub.mjs',
+  'astrix-app/tools/validate-vault-foundation.mjs',
+  'astrix-app/tools/paradox-validator.mjs',
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);

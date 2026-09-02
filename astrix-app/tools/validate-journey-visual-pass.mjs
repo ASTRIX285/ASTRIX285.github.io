@@ -107,7 +107,7 @@ assert.match(css,/\.journey-page \.journey-vault-summary\{[\s\S]*?linear-gradien
 assert.match(journey,/function createRankBadge[\s\S]*?journey-rank-badge[\s\S]*?renderGuardianRankSummary[\s\S]*?createRankBadge\(rank/,'Guardian Rank summaries must use the custom crimson-and-gold number medallion');
 assert.match(css,/\.journey-page \.journey-rank-badge\{[\s\S]*?background:radial-gradient[\s\S]*?\.journey-page \.journey-rank-badge strong\{[\s\S]*?color:#b51222/,'Rank medallions must use the requested gold/crimson background and crimson number');
 assert.match(journey,/if\(!lateProfile\?\.profile\?\.characters\?\.data\)\{void refreshJourneyProfile\(\);return;\}/,'Journey must retry its lightweight profile feed when the deferred initial profile returns empty');
-assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260902-journey-fast-records-1"'),'Journey must load the shared scoped-profile hero-card renderer');
+assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1"'),'Journey must load the shared scoped-profile hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-astrix-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -142,9 +142,9 @@ for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
   assert.ok(page.includes('astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1'),'Every destination page must load the centred-emblem top-stack presentation');
 }
-assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-journey-fast-records-1'))).length,3,'Journey, Vault and Loadout must load the same scoped-profile Guardian renderer');
+assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1'))).length,3,'Journey, Vault and Loadout must load the same scoped-profile Guardian renderer');
 assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260902-recent-guardian-emblem-1'),'Character must load the latest-played Guardian module graph');
-assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260902-recent-guardian-emblem-1'),'Build Forge must load the latest-played Guardian module graph');
+assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260902-vault-armour-foundation-1'),'Build Forge must load the Vault armour handoff module graph');
 assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260902-recent-guardian-emblem-1'),'Mission Reports must load the latest-played Guardian module graph');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');

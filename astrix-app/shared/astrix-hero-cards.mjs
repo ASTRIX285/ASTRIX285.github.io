@@ -8,9 +8,11 @@ const STAT_ORDER=[2996146975,392767087,1943323491,1735777505,144602215,424456721
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
 const MAX_CHARACTERS=3;
 const IS_JOURNEY_PAGE=location.pathname.includes('/pages/journey/');
+const IS_VAULT_PAGE=location.pathname.includes('/pages/vault/');
+const SHARES_PROFILE=IS_JOURNEY_PAGE||IS_VAULT_PAGE;
 let journeyProfileSettled=false;
 let settleJourneyProfile=()=>{};
-if(IS_JOURNEY_PAGE){
+if(SHARES_PROFILE){
   globalThis.ASTRIX_HERO_PROFILE_PROMISE=new Promise(resolve=>{settleJourneyProfile=resolve;});
 }
 
@@ -57,13 +59,20 @@ function mostRecentCharacterId(characters){
   return String([...characters].sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0]?.characterId||'');
 }
 
+function initialCharacterId(characters){
+  if(!IS_VAULT_PAGE)return mostRecentCharacterId(characters);
+  const requested=new URLSearchParams(location.search).get('characterId')||'';
+  const preferred=[requested].map(String).find(characterId=>characters.some(character=>String(character.characterId)===characterId));
+  return preferred||mostRecentCharacterId(characters);
+}
+
 function rememberCharacterId(characterId){
   try{sessionStorage.setItem(SELECTED_CHARACTER_KEY,String(characterId||''));}
   catch{}
 }
 
 function publishJourneyProfile(payload){
-  if(!IS_JOURNEY_PAGE||journeyProfileSettled)return;
+  if(!SHARES_PROFILE||journeyProfileSettled)return;
   journeyProfileSettled=true;
   globalThis.ASTRIX_HERO_PROFILE_PAYLOAD=payload||null;
   settleJourneyProfile(payload||null);
@@ -73,6 +82,7 @@ function publishJourneyProfile(payload){
 function heroProfileUrl(){
   const url=new URL('/bungie/profile',AUTH_ORIGIN);
   if(IS_JOURNEY_PAGE)url.searchParams.set('scope','journey');
+  else if(IS_VAULT_PAGE)url.searchParams.set('scope','character');
   return url;
 }
 
@@ -153,12 +163,13 @@ async function initAstrixHeroCards(){
       fetchJson(heroProfileUrl()),
       statDefinitions()
     ]);
-    if(IS_JOURNEY_PAGE)payload.statDefinitions={...(payload.statDefinitions||{}),...definitions};
+    if(SHARES_PROFILE)payload.statDefinitions={...(payload.statDefinitions||{}),...definitions};
     publishJourneyProfile(payload);
     const characters=characterRoster(payload,definitions);
     const selectedId=mostRecentCharacterId(characters);
-    rememberCharacterId(selectedId);
-    render(characters,selectedId);
+    const pageSelectedId=IS_VAULT_PAGE?initialCharacterId(characters):selectedId;
+    rememberCharacterId(pageSelectedId);
+    render(characters,pageSelectedId);
   }catch(error){
     console.info('[ASTRIX Hero Cards] Bungie character cards unavailable',error);
     publishJourneyProfile(null);

@@ -1,7 +1,7 @@
 import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,protectBuildState,restoreWorkingBuild} from './paradox-build-state.mjs';
 import {mountForgeShell} from '../platform-forge-shell.mjs';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs?v=20260902-shared-account-orbit-1';
-import {renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
+import {analyzeLiveGuardian,renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
 import {createPerkChangePlan,confirmPerkChangePlan,applyConfirmedPerkChangePlan} from '../guardian-perk-change-plan.mjs';
 import {armourCard} from '../guardian-gear-layout.mjs?v=20260829-weapon-perk-hash-1';
 import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260829-weapon-perk-hash-1';
@@ -10,10 +10,12 @@ import {mergeSubclassCatalog,mergeSuperOptions} from '../guardian-super-catalog.
 import {markGuardianFastReturn} from '../guardian-session-cache.mjs';
 import {guardianManifest} from '../guardian-manifest-service.mjs';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope} from '../paradox-build-binding.mjs';
+import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection} from '../../vault/vault-selection-state.mjs';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
 import '../guardian-bungie-profile.mjs?v=20260902-recent-guardian-emblem-1';
 import '../guardian-portal-progress.mjs?v=20260830-build-render-gate-2';
+import '../guardian-vault-access.mjs?v=20260902-vault-armour-foundation-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 
@@ -95,7 +97,19 @@ function selectedExpectedActivity(){const node=byId('expectedActivity'),row=veri
 function renderTestConfiguration(){const build=currentBuild(),node=byId('expectedActivity'),rows=verifiedActivities(build),destination=byId('expectedDestination'),destinationApi=globalThis.AstrixDestinations;if(destination&&destinationApi){destination.innerHTML=destinationApi.options().map(option=>'<option value="'+esc(option.key)+'">'+esc(option.label.toUpperCase())+'</option>').join('');destination.value=destinationApi.current();}if(node){node.innerHTML='<option value="">ANY COMPLETED ACTIVITY</option>'+rows.map(row=>'<option value="'+esc(row.hash||row.activityHash||row.activityTypeHash||row.mode)+'">'+esc(row.name||row.displayName||'Bungie activity '+(row.hash||row.activityHash))+'</option>').join('');}byId('testDomainLabel').textContent=testDomain.toUpperCase()+' BUILD TEST';byId('calibrationOption').hidden=testDomain!=='pve';byId('testContextNote').textContent=testDomain==='pvp'?'Crucible modes appear only when resolved from current Bungie activity definitions. Map and modifier context can attach to the same verified intake contract.':'Select a verified PvE activity, leave Any Activity selected, or use optional Shooting Range calibration.';document.querySelectorAll('[data-test-domain]').forEach(button=>{const active=button.dataset.testDomain===testDomain;button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',String(active));});}
 
 function writeState(next){volatileState=protectBuildState(next);const json=JSON.stringify(createHandoffEnvelope(next));let stored=false;for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,json);stored=true;}catch{}}return stored;}
-function switchBuildCharacter(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId)return;const next=createBuildState(detail);writeState(next);render();}
+function applyPendingVaultSelection(state){
+  if(!state?.originalBuild||!state?.workingBuild||new URLSearchParams(location.search).get('vault')!=='selection')return state;
+  const expectedBinding=bindingOf(state);
+  const selection=readVaultArmourSelection({expectedBinding});
+  if(!selection)return state;
+  const result=applyVaultArmourSelection(state,selection);
+  if(!result.applied)return state;
+  const analysis=analyzeLiveGuardian(result.state.workingBuild);
+  if(analysis)result.state.workingBuild.paradoxAnalysis=analysis;
+  clearVaultArmourSelection();
+  return result.state;
+}
+function switchBuildCharacter(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId)return;const next=applyPendingVaultSelection(createBuildState(detail));writeState(next);render();}
 function recoverMissingBuild(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId||readState())return;switchBuildCharacter(detail);}
 function settleBuildImage(image){if(!image?.src||image.hidden||image.closest('[hidden]')||image.complete)return Promise.resolve();return Promise.race([typeof image.decode==='function'?image.decode().catch(()=>{}):new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});}),new Promise(resolve=>setTimeout(resolve,5000))]);}
 function completeBuildRender(build){const sequence=++buildRenderSequence;requestAnimationFrame(()=>requestAnimationFrame(async()=>{if(sequence!==buildRenderSequence)return;const images=[...document.querySelectorAll('.build-space img,.build-character-selector img')].filter(image=>!image.closest('[hidden]'));await Promise.all(images.map(settleBuildImage));if(sequence!==buildRenderSequence)return;guardianManifest.ready().finally(()=>{if(sequence!==buildRenderSequence)return;const ready=Boolean(build),status=ready?'ready':'pending',label=ready?'Build Forge rendered':'Waiting for authenticated Guardian build';emitLoad('render',ready?LOAD_STAGES.READY:LOAD_STAGES.SNAPSHOT,label,status);document.dispatchEvent(new CustomEvent('astrix:build-render-complete',{detail:{status,characterId:String(build?.characterId||''),selectedLoadoutIndex:Number.isInteger(build?.selectedLoadoutIndex)?build.selectedLoadoutIndex:null,renderedImages:images.filter(image=>image.complete&&image.naturalWidth>0).length}}));});}));}
@@ -132,7 +146,7 @@ function render(){
   emitLoad('validation',LOAD_STAGES.VALIDATE,'Validating character-bound snapshot…');
   const changes=diffBuilds(original,build),loadoutNumber=Number.isInteger(build.selectedLoadoutIndex)?build.selectedLoadoutIndex+1:null,sourceName=loadoutNumber?`BUNGIE LOADOUT ${loadoutNumber}`:'CURRENT EQUIPPED GUARDIAN';
   byId('sourcePill').textContent=`BUILD SOURCE · ${sourceName}`;byId('sourceLabel').textContent=sourceName;byId('buildStateLabel').textContent='ORIGINAL SNAPSHOT CAPTURED';byId('buildStateDetail').textContent='Recommendations mutate a separate Working Build so the protected source can always be restored.';emitLoad('profile',LOAD_STAGES.PROFILE,'Resolving Guardian profile…');byId('sourceDetail').textContent=loadoutNumber?`Character ${build.characterClass||''} · Bungie slot ${loadoutNumber} · exact resolved loadout snapshot.`:`Character ${build.characterClass||''} · current equipped state captured at entry.`;byId('guardianHeading').textContent=String(build.characterClass||'Guardian').toUpperCase();
-  const notice=byId('buildStateNotice'),restore=byId('restoreOriginal');if(notice)notice.innerHTML=changes.length?`<b>${changes.length} working change${changes.length===1?'':'s'}.</b> Original build remains protected and can be restored.`:'<b>Baseline protected.</b> Working build currently matches the immutable original snapshot.';if(restore){restore.disabled=!changes.length;restore.title=changes.length?'Discard Working Build changes and restore the protected Original snapshot.':'Working Build already matches Original.';}
+  const notice=byId('buildStateNotice'),restore=byId('restoreOriginal'),vaultCount=Array.isArray(build.vaultArmourSelection?.slots)?build.vaultArmourSelection.slots.length:0;if(notice)notice.innerHTML=changes.length?`<b>${changes.length} working change${changes.length===1?'':'s'}${vaultCount?` · ${vaultCount} from Vault`:''}.</b> Original build remains protected and can be restored.`:'<b>Baseline protected.</b> Working build currently matches the immutable original snapshot.';if(restore){restore.disabled=!changes.length;restore.title=changes.length?'Discard Working Build changes and restore the protected Original snapshot.':'Working Build already matches Original.';}
   const subclassOptions=resolvedSubclassOptions(build),activeElement=elementOf({element:build.subclass||build.subclassName||''}),activeSubclass=subclassOptions.find(item=>elementOf(item)===activeElement)||null;
   renderEquippedSubclass({root:byId('buildEquippedSubclassSummary'),iconNode:byId('buildEquippedSubclassIcon'),nameNode:byId('buildEquippedSubclassName'),metaNode:byId('buildEquippedSubclassMeta'),subclass:build.subclass||'',subclassName:build.subclassName||'',characterClass:build.characterClass||'Guardian',icon:iconOf(activeSubclass)||build.subclassIcon||''});
   renderSubclassPicker({root:byId('buildSubclassPicker'),characterClass:build.characterClass||'Guardian',subclass:build.subclass||build.subclassName||'',subclassOptions:resolvedSubclassOptions(build),selectKind:'subclass'});
@@ -172,4 +186,6 @@ byId('pullRangeResults')?.addEventListener('click',pullRange);
 byId('downloadRangeEvidence')?.addEventListener('click',downloadRangeEvidence);
 byId('applyBuild')?.addEventListener('click',applyBuild);
 byId('restoreOriginal')?.addEventListener('click',restoreOriginal);
+const initialVaultState=readState();
+if(initialVaultState){const nextVaultState=applyPendingVaultSelection(initialVaultState);if(nextVaultState!==initialVaultState)writeState(nextVaultState);}
 render();

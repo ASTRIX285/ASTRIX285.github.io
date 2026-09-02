@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="ASTRIX PARADOX Vault scaffold">
+  <meta name="description" content="ASTRIX PARADOX verified Destiny 2 armour Vault">
   <title>Vault — ASTRIX PARADOX</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,37 +14,52 @@
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
+  <link rel="stylesheet" href="./vault.css?v=20260902-vault-armour-foundation-1">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <script src="../../shared/astrix-destination-ribbon.js" defer></script>
 </head>
 <body class="apx-destination-page astrix-paradox-map-background">
-  <header class="apx-destination-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>VAULT</strong><small>INVENTORY COMMAND</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state">SCAFFOLD</span></header>
+  <header class="apx-destination-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>VAULT</strong><small>INVENTORY COMMAND</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state" id="vaultHeaderState">BUNGIE INVENTORY</span></header>
   <div data-astrix-destination-ribbon data-active-destination="vault"></div>
   <main class="apx-page-shell">
-    <div class="apx-page-heading"><div><p class="apx-eyebrow">INVENTORY SCAFFOLD</p><h1>Vault</h1><p>This page defines the planned inventory structure only. No Guardian inventory, item instance, capacity or Postmaster value is loaded.</p></div><span class="apx-status-chip">NO LIVE INVENTORY</span></div>
+    <div class="apx-page-heading"><div><p class="apx-eyebrow">VERIFIED INVENTORY COMMAND</p><h1>Vault</h1><p>Browse armour owned across the shared Vault, carried inventory, equipped Guardians and Postmaster. Stage exact Bungie item instances for Build Forge evaluation without changing live equipment.</p></div><span class="apx-status-chip" id="vaultConnectionState">RESOLVING</span></div>
 
-    <section class="apx-section" aria-labelledby="vaultCharacters"><div class="apx-section-heading"><h2 id="vaultCharacters">Characters</h2><span class="apx-status-chip">EMPTY</span></div><div class="apx-subgrid">
-      <article class="apx-subpanel"><h3>Carried weapons</h3><span class="apx-empty-state">No character weapon inventory is connected.</span></article>
-      <article class="apx-subpanel"><h3>Carried armour</h3><span class="apx-empty-state">No character armour inventory is connected.</span></article>
-      <article class="apx-subpanel"><h3>Equipment</h3><span class="apx-empty-state">No character equipment source is connected.</span></article>
-      <article class="apx-subpanel"><h3>Postmaster</h3><span class="apx-empty-state">No verified Postmaster contents or warning state is available.</span></article>
-    </div></section>
+    <section class="vault-capacity" aria-label="Vault inventory totals">
+      <article class="vault-capacity-total"><span>ALL VAULT ITEMS</span><strong id="vaultTotalCount">—</strong><small>Verified shared Vault entries</small></article>
+      <article><span>ARMOUR</span><strong id="vaultArmourCount">—</strong><small>Verified armour definitions</small></article>
+      <article><span>OTHER ITEMS</span><strong id="vaultEquipmentCount">—</strong><small>Remaining verified Vault entries</small></article>
+      <article><span>OWNED ARMOUR</span><strong id="vaultOwnedArmourCount">—</strong><small>Vault, carried and equipped</small></article>
+    </section>
 
-    <section class="apx-section" aria-labelledby="sharedVault"><div class="apx-section-heading"><h2 id="sharedVault">Shared Vault</h2><span class="apx-status-chip">EMPTY</span></div>
-      <h3>Weapons by equipment slot</h3><div class="apx-subgrid">
-        <article class="apx-subpanel"><h3>Kinetic-slot weapons</h3><span class="apx-empty-state">No sourced items.</span></article>
-        <article class="apx-subpanel"><h3>Energy-slot weapons</h3><span class="apx-empty-state">No sourced items.</span></article>
-        <article class="apx-subpanel"><h3>Power-slot weapons</h3><span class="apx-empty-state">No sourced items.</span></article>
+    <section class="apx-section vault-workspace" aria-labelledby="vaultArmourTitle">
+      <div class="apx-section-heading"><div><p class="apx-eyebrow">ARMOUR SET BUILDER</p><h2 id="vaultArmourTitle">Select armour for evaluation</h2></div><span class="apx-status-chip" id="vaultResultCount">WAITING FOR BUNGIE</span></div>
+      <p class="vault-context" id="vaultReturnContext">Choose up to one verified item per armour slot. The selection will become a separate Working Build; the original build remains protected.</p>
+
+      <form class="vault-filters" id="vaultFilters" aria-label="Vault armour filters">
+        <label><span>SEARCH</span><input id="vaultSearch" type="search" autocomplete="off" placeholder="Armour, set, archetype or source"></label>
+        <label><span>CLASS</span><select id="vaultClassFilter"><option value="all">All classes</option><option value="hunter">Hunter</option><option value="titan">Titan</option><option value="warlock">Warlock</option></select></label>
+        <label><span>SLOT</span><select id="vaultSlotFilter"><option value="all">All slots</option><option value="helmet">Helmet</option><option value="gauntlets">Gauntlets</option><option value="chest">Chest</option><option value="legs">Legs</option><option value="class-item">Class item</option></select></label>
+        <label><span>LOCATION</span><select id="vaultSourceFilter"><option value="all">All owned armour</option><option value="vault">Vault</option><option value="carried">Carried</option><option value="equipped">Equipped</option><option value="postmaster">Postmaster</option></select></label>
+      </form>
+
+      <div class="vault-selection" aria-labelledby="vaultSelectionTitle">
+        <div class="vault-selection-head"><div><h3 id="vaultSelectionTitle">Staged armour</h3><small id="vaultSelectionStatus">No armour selected</small></div><button type="button" id="vaultClearSelection" disabled>CLEAR</button></div>
+        <div class="vault-selection-slots" id="vaultSelectionSlots" aria-label="Selected armour slots"></div>
+        <button class="vault-evaluate" type="button" id="vaultEvaluate" disabled>EVALUATE IN BUILD FORGE</button>
       </div>
-      <h3 style="margin-top:24px">Armour by class, then slot</h3><div class="apx-subgrid">
-        <article class="apx-subpanel"><h3>Hunter armour</h3><ul class="apx-field-list"><li><span>Helmet</span><span>Empty</span></li><li><span>Gauntlets</span><span>Empty</span></li><li><span>Chest</span><span>Empty</span></li><li><span>Legs</span><span>Empty</span></li><li><span>Class item</span><span>Empty</span></li></ul></article>
-        <article class="apx-subpanel"><h3>Titan armour</h3><ul class="apx-field-list"><li><span>Helmet</span><span>Empty</span></li><li><span>Gauntlets</span><span>Empty</span></li><li><span>Chest</span><span>Empty</span></li><li><span>Legs</span><span>Empty</span></li><li><span>Class item</span><span>Empty</span></li></ul></article>
-        <article class="apx-subpanel"><h3>Warlock armour</h3><ul class="apx-field-list"><li><span>Helmet</span><span>Empty</span></li><li><span>Gauntlets</span><span>Empty</span></li><li><span>Chest</span><span>Empty</span></li><li><span>Legs</span><span>Empty</span></li><li><span>Class item</span><span>Empty</span></li></ul></article>
-      </div>
-      <h3 style="margin-top:24px">Equipment</h3><div class="apx-subpanel"><span class="apx-empty-state">No shared equipment source is connected.</span></div>
+
+      <div class="vault-runtime-status" id="vaultRuntimeStatus" role="status">Resolving the authenticated Bungie inventory…</div>
+      <div class="vault-item-grid" id="vaultItemGrid" aria-live="polite"></div>
+      <button class="vault-load-more" type="button" id="vaultLoadMore" hidden>LOAD MORE ARMOUR</button>
+    </section>
+
+    <section class="apx-section vault-signed-out" id="vaultSignedOut" hidden aria-labelledby="vaultSignedOutTitle">
+      <div class="apx-section-heading"><h2 id="vaultSignedOutTitle">Bungie connection required</h2><span class="apx-status-chip">SIGNED OUT</span></div>
+      <p>Connect Bungie to load verified item instances. No inventory totals or equipment states are guessed.</p>
+      <a class="vault-connect" id="vaultConnectButton" href="https://auth.astrixparadox.com/bungie/start">CONNECT BUNGIE</a>
     </section>
   </main>
-  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-journey-fast-records-1"></script>
-  <script>document.addEventListener('astrix:hero-cards-render-complete',()=>{AstrixLoader.set(96);AstrixLoader.status('Vault rendered');AstrixLoader.ready(document.querySelector('.apx-page-shell'));},{once:true});</script>
+  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1"></script>
+  <script type="module" src="./vault.mjs?v=20260902-vault-armour-foundation-1"></script>
 </body>
 </html>
