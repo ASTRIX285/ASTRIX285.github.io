@@ -23,6 +23,8 @@ const LIVE_DEFINITION_TYPES = new Set([
   "DestinyPresentationNodeDefinition",
   "DestinyRecordDefinition",
   "DestinyObjectiveDefinition",
+  "DestinyGuardianRankDefinition",
+  "DestinyGuardianRankConstantsDefinition",
   "DestinyDamageTypeDefinition",
   "DestinyBreakerTypeDefinition",
   "DestinyEquipableItemSetDefinition"
