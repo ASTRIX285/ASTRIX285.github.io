@@ -4,13 +4,19 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  '.github/workflows/deploy-astrix-sandbox.yml',
   'astrix-auth-worker/src/index.ts',
+  'astrix-auth-worker/wrangler.toml',
+  'astrix-sandbox/cloudflare-pages.mjs',
+  'astrix-sandbox/pages-worker.js',
+  'astrix-sandbox/prepare-deployment.mjs',
   'astrix-app/pages/guardian-workspace-v2/index.html',
   'astrix-app/pages/journey/index.html',
   'astrix-app/pages/journey/journey-2560-visual.css',
   'astrix-app/pages/journey/journey-location-maps.mjs',
   'astrix-app/pages/journey/journey.mjs',
   'astrix-app/tools/validate-journey-visual-pass.mjs',
+  'astrix-app/tools/validate-sandbox-deployment.mjs',
   'astrix-app/tools/validate-scope-guard.mjs',
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})

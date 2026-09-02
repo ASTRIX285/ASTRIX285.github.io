@@ -1,0 +1,90 @@
+name: Deploy ASTRIX Sandbox
+
+on:
+  push:
+    branches:
+      - sandbox
+  workflow_dispatch:
+
+concurrency:
+  group: astrix-paradox-sandbox
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sandbox
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate sandbox contract
+        run: |
+          node astrix-app/tools/validate-scope-guard.mjs
+          node astrix-app/tools/validate-sandbox-deployment.mjs
+      - name: Validate auth Worker
+        working-directory: astrix-auth-worker
+        run: |
+          npm install
+          npm run check --if-present
+      - name: Prepare static sandbox
+        run: node astrix-sandbox/prepare-deployment.mjs
+      - name: Ensure Cloudflare Pages project
+        run: node astrix-sandbox/cloudflare-pages.mjs ensure-project
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy sandbox Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .sandbox-dist --project-name astrix-paradox-sandbox --branch sandbox --commit-dirty=true
+      - name: Attach sandbox custom domain
+        run: node astrix-sandbox/cloudflare-pages.mjs ensure-domain
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy sandbox auth origin
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: astrix-auth-worker
+          command: deploy
+      - name: Verify live sandbox
+        run: |
+          node - <<'NODE'
+          const pageUrl='https://sandbox.astrixparadox.com/astrix-app/pages/journey/';
+          const origin='https://sandbox.astrixparadox.com';
+          let page;
+          for(let attempt=1;attempt<=36;attempt+=1){
+            page=await fetch(pageUrl,{redirect:'follow'}).catch(()=>null);
+            if(page?.ok)break;
+            await new Promise(resolve=>setTimeout(resolve,5000));
+          }
+          if(!page?.ok)throw new Error(`sandbox page unavailable: ${page?.status||'network error'}`);
+          const html=await page.text();
+          if(!html.includes('20260902-stat-trackers-no-report-link'))throw new Error('sandbox is not serving the current Journey build');
+          const preflight=await fetch('https://auth.astrixparadox.com/bungie/profile',{
+            method:'OPTIONS',
+            headers:{
+              Origin:origin,
+              'Access-Control-Request-Method':'GET',
+              'Access-Control-Request-Headers':'Content-Type',
+            },
+          });
+          if(preflight.status!==204)throw new Error(`sandbox CORS preflight ${preflight.status}`);
+          if(preflight.headers.get('access-control-allow-origin')!==origin)throw new Error('sandbox CORS origin mismatch');
+          if(preflight.headers.get('access-control-allow-credentials')!=='true')throw new Error('sandbox credentialed CORS missing');
+          const profile=await fetch('https://auth.astrixparadox.com/bungie/profile',{headers:{Origin:origin}});
+          const body=await profile.json();
+          if(profile.status!==401||body.error!=='authentication_required')throw new Error(`sandbox profile guard ${profile.status}`);
+          console.log('SANDBOX_LIVE_PAGE=PASS');
+          console.log('SANDBOX_AUTH_CORS=PASS');
+          NODE
