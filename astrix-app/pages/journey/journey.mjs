@@ -79,6 +79,9 @@ let historicalStatsRequest=0;
 let currentFormRequest=0;
 let titleTriumphRequest=0;
 let triumphSectionRequest=0;
+let recordsCategoryRequest=0;
+let guardianRankRequest=0;
+let guardianRankObjectiveRequest=0;
 let activeRecordView='';
 let selectedTitle=null;
 let selectedTriumphCategory=null;
@@ -266,6 +269,30 @@ function titleRequirementRow(payload,characterId,entry,definition,objectiveDefin
   }).filter(objective=>objective.completed!==null&&objective.total!==null&&objective.total>0);
   const complete=state!==null?(state&4)!==4:objectives.length>0&&objectives.every(objective=>objective.complete);
   return {hash,name:String(definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(definition),description:String(state!==null&&(state&8)===8?definition?.stateInfo?.obscuredDescription||'':definition?.displayProperties?.description||''),complete,objectives};
+}
+
+async function presentationRecordCategories(entries,nodes,characterId,recordKind){
+  const sections=[];
+  const seen=new Set();
+  let pending=(entries||[]).map(entry=>({entry,path:[]}));
+  while(pending.length){
+    const level=pending;
+    pending=[];
+    const definitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',level.map(item=>item.entry.presentationNodeHash));
+    level.sort((left,right)=>Number(left.entry?.nodeDisplayPriority||0)-Number(right.entry?.nodeDisplayPriority||0)).forEach(item=>{
+      const hash=String(item.entry?.presentationNodeHash||'');
+      if(!hash||seen.has(hash))return;
+      seen.add(hash);
+      const definition=definitions[hash];
+      const name=String(definition?.displayProperties?.name||'').trim();
+      if(!definition||!name)return;
+      const path=[...item.path,name];
+      const recordEntries=(definition?.children?.records||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
+      if(recordEntries.length){const node=nodes?.[hash];sections.push({key:hash,name:path.join(' · '),icon:bungiePresentationIcon(definition),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),recordEntries,items:null,characterId,recordKind});}
+      pending.push(...(definition?.children?.presentationNodes||[]).map(entry=>({entry,path})));
+    });
+  }
+  return sections;
 }
 
 const RECORD_SECTION_DEFINITIONS=[
@@ -698,8 +725,33 @@ function guardianRankRows(payload){
   })};
 }
 
-function bindGuardianRankPanel(payload){
-  const data=guardianRankRows(payload);
+async function bindGuardianRankPanel(payload){
+  const requestId=++guardianRankRequest;
+  guardianRankObjectiveRequest+=1;
+  let data=guardianRankRows(payload);
+  if(!Array.isArray(payload?.journeyRecordOverview?.guardianRank?.ranks)){
+    if(recordsStatus)recordsStatus.textContent='LOADING VERIFIED GUARDIAN RANKS';
+    await manifestReady;
+    const constants=await guardianManifest.getAsync('DestinyGuardianRankConstantsDefinition',1);
+    const rankHashes=(constants?.guardianRankHashes||[]).slice(0,finiteNumber(constants?.rankCount)??11);
+    const rankDefinitions=await guardianManifest.getMany('DestinyGuardianRankDefinition',rankHashes);
+    const presentationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',rankHashes.map(hash=>rankDefinitions[String(hash)]?.presentationNodeHash));
+    const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
+    const characters=payload?.profile?.characters?.data||{};
+    const character=characters[selectedCharacterId]||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
+    const characterId=String(character?.characterId||'');
+    const currentRank=finiteNumber(payload?.profile?.profile?.data?.currentGuardianRank);
+    const ranks=rankHashes.map((hash,index)=>{
+      const definition=rankDefinitions[String(hash)];
+      const rank=finiteNumber(definition?.rankNumber)??index+1;
+      const presentationHash=String(definition?.presentationNodeHash||'');
+      const presentation=presentationDefinitions[presentationHash];
+      const node=nodes[presentationHash];
+      return {rank,name:String(definition?.displayProperties?.name||`Rank ${rank}`).trim(),icon:bungiePresentationIcon(definition),description:String(definition?.displayProperties?.description||'').trim(),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),objectives:null,nodeEntries:presentation?.children?.presentationNodes||[],characterId,nodes};
+    });
+    if(ranks.length)data={currentRank,currentRankName:ranks.find(item=>item.rank===currentRank)?.name||'',nextRank:currentRank===null?null:Math.min(ranks.length,currentRank+1),ranks};
+  }
+  if(requestId!==guardianRankRequest)return;
   const fallbackRank=data.currentRank===null?1:Math.min(11,Math.max(1,data.currentRank+1));
   const selected=data.ranks.find(item=>item.rank===(data.nextRank??fallbackRank))||data.ranks[0];
   guardianRankStrip?.replaceChildren();
@@ -710,8 +762,24 @@ function bindGuardianRankPanel(payload){
     button.setAttribute('aria-current',String(item===selected));
     button.addEventListener('click',()=>{
       guardianRankStrip.querySelectorAll('button').forEach(row=>row.setAttribute('aria-current',String(row===button)));
-      renderDetailHero(guardianRankHero,{name:item.name,icon:item.icon,description:data.currentRank===null?'Current Guardian Rank unavailable':`CURRENT RANK ${data.currentRank}${data.currentRankName?` · ${data.currentRankName}`:''}`,completed:item.completed,total:item.total,unit:'RANK PROGRESS'});
-      renderJourneyRecordList(guardianRankObjectives,item.objectives,'Verified objectives for this Guardian Rank are not yet connected.');
+      const next=data.currentRank===null?null:data.ranks.find(rank=>rank.rank===data.currentRank+1);
+      const description=data.currentRank===null?'Current Guardian Rank unavailable':`CURRENT RANK ${data.currentRank}${data.currentRankName?` · ${data.currentRankName}`:''}${next?` · NEXT RANK ${next.rank} · ${next.name}`:' · MAXIMUM RANK'}`;
+      renderDetailHero(guardianRankHero,{name:item.name,icon:item.icon,description,completed:item.completed,total:item.total,unit:'RANK PROGRESS'});
+      const objectiveRequest=++guardianRankObjectiveRequest;
+      if(Array.isArray(item.objectives)){renderJourneyRecordList(guardianRankObjectives,item.objectives,'No verified objectives were returned for this Guardian Rank.');return;}
+      renderJourneyRecordList(guardianRankObjectives,[],'Loading verified Guardian Rank objectives.');
+      void (async()=>{
+        const sections=await presentationRecordCategories(item.nodeEntries,item.nodes,item.characterId,'guardian-rank');
+        const recordEntries=sections.flatMap(section=>section.recordEntries);
+        const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',recordEntries.map(entry=>entry.recordHash));
+        const objectiveDefinitions=await guardianManifest.getMany('DestinyObjectiveDefinition',Object.values(recordDefinitions).flatMap(definition=>definition?.objectiveHashes||[]));
+        item.objectives=sections.flatMap(section=>{
+          const category={hash:section.key,name:section.name,icon:section.icon,completed:section.completed,total:section.total,unit:'CATEGORY PROGRESS',complete:section.completed!==null&&section.total!==null&&section.total>0&&section.completed>=section.total};
+          const objectives=section.recordEntries.map(entry=>titleRequirementRow(payload,item.characterId,entry,recordDefinitions[String(entry.recordHash)],objectiveDefinitions)).filter(row=>row?.name);
+          return [category,...objectives];
+        });
+        if(objectiveRequest===guardianRankObjectiveRequest)renderJourneyRecordList(guardianRankObjectives,item.objectives,'No verified objectives were returned for this Guardian Rank.');
+      })();
     });
     guardianRankStrip?.appendChild(button);
   });
@@ -772,26 +840,72 @@ function showRecordsDetail(section){
   selectedRecordSection=section;
   activateRecordView('records-detail');
   renderDetailHero(recordsDetailHero,{name:section.name,icon:section.icon,description:section.description,completed:section.completed,total:section.total,unit:'SECTION PROGRESS'});
+  const renderCategory=(category,emptyText)=>{
+    const requestId=++recordsCategoryRequest;
+    if(Array.isArray(category.items)){renderJourneyRecordList(recordsDetailList,category.items,emptyText);return;}
+    renderJourneyRecordList(recordsDetailList,[],'Loading verified Bungie records.');
+    void (async()=>{
+      const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',category.recordEntries.map(entry=>entry.recordHash));
+      const objectiveDefinitions=await guardianManifest.getMany('DestinyObjectiveDefinition',Object.values(recordDefinitions).flatMap(definition=>definition?.objectiveHashes||[]));
+      category.items=category.recordEntries.map(entry=>{
+        const definition=recordDefinitions[String(entry.recordHash)];
+        const row=titleRequirementRow(verifiedProfile,category.characterId,entry,definition,objectiveDefinitions);
+        const component=titleRecordFor(verifiedProfile,category.characterId,entry.recordHash);
+        const earned=category.recordKind==='medals'?finiteNumber(component?.completedCount):null;
+        return row?{...row,unit:earned===null?'':'EARNED',value:earned}:null;
+      }).filter(item=>item?.name);
+      if(selectedRecordSection===section&&requestId===recordsCategoryRequest)renderJourneyRecordList(recordsDetailList,category.items,emptyText);
+    })();
+  };
   const patternsCatalysts=section.key==='patterns-catalysts';
   recordsDetailGroup?.classList.toggle('is-patterns-catalysts',patternsCatalysts);
   if(recordsTypes)recordsTypes.hidden=!patternsCatalysts;
   if(patternsCatalysts){
     renderRecordTypes(recordsTypes,section.types||[],type=>{
       if(recordsDetailHeading)recordsDetailHeading.textContent=type.name;
-      renderSubmenu(recordsSubcategories,type.categories||[],category=>renderJourneyRecordList(recordsDetailList,category.items||[],type.key==='catalysts'?'Verified catalyst progress for this weapon group is not yet connected.':'Verified pattern progress for this weapon type is not yet connected.'));
+      renderSubmenu(recordsSubcategories,type.categories||[],category=>renderCategory(category,type.key==='catalysts'?'No verified catalyst records were returned for this weapon group.':'Verified pattern progress for this weapon type is not yet connected.'));
     });
     return;
   }
   recordsTypes?.replaceChildren();
   if(recordsDetailHeading)recordsDetailHeading.textContent='Record Categories';
   renderSubmenu(recordsSubcategories,section.categories||[],category=>{
-    renderJourneyRecordList(recordsDetailList,category.items||[],section.key==='stat-trackers'?'Verified Stat Trackers for this category are not yet connected.':'Verified individual Record progress is not yet connected.');
+    renderCategory(category,section.key==='stat-trackers'?'Verified Stat Trackers for this category are not yet connected.':'No verified records were returned for this category.');
   });
   if(!(section.categories||[]).length)renderJourneyRecordList(recordsDetailList,[],'Verified Record categories are not yet connected.');
 }
 
-function bindRecordsPanel(payload){
-  const sections=recordsFrameworkSections(payload);
+async function bindRecordsPanel(payload){
+  let sections=recordsFrameworkSections(payload);
+  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes;
+  if(!Array.isArray(payload?.journeyRecordOverview?.records?.sections)&&nodes&&typeof nodes==='object'){
+    if(recordsStatus)recordsStatus.textContent='LOADING VERIFIED BUNGIE RECORDS';
+    await manifestReady;
+    const presentationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
+    const resolved=Object.entries(nodes).map(([hash,node])=>({hash,node,definition:presentationDefinitions[hash]})).filter(item=>item.definition);
+    const definitionByHash=Object.fromEntries(resolved.map(item=>[String(item.hash),item.definition]));
+    const recordsRoot=resolved.find(item=>!(item.definition?.parentNodeHashes||[]).length&&(item.definition?.children?.presentationNodes||[]).length>2&&(item.definition?.children?.presentationNodes||[]).some(entry=>{const definition=definitionByHash[String(entry.presentationNodeHash)];return definition?.displayProperties?.name===item.definition?.displayProperties?.name&&(definition?.children?.presentationNodes||[]).length;}));
+    const characters=payload?.profile?.characters?.data||{};
+    const character=characters[selectedCharacterId]||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
+    const characterId=String(character?.characterId||'');
+    if(recordsRoot){
+      sections=recordsFrameworkSections({...payload,journeyRecordOverview:{...(payload?.journeyRecordOverview||{}),records:{sections:[{key:'medals'},{key:'patterns-catalysts'},{key:'lore',available:true},{key:'stat-trackers'}]}}});
+      const roots=(recordsRoot.definition?.children?.presentationNodes||[]).map(entry=>definitionByHash[String(entry.presentationNodeHash)]).filter(Boolean);
+      for(const [sectionKey,rootName,recordKind] of [['medals','Medals','medals'],['lore','Lore','lore'],['patterns-catalysts','Exotic Catalysts','catalysts']]){
+        const root=roots.find(definition=>definition?.displayProperties?.name===rootName);
+        const currentEntry=(root?.children?.presentationNodes||[]).find(entry=>definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name===rootName);
+        const currentDefinition=definitionByHash[String(currentEntry?.presentationNodeHash||'')];
+        if(!currentDefinition)continue;
+        const categories=await presentationRecordCategories(currentDefinition?.children?.presentationNodes||[],nodes,characterId,recordKind);
+        const currentNode=nodes[String(currentEntry.presentationNodeHash)];
+        const section=sections.find(item=>item.key===sectionKey);
+        if(sectionKey==='patterns-catalysts'){
+          const catalysts=section?.types?.find(type=>type.key==='catalysts');
+          if(catalysts)Object.assign(catalysts,{icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),categories});
+        }else if(section)Object.assign(section,{icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),categories});
+      }
+    }
+  }
   renderJourneyRecordList(recordsSections,sections,'Record sections are unavailable.',showRecordsDetail);
   if(recordsStatus)recordsStatus.textContent=`${sections.length} RECORD SECTIONS${sections.some(section=>section.key==='lore')?'':' · LORE AWAITING VERIFIED DATA'}`;
 }
@@ -816,8 +930,8 @@ function showGuardianRecordPanel(view){
   if(view==='titles'||view==='triumphs'){
     if(verifiedProfile)void bindTitleTriumphPanel(verifiedProfile,view);
     else if(recordsStatus)recordsStatus.textContent='AWAITING VERIFIED BUNGIE RECORDS';
-  }else if(view==='guardian-rank')bindGuardianRankPanel(verifiedProfile||{});
-  else bindRecordsPanel(verifiedProfile||{});
+  }else if(view==='guardian-rank')void bindGuardianRankPanel(verifiedProfile||{});
+  else void bindRecordsPanel(verifiedProfile||{});
   recordsBack?.focus();
 }
 
