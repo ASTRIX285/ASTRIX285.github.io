@@ -38,7 +38,7 @@ const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/a
 const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-6k.webp`);
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
-assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-recent-guardian-emblem-1"'),'Journey must load the cache-busted emblem alignment treatment');
+assert.ok(html.includes('href="./journey-2560-visual.css?v=20260903-centred-guardian-label-1"'),'Journey must load the cache-busted centred Guardian label treatment');
 assert.ok(html.includes('src="./journey.mjs?v=20260903-journey-progressive-records-1"'),'Journey must load the progressive Triumph and Records module graph');
 assert.match(journey,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey startup must not download the heavyweight Character and Build equipment manifest');
 assert.doesNotMatch(journey,/const manifestReady=guardianManifest\.ready\(\)/,'Journey must keep the full equipment manifest off its critical loading path');
@@ -64,10 +64,11 @@ assert.match(journey,/function balanceJourneyHeader\(\)[\s\S]*?--journey-command
 assert.match(guardianAuth,/function bungieAvatarUrl\(path\)[\s\S]*?url\.protocol==="https:"[\s\S]*?hostname\.endsWith\("\.bungie\.net"\)/,'The shared account visual must constrain avatar assets to Bungie HTTPS hosts');
 assert.match(guardianAuth,/fetch\(new URL\("\/bungie\/account",AUTH_ORIGIN\)[\s\S]*?setAccountVisual\(control,account,session\)/,'Every destination must request Bungie’s own profile picture for the current session');
 assert.match(guardianAuth,/if\(session\?\.authenticated\)\{[\s\S]*?control\.button\.hidden=true;[\s\S]*?control\.visual\.hidden=false;/,'Connected destinations must replace the text button with only the account visual');
-assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card\.is-selected::before\{[\s\S]*?opacity:1!important;[\s\S]*?brightness\(1\.1\)!important/,'The active Journey Guardian card must retain bright, visible emblem artwork');
+assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card\.is-selected\{[\s\S]*?box-shadow:[\s\S]*?rgba\(201,168,76,\.48\)[\s\S]*?opacity:1!important/,'The active Journey Guardian card must use an opaque glow-backed treatment');
+assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card\.is-selected::before\{[\s\S]*?opacity:1!important;[\s\S]*?filter:none!important/,'The active Journey Guardian card must retain fully visible emblem artwork');
 assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card::after\{[\s\S]*?inset:0 0 0 42%!important/,'Journey card shading must stay on a narrow telemetry field instead of covering the emblem');
-assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__identity\{[\s\S]*?bottom:\.625rem!important;[\s\S]*?left:38%!important;[\s\S]*?right:4\.5rem!important/,'Journey class labels must be larger, lower and clear of the emblem focal area');
-assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__power\{[\s\S]*?bottom:\.625rem!important;[\s\S]*?font-size:1rem!important/,'Journey Power must be larger and aligned to the lower card edge');
+assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__identity\{[\s\S]*?top:50%!important;[\s\S]*?left:50%!important;[\s\S]*?text-align:center!important;[\s\S]*?translate\(-50%,-50%\)/,'Journey class labels must be centred vertically and horizontally');
+assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__power\{[\s\S]*?top:50%!important;[\s\S]*?right:\.625rem!important;[\s\S]*?translateY\(-50%\)/,'Journey Power must be vertically centred on the right edge');
 assert.match(css,/body\.journey-page[\s\S]*?\.guardian-character-card__stats\{[\s\S]*?display:none!important/,'Journey hero cards must move their stat strip into the selected Guardian identity panel');
 assert.match(journey,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash/,'Journey patterns must use the verified character Craftables component');
 assert.match(journey,/presentationLeafCategories\(rootHash,nodes,'records'\)[\s\S]*?verifiedCraftablePatternTypes/,'Journey patterns must follow the official Craftables presentation root to its current Record leaves');
@@ -149,7 +150,7 @@ for(const page of globalHeroPages){
 }
 assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1'))).length,3,'Journey, Vault and Loadout must load the same scoped-profile Guardian renderer');
 assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260902-recent-guardian-emblem-1'),'Character must load the latest-played Guardian module graph');
-assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260903-artifact-fit-journey-header-2'),'Build Forge must load the compact Forge Loader handoff, verified Artifact fit and Build-specific Journey header module graph');
+assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260903-artifact-fit-journey-header-3'),'Build Forge must load the compact Forge Loader handoff, verified Artifact fit and centred Build-specific Journey header module graph');
 assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260902-recent-guardian-emblem-1'),'Mission Reports must load the latest-played Guardian module graph');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
