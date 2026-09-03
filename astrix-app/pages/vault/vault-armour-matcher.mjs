@@ -1,5 +1,6 @@
 const ARMOUR_STAT_KEYS=Object.freeze(['health','melee','grenade','super','class','weapon']);
 const ARMOUR_STAT_LABELS=Object.freeze({health:'Health',melee:'Melee',grenade:'Grenade',super:'Super',class:'Class',weapon:'Weapon'});
+const ARMOUR_STAT_CAP=200;
 const STAT_ALIASES=Object.freeze({
   health:['health'],
   melee:['melee'],
@@ -84,7 +85,7 @@ function addVectors(left={},right={}){
 }
 
 function normaliseTargets(targets={}){
-  return Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Math.max(0,Math.round(finite(targets[key])))]));
+  return Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Math.min(ARMOUR_STAT_CAP,Math.max(0,Math.round(finite(targets[key]))))]));
 }
 
 function armourTargetMaximums(items=[],options={}){
@@ -108,22 +109,24 @@ function armourTargetMaximums(items=[],options={}){
       legal=next;
     }
     const values=[...legal.values()].filter(state=>requirements.every((row,index)=>state.counts[index]>=row.count)).map(state=>state.value);
-    return [key,Math.max(0,...values)];
+    return [key,Math.min(ARMOUR_STAT_CAP,Math.max(0,...values))];
   }));
 }
 
 function scoreArmourStats(stats={},targets={}){
   const requested=normaliseTargets(targets);
+  const effectiveStats=Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Math.min(ARMOUR_STAT_CAP,Math.max(0,finite(stats[key])))]));
   const active=ARMOUR_STAT_KEYS.filter(key=>requested[key]>0);
   let shortfall=0,overshoot=0,distance=0;
   for(const key of active){
-    const delta=finite(stats[key])-requested[key];
+    const delta=effectiveStats[key]-requested[key];
     if(delta<0)shortfall+=Math.abs(delta);else overshoot+=delta;
     distance+=Math.abs(delta);
   }
   const total=ARMOUR_STAT_KEYS.reduce((sum,key)=>sum+finite(stats[key]),0);
-  const priorityTotal=active.reduce((sum,key)=>sum+finite(stats[key]),0);
-  return {active,met:active.length>0&&shortfall===0,shortfall,overshoot,distance,total,priorityTotal,rank:shortfall*1_000_000-priorityTotal*1_000-total};
+  const effectiveTotal=ARMOUR_STAT_KEYS.reduce((sum,key)=>sum+effectiveStats[key],0);
+  const priorityTotal=active.reduce((sum,key)=>sum+effectiveStats[key],0);
+  return {active,effectiveStats,met:active.length>0&&shortfall===0,shortfall,overshoot,distance,total,effectiveTotal,priorityTotal,rank:shortfall*1_000_000_000-priorityTotal*1_000_000-effectiveTotal*1_000-total};
 }
 
 function matchArmourBuilds(items=[],targets={},options={}){
@@ -144,11 +147,12 @@ function matchArmourBuilds(items=[],targets={},options={}){
   const partialRank=(state,nextSlot)=>{
     let optimisticShortfall=0,lockedOvershoot=0;
     for(const key of ARMOUR_STAT_KEYS.filter(name=>requested[name]>0)){
-      optimisticShortfall+=Math.max(0,requested[key]-state.stats[key]-remaining[nextSlot][key]);
-      lockedOvershoot+=Math.max(0,state.stats[key]-requested[key]);
+      const current=Math.min(ARMOUR_STAT_CAP,state.stats[key]),optimistic=Math.min(ARMOUR_STAT_CAP,state.stats[key]+remaining[nextSlot][key]);
+      optimisticShortfall+=Math.max(0,requested[key]-optimistic);
+      lockedOvershoot+=Math.max(0,current-requested[key]);
     }
-    const total=ARMOUR_STAT_KEYS.reduce((sum,key)=>sum+state.stats[key],0);
-    return optimisticShortfall*1_000_000+lockedOvershoot*1_000-total;
+    const effectiveTotal=ARMOUR_STAT_KEYS.reduce((sum,key)=>sum+Math.min(ARMOUR_STAT_CAP,state.stats[key]),0);
+    return optimisticShortfall*1_000_000_000+lockedOvershoot*1_000_000-effectiveTotal;
   };
   let beam=[{items:[],stats:emptyVector(),exoticCount:0,setCounts:requirements.map(()=>0),signature:''}];
   for(let slot=0;slot<groups.length;slot++){
@@ -173,4 +177,4 @@ function matchArmourBuilds(items=[],targets={},options={}){
     .slice(0,limit);
 }
 
-export {ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourSetHash,armourStatVector,armourTargetMaximums,matchArmourBuilds,normaliseTargets,scoreArmourStats,setRequirements,statKey};
+export {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourSetHash,armourStatVector,armourTargetMaximums,matchArmourBuilds,normaliseTargets,scoreArmourStats,setRequirements,statKey};

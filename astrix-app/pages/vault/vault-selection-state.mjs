@@ -3,6 +3,7 @@ const VAULT_SELECTION_KIND='astrix-vault-armour-selection';
 const VAULT_SELECTION_KEY='astrix:vault-armour-selection:v1';
 const VAULT_SELECTION_TTL_MS=30*60*1000;
 const ARMOUR_SLOT_COUNT=5;
+const ARMOUR_STAT_CAP=200;
 
 const clone=value=>{
   try{return structuredClone(value);}
@@ -39,7 +40,7 @@ function normaliseTrait(value){
 }
 
 function normaliseStatVector(value={}){
-  return Object.fromEntries(['health','melee','grenade','super','class','weapon'].map(key=>[key,nonNegative(value?.[key])]));
+  return Object.fromEntries(['health','melee','grenade','super','class','weapon'].map(key=>[key,Math.min(ARMOUR_STAT_CAP,nonNegative(value?.[key]))]));
 }
 
 function normaliseForgeLoaderDecision(value){

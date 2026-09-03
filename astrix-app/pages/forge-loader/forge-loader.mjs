@@ -2,7 +2,7 @@ import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs';
-import {ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
+import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs';
 import {compatibleWithClass,exoticCatalogueGroups,setBonusOptions,toggleSetSelection} from './forge-loader-model.mjs';
 
@@ -131,18 +131,18 @@ function renderSetBonuses(){
 
 function updateTargetLabel(label){
   const key=label?.dataset?.targetStat,input=label?.querySelector('input'),output=label?.querySelector('output');
-  if(key&&input&&output)output.textContent=`${input.value} / ${targetMaximums[key]||'—'}`;
+  if(key&&input&&output)output.textContent=`${input.value} / ${ARMOUR_STAT_CAP}`;
 }
 
 function configureStats({reset=false}={}){
   const exotic=selectedExotic();
   targetMaximums=exotic?armourTargetMaximums(armourItems(),solverOptions()):Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,0]));
+  const available=Boolean(exotic)&&ARMOUR_STAT_KEYS.some(key=>targetMaximums[key]>0);
   for(const label of document.querySelectorAll('[data-target-stat]')){
     const key=label.dataset.targetStat,input=label.querySelector('input'),maxButton=label.querySelector('[data-max-stat]');
-    const maximum=Number(targetMaximums[key]||0);
-    input.max=String(maximum);input.disabled=!exotic||maximum<=0;input.value=String(reset?0:Math.min(maximum,Number(input.value||0)));maxButton.disabled=input.disabled;updateTargetLabel(label);
+    input.max=String(ARMOUR_STAT_CAP);input.disabled=!available;input.value=String(reset?0:Math.min(ARMOUR_STAT_CAP,Number(input.value||0)));maxButton.disabled=input.disabled;updateTargetLabel(label);
   }
-  const count=activeTargetCount(),available=Boolean(exotic)&&ARMOUR_STAT_KEYS.some(key=>targetMaximums[key]>0);
+  const count=activeTargetCount();
   byId('forgeFindBuilds').disabled=!available||count===0;byId('forgeResetTargets').disabled=!available||count===0;
   byId('forgeStatStatus').textContent=!exotic?'SELECT EXOTIC':available?`${count} ACTIVE TARGET${count===1?'':'S'}`:'NO COMPLETE LOAD';
 }
@@ -189,7 +189,7 @@ function forgeLoaderDecision(candidate,index){
     },
     statDirective:{
       targets:targetValues(),
-      achieved:Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Number(candidate.stats?.[key]||0)])),
+      achieved:Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Math.min(ARMOUR_STAT_CAP,Number(candidate.stats?.[key]||0))])),
       allTargetsMet:Boolean(candidate.score?.met),
       shortfall:Number(candidate.score?.shortfall||0),
       rawTotal:Number(candidate.score?.total||0),
@@ -208,7 +208,7 @@ function candidateStatMarkup(candidate,{itemRow=false}={}){
   const stats=itemRow?armourStatVector(candidate):candidate.stats;
   const targets=itemRow?{}:targetValues();
   return ARMOUR_STAT_KEYS.map(key=>{
-    const value=Number(stats[key]||0),target=Number(targets[key]||0);
+    const value=itemRow?Number(stats[key]||0):Math.min(ARMOUR_STAT_CAP,Number(stats[key]||0)),target=Number(targets[key]||0);
     const state=target>0?(value>=target?' is-met':' is-short'):'';
     return `<span class="forge-matrix-stat${state}"><small>${esc(ARMOUR_STAT_LABELS[key].toUpperCase())}</small><b>${value}</b>${itemRow?'':`<em>${target>0?`TARGET ${target}`:'OPEN'}</em>`}</span>`;
   }).join('');

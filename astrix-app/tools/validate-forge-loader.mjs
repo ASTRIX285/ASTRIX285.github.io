@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {armourTargetMaximums,matchArmourBuilds} from '../pages/vault/vault-armour-matcher.mjs';
+import {ARMOUR_STAT_CAP,armourTargetMaximums,matchArmourBuilds,normaliseTargets,scoreArmourStats} from '../pages/vault/vault-armour-matcher.mjs';
 import {applyVaultArmourSelection,createVaultArmourSelection,validateVaultArmourSelection} from '../pages/vault/vault-selection-state.mjs';
 import {exoticCatalogueGroups,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection} from '../pages/forge-loader/forge-loader-model.mjs';
 
@@ -75,6 +75,9 @@ assert.equal(options.find(row=>row.hash===7003)?.two.disabled,true,'After two tw
 const constrained={fixedExoticHashes:exotic.hashes,fixedExoticSlot:0,setSelections:[{setHash:7001,count:4}]};
 const maximums=armourTargetMaximums(items,constrained);
 assert.equal(maximums.health,41,'Stat ceilings must include the best owned Exotic copy across every hash and the required four-piece set.');
+assert.equal(ARMOUR_STAT_CAP,200,'Every Armour 3.0 stat must use the absolute 200-point ceiling.');
+assert.equal(normaliseTargets({health:210}).health,200,'A requested stat target must never exceed 200.');
+assert.equal(scoreArmourStats({health:210},{health:200}).effectiveStats.health,200,'Ranking must treat any raw per-stat overflow as 200 effective points.');
 const matches=matchArmourBuilds(items,{health:35},{...constrained,all:true});
 assert.equal(matches.length,3,'The Forge Loader must return every legal exact-instance combination rather than an arbitrary top-five subset.');
 assert.equal(matches[0].items[0].itemInstanceId,'exotic-reissue','The solver must rank the strongest exact duplicate or reissued Exotic instance first.');
@@ -110,6 +113,9 @@ const outputIndex=html.indexOf('class="forge-loader-output"');
 assert.ok(selectorIndex>=0&&selectorIndex<directivesIndex&&directivesIndex<outputIndex,'Forge Loader desktop DOM must order selection, directives and Working Load as three columns.');
 assert.ok(html.indexOf('forge-stat-selector')<html.indexOf('forge-set-selector'),'Set Protocol must sit underneath Stat Directive in the middle column.');
 assert.equal((html.match(/data-target-stat=/g)||[]).length,6,'Forge Loader must retain all six Armour 3.0 stat directives.');
+assert.equal((html.match(/max="200" value="0" step="1" disabled><output>0 \/ 200<\/output>/g)||[]).length,6,'All six Stat Directives must present the 200-point cap before live inventory finishes loading.');
+assert.match(runtime,/output\.textContent=`\$\{input\.value\} \/ \$\{ARMOUR_STAT_CAP\}`/,'Every Stat Directive output must use the fixed current-target / 200 presentation.');
+assert.match(runtime,/input\.max=String\(ARMOUR_STAT_CAP\)/,'Every Stat Directive slider and MAX action must target the absolute 200-point cap.');
 assert.match(runtime,/type="checkbox"/,'Set bonuses must use checkboxes, not toggle switches.');
 assert.match(runtime,/setBonusOptions\(armourItems\(\),exotic,setSelections\)/);
 assert.match(runtime,/class="forge-set-trait-icon"[\s\S]*?effect\.icon/,'Each 2-piece and 4-piece block must render its verified Bungie trait icon.');
