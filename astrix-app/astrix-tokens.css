@@ -14,7 +14,7 @@
   --surface:rgba(24,19,15,.58); --surface-2:rgba(38,29,21,.55);
   --border:rgba(226,190,130,.12); --border-strong:rgba(226,190,130,.22);
   --blur:blur(14px); --radius:8px; --shadow:0 18px 44px rgba(0,0,0,.34);
-  --font:Inter,system-ui,sans-serif; --brand:Orbitron,sans-serif;
+  --font:bahnschrift,system-ui,sans-serif; --brand:bahnschrift-semicondensed,sans-serif;
 }
 
 /* COHERENT SHELL — calm warm-neutral dark. The chassis for every tool/page. */

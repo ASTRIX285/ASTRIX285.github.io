@@ -172,7 +172,7 @@ assert.match(runtime,/other!==select&&Number\(other\.value\)===rank\)other\.valu
 assert.match(runtime,/priorities:priorityValues\(\)/,'The priority order must be retained in the protected Build Forge handoff.');
 assert.match(runtime,/No stat priority selected\. Ranking the complete legal pool by maximum unmodded stats/,'The runtime must explain and execute its automatic maximum-stat fallback.');
 assert.match(selectionState,/priorities:normaliseStatPriorities\(value\.statDirective\?\.priorities\)/,'The protected handoff must validate the six unique priority ranks.');
-assert.match(css,/\.forge-stat-targets select\{[^}]*font:800 \.8rem\/1 Orbitron/,'Priority selectors must remain readable in the three-column Stat Directive.');
+assert.match(css,/\.forge-stat-targets select\{[^}]*font:800 \.8rem\/1 bahnschrift-semicondensed/,'Priority selectors must remain readable in the three-column Stat Directive.');
 assert.match(css,/linear-gradient\(90deg,#d9b340 0 var\(--forge-slider-fill,0%\),rgba\(41,199,143,\.62\) var\(--forge-slider-fill,0%\) var\(--forge-slider-available,0%\),rgba\(80,80,80,\.34\) var\(--forge-slider-available,0%\) 100%\)/,'The slider must separate selected gold, achievable green and unavailable dark ranges.');
 assert.match(css,/output\[data-available\]\{[^}]*color:#66dcb2/,'The achievable XXX / 200 figure must use the established Forge green.');
 assert.doesNotMatch(css,/output\[data-available\]::after/,'The Stat Directive must not retain the smaller AVAILABLE sub-label.');

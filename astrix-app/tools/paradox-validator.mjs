@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 const tools=fileURLToPath(new URL('./',import.meta.url));
 const validators=[
   'validate-scope-guard.mjs',
+  'validate-site-typography.mjs',
   'validate-guardian-adaptive-layout.py',
   'validate-guardian-character-cards.py',
   'validate-guardian-complete-loadout.py',

@@ -285,7 +285,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
   min-width:0;
   overflow:hidden;
   color:#f4d37b;
-  font:800 .65rem/1 Orbitron,sans-serif;
+  font:800 .65rem/1 bahnschrift-semicondensed,sans-serif;
   text-overflow:ellipsis;
 }
 .journey-page .mission-guardian-stats dt{font-size:.875rem}
@@ -309,7 +309,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 .journey-page .apx-auth-resolving{font-size:1rem}
 
 .journey-column-summaries{display:grid;gap:.5rem;padding:.875rem;border-top:1px solid var(--mission-line)}
-.journey-column-summaries>h2{margin:0;color:var(--loc);font:700 .75rem/1.2 Orbitron,sans-serif;letter-spacing:.1em}
+.journey-column-summaries>h2{margin:0;color:var(--loc);font:700 .75rem/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.1em}
 .journey-column-summaries .apx-scaffold-card{min-height:0;padding:.875rem;border-color:color-mix(in srgb,var(--loc) 22%,transparent)}
 .journey-column-summaries .apx-scaffold-card h2{font-size:.8125rem}
 .journey-column-summaries .apx-empty-state{margin-top:.625rem;padding:.625rem;font-size:.8125rem;line-height:1.45}
@@ -317,8 +317,8 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 .journey-column-summaries .journey-evidence-rows{margin:0}
 .journey-column-summaries .journey-evidence-rows div{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:.5rem;padding:.55rem .625rem;border-bottom:1px solid rgba(255,255,255,.055)}
 .journey-column-summaries .journey-evidence-rows div:last-child{border-bottom:0}
-.journey-column-summaries .journey-evidence-rows dt{color:#8e887e;font:700 .6rem/1.3 Orbitron,sans-serif;letter-spacing:.07em;text-transform:uppercase}
-.journey-column-summaries .journey-evidence-rows dd{min-width:0;margin:0;color:#d9d2c7;font:700 .7rem/1.35 Inter,sans-serif;letter-spacing:.025em;text-align:right;overflow-wrap:anywhere}
+.journey-column-summaries .journey-evidence-rows dt{color:#8e887e;font:700 .6rem/1.3 bahnschrift-semicondensed,sans-serif;letter-spacing:.07em;text-transform:uppercase}
+.journey-column-summaries .journey-evidence-rows dd{min-width:0;margin:0;color:#d9d2c7;font:700 .7rem/1.35 bahnschrift,sans-serif;letter-spacing:.025em;text-align:right;overflow-wrap:anywhere}
 .journey-page .journey-left-summaries .journey-equipped-title-summary,
 .journey-page .journey-left-summaries .journey-next-title-summary,
 .journey-page .journey-left-summaries .journey-season-rank-summary{
@@ -350,7 +350,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 }
 .journey-page .journey-rank-badge strong{
   color:#b51222;
-  font:800 1.625rem/1 Orbitron,sans-serif;
+  font:800 1.625rem/1 bahnschrift-semicondensed,sans-serif;
   letter-spacing:-.06em;
   text-shadow:0 1px 0 rgba(255,240,177,.75),0 0 8px rgba(139,0,0,.18);
 }
@@ -363,36 +363,36 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 
 .journey-page .journey-triumph-summary{margin-top:.625rem;border:1px solid rgba(201,168,76,.24);background:linear-gradient(120deg,rgba(139,0,0,.2),rgba(201,168,76,.05))}
 .journey-page .journey-triumph-total{padding:.8rem .85rem;border-bottom:1px solid rgba(201,168,76,.22)}
-.journey-page .journey-triumph-total span{display:block;color:#8e887e;font:700 .6875rem/1 Orbitron,sans-serif;letter-spacing:.09em;text-transform:uppercase}
-.journey-page .journey-triumph-total strong{display:block;margin-top:.4rem;color:#f4d37b;font:800 1.55rem/1 Orbitron,sans-serif;letter-spacing:.03em;text-shadow:0 0 18px rgba(201,168,76,.18)}
+.journey-page .journey-triumph-total span{display:block;color:#8e887e;font:700 .6875rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.09em;text-transform:uppercase}
+.journey-page .journey-triumph-total strong{display:block;margin-top:.4rem;color:#f4d37b;font:800 1.55rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.03em;text-shadow:0 0 18px rgba(201,168,76,.18)}
 .journey-page .journey-triumph-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:0}
 .journey-page .journey-triumph-breakdown div{min-width:0;padding:.7rem .85rem}
 .journey-page .journey-triumph-breakdown div+div{border-left:1px solid rgba(201,168,76,.18)}
-.journey-page .journey-triumph-breakdown dt{color:#8e887e;font:700 .625rem/1 Orbitron,sans-serif;letter-spacing:.09em;text-transform:uppercase}
-.journey-page .journey-triumph-breakdown dd{margin:.35rem 0 0;color:#d3202f;font:800 1rem/1 Orbitron,sans-serif}
+.journey-page .journey-triumph-breakdown dt{color:#8e887e;font:700 .625rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.09em;text-transform:uppercase}
+.journey-page .journey-triumph-breakdown dd{margin:.35rem 0 0;color:#d3202f;font:800 1rem/1 bahnschrift-semicondensed,sans-serif}
 
 .journey-page .journey-vault-summary{margin-top:.625rem;border:1px solid rgba(201,168,76,.28);background:linear-gradient(125deg,rgba(116,7,20,.24),rgba(201,168,76,.065) 64%,rgba(255,255,255,.015));box-shadow:inset 3px 0 0 rgba(211,32,47,.72)}
 .journey-page .journey-vault-total{padding:.8rem .85rem;border-bottom:1px solid rgba(201,168,76,.22)}
-.journey-page .journey-vault-total span{display:block;color:#a49a8b;font:700 .6875rem/1 Orbitron,sans-serif;letter-spacing:.11em}
-.journey-page .journey-vault-total strong{display:block;margin-top:.4rem;color:#f4d37b;font:800 1.55rem/1 Orbitron,sans-serif;letter-spacing:.03em;text-shadow:0 0 18px rgba(201,168,76,.2)}
+.journey-page .journey-vault-total span{display:block;color:#a49a8b;font:700 .6875rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.11em}
+.journey-page .journey-vault-total strong{display:block;margin-top:.4rem;color:#f4d37b;font:800 1.55rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.03em;text-shadow:0 0 18px rgba(201,168,76,.2)}
 .journey-page .journey-vault-breakdown{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);margin:0}
 .journey-page .journey-vault-breakdown div{min-width:0;padding:.7rem .85rem}
 .journey-page .journey-vault-breakdown div+div{border-left:1px solid rgba(201,168,76,.18)}
-.journey-page .journey-vault-breakdown dt{overflow:hidden;color:#aaa092;font:700 .625rem/1.15 Orbitron,sans-serif;letter-spacing:.07em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
-.journey-page .journey-vault-breakdown dd{margin:.35rem 0 0;color:#d3202f;font:800 1rem/1 Orbitron,sans-serif}
-.journey-page .journey-vault-warning{margin:0;padding:.55rem .85rem;border-top:1px solid rgba(211,32,47,.32);background:rgba(139,0,0,.18);color:#f0b6bc;font:700 .625rem/1.3 Orbitron,sans-serif;letter-spacing:.055em}
+.journey-page .journey-vault-breakdown dt{overflow:hidden;color:#aaa092;font:700 .625rem/1.15 bahnschrift-semicondensed,sans-serif;letter-spacing:.07em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+.journey-page .journey-vault-breakdown dd{margin:.35rem 0 0;color:#d3202f;font:800 1rem/1 bahnschrift-semicondensed,sans-serif}
+.journey-page .journey-vault-warning{margin:0;padding:.55rem .85rem;border-top:1px solid rgba(211,32,47,.32);background:rgba(139,0,0,.18);color:#f0b6bc;font:700 .625rem/1.3 bahnschrift-semicondensed,sans-serif;letter-spacing:.055em}
 
 .journey-page .journey-usage-layout{display:grid;grid-template-columns:7.75rem minmax(0,1fr);gap:.75rem;align-items:center;margin-top:.625rem;padding:.75rem;border:1px solid rgba(201,168,76,.24);background:linear-gradient(120deg,rgba(139,0,0,.18),rgba(255,255,255,.018))}
 .journey-page .journey-usage-chart{position:relative;display:grid;place-items:center;width:7rem;height:7rem;margin:auto;border-radius:50%;background:conic-gradient(#d3202f 0 var(--titan-end),#c9a84c var(--titan-end) var(--hunter-end),#4169e1 var(--hunter-end) 100%);box-shadow:0 0 0 1px rgba(201,168,76,.4),0 0 22px rgba(139,0,0,.2)}
 .journey-page .journey-usage-chart::after{content:"";position:absolute;inset:1.15rem;border:1px solid rgba(201,168,76,.28);border-radius:50%;background:#090809}
 .journey-page .journey-usage-chart span{position:relative;z-index:1;display:grid;gap:.22rem;text-align:center}
-.journey-page .journey-usage-chart small{color:#8e887e;font:700 .55rem/1 Orbitron,sans-serif;letter-spacing:.08em}
-.journey-page .journey-usage-chart strong{max-width:4.5rem;overflow:hidden;color:#f4efe4;font:800 .7rem/1 Orbitron,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+.journey-page .journey-usage-chart small{color:#8e887e;font:700 .55rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em}
+.journey-page .journey-usage-chart strong{max-width:4.5rem;overflow:hidden;color:#f4efe4;font:800 .7rem/1 bahnschrift-semicondensed,sans-serif;text-overflow:ellipsis;white-space:nowrap}
 .journey-page .journey-usage-table{width:100%;border-collapse:collapse}
-.journey-page .journey-usage-table th,.journey-page .journey-usage-table td{padding:.4rem .2rem;border-bottom:1px solid rgba(255,255,255,.07);font:.7rem/1.1 Inter,sans-serif;text-align:right;white-space:nowrap}
+.journey-page .journey-usage-table th,.journey-page .journey-usage-table td{padding:.4rem .2rem;border-bottom:1px solid rgba(255,255,255,.07);font:.7rem/1.1 bahnschrift,sans-serif;text-align:right;white-space:nowrap}
 .journey-page .journey-usage-table th{text-align:left;color:#c3bdb2;font-weight:700;letter-spacing:.05em}
 .journey-page .journey-usage-table td{color:#8e887e}
-.journey-page .journey-usage-table td strong{color:var(--apx-gold);font-family:Orbitron,sans-serif;font-size:.65rem}
+.journey-page .journey-usage-table td strong{color:var(--apx-gold);font-family:bahnschrift-semicondensed,sans-serif;font-size:.65rem}
 .journey-page .journey-usage-dot{display:inline-block;width:.5rem;height:.5rem;margin-right:.38rem;border-radius:50%;background:var(--usage-colour);box-shadow:0 0 8px color-mix(in srgb,var(--usage-colour) 60%,transparent)}
 
 @media(max-width:400px){.journey-page .journey-usage-layout{grid-template-columns:1fr}}
@@ -449,7 +449,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
   border-radius:0;
   background:rgba(18,16,16,.82);
   color:#aaa294;
-  font:700 .75rem/1.25 Orbitron,sans-serif;
+  font:700 .75rem/1.25 bahnschrift-semicondensed,sans-serif;
   letter-spacing:.05em;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -476,7 +476,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 
 .journey-destination-data-heading{
   color:var(--loc);
-  font:700 .75rem/1 Orbitron,sans-serif;
+  font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;
   letter-spacing:.1em;
   text-align:right;
 }
@@ -505,7 +505,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 
 .journey-map-instruction{
   color:rgba(244,239,228,.62);
-  font:700 .75rem/1 Orbitron,sans-serif;
+  font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;
   letter-spacing:.12em;
 }
 
@@ -524,7 +524,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
   border-radius:0;
   background:rgba(255,255,255,.035);
   color:var(--apx-text);
-  font:700 .875rem/1 Orbitron,sans-serif;
+  font:700 .875rem/1 bahnschrift-semicondensed,sans-serif;
   cursor:pointer;
 }
 
@@ -550,7 +550,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 .journey-map-zoom{
   width:48px;
   color:var(--apx-gold);
-  font:700 .75rem/1 Orbitron,sans-serif;
+  font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;
   text-align:center;
 }
 
@@ -599,7 +599,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 }
 
 .journey-region-chests-head strong{
-  font:700 1rem/1.2 Orbitron,sans-serif;
+  font:700 1rem/1.2 bahnschrift-semicondensed,sans-serif;
   letter-spacing:.12em;
 }
 
@@ -618,13 +618,13 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 
 .journey-region-chests-summary strong{
   color:#f1eee6;
-  font:700 2rem/1 Orbitron,sans-serif;
+  font:700 2rem/1 bahnschrift-semicondensed,sans-serif;
 }
 
 .journey-region-chests-summary small{
   margin-top:5px;
   color:rgba(241,238,230,.55);
-  font:700 .75rem/1 Orbitron,sans-serif;
+  font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;
   letter-spacing:.08em;
 }
 
@@ -652,14 +652,14 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
   padding:6px 0;
   border-bottom:1px solid rgba(255,255,255,.06);
   color:rgba(241,238,230,.68);
-  font:600 .8125rem/1.2 Inter,sans-serif;
+  font:600 .8125rem/1.2 bahnschrift,sans-serif;
 }
 
 .journey-region-chest:last-child{border-bottom:0}
 
 .journey-region-chest-tick{
   color:#50b986;
-  font:800 1rem/1 Orbitron,sans-serif;
+  font:800 1rem/1 bahnschrift-semicondensed,sans-serif;
   text-align:center;
 }
 
@@ -741,7 +741,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 
 .journey-map-marker-copy strong{
   color:#f1eee6;
-  font:700 .75rem/1.15 Orbitron,sans-serif;
+  font:700 .75rem/1.15 bahnschrift-semicondensed,sans-serif;
   letter-spacing:.045em;
   text-shadow:0 1px 3px #000;
 }
@@ -749,7 +749,7 @@ html body.journey-page header:has(>[data-astrix-hero-cards]) .guardian-character
 .journey-map-marker-copy small{
   margin-top:3px;
   color:rgba(241,238,230,.62);
-  font:700 .75rem/1 Orbitron,sans-serif;
+  font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;
   letter-spacing:.12em;
   text-transform:uppercase;
 }

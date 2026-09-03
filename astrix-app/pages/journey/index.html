@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="ASTRIX PARADOX Guardian Journey summary dashboard">
   <title>Journey — ASTRIX PARADOX</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.typekit.net/tnp6kbq.css">
+  <link rel="stylesheet" href="/css/astrix-site-typography.css?v=20260903-bahnschrift-1">
   <link rel="stylesheet" href="../../shared/astrix-portal-loader.css?v=20260831-paradox-map-crimson-gold">
   <script>window.APX_LOGO='../../../img/logo.png';</script>
   <script src="../../shared/astrix-portal-loader.js?v=20260831-render-ready"></script>
@@ -21,11 +20,11 @@
   <style>
     .journey-page .journey-focus-selector-column,.journey-page .journey-focus-detail-column{display:grid;gap:12px;min-width:0}
     .journey-page .journey-record-selector-panel .apx-loc-list{max-height:none}
-    .journey-page .journey-records-back{min-height:32px;padding:0 12px;border:1px solid rgba(201,168,76,.34);background:rgba(139,0,0,.14);color:var(--apx-gold);font:700 .75rem/1 Orbitron,sans-serif;letter-spacing:.08em;cursor:pointer}
+    .journey-page .journey-records-back{min-height:32px;padding:0 12px;border:1px solid rgba(201,168,76,.34);background:rgba(139,0,0,.14);color:var(--apx-gold);font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;cursor:pointer}
     .journey-page .journey-records-back:hover,.journey-page .journey-records-back:focus-visible{border-color:rgba(201,168,76,.8);background:rgba(139,0,0,.26);outline:none}
     .journey-page .journey-records-panel{min-height:0;overflow-y:auto;border:1px solid color-mix(in srgb,var(--loc) 24%,transparent);background:rgba(6,6,6,.32);scrollbar-color:rgba(201,168,76,.42) transparent}
     .journey-page .journey-records-toolbar{position:sticky;z-index:2;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(6,6,6,.96)}
-    .journey-page .journey-records-status{color:#77716a;font:700 .75rem/1 Orbitron,sans-serif;letter-spacing:.08em;text-align:right}
+    .journey-page .journey-records-status{color:#77716a;font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;text-align:right}
     .journey-page .journey-records-group{padding:16px}
     .journey-page .journey-records-group+.journey-records-group{border-top:1px solid rgba(201,168,76,.18)}
     .journey-page .journey-records-group>h3{margin:0 0 12px;color:var(--apx-gold);font-size:.875rem;letter-spacing:.1em}
@@ -38,35 +37,35 @@
     .journey-page .journey-record-row.is-complete{border-color:rgba(201,168,76,.32)}
     .journey-page .journey-record-icon{display:block;width:48px;height:48px;object-fit:contain}
     .journey-page .journey-record-copy{min-width:0}
-    .journey-page .journey-record-title{display:block;overflow:hidden;color:#f4efe4;font:800 .875rem/1.15 Orbitron,sans-serif;letter-spacing:.04em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
-    .journey-page .journey-record-description{display:block;margin-top:5px;overflow:hidden;color:#8e887e;font:.8125rem/1.25 Rajdhani,sans-serif;text-overflow:ellipsis;white-space:nowrap}
-    .journey-page .journey-record-progress{display:flex;justify-content:space-between;gap:12px;margin-top:7px;color:#8e887e;font:.8125rem/1 Rajdhani,sans-serif}
+    .journey-page .journey-record-title{display:block;overflow:hidden;color:#f4efe4;font:800 .875rem/1.15 bahnschrift-semicondensed,sans-serif;letter-spacing:.04em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+    .journey-page .journey-record-description{display:block;margin-top:5px;overflow:hidden;color:#8e887e;font:.8125rem/1.25 bahnschrift,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+    .journey-page .journey-record-progress{display:flex;justify-content:space-between;gap:12px;margin-top:7px;color:#8e887e;font:.8125rem/1 bahnschrift,sans-serif}
     .journey-page .journey-record-progress b{color:var(--apx-gold);font-weight:700}
     .journey-page .journey-record-track{height:7px;margin-top:7px;overflow:hidden;background:rgba(255,255,255,.08)}
     .journey-page .journey-record-fill{display:block;height:100%;background:linear-gradient(90deg,#8b0000,#d3202f 48%,#c9a84c)}
     .journey-page .journey-record-row.is-gilded .journey-record-fill{background:linear-gradient(90deg,#b87321,#f4d37b 56%,#fff0b1)}
     .journey-page .journey-record-check{float:right;color:var(--apx-gold)}
-    .journey-page .journey-record-link{display:inline-block;margin-top:9px;color:var(--apx-gold);font:700 .6875rem/1 Orbitron,sans-serif;letter-spacing:.08em;text-decoration:none}
+    .journey-page .journey-record-link{display:inline-block;margin-top:9px;color:var(--apx-gold);font:700 .6875rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;text-decoration:none}
     .journey-page .journey-record-link:hover,.journey-page .journey-record-link:focus-visible{text-decoration:underline;outline:none}
     .journey-page .journey-record-detail-hero{display:grid;grid-template-columns:96px minmax(0,1fr);gap:16px;align-items:center;margin-bottom:16px;padding:14px;border:1px solid rgba(201,168,76,.18);background:rgba(255,255,255,.018)}
     .journey-page .journey-record-detail-hero.has-no-icon{grid-template-columns:1fr}
     .journey-page .journey-record-detail-icon{display:block;width:88px;height:88px;object-fit:contain}
-    .journey-page .journey-record-detail-copy h4{margin:0;color:#f4efe4;font:800 1rem/1.2 Orbitron,sans-serif;letter-spacing:.08em;text-transform:uppercase}
-    .journey-page .journey-record-detail-copy p{margin:7px 0 0;color:#8e887e;font:.875rem/1.35 Rajdhani,sans-serif}
+    .journey-page .journey-record-detail-copy h4{margin:0;color:#f4efe4;font:800 1rem/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+    .journey-page .journey-record-detail-copy p{margin:7px 0 0;color:#8e887e;font:.875rem/1.35 bahnschrift,sans-serif}
     .journey-page .journey-record-submenu{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
-    .journey-page .journey-record-submenu button{min-height:38px;padding:8px 12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:700 .75rem/1 Orbitron,sans-serif;letter-spacing:.08em;text-align:left;cursor:pointer}
+    .journey-page .journey-record-submenu button{min-height:38px;padding:8px 12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;text-align:left;cursor:pointer}
     .journey-page .journey-record-submenu button[aria-current="true"]{border-left:3px solid var(--apx-gold);background:rgba(201,168,76,.1);color:#f4efe4}
     .journey-page .journey-record-type-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
-    .journey-page .journey-record-type-tabs button{display:grid;place-items:center;gap:5px;min-height:72px;padding:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.018);color:#8e887e;font:700 .6875rem/1.15 Orbitron,sans-serif;letter-spacing:.06em;text-align:center;cursor:pointer}
+    .journey-page .journey-record-type-tabs button{display:grid;place-items:center;gap:5px;min-height:72px;padding:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.018);color:#8e887e;font:700 .6875rem/1.15 bahnschrift-semicondensed,sans-serif;letter-spacing:.06em;text-align:center;cursor:pointer}
     .journey-page .journey-record-type-tabs button[aria-current="true"]{border-color:rgba(201,168,76,.72);background:rgba(201,168,76,.1);color:#f4efe4}
     .journey-page .journey-record-type-tabs img{display:block;width:40px;height:40px;object-fit:contain}
-    .journey-page .journey-record-type-tabs small{color:var(--apx-gold);font:700 .6875rem/1 Rajdhani,sans-serif}
+    .journey-page .journey-record-type-tabs small{color:var(--apx-gold);font:700 .6875rem/1 bahnschrift,sans-serif}
     .journey-page .journey-record-detail-grid{display:grid;grid-template-columns:minmax(150px,210px) minmax(0,1fr);gap:14px;align-items:start}
     .journey-page .journey-record-detail-grid .journey-record-submenu{margin-bottom:0}
     .journey-page .journey-records-group.is-patterns-catalysts .journey-records-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
     .journey-page .journey-records-group.is-patterns-catalysts .journey-record-row.is-complete,.journey-page .journey-records-group.is-patterns-catalysts .journey-record-row.is-crafted{border-color:rgba(244,211,123,.5);background:linear-gradient(90deg,rgba(184,115,33,.1),rgba(255,240,177,.035))}
     .journey-page .journey-rank-strip{display:grid;grid-template-columns:repeat(11,minmax(40px,1fr));gap:5px;margin-bottom:14px;overflow-x:auto}
-    .journey-page .journey-rank-strip button{min-width:40px;min-height:40px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:800 .75rem/1 Orbitron,sans-serif;cursor:pointer}
+    .journey-page .journey-rank-strip button{min-width:40px;min-height:40px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:800 .75rem/1 bahnschrift-semicondensed,sans-serif;cursor:pointer}
     .journey-page .journey-rank-strip button[aria-current="true"]{border-color:rgba(201,168,76,.7);background:rgba(201,168,76,.12);color:var(--apx-gold)}
     .journey-page .journey-records-empty{margin:0}
     @media(max-width:720px){.journey-page .journey-records-toolbar{align-items:flex-start;flex-direction:column}.journey-page .journey-records-status{text-align:left}.journey-page .journey-record-detail-hero,.journey-page .journey-record-detail-grid{grid-template-columns:1fr}.journey-page .journey-record-type-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.journey-page .journey-records-group.is-patterns-catalysts .journey-records-list{grid-template-columns:1fr}.journey-page .journey-rank-strip{grid-template-columns:repeat(11,40px)}}

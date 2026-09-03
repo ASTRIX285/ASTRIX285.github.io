@@ -62,7 +62,7 @@
 .left .subclass-rail__label{
   grid-column:1/-1!important;
   width:100%!important;margin:0 0 4px!important;color:rgba(var(--pf-gold),.78)!important;
-  font:700 .52rem Inter,sans-serif!important;letter-spacing:.14em!important;text-align:center!important
+  font:700 .52rem bahnschrift,sans-serif!important;letter-spacing:.14em!important;text-align:center!important
 }
 .left .subclass-option{
   display:grid!important;place-items:center!important;width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;
@@ -76,7 +76,7 @@
 }
 .left .subclass-option__diamond>span{
   display:grid!important;place-items:center!important;transform:rotate(-45deg)!important;color:rgba(255,245,220,.78)!important;
-  font:800 .48rem Inter,sans-serif!important
+  font:800 .48rem bahnschrift,sans-serif!important
 }
 html[data-subclass="arc"] .subclass-option[data-subclass-option="arc"],
 html[data-subclass="solar"] .subclass-option[data-subclass-option="solar"],
@@ -100,11 +100,11 @@ html[data-subclass="prismatic"] .subclass-option[data-subclass-option="prismatic
 }
 .left .super-feature__label{
   display:block!important;margin:0!important;color:rgba(var(--pf-gold),.78)!important;
-  font:700 .52rem Inter,sans-serif!important;letter-spacing:.14em!important
+  font:700 .52rem bahnschrift,sans-serif!important;letter-spacing:.14em!important
 }
 /* -------------------- ONE SOCKET LANGUAGE -------------------- */
 .left>.grp{padding-left:10px!important;padding-right:10px!important}
-.left .grp .lbl{margin:0 0 6px!important;color:rgba(var(--pf-gold),.76)!important;font:700 .50rem Inter,sans-serif!important;letter-spacing:.13em!important}
+.left .grp .lbl{margin:0 0 6px!important;color:rgba(var(--pf-gold),.76)!important;font:700 .50rem bahnschrift,sans-serif!important;letter-spacing:.13em!important}
 #abilityList,#aspectList,#fragList{
   display:grid!important;grid-auto-flow:row!important;align-items:start!important;justify-content:start!important;gap:var(--guardian-square-gap)!important;min-height:var(--guardian-square)!important
 }

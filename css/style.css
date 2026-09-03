@@ -1,7 +1,6 @@
 /* ============================================================
    ASTRIX PARADOX — Global Styles
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 :root {
   --crimson:      #8b0000;
@@ -29,7 +28,7 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--dark);
   color: var(--white);
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'bahnschrift', sans-serif;
   font-size: 16px;
   line-height: 1.6;
   overflow-x: hidden;
@@ -42,7 +41,7 @@ body {
 
 /* ── TYPOGRAPHY ── */
 h1, h2, h3, h4 {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-weight: 700;
   line-height: 1.1;
 }
@@ -83,7 +82,7 @@ a {
   align-items: center;
   gap: 12px;
 
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 18px;
   font-weight: 900;
   color: var(--white);
@@ -105,7 +104,7 @@ a {
 }
 
 .nav-links a {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 10px;
   letter-spacing: 2px;
   color: var(--grey);
@@ -132,7 +131,7 @@ a {
   align-items: center;
   gap: 8px;
 
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 9px;
   letter-spacing: 3px;
   color: var(--grey);
@@ -281,7 +280,7 @@ a {
 }
 
 .hero-eyebrow {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 10px;
   letter-spacing: 6px;
   color: var(--gold);
@@ -349,7 +348,7 @@ a {
 }
 
 .hero-tag {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 9px;
   letter-spacing: 2px;
   color: var(--white);
@@ -382,7 +381,7 @@ a {
 
 /* ── BUTTONS ── */
 .btn-primary {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 11px;
   letter-spacing: 3px;
   color: var(--white);
@@ -406,7 +405,7 @@ a {
 }
 
 .btn-secondary {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 11px;
   letter-spacing: 3px;
   color: var(--gold);
@@ -430,7 +429,7 @@ a {
 }
 
 .btn-join {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 11px;
   letter-spacing: 3px;
   color: var(--white);
@@ -454,7 +453,7 @@ a {
 }
 
 .btn-facebook {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 11px;
   letter-spacing: 3px;
   color: var(--white);
@@ -501,7 +500,7 @@ a {
 }
 
 .section-eyebrow {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 9px;
   letter-spacing: 5px;
   color: var(--gold);
@@ -578,7 +577,7 @@ a {
 .stream-offline-badge {
   display: inline-block;
 
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 11px;
   letter-spacing: 4px;
   color: var(--grey);
@@ -606,7 +605,7 @@ a {
 .stream-live-badge {
   display: inline-block;
 
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 11px;
   letter-spacing: 4px;
   color: var(--crimson-glow);
@@ -832,7 +831,7 @@ body.stream-locked .nav {
 }
 
 .footer-social a {
-  font-family: 'Orbitron', monospace;
+  font-family: 'bahnschrift-semicondensed', monospace;
   font-size: 9px;
   letter-spacing: 2px;
   color: var(--grey);

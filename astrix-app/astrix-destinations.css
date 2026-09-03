@@ -61,7 +61,7 @@ body.astrix-token-preview .scene.immersive::before{
   gap:6px;
   margin:0 0 14px;
   color:#aaa;
-  font:700 9px Orbitron,sans-serif;
+  font:700 9px bahnschrift-semicondensed,sans-serif;
   letter-spacing:.1em;
 }
 .destination-control select{
@@ -72,7 +72,7 @@ body.astrix-token-preview .scene.immersive::before{
   border-radius:8px;
   background:#0d111a;
   color:#f7f7fb;
-  font:600 12px Inter,sans-serif;
+  font:600 12px bahnschrift,sans-serif;
 }
 .destination-control select:focus-visible{
   outline:2px solid color-mix(in srgb,var(--loc) 72%,white);

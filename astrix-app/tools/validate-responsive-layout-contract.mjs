@@ -47,7 +47,7 @@ const pageLayoutCss=[sources.adaptive,sources.gear,sources.layout,sources.leftLo
 assert.doesNotMatch(pageLayoutCss,/(?:html|body|\.workspace|\.build-space|\.design-canvas|\.guardian-left-rail)\s*\{[^{}]*transform\s*:\s*scale\(/,'Page containers must not be scaled to simulate responsiveness');
 assert.doesNotMatch(densityCss,/--astrix-desktop-density|(?:^|[;{])\s*zoom\s*:/m,'The shared interface must render at native scale instead of shrinking every tool');
 assert.match(densityCss,/--apx-workspace-left:minmax\(360px,20%\);[\s\S]*?--apx-workspace-centre:minmax\(720px,1fr\);[\s\S]*?--apx-workspace-right:minmax\(420px,24%\);[\s\S]*?--apx-workspace-compact-columns:392px minmax\(0,1fr\);/,'The shared workspace track contract must retain the approved Journey proportions');
-assert.match(densityCss,/--apx-font-copy:"Inter"[\s\S]*?--apx-font-display:"Orbitron"[\s\S]*?--apx-type-section-title:1rem;[\s\S]*?--apx-type-body:\.875rem;[\s\S]*?--apx-type-label:\.75rem;[\s\S]*?--apx-type-meta:\.75rem;/,'All tools must inherit one readable typography scale');
+assert.match(densityCss,/--apx-font-copy:"bahnschrift"[\s\S]*?--apx-font-display:"bahnschrift-semicondensed"[\s\S]*?--apx-type-section-title:1rem;[\s\S]*?--apx-type-body:\.875rem;[\s\S]*?--apx-type-label:\.75rem;[\s\S]*?--apx-type-meta:\.75rem;/,'All tools must inherit one readable typography scale');
 assert.match(densityCss,/body\.apx-destination-page \.apx-page-shell\{width:100%;max-width:none\}/,'Scaffold destinations must use the full desktop monitor');
 assert.doesNotMatch(densityCss,/transform\s*:\s*scale\(/,'The shared density layer must not use transform scaling');
 
@@ -69,8 +69,9 @@ for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
 }
 for(const [label,html] of appPages){
   const styles=[...html.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map(match=>match[1]);
-  assert.match(html,/family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&display=swap/,label+' must load the shared Inter and Orbitron weights');
-  assert.doesNotMatch(html,/family=(?:Questrial|Rajdhani)|&family=(?:Questrial|Rajdhani)/,label+' must not load a competing interface font');
+  assert.match(html,/https:\/\/use\.typekit\.net\/tnp6kbq\.css/,label+' must load the shared Adobe Fonts web project');
+  assert.match(html,/\/css\/astrix-site-typography\.css/,label+' must load the shared ASTRIX typography layer');
+  assert.doesNotMatch(html,/fonts\.(?:googleapis|gstatic)\.com/,label+' must not load a competing interface font service');
   assert.match(styles.at(-1)||'',/astrix-desktop-density\.css$/,label+' must load the shared desktop density layer last');
 }
 

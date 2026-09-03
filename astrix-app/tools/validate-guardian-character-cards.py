@@ -32,7 +32,7 @@ def main() -> int:
     assert "overflow-x:auto" not in styles
     assert "border-color:rgba(var(--stage-accent-rgb" in styles
     assert "background:rgba(7,9,14,.52)" in styles
-    assert "font:800 13px Inter,sans-serif" in styles
+    assert "font:800 13px bahnschrift,sans-serif" in styles
     assert "background:var(--character-emblem) 28px center/cover no-repeat" in styles
     assert "min-height:32px" in styles
     assert "width:20px;height:20px;flex:0 0 20px" in styles

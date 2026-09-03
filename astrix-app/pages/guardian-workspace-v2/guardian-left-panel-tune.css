@@ -49,21 +49,21 @@
 .guardian-loadouts-panel{padding-top:clamp(6px,.8vh,10px)!important}
 .guardian-loadouts-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:clamp(4px,.55vh,7px)}
 .guardian-loadouts-head .lbl{margin:0!important}
-.guardian-loadouts-head small{font:600 clamp(.38rem,.58vh,.46rem) Inter,sans-serif;letter-spacing:.08em;color:rgba(201,195,218,.55)}
+.guardian-loadouts-head small{font:600 clamp(.38rem,.58vh,.46rem) bahnschrift,sans-serif;letter-spacing:.08em;color:rgba(201,195,218,.55)}
 .guardian-loadouts-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--rail-gap);max-width:calc((var(--rail-icon) * 5) + (var(--rail-gap) * 4))}
-.guardian-loadouts-status{grid-column:1/-1;display:grid;place-items:center;min-height:calc(var(--rail-icon) * 2 + var(--rail-gap));padding:8px;border:1px dashed rgba(181,174,199,.18);border-radius:7px;color:#8b8499;font:700 clamp(.38rem,.58vh,.46rem) Inter,sans-serif;line-height:1.35;letter-spacing:.045em;text-align:center}
+.guardian-loadouts-status{grid-column:1/-1;display:grid;place-items:center;min-height:calc(var(--rail-icon) * 2 + var(--rail-gap));padding:8px;border:1px dashed rgba(181,174,199,.18);border-radius:7px;color:#8b8499;font:700 clamp(.38rem,.58vh,.46rem) bahnschrift,sans-serif;line-height:1.35;letter-spacing:.045em;text-align:center}
 .guardian-loadouts-status.is-pending{border-color:rgba(255,206,64,.28);color:#d4c99b}
 .guardian-loadouts-status.is-unavailable{border-color:rgba(255,92,112,.3);color:#d9a0a8}
 .guardian-loadout-slot{position:relative;display:grid;place-items:center;aspect-ratio:1;overflow:hidden;border:1px solid rgba(255,255,255,.09);border-radius:7px;background:rgba(255,255,255,.025);color:#595568;cursor:default;min-width:0}
-.guardian-loadout-slot small{position:absolute;right:4px;bottom:2px;font:700 clamp(.4rem,.62vh,.5rem) Inter,sans-serif;color:#6f687e}
+.guardian-loadout-slot small{position:absolute;right:4px;bottom:2px;font:700 clamp(.4rem,.62vh,.5rem) bahnschrift,sans-serif;color:#6f687e}
 .guardian-loadout-slot.is-empty{opacity:.72;background:rgba(255,255,255,.018)}
 .guardian-loadout-slot.is-empty::before,.guardian-loadout-slot.is-empty::after{content:"";position:absolute;width:72%;height:1px;background:rgba(181,174,199,.28);transform:rotate(45deg)}
 .guardian-loadout-slot.is-empty::after{transform:rotate(-45deg)}
-.guardian-loadout-empty-label{position:relative;z-index:1;padding:2px 3px;border-radius:3px;background:#0b0910;color:#8b8499;font:700 clamp(.3rem,.48vh,.38rem) Inter,sans-serif;letter-spacing:.05em}
+.guardian-loadout-empty-label{position:relative;z-index:1;padding:2px 3px;border-radius:3px;background:#0b0910;color:#8b8499;font:700 clamp(.3rem,.48vh,.38rem) bahnschrift,sans-serif;letter-spacing:.05em}
 .guardian-loadout-slot.is-saved{cursor:pointer;border-color:rgba(255,255,255,.28);background-image:var(--loadout-color-image,linear-gradient(145deg,#181521,#0c0a11));background-position:center;background-size:cover;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -2px 0 rgba(255,255,255,.32)}
 .guardian-loadout-icon{width:100%;height:100%;object-fit:contain;transform:scale(1.08);filter:drop-shadow(0 1px 2px rgba(0,0,0,.58))}
 .guardian-loadout-icon-fallback{font-size:clamp(.72rem,1.25vh,1rem);color:#d0cadb}
-.guardian-loadout-name{position:absolute;left:3px;right:12px;bottom:2px;overflow:hidden;color:#fff;font:700 clamp(.28rem,.46vh,.36rem) Inter,sans-serif;line-height:1;text-align:left;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px #000}
+.guardian-loadout-name{position:absolute;left:3px;right:12px;bottom:2px;overflow:hidden;color:#fff;font:700 clamp(.28rem,.46vh,.36rem) bahnschrift,sans-serif;line-height:1;text-align:left;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px #000}
 .guardian-loadout-slot.is-saved small{color:#f1eef8}
 .guardian-loadout-slot.is-active{border-color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.52),0 0 12px rgba(255,255,255,.22),inset 0 -2px 0 rgba(255,255,255,.8)}
 .guardian-loadout-slot:focus-visible{outline:2px solid #fff;outline-offset:2px}

@@ -92,7 +92,7 @@ for(const [label,min,ratio,max] of proportionalTokens){
   const ratios=sizes.map((size,index)=>size/responsiveWidthSamples[index]);
   assert.ok(Math.abs(ratios[0]-ratios[1])<1e-9,`${label} must retain its percentage between the 1640px and 2560px workspace samples.`);
 }
-assert.match(css,/Build Forge readability:[\s\S]*?\.build-forge-page[\s\S]*?--dim:#b8b2bd;[\s\S]*?font-family:Inter,system-ui,sans-serif!important/,'Build Forge must retain the readable Inter text hierarchy and high-contrast working colours.');
+assert.match(css,/Build Forge readability:[\s\S]*?\.build-forge-page[\s\S]*?--dim:#b8b2bd;[\s\S]*?font-family:bahnschrift,system-ui,sans-serif!important/,'Build Forge must retain the readable Bahnschrift text hierarchy and high-contrast working colours.');
 
 const elementButtons=[...html.matchAll(/data-recommendation-element="([^"]+)"/g)].map(match=>match[1]);
 assert.deepEqual(elementButtons,BUILD_ELEMENTS,'Recommendation buttons must be ARC, SOLAR, STRAND, STASIS, VOID and PRISMATIC only.');
