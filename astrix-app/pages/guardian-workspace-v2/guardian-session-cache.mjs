@@ -107,6 +107,16 @@ async function readCachedBungieProfile(session){
   return fallback?.identity===identity&&fallback?.key===marker.key&&isFresh(fallback)?fallback.payload:null;
 }
 
+function releaseGuardianSessionStorageFallbacks(storage=globalThis.sessionStorage){
+  if(!storage)return 0;
+  try{
+    const keys=[];
+    for(let index=0;index<storage.length;index+=1){const key=String(storage.key(index)||'');if(key===PROFILE_FALLBACK_KEY||key.startsWith(LOADOUT_FALLBACK_PREFIX))keys.push(key);}
+    for(const key of keys)storage.removeItem(key);
+    return keys.length;
+  }catch{return 0;}
+}
+
 async function cacheBungieLoadoutDetail(session,characterId,index,detail){
   const identity=sessionIdentity(session);
   if(!identity||!characterId||!Number.isInteger(Number(index))||!detail)return false;
@@ -151,6 +161,7 @@ export {
   readCachedBungieSession,
   cacheBungieProfile,
   readCachedBungieProfile,
+  releaseGuardianSessionStorageFallbacks,
   cacheBungieLoadoutDetail,
   readCachedBungieLoadoutDetail,
   markGuardianFastReturn,

@@ -12,7 +12,7 @@ import {markGuardianFastReturn} from '../guardian-session-cache.mjs';
 import {guardianManifest} from '../guardian-manifest-service.mjs';
 import {AUTH_ORIGIN} from '../guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope} from '../paradox-build-binding.mjs';
-import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection} from '../../vault/vault-selection-state.mjs';
+import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260903-compact-selection-1';
 import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs';
 import {BUILD_ELEMENTS,validateTierFiveArmour} from './paradox-build-recommendation.mjs';
 import {composeForgeRecommendation,hasVerifiedSubclassSockets,synchroniseSubclassProjection} from './paradox-forge-intelligence.mjs?v=20260903-forge-intelligence-1';

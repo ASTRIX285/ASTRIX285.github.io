@@ -1,9 +1,9 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
-import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
+import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260903-compact-selection-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260903-loadout-intelligence-1';
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
-import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs';
+import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260903-compact-selection-1';
 import {compatibleWithClass,exoticCatalogueGroups,setBonusOptions,toggleSetSelection} from './forge-loader-model.mjs';
 import {writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260903-storage-recovery-1';
 
@@ -368,7 +368,9 @@ async function evaluateInBuildForge(){
   }
   const selected=prepareArmourSelection(payload,[...selectedSlots.values()]);
   const selection=createVaultArmourSelection({binding,slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision:forgeLoaderDecision(candidate,selectedCandidateIndex)});
-  if(!writeVaultArmourSelection(selection)){byId('forgeRuntimeStatus').textContent='The staged load could not be stored on this device. No build was changed.';return;}
+  let selectionStored=writeVaultArmourSelection(selection);
+  if(!selectionStored){releaseGuardianSessionStorageFallbacks();selectionStored=writeVaultArmourSelection(selection);}
+  if(!selectionStored){byId('forgeRuntimeStatus').textContent='The compact staged load could not be stored after clearing recoverable browser data. No build was changed.';return;}
   const url=new URL('../guardian-workspace-v2/paradox-build-space/',location.href);url.searchParams.set('vault','selection');
   if(!baselineStored)url.searchParams.set('baseline','bungie-recovery');
   for(const [key,value] of Object.entries(binding))if(value)url.searchParams.set(key,value);

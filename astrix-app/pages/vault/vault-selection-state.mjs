@@ -13,6 +13,46 @@ const text=value=>String(value??'').trim();
 const itemIdentity=item=>text(item?.itemInstanceId||item?.instanceId||item?.hash||item?.itemHash||item?.bungieHash);
 const positiveInteger=value=>{const number=Number(value);return Number.isInteger(number)&&number>0?number:null;};
 const nonNegative=value=>Math.max(0,Number.isFinite(Number(value))?Number(value):0);
+const compactDisplayProperties=value=>({name:text(value?.name),description:text(value?.description),icon:text(value?.icon),highResIcon:text(value?.highResIcon)});
+
+function compactDefinition(value={}){
+  return {
+    hash:positiveInteger(value?.hash),
+    displayProperties:compactDisplayProperties(value?.displayProperties),
+    itemType:Number.isFinite(Number(value?.itemType))?Number(value.itemType):null,
+    itemTypeDisplayName:text(value?.itemTypeDisplayName),
+    traitIds:Array.isArray(value?.traitIds)?value.traitIds.map(text).filter(Boolean):[],
+    inventory:value?.inventory?{tierType:Number(value.inventory.tierType)||0,tierTypeName:text(value.inventory.tierTypeName),tierTypeHash:positiveInteger(value.inventory.tierTypeHash),bucketTypeHash:positiveInteger(value.inventory.bucketTypeHash)}:null,
+    plug:value?.plug?{plugCategoryIdentifier:text(value.plug.plugCategoryIdentifier),energyCost:value.plug.energyCost??null}:null,
+    investmentStats:Array.isArray(value?.investmentStats)?value.investmentStats.map(row=>({statTypeHash:positiveInteger(row?.statTypeHash),value:Number(row?.value)||0,isConditionallyActive:Boolean(row?.isConditionallyActive)})):[],
+    iconWatermark:text(value?.iconWatermark),
+    quality:value?.quality?{displayVersionWatermarkIcons:Array.isArray(value.quality.displayVersionWatermarkIcons)?value.quality.displayVersionWatermarkIcons.map(text).filter(Boolean):[]}:null,
+    equipableItemSetHash:positiveInteger(value?.equipableItemSetHash),
+    equippingBlock:value?.equippingBlock?{equipableItemSetHash:positiveInteger(value.equippingBlock.equipableItemSetHash)}:null
+  };
+}
+
+function compactSelectionValue(value,key=''){
+  if(value===null||value===undefined||typeof value!=='object')return value;
+  if(['definition','socketCategoryDefinition'].includes(key))return compactDefinition(value);
+  if(Array.isArray(value))return value.map(row=>compactSelectionValue(row));
+  const output={};
+  for(const [childKey,childValue] of Object.entries(value)){
+    if(['itemRenderData','gearAssets','renderData','loadouts','resolvedSandboxPerks','socketOptions'].includes(childKey))continue;
+    output[childKey]=compactSelectionValue(childValue,childKey);
+  }
+  return output;
+}
+
+const compactArmourSelectionItem=item=>compactSelectionValue(item||{});
+function storageCandidates(storage){
+  if(Array.isArray(storage))return [...new Set(storage.filter(Boolean))];
+  if(storage)return [storage];
+  const stores=[];
+  try{if(globalThis.sessionStorage)stores.push(globalThis.sessionStorage);}catch{}
+  try{if(globalThis.localStorage)stores.push(globalThis.localStorage);}catch{}
+  return [...new Set(stores)];
+}
 
 function normaliseBinding(binding={}){
   return {
@@ -26,7 +66,7 @@ function normaliseSlots(slots=[]){
   const unique=new Map();
   for(const row of Array.isArray(slots)?slots:[]){
     const slot=Number(row?.slot);
-    const item=clone(row?.item||null);
+    const item=compactArmourSelectionItem(row?.item||null);
     if(!Number.isInteger(slot)||slot<0||slot>=ARMOUR_SLOT_COUNT||!itemIdentity(item))continue;
     unique.set(slot,{slot,item});
   }
@@ -108,29 +148,30 @@ function validateVaultArmourSelection(value,{expectedBinding={}}={}){
   return {...clone(value),binding,slots,...(decision?{forgeLoaderDecision:decision}:{})};
 }
 
-function writeVaultArmourSelection(selection,storage=globalThis.sessionStorage){
+function writeVaultArmourSelection(selection,storage=null){
   const verified=validateVaultArmourSelection(selection);
-  if(!verified||!storage)return false;
-  try{storage.setItem(VAULT_SELECTION_KEY,JSON.stringify(verified));return true;}
-  catch{return false;}
+  if(!verified)return false;
+  const json=JSON.stringify(verified);
+  for(const store of storageCandidates(storage))try{store.setItem(VAULT_SELECTION_KEY,json);return true;}catch{}
+  return false;
 }
 
-function readVaultArmourSelection({expectedBinding={},storage=globalThis.sessionStorage}={}){
-  if(!storage)return null;
-  try{
-    const raw=JSON.parse(storage.getItem(VAULT_SELECTION_KEY)||'null');
-    const verified=validateVaultArmourSelection(raw,{expectedBinding});
-    if(raw&&!verified)storage.removeItem(VAULT_SELECTION_KEY);
-    return verified;
-  }catch{
-    try{storage.removeItem(VAULT_SELECTION_KEY);}catch{}
-    return null;
+function readVaultArmourSelection({expectedBinding={},storage=null}={}){
+  for(const store of storageCandidates(storage)){
+    try{
+      const raw=JSON.parse(store.getItem(VAULT_SELECTION_KEY)||'null');
+      const verified=validateVaultArmourSelection(raw,{expectedBinding});
+      if(verified)return verified;
+      if(raw)store.removeItem(VAULT_SELECTION_KEY);
+    }catch{try{store.removeItem(VAULT_SELECTION_KEY);}catch{}}
   }
+  return null;
 }
 
-function clearVaultArmourSelection(storage=globalThis.sessionStorage){
-  try{storage?.removeItem(VAULT_SELECTION_KEY);return true;}
-  catch{return false;}
+function clearVaultArmourSelection(storage=null){
+  let cleared=false;
+  for(const store of storageCandidates(storage))try{store.removeItem(VAULT_SELECTION_KEY);cleared=true;}catch{}
+  return cleared;
 }
 
 function armourEvidence(items=[]){
@@ -232,6 +273,7 @@ export {
   VAULT_SELECTION_SCHEMA,
   applyVaultArmourSelection,
   clearVaultArmourSelection,
+  compactArmourSelectionItem,
   createVaultArmourSelection,
   readVaultArmourSelection,
   validateVaultArmourSelection,
