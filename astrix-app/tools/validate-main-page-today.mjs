@@ -40,8 +40,8 @@ assert.match(sessionCache,/indexedDB\.open\(DB_NAME,DB_VERSION\)/,'Guardian sess
 assert.match(sessionCache,/PROFILE_TTL_MS=12\*60\*60\*1000/,'Cached Guardian evidence must survive the complete browser work session');
 assert.match(profile,/const BUILD_SPACE_KEY="astrix:paradox-build-space:v1";/,'Character must identify the stale explicit Build snapshot before securing a fresh handoff');
 assert.match(profile,/function persistResolvedBuildSnapshot\(\)\{[\s\S]*?store\.removeItem\(BUILD_SPACE_KEY\);store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Improve My Guardian must free the stale Build snapshot before writing the full current Character payload');
-assert.match(workspace,/guardian-bungie-profile\.mjs\?v=20260902-recent-guardian-emblem-1/,'Main must load the latest-played Guardian correction without a stale profile-module cache');
-assert.match(workspaceHtml,/guardian-workspace-v2\.mjs\?v=20260902-recent-guardian-emblem-1/,'Main must load the corrected workspace dependency graph without a stale module cache');
+assert.match(workspace,/guardian-bungie-profile\.mjs\?v=20260903-loadout-intelligence-1/,'Main must load the owned-weapon and exact-socket profile evidence without a stale profile-module cache');
+assert.match(workspaceHtml,/guardian-workspace-v2\.mjs\?v=20260903-loadout-intelligence-1/,'Main must load the corrected workspace dependency graph without a stale module cache');
 assert.match(profile,/PROFILE_REQUEST_TIMEOUT_MS=60_000/,'Authenticated Bungie profile resolution must allow manifest enrichment to finish');
 assert.match(profile,/return ensureLiveProfile\(session,\{background:false,silent:false\}\)/,'Authenticated profile recovery must issue one visible request rather than duplicate retries');
 assert.doesNotMatch(profile,/ensureLiveProfile\(globalThis\.ASTRIX_BUNGIE_SESSION\|\|null/,'Profile bootstrap must not make an unauthenticated profile request before session resolution');
@@ -136,7 +136,7 @@ assert.match(loadoutsModule,/data-bungie-color-hash/,'Rendered loadouts must ret
 assert.match(workspaceHtml,/<a class="improve-cta" href="\.\/paradox-build-space\/">✦ IMPROVE MY GUARDIAN<\/a>/,'Improve My Guardian must retain a native Build Forge link when JavaScript or storage fails');
 assert.match(workspaceHtml,/guardian-workspace-v2-compact\.css\?v=20260829-build-cta-anchor-1/,'Main must load the native Build Forge link styling without stale button CSS');
 assert.match(await read('guardian-workspace-v2-compact.css'),/\.improve-cta\{[^}]*display:inline-flex;[^}]*text-decoration:none/,'The native Build Forge link must preserve the approved button presentation');
-assert.match(workspaceHtml,/paradox-build-space-handoff\.mjs\?v=20260902-vault-armour-foundation-1/,'Main must preserve the exact Character build before opening Forge Loader');
+assert.match(workspaceHtml,/paradox-build-space-handoff\.mjs\?v=20260903-loadout-intelligence-1/,'Main must preserve the exact Character build and owned-weapon evidence before opening Forge Loader');
 assert.match(handoff,/latestGuardian&&Number\.isInteger\(latestGuardian\.selectedLoadoutIndex\)/,'Improve My Guardian must prefer the active selected loadout');
 assert.match(handoff,/loadoutsAvailable:detail\.loadoutsAvailable===true/,'Build handoff must carry the exact Bungie in-game loadout catalogue');
 assert.match(handoff,/super:detail\.super\|\|null/,'Build handoff must preserve fixture and legacy subclass fields without an empty subclassBuild');
@@ -182,8 +182,8 @@ assert.match(buildModule,/let volatileState=null/,'Build must retain a protected
 assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuildState\(next\);/,'Build writes must protect the in-page fallback before attempting Web Storage');
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
-assert.match(buildHtml,/paradox-build-space\.css\?v=20260903-forge-intelligence-1/,'Build must load the responsive five-card Build Forge presentation without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-forge-intelligence-1/,'Build must load the responsive evidence-ranked recommendation runtime without stale code');
+assert.match(buildHtml,/paradox-build-space\.css\?v=20260903-loadout-intelligence-1/,'Build must load the responsive five-card Build Forge presentation without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-loadout-intelligence-1/,'Build must load the responsive evidence-ranked recommendation runtime without stale code');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/const artifactItems=resolvedOptions\(build,'artifact'\)/,'Build Artifact selector must expose the verified Artifact 2.0 catalogue for Forge ranking');

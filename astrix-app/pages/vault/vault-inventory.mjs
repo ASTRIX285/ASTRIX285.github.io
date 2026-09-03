@@ -1,5 +1,5 @@
 import {resolveArmourSet} from '../guardian-workspace-v2/guardian-armour-set-resolver.mjs';
-import {normaliseArmourSemantics} from '../guardian-workspace-v2/guardian-semantic-resolver.mjs?v=20260829-weapon-perk-hash-1';
+import {classifyArmourPlug,normaliseArmourSemantics} from '../guardian-workspace-v2/guardian-semantic-resolver.mjs?v=20260829-weapon-perk-hash-1';
 
 const BUNGIE_ORIGIN='https://www.bungie.net';
 const VAULT_BUCKET=138197802;
@@ -62,9 +62,32 @@ function socketPlugs(payload,rawItem){
       socketCategoryHash:category.hash,
       socketCategoryDefinition:category.definition,
       isEnabled:state?.isEnabled!==false,
-      isVisible:state?.isVisible!==false
+      isVisible:state?.isVisible!==false,
+      statContributions:statContributions(payload,identity.definition)
     };
   }).filter(Boolean);
+}
+
+function statContributions(payload,definition){
+  return (definition?.investmentStats||[]).map(row=>{
+    const hash=finite(row?.statTypeHash),stat=hash===null?null:payload?.statDefinitions?.[String(hash)]||null;
+    return {hash,name:String(stat?.displayProperties?.name||''),value:Number(row?.value||0),isConditionallyActive:Boolean(row?.isConditionallyActive)};
+  }).filter(row=>row.hash!==null&&Number.isFinite(row.value)&&row.value!==0);
+}
+
+function armourModOptions(payload,rawItem){
+  if(!rawItem?.itemInstanceId)return {};
+  const profile=payload?.profile||{},reusable=profile?.itemComponents?.reusablePlugs?.data?.[rawItem.itemInstanceId]?.plugs||{},itemDefinition=definitionFor(payload,rawItem.itemHash)||{},entries=itemDefinition?.sockets?.socketEntries||[],indexes=new Set([...Object.keys(reusable).map(Number),...entries.map((_,index)=>index)]),profileSets=profile?.profilePlugSets?.data?.plugs||{},characterSets=Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs||{});
+  return Object.fromEntries([...indexes].sort((a,b)=>a-b).map(socketIndex=>{
+    const entry=entries[socketIndex]||{},setHashes=[entry?.reusablePlugSetHash].map(Number).filter(Number.isInteger),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]),...setRows],seen=new Set();
+    return [String(socketIndex),(Array.isArray(rows)?rows:[]).filter(row=>row?.canInsert!==false&&row?.enabled!==false).map(row=>{
+      const hash=finite(row?.plugItemHash??row?.plugHash),definition=hash===null?null:definitionFor(payload,hash);
+      if(hash===null||!definition||seen.has(hash))return null;seen.add(hash);
+      const category=(itemDefinition?.sockets?.socketCategories||[]).find(value=>(value?.socketIndexes||[]).map(Number).includes(Number(socketIndex)))||null;
+      const socketCategoryHash=finite(category?.socketCategoryHash),identity=displayIdentity(payload,hash);
+      return {...identity,socketIndex:Number(socketIndex),socketCategoryHash,socketCategoryDefinition:socketCategoryHash===null?null:payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null,canInsert:true,statContributions:statContributions(payload,definition)};
+    }).filter(Boolean)];
+  }).filter(([,rows])=>rows.length));
 }
 
 function sourceRows(profile={}){
@@ -95,17 +118,28 @@ function deduplicateRows(rows=[]){
   return [...unique.values()];
 }
 
-function armourStats(payload,rawItem){
+function armourStats(payload,rawItem,plugs=[]){
   const component=payload?.profile?.itemComponents?.stats?.data?.[rawItem?.itemInstanceId]?.stats||{};
   return Object.entries(component).map(([hash,row])=>{
     const definition=payload?.statDefinitions?.[String(hash)]||null;
+    const modFree=modFreeArmourStatValue(payload,hash,row?.value,plugs);
     return {
       hash:Number(hash),
       name:String(definition?.displayProperties?.name||`Destiny stat ${hash}`),
       icon:absoluteIcon(definition?.displayProperties?.icon),
-      value:Number(row?.value||0)
+      value:modFree.rawValue,
+      installedModContribution:modFree.installedModContribution
     };
   }).filter(row=>Number.isFinite(row.value)).sort((left,right)=>right.value-left.value);
+}
+
+function modFreeArmourStatValue(payload,statHash,reportedValue,plugs=[]){
+  const installed=(Array.isArray(plugs)?plugs:[]).filter(plug=>['general-mod','slot-mod'].includes(classifyArmourPlug(plug))&&plug?.isEnabled!==false);
+  const contribution=installed.reduce((sum,plug)=>sum+statContributions(payload,plug.definition).filter(stat=>Number(stat.hash)===Number(statHash)&&stat.isConditionallyActive!==true).reduce((value,stat)=>value+Number(stat.value||0),0),0);
+  // Bungie's ItemStats component is the item's provided instanced stat source;
+  // socket plugs are separate components. Preserve that raw value and carry the
+  // installed plug contribution beside it for current/projected comparisons.
+  return {rawValue:Math.max(0,Number(reportedValue||0)),installedModContribution:contribution};
 }
 
 function normaliseArmourItem(payload,row){
@@ -120,7 +154,7 @@ function normaliseArmourItem(payload,row){
   const statsComponent=payload?.profile?.itemComponents?.stats?.data?.[rawItem.itemInstanceId]||null;
   const plugs=socketPlugs(payload,rawItem);
   const armourSemantics=normaliseArmourSemantics({plugs,instance,stats:statsComponent});
-  const stats=armourStats(payload,rawItem);
+  const stats=armourStats(payload,rawItem,plugs);
   const masterworkSlot=armourSemantics.masterwork?{...armourSemantics.masterwork,semanticRole:'masterwork',energyCost:armourSemantics.tier}:null;
   const functionalMods=[...armourSemantics.generalMods,...armourSemantics.slotMods];
   const base={
@@ -158,6 +192,7 @@ function normaliseArmourItem(payload,row){
     exoticPerk:armourSemantics.exoticPerk,
     generalMods:armourSemantics.generalMods,
     slotMods:armourSemantics.slotMods,
+    armourModOptions:armourModOptions(payload,rawItem),
     mods:functionalMods.length?[masterworkSlot,...armourSemantics.generalMods.slice(0,2),...armourSemantics.slotMods.slice(0,3)]:[],
     intrinsicTrait:armourSemantics.exoticPerk,
     isExotic:String(identity.tier).toLowerCase()==='exotic'
@@ -224,5 +259,6 @@ export {
   createVaultCatalogue,
   filterVaultArmour,
   itemKey,
+  modFreeArmourStatValue,
   prepareArmourSelection
 };

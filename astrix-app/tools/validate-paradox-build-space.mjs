@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createBuildState,diffBuilds,createValidationRecord,VALIDATION_STATUS} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 import {BUILD_ELEMENTS,verifiedMasterworkState,validateTierFiveArmour} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-recommendation.mjs';
 import {composeForgeRecommendation} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-forge-intelligence.mjs';
+import {recommendArmourMods,selectOwnedWeapons} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-loadout-intelligence.mjs';
 const item=(hash,name)=>({hash,bungieHash:hash,name});
 const source={source:'bungie-loadout',characterId:'hunter-1',characterClass:'hunter',selectedLoadoutIndex:4,subclass:'stasis',subclassName:'Revenant',subclassBuild:{super:item(1,'Silence and Squall'),abilities:[item(2,'Dodge'),item(3,'Jump'),item(4,'Melee'),item(5,'Grenade')],aspects:[item(6,'Aspect A'),item(7,'Aspect B')],fragments:[item(8,'Fragment A'),item(9,'Fragment B')]},artifact:{hash:20,name:'Seasonal Artifact',activePerks:[item(21,'Perk A')]},weapons:[item(30,'Primary'),item(31,'Special'),item(32,'Heavy')],armour:[item(40,'Helmet'),item(41,'Arms'),item(42,'Chest'),item(43,'Legs'),item(44,'Class')]};
 const state=createBuildState(source);assert.equal(Object.isFrozen(state.originalBuild),true);assert.notEqual(state.originalBuild,state.workingBuild);state.workingBuild.weapons[2]=item(99,'Paradox Heavy');const changes=diffBuilds(state.originalBuild,state.workingBuild);assert.equal(changes.length,1);assert.equal(changes[0].path,'weapons.2');const test=createValidationRecord({build:state.workingBuild,targetActivity:'Vanguard Master Operation',objective:'survivability'});assert.match(test.testId,/^PF-TEST-/);assert.equal(test.status,VALIDATION_STATUS.UNTESTED);assert.equal(Object.isFrozen(test.buildSnapshot),true);
@@ -65,6 +66,33 @@ const prismatic=composeForgeRecommendation({build:intelligenceSource,candidate:p
 assert.deepEqual([...prismatic.intelligence.prismaticCoverage.covered].sort(),['arc','solar','stasis','strand','void'],'Prismatic recommendations must score and report verified coverage across all five damage families when that evidence exists.');
 assert.deepEqual(prismatic.intelligence.prismaticCoverage.missing,[],'A fully evidenced Prismatic combination must not claim a missing damage family.');
 
+const armourMod=(hash,name,description,role,socketIndex,energyCost,statName='',statValue=0)=>({hash,bungieHash:hash,name,description,socketIndex,canInsert:true,definition:{displayProperties:{name,description},plug:{plugCategoryIdentifier:role==='general-mod'?'armor.mods.general':'armor.mods.helmet',energyCost},traitIds:[]},statContributions:statName?[{hash:7000+hash,name:statName,value:statValue,isConditionallyActive:false}]:[]});
+const minorHealth=armourMod(501,'Minor Health Mod','Improves Health.','general-mod',1,1,'Health',5);
+const majorHealth=armourMod(502,'Major Health Mod','Greatly improves Health.','general-mod',1,3,'Health',10);
+const grenadeLoop=armourMod(503,'Grenade Kickstart','Using a grenade returns grenade energy.','slot-mod',2,3);
+const emptySlot={...armourMod(504,'Empty Mod Socket','No mod equipped.','slot-mod',3,0),definition:{...armourMod(504,'Empty Mod Socket','No mod equipped.','slot-mod',3,0).definition}};
+const ashes=armourMod(505,'Ashes to Assets','Grenade final blows grant Super energy.','slot-mod',3,3);
+const modArmour=[{...t5Armour[0],name:'Test Helmet',energy:{capacity:10,used:4},generalMods:[minorHealth],slotMods:[grenadeLoop,emptySlot],armourSemantics:{energy:{capacity:10,used:4},generalMods:[minorHealth],slotMods:[grenadeLoop,emptySlot]},armourModOptions:{1:[minorHealth,majorHealth],2:[grenadeLoop],3:[emptySlot,ashes]}}].concat(t5Armour.slice(1));
+const modSource={...intelligenceSource,armour:modArmour,forgeLoaderDecision:{...intelligenceSource.forgeLoaderDecision,statDirective:{targets:{health:100,melee:0,grenade:0,super:0,class:0,weapon:0},priorities:{health:1,melee:0,grenade:2,super:0,class:0,weapon:0},achieved:{health:70,melee:40,grenade:40,super:40,class:40,weapon:40},rawTotal:270,modsApplied:false}}};
+const modState=createBuildState(modSource),modResult=recommendArmourMods({build:modState.workingBuild,objective:'ability-uptime'}),modActions=Object.fromEntries(modResult.recommendation.decisions.map(row=>[row.socketIndex,row.action]));
+assert.equal(modActions[1],'REPLACE','A stronger verified stat mod must replace a weaker installed mod when energy allows.');
+assert.equal(modActions[2],'KEEP','An installed mod must be retained when no verified alternative proves a stronger fit.');
+assert.equal(modActions[3],'ADD','A verified synergistic mod must fill an empty functional socket when energy allows.');
+assert.equal(modResult.recommendation.rawStatsModFree,true,'The armour recommendation must explicitly preserve the mod-free Forge Loader baseline.');
+assert.equal(modResult.recommendation.projectedStats.raw.health,70,'Projected recommendations must not mutate raw Forge Loader stats.');
+assert.equal(modResult.recommendation.projectedStats.currentTotal.health,75,'Installed stat mods must be evaluated separately from the raw Forge Loader result.');
+assert.equal(modResult.recommendation.projectedStats.recommendedTotal.health,80,'Recommended stat mods must produce a separate capped projection.');
+assert.equal(modState.originalBuild.armour[0].generalMods[0].hash,minorHealth.hash,'The protected Original must retain the installed mod after Working Build optimization.');
+assert.equal(modResult.workingBuild.armour[0].generalMods[0].hash,majorHealth.hash,'Only the Working Build may carry the recommended replacement.');
+assert.equal(modResult.recommendation.liveTransferAuthorized,false,'A generated armour-mod plan must remain review-only.');
+
+const exactWeapon=(hash,instance,name,description,bucketHash)=>({hash,bungieHash:hash,itemInstanceId:instance,name,description,bucketHash,definition:{displayProperties:{name,description},traitIds:[]},weaponSemantics:{selectedPerks:[],alternativePerkColumns:[]}});
+const currentPrimary=exactWeapon(601,'weapon-current','Plain Rifle','A reliable rifle.',1498876634),joltPrimary=exactWeapon(602,'weapon-jolt','Jolt Rifle','Final blows jolt nearby targets and grant grenade energy.',1498876634),energyWeapon=exactWeapon(603,'weapon-energy','Energy Weapon','Verified energy weapon.',2465295065),powerWeapon=exactWeapon(604,'weapon-power','Power Weapon','Verified power weapon.',953998645);
+const weaponResult=selectOwnedWeapons({build:{...intelligenceSource,weapons:[currentPrimary,energyWeapon,powerWeapon],ownedWeapons:[currentPrimary,joltPrimary,energyWeapon,powerWeapon]},objective:'add-clear'});
+assert.equal(weaponResult.workingBuild.weapons[0].itemInstanceId,'weapon-jolt','Owned-weapon ranking must select the exact verified instance with stronger explicit armour-loop and objective evidence.');
+assert.equal(weaponResult.recommendation.decisions[0].action,'REPLACE','Owned-weapon review must identify an exact instance replacement.');
+assert.equal(weaponResult.recommendation.liveTransferAuthorized,false,'Owned-weapon selection must remain review-only.');
+
 const loadoutsAt=html.indexOf('loadouts-design-section'),armourAt=html.indexOf('armour-design-section'),weaponsAt=html.indexOf('weapon-design-section'),recommendationAt=html.indexOf('recommendation-panel'),rightRailAt=html.indexOf('build-right-rail'),validationAt=html.indexOf('validation-panel'),intelligenceAt=html.indexOf('data-paradox-analysis');
 assert.ok(loadoutsAt>0&&loadoutsAt<armourAt&&armourAt<weaponsAt&&weaponsAt<recommendationAt&&recommendationAt<rightRailAt,'Centre column order must be In-game Loadouts, Armour & Mods, Weapons & Perks, then Elemental Build Options.');
 assert.ok(rightRailAt<validationAt&&validationAt<intelligenceAt,'The right rail must contain the Validation Loop above Paradox Intelligence.');
@@ -96,11 +124,13 @@ assert.match(css,/Build Forge readability:[\s\S]*?\.build-forge-page[\s\S]*?--di
 
 const elementButtons=[...html.matchAll(/data-recommendation-element="([^"]+)"/g)].map(match=>match[1]);
 assert.deepEqual(elementButtons,BUILD_ELEMENTS,'Recommendation buttons must be ARC, SOLAR, STRAND, STASIS, VOID and PRISMATIC only.');
+assert.deepEqual([...html.matchAll(/data-build-objective="([^"]+)"/g)].map(match=>match[1]),['balanced','dps','add-clear','survivability','ability-uptime'],'Build Forge must expose the five deterministic tuning objectives used by weapon and mod ranking.');
 assert.match(html,/id="generateMaxLoadout" disabled>GENERATE MAX LOADOUT/,'Generation must begin locked until verified inputs pass.');
 assert.match(runtime,/function generateMaxLoadout\(\)/,'Build Forge must expose an explicit recommendation generation boundary.');
 assert.match(runtime,/composeForgeRecommendation\(\{build:working,candidate,element:selectedRecommendationElement,analyzeBuild:analyzeLiveGuardian\}\)/,'Generation must compare verified subclass sockets through the deterministic Forge intelligence composer.');
 assert.match(runtime,/resolvedSubclassOptions\(build\)\.filter\(hasVerifiedSubclassSockets\)/,'Element buttons must enable only complete live Bungie subclass socket sets, not canonical catalogue placeholders.');
 assert.match(runtime,/working\.paradoxAnalysis=analyzeLiveGuardian\(working\)[\s\S]*?adviseLiveWeaponRolls\(working,working\.paradoxAnalysis\|\|\{\}, \{insertSocketPlugFree:false\}\)/,'Generation must re-run directed analysis after Artifact selection before recommendation-only weapon advice.');
+assert.match(runtime,/working\.objective=selectedRecommendationObjective[\s\S]*?selectOwnedWeapons\(\{build:working,objective:selectedRecommendationObjective\}\)[\s\S]*?recommendArmourMods\(\{build:working,objective:selectedRecommendationObjective\}\)/,'Generation must rank exact owned weapons before producing the verified per-socket armour-mod plan for the selected tuning objective.');
 assert.match(runtime,/applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)/,'Generation must refresh the verified legal Artifact fit.');
 assert.match(intelligenceRuntime,/liveTransferAuthorized:false/,'The generated intelligence result must never authorize live transfer.');
 assert.match(liveAdapterRuntime,/"bungie-live","bungie-loadout","current-guardian"/,'Directed analysis must accept protected snapshots that retain their exact live Bungie provenance label.');
@@ -108,13 +138,15 @@ assert.match(advisorRuntime,/new URL\("\.\.\/\.\.\/data\/paradox-forge\/intellig
 
 assert.match(html,/id="recommendedBuildReveal"[\s\S]*?aria-modal="true"[\s\S]*?hidden/,'The complete recommended build must open in a hidden review layer.');
 assert.match(html,/id="recommendedArmourSummary"[\s\S]*?id="recommendedWeaponsSummary"[\s\S]*?id="recommendedArtifactSummary"/,'The review must expose armour, weapon and Artifact sections.');
+assert.match(html,/id="recommendedModPlan"/,'The review must expose installed-versus-recommended armour-mod decisions.');
+assert.match(runtime,/RAW → CURRENT → RECOMMENDED/,'The review must distinguish mod-free raw stats from installed and recommended projections.');
 assert.match(runtime,/decorateRecommendedWeaponPerks/,'Build weapons must add recommendation icons only after generation.');
 assert.match(runtime,/if\(!generated\)return/,'Weapon recommendations must remain hidden before Generate Max Loadout.');
 assert.doesNotMatch(runtime,/armour-verification-line|decorateBuildArmour/,'Build Forge must not render the internal T5 or masterwork gate as repeated armour-card footer text.');
 assert.doesNotMatch(html,/T5 BASE REQUIRED|T5 VERIFIED|MASTERWORK NOT REPORTED/,'Internal armour validation must not clutter the user-facing armour layout.');
 assert.match(gearRuntime,/return \[masterwork, \.\.\.clean\(generalSource\)\.slice\(0, 2\), \.\.\.clean\(slotSource\)\.slice\(0, 3\)\]/,'Armour mapping must remain masterwork, two general slots and three armour slots.');
 
-assert.match(html,/id="applyBuild" disabled>BUILD MY GUARDIAN<\/button>/,'The only live action must be the explicit Build My Guardian confirmation control.');
+assert.match(html,/id="applyBuild" disabled>BUILD MY GUARDIAN LOADOUT<\/button>/,'The only live action must be the explicit Build My Guardian Loadout confirmation control.');
 assert.match(html,/LIVE GUARDIAN UNCHANGED/,'The review must state that generation does not alter the live Guardian.');
 assert.match(runtime,/if\(!build\?\.recommendationGeneratedAt\)throw new Error/,'Live apply must reject any build that has not passed generation and review.');
 const applyStart=runtime.indexOf('async function applyBuild()'),applyEnd=runtime.indexOf('function setRangeStatus',applyStart),applySource=runtime.slice(applyStart,applyEnd);

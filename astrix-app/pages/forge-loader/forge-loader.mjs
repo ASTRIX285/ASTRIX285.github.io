@@ -1,7 +1,7 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
-import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs';
+import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260903-loadout-intelligence-1';
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs';
 import {compatibleWithClass,exoticCatalogueGroups,setBonusOptions,toggleSetSelection} from './forge-loader-model.mjs';
@@ -355,7 +355,7 @@ async function evaluateInBuildForge(){
   byId('forgeRuntimeStatus').textContent='Protecting the verified equipped Guardian before Build Forge opens…';
   let profileBuild=null;
   try{
-    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260903-forge-loader-baseline-1');
+    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260903-loadout-intelligence-1');
     profileBuild=normaliseLiveProfile(payload,session,activeCharacterId);
   }catch(error){
     console.error('[ASTRIX Forge Loader] The protected Guardian baseline could not be prepared.',error);

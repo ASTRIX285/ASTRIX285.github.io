@@ -31,7 +31,7 @@ function compactValue(value,key=''){
   if(Array.isArray(value))return value.map(row=>compactValue(row));
   const output={};
   for(const [childKey,childValue] of Object.entries(value)){
-    if(['itemRenderData','gearAssets','renderData','loadouts','resolvedSandboxPerks'].includes(childKey))continue;
+    if(['itemRenderData','gearAssets','renderData','loadouts','resolvedSandboxPerks','socketOptions'].includes(childKey))continue;
     output[childKey]=compactValue(childValue,childKey);
   }
   return output;
@@ -69,6 +69,7 @@ function compactForgeLoaderProfileBuild(profileBuild={},binding={}){
     currentSeasonNumber:Number.isInteger(Number(profileBuild.currentSeasonNumber))?Number(profileBuild.currentSeasonNumber):null,
     currentSeason:compactValue(profileBuild.currentSeason||null),
     weapons:compactValue(profileBuild.weapons||[]),
+    ownedWeapons:compactValue(profileBuild.ownedWeapons||profileBuild.weapons||[]),
     armour:compactValue(profileBuild.armour||[]),
     mods:compactValue(profileBuild.mods||profileBuild.armourMods||[]),
     stats:compactValue(profileBuild.stats||[]),

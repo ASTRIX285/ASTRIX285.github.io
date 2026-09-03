@@ -1,6 +1,7 @@
 import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1";
 import {createArtifactConfiguration,resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {subclassPlugComponent} from "./guardian-subclass-plug-classifier.mjs";
+import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260829-weapon-perk-hash-1";
 import {guardianManifest} from "./guardian-manifest-service.mjs";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
@@ -73,6 +74,7 @@ function resolvedBuildSnapshot(detail={}){
     aspects:cloneBuildValue(aspects),
     fragments:cloneBuildValue(fragments),
     weapons:cloneBuildValue(detail.weapons||[]),
+    ownedWeapons:cloneBuildValue(detail.ownedWeapons||detail.weapons||[]),
     armour:cloneBuildValue(detail.armour||[]),
     mods:cloneBuildValue(detail.mods||detail.armourMods||[]),
     artifact:cloneBuildValue(detail.artifact||null),
@@ -307,7 +309,8 @@ function socketResolution(profile,definitions,item,payload={}){
     const category=socketCategories.find(row=>(row?.socketIndexes||[]).map(Number).includes(socketIndex))||null;
     const socketCategoryHash=Number(category?.socketCategoryHash);
     const socketCategoryDefinition=Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null;
-    return Number.isFinite(hash)?{...displayItem(definitions,hash),socketIndex,socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition}:null;
+    const plug=Number.isFinite(hash)?displayItem(definitions,hash):null;
+    return plug?{...plug,socketIndex,socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,statContributions:plugStatContributions(payload,plug.definition)}:null;
   }).filter(Boolean);
   const plugs=rows;
   const resolved=plugs.filter(row=>row.definition&&Object.keys(row.definition).length>0).map(row=>Number(row.hash));
@@ -317,6 +320,42 @@ function socketResolution(profile,definitions,item,payload={}){
 
 function socketPlugs(profile,definitions,item,payload={}){
   return socketResolution(profile,definitions,item,payload).plugs;
+}
+
+function plugStatContributions(payload={},plugDefinition={}){
+  return (plugDefinition?.investmentStats||[]).map(row=>{
+    const hash=Number(row?.statTypeHash),stat=payload?.statDefinitions?.[String(hash)]||null;
+    return {
+      hash:Number.isInteger(hash)?hash:null,
+      name:String(stat?.displayProperties?.name||''),
+      value:Number(row?.value||0),
+      isConditionallyActive:Boolean(row?.isConditionallyActive)
+    };
+  }).filter(row=>row.hash&&Number.isFinite(row.value)&&row.value!==0);
+}
+
+function reusableSocketOptions(profile,definitions,item,payload={}){
+  if(!item?.itemInstanceId)return {};
+  const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]?.plugs||{};
+  const itemDefinition=definition(definitions,item.itemHash)||{};
+  const entries=itemDefinition?.sockets?.socketEntries||[],weapon=WEAPON_ORDER.includes(Number(itemDefinition?.inventory?.bucketTypeHash)),indexes=new Set([...Object.keys(reusable).map(Number),...(weapon?[]:entries.map((_,index)=>index))]),profileSets=profile?.profilePlugSets?.data?.plugs||{},characterSets=Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs||{});
+  return Object.fromEntries([...indexes].sort((a,b)=>a-b).map(socketIndex=>{
+    const entry=entries[socketIndex]||{},setHashes=weapon?[]:[entry?.reusablePlugSetHash].map(Number).filter(Number.isInteger),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]),...setRows];
+    return [String(socketIndex),uniqueItems((Array.isArray(rows)?rows:[]).filter(row=>row?.canInsert!==false&&row?.enabled!==false).map(row=>{
+      const hash=Number(row?.plugItemHash??row?.plugHash),plugDefinition=definition(definitions,hash);
+      if(!Number.isInteger(hash)||!plugDefinition)return null;
+      const category=(itemDefinition?.sockets?.socketCategories||[]).find(value=>(value?.socketIndexes||[]).map(Number).includes(Number(socketIndex)))||null;
+      const socketCategoryHash=Number(category?.socketCategoryHash);
+      return {
+        ...displayItem(definitions,hash),
+        socketIndex:Number(socketIndex),
+        socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,
+        socketCategoryDefinition:Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null,
+        canInsert:true,
+        statContributions:plugStatContributions(payload,plugDefinition)
+      };
+    }).filter(Boolean))];
+  }).filter(([,rows])=>rows.length));
 }
 
 function plugType(plug){
@@ -386,8 +425,12 @@ function normaliseItem(profile,definitions,item,payload={}){
       ||Number(plug.definition?.itemType)===19
     );
   });
+  const socketOptions=reusableSocketOptions(profile,definitions,item,payload);
+  const weaponSemantics=WEAPON_ORDER.includes(Number(base.bucketHash))?normaliseWeaponSemantics({profile,item,plugs,instance,stats:profile?.itemComponents?.stats?.data?.[item.itemInstanceId]||null,alternativeColumns:socketOptions}):null;
   return {
     ...base,
+    itemHash:Number(item.itemHash),
+    itemInstanceId:String(item.itemInstanceId||''),
     icon:override?.definition&&Object.keys(override.definition).length?override.icon:base.icon,
     exactStyleHash:override?.definition&&Object.keys(override.definition).length?Number(item.overrideStyleItemHash):null,
     isHolofoil:Boolean((override?.definition||base.definition)?.isHolofoil),
@@ -406,9 +449,26 @@ function normaliseItem(profile,definitions,item,payload={}){
     intrinsicTrait,
     appearancePlugs:[shader,ornament].filter(Boolean),
     mods,
+    socketOptions,
+    ...(weaponSemantics?{weaponSemantics,intrinsic:weaponSemantics.intrinsic,selectedPerks:weaponSemantics.selectedPerks,weaponMasterwork:weaponSemantics.masterwork,weaponMod:weaponSemantics.mod,catalyst:weaponSemantics.catalyst,championCapability:weaponSemantics.champion,weaponStats:weaponSemantics.stats}:{}),
     socketsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]),
     socketCoverage
   };
+}
+
+function ownedItemRows(profile={}){
+  const priority={profile:0,vault:1,carried:2,postmaster:3,equipped:4},rows=[];
+  for(const item of profile?.profileInventory?.data?.items||[])rows.push({item,source:{kind:Number(item?.bucketHash)===138197802?'vault':'profile',characterId:null,label:Number(item?.bucketHash)===138197802?'Vault':'Shared inventory'}});
+  for(const [characterId,inventory] of Object.entries(profile?.characterInventories?.data||{}))for(const item of inventory?.items||[])rows.push({item,source:{kind:Number(item?.bucketHash)===215593132?'postmaster':'carried',characterId:String(characterId),label:Number(item?.bucketHash)===215593132?'Postmaster':'Carried'}});
+  for(const [characterId,equipment] of Object.entries(profile?.characterEquipment?.data||{}))for(const item of equipment?.items||[])rows.push({item,source:{kind:'equipped',characterId:String(characterId),label:'Equipped'}});
+  const unique=new Map();
+  for(const row of rows){
+    const key=String(row?.item?.itemInstanceId||'');
+    if(!key)continue;
+    const prior=unique.get(key);
+    if(!prior||priority[row.source.kind]>priority[prior.source.kind])unique.set(key,row);
+  }
+  return [...unique.values()];
 }
 
 function subclassConfiguration(profile,definitions,item,payload={},characterId=""){
@@ -528,7 +588,9 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   if(!character?.characterId)throw new Error("No Destiny character was returned for this membership.");
   const equipment=profile?.characterEquipment?.data?.[character.characterId]?.items||[];
   const byBucket=hash=>equipment.find(item=>definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===hash)||null;
-  const weapons=WEAPON_ORDER.map(hash=>byBucket(hash)).filter(Boolean).map(item=>normaliseItem(profile,definitions,item,payload));
+  const weapons=WEAPON_ORDER.map(hash=>byBucket(hash)).filter(Boolean).map(item=>({...normaliseItem(profile,definitions,item,payload),source:{kind:'equipped',characterId:String(character.characterId),label:'Equipped'}}));
+  const weaponBuckets=new Set(WEAPON_ORDER);
+  const ownedWeapons=ownedItemRows(profile).filter(row=>weaponBuckets.has(Number(definition(definitions,row.item?.itemHash)?.inventory?.bucketTypeHash))).map(row=>({...normaliseItem(profile,definitions,row.item,payload),source:row.source})).sort((left,right)=>WEAPON_ORDER.indexOf(Number(left.bucketHash))-WEAPON_ORDER.indexOf(Number(right.bucketHash))||Number(right.source?.kind==='equipped')-Number(left.source?.kind==='equipped')||String(left.name).localeCompare(String(right.name)));
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
@@ -591,6 +653,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     title:title.name,
     stats:characterStats(payload,character),
     weapons,
+    ownedWeapons,
     armour,
     ...cosmetics,
     ornaments:armour.map(item=>item?.ornament).filter(Boolean),

@@ -1,10 +1,10 @@
-import "./guardian-semantic-interceptor.mjs?v=20260829-weapon-perk-hash-1";
+import "./guardian-semantic-interceptor.mjs?v=20260903-loadout-intelligence-1";
 import {
   normaliseLiveProfile,
   loadSelectedLoadout,
   characterRoster,
   selectLiveCharacter
-} from "./guardian-bungie-profile.mjs?v=20260902-recent-guardian-emblem-1";
+} from "./guardian-bungie-profile.mjs?v=20260903-loadout-intelligence-1";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
 import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260829-subclass-identity-1";
 
