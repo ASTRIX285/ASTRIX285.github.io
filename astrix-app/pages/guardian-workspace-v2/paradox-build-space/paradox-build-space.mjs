@@ -104,8 +104,13 @@ function applyPendingVaultSelection(state){
   if(!selection)return state;
   const result=applyVaultArmourSelection(state,selection);
   if(!result.applied)return state;
-  const analysis=analyzeLiveGuardian(result.state.workingBuild);
-  if(analysis)result.state.workingBuild.paradoxAnalysis=analysis;
+  try{
+    const analysis=analyzeLiveGuardian(result.state.workingBuild);
+    result.state.workingBuild.paradoxAnalysis=analysis||null;
+  }catch(error){
+    result.state.workingBuild.paradoxAnalysis=null;
+    console.error('Build Forge retained the protected Forge Loader selection after PARADOX analysis failed.',error);
+  }
   clearVaultArmourSelection();
   return result.state;
 }
@@ -186,6 +191,11 @@ byId('pullRangeResults')?.addEventListener('click',pullRange);
 byId('downloadRangeEvidence')?.addEventListener('click',downloadRangeEvidence);
 byId('applyBuild')?.addEventListener('click',applyBuild);
 byId('restoreOriginal')?.addEventListener('click',restoreOriginal);
-const initialVaultState=readState();
-if(initialVaultState){const nextVaultState=applyPendingVaultSelection(initialVaultState);if(nextVaultState!==initialVaultState)writeState(nextVaultState);}
-render();
+try{
+  const initialVaultState=readState();
+  if(initialVaultState){const nextVaultState=applyPendingVaultSelection(initialVaultState);if(nextVaultState!==initialVaultState)writeState(nextVaultState);}
+}catch(error){
+  console.error('Build Forge could not complete the protected Forge Loader handoff. Rendering the existing Working Build instead.',error);
+}finally{
+  render();
+}
