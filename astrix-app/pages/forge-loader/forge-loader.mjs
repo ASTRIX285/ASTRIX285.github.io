@@ -136,8 +136,8 @@ function updateTargetLabel(label){
   if(key&&input&&output){
     const value=Math.min(ARMOUR_STAT_CAP,Math.max(0,Number(input.value||0)));
     const available=Math.min(ARMOUR_STAT_CAP,Math.max(0,Number(targetMaximums[key]||0)));
-    output.textContent=`${value} / ${ARMOUR_STAT_CAP}`;
-    if(value===0)output.dataset.available=`AVAILABLE ${available}`;else delete output.dataset.available;
+    output.textContent=`${value===0?available:value} / ${ARMOUR_STAT_CAP}`;
+    if(value===0)output.dataset.available='true';else delete output.dataset.available;
     input.style.setProperty('--forge-slider-fill',`${value/ARMOUR_STAT_CAP*100}%`);
     input.style.setProperty('--forge-slider-available',`${(value===0?available:value)/ARMOUR_STAT_CAP*100}%`);
   }
@@ -363,7 +363,7 @@ function installEvents(){
   byId('forgeSetList')?.addEventListener('change',event=>{const input=event.target.closest('[data-set-hash]');if(input)toggleBonus(input);});
   byId('forgeStatTargets')?.addEventListener('input',event=>{if(event.target.matches('[data-stat-priority]'))return;const label=event.target.closest('[data-target-stat]');if(!label)return;updateTargetLabel(label);resetResults();configureStats();byId('forgeRuntimeStatus').textContent='Stat target changed. Calculate to rank every legal combination.';});
   byId('forgeStatTargets')?.addEventListener('change',event=>{if(event.target.matches('[data-stat-priority]')){setStatPriority(event.target);return;}if(event.target.matches('input[type="range"]'))void calculateBuilds();});
-  byId('forgeStatTargets')?.addEventListener('click',event=>{const button=event.target.closest('[data-max-stat]');if(!button)return;const label=button.closest('[data-target-stat]'),input=label?.querySelector('input');if(!input)return;input.value=input.max;updateTargetLabel(label);configureStats();void calculateBuilds();});
+  byId('forgeStatTargets')?.addEventListener('click',event=>{const button=event.target.closest('[data-max-stat]');if(!button)return;const label=button.closest('[data-target-stat]'),input=label?.querySelector('input'),key=label?.dataset?.targetStat;if(!input||!key)return;input.value=String(Math.min(ARMOUR_STAT_CAP,Math.max(0,Number(targetMaximums[key]||0))));updateTargetLabel(label);configureStats();void calculateBuilds();});
   byId('forgeFindBuilds')?.addEventListener('click',calculateBuilds);
   byId('forgeResetTargets')?.addEventListener('click',()=>{for(const input of document.querySelectorAll('[data-target-stat] input'))input.value='0';for(const select of document.querySelectorAll('[data-stat-priority]'))select.value='';resetResults();configureStats();byId('forgeRuntimeStatus').textContent='Stat targets and priorities reset. Ranking by maximum unmodded stats.';void calculateBuilds();});
   byId('forgeCandidateBuilds')?.addEventListener('click',event=>{

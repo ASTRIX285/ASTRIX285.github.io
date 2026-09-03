@@ -126,10 +126,11 @@ assert.equal((html.match(/data-target-stat=/g)||[]).length,6,'Forge Loader must 
 assert.equal((html.match(/data-stat-priority=/g)||[]).length,6,'Every Armour 3.0 stat must expose one optional priority selector.');
 assert.equal((html.match(/<option value="">AUTO<\/option>/g)||[]).length,6,'Leaving a priority unselected must visibly retain the automatic maximum-stat fallback.');
 assert.equal((html.match(/max="200" value="0" step="1" disabled><output>0 \/ 200<\/output>/g)||[]).length,6,'All six Stat Directives must present the 200-point cap before live inventory finishes loading.');
-assert.match(runtime,/output\.textContent=`\$\{value\} \/ \$\{ARMOUR_STAT_CAP\}`/,'Every Stat Directive output must use the fixed current-target / 200 presentation.');
-assert.match(runtime,/input\.max=String\(ARMOUR_STAT_CAP\)/,'Every Stat Directive slider and MAX action must target the absolute 200-point cap.');
+assert.match(runtime,/output\.textContent=`\$\{value===0\?available:value\} \/ \$\{ARMOUR_STAT_CAP\}`/,'Every Stat Directive must show either its achievable ceiling or selected target on the fixed 200-point scale.');
+assert.match(runtime,/input\.max=String\(ARMOUR_STAT_CAP\)/,'Every Stat Directive slider must retain the absolute 200-point scale.');
+assert.match(runtime,/input\.value=String\(Math\.min\(ARMOUR_STAT_CAP,Math\.max\(0,Number\(targetMaximums\[key\]\|\|0\)\)\)\)/,'MAX must select the Guardian\'s achievable stat ceiling rather than forcing 200.');
 assert.match(runtime,/--forge-slider-fill[\s\S]*?value\/ARMOUR_STAT_CAP\*100/,'Each slider must fill proportionally to its selected value on the 200-point scale.');
-assert.match(runtime,/output\.dataset\.available=`AVAILABLE \$\{available\}`/,'An unselected stat must expose its actual achievable maximum as a green figure.');
+assert.match(runtime,/output\.dataset\.available='true'/,'An unselected stat must expose its actual achievable maximum as the primary green figure.');
 assert.match(runtime,/legalPriorityPool=matchedBuilds\.filter[\s\S]*?score\?\.effectiveStats/,'Available figures must be recalculated from combinations that best satisfy the selected priorities.');
 assert.match(runtime,/--forge-slider-available[\s\S]*?value===0\?available:value/,'Green track length must use the achievable maximum only when the stat is not a selected priority.');
 assert.match(runtime,/statPriorities:priorityValues\(\)/,'The exact 1-6 user priority order must be supplied to the owned-armour solver.');
@@ -140,7 +141,9 @@ assert.match(runtime,/No stat priority selected\. Ranking the complete legal poo
 assert.match(selectionState,/priorities:normaliseStatPriorities\(value\.statDirective\?\.priorities\)/,'The protected handoff must validate the six unique priority ranks.');
 assert.match(css,/\.forge-stat-targets select\{[^}]*font:800 \.8rem\/1 Orbitron/,'Priority selectors must remain readable in the three-column Stat Directive.');
 assert.match(css,/linear-gradient\(90deg,#d9b340 0 var\(--forge-slider-fill,0%\),rgba\(41,199,143,\.62\) var\(--forge-slider-fill,0%\) var\(--forge-slider-available,0%\),rgba\(80,80,80,\.34\) var\(--forge-slider-available,0%\) 100%\)/,'The slider must separate selected gold, achievable green and unavailable dark ranges.');
-assert.match(css,/output\[data-available\]::after\{[^}]*color:#66dcb2/,'The actual available stat figure must use the established Forge green.');
+assert.match(css,/output\[data-available\]\{[^}]*color:#66dcb2/,'The achievable XXX / 200 figure must use the established Forge green.');
+assert.doesNotMatch(css,/output\[data-available\]::after/,'The Stat Directive must not retain the smaller AVAILABLE sub-label.');
+assert.match(css,/grid-template-columns:minmax\(0,1fr\) 4\.4rem 6\.4rem/,'The MAX control must yield enough width for the complete AUTO priority label.');
 assert.match(runtime,/type="checkbox"/,'Set bonuses must use checkboxes, not toggle switches.');
 assert.match(runtime,/setBonusOptions\(armourItems\(\),exotic,setSelections\)/);
 assert.match(runtime,/class="forge-set-trait-icon"[\s\S]*?effect\.icon/,'Each 2-piece and 4-piece block must render its verified Bungie trait icon.');
