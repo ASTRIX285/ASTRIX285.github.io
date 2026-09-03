@@ -1,0 +1,122 @@
+import {armourSetHash} from '../vault/vault-armour-matcher.mjs';
+
+const finite=value=>Number.isFinite(Number(value))?Number(value):0;
+
+function compatibleWithClass(item,className=''){
+  const requested=String(className||'').trim().toLowerCase();
+  return !requested||item?.characterClass==='any'||item?.characterClass===requested;
+}
+
+function ownedExoticGroups(items=[],className=''){
+  const groups=new Map();
+  for(const item of Array.isArray(items)?items:[]){
+    if(!item?.isExotic||!compatibleWithClass(item,className))continue;
+    const hash=Number(item?.itemHash??item?.hash);
+    if(!Number.isInteger(hash)||hash<=0)continue;
+    if(!groups.has(hash))groups.set(hash,{hash,itemHash:hash,name:item.name||`Exotic ${hash}`,slotIndex:Number(item.slotIndex),slotKey:item.slotKey||'',slotLabel:item.slotLabel||'',icon:item.icon||'',description:item.description||'',characterClass:item.characterClass||'any',instances:[]});
+    groups.get(hash).instances.push(item);
+  }
+  return [...groups.values()].map(group=>{
+    group.instances.sort((left,right)=>finite(right.totalStats)-finite(left.totalStats)||finite(right.power)-finite(left.power)||String(left.itemInstanceId||'').localeCompare(String(right.itemInstanceId||'')));
+    group.representative=group.instances[0]||null;
+    return group;
+  }).sort((left,right)=>left.slotIndex-right.slotIndex||left.name.localeCompare(right.name));
+}
+
+function constrainedSlotChoices(items=[],fixedExotic={}){
+  const fixedHash=Number(fixedExotic?.hash??fixedExotic?.itemHash);
+  const fixedSlot=Number(fixedExotic?.slotIndex);
+  const choices=Array.from({length:5},()=>new Set());
+  for(const item of Array.isArray(items)?items:[]){
+    const slot=Number(item?.slotIndex);
+    if(!Number.isInteger(slot)||slot<0||slot>=choices.length)continue;
+    const hash=Number(item?.itemHash??item?.hash);
+    if(slot===fixedSlot){
+      if(item?.isExotic&&hash===fixedHash)choices[slot].add(armourSetHash(item)||0);
+      continue;
+    }
+    if(item?.isExotic)continue;
+    choices[slot].add(armourSetHash(item)||0);
+  }
+  return choices;
+}
+
+function normaliseSelections(rows=[]){
+  const unique=new Map();
+  for(const row of Array.isArray(rows)?rows:[]){
+    const setHash=Number(row?.setHash??row?.hash);
+    const count=Number(row?.count??row?.requiredSetCount);
+    if(Number.isInteger(setHash)&&setHash>0&&(count===2||count===4))unique.set(setHash,{setHash,count});
+  }
+  return [...unique.values()];
+}
+
+function setSelectionFeasible(items=[],fixedExotic={},selections=[]){
+  const requirements=normaliseSelections(selections);
+  if(!fixedExotic||!Number(fixedExotic.hash??fixedExotic.itemHash))return false;
+  if(requirements.some(row=>row.count===4)&&requirements.length>1)return false;
+  if(requirements.filter(row=>row.count===2).length>2)return false;
+  const choices=constrainedSlotChoices(items,fixedExotic);
+  if(choices.some(row=>row.size===0))return false;
+  const memo=new Map();
+  const visit=(slot,counts)=>{
+    if(slot>=choices.length)return requirements.every((row,index)=>counts[index]>=row.count);
+    const signature=`${slot}:${counts.join(',')}`;
+    if(memo.has(signature))return memo.get(signature);
+    for(const setHash of choices[slot]){
+      const next=counts.slice();
+      const index=requirements.findIndex(row=>row.setHash===setHash);
+      if(index>=0)next[index]=Math.min(requirements[index].count,next[index]+1);
+      if(visit(slot+1,next)){memo.set(signature,true);return true;}
+    }
+    memo.set(signature,false);
+    return false;
+  };
+  return visit(0,requirements.map(()=>0));
+}
+
+function setBonusOptions(items=[],fixedExotic={},selections=[]){
+  const selected=normaliseSelections(selections);
+  const fixedSlot=Number(fixedExotic?.slotIndex);
+  const definitions=new Map();
+  for(const item of Array.isArray(items)?items:[]){
+    if(item?.isExotic&&Number(item?.itemHash)!==Number(fixedExotic?.hash??fixedExotic?.itemHash))continue;
+    if(!item?.isExotic&&Number(item?.slotIndex)===fixedSlot)continue;
+    const set=item?.setBonus||item?.armourSemantics?.set;
+    const hash=Number(set?.hash);
+    if(!Number.isInteger(hash)||hash<=0||set?.unresolved||!set?.identity)continue;
+    if(!definitions.has(hash))definitions.set(hash,{hash,name:set.identity.name||`Armour set ${hash}`,description:set.identity.description||'',icon:set.identity.icon||'',twoPiece:set.twoPiece||null,fourPiece:set.fourPiece||null,slots:new Set()});
+    definitions.get(hash).slots.add(Number(item.slotIndex));
+  }
+  const activeFour=selected.find(row=>row.count===4)||null;
+  const activeTwos=selected.filter(row=>row.count===2);
+  return [...definitions.values()].map(row=>{
+    const choiceState=count=>{
+      const checked=selected.some(selection=>selection.setHash===row.hash&&selection.count===count);
+      const effect=count===2?row.twoPiece:row.fourPiece;
+      let feasible=Boolean(effect)&&setSelectionFeasible(items,fixedExotic,[...selected.filter(selection=>selection.setHash!==row.hash),{setHash:row.hash,count}]);
+      if(activeFour)feasible=checked;
+      else if(activeTwos.length){
+        if(count===4)feasible=false;
+        else if(!checked&&activeTwos.length>=2)feasible=false;
+      }
+      return {checked,disabled:!checked&&!feasible,feasible,effect};
+    };
+    return {...row,usableSlots:row.slots.size,two:choiceState(2),four:choiceState(4)};
+  }).sort((left,right)=>left.name.localeCompare(right.name));
+}
+
+function toggleSetSelection(items=[],fixedExotic={},selections=[],choice={},checked=false){
+  const setHash=Number(choice?.setHash??choice?.hash);
+  const count=Number(choice?.count);
+  let next=normaliseSelections(selections).filter(row=>row.setHash!==setHash);
+  if(!checked)return next;
+  if(count===4)next=[{setHash,count:4}];
+  else if(count===2){
+    next=next.filter(row=>row.count===2).slice(0,1);
+    next.push({setHash,count:2});
+  }
+  return setSelectionFeasible(items,fixedExotic,next)?next:normaliseSelections(selections);
+}
+
+export {compatibleWithClass,normaliseSelections,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection};

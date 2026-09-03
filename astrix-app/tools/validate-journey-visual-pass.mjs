@@ -20,6 +20,7 @@ const missionReportsHtml=read('astrix-app/pages/mission-reports/index.html');
 const missionReportsCss=read('astrix-app/pages/mission-reports/mission-reports.css');
 const missionReportsData=read('astrix-app/pages/mission-reports/mission-reports-data.mjs');
 const vaultHtml=read('astrix-app/pages/vault/index.html');
+const forgeLoaderHtml=read('astrix-app/pages/forge-loader/index.html');
 const loadoutHtml=read('astrix-app/pages/loadout/index.html');
 const globalHeroPages=[
   html,
@@ -27,9 +28,10 @@ const globalHeroPages=[
   buildForgeHtml,
   missionReportsHtml,
   vaultHtml,
+  forgeLoaderHtml,
   loadoutHtml
 ];
-const mapBackgroundPages=[characterHtml,buildForgeHtml,missionReportsHtml,vaultHtml,loadoutHtml];
+const mapBackgroundPages=[characterHtml,buildForgeHtml,missionReportsHtml,vaultHtml,forgeLoaderHtml,loadoutHtml];
 const cosmodromeMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-4k.webp`);
 const cosmodromeDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/cosmodrome-director-map-6k.webp`);
 const placeholderMap=readFileSync(`${root}astrix-app/pages/journey/assets/maps/astrix-paradox-map-placeholder-4k.webp`);
@@ -137,14 +139,15 @@ assert.match(journey,/function captureEvidenceRows[\s\S]*?readCapture\(\)[\s\S]*
 assert.match(journey,/function renderMostUsed[\s\S]*?activity\?\.buildSnapshot[\s\S]*?winner\.count\/evidence\.length\*100/,'Most-used build tracking must combine future Mission Report snapshots with verified Build Test samples');
 assert.match(html,/id="journeyMostUsed"[\s\S]*?No verified Build Test or Mission Report loadout evidence[\s\S]*?id="journeyBuildSummary"[\s\S]*?No verified Build Forge state[\s\S]*?id="journeyMissionHighlights"[\s\S]*?No verified activity history/,'Unreturned cross-page evidence must retain explicit honest empty states');
 assert.match(css,/\.journey-column-summaries \.journey-evidence-rows[\s\S]*?grid-template-columns:minmax\(0,\.8fr\) minmax\(0,1\.2fr\)/,'Connected Journey evidence must remain readable inside the existing compact cards');
-assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,6,'Shared Journey ribbon must retain all six destination routes');
+assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,7,'Shared Journey ribbon must retain all seven destination routes');
+assert.ok(ribbon.indexOf("key:'forge-loader'")<ribbon.indexOf("key:'build-forge'"),'Forge Loader must appear before Build Forge');
 for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
   assert.ok(page.includes('astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1'),'Every destination page must load the centred-emblem top-stack presentation');
 }
 assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1'))).length,3,'Journey, Vault and Loadout must load the same scoped-profile Guardian renderer');
 assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260902-recent-guardian-emblem-1'),'Character must load the latest-played Guardian module graph');
-assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260902-vault-armour-foundation-1'),'Build Forge must load the Vault armour handoff module graph');
+assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260902-forge-loader-1'),'Build Forge must load the Forge Loader armour handoff module graph');
 assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260902-recent-guardian-emblem-1'),'Mission Reports must load the latest-played Guardian module graph');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
@@ -172,8 +175,8 @@ assert.doesNotMatch(heroModule,/guardian-bungie-profile|guardian-manifest-servic
 for(const page of mapBackgroundPages){
   assert.ok(page.includes('astrix-paradox-background.css?v=20260830-global-map-background'),'Each approved page must load the shared ASTRIX PARADOX map background');
 }
-for(const page of [missionReportsHtml,vaultHtml,loadoutHtml]){
-  assert.ok(page.includes('astrix-paradox-map-background'),'Mission Reports, Vault and Loadout must mount the shared map background layer');
+for(const page of [missionReportsHtml,vaultHtml,forgeLoaderHtml,loadoutHtml]){
+  assert.ok(page.includes('astrix-paradox-map-background'),'Mission Reports, Vault, Forge Loader and Loadout must mount the shared map background layer');
 }
 assert.doesNotMatch(html,/astrix-paradox-background|astrix-paradox-map-background/,'Journey must retain its existing destination background');
 assert.match(mapBackgroundCss,/astrix-paradox-map-placeholder-4k\.webp/,'Shared page backgrounds must use the approved 4K ASTRIX PARADOX map');

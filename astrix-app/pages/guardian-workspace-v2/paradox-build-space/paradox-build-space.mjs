@@ -15,7 +15,7 @@ import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
 import '../guardian-bungie-profile.mjs?v=20260902-recent-guardian-emblem-1';
 import '../guardian-portal-progress.mjs?v=20260830-build-render-gate-2';
-import '../guardian-vault-access.mjs?v=20260902-vault-armour-foundation-1';
+import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 

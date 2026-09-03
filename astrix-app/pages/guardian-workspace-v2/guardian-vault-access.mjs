@@ -28,8 +28,8 @@ function mergeContext(detail={}){
   updateRibbonLink();
 }
 
-function vaultUrl(slot=null){
-  const url=new URL('/astrix-app/pages/vault/',location.origin);
+function forgeLoaderUrl(slot=null){
+  const url=new URL('/astrix-app/pages/forge-loader/',location.origin);
   url.searchParams.set('from',SOURCE);
   const binding={...context,characterId:context.characterId||storedCharacterId()};
   for(const [key,value] of Object.entries(binding))if(value)url.searchParams.set(key,value);
@@ -41,8 +41,8 @@ function vaultUrl(slot=null){
 }
 
 function updateRibbonLink(){
-  const link=[...document.querySelectorAll('.apx-destination-ribbon a')].find(anchor=>new URL(anchor.href,location.href).pathname==='/astrix-app/pages/vault/');
-  if(link)link.href=vaultUrl();
+  const link=[...document.querySelectorAll('.apx-destination-ribbon a')].find(anchor=>new URL(anchor.href,location.href).pathname==='/astrix-app/pages/forge-loader/');
+  if(link)link.href=forgeLoaderUrl();
 }
 
 function installStyles(){
@@ -59,11 +59,11 @@ function mountDrawerLink(slot){
   panel.querySelector('.guardian-vault-select')?.remove();
   const link=document.createElement('a');
   link.className='guardian-vault-select';
-  link.href=vaultUrl(slot);
-  link.textContent='SELECT REPLACEMENT FROM VAULT';
+  link.href=forgeLoaderUrl(slot);
+  link.textContent='OPEN FORGE LOADER';
   link.addEventListener('click',()=>{
     globalThis.AstrixLoader?.mount?.();
-    globalThis.AstrixLoader?.status?.('Opening verified Vault armour…');
+    globalThis.AstrixLoader?.status?.('Opening Forge Loader…');
   });
   panel.appendChild(link);
 }
@@ -76,8 +76,8 @@ function handleArmourActivation(event){
   if(SOURCE==='build'){
     event.preventDefault();
     globalThis.AstrixLoader?.mount?.();
-    globalThis.AstrixLoader?.status?.('Opening verified Vault armour…');
-    location.href=vaultUrl(slot);
+    globalThis.AstrixLoader?.status?.('Opening Forge Loader…');
+    location.href=forgeLoaderUrl(slot);
     return;
   }
   requestAnimationFrame(()=>mountDrawerLink(slot));
@@ -94,7 +94,7 @@ function preserveCharacterBuild(event){
   if(SOURCE!=='character')return;
   const link=event.target.closest('a');
   if(!link)return;
-  if(new URL(link.href,location.href).pathname!=='/astrix-app/pages/vault/')return;
+  if(new URL(link.href,location.href).pathname!=='/astrix-app/pages/forge-loader/')return;
   document.dispatchEvent(new CustomEvent('astrix:vault-open'));
 }
 
@@ -116,4 +116,4 @@ function install(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
 else install();
 
-export {buildBinding,vaultUrl};
+export {buildBinding,forgeLoaderUrl};

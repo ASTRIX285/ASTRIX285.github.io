@@ -14,15 +14,15 @@
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
-  <link rel="stylesheet" href="./vault.css?v=20260902-armour-picker-1">
+  <link rel="stylesheet" href="./vault.css?v=20260902-forge-loader-split-1">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
-  <script src="../../shared/astrix-destination-ribbon.js" defer></script>
+  <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
 </head>
 <body class="apx-destination-page astrix-paradox-map-background">
   <header class="apx-destination-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>VAULT</strong><small>INVENTORY COMMAND</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state" id="vaultHeaderState">BUNGIE INVENTORY</span></header>
   <div data-astrix-destination-ribbon data-active-destination="vault"></div>
   <main class="apx-page-shell">
-    <div class="apx-page-heading"><div><p class="apx-eyebrow">VERIFIED INVENTORY COMMAND</p><h1>Vault</h1><p>Browse armour owned across the shared Vault, carried inventory, equipped Guardians and Postmaster. Stage exact Bungie item instances for Build Forge evaluation without changing live equipment.</p></div><span class="apx-status-chip" id="vaultConnectionState">RESOLVING</span></div>
+    <div class="apx-page-heading"><div><p class="apx-eyebrow">VERIFIED INVENTORY COMMAND</p><h1>Vault</h1><p>Browse verified armour visually across the shared Vault, carried inventory, equipped Guardians and Postmaster. Hover or focus an item to inspect its exact Bungie instance.</p></div><span class="apx-status-chip" id="vaultConnectionState">RESOLVING</span></div>
 
     <section class="vault-capacity" aria-label="Vault inventory totals">
       <article class="vault-capacity-total"><span>ALL VAULT ITEMS</span><strong id="vaultTotalCount">—</strong><small>Verified shared Vault entries</small></article>
@@ -32,10 +32,10 @@
     </section>
 
     <section class="apx-section vault-workspace" aria-labelledby="vaultArmourTitle">
-      <div class="apx-section-heading"><div><p class="apx-eyebrow">ARMOUR SET BUILDER</p><h2 id="vaultArmourTitle">Select armour for evaluation</h2></div><span class="apx-status-chip" id="vaultResultCount">WAITING FOR BUNGIE</span></div>
-      <p class="vault-context" id="vaultReturnContext">Choose up to one verified item per armour slot. The selection will become a separate Working Build; the original build remains protected.</p>
+      <div class="apx-section-heading"><div><p class="apx-eyebrow">VISUAL INVENTORY</p><h2 id="vaultArmourTitle">Verified owned armour</h2></div><span class="apx-status-chip" id="vaultResultCount">WAITING FOR BUNGIE</span></div>
+      <p class="vault-context" id="vaultReturnContext">Inspect verified owned armour without changing live equipment. Forge Loader now owns armour calculation and Build Forge staging.</p>
 
-      <section class="vault-optimiser" aria-labelledby="vaultOptimiserTitle">
+      <section class="vault-optimiser" aria-labelledby="vaultOptimiserTitle" hidden>
         <div class="vault-optimiser-heading"><div><p class="apx-eyebrow">ASTRIX ARMOUR PICKER</p><h3 id="vaultOptimiserTitle">Choose your desired stat distribution</h3><p>Set one or more targets. ASTRIX will compare exact owned item instances and return the five closest legal armour sets.</p></div><span class="vault-optimiser-class" id="vaultOptimiserClass">SELECTED GUARDIAN</span></div>
         <div class="vault-stat-targets" id="vaultStatTargets">
           <label data-target-stat="health"><span>HEALTH</span><input type="range" min="0" max="0" value="0" step="1"><output>0 / —</output></label>
@@ -56,7 +56,7 @@
         <label><span>LOCATION</span><select id="vaultSourceFilter"><option value="all">All owned armour</option><option value="vault">Vault</option><option value="carried">Carried</option><option value="equipped">Equipped</option><option value="postmaster">Postmaster</option></select></label>
       </form>
 
-      <div class="vault-selection" aria-labelledby="vaultSelectionTitle">
+      <div class="vault-selection" aria-labelledby="vaultSelectionTitle" hidden>
         <div class="vault-selection-head"><div><h3 id="vaultSelectionTitle">Staged armour</h3><small id="vaultSelectionStatus">No armour selected</small></div><button type="button" id="vaultClearSelection" disabled>CLEAR</button></div>
         <div class="vault-selection-slots" id="vaultSelectionSlots" aria-label="Selected armour slots"></div>
         <button class="vault-evaluate" type="button" id="vaultEvaluate" disabled>EVALUATE IN BUILD FORGE</button>
@@ -75,6 +75,6 @@
   </main>
   <aside class="vault-item-inspect" id="vaultItemInspect" hidden aria-hidden="true"></aside>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1"></script>
-  <script type="module" src="./vault.mjs?v=20260902-armour-picker-1"></script>
+  <script type="module" src="./vault.mjs?v=20260902-forge-loader-split-1"></script>
 </body>
 </html>

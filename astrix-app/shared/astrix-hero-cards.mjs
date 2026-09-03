@@ -9,7 +9,8 @@ const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
 const MAX_CHARACTERS=3;
 const IS_JOURNEY_PAGE=location.pathname.includes('/pages/journey/');
 const IS_VAULT_PAGE=location.pathname.includes('/pages/vault/');
-const SHARES_PROFILE=IS_JOURNEY_PAGE||IS_VAULT_PAGE;
+const IS_FORGE_LOADER_PAGE=location.pathname.includes('/pages/forge-loader/');
+const SHARES_PROFILE=IS_JOURNEY_PAGE||IS_VAULT_PAGE||IS_FORGE_LOADER_PAGE;
 let journeyProfileSettled=false;
 let settleJourneyProfile=()=>{};
 if(SHARES_PROFILE){
@@ -60,7 +61,7 @@ function mostRecentCharacterId(characters){
 }
 
 function initialCharacterId(characters){
-  if(!IS_VAULT_PAGE)return mostRecentCharacterId(characters);
+  if(!IS_VAULT_PAGE&&!IS_FORGE_LOADER_PAGE)return mostRecentCharacterId(characters);
   const requested=new URLSearchParams(location.search).get('characterId')||'';
   const preferred=[requested].map(String).find(characterId=>characters.some(character=>String(character.characterId)===characterId));
   return preferred||mostRecentCharacterId(characters);
@@ -82,7 +83,7 @@ function publishJourneyProfile(payload){
 function heroProfileUrl(){
   const url=new URL('/bungie/profile',AUTH_ORIGIN);
   if(IS_JOURNEY_PAGE)url.searchParams.set('scope','journey');
-  else if(IS_VAULT_PAGE)url.searchParams.set('scope','character');
+  else if(IS_VAULT_PAGE||IS_FORGE_LOADER_PAGE)url.searchParams.set('scope','character');
   return url;
 }
 
@@ -167,7 +168,7 @@ async function initAstrixHeroCards(){
     publishJourneyProfile(payload);
     const characters=characterRoster(payload,definitions);
     const selectedId=mostRecentCharacterId(characters);
-    const pageSelectedId=IS_VAULT_PAGE?initialCharacterId(characters):selectedId;
+    const pageSelectedId=IS_VAULT_PAGE||IS_FORGE_LOADER_PAGE?initialCharacterId(characters):selectedId;
     rememberCharacterId(pageSelectedId);
     render(characters,pageSelectedId);
   }catch(error){

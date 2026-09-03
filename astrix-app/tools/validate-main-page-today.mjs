@@ -135,7 +135,7 @@ assert.match(loadoutsModule,/data-bungie-color-hash/,'Rendered loadouts must ret
 assert.match(workspaceHtml,/<a class="improve-cta" href="\.\/paradox-build-space\/">✦ IMPROVE MY GUARDIAN<\/a>/,'Improve My Guardian must retain a native Build Forge link when JavaScript or storage fails');
 assert.match(workspaceHtml,/guardian-workspace-v2-compact\.css\?v=20260829-build-cta-anchor-1/,'Main must load the native Build Forge link styling without stale button CSS');
 assert.match(await read('guardian-workspace-v2-compact.css'),/\.improve-cta\{[^}]*display:inline-flex;[^}]*text-decoration:none/,'The native Build Forge link must preserve the approved button presentation');
-assert.match(workspaceHtml,/paradox-build-space-handoff\.mjs\?v=20260902-vault-armour-foundation-1/,'Main must preserve the exact Character build before opening Vault');
+assert.match(workspaceHtml,/paradox-build-space-handoff\.mjs\?v=20260902-vault-armour-foundation-1/,'Main must preserve the exact Character build before opening Forge Loader');
 assert.match(handoff,/latestGuardian&&Number\.isInteger\(latestGuardian\.selectedLoadoutIndex\)/,'Improve My Guardian must prefer the active selected loadout');
 assert.match(handoff,/loadoutsAvailable:detail\.loadoutsAvailable===true/,'Build handoff must carry the exact Bungie in-game loadout catalogue');
 assert.match(handoff,/super:detail\.super\|\|null/,'Build handoff must preserve fixture and legacy subclass fields without an empty subclassBuild');
@@ -165,7 +165,7 @@ assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuil
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
 assert.match(buildHtml,/paradox-build-space\.css\?v=20260829-armour-slot-fill-1/,'Build must load the full-slot Armour artwork rule without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260902-vault-armour-foundation-1/,'Build must load the Vault armour handoff without a stale module cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260902-forge-loader-1/,'Build must load the Forge Loader armour handoff without a stale module cache');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/resolvedOptions\(build,'artifact'\)\.slice\(0,6\)/,'Build Artifact catalogue must use the specified 2-2-2 six-card field');

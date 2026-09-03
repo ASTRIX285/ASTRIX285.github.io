@@ -12,6 +12,7 @@ const pages={
   'Journey':'astrix-app/pages/journey/index.html',
   'Mission Reports':'astrix-app/pages/mission-reports/index.html',
   'Vault':'astrix-app/pages/vault/index.html',
+  'Forge Loader':'astrix-app/pages/forge-loader/index.html',
   'Loadout':'astrix-app/pages/loadout/index.html'
 };
 const operationsHtml=await read('index.html');

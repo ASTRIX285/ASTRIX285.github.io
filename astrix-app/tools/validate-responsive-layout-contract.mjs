@@ -22,6 +22,7 @@ const appPages=[
   ['Build Forge',buildHtml],
   ['Mission Reports',await readFile(new URL('../mission-reports/index.html',ROOT),'utf8')],
   ['Vault',await readFile(new URL('../vault/index.html',ROOT),'utf8')],
+  ['Forge Loader',await readFile(new URL('../forge-loader/index.html',ROOT),'utf8')],
   ['Loadout',await readFile(new URL('../loadout/index.html',ROOT),'utf8')]
 ];
 const combined=Object.values(sources).join('\n');

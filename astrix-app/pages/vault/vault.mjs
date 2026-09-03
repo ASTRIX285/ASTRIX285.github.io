@@ -239,13 +239,26 @@ function inspectStatsMarkup(item){
   return `<div class="vault-inspect-stats">${ARMOUR_STAT_KEYS.map(key=>`<span>${esc(ARMOUR_STAT_LABELS[key])}<b>${Number(vector[key]||0)}</b></span>`).join('')}</div>`;
 }
 
-function showItemInspect(key){
+function positionItemInspect(panel,anchor){
+  const gap=12,bounds=anchor.getBoundingClientRect(),width=panel.offsetWidth,height=panel.offsetHeight;
+  let left=bounds.right+gap;
+  if(left+width>innerWidth-gap)left=bounds.left-width-gap;
+  left=Math.max(gap,Math.min(left,innerWidth-width-gap));
+  const top=Math.max(gap,Math.min(bounds.top,innerHeight-height-gap));
+  panel.style.left=`${Math.round(left)}px`;
+  panel.style.top=`${Math.round(top)}px`;
+  panel.style.right='auto';
+}
+
+function showItemInspect(key,anchor){
   const item=inspectedItem(key),panel=byId('vaultItemInspect');
-  if(!item||!panel)return;
+  if(!item||!panel||!anchor)return;
+  if(panel.parentElement!==document.documentElement)document.documentElement.append(panel);
   const setName=item.setBonus?.identity?.name||'';
   panel.innerHTML=`<div class="vault-inspect-head">${item.icon?`<img src="${esc(item.icon)}" alt="">`:''}<div class="vault-inspect-copy"><h4>${esc(item.name)}</h4><p>${esc(`${item.slotLabel} · ${item.characterClass==='any'?'Any class':item.characterClass}`)}</p><strong>Σ ${item.totalStats} TOTAL${item.power!==null?` · ✦ ${esc(item.power)}`:''}</strong>${setName?`<p class="vault-inspect-set">${esc(setName)}</p>`:''}</div></div>${inspectStatsMarkup(item)}<div class="vault-inspect-foot"><span>${esc(String(item.source?.label||'Owned').toUpperCase())}</span><span>EXACT BUNGIE INSTANCE</span></div>`;
   panel.hidden=false;
   panel.setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=>positionItemInspect(panel,anchor));
 }
 
 function hideItemInspect(){
@@ -253,12 +266,11 @@ function hideItemInspect(){
   if(panel){panel.hidden=true;panel.setAttribute('aria-hidden','true');}
 }
 
-function itemMarkup(item,selectedKeys){
-  const selected=selectedKeys.has(itemKey(item));
+function itemMarkup(item){
   const compatible=itemCompatible(item);
   const setName=item.setBonus?.identity?.name||'';
-  const className=['vault-item',selected?'is-selected':'',item.isExotic?'is-exotic':'',compatible?'':'is-incompatible'].filter(Boolean).join(' ');
-  return `<button type="button" class="${className}" data-vault-item="${esc(itemKey(item))}" data-inspect-item="${esc(itemKey(item))}" data-armour-slot="${item.slotIndex}" aria-pressed="${selected}" ${compatible?'':`disabled aria-label="${esc(item.name)} is not compatible with the selected ${activeCharacterClass||'Guardian'}"`}>
+  const className=['vault-item',item.isExotic?'is-exotic':'',compatible?'':'is-incompatible'].filter(Boolean).join(' ');
+  return `<button type="button" class="${className}" data-inspect-item="${esc(itemKey(item))}" data-armour-slot="${item.slotIndex}" ${compatible?`aria-label="Inspect ${esc(item.name)}"`:`disabled aria-label="${esc(item.name)} is not compatible with the selected ${activeCharacterClass||'Guardian'}"`}>
     <span class="vault-item-art">${item.icon?`<img src="${esc(item.icon)}" alt="" loading="lazy" decoding="async">`:''}${item.power!==null?`<span class="vault-item-power">✦ ${esc(item.power)}</span>`:''}<span class="vault-item-source">${esc(String(item.source?.label||'Owned').toUpperCase())}</span><span class="vault-item-total">Σ ${item.totalStats}</span></span>
     <span class="vault-item-copy"><b>${esc(item.name)}</b><small>${esc(`${item.slotLabel} · ${item.characterClass==='any'?'Any class':item.characterClass}`)}</small>${setName?`<small class="vault-item-set">${esc(setName)}</small>`:''}${statLineMarkup(item)}</span>
   </button>`;
@@ -267,9 +279,8 @@ function itemMarkup(item,selectedKeys){
 function renderInventory(){
   const rows=filterVaultArmour(catalogue.armour,filters());
   const visible=rows.slice(0,visibleLimit);
-  const selectedKeys=selectedKeySet();
   byId('vaultResultCount').textContent=`${rows.length} VERIFIED ITEM${rows.length===1?'':'S'}`;
-  byId('vaultItemGrid').innerHTML=visible.length?visible.map(item=>itemMarkup(item,selectedKeys)).join(''):'<div class="vault-empty">No verified armour matches these filters.</div>';
+  byId('vaultItemGrid').innerHTML=visible.length?visible.map(item=>itemMarkup(item)).join(''):'<div class="vault-empty">No verified armour matches these filters.</div>';
   const loadMore=byId('vaultLoadMore');
   loadMore.hidden=visible.length>=rows.length;
   if(!loadMore.hidden)loadMore.textContent=`LOAD ${Math.min(PAGE_SIZE,rows.length-visible.length)} MORE ARMOUR`;
@@ -285,9 +296,7 @@ function renderContext(){
   const source=text(params.get('from'));
   const character=selectedCharacter();
   const classLabel=activeCharacterClass?activeCharacterClass[0].toUpperCase()+activeCharacterClass.slice(1):'Guardian';
-  byId('vaultReturnContext').textContent=source==='build'
-    ?`Select armour for the ${classLabel} Working Build. Build Forge will preserve its immutable Original snapshot.`
-    :`Choose up to one verified item per armour slot for ${classLabel}. The selection will become a separate Working Build; live equipment will not change.`;
+  byId('vaultReturnContext').textContent=`Browse verified ${classLabel} armour visually. Open Forge Loader to calculate and stage an armour combination.`;
   byId('vaultHeaderState').textContent=character?`${classLabel.toUpperCase()} INVENTORY`:'BUNGIE INVENTORY';
 }
 
@@ -324,7 +333,6 @@ function clearIncompatibleSelection(){
 
 function installEvents(){
   byId('vaultFilters')?.addEventListener('input',()=>{visibleLimit=PAGE_SIZE;renderInventory();});
-  byId('vaultItemGrid')?.addEventListener('click',event=>{const button=event.target.closest('[data-vault-item]');if(button)selectItem(button.dataset.vaultItem);});
   byId('vaultStatTargets')?.addEventListener('input',event=>{
     const label=event.target.closest('[data-target-stat]');
     if(!label)return;
@@ -342,10 +350,12 @@ function installEvents(){
   byId('vaultClearSelection')?.addEventListener('click',()=>{selectedSlots.clear();renderAll();});
   byId('vaultEvaluate')?.addEventListener('click',evaluateInBuildForge);
   byId('vaultLoadMore')?.addEventListener('click',()=>{visibleLimit+=PAGE_SIZE;renderInventory();});
-  document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-inspect-item]');if(target)showItemInspect(target.dataset.inspectItem);});
+  document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-inspect-item]');if(target)showItemInspect(target.dataset.inspectItem,target);});
   document.addEventListener('pointerout',event=>{const target=event.target.closest('[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideItemInspect();});
-  document.addEventListener('focusin',event=>{const target=event.target.closest('[data-inspect-item]');if(target)showItemInspect(target.dataset.inspectItem);});
+  document.addEventListener('focusin',event=>{const target=event.target.closest('[data-inspect-item]');if(target)showItemInspect(target.dataset.inspectItem,target);});
   document.addEventListener('focusout',event=>{const target=event.target.closest('[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideItemInspect();});
+  addEventListener('resize',hideItemInspect,{passive:true});
+  addEventListener('scroll',hideItemInspect,{passive:true,capture:true});
   document.addEventListener('astrix:character-selected',event=>{
     resolveActiveCharacter(event.detail?.characterId);
     clearIncompatibleSelection();
