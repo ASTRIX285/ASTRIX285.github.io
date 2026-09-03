@@ -32,9 +32,21 @@ assert.doesNotMatch(html,/CHOOSE SUBCLASS/,'Build Forge must not label elemental
 assert.match(css,/\.build-space\{grid-template-columns:minmax\(360px,20%\) minmax\(720px,1fr\) minmax\(420px,24%\)/,'Build Forge must use the locked Journey three-column proportions.');
 assert.match(css,/@media\(max-width:1760px\)\{\.build-space\{grid-template-columns:392px minmax\(0,1fr\)\}/,'Build Forge must follow Journey when the right rail moves below the two-column workspace.');
 assert.match(css,/\.build-rail\{container-type:inline-size;--build-rail-icon:clamp\(40px,21cqi,128px\)/,'Build left-rail icons must remain proportional to their column without taking ownership of the shared Character token.');
-assert.match(css,/--build-armour-art:clamp\(92px,6cqi,360px\)/,'Armour icons must respond to the Armour section width.');
-assert.match(css,/--build-armour-mod:clamp\(40px,3\.6cqi,240px\)/,'Armour mod icons must respond to the Armour section width.');
-assert.match(css,/--build-weapon-art:clamp\(82px,6cqi,360px\)/,'Weapon icons must respond to the Weapons section width.');
+assert.match(css,/--build-armour-art:clamp\(64px,7cqi,360px\)/,'Armour icons must respond to the Armour section width.');
+assert.match(css,/--build-armour-mod:clamp\(32px,3\.6cqi,240px\)/,'Armour mod icons must respond to the Armour section width.');
+assert.match(css,/--build-weapon-art:clamp\(64px,7cqi,360px\)/,'Weapon icons must respond to the Weapons section width.');
+const responsiveWidthSamples=[1148,1332];
+const proportionalTokens=[
+  ['armour art',64,.07,360],['armour mod',32,.036,240],['armour rail',12,.012,72],
+  ['armour corner',14,.014,84],['armour bonus',16,.016,96],['armour intrinsic',26,.028,168],
+  ['armour appearance',24,.025,150],['weapon art',64,.07,360],['weapon perk',14,.0145,88],
+  ['weapon corner',12,.0125,76],['weapon power',8,.0085,52]
+];
+for(const [label,min,ratio,max] of proportionalTokens){
+  const sizes=responsiveWidthSamples.map(width=>Math.min(max,Math.max(min,width*ratio)));
+  const ratios=sizes.map((size,index)=>size/responsiveWidthSamples[index]);
+  assert.ok(Math.abs(ratios[0]-ratios[1])<1e-9,`${label} must retain its percentage between the 1640px and 2560px workspace samples.`);
+}
 assert.match(css,/Build Forge readability:[\s\S]*?\.build-forge-page[\s\S]*?--dim:#b8b2bd;[\s\S]*?font-family:Inter,system-ui,sans-serif!important/,'Build Forge must retain the readable Inter text hierarchy and high-contrast working colours.');
 
 const elementButtons=[...html.matchAll(/data-recommendation-element="([^"]+)"/g)].map(match=>match[1]);

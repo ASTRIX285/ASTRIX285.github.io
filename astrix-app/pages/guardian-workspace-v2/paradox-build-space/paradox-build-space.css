@@ -245,14 +245,14 @@ html,body{
 .design-canvas .weapon-design-section,
 .design-canvas .recommendation-panel{container-type:inline-size}
 .design-canvas .armour-design-section{
-  --build-armour-mod:clamp(40px,3.6cqi,240px);
+  --build-armour-mod:clamp(32px,3.6cqi,240px);
   --build-armour-gap:clamp(4px,.45cqi,14px);
-  --build-armour-art:clamp(92px,6cqi,360px);
-  --build-armour-rail-icon:clamp(18px,1.2cqi,72px);
-  --build-armour-corner-icon:clamp(21px,1.4cqi,84px);
-  --build-armour-bonus-icon:clamp(25px,1.6cqi,96px);
-  --build-armour-intrinsic:clamp(42px,2.8cqi,168px);
-  --build-armour-appearance:clamp(38px,2.5cqi,150px)
+  --build-armour-art:clamp(64px,7cqi,360px);
+  --build-armour-rail-icon:clamp(12px,1.2cqi,72px);
+  --build-armour-corner-icon:clamp(14px,1.4cqi,84px);
+  --build-armour-bonus-icon:clamp(16px,1.6cqi,96px);
+  --build-armour-intrinsic:clamp(26px,2.8cqi,168px);
+  --build-armour-appearance:clamp(24px,2.5cqi,150px)
 }
 .design-canvas .armour-design-section .gear-arm-row{min-height:var(--build-armour-art)}
 .design-canvas .armour-design-section .gear-arm-anchor .arm{width:var(--build-armour-art)!important;height:var(--build-armour-art)!important}
@@ -263,7 +263,7 @@ html,body{
 .design-canvas .armour-design-section .armour-tier-rail{width:var(--build-armour-rail-icon)}
 .design-canvas .armour-design-section .armour-season-icon{width:var(--build-armour-rail-icon);height:var(--build-armour-rail-icon)}
 .design-canvas .armour-design-section .armour-season-icon img{width:82%!important;height:82%!important}
-.design-canvas .armour-design-section .armour-tier-diamond{width:clamp(6px,.38cqi,24px);height:clamp(6px,.38cqi,24px);flex-basis:clamp(6px,.38cqi,24px)}
+.design-canvas .armour-design-section .armour-tier-diamond{width:clamp(4px,.38cqi,24px);height:clamp(4px,.38cqi,24px);flex-basis:clamp(4px,.38cqi,24px)}
 .design-canvas .armour-design-section .armour-archetype-icon{width:var(--build-armour-corner-icon);height:var(--build-armour-corner-icon)}
 .design-canvas .armour-design-section .armour-archetype-icon img{width:82%!important;height:82%!important}
 .design-canvas .armour-design-section .armour-exotic-overlay,
@@ -271,9 +271,9 @@ html,body{
 .design-canvas .armour-design-section .armour-set-threshold{width:var(--build-armour-bonus-icon);height:var(--build-armour-bonus-icon)}
 .design-canvas .armour-design-section .armour-exotic-overlay img{width:82%!important;height:82%!important}
 .design-canvas .weapon-design-section{
-  --build-weapon-art:clamp(82px,6cqi,360px);
-  --build-weapon-perk:clamp(22px,1.45cqi,88px);
-  --build-weapon-corner:clamp(19px,1.25cqi,76px)
+  --build-weapon-art:clamp(64px,7cqi,360px);
+  --build-weapon-perk:clamp(14px,1.45cqi,88px);
+  --build-weapon-corner:clamp(12px,1.25cqi,76px)
 }
 .design-canvas .weapon-design-section .gear-weapons .weap-grid{grid-template-columns:repeat(3,var(--build-weapon-art))!important;gap:clamp(7px,.6cqi,18px)!important}
 .design-canvas .weapon-design-section .gear-weapons .weap{width:var(--build-weapon-art)!important;max-width:var(--build-weapon-art)!important;min-height:0!important}
@@ -285,7 +285,7 @@ html,body{
 .design-canvas .weapon-design-section .gear-weapons .weapon-season-icon img{width:82%!important;height:82%!important}
 .design-canvas .weapon-design-section .gear-weapons .weapon-corner-icon{width:var(--build-weapon-corner);height:var(--build-weapon-corner)}
 .design-canvas .weapon-design-section .gear-weapons .weapon-corner-icon.is-intrinsic img{width:82%!important;height:82%!important}
-.design-canvas .weapon-design-section .gear-weapons .weapon-power img{width:clamp(13px,.85cqi,52px)!important;height:clamp(13px,.85cqi,52px)!important}
+.design-canvas .weapon-design-section .gear-weapons .weapon-power img{width:clamp(8px,.85cqi,52px)!important;height:clamp(8px,.85cqi,52px)!important}
 
 /* Build Forge readability: Inter carries working text; Orbitron remains for major headings only. */
 .build-forge-page{
