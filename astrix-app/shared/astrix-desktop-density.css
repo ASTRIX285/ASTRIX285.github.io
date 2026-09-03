@@ -3,7 +3,6 @@
    Journey, Character, Forge Loader, Build Forge, Mission Reports, Vault and
    Loadout. Page-owned data, interactions and icon geometry remain untouched. */
 :root{
-  --astrix-desktop-density:.75;
   --apx-workspace-left:minmax(360px,20%);
   --apx-workspace-centre:minmax(720px,1fr);
   --apx-workspace-right:minmax(420px,24%);
@@ -254,7 +253,6 @@ body.apx-destination-page .apx-page-shell{
 }
 
 @media (min-width:1500px){
-  body{zoom:var(--astrix-desktop-density)}
   body.apx-destination-page .apx-page-shell{width:100%;max-width:none}
 }
 

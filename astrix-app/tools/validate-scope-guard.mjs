@@ -27,6 +27,8 @@ const allowed=new Set([
   'astrix-app/pages/guardian-workspace-v2/guardian-character-cards.css',
   'astrix-app/pages/guardian-workspace-v2/guardian-gear-layout.css',
   'astrix-app/pages/guardian-workspace-v2/guardian-layout-final.css',
+  'astrix-app/pages/guardian-workspace-v2/guardian-left-rail-shared.css',
+  'astrix-app/pages/guardian-workspace-v2/guardian-super-formation.css',
   'astrix-app/pages/guardian-workspace-v2/guardian-workspace-v2-compact.css',
   'astrix-app/pages/guardian-workspace-v2/guardian-workspace-v2.css',
   'astrix-app/pages/guardian-workspace-v2/guardian-bungie-auth.mjs',
