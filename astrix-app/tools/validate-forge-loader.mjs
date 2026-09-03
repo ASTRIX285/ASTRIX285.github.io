@@ -221,8 +221,8 @@ assert.doesNotMatch(runtime,/method\s*:\s*['"]POST['"]|EquipItems?|TransferItem|
 assert.match(buildRuntime,/window\.confirm\([\s\S]*?confirmPerkChangePlan\(plan\)[\s\S]*?applyConfirmedPerkChangePlan\(confirmed\)/,'Any live Build Forge action must remain behind explicit user confirmation.');
 assert.match(perkPlanRuntime,/if\(plan\?\.status!=="confirmed"\|\|!plan\?\.confirmedAt\)throw new Error\("User confirmation is required before applying perk changes\."\);[\s\S]*?method:"POST"/,'The only Build Forge mutation client must reject every unconfirmed plan before its POST request.');
 assert.doesNotMatch(runtime,/\bDIM\b|d2armou?rpicker/i,'Forge Loader must not copy external picker branding or actions.');
-assert.match(css,/\.forge-loader-workspace\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/,'Wide Forge Loader must use three equal columns.');
-assert.doesNotMatch(css,/@media\(max-width:1700px\)[\s\S]*?\.forge-loader-output\{grid-column:1\/-1\}/,'Forge Loader must retain three equal desktop columns until the tablet breakpoint.');
+assert.match(css,/\.forge-loader-workspace\{[^}]*grid-template-columns:var\(--apx-workspace-columns,minmax\(360px,20%\) minmax\(720px,1fr\) minmax\(420px,24%\)\)/,'Wide Forge Loader must use the shared left, centre and right proportions.');
+assert.match(css,/@media\(max-width:1760px\)\{\.forge-loader-workspace\{grid-template-columns:var\(--apx-workspace-compact-columns,392px minmax\(0,1fr\)\)\}\.forge-loader-output\{grid-column:1\/-1\}\}/,'Forge Loader must share the two-column workspace and move output below before compression.');
 assert.match(css,/\.forge-hero-card\{[^}]*aspect-ratio:474\/96[^}]*overflow:hidden/,'The selected Guardian emblem must fit inside its card boundary.');
 assert.match(css,/\.forge-stat-targets label>span\{[^}]*\.9rem/,'Eligible stat labels must retain the enlarged readable type scale.');
 assert.match(css,/\.forge-matrix-stat small\{font-size:\.92rem\}[\s\S]*?\.forge-matrix-stat b\{font-size:1\.25rem\}/,'Forge Matrix stat labels and values must remain readable at the approved desktop density.');

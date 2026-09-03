@@ -43,7 +43,7 @@
 .ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:#0c0a16}
 .ring .heart{position:relative;color:var(--violet-2);font-size:2rem}
 .health-card .verdict{font-family:Orbitron;font-weight:800;font-size:1.4rem;color:var(--green);letter-spacing:.02em}
-.health-card .verdict small{display:block;font-family:Rajdhani;font-weight:500;font-size:.8rem;color:var(--muted);letter-spacing:0;margin-top:6px}
+.health-card .verdict small{display:block;font-family:Inter;font-weight:500;font-size:.8rem;color:var(--muted);letter-spacing:0;margin-top:6px}
 .focus{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .focus .lbl{color:var(--dim);font-family:Orbitron;font-size:.54rem;letter-spacing:.2em;text-transform:uppercase}
 .focus-row{display:flex;align-items:center;gap:12px;margin-top:10px}

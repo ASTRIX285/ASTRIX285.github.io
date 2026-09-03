@@ -85,7 +85,7 @@ html, body {
 body {
   margin: 0;
   color: var(--text);
-  font-family: Rajdhani, system-ui, Arial, sans-serif;
+  font-family: Inter, system-ui, Arial, sans-serif;
   font-weight: 500;
   background:
     radial-gradient(1200px 760px at 62% 42%, rgba(139, 92, 246, 0.20), transparent 60%),
