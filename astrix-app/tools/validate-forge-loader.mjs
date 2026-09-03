@@ -94,6 +94,10 @@ assert.match(runtime,/matchArmourBuilds\(armourItems\(\),targets,\{\.\.\.solverO
 assert.match(runtime,/exoticCatalogueGroups\(catalogue\.armour,inventoryDefinitions\(\),activeCharacterClass,ARMOUR_BUCKETS\)/,'Forge Loader must add verified class collection definitions without fabricating inventory instances.');
 assert.match(runtime,/group\.owned\?'':'disabled'/,'Unowned Exotic definitions must render disabled and never enter the selection event path.');
 assert.match(runtime,/group\.owned&&group\.hash===Number\(hash\)/,'The runtime must reject any unowned Exotic selection attempt.');
+assert.match(html,/id="forgeExoticStatus" hidden/,'The Exotic definition count must remain available without cluttering the visible selector.');
+assert.doesNotMatch(html,/Every verified Exotic for the selected class/,'The Exotic selector must present the icon list without an explanatory block.');
+assert.doesNotMatch(runtime,/<span>\$\{group\.owned\?`×\$\{group\.instances\.length\}`:'LOCKED'<\/span>/,'Duplicate and ownership labels must not cover the Exotic artwork.');
+assert.doesNotMatch(css,/\.forge-exotic>span|content:"ANCHOR"/,'Exotic ownership and selection must use artwork state and the PARADOX border rather than text overlays.');
 assert.doesNotMatch(runtime,/ARMOUR_STAT_LABELS\[key\]\.slice/,'Calculated loads must show full stat names rather than unreadable abbreviations.');
 assert.match(html,/<h2 id="forgeResultsTitle">Forge Matrix<\/h2>/,'Calculated combinations must use the independent PARADOX Forge Matrix identity.');
 assert.match(runtime,/class="forge-matrix-row"[\s\S]*?class="forge-matrix-stats"[\s\S]*?class="forge-matrix-total"[\s\S]*?class="forge-matrix-protocol"/,'Each compact load must expose six calculated stats, total and set protocol in one comparison row.');

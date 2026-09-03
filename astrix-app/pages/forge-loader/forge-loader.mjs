@@ -103,7 +103,7 @@ function renderExotics(){
     return `<section class="forge-exotic-slot"><h3>${esc(slot.label.toUpperCase())}</h3><div class="forge-exotic-grid">${rows.length?rows.map(group=>{
       const selected=group.owned&&group.hash===Number(selectedExoticHash);
       const ownership=group.owned?`${group.instances.length} owned ${group.instances.length===1?'copy':'copies'}`:'not owned';
-      return `<button type="button" class="forge-exotic${selected?' is-selected':''}${group.owned?'':' is-unowned'}" ${group.owned?`data-exotic-hash="${group.hash}"`:''} data-inspect-exotic="${group.hash}" aria-pressed="${selected}" aria-label="${group.owned?'Select':'Inspect'} ${esc(group.name)}, ${ownership}" ${group.owned?'':'disabled'}><img src="${esc(group.icon)}" alt="" loading="lazy" decoding="async"><span>${group.owned?`×${group.instances.length}`:'LOCKED'}</span></button>`;
+      return `<button type="button" class="forge-exotic${selected?' is-selected':''}${group.owned?'':' is-unowned'}" ${group.owned?`data-exotic-hash="${group.hash}"`:''} data-inspect-exotic="${group.hash}" aria-pressed="${selected}" aria-label="${group.owned?'Select':'Inspect'} ${esc(group.name)}, ${ownership}" ${group.owned?'':'disabled'}><img src="${esc(group.icon)}" alt="" loading="lazy" decoding="async"></button>`;
     }).join(''):'<div class="forge-empty">No verified Exotic definitions</div>'}</div></section>`;
   }).join('');
 }
