@@ -56,10 +56,12 @@ assert.match(sources.characters,/@media\s*\(max-width:860px\)\{[\s\S]*?#guardian
 assert.doesNotMatch(sources.characters,/scroll-snap-type|overflow-x:auto/,'The fixed character-card ribbon must not become a separate scrolling container');
 assert.match(sources.build,/@media\(max-width:1100px\)\{\.build-space\{grid-template-columns:1fr\}/,'Build must share the single-column compact breakpoint');
 assert.match(sources.build,/@media\s*\(max-width:720px\)\{[\s\S]*?\.build-space\{grid-template-columns:1fr/,'Build must collapse to one document-flow column on phones');
-for(const [label,source] of [['Journey',journeyCss],['Build Forge',sources.build],['Mission Reports',missionCss],['Forge Loader',forgeLoaderCss]]){
+for(const [label,source] of [['Journey',journeyCss],['Build Forge',sources.build],['Mission Reports',missionCss]]){
   assert.match(source,/grid-template-columns:var\(--apx-workspace-columns,/u,label+' must consume the shared wide workspace tracks');
   assert.match(source,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,label+' must consume the shared compact workspace tracks');
 }
+assert.match(forgeLoaderCss,/grid-template-columns:minmax\(360px,20%\) minmax\(640px,44%\) minmax\(560px,1fr\)/u,'Forge Loader alone must reserve a narrower directive track and a wider output track');
+assert.match(forgeLoaderCss,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,'Forge Loader must retain the shared compact workspace tracks');
 assert.match(sources.layout,/grid-template-columns:var\(--apx-workspace-left,[^;]+\) var\(--apx-workspace-centre,[^;]+\)!important/,'Character must consume the shared rail and centre tracks');
 assert.match(sources.super,/@media\s*\(max-width:720px\)\{[\s\S]*?\.super-feature \.super-feature__cluster\{width:min\(300px,100%\)!important\}/,'Super geometry must scale inside its container at narrow widths');
 

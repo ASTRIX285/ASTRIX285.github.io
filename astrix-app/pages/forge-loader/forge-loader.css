@@ -1,5 +1,5 @@
 .forge-loader-shell{width:100%;max-width:none}
-.forge-loader-workspace{display:grid;grid-template-columns:var(--apx-workspace-columns,minmax(360px,20%) minmax(720px,1fr) minmax(420px,24%));gap:var(--apx-workspace-gap,.625rem);align-items:stretch}
+.forge-loader-workspace{display:grid;grid-template-columns:minmax(360px,20%) minmax(640px,44%) minmax(560px,1fr);gap:var(--apx-workspace-gap,.625rem);align-items:stretch}
 .forge-loader-selector,.forge-loader-directives,.forge-loader-output{display:grid;gap:1rem;min-width:0;align-content:start}.forge-loader-output{container-type:inline-size}
 .forge-panel{position:relative;min-width:0;padding:1rem;border:1px solid rgba(178,34,34,.42);background:linear-gradient(145deg,rgba(18,11,12,.96),rgba(7,7,8,.94));box-shadow:0 1.2rem 3rem rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.025)}
 .forge-panel::after{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,var(--apx-crimson-bright),transparent 38%,var(--apx-gold));opacity:.65;pointer-events:none}
