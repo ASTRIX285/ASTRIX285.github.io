@@ -360,8 +360,9 @@ async function evaluateInBuildForge(){
   }catch(error){
     console.error('[ASTRIX Forge Loader] The protected Guardian baseline could not be prepared.',error);
   }
-  const baselineStored=profileBuild&&writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores:[sessionStorage,localStorage]});
-  if(!baselineStored){byId('forgeRuntimeStatus').textContent='Build Forge could not protect the equipped Guardian baseline. No build was changed.';return;}
+  if(!profileBuild){byId('forgeRuntimeStatus').textContent='Build Forge could not resolve the equipped Guardian baseline. No build was changed.';return;}
+  const baselineStored=writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores:[sessionStorage,localStorage]});
+  if(!baselineStored){byId('forgeRuntimeStatus').textContent='Browser storage rejected the protected Guardian baseline. No build was changed.';return;}
   const selected=prepareArmourSelection(payload,[...selectedSlots.values()]);
   const selection=createVaultArmourSelection({binding,slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision:forgeLoaderDecision(candidate,selectedCandidateIndex)});
   if(!writeVaultArmourSelection(selection)){byId('forgeRuntimeStatus').textContent='The staged load could not be stored on this device. No build was changed.';return;}

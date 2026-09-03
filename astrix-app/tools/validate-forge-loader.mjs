@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {ARMOUR_STAT_CAP,armourTargetMaximums,compareArmourScores,matchArmourBuilds,normaliseStatPriorities,normaliseTargets,scoreArmourStats} from '../pages/vault/vault-armour-matcher.mjs';
 import {applyVaultArmourSelection,createVaultArmourSelection,validateVaultArmourSelection} from '../pages/vault/vault-selection-state.mjs';
 import {exoticCatalogueGroups,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection} from '../pages/forge-loader/forge-loader-model.mjs';
-import {BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY,createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from '../pages/forge-loader/forge-loader-build-handoff.mjs';
+import {BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY,compactForgeLoaderProfileBuild,createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from '../pages/forge-loader/forge-loader-build-handoff.mjs';
 import {validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
@@ -118,9 +118,12 @@ const protectedApplied=applyVaultArmourSelection(protectedSnapshot,verifiedSelec
 assert.equal(protectedApplied.applied,true,'A direct Forge Loader entry must provide enough protected state for Build Forge to apply the staged selection immediately.');
 assert.deepEqual(protectedApplied.state.originalBuild.armour.map(row=>row.itemInstanceId),equippedArmour.map(row=>row.itemInstanceId),'Applying the Forge Loader selection must leave every Original Build armour instance untouched.');
 assert.deepEqual(protectedApplied.state.workingBuild.armour.map(row=>row.itemInstanceId),verifiedSelection.slots.map(row=>row.item.itemInstanceId),'Only the Working Build may receive the five staged exact armour instances.');
-const memoryStorage=()=>{const rows=new Map();return {getItem:key=>rows.get(key)??null,setItem:(key,value)=>rows.set(key,String(value)),removeItem:key=>rows.delete(key)};};
-const handoffStore=memoryStorage();handoffStore.setItem(BUILD_SPACE_KEY,'stale');
-assert.equal(writeForgeLoaderBuildSnapshot(equippedProfileBuild,binding,{stores:[handoffStore]}),true,'The protected direct-entry baseline must be written before Forge Loader navigates.');
+const oversizedProfileBuild={...equippedProfileBuild,itemRenderData:{marker:'must-not-cross',payload:'x'.repeat(300000)},gearAssets:{marker:'must-not-cross',payload:'x'.repeat(300000)},renderData:{marker:'must-not-cross',payload:'x'.repeat(300000)},loadouts:[{marker:'must-not-cross',payload:'x'.repeat(300000)}]};
+const compactProfileBuild=compactForgeLoaderProfileBuild(oversizedProfileBuild,binding);
+assert.equal('itemRenderData' in compactProfileBuild||'gearAssets' in compactProfileBuild||'renderData' in compactProfileBuild||'loadouts' in compactProfileBuild,false,'Large profile render assets and duplicate loadout payloads must never enter the protected Web Storage handoff.');
+const memoryStorage=(maximum=Infinity)=>{const rows=new Map();return {getItem:key=>rows.get(key)??null,setItem:(key,value)=>{const text=String(value);if(text.length>maximum)throw new Error('QuotaExceededError');rows.set(key,text);},removeItem:key=>rows.delete(key)};};
+const handoffStore=memoryStorage(100000);handoffStore.setItem(BUILD_SPACE_KEY,'stale');
+assert.equal(writeForgeLoaderBuildSnapshot(oversizedProfileBuild,binding,{stores:[handoffStore]}),true,'The protected direct-entry baseline must fit browser storage after non-evaluator profile payloads are removed.');
 assert.equal(handoffStore.getItem(BUILD_SPACE_KEY),null,'A stale Build Forge state must not outrank the newly selected Guardian baseline.');
 assert.ok(validateHandoffEnvelope(JSON.parse(handoffStore.getItem(BUILD_SNAPSHOT_KEY)),{expectedCharacterId:binding.characterId}),'The stored baseline must use the protected, expiring Build Forge envelope.');
 
@@ -198,7 +201,7 @@ assert.match(runtime,/normaliseLiveProfile\(payload,session,activeCharacterId\)/
 assert.match(runtime,/writeForgeLoaderBuildSnapshot\(profileBuild,binding,\{stores:\[sessionStorage,localStorage\]\}\)/,'The protected Guardian baseline must be stored before the armour selection navigates to Build Forge.');
 assert.ok(runtime.indexOf('const baselineStored=')<runtime.indexOf('writeVaultArmourSelection(selection)'),'The equipped baseline must be protected before the staged armour selection is committed.');
 assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'A stale Build Forge state must be replaced by the newly verified Guardian snapshot.');
-assert.match(html,/forge-loader\.mjs\?v=20260903-protected-baseline-1/,'Forge Loader must load the protected direct-entry handoff without a stale browser module.');
+assert.match(html,/forge-loader\.mjs\?v=20260903-compact-baseline-1/,'Forge Loader must load the compact protected direct-entry handoff without a stale browser module.');
 assert.match(selectionState,/next\.workingBuild\.forgeLoaderDecision=clone\(verified\.forgeLoaderDecision\)/,'Build Forge application must retain the verified Forge Loader decision on Working Build only.');
 assert.match(buildRuntime,/try\{\s*const analysis=analyzeLiveGuardian\(result\.state\.workingBuild\);[\s\S]*?catch\(error\)\{\s*result\.state\.workingBuild\.paradoxAnalysis=null;/,'A PARADOX analysis failure must preserve the protected staged armour and allow Build Forge to render.');
 assert.match(buildRuntime,/try\{\s*const initialVaultState=readState\(\);[\s\S]*?finally\{\s*render\(\);\s*\}/,'The initial Forge Loader handoff must always release the 58% gate into Build Forge rendering.');
