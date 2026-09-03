@@ -4,6 +4,8 @@ import {fileURLToPath} from 'node:url';
 import {ARMOUR_STAT_CAP,armourTargetMaximums,compareArmourScores,matchArmourBuilds,normaliseStatPriorities,normaliseTargets,scoreArmourStats} from '../pages/vault/vault-armour-matcher.mjs';
 import {applyVaultArmourSelection,createVaultArmourSelection,validateVaultArmourSelection} from '../pages/vault/vault-selection-state.mjs';
 import {exoticCatalogueGroups,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection} from '../pages/forge-loader/forge-loader-model.mjs';
+import {BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY,createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from '../pages/forge-loader/forge-loader-build-handoff.mjs';
+import {validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const read=path=>readFileSync(new URL(path,`file://${root}/`),'utf8');
@@ -107,11 +109,27 @@ assert.equal(appliedSelection.applied,true,'Build Forge must accept the characte
 assert.deepEqual(appliedSelection.state.workingBuild.forgeLoaderDecision,verifiedSelection.forgeLoaderDecision,'Build Forge Working Build must retain the complete Forge Loader decision chain in the background.');
 assert.equal(sourceState.originalBuild.armour.every(item=>item===null),true,'The Forge Loader decision must never mutate the protected Original Build.');
 
+const equippedArmour=[item(0,2100,'equipped-helmet',3),item(1,2101,'equipped-gauntlets',4),item(2,2102,'equipped-chest',5),item(3,2103,'equipped-legs',6),item(4,2104,'equipped-class-item',7)];
+const equippedProfileBuild={...binding,source:'bungie-live',characterClass:'hunter',subclassBuild:{},weapons:[],armour:equippedArmour,stats:[]};
+const snapshotEnvelope=createForgeLoaderBuildSnapshot(equippedProfileBuild,binding);
+const protectedSnapshot=validateHandoffEnvelope(snapshotEnvelope,{expectedCharacterId:binding.characterId,expectedMembershipId:binding.membershipId,expectedMembershipType:binding.membershipType});
+assert.deepEqual(protectedSnapshot?.originalBuild?.armour?.map(row=>row.itemInstanceId),equippedArmour.map(row=>row.itemInstanceId),'Forge Loader must capture the exact equipped armour as the protected Original Build before navigation.');
+const protectedApplied=applyVaultArmourSelection(protectedSnapshot,verifiedSelection);
+assert.equal(protectedApplied.applied,true,'A direct Forge Loader entry must provide enough protected state for Build Forge to apply the staged selection immediately.');
+assert.deepEqual(protectedApplied.state.originalBuild.armour.map(row=>row.itemInstanceId),equippedArmour.map(row=>row.itemInstanceId),'Applying the Forge Loader selection must leave every Original Build armour instance untouched.');
+assert.deepEqual(protectedApplied.state.workingBuild.armour.map(row=>row.itemInstanceId),verifiedSelection.slots.map(row=>row.item.itemInstanceId),'Only the Working Build may receive the five staged exact armour instances.');
+const memoryStorage=()=>{const rows=new Map();return {getItem:key=>rows.get(key)??null,setItem:(key,value)=>rows.set(key,String(value)),removeItem:key=>rows.delete(key)};};
+const handoffStore=memoryStorage();handoffStore.setItem(BUILD_SPACE_KEY,'stale');
+assert.equal(writeForgeLoaderBuildSnapshot(equippedProfileBuild,binding,{stores:[handoffStore]}),true,'The protected direct-entry baseline must be written before Forge Loader navigates.');
+assert.equal(handoffStore.getItem(BUILD_SPACE_KEY),null,'A stale Build Forge state must not outrank the newly selected Guardian baseline.');
+assert.ok(validateHandoffEnvelope(JSON.parse(handoffStore.getItem(BUILD_SNAPSHOT_KEY)),{expectedCharacterId:binding.characterId}),'The stored baseline must use the protected, expiring Build Forge envelope.');
+
 const html=read('astrix-app/pages/forge-loader/index.html');
 const css=read('astrix-app/pages/forge-loader/forge-loader.css');
 const runtime=read('astrix-app/pages/forge-loader/forge-loader.mjs');
 const selectionState=read('astrix-app/pages/vault/vault-selection-state.mjs');
 const buildRuntime=read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs');
+const buildHandoff=read('astrix-app/pages/forge-loader/forge-loader-build-handoff.mjs');
 const perkPlanRuntime=read('astrix-app/pages/guardian-workspace-v2/guardian-perk-change-plan.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const access=read('astrix-app/pages/guardian-workspace-v2/guardian-vault-access.mjs');
@@ -176,6 +194,11 @@ assert.match(runtime,/Five exact Bungie armour instances[\s\S]*?candidate\.items
 assert.match(runtime,/item\.source\?\.label[\s\S]*?item\.power[\s\S]*?item\.energy\?\.capacity[\s\S]*?Number\(item\.state\|\|0\)&4/,'The breakdown may show only verified source, Power, energy and masterwork instance data.');
 assert.match(runtime,/data-candidate-evaluate="\$\{index\}"/,'An expanded verified load must retain its protected Build Forge evaluation action.');
 assert.match(runtime,/forgeLoaderDecision:forgeLoaderDecision\(candidate,selectedCandidateIndex\)/,'The staged load must send the user\'s complete three-stage decision to Build Forge.');
+assert.match(runtime,/normaliseLiveProfile\(payload,session,activeCharacterId\)/,'Forge Loader must reuse its already verified profile to capture the equipped Guardian baseline.');
+assert.match(runtime,/writeForgeLoaderBuildSnapshot\(profileBuild,binding,\{stores:\[sessionStorage,localStorage\]\}\)/,'The protected Guardian baseline must be stored before the armour selection navigates to Build Forge.');
+assert.ok(runtime.indexOf('const baselineStored=')<runtime.indexOf('writeVaultArmourSelection(selection)'),'The equipped baseline must be protected before the staged armour selection is committed.');
+assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'A stale Build Forge state must be replaced by the newly verified Guardian snapshot.');
+assert.match(html,/forge-loader\.mjs\?v=20260903-protected-baseline-1/,'Forge Loader must load the protected direct-entry handoff without a stale browser module.');
 assert.match(selectionState,/next\.workingBuild\.forgeLoaderDecision=clone\(verified\.forgeLoaderDecision\)/,'Build Forge application must retain the verified Forge Loader decision on Working Build only.');
 assert.match(buildRuntime,/try\{\s*const analysis=analyzeLiveGuardian\(result\.state\.workingBuild\);[\s\S]*?catch\(error\)\{\s*result\.state\.workingBuild\.paradoxAnalysis=null;/,'A PARADOX analysis failure must preserve the protected staged armour and allow Build Forge to render.');
 assert.match(buildRuntime,/try\{\s*const initialVaultState=readState\(\);[\s\S]*?finally\{\s*render\(\);\s*\}/,'The initial Forge Loader handoff must always release the 58% gate into Build Forge rendering.');

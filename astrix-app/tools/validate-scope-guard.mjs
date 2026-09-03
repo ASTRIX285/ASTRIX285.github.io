@@ -40,6 +40,7 @@ const allowed=new Set([
   'astrix-app/pages/forge-loader/index.html',
   'astrix-app/pages/forge-loader/forge-loader.css',
   'astrix-app/pages/forge-loader/forge-loader-model.mjs',
+  'astrix-app/pages/forge-loader/forge-loader-build-handoff.mjs',
   'astrix-app/pages/forge-loader/forge-loader.mjs',
   'astrix-app/pages/loadout/index.html',
   'astrix-app/shared/astrix-destination-ribbon.js',

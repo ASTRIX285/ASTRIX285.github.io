@@ -5,6 +5,7 @@ import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs';
 import {compatibleWithClass,exoticCatalogueGroups,setBonusOptions,toggleSetSelection} from './forge-loader-model.mjs';
+import {writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs';
 
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -347,14 +348,25 @@ function showInspect(target){
 
 function hideInspect(){const panel=byId('forgeItemInspect');if(panel){panel.hidden=true;panel.setAttribute('aria-hidden','true');}}
 
-function evaluateInBuildForge(){
+async function evaluateInBuildForge(){
   if(selectedSlots.size!==5)return;
   const candidate=matchedBuilds[selectedCandidateIndex];if(!candidate)return;
+  const binding=membershipBinding();
+  byId('forgeRuntimeStatus').textContent='Protecting the verified equipped Guardian before Build Forge opens…';
+  let profileBuild=null;
+  try{
+    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260903-forge-loader-baseline-1');
+    profileBuild=normaliseLiveProfile(payload,session,activeCharacterId);
+  }catch(error){
+    console.error('[ASTRIX Forge Loader] The protected Guardian baseline could not be prepared.',error);
+  }
+  const baselineStored=profileBuild&&writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores:[sessionStorage,localStorage]});
+  if(!baselineStored){byId('forgeRuntimeStatus').textContent='Build Forge could not protect the equipped Guardian baseline. No build was changed.';return;}
   const selected=prepareArmourSelection(payload,[...selectedSlots.values()]);
-  const selection=createVaultArmourSelection({binding:membershipBinding(),slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision:forgeLoaderDecision(candidate,selectedCandidateIndex)});
+  const selection=createVaultArmourSelection({binding,slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision:forgeLoaderDecision(candidate,selectedCandidateIndex)});
   if(!writeVaultArmourSelection(selection)){byId('forgeRuntimeStatus').textContent='The staged load could not be stored on this device. No build was changed.';return;}
   const url=new URL('../guardian-workspace-v2/paradox-build-space/',location.href);url.searchParams.set('vault','selection');
-  for(const [key,value] of Object.entries(membershipBinding()))if(value)url.searchParams.set(key,value);
+  for(const [key,value] of Object.entries(binding))if(value)url.searchParams.set(key,value);
   markGuardianFastReturn();location.href=url;
 }
 
@@ -367,11 +379,11 @@ function installEvents(){
   byId('forgeFindBuilds')?.addEventListener('click',calculateBuilds);
   byId('forgeResetTargets')?.addEventListener('click',()=>{for(const input of document.querySelectorAll('[data-target-stat] input'))input.value='0';for(const select of document.querySelectorAll('[data-stat-priority]'))select.value='';resetResults();configureStats();byId('forgeRuntimeStatus').textContent='Stat targets and priorities reset. Ranking by maximum unmodded stats.';void calculateBuilds();});
   byId('forgeCandidateBuilds')?.addEventListener('click',event=>{
-    const evaluate=event.target.closest('[data-candidate-evaluate]');if(evaluate){stageCandidate(evaluate.dataset.candidateEvaluate);evaluateInBuildForge();return;}
+    const evaluate=event.target.closest('[data-candidate-evaluate]');if(evaluate){stageCandidate(evaluate.dataset.candidateEvaluate);void evaluateInBuildForge();return;}
     const stage=event.target.closest('[data-candidate-index]');if(stage){stageCandidate(stage.dataset.candidateIndex);return;}
     const expand=event.target.closest('[data-candidate-expand]');if(expand)toggleCandidateBreakdown(expand.dataset.candidateExpand);
   });
-  byId('forgeEvaluate')?.addEventListener('click',evaluateInBuildForge);
+  byId('forgeEvaluate')?.addEventListener('click',()=>void evaluateInBuildForge());
   byId('forgeShowMore')?.addEventListener('click',()=>{visibleCandidateCount=Math.min(matchedBuilds.length,visibleCandidateCount+CANDIDATE_BATCH_SIZE);renderCandidates();});
   document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target)showInspect(target);});
   document.addEventListener('pointerout',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideInspect();});
