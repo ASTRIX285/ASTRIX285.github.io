@@ -1,11 +1,11 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
-import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260903-compact-selection-1';
+import {cacheBungieProfile,cacheForgeLoaderTransfer,markGuardianFastReturn,readCachedBungieProfile,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260903-loadout-intelligence-1';
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260903-compact-selection-1';
 import {compatibleWithClass,exoticCatalogueGroups,setBonusOptions,toggleSetSelection} from './forge-loader-model.mjs';
-import {writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260903-storage-recovery-1';
+import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-atomic-forge-transfer-1';
 
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -361,18 +361,21 @@ async function evaluateInBuildForge(){
     console.error('[ASTRIX Forge Loader] The protected Guardian baseline could not be prepared.',error);
   }
   if(!profileBuild){byId('forgeRuntimeStatus').textContent='Build Forge could not resolve the equipped Guardian baseline. No build was changed.';return;}
+  const snapshotEnvelope=createForgeLoaderBuildSnapshot(profileBuild,binding);
   const baselineStored=writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores:[sessionStorage,localStorage]});
-  if(!baselineStored){
-    byId('forgeRuntimeStatus').textContent='Browser storage is full. Build Forge will recover the protected Original Build directly from Bungie.';
-    console.warn('[ASTRIX Forge Loader] Browser storage rejected the protected baseline; Build Forge will recover it from the authenticated Bungie profile.');
-  }
   const selected=prepareArmourSelection(payload,[...selectedSlots.values()]);
   const selection=createVaultArmourSelection({binding,slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision:forgeLoaderDecision(candidate,selectedCandidateIndex)});
   let selectionStored=writeVaultArmourSelection(selection);
   if(!selectionStored){releaseGuardianSessionStorageFallbacks();selectionStored=writeVaultArmourSelection(selection);}
-  if(!selectionStored){byId('forgeRuntimeStatus').textContent='The compact staged load could not be stored after clearing recoverable browser data. No build was changed.';return;}
+  byId('forgeRuntimeStatus').textContent='Securing the complete protected Build Forge transfer…';
+  const transferStored=snapshotEnvelope?await cacheForgeLoaderTransfer(binding,{snapshotEnvelope,armourSelection:selection}):false;
+  if(!selectionStored&&!transferStored){byId('forgeRuntimeStatus').textContent='The protected staged load could not be stored on this device. No build was changed.';return;}
+  if(!baselineStored&&!transferStored){
+    byId('forgeRuntimeStatus').textContent='Browser storage is full. Build Forge will recover the protected Original Build directly from Bungie.';
+    console.warn('[ASTRIX Forge Loader] Browser storage rejected the protected baseline; Build Forge will recover it from the authenticated Bungie profile.');
+  }
   const url=new URL('../guardian-workspace-v2/paradox-build-space/',location.href);url.searchParams.set('vault','selection');
-  if(!baselineStored)url.searchParams.set('baseline','bungie-recovery');
+  if(!baselineStored&&!transferStored)url.searchParams.set('baseline','bungie-recovery');
   for(const [key,value] of Object.entries(binding))if(value)url.searchParams.set(key,value);
   markGuardianFastReturn();location.href=url;
 }

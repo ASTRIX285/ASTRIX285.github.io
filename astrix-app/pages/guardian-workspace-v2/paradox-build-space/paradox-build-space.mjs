@@ -8,11 +8,11 @@ import {renderWeapons} from '../guardian-semantic-ui.mjs?v=20260829-weapon-perk-
 import {adviseLiveWeaponRolls} from '../guardian-weapon-roll-advisor.mjs';
 import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260829-subclass-identity-1';
 import {mergeSubclassCatalog,mergeSuperOptions} from '../guardian-super-catalog.mjs?v=20260829-subclass-identity-1';
-import {markGuardianFastReturn} from '../guardian-session-cache.mjs';
+import {markGuardianFastReturn,readForgeLoaderTransfer} from '../guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
 import {guardianManifest} from '../guardian-manifest-service.mjs';
 import {AUTH_ORIGIN} from '../guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope} from '../paradox-build-binding.mjs';
-import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260903-compact-selection-1';
+import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260903-compact-selection-1';
 import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs';
 import {BUILD_ELEMENTS,validateTierFiveArmour} from './paradox-build-recommendation.mjs';
 import {composeForgeRecommendation,hasVerifiedSubclassSockets,synchroniseSubclassProjection} from './paradox-forge-intelligence.mjs?v=20260903-forge-intelligence-1';
@@ -20,7 +20,7 @@ import {recommendArmourMods,selectOwnedWeapons} from './paradox-loadout-intellig
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
 import '../guardian-bungie-profile.mjs?v=20260903-loadout-intelligence-1';
-import '../guardian-portal-progress.mjs?v=20260903-build-render-rescue-1';
+import '../guardian-portal-progress.mjs?v=20260904-atomic-forge-transfer-1';
 import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
@@ -110,6 +110,21 @@ function selectedExpectedActivity(){const node=byId('expectedActivity'),row=veri
 function renderTestConfiguration(){const build=currentBuild(),node=byId('expectedActivity'),rows=verifiedActivities(build),destination=byId('expectedDestination'),destinationApi=globalThis.AstrixDestinations;if(destination&&destinationApi){destination.innerHTML=destinationApi.options().map(option=>'<option value="'+esc(option.key)+'">'+esc(option.label.toUpperCase())+'</option>').join('');destination.value=destinationApi.current();}if(node){node.innerHTML='<option value="">ANY COMPLETED ACTIVITY</option>'+rows.map(row=>'<option value="'+esc(row.hash||row.activityHash||row.activityTypeHash||row.mode)+'">'+esc(row.name||row.displayName||'Bungie activity '+(row.hash||row.activityHash))+'</option>').join('');}byId('testDomainLabel').textContent=testDomain.toUpperCase()+' BUILD TEST';byId('calibrationOption').hidden=testDomain!=='pve';byId('testContextNote').textContent=testDomain==='pvp'?'Crucible modes appear only when resolved from current Bungie activity definitions. Map and modifier context can attach to the same verified intake contract.':'Select a verified PvE activity, leave Any Activity selected, or use optional Shooting Range calibration.';document.querySelectorAll('[data-test-domain]').forEach(button=>{const active=button.dataset.testDomain===testDomain;button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',String(active));});}
 
 function writeState(next){volatileState=protectBuildState(next);const json=JSON.stringify(createHandoffEnvelope(next));let stored=false;for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,json);stored=true;}catch{}}return stored;}
+function requestedTransferBinding(){const params=new URLSearchParams(location.search);return {characterId:params.get('characterId')||'',membershipId:params.get('membershipId')||'',membershipType:params.get('membershipType')||''};}
+async function restoreAtomicForgeTransfer(){
+  if(new URLSearchParams(location.search).get('vault')!=='selection')return null;
+  const binding=requestedTransferBinding(),transfer=await readForgeLoaderTransfer(binding);
+  if(!transfer)return null;
+  const source=validateHandoffEnvelope(transfer.snapshotEnvelope,{expectedCharacterId:binding.characterId,expectedMembershipId:binding.membershipId,expectedMembershipType:binding.membershipType});
+  const selection=validateVaultArmourSelection(transfer.armourSelection,{expectedBinding:binding});
+  if(!source||!selection)return null;
+  const baseline=source?.originalBuild?validateBuildState(source,binding):createBuildState(source);
+  const applied=applyVaultArmourSelection(baseline,selection);
+  if(!applied.applied)return null;
+  writeState(applied.state);
+  clearVaultArmourSelection();
+  return applied.state;
+}
 function applyPendingVaultSelection(state){
   if(!state?.originalBuild||!state?.workingBuild||new URLSearchParams(location.search).get('vault')!=='selection')return state;
   const expectedBinding=bindingOf(state);
@@ -127,7 +142,7 @@ function applyPendingVaultSelection(state){
   clearVaultArmourSelection();
   return result.state;
 }
-function switchBuildCharacter(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId)return;const next=applyPendingVaultSelection(createBuildState(detail));writeState(next);render();}
+function switchBuildCharacter(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId)return;const current=readState(),currentBinding=bindingOf(current||{}),isProtectedForgeTransfer=new URLSearchParams(location.search).get('vault')==='selection'&&current?.workingBuild?.forgeLoaderDecision&&currentBinding.characterId===String(detail.characterId);if(isProtectedForgeTransfer)return;const requested=requestedTransferBinding(),boundDetail={...detail,membershipId:detail.membershipId||requested.membershipId,membershipType:detail.membershipType??requested.membershipType};const next=applyPendingVaultSelection(createBuildState(boundDetail));writeState(next);render();}
 function recoverMissingBuild(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId||readState())return;switchBuildCharacter(detail);}
 function settleBuildImage(image){if(!image?.src||image.hidden||image.closest('[hidden]')||image.complete)return Promise.resolve();return Promise.race([typeof image.decode==='function'?image.decode().catch(()=>{}):new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});}),new Promise(resolve=>setTimeout(resolve,5000))]);}
 function completeBuildRender(build){
@@ -350,12 +365,16 @@ byId('generateMaxLoadout')?.addEventListener('click',generateMaxLoadout);
 byId('closeRecommendedBuild')?.addEventListener('click',closeRecommendedBuild);
 byId('returnToForge')?.addEventListener('click',closeRecommendedBuild);
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!byId('recommendedBuildReveal')?.hidden)closeRecommendedBuild();});
-try{
-  const initialVaultState=readState();
-  if(initialVaultState){const nextVaultState=applyPendingVaultSelection(initialVaultState),artifactResult=applyForgeArtifactRecommendation(nextVaultState);if(artifactResult.state!==initialVaultState)writeState(artifactResult.state);}
-}catch(error){
-  console.error('Build Forge could not complete the protected Forge Loader handoff. Rendering the existing Working Build instead.',error);
-}finally{
-  render();
-  queueMicrotask(()=>void refreshForgeArtifactRecommendation());
+async function initialiseBuildForge(){
+  try{
+    const atomicTransfer=await restoreAtomicForgeTransfer();
+    const initialVaultState=atomicTransfer||readState();
+    if(initialVaultState){const nextVaultState=atomicTransfer||applyPendingVaultSelection(initialVaultState),artifactResult=applyForgeArtifactRecommendation(nextVaultState);if(artifactResult.state!==initialVaultState)writeState(artifactResult.state);}
+  }catch(error){
+    console.error('Build Forge could not complete the protected Forge Loader handoff. Rendering the existing Working Build instead.',error);
+  }finally{
+    render();
+    queueMicrotask(()=>void refreshForgeArtifactRecommendation());
+  }
 }
+void initialiseBuildForge();
