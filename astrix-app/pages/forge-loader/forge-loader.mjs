@@ -8,6 +8,7 @@ import {compatibleWithClass,exoticCatalogueGroups,setBonusOptions,toggleSetSelec
 
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
+const CANDIDATE_BATCH_SIZE=50;
 const byId=id=>document.getElementById(id);
 const text=value=>String(value??'').trim();
 const esc=value=>String(value??'').replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
@@ -18,11 +19,12 @@ let payload=null;
 let catalogue={armour:[],postmasterByCharacter:{}};
 let activeCharacterId=text(params.get('characterId'));
 let activeCharacterClass='';
-let selectedExoticHash=null;
+let selectedExoticKey='';
 let setSelections=[];
 let matchedBuilds=[];
 let selectedCandidateIndex=-1;
 let expandedCandidateIndex=-1;
+let visibleCandidateCount=0;
 let targetMaximums=Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,0]));
 const selectedSlots=new Map();
 
@@ -78,8 +80,8 @@ async function loadVerifiedPayload(){
 function armourItems(){return catalogue.armour.filter(item=>compatibleWithClass(item,activeCharacterClass));}
 function inventoryDefinitions(){return guardianManifest.tables.get('DestinyInventoryItemDefinition')||payload?.definitions||{};}
 function exoticGroups(){return exoticCatalogueGroups(catalogue.armour,inventoryDefinitions(),activeCharacterClass,ARMOUR_BUCKETS);}
-function selectedExotic(){return exoticGroups().find(group=>group.owned&&group.hash===Number(selectedExoticHash))||null;}
-function solverOptions(){const exotic=selectedExotic();return exotic?{fixedExoticHash:exotic.hash,fixedExoticSlot:exotic.slotIndex,setSelections}:{};}
+function selectedExotic(){return exoticGroups().find(group=>group.owned&&group.key===selectedExoticKey)||null;}
+function solverOptions(){const exotic=selectedExotic();return exotic?{fixedExoticHashes:exotic.hashes,fixedExoticSlot:exotic.slotIndex,setSelections}:{};}
 function targetValues(){return Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Number(document.querySelector(`[data-target-stat="${key}"] input`)?.value||0)]));}
 function activeTargetCount(){const targets=targetValues();return ARMOUR_STAT_KEYS.filter(key=>targets[key]>0).length;}
 
@@ -101,9 +103,9 @@ function renderExotics(){
   host.innerHTML=ARMOUR_BUCKETS.map((slot,index)=>{
     const rows=groups.filter(group=>group.slotIndex===index);
     return `<section class="forge-exotic-slot"><h3>${esc(slot.label.toUpperCase())}</h3><div class="forge-exotic-grid">${rows.length?rows.map(group=>{
-      const selected=group.owned&&group.hash===Number(selectedExoticHash);
+      const selected=group.owned&&group.key===selectedExoticKey;
       const ownership=group.owned?`${group.instances.length} owned ${group.instances.length===1?'copy':'copies'}`:'not owned';
-      return `<button type="button" class="forge-exotic${selected?' is-selected':''}${group.owned?'':' is-unowned'}" ${group.owned?`data-exotic-hash="${group.hash}"`:''} data-inspect-exotic="${group.hash}" aria-pressed="${selected}" aria-label="${group.owned?'Select':'Inspect'} ${esc(group.name)}, ${ownership}" ${group.owned?'':'disabled'}><img src="${esc(group.icon)}" alt="" loading="lazy" decoding="async"></button>`;
+      return `<button type="button" class="forge-exotic${selected?' is-selected':''}${group.owned?'':' is-unowned'}" ${group.owned?`data-exotic-key="${esc(group.key)}"`:''} data-inspect-exotic-key="${esc(group.key)}" aria-pressed="${selected}" aria-disabled="${group.owned?'false':'true'}" aria-label="${group.owned?'Select':'Inspect'} ${esc(group.name)}, ${ownership}"><img src="${esc(group.icon)}" alt="" loading="lazy" decoding="async"></button>`;
     }).join(''):'<div class="forge-empty">No verified Exotic definitions</div>'}</div></section>`;
   }).join('');
 }
@@ -179,8 +181,6 @@ function candidateItemMeta(item){
   if(item.power!==null&&item.power!==undefined)details.push(`Power ${item.power}`);
   if(Number.isFinite(Number(item.energy?.capacity)))details.push(`Energy ${Number(item.energy.capacity)}`);
   if((Number(item.state||0)&4)!==0)details.push('Masterworked');
-  const modCount=[...(item.generalMods||[]),...(item.slotMods||[])].length;
-  if(modCount)details.push(`${modCount} equipped mod${modCount===1?'':'s'}`);
   return details.join(' · ');
 }
 
@@ -192,13 +192,15 @@ function candidateMarkup(candidate,index){
   const outcome=candidate.score.met?'ALL TARGETS MET':`${candidate.score.shortfall} POINT${candidate.score.shortfall===1?'':'S'} SHORT`;
   const expanded=expandedCandidateIndex===index,selected=selectedCandidateIndex===index;
   const exotic=candidate.items.find(item=>item.isExotic)||candidate.items[0];
-  return `<article class="forge-candidate${candidate.score.met?' is-target-met':''}${selected?' is-selected':''}"><div class="forge-matrix-row"><button type="button" class="forge-matrix-expand" data-candidate-expand="${index}" aria-expanded="${expanded}" aria-controls="forgeLoadBreakdown${index}"><span><b>LOAD ${String(index+1).padStart(2,'0')}</b><small>${esc(outcome)}</small></span><i aria-hidden="true">⌄</i></button><span class="forge-matrix-exotic">${exotic?.icon?`<img src="${esc(exotic.icon)}" alt="">`:''}<small>EXOTIC</small></span><div class="forge-matrix-stats" aria-label="Calculated armour stats">${candidateStatMarkup(candidate)}</div><span class="forge-matrix-total"><small>TOTAL</small><b>${candidate.score.total}</b></span><span class="forge-matrix-protocol"><small>SET PROTOCOL</small><b>${esc(candidateSetProtocol(candidate))}</b></span><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button></div><div class="forge-load-breakdown" id="forgeLoadBreakdown${index}" ${expanded?'':'hidden'}><div class="forge-breakdown-heading"><div><span>LOAD BREAKDOWN</span><strong>Five exact Bungie armour instances</strong></div><span>${esc(outcome)}</span></div><div class="forge-breakdown-items">${candidate.items.map(candidateItemMarkup).join('')}</div><div class="forge-breakdown-summary"><div><small>VERIFIED ARMOUR TOTAL</small><strong>${candidate.score.total}</strong></div><div><small>ACTIVE SET PROTOCOL</small><strong>${esc(candidateSetProtocol(candidate))}</strong></div><div class="forge-breakdown-actions"><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button><button type="button" class="forge-candidate-evaluate" data-candidate-evaluate="${index}">EVALUATE IN BUILD FORGE</button></div></div></div></article>`;
+  return `<article class="forge-candidate${candidate.score.met?' is-target-met':''}${selected?' is-selected':''}"><div class="forge-matrix-row"><button type="button" class="forge-matrix-expand" data-candidate-expand="${index}" aria-expanded="${expanded}" aria-controls="forgeLoadBreakdown${index}"><span><b>LOAD ${String(index+1).padStart(2,'0')}</b><small>${esc(outcome)}</small></span><i aria-hidden="true">⌄</i></button><span class="forge-matrix-exotic">${exotic?.icon?`<img src="${esc(exotic.icon)}" alt="">`:''}<small>EXOTIC</small></span><div class="forge-matrix-stats" aria-label="Calculated unmodded armour stats">${candidateStatMarkup(candidate)}</div><span class="forge-matrix-total"><small>RAW TOTAL</small><b>${candidate.score.total}</b></span><span class="forge-matrix-protocol"><small>SET PROTOCOL</small><b>${esc(candidateSetProtocol(candidate))}</b></span><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button></div><div class="forge-load-breakdown" id="forgeLoadBreakdown${index}" ${expanded?'':'hidden'}><div class="forge-breakdown-heading"><div><span>LOAD BREAKDOWN</span><strong>Five exact Bungie armour instances · no mods</strong></div><span>${esc(outcome)}</span></div><div class="forge-breakdown-items">${candidate.items.map(candidateItemMarkup).join('')}</div><div class="forge-breakdown-summary"><div><small>UNMODDED ARMOUR TOTAL</small><strong>${candidate.score.total}</strong></div><div><small>ACTIVE SET PROTOCOL</small><strong>${esc(candidateSetProtocol(candidate))}</strong></div><div class="forge-breakdown-actions"><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button><button type="button" class="forge-candidate-evaluate" data-candidate-evaluate="${index}">EVALUATE IN BUILD FORGE</button></div></div></div></article>`;
 }
 
 function renderCandidates(){
   const panel=byId('forgeResults');panel.hidden=matchedBuilds.length===0;
-  byId('forgeResultStatus').textContent=`${matchedBuilds.length} RESULT${matchedBuilds.length===1?'':'S'}`;
-  byId('forgeCandidateBuilds').innerHTML=matchedBuilds.map(candidateMarkup).join('');
+  const shown=Math.min(visibleCandidateCount,matchedBuilds.length),remaining=matchedBuilds.length-shown;
+  byId('forgeResultStatus').textContent=`${shown} OF ${matchedBuilds.length} RESULT${matchedBuilds.length===1?'':'S'}`;
+  byId('forgeCandidateBuilds').innerHTML=matchedBuilds.slice(0,shown).map(candidateMarkup).join('');
+  const more=byId('forgeShowMore');more.hidden=remaining<=0;more.textContent=remaining>0?`SHOW NEXT ${Math.min(CANDIDATE_BATCH_SIZE,remaining)} OF ${remaining}`:'';
 }
 
 function stageCandidate(index){
@@ -218,17 +220,18 @@ async function calculateBuilds(){
   const button=byId('forgeFindBuilds');button.disabled=true;button.textContent='CALCULATING VERIFIED LOADS…';
   byId('forgeRuntimeStatus').textContent='Applying the Exotic anchor, set protocol and requested stat constraints…';
   await new Promise(resolve=>requestAnimationFrame(resolve));
-  matchedBuilds=matchArmourBuilds(armourItems(),targets,{...solverOptions(),limit:5,beamLimit:5000});
+  matchedBuilds=matchArmourBuilds(armourItems(),targets,{...solverOptions(),all:true});
+  visibleCandidateCount=Math.min(CANDIDATE_BATCH_SIZE,matchedBuilds.length);
   selectedCandidateIndex=-1;selectedSlots.clear();if(matchedBuilds.length)stageCandidate(0);else{renderStaged();renderCandidates();}
-  button.textContent='CALCULATE 5 COMBINATIONS';button.disabled=false;
-  byId('forgeRuntimeStatus').textContent=matchedBuilds.length?`${matchedBuilds.length} legal combination${matchedBuilds.length===1?'':'s'} calculated. Load 1 has been staged from exact owned instances.`:'No complete owned-armour combination satisfies the selected Exotic and set protocol.';
+  button.textContent='CALCULATE ALL COMBINATIONS';button.disabled=false;
+  byId('forgeRuntimeStatus').textContent=matchedBuilds.length?`${matchedBuilds.length} highest-ranking unmodded combination${matchedBuilds.length===1?'':'s'} calculated. Load 1 has been staged from exact owned instances.`:'No complete owned-armour combination satisfies the selected Exotic and set protocol.';
 }
 
-function resetResults(){matchedBuilds=[];selectedCandidateIndex=-1;expandedCandidateIndex=-1;selectedSlots.clear();renderStaged();renderCandidates();}
+function resetResults(){matchedBuilds=[];selectedCandidateIndex=-1;expandedCandidateIndex=-1;visibleCandidateCount=0;selectedSlots.clear();renderStaged();renderCandidates();}
 
-function selectExotic(hash){
-  const next=exoticGroups().find(group=>group.owned&&group.hash===Number(hash));if(!next)return;
-  selectedExoticHash=next.hash;setSelections=[];resetResults();renderExotics();renderSetBonuses();configureStats({reset:true});
+function selectExotic(key){
+  const next=exoticGroups().find(group=>group.owned&&group.key===String(key||''));if(!next)return;
+  selectedExoticKey=next.key;setSelections=[];resetResults();renderExotics();renderSetBonuses();configureStats({reset:true});
   const exotic=selectedExotic();
   byId('forgeRuntimeStatus').textContent=exotic?`${exotic.name} anchored. ${exotic.instances.length} exact owned ${exotic.instances.length===1?'instance':'instances'} available for calculation.`:'Select an owned Exotic to initialise the Forge Loader.';
 }
@@ -242,8 +245,8 @@ function toggleBonus(input){
 }
 
 function inspectItemFromTarget(target){
-  const exoticHash=Number(target?.dataset?.inspectExotic);
-  if(exoticHash){const group=exoticGroups().find(row=>row.hash===exoticHash);return group?{...(group.representative||group.preview),ownedInstance:group.owned}:null;}
+  const exoticKey=String(target?.dataset?.inspectExoticKey||'');
+  if(exoticKey){const group=exoticGroups().find(row=>row.key===exoticKey);return group?{...(group.representative||group.preview),ownedInstance:group.owned}:null;}
   const key=target?.dataset?.inspectItem;
   return catalogue.armour.find(item=>itemKey(item)===String(key||''))||null;
 }
@@ -284,9 +287,9 @@ function evaluateInBuildForge(){
 }
 
 function installEvents(){
-  byId('forgeExoticSlots')?.addEventListener('click',event=>{const button=event.target.closest('[data-exotic-hash]');if(button)selectExotic(button.dataset.exoticHash);});
+  byId('forgeExoticSlots')?.addEventListener('click',event=>{const button=event.target.closest('[data-exotic-key]');if(button)selectExotic(button.dataset.exoticKey);});
   byId('forgeSetList')?.addEventListener('change',event=>{const input=event.target.closest('[data-set-hash]');if(input)toggleBonus(input);});
-  byId('forgeStatTargets')?.addEventListener('input',event=>{const label=event.target.closest('[data-target-stat]');if(!label)return;updateTargetLabel(label);resetResults();configureStats();byId('forgeRuntimeStatus').textContent='Stat target changed. Calculate to refresh the five legal combinations.';});
+  byId('forgeStatTargets')?.addEventListener('input',event=>{const label=event.target.closest('[data-target-stat]');if(!label)return;updateTargetLabel(label);resetResults();configureStats();byId('forgeRuntimeStatus').textContent='Stat target changed. Calculate to rank every legal combination.';});
   byId('forgeStatTargets')?.addEventListener('change',event=>{if(event.target.matches('input[type="range"]')&&activeTargetCount())void calculateBuilds();});
   byId('forgeStatTargets')?.addEventListener('click',event=>{const button=event.target.closest('[data-max-stat]');if(!button)return;const label=button.closest('[data-target-stat]'),input=label?.querySelector('input');if(!input)return;input.value=input.max;updateTargetLabel(label);configureStats();void calculateBuilds();});
   byId('forgeFindBuilds')?.addEventListener('click',calculateBuilds);
@@ -297,12 +300,13 @@ function installEvents(){
     const expand=event.target.closest('[data-candidate-expand]');if(expand)toggleCandidateBreakdown(expand.dataset.candidateExpand);
   });
   byId('forgeEvaluate')?.addEventListener('click',evaluateInBuildForge);
-  document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-inspect-exotic],[data-inspect-item]');if(target)showInspect(target);});
-  document.addEventListener('pointerout',event=>{const target=event.target.closest('[data-inspect-exotic],[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideInspect();});
-  document.addEventListener('focusin',event=>{const target=event.target.closest('[data-inspect-exotic],[data-inspect-item]');if(target)showInspect(target);});
-  document.addEventListener('focusout',event=>{const target=event.target.closest('[data-inspect-exotic],[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideInspect();});
+  byId('forgeShowMore')?.addEventListener('click',()=>{visibleCandidateCount=Math.min(matchedBuilds.length,visibleCandidateCount+CANDIDATE_BATCH_SIZE);renderCandidates();});
+  document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target)showInspect(target);});
+  document.addEventListener('pointerout',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideInspect();});
+  document.addEventListener('focusin',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target)showInspect(target);});
+  document.addEventListener('focusout',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideInspect();});
   addEventListener('resize',hideInspect,{passive:true});addEventListener('scroll',hideInspect,{passive:true,capture:true});
-  document.addEventListener('astrix:character-selected',event=>{resolveActiveCharacter(event.detail?.characterId);selectedExoticHash=null;setSelections=[];resetResults();renderHero();renderExotics();renderSetBonuses();configureStats({reset:true});byId('forgeRuntimeStatus').textContent=`${classLabel()} active. Select an owned Exotic.`;});
+  document.addEventListener('astrix:character-selected',event=>{resolveActiveCharacter(event.detail?.characterId);selectedExoticKey='';setSelections=[];resetResults();renderHero();renderExotics();renderSetBonuses();configureStats({reset:true});byId('forgeRuntimeStatus').textContent=`${classLabel()} active. Select an owned Exotic.`;});
   document.addEventListener('astrix:manifest-progress',event=>loaderProgress(Math.max(24,Number(event.detail?.percent)||24),event.detail?.label||'Preparing Bungie manifest…'));
 }
 

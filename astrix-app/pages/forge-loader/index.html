@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css?v=20260902-forge-loader-1">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
-  <link rel="stylesheet" href="./forge-loader.css?v=20260903-three-equal-columns-1">
+  <link rel="stylesheet" href="./forge-loader.css?v=20260903-ranking-flow-1">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
 </head>
@@ -23,7 +23,7 @@
   <div data-astrix-destination-ribbon data-active-destination="forge-loader"></div>
 
   <main class="apx-page-shell forge-loader-shell">
-    <div class="apx-page-heading"><div><p class="apx-eyebrow">VERIFIED ARMOUR ASSEMBLY</p><h1>Forge Loader</h1><p>Anchor the build to one owned Exotic, apply compatible armour-set bonuses, then calculate exact armour combinations from the selected Guardian’s inventory.</p></div><span class="apx-status-chip" id="forgeConnectionState">RESOLVING</span></div>
+    <div class="apx-page-heading"><div><p class="apx-eyebrow">VERIFIED ARMOUR ASSEMBLY</p><h1>Forge Loader</h1><p>Select one owned Exotic, set the desired stat distribution, then apply a compatible armour-set bonus before calculating exact unmodded armour combinations.</p></div><span class="apx-status-chip" id="forgeConnectionState">RESOLVING</span></div>
 
     <section class="forge-loader-workspace" aria-label="Forge Loader armour builder">
       <aside class="forge-loader-selector" aria-label="Guardian and Exotic selector">
@@ -50,7 +50,7 @@
             <label data-target-stat="class"><span>CLASS</span><input type="range" min="0" max="0" value="0" step="1" disabled><output>0 / —</output><button type="button" data-max-stat="class" disabled>MAX</button></label>
             <label data-target-stat="weapon"><span>WEAPON</span><input type="range" min="0" max="0" value="0" step="1" disabled><output>0 / —</output><button type="button" data-max-stat="weapon" disabled>MAX</button></label>
           </div>
-          <div class="forge-stat-actions"><button type="button" id="forgeFindBuilds" disabled>CALCULATE 5 COMBINATIONS</button><button type="button" id="forgeResetTargets" disabled>RESET TARGETS</button></div>
+          <div class="forge-stat-actions"><button type="button" id="forgeFindBuilds" disabled>CALCULATE ALL COMBINATIONS</button><button type="button" id="forgeResetTargets" disabled>RESET TARGETS</button></div>
           <p class="forge-runtime-status" id="forgeRuntimeStatus" role="status">Select an owned Exotic to initialise the Forge Loader.</p>
         </section>
 
@@ -71,6 +71,7 @@
         <section class="forge-panel forge-results" id="forgeResults" hidden aria-labelledby="forgeResultsTitle">
           <div class="forge-panel-heading"><div><p class="apx-eyebrow">CALCULATED LOADS</p><h2 id="forgeResultsTitle">Forge Matrix</h2></div><span id="forgeResultStatus">0 RESULTS</span></div>
           <div class="forge-candidate-builds" id="forgeCandidateBuilds" aria-live="polite"></div>
+          <button class="forge-show-more" type="button" id="forgeShowMore" hidden></button>
         </section>
       </section>
     </section>
@@ -84,6 +85,6 @@
 
   <aside class="forge-item-inspect" id="forgeItemInspect" hidden aria-hidden="true"></aside>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-forge-loader-1"></script>
-  <script type="module" src="./forge-loader.mjs?v=20260903-forge-matrix-2"></script>
+  <script type="module" src="./forge-loader.mjs?v=20260903-ranking-flow-1"></script>
 </body>
 </html>

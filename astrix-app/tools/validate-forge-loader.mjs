@@ -13,6 +13,7 @@ const item=(slot,itemHash,instance,value,{exotic=false,setHash=null,name=`Item $
 const items=[
   item(0,9001,'exotic-low',3,{exotic:true,name:'Verified Exotic'}),
   item(0,9001,'exotic-high',9,{exotic:true,name:'Verified Exotic'}),
+  item(0,9004,'exotic-reissue',15,{exotic:true,name:'Verified Exotic'}),
   item(1,1101,'a-1',8,{setHash:7001}),item(2,1102,'a-2',7,{setHash:7001}),item(3,1103,'a-3',6,{setHash:7001}),item(4,1104,'a-4',5,{setHash:7001}),
   item(1,1201,'b-1',4,{setHash:7002}),item(2,1202,'b-2',4,{setHash:7002}),
   item(1,1301,'c-1a',10,{setHash:7003}),item(1,1301,'c-1b',9,{setHash:7003}),
@@ -21,13 +22,16 @@ const items=[
 
 const exotics=ownedExoticGroups(items,'hunter');
 assert.equal(exotics.length,1,'Forge Loader must show one tile per owned Exotic definition.');
-assert.equal(exotics[0].instances.length,2,'Duplicate Exotic instances must remain available to the solver.');
-assert.equal(exotics[0].representative.itemInstanceId,'exotic-high','The strongest exact copy must lead the Exotic tile.');
+assert.equal(exotics[0].instances.length,3,'Duplicate and reissued Exotic instances must remain available to the solver.');
+assert.deepEqual(exotics[0].hashes,[9001,9004],'One Exotic identity must retain every owned Bungie item hash behind its single tile.');
+assert.equal(exotics[0].representative.itemInstanceId,'exotic-reissue','The strongest exact copy across every owned hash must lead the Exotic tile.');
 assert.equal(ownedExoticGroups(items,'titan').length,0,'The Exotic selector must isolate the selected Guardian class.');
 const definitions={
   9001:{hash:9001,itemType:2,classType:1,equippable:true,inventory:{tierType:6,tierTypeName:'Exotic',bucketTypeHash:3448274439},displayProperties:{name:'Verified Exotic',icon:'/item.png'}},
   9002:{hash:9002,itemType:2,classType:1,equippable:true,inventory:{tierType:6,tierTypeName:'Exotic',bucketTypeHash:3551918588},displayProperties:{name:'Unowned Hunter Exotic',description:'Verified collection definition',icon:'/unowned.png'}},
-  9003:{hash:9003,itemType:2,classType:0,equippable:true,inventory:{tierType:6,tierTypeName:'Exotic',bucketTypeHash:3551918588},displayProperties:{name:'Titan Exotic',icon:'/titan.png'}}
+  9003:{hash:9003,itemType:2,classType:0,equippable:true,inventory:{tierType:6,tierTypeName:'Exotic',bucketTypeHash:3551918588},displayProperties:{name:'Titan Exotic',icon:'/titan.png'}},
+  9004:{hash:9004,itemType:2,classType:1,equippable:true,inventory:{tierType:6,tierTypeName:'Exotic',bucketTypeHash:3448274439},displayProperties:{name:'Verified Exotic',icon:'/item-reissue.png'}},
+  9005:{hash:9005,itemType:2,classType:1,equippable:true,inventory:{tierType:6,tierTypeName:'Exotic',bucketTypeHash:3551918588},displayProperties:{name:'Unowned Hunter Exotic',description:'Reissued collection definition',icon:'/unowned-reissue.png'}}
 };
 const buckets=[
   {hash:3448274439,key:'helmet',label:'Helmet'},
@@ -38,8 +42,8 @@ const buckets=[
 ];
 const catalogueExotics=exoticCatalogueGroups(items,definitions,'hunter',buckets);
 assert.equal(catalogueExotics.length,2,'Forge Loader must combine owned instances with verified unowned collection definitions for the selected class.');
-assert.equal(catalogueExotics.find(row=>row.hash===9001)?.owned,true,'Owned Exotic definitions must remain selectable instance groups.');
-assert.equal(catalogueExotics.find(row=>row.hash===9002)?.owned,false,'Unowned Exotic definitions must remain visibly distinct from owned instances.');
+assert.equal(catalogueExotics.find(row=>row.name==='Verified Exotic')?.owned,true,'Owned Exotic identities must remain selectable instance groups.');
+assert.deepEqual(catalogueExotics.find(row=>row.name==='Unowned Hunter Exotic')?.hashes,[9002,9005],'Reissued unowned definitions must collapse into one visibly distinct collection tile.');
 assert.equal(catalogueExotics.some(row=>row.hash===9003),false,'Exotic collection entries must remain isolated to the selected Guardian class.');
 
 const exotic=exotics[0];
@@ -65,11 +69,12 @@ assert.equal(selected.length,2,'A second compatible two-piece bonus must remain 
 assert.ok(options.every(row=>row.four.disabled),'Any two-piece selection must disable every four-piece checkbox.');
 assert.equal(options.find(row=>row.hash===7003)?.two.disabled,true,'After two two-piece choices, all remaining two-piece choices must be disabled.');
 
-const constrained={fixedExoticHash:9001,fixedExoticSlot:0,setSelections:[{setHash:7001,count:4}]};
+const constrained={fixedExoticHashes:exotic.hashes,fixedExoticSlot:0,setSelections:[{setHash:7001,count:4}]};
 const maximums=armourTargetMaximums(items,constrained);
-assert.equal(maximums.health,35,'Stat ceilings must include the best owned Exotic copy and the required four-piece set.');
-const matches=matchArmourBuilds(items,{health:35},{...constrained,limit:5});
-assert.equal(matches[0].items[0].itemInstanceId,'exotic-high','The solver must evaluate exact duplicate Exotic instances.');
+assert.equal(maximums.health,41,'Stat ceilings must include the best owned Exotic copy across every hash and the required four-piece set.');
+const matches=matchArmourBuilds(items,{health:35},{...constrained,all:true});
+assert.equal(matches.length,3,'The Forge Loader must return every legal exact-instance combination rather than an arbitrary top-five subset.');
+assert.equal(matches[0].items[0].itemInstanceId,'exotic-reissue','The solver must rank the strongest exact duplicate or reissued Exotic instance first.');
 assert.equal(matches[0].items.filter(row=>row.setBonus?.hash===7001).length,4,'Every returned load must honour the selected four-piece protocol.');
 
 const html=read('astrix-app/pages/forge-loader/index.html');
@@ -89,15 +94,20 @@ assert.ok(html.indexOf('forge-stat-selector')<html.indexOf('forge-set-selector')
 assert.equal((html.match(/data-target-stat=/g)||[]).length,6,'Forge Loader must retain all six Armour 3.0 stat directives.');
 assert.match(runtime,/type="checkbox"/,'Set bonuses must use checkboxes, not toggle switches.');
 assert.match(runtime,/setBonusOptions\(armourItems\(\),exotic,setSelections\)/);
-assert.match(runtime,/fixedExoticHash:exotic\.hash/);
-assert.match(runtime,/matchArmourBuilds\(armourItems\(\),targets,\{\.\.\.solverOptions\(\),limit:5/);
+assert.match(runtime,/fixedExoticHashes:exotic\.hashes/,'The selected Exotic identity must pass every owned item hash to the solver.');
+assert.match(runtime,/matchArmourBuilds\(armourItems\(\),targets,\{\.\.\.solverOptions\(\),all:true/,'Forge Loader must calculate every legal combination.');
 assert.match(runtime,/exoticCatalogueGroups\(catalogue\.armour,inventoryDefinitions\(\),activeCharacterClass,ARMOUR_BUCKETS\)/,'Forge Loader must add verified class collection definitions without fabricating inventory instances.');
-assert.match(runtime,/group\.owned\?'':'disabled'/,'Unowned Exotic definitions must render disabled and never enter the selection event path.');
-assert.match(runtime,/group\.owned&&group\.hash===Number\(hash\)/,'The runtime must reject any unowned Exotic selection attempt.');
+assert.match(runtime,/aria-disabled="\$\{group\.owned\?'false':'true'\}"/,'Unowned Exotic identities must remain inspectable but visibly unavailable.');
+assert.match(runtime,/group\.owned&&group\.key===String\(key\|\|''\)/,'The runtime must reject any unowned Exotic selection attempt.');
+assert.match(runtime,/data-exotic-key="\$\{esc\(group\.key\)\}"/,'Only one identity key may activate every owned copy behind an Exotic tile.');
 assert.match(html,/id="forgeExoticStatus" hidden/,'The Exotic definition count must remain available without cluttering the visible selector.');
 assert.doesNotMatch(html,/Every verified Exotic for the selected class/,'The Exotic selector must present the icon list without an explanatory block.');
 assert.doesNotMatch(runtime,/<span>\$\{group\.owned\?`×\$\{group\.instances\.length\}`:'LOCKED'<\/span>/,'Duplicate and ownership labels must not cover the Exotic artwork.');
 assert.doesNotMatch(css,/\.forge-exotic>span|content:"ANCHOR"/,'Exotic ownership and selection must use artwork state and the PARADOX border rather than text overlays.');
+assert.match(html,/CALCULATE ALL COMBINATIONS/,'The Stat Directive must request the complete legal combination set.');
+assert.match(runtime,/CANDIDATE_BATCH_SIZE=50[\s\S]*?matchedBuilds\.slice\(0,shown\)/,'The complete result set must render in responsive batches without truncating calculation.');
+assert.doesNotMatch(runtime,/CALCULATE 5 COMBINATIONS|refresh the five legal combinations/,'Forge Loader must not retain a five-result limitation.');
+assert.match(runtime,/Five exact Bungie armour instances · no mods[\s\S]*?UNMODDED ARMOUR TOTAL/,'Forge Matrix must identify that its ranking excludes mods.');
 assert.doesNotMatch(runtime,/ARMOUR_STAT_LABELS\[key\]\.slice/,'Calculated loads must show full stat names rather than unreadable abbreviations.');
 assert.match(html,/<h2 id="forgeResultsTitle">Forge Matrix<\/h2>/,'Calculated combinations must use the independent PARADOX Forge Matrix identity.');
 assert.match(runtime,/class="forge-matrix-row"[\s\S]*?class="forge-matrix-stats"[\s\S]*?class="forge-matrix-total"[\s\S]*?class="forge-matrix-protocol"/,'Each compact load must expose six calculated stats, total and set protocol in one comparison row.');

@@ -30,15 +30,15 @@ function setRequirements(options={}){
 }
 
 function constrainedGroups(items=[],options={}){
-  const fixedExoticHash=Number(options.fixedExoticHash);
-  const hasFixedExotic=Number.isInteger(fixedExoticHash)&&fixedExoticHash>0;
+  const fixedExoticHashes=new Set([...(Array.isArray(options.fixedExoticHashes)?options.fixedExoticHashes:[]),options.fixedExoticHash].map(Number).filter(hash=>Number.isInteger(hash)&&hash>0));
+  const hasFixedExotic=fixedExoticHashes.size>0;
   const groups=Array.from({length:5},()=>[]);
   for(const item of Array.isArray(items)?items:[]){
     const slot=Number(item?.slotIndex);
     if(!Number.isInteger(slot)||slot<0||slot>=groups.length)continue;
     const itemHash=Number(item?.itemHash??item?.hash);
     if(hasFixedExotic){
-      if(item?.isExotic&&itemHash!==fixedExoticHash)continue;
+      if(item?.isExotic&&!fixedExoticHashes.has(itemHash))continue;
       if(!item?.isExotic&&slot===Number(options.fixedExoticSlot))continue;
       if(item?.isExotic&&slot!==Number(options.fixedExoticSlot))continue;
     }
@@ -122,14 +122,16 @@ function scoreArmourStats(stats={},targets={}){
     distance+=Math.abs(delta);
   }
   const total=ARMOUR_STAT_KEYS.reduce((sum,key)=>sum+finite(stats[key]),0);
-  return {active,met:active.length>0&&shortfall===0,shortfall,overshoot,distance,total,rank:shortfall*1_000_000+distance*1_000-total};
+  const priorityTotal=active.reduce((sum,key)=>sum+finite(stats[key]),0);
+  return {active,met:active.length>0&&shortfall===0,shortfall,overshoot,distance,total,priorityTotal,rank:shortfall*1_000_000-priorityTotal*1_000-total};
 }
 
 function matchArmourBuilds(items=[],targets={},options={}){
   const requested=normaliseTargets(targets);
   if(!ARMOUR_STAT_KEYS.some(key=>requested[key]>0))return [];
-  const limit=Math.max(1,Math.min(20,Math.round(finite(options.limit)||5)));
-  const beamLimit=Math.max(100,Math.min(10000,Math.round(finite(options.beamLimit)||2500)));
+  const returnAll=options.all===true;
+  const limit=returnAll?Number.POSITIVE_INFINITY:Math.max(1,Math.min(20,Math.round(finite(options.limit)||5)));
+  const beamLimit=returnAll?Number.POSITIVE_INFINITY:Math.max(100,Math.min(10000,Math.round(finite(options.beamLimit)||2500)));
   const groups=constrainedGroups(items,options);
   const requirements=setRequirements(options);
   if(groups.some(group=>group.length===0))return [];
@@ -164,7 +166,7 @@ function matchArmourBuilds(items=[],targets={},options={}){
       next.push(candidate);
     }
     next.sort((left,right)=>left.partialRank-right.partialRank||left.signature.localeCompare(right.signature));
-    beam=next.slice(0,beamLimit);
+    beam=returnAll?next:next.slice(0,beamLimit);
   }
   return beam.map(candidate=>({...candidate,score:scoreArmourStats(candidate.stats,requested)}))
     .sort((left,right)=>left.score.rank-right.score.rank||left.signature.localeCompare(right.signature))

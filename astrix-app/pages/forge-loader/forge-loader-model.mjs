@@ -3,6 +3,18 @@ import {armourSetHash} from '../vault/vault-armour-matcher.mjs';
 const finite=value=>Number.isFinite(Number(value))?Number(value):0;
 const CLASS_TYPES=Object.freeze({titan:0,hunter:1,warlock:2});
 const BUNGIE_ORIGIN='https://www.bungie.net';
+const identityName=value=>String(value??'').normalize('NFKD').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
+
+function exoticIdentityKey(item={},fallbackHash=''){
+  const slot=Number(item?.slotIndex);
+  const name=identityName(item?.name);
+  return `${Number.isInteger(slot)?slot:'x'}:${name||`hash${Number(fallbackHash)||0}`}`;
+}
+
+function fixedExoticHashes(fixedExotic={}){
+  const values=Array.isArray(fixedExotic?.hashes)?fixedExotic.hashes:[fixedExotic?.hash,fixedExotic?.itemHash];
+  return new Set(values.map(Number).filter(hash=>Number.isInteger(hash)&&hash>0));
+}
 
 function compatibleWithClass(item,className=''){
   const requested=String(className||'').trim().toLowerCase();
@@ -15,19 +27,24 @@ function ownedExoticGroups(items=[],className=''){
     if(!item?.isExotic||!compatibleWithClass(item,className))continue;
     const hash=Number(item?.itemHash??item?.hash);
     if(!Number.isInteger(hash)||hash<=0)continue;
-    if(!groups.has(hash))groups.set(hash,{hash,itemHash:hash,name:item.name||`Exotic ${hash}`,slotIndex:Number(item.slotIndex),slotKey:item.slotKey||'',slotLabel:item.slotLabel||'',icon:item.icon||'',description:item.description||'',characterClass:item.characterClass||'any',instances:[]});
-    groups.get(hash).instances.push(item);
+    const key=exoticIdentityKey(item,hash);
+    if(!groups.has(key))groups.set(key,{key,hash,itemHash:hash,hashes:new Set(),name:item.name||`Exotic ${hash}`,slotIndex:Number(item.slotIndex),slotKey:item.slotKey||'',slotLabel:item.slotLabel||'',icon:item.icon||'',description:item.description||'',characterClass:item.characterClass||'any',instances:[]});
+    groups.get(key).hashes.add(hash);
+    groups.get(key).instances.push(item);
   }
   return [...groups.values()].map(group=>{
     group.instances.sort((left,right)=>finite(right.totalStats)-finite(left.totalStats)||finite(right.power)-finite(left.power)||String(left.itemInstanceId||'').localeCompare(String(right.itemInstanceId||'')));
     group.representative=group.instances[0]||null;
+    group.hash=Number(group.representative?.itemHash??group.hash);
+    group.itemHash=group.hash;
+    group.hashes=[...group.hashes].sort((left,right)=>left-right);
     return group;
   }).sort((left,right)=>left.slotIndex-right.slotIndex||left.name.localeCompare(right.name));
 }
 
 function exoticCatalogueGroups(items=[],definitions={},className='',armourBuckets=[]){
   const owned=ownedExoticGroups(items,className);
-  const groups=new Map(owned.map(group=>[group.hash,{...group,owned:true,definition:null,preview:group.representative}]));
+  const groups=new Map(owned.map(group=>[group.key,{...group,owned:true,definition:null,preview:group.representative}]));
   const classType=CLASS_TYPES[String(className||'').trim().toLowerCase()];
   const slots=new Map((Array.isArray(armourBuckets)?armourBuckets:[]).map((slot,index)=>[Number(slot?.hash),{...slot,index}]));
   if(Number.isInteger(classType)){
@@ -35,19 +52,22 @@ function exoticCatalogueGroups(items=[],definitions={},className='',armourBucket
       const hash=Number(definition?.hash??key);
       const slot=slots.get(Number(definition?.inventory?.bucketTypeHash));
       const display=definition?.displayProperties||{};
-      if(!Number.isInteger(hash)||hash<=0||groups.has(hash)||!slot)continue;
+      if(!Number.isInteger(hash)||hash<=0||!slot)continue;
       if(Number(definition?.itemType)!==2||Number(definition?.inventory?.tierType)!==6||Number(definition?.classType)!==classType)continue;
       if(definition?.redacted===true||definition?.equippable===false||!String(display.name||'').trim()||!String(display.icon||'').trim())continue;
       const icon=new URL(display.icon,BUNGIE_ORIGIN).toString();
       const preview={itemHash:hash,hash,name:String(display.name).trim(),description:String(display.description||'').trim(),icon,slotIndex:slot.index,slotKey:slot.key,slotLabel:slot.label,tier:String(definition?.inventory?.tierTypeName||'Exotic'),isExotic:true,characterClass:String(className).toLowerCase(),verifiedDefinition:true,definition};
-      groups.set(hash,{hash,itemHash:hash,name:preview.name,slotIndex:slot.index,slotKey:slot.key,slotLabel:slot.label,icon,description:preview.description,characterClass:preview.characterClass,instances:[],representative:null,preview,owned:false,definition});
+      const identityKey=exoticIdentityKey(preview,hash);
+      const existing=groups.get(identityKey);
+      if(existing){existing.hashes=[...new Set([...(existing.hashes||[]),hash])].sort((left,right)=>left-right);continue;}
+      groups.set(identityKey,{key:identityKey,hash,itemHash:hash,hashes:[hash],name:preview.name,slotIndex:slot.index,slotKey:slot.key,slotLabel:slot.label,icon,description:preview.description,characterClass:preview.characterClass,instances:[],representative:null,preview,owned:false,definition});
     }
   }
   return [...groups.values()].sort((left,right)=>left.slotIndex-right.slotIndex||Number(right.owned)-Number(left.owned)||left.name.localeCompare(right.name));
 }
 
 function constrainedSlotChoices(items=[],fixedExotic={}){
-  const fixedHash=Number(fixedExotic?.hash??fixedExotic?.itemHash);
+  const fixedHashes=fixedExoticHashes(fixedExotic);
   const fixedSlot=Number(fixedExotic?.slotIndex);
   const choices=Array.from({length:5},()=>new Set());
   for(const item of Array.isArray(items)?items:[]){
@@ -55,7 +75,7 @@ function constrainedSlotChoices(items=[],fixedExotic={}){
     if(!Number.isInteger(slot)||slot<0||slot>=choices.length)continue;
     const hash=Number(item?.itemHash??item?.hash);
     if(slot===fixedSlot){
-      if(item?.isExotic&&hash===fixedHash)choices[slot].add(armourSetHash(item)||0);
+      if(item?.isExotic&&fixedHashes.has(hash))choices[slot].add(armourSetHash(item)||0);
       continue;
     }
     if(item?.isExotic)continue;
@@ -76,7 +96,7 @@ function normaliseSelections(rows=[]){
 
 function setSelectionFeasible(items=[],fixedExotic={},selections=[]){
   const requirements=normaliseSelections(selections);
-  if(!fixedExotic||!Number(fixedExotic.hash??fixedExotic.itemHash))return false;
+  if(!fixedExoticHashes(fixedExotic).size)return false;
   if(requirements.some(row=>row.count===4)&&requirements.length>1)return false;
   if(requirements.filter(row=>row.count===2).length>2)return false;
   const choices=constrainedSlotChoices(items,fixedExotic);
@@ -101,9 +121,10 @@ function setSelectionFeasible(items=[],fixedExotic={},selections=[]){
 function setBonusOptions(items=[],fixedExotic={},selections=[]){
   const selected=normaliseSelections(selections);
   const fixedSlot=Number(fixedExotic?.slotIndex);
+  const fixedHashes=fixedExoticHashes(fixedExotic);
   const definitions=new Map();
   for(const item of Array.isArray(items)?items:[]){
-    if(item?.isExotic&&Number(item?.itemHash)!==Number(fixedExotic?.hash??fixedExotic?.itemHash))continue;
+    if(item?.isExotic&&!fixedHashes.has(Number(item?.itemHash??item?.hash)))continue;
     if(!item?.isExotic&&Number(item?.slotIndex)===fixedSlot)continue;
     const set=item?.setBonus||item?.armourSemantics?.set;
     const hash=Number(set?.hash);
@@ -142,4 +163,4 @@ function toggleSetSelection(items=[],fixedExotic={},selections=[],choice={},chec
   return setSelectionFeasible(items,fixedExotic,next)?next:normaliseSelections(selections);
 }
 
-export {compatibleWithClass,exoticCatalogueGroups,normaliseSelections,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection};
+export {compatibleWithClass,exoticCatalogueGroups,exoticIdentityKey,normaliseSelections,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection};
