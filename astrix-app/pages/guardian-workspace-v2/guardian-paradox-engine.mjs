@@ -103,6 +103,7 @@ function equippedComponents(build) {
   push(build?.grenade, 'grenade');
   (build?.aspects ?? []).forEach(x => push(x, 'aspect'));
   (build?.fragments ?? []).forEach(x => push(x, 'fragment'));
+  (build?.armourEffects ?? []).forEach(x => push(x, 'armourEffect'));
   (build?.weapons ?? []).forEach(x => push(x, 'weapon'));
   (build?.artifact?.perks ?? []).forEach(x => push(x, 'artifactPerk'));
   return rows;

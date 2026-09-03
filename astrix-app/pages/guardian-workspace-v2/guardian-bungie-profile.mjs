@@ -1,5 +1,6 @@
 import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1";
-import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
+import {createArtifactConfiguration,resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
+import {subclassPlugComponent} from "./guardian-subclass-plug-classifier.mjs";
 import {guardianManifest} from "./guardian-manifest-service.mjs";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
@@ -329,23 +330,18 @@ function plugType(plug){
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
-/* Bungie subclass plugs use stable category identifiers such as "supers",
- * "class_abilities", "movement", "melee", "grenades", "aspects" and
- * "fragments". Do not require the display text to contain an exact singular
- * English word: that caused valid equipped Supers to be missed. */
+/* Bungie subclass plug categories are authoritative. Descriptions can mention
+ * other component types (an Aspect commonly mentions Fragment slots), so a
+ * descriptive substring must never cross-classify the same plug into two
+ * lanes. */
 const plugCategory=plug=>String(plug?.definition?.plug?.plugCategoryIdentifier||"").toLowerCase();
-const matchesCategory=(plug,categoryWords,textPattern)=>{
-  const category=plugCategory(plug);
-  if(categoryWords.some(word=>category===word||category.includes(word)))return true;
-  return textPattern.test(plugType(plug));
-};
-const isSuperPlug=plug=>matchesCategory(plug,["super","supers"],/(^|[\W_])supers?([\W_]|$)|super ability|super_ability/);
-const isClassAbilityPlug=plug=>matchesCategory(plug,["class_abilit","classabilit"],/class ability|class_ability/);
-const isMovementPlug=plug=>matchesCategory(plug,["movement","jump","lift","glide"],/movement|jump|lift|glide/);
-const isMeleePlug=plug=>matchesCategory(plug,["melee"],/melee/);
-const isGrenadePlug=plug=>matchesCategory(plug,["grenade"],/grenade/);
-const isAspectPlug=plug=>matchesCategory(plug,["aspect"],/aspect/);
-const isFragmentPlug=plug=>matchesCategory(plug,["fragment"],/fragment/);
+const isSuperPlug=plug=>subclassPlugComponent(plug)==="super";
+const isClassAbilityPlug=plug=>subclassPlugComponent(plug)==="classAbility";
+const isMovementPlug=plug=>subclassPlugComponent(plug)==="movementAbility";
+const isMeleePlug=plug=>subclassPlugComponent(plug)==="melee";
+const isGrenadePlug=plug=>subclassPlugComponent(plug)==="grenade";
+const isAspectPlug=plug=>subclassPlugComponent(plug)==="aspect";
+const isFragmentPlug=plug=>subclassPlugComponent(plug)==="fragment";
 const isTranscendencePlug=plug=>{
   const itemType=String(plug?.itemTypeDisplayName||plug?.definition?.itemTypeDisplayName||"").toLowerCase();
   const name=String(plug?.name||plug?.definition?.displayProperties?.name||"").toLowerCase();
@@ -418,15 +414,16 @@ function normaliseItem(profile,definitions,item,payload={}){
 function subclassConfiguration(profile,definitions,item,payload={},characterId=""){
   const socketCoverage=socketResolution(profile,definitions,item,payload);
   const plugs=socketCoverage.plugs;
-  const superItem=plugs.find(isSuperPlug)||null;
+  const typed=(row,type)=>row?{...row,componentType:type}:null;
+  const superItem=typed(plugs.find(isSuperPlug),"super");
   console.log("[TRACE super] subclassItem:", item?.itemHash, "instance:", item?.itemInstanceId, "→ super:", superItem?.hash, superItem?.name, "| cat:", superItem?.definition?.plug?.plugCategoryIdentifier);
-  const classAbility=plugs.find(isClassAbilityPlug)||null;
-  const movement=plugs.find(isMovementPlug)||null;
-  const melee=plugs.find(isMeleePlug)||null;
-  const grenade=plugs.find(isGrenadePlug)||null;
+  const classAbility=typed(plugs.find(isClassAbilityPlug),"classAbility");
+  const movement=typed(plugs.find(isMovementPlug),"movementAbility");
+  const melee=typed(plugs.find(isMeleePlug),"melee");
+  const grenade=typed(plugs.find(isGrenadePlug),"grenade");
 
   const candidates=subclassCandidatePlugs(profile,definitions,item,characterId);
-  const optionsFor=(equipped,predicate)=>uniqueItems([equipped,...candidates.filter(predicate)]);
+  const optionsFor=(equipped,predicate,type)=>uniqueItems([equipped,...candidates.filter(predicate)]).map(row=>typed(row,type));
 
   const superOptions=[
     superItem,
@@ -435,18 +432,18 @@ function subclassConfiguration(profile,definitions,item,payload={},characterId="
     .map(row=>{
       const damageHash=Number(row?.damageTypeHash??row?.definition?.defaultDamageTypeHash??row?.definition?.damageTypeHashes?.[0]);
       const elementDefinition=Number.isFinite(damageHash)?payload?.damageDefinitions?.[String(damageHash)]||null:null;
-      return {...row,damageTypeHash:Number.isFinite(damageHash)?damageHash:null,elementDefinition};
+      return {...row,componentType:"super",damageTypeHash:Number.isFinite(damageHash)?damageHash:null,elementDefinition};
     });
   const transcendenceOptions=plugs.filter(isTranscendencePlug);
   const transcendenceSlots=transcendenceOptions.slice(0,2).map(row=>({socketIndex:row.socketIndex,equipped:row,options:[row]}));
   const abilityOptionsBySocket={
-    classAbility:optionsFor(classAbility,isClassAbilityPlug),
-    movement:optionsFor(movement,isMovementPlug),
-    melee:optionsFor(melee,isMeleePlug),
-    grenade:optionsFor(grenade,isGrenadePlug)
+    classAbility:optionsFor(classAbility,isClassAbilityPlug,"classAbility"),
+    movement:optionsFor(movement,isMovementPlug,"movementAbility"),
+    melee:optionsFor(melee,isMeleePlug,"melee"),
+    grenade:optionsFor(grenade,isGrenadePlug,"grenade")
   };
-  const availableAspects=optionsFor(null,isAspectPlug);
-  const availableFragments=optionsFor(null,isFragmentPlug);
+  const availableAspects=optionsFor(null,isAspectPlug,"aspect");
+  const availableFragments=optionsFor(null,isFragmentPlug,"fragment");
 
   return {
     super:superItem||null,
@@ -460,8 +457,8 @@ function subclassConfiguration(profile,definitions,item,payload={},characterId="
     abilities:[classAbility,movement,melee,grenade].filter(Boolean),
     abilityOptionsBySocket,
     availableAbilities:uniqueItems(Object.values(abilityOptionsBySocket).flat()),
-    aspects:plugs.filter(isAspectPlug),
-    fragments:plugs.filter(isFragmentPlug),
+    aspects:plugs.filter(isAspectPlug).map(row=>typed(row,"aspect")),
+    fragments:plugs.filter(isFragmentPlug).map(row=>typed(row,"fragment")),
     availableAspects,
     aspectOptions:availableAspects,
     availableFragments,
@@ -477,6 +474,8 @@ function currentArtifact(payload,characterId){
 }
 
 function availableArtifactItems(payload,current){
+  const artifactCatalog=Array.isArray(payload?.artifactCatalog)?payload.artifactCatalog:[];
+  if(artifactCatalog.length)return uniqueItems(artifactCatalog);
   const profile=payload?.profile||{};
   const definitions=payload?.definitions||{};
   const inventoryItems=[
@@ -489,6 +488,27 @@ function availableArtifactItems(payload,current){
     return type.includes("artifact");
   });
   return uniqueItems([current,...inventoryArtifacts]);
+}
+
+function equippedArtifactFromCatalog(profile,equipment,availableArtifacts,seasonNumber){
+  const catalog=(availableArtifacts||[]).filter(item=>item?.availabilityModel==="artifact-2-socket-buckets");
+  if(!catalog.length)return null;
+  const byHash=new Map(catalog.map(item=>[Number(item.hash),item]));
+  const equipped=equipment.find(item=>byHash.has(Number(item?.itemHash)));
+  if(!equipped)return null;
+  const source=byHash.get(Number(equipped.itemHash));
+  const sockets=profile?.itemComponents?.sockets?.data?.[equipped.itemInstanceId]?.sockets||[];
+  const selected=new Set(sockets.map(socket=>Number(socket?.plugHash)).filter(Number.isFinite));
+  const perks=(source.perks||[]).map(perk=>({...perk,isActive:selected.has(Number(perk.hash))}));
+  const activePerks=perks.filter(perk=>perk.isActive);
+  const artifactConfiguration=createArtifactConfiguration({
+    artifactHash:source.hash,
+    seasonNumber,
+    selectedPerkHashes:activePerks.map(perk=>perk.hash),
+    source:'bungie-artifact-2-item-sockets',
+    provenance:{provider:'bungie',endpoint:'Destiny2.GetProfile',component:305,componentName:'ItemSockets',itemInstanceId:equipped.itemInstanceId||null,path:`itemComponents.sockets.data.${equipped.itemInstanceId}.sockets[].plugHash`,state:activePerks.length?'resolved':'none-active'}
+  });
+  return {...source,itemInstanceId:equipped.itemInstanceId||null,state:activePerks.length?'resolved':'none-active',perks,activePerks,artifactConfiguration,stateMessage:activePerks.length?`${activePerks.length} Artifact 2.0 perk(s) resolved from the equipped item sockets.`:'Artifact 2.0 item resolved with no active socket selections.'};
 }
 
 function identityCosmetics(profile,definitions,equipment,character,payload={}){
@@ -518,8 +538,10 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const verifiedSubclassCatalog=mergeSubclassCatalog(subclassCatalog,characterClass);
   const subclassBuild=verifiedSubclassCatalog.find(item=>Number(item.hash)===Number(subclassItem?.itemHash))?.subclassBuild||{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character,payload);
-  const artifact=currentArtifact(payload,character.characterId);
-  const availableArtifacts=availableArtifactItems(payload,artifact);
+  const legacyArtifact=currentArtifact(payload,character.characterId);
+  const availableArtifacts=availableArtifactItems(payload,legacyArtifact);
+  const currentSeasonNumber=Number.isInteger(Number(payload?.currentSeasonNumber??payload?.currentSeason?.seasonNumber))?Number(payload.currentSeasonNumber??payload.currentSeason.seasonNumber):null;
+  const artifact=equippedArtifactFromCatalog(profile,equipment,availableArtifacts,currentSeasonNumber)||legacyArtifact;
   const characterLoadouts=profile?.characterLoadouts?.data?.[character.characterId];
   const loadoutsAvailable=Array.isArray(characterLoadouts?.loadouts);
   const rank=guardianRank(profile);
@@ -560,7 +582,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     availableArtifacts,
     artifactOptions:availableArtifacts,
     artifactConfiguration:artifact?.artifactConfiguration||null,
-    currentSeasonNumber:Number.isInteger(Number(payload?.currentSeasonNumber??payload?.currentSeason?.seasonNumber))?Number(payload.currentSeasonNumber??payload.currentSeason.seasonNumber):null,
+    currentSeasonNumber,
     currentSeason:cloneBuildValue(payload?.currentSeason||null),
     hashCoverage,
     power:character.light??null,

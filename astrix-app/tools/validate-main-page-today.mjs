@@ -169,10 +169,10 @@ assert.match(buildHtml,/paradox-build-space\.css\?v=20260903-artifact-fit-1/,'Bu
 assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-artifact-fit-1/,'Build must load the verified Artifact recommendation runtime without a stale module cache');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
-assert.match(buildModule,/const artifactItems=artifactUnavailable\?\[\]:\[artifact\]/,'Build Artifact selector must expose only the active seasonal Artifact and never historical alternatives');
+assert.match(buildModule,/const artifactItems=resolvedOptions\(build,'artifact'\)/,'Build Artifact selector must expose the verified Artifact 2.0 catalogue for Forge ranking');
 assert.match(buildModule,/applyForgeArtifactRecommendation/,'Build Forge must calculate Artifact choices from its staged Forge Loader decision');
 assert.match(buildModule,/current-season/,'Build Forge must verify Artifact freshness against current Bungie season metadata');
-assert.match(buildModule,/Working Build only; live Guardian unchanged/,'Artifact recommendations must remain explicit non-live Working Build state');
+assert.match(buildModule,/Working Build\. Live Guardian unchanged/,'Artifact recommendations must remain explicit non-live Working Build state');
 assert.match(buildCss,/\.artifact-perk\.is-recommended-choice\{[^}]*border-color:#d9b84f!important/,'PARADOX-recommended Artifact perks must have a unique gold selection state');
 assert.match(buildModule,/astrix:build-render-complete/,'Build Tool must publish render completion');
 assert.match(buildModule,/status=ready\?'ready':'pending'/,'Build Tool must not publish its temporary empty state as ready');

@@ -39,7 +39,9 @@ function adaptLiveGuardian(detail){
   build.source="paradox-beta-fixture";
   build.fixtureId=`LIVE-${String(detail?.characterId||"GUARDIAN")}${Number.isInteger(Number(detail?.selectedLoadoutIndex))?`-L${Number(detail.selectedLoadoutIndex)+1}`:""}`;
   build.artifact=detail?.artifact?{...clone(detail.artifact),perks:clone(activeArtifact)}:null;
-  build.aspects=[...(clone(detail?.aspects)||[]),...armourEvidence];
+  build.aspects=clone(detail?.aspects)||[];
+  build.fragments=clone(detail?.fragments)||[];
+  build.armourEffects=armourEvidence;
   build.weapons=(clone(detail?.weapons)||[]).map(weapon=>{
     const selected=weapon?.weaponSemantics?.selectedPerks||weapon?.selectedPerks||[];
     const catalyst=weapon?.catalyst;

@@ -85,6 +85,35 @@ const skipped=applyForgeArtifactRecommendation(withoutForgeDecision,{currentSeas
 assert.equal(skipped.applied,false);
 assert.equal(skipped.state,withoutForgeDecision,'Artifact automation requires the exact Forge Loader decision');
 
+const artifactTwo=(hash,name,perkBase,descriptions)=>({
+  hash,
+  name,
+  availabilityModel:'artifact-2-socket-buckets',
+  manifestVersion:'artifact-2-test',
+  state:'catalogued',
+  selectionSlots:[
+    {tierIndex:0,bucket:1,capacity:1,perkHashes:[perkBase]},
+    {tierIndex:1,bucket:2,capacity:1,perkHashes:[perkBase+1]}
+  ],
+  perks:descriptions.map((description,index)=>perk(perkBase+index,`${name} ${index+1}`,description,index,index,0))
+});
+const solarArtifact=artifactTwo(2001,'Solar Logic',2101,['Solar grenade final blows improve grenade recharge.','Armour Charge improves weapon damage.']);
+const voidArtifact=artifactTwo(2002,'Void Logic',2201,['Void effects grant overshield.','Gain handling while crouched.']);
+const artifactTwoSource={...source,artifact:source.artifact,availableArtifacts:[voidArtifact,solarArtifact],artifactOptions:[voidArtifact,solarArtifact]};
+const artifactTwoState=createBuildState(artifactTwoSource);
+const originalArtifactHash=artifactTwoState.originalBuild.artifact.hash;
+const artifactTwoApplied=applyForgeArtifactRecommendation(artifactTwoState,{currentSeasonNumber:31});
+assert.equal(artifactTwoApplied.applied,true);
+assert.equal(artifactTwoApplied.state.originalBuild.artifact.hash,originalArtifactHash,'Artifact 2.0 ranking must preserve the captured Original Artifact');
+assert.equal(artifactTwoApplied.state.workingBuild.artifact.hash,2001,'best Artifact 2.0 option must be staged into Working Build');
+assert.equal(artifactTwoApplied.state.workingBuild.artifactRecommendation.selectionModel,'artifact-2-socket-buckets');
+assert.equal(artifactTwoApplied.state.workingBuild.artifactRecommendation.artifactCandidateCount,2);
+assert.deepEqual(artifactTwoApplied.state.workingBuild.artifactConfiguration.selectedPerkHashes,[2101,2102]);
+assert.equal(artifactTwoApplied.state.workingBuild.artifactConfiguration.provenance.selectionModel,'artifact-2-socket-buckets');
+assert.equal('confirmed' in artifactTwoApplied.state.workingBuild.artifactConfiguration,false);
+assert.equal('liveApplied' in artifactTwoApplied.state.workingBuild.artifactConfiguration,false);
+
 console.log('FORGE_ARTIFACT_WORKING_ONLY=PASS');
 console.log('FORGE_ARTIFACT_ORIGINAL_PROTECTED=PASS');
 console.log('FORGE_ARTIFACT_CONFIRMATION_BOUNDARY=PASS');
+console.log('FORGE_ARTIFACT_2_BEST_FIT=PASS');

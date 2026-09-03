@@ -19,7 +19,21 @@ function toggleIntendedArtifactPerk(artifact,previous,index){
   const configuration=createIntendedArtifactConfiguration(artifact,previous);
   if(hash===null)return configuration;
   const hashes=new Set((Array.isArray(configuration.selectedPerkHashes)?configuration.selectedPerkHashes:[]).map(numberOrNull).filter(value=>value!==null));
-  if(hashes.has(hash))hashes.delete(hash);else hashes.add(hash);
+  if(hashes.has(hash))hashes.delete(hash);
+  else{
+    if(artifact?.availabilityModel==='artifact-2-socket-buckets'){
+      const tierIndex=numberOrNull(target?.tierIndex);
+      const slot=(artifact?.selectionSlots||[]).find(row=>numberOrNull(row?.tierIndex)===tierIndex);
+      const capacity=Math.max(0,numberOrNull(slot?.capacity)??0);
+      const sameBucket=(artifact?.perks||[]).filter(perk=>numberOrNull(perk?.tierIndex)===tierIndex&&hashes.has(numberOrNull(perk?.hash??perk?.itemHash??perk?.bungieHash)));
+      while(capacity>0&&sameBucket.length>=capacity){
+        const removed=sameBucket.shift();
+        hashes.delete(numberOrNull(removed?.hash??removed?.itemHash??removed?.bungieHash));
+      }
+      if(capacity===0)return configuration;
+    }
+    hashes.add(hash);
+  }
   return {...configuration,selectedPerkHashes:[...hashes],source:'paradox-working-build-intended',provenance:{...(configuration.provenance||{}),intent:'working-build-selection'}};
 }
 function needsIntendedArtifactConfiguration(build={}){

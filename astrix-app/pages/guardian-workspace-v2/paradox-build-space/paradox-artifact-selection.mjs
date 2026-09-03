@@ -1,4 +1,4 @@
-import {recommendArtifactPerks} from '../guardian-artifact-recommender.mjs';
+import {recommendArtifactLoadout,recommendArtifactPerks} from '../guardian-artifact-recommender.mjs';
 import {createIntendedArtifactConfiguration,protectBuildState} from './paradox-build-state.mjs';
 
 const clone=value=>{
@@ -18,6 +18,13 @@ function recommendationFingerprint(build={},currentSeasonNumber=null){
     artifactSeason:integer(artifact.seasonNumber),
     pointsUsed:integer(artifact.pointsUsed),
     perks:(artifact.perks||[]).map(perk=>({hash:hashOf(perk),active:perk?.isActive===true,visible:perk?.isVisible===true,tierUnlocked:perk?.tierUnlocked===true})),
+    availableArtifacts:(build.availableArtifacts||build.artifactOptions||[]).map(option=>({
+      hash:hashOf(option),
+      model:option?.availabilityModel||'',
+      manifestVersion:option?.manifestVersion||null,
+      slots:(option?.selectionSlots||[]).map(slot=>({capacity:integer(slot?.capacity),perkHashes:sortedHashes(slot?.perkHashes)})),
+      perks:(option?.perks||[]).map(perk=>hashOf(perk))
+    })),
     forgeLoaderDecision:build.forgeLoaderDecision||null,
     subclass:build.subclass||build.subclassName||'',
     super:hashOf(build.subclassBuild?.super||build.super),
@@ -40,11 +47,15 @@ function applyForgeArtifactRecommendation(state,{currentSeasonNumber=null,force=
   const season=currentSeasonOf(build,currentSeasonNumber);
   const artifact=build.artifact||null;
   const effectiveArtifact=artifact&&integer(artifact.seasonNumber)===null&&season!==null?{...artifact,seasonNumber:season}:artifact;
+  const artifactOptions=(build.availableArtifacts||build.artifactOptions||[]).filter(option=>option?.availabilityModel==='artifact-2-socket-buckets');
   const fingerprint=recommendationFingerprint({...build,artifact:effectiveArtifact},season);
   if(!force&&build.artifactRecommendation?.fingerprint===fingerprint){
     return {state,applied:false,recommendation:build.artifactRecommendation};
   }
-  const recommendation={...recommendArtifactPerks(build,effectiveArtifact,{currentSeasonNumber:season}),fingerprint,userOverride:false,source:'paradox-forge-loader-artifact-fit'};
+  const recommendationBase=artifactOptions.length
+    ?recommendArtifactLoadout(build,artifactOptions,{currentSeasonNumber:season})
+    :recommendArtifactPerks(build,effectiveArtifact,{currentSeasonNumber:season});
+  const recommendation={...recommendationBase,fingerprint,userOverride:false,source:'paradox-forge-loader-artifact-fit'};
   const next=clone(state);
   next.workingBuild.currentSeasonNumber=season;
   next.workingBuild.artifactRecommendation=clone(recommendation);
@@ -56,13 +67,15 @@ function applyForgeArtifactRecommendation(state,{currentSeasonNumber=null,force=
     && recommendation.selectedMatchedCount>0;
   if(!completeSelection)return {state:protectBuildState(next),applied:false,recommendation};
 
-  const prior=build.artifactConfiguration||artifact?.artifactConfiguration||null;
-  const configuration=createIntendedArtifactConfiguration(effectiveArtifact,prior);
+  const selectedArtifact=artifactOptions.find(option=>hashOf(option)===recommendation.artifactHash)||effectiveArtifact;
+  const prior=build.artifactConfiguration||selectedArtifact?.artifactConfiguration||artifact?.artifactConfiguration||null;
+  const configuration=createIntendedArtifactConfiguration(selectedArtifact,prior);
   const selectedPerkHashes=sortedHashes(recommendation.selectedPerkHashes);
+  next.workingBuild.artifact=clone(selectedArtifact);
   next.workingBuild.artifactConfiguration={
     ...configuration,
     artifactHash:recommendation.artifactHash,
-    seasonNumber:recommendation.seasonNumber,
+    seasonNumber:recommendation.seasonNumber??season,
     selectedPerkHashes,
     source:'paradox-forge-loader-recommendation',
     provenance:{
@@ -72,11 +85,14 @@ function applyForgeArtifactRecommendation(state,{currentSeasonNumber=null,force=
       derivedFrom:'workingBuild.forgeLoaderDecision',
       recommendationFingerprint:fingerprint,
       currentSeasonNumber:season,
+      selectionModel:recommendation.selectionModel,
       upstream:clone(prior?.provenance||artifact?.artifactConfiguration?.provenance||null)
     }
   };
   if(next.workingBuild.artifact){
     next.workingBuild.artifact.seasonNumber=integer(next.workingBuild.artifact.seasonNumber)??season;
+    next.workingBuild.artifact.state='recommended';
+    next.workingBuild.artifact.activePerks=next.workingBuild.artifact.perks.filter(perk=>selectedPerkHashes.includes(hashOf(perk))).map(perk=>({...perk,isActive:true}));
     next.workingBuild.artifact.artifactConfiguration=clone(next.workingBuild.artifactConfiguration);
   }
   return {state:protectBuildState(next),applied:true,recommendation};

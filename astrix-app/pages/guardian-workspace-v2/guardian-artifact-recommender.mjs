@@ -171,6 +171,12 @@ function artifactState(artifactData, currentSeasonNumber) {
   if (!artifactData || artifactData.state === 'state-unavailable' || !Array.isArray(artifactData.perks) || artifactData.perks.length === 0) {
     return { status: 'missing-artifact', blocker: 'Current Artifact data is missing or unavailable.' };
   }
+  if (artifactData.availabilityModel === 'artifact-2-socket-buckets') {
+    if (!Array.isArray(artifactData.selectionSlots) || artifactData.selectionSlots.length === 0) {
+      return { status: 'missing-artifact-slots', blocker: 'Artifact 2.0 socket-bucket evidence is unavailable.' };
+    }
+    return { status: 'current', blocker: null };
+  }
   const artifactSeason = finiteInteger(artifactData.seasonNumber);
   const currentSeason = finiteInteger(currentSeasonNumber);
   if (artifactSeason === null) {
@@ -316,6 +322,21 @@ function selectLegalConfiguration(rows, limit) {
   return selected;
 }
 
+function selectSocketBucketConfiguration(rows, slots) {
+  const selected=[];
+  const selectedHashes=new Set();
+  const shortages=[];
+  for(const slot of slots){
+    const capacity=Math.max(0,finiteInteger(slot?.capacity)??0);
+    const permitted=new Set((slot?.perkHashes||[]).map(finiteInteger).filter(hash=>hash!==null));
+    const candidates=rows.filter(row=>permitted.has(row.perk.hash)&&!selectedHashes.has(row.perk.hash)).sort(compareRanked);
+    const chosen=candidates.slice(0,capacity);
+    chosen.forEach(row=>{selected.push(row);selectedHashes.add(row.perk.hash);});
+    if(chosen.length<capacity)shortages.push({tierIndex:finiteInteger(slot?.tierIndex),capacity,resolved:chosen.length});
+  }
+  return {selected,shortages,selectionLimit:slots.reduce((sum,slot)=>sum+Math.max(0,finiteInteger(slot?.capacity)??0),0)};
+}
+
 export function resolveBuildWeapons(weaponHashes, manifestDefinitions, curatedTags = {}) {
   const getDefinition=typeof manifestDefinitions?.get==='function'
     ?hash=>manifestDefinitions.get('DestinyInventoryItemDefinition',hash)
@@ -359,7 +380,8 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
     };
   }
 
-  const strictLiveEvidence = artifactData?.provenance === 'bungie-character-progressions-202' || artifactData?.artifactConfiguration?.provenance?.component === 202;
+  const artifactTwo=artifactData?.availabilityModel === 'artifact-2-socket-buckets';
+  const strictLiveEvidence = !artifactTwo&&(artifactData?.provenance === 'bungie-character-progressions-202' || artifactData?.artifactConfiguration?.provenance?.component === 202);
   const normalized = artifactData.perks.map((perk, index) => normalizePerk(perk, index, strictLiveEvidence));
   const eligible = normalized.filter(perk => perk.eligible);
   const weapons = (build?.weapons ?? []).map(normalizeWeapon).filter(weapon => weapon.hash !== null);
@@ -368,8 +390,9 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
   const rows = eligible.map(perk => ({ perk, active: perk.active, ...scorePerk(perk, build, weapons, sources, subclassElement) }));
   const activeCount = normalized.filter(perk => perk.active).length;
   const pointsUsed = finiteInteger(artifactData?.pointsUsed);
-  const selectionLimit = Math.min(eligible.length, Math.max(0, pointsUsed ?? activeCount));
-  const selected = selectLegalConfiguration(rows, selectionLimit);
+  const socketSelection=artifactTwo?selectSocketBucketConfiguration(rows,artifactData.selectionSlots):null;
+  const selectionLimit = artifactTwo?socketSelection.selectionLimit:Math.min(eligible.length, Math.max(0, pointsUsed ?? activeCount));
+  const selected = artifactTwo?socketSelection.selected:selectLegalConfiguration(rows, selectionLimit);
   const selectedHashes = new Set(selected.map(row => row.perk.hash));
   const selectionOrder = new Map(selected.map((row, index) => [row.perk.hash, index + 1]));
   const recommendations = rows.filter(row => row.score > 0).sort(compareRanked).map(row => ({
@@ -381,7 +404,8 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
   }));
   const selectedMatchedCount = selected.filter(row => row.score > 0).length;
   const blockers = [];
-  if (selectionLimit === 0) blockers.push('Bungie reports no Artifact unlock points available for this configuration.');
+  if (selectionLimit === 0) blockers.push(artifactTwo?'Artifact 2.0 exposes no selectable socket buckets.':'Bungie reports no Artifact unlock points available for this configuration.');
+  if (socketSelection?.shortages.length) blockers.push('One or more Artifact 2.0 buckets could not be filled from verified manifest perk choices.');
   if (selected.length < selectionLimit) blockers.push(`Only ${selected.length} of ${selectionLimit} legal Artifact selections could be resolved from verified tier evidence.`);
   if (!recommendations.length) blockers.push('No explicit match was found between verified Artifact descriptions and the staged Forge Loader build.');
   const selectionStatus = blockers.length ? (selected.length === selectionLimit && selectionLimit > 0 ? 'no-verified-match' : 'partial') : 'ready';
@@ -392,6 +416,9 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
     seasonNumber: effectiveSeason,
     currentSeasonNumber: finiteInteger(currentSeasonNumber),
     artifactHash,
+    artifactName:text(artifactData?.name),
+    selectionModel:artifactTwo?'artifact-2-socket-buckets':'legacy-character-progression-points',
+    selectionSlots:artifactTwo?artifactData.selectionSlots.map(slot=>({tierIndex:finiteInteger(slot?.tierIndex),bucket:finiteInteger(slot?.bucket),capacity:finiteInteger(slot?.capacity),perkHashes:(slot?.perkHashes||[]).map(finiteInteger).filter(hash=>hash!==null)})):null,
     selectionLimit,
     selectedPerkHashes: selected.map(row => row.perk.hash),
     selectedMatchedCount,
@@ -400,5 +427,33 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
     unresolvedPerkHashes: normalized.filter(perk => !perk.verified && perk.hash !== null).map(perk => perk.hash),
     recommendations,
     blockers
+  };
+}
+
+export function recommendArtifactLoadout(build, artifacts, {currentSeasonNumber}={}){
+  const candidates=(Array.isArray(artifacts)?artifacts:[])
+    .filter(artifact=>artifact?.availabilityModel==='artifact-2-socket-buckets')
+    .map(artifact=>({artifact,result:recommendArtifactPerks(build,artifact,{currentSeasonNumber})}));
+  if(!candidates.length)return recommendArtifactPerks(build,build?.artifact,{currentSeasonNumber});
+  const readiness=result=>result.selectionStatus==='ready'?2:result.selectionStatus==='no-verified-match'?1:0;
+  candidates.sort((left,right)=>readiness(right.result)-readiness(left.result)
+    ||Number(right.result.selectedMatchedCount||0)-Number(left.result.selectedMatchedCount||0)
+    ||Number(right.result.totalScore||0)-Number(left.result.totalScore||0)
+    ||String(left.artifact.name||'').localeCompare(String(right.artifact.name||''))
+    ||Number(left.artifact.hash||0)-Number(right.artifact.hash||0));
+  const best=candidates[0];
+  return {
+    ...best.result,
+    artifactHash:hashOf(best.artifact),
+    artifactName:text(best.artifact?.name),
+    artifactCandidateCount:candidates.length,
+    artifactCandidates:candidates.map(({artifact,result})=>({
+      artifactHash:hashOf(artifact),
+      artifactName:text(artifact?.name),
+      selectionStatus:result.selectionStatus,
+      selectedMatchedCount:result.selectedMatchedCount,
+      totalScore:result.totalScore,
+      selectionLimit:result.selectionLimit
+    }))
   };
 }

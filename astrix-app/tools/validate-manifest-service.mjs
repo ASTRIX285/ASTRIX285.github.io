@@ -19,7 +19,7 @@ const [service,sessionCache,profile,portal,build,interceptor,resolver,fixture,ar
   read('../astrix-auth-worker/src/semantic-wrapper.ts')
 ]);
 
-for(const type of ['DestinyInventoryItemDefinition','DestinySandboxPerkDefinition','DestinyArtifactDefinition','DestinyStatDefinition','DestinySocketCategoryDefinition','DestinyEquipableItemSetDefinition']){
+for(const type of ['DestinyInventoryItemDefinition','DestinySandboxPerkDefinition','DestinyArtifactDefinition','DestinyPlugSetDefinition','DestinyStatDefinition','DestinySocketCategoryDefinition','DestinyEquipableItemSetDefinition']){
   assert.match(service,new RegExp(`"${type}"`),`${type} is missing from the browser manifest service`);
   assert.match(worker,new RegExp(`"${type}"`),`${type} is missing from the Worker allowlist`);
 }

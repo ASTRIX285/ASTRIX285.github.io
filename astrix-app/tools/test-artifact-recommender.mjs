@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import {recommendArtifactPerks,resolveBuildWeapons} from '../pages/guardian-workspace-v2/guardian-artifact-recommender.mjs';
+import {recommendArtifactLoadout,recommendArtifactPerks,resolveBuildWeapons} from '../pages/guardian-workspace-v2/guardian-artifact-recommender.mjs';
 import {resolveArtifactByProvenance} from '../pages/guardian-workspace-v2/guardian-artifact-provenance.mjs';
+import {resolveArtifactTwoCatalog} from '../pages/guardian-workspace-v2/guardian-artifact-catalog.mjs';
+import {subclassPlugComponent} from '../pages/guardian-workspace-v2/guardian-subclass-plug-classifier.mjs';
 
 const d='astrix-app/data/paradox-forge/beta/';
 const betaArtifact=JSON.parse(await fs.readFile(d+'beta-current-artifact.json','utf8'));
@@ -95,7 +97,42 @@ const unverifiedSeason=recommendArtifactPerks(forgeBuild,live,{});
 assert.equal(unverifiedSeason.status,'current-season-unresolved');
 assert.equal(unverifiedSeason.selectionStatus,'blocked');
 
+const artifactTwoInventory={
+  '2001':{hash:2001,itemTypeDisplayName:'Artifact',displayProperties:{name:'Solar Logic',description:'Works best with Solar grenades.',icon:'/artifact/solar.png'},sockets:{socketEntries:[{reusablePlugSetHash:3001},{reusablePlugSetHash:3002},{reusablePlugSetHash:3999}]}},
+  '2002':{hash:2002,itemTypeDisplayName:'Artifact',displayProperties:{name:'Void Logic',description:'Works best with Void effects.',icon:'/artifact/void.png'},sockets:{socketEntries:[{reusablePlugSetHash:3003},{reusablePlugSetHash:3004},{reusablePlugSetHash:3999}]}},
+  '2101':{hash:2101,itemTypeDisplayName:'Artifact Perk',displayProperties:{name:'Solar Ordnance',description:'Solar grenade final blows improve grenade recharge.',icon:'/perk/solar-grenade.png'}},
+  '2102':{hash:2102,itemTypeDisplayName:'Artifact Perk',displayProperties:{name:'Charged Arsenal',description:'Armour Charge improves weapon damage.',icon:'/perk/charge.png'}},
+  '2201':{hash:2201,itemTypeDisplayName:'Artifact Perk',displayProperties:{name:'Void Guard',description:'Void effects grant an overshield.',icon:'/perk/void.png'}},
+  '2202':{hash:2202,itemTypeDisplayName:'Artifact Perk',displayProperties:{name:'Quiet Reserve',description:'Gain handling while crouched.',icon:'/perk/quiet.png'}},
+  '2999':{hash:2999,itemTypeDisplayName:'Intrinsic',displayProperties:{name:'Artifact Frame',description:'Artifact frame.'}}
+};
+const artifactTwoPlugSets={
+  '3001':{reusablePlugItems:[{plugItemHash:2101}]},
+  '3002':{reusablePlugItems:[{plugItemHash:2102}]},
+  '3003':{reusablePlugItems:[{plugItemHash:2201}]},
+  '3004':{reusablePlugItems:[{plugItemHash:2202}]},
+  '3999':{reusablePlugItems:[{plugItemHash:2999}]}
+};
+const artifactTwoCatalog=resolveArtifactTwoCatalog({inventoryDefinitions:artifactTwoInventory,plugSetDefinitions:artifactTwoPlugSets,manifestVersion:'artifact-2-test'});
+assert.equal(artifactTwoCatalog.length,2);
+assert.equal(artifactTwoCatalog[0].selectionLimit,2,'Artifact capacity must come from selectable socket buckets, not a fixed perk count');
+assert.equal(artifactTwoCatalog[0].selectionSlots.length,2,'non-perk sockets must not become Artifact buckets');
+const artifactTwoResult=recommendArtifactLoadout(forgeBuild,artifactTwoCatalog,{currentSeasonNumber:99});
+assert.equal(artifactTwoResult.status,'current','Artifact 2.0 catalogue choices are permanent manifest options, not a stale seasonal point tree');
+assert.equal(artifactTwoResult.selectionModel,'artifact-2-socket-buckets');
+assert.equal(artifactTwoResult.selectionLimit,2);
+assert.equal(artifactTwoResult.artifactHash,2001,'the best Artifact must be selected from all verified Artifact 2.0 options');
+assert.deepEqual(artifactTwoResult.selectedPerkHashes,[2101,2102]);
+assert.equal(artifactTwoResult.artifactCandidateCount,2);
+
+const aspectMentioningFragments={definition:{plug:{plugCategoryIdentifier:'v500.plugs.aspects'},displayProperties:{name:'Aspect Test',description:'Adds two Fragment slots.'}},name:'Aspect Test'};
+const fragmentMentioningAspects={definition:{plug:{plugCategoryIdentifier:'v500.plugs.fragments'},displayProperties:{name:'Fragment Test',description:'Improves equipped Aspects.'}},name:'Fragment Test'};
+assert.equal(subclassPlugComponent(aspectMentioningFragments),'aspect','Aspect category must win over descriptive Fragment text');
+assert.equal(subclassPlugComponent(fragmentMentioningAspects),'fragment','Fragment category must win over descriptive Aspect text');
+
 console.log('ARTIFACT_RECOMMENDER=PASS');
 console.log('ARTIFACT_LEGAL_SELECTION=PASS');
 console.log('ARTIFACT_FORGE_LOADER_FIT=PASS');
 console.log('ARTIFACT_SEASON_GUARD=PASS');
+console.log('ARTIFACT_2_SOCKET_BUCKETS=PASS');
+console.log('SUBCLASS_ASPECT_FRAGMENT_LABELS=PASS');

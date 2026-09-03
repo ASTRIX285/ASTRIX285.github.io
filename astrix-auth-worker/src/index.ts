@@ -14,6 +14,7 @@ const MANIFEST_COMPONENT_TYPES = new Set([
   "DestinyInventoryItemDefinition",
   "DestinySandboxPerkDefinition",
   "DestinyArtifactDefinition",
+  "DestinyPlugSetDefinition",
   "DestinyStatDefinition",
   "DestinySocketCategoryDefinition",
   "DestinyEquipableItemSetDefinition"

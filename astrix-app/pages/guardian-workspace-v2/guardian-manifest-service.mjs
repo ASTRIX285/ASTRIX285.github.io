@@ -1,4 +1,5 @@
 import {openGuardianDatabase,MANIFEST_STORE_NAME} from "./guardian-session-cache.mjs";
+import {resolveArtifactTwoCatalog} from "./guardian-artifact-catalog.mjs";
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
@@ -7,6 +8,7 @@ const COMPONENT_TYPES=Object.freeze([
   "DestinyInventoryItemDefinition",
   "DestinySandboxPerkDefinition",
   "DestinyArtifactDefinition",
+  "DestinyPlugSetDefinition",
   "DestinyStatDefinition",
   "DestinySocketCategoryDefinition",
   "DestinyEquipableItemSetDefinition"
@@ -328,6 +330,11 @@ class GuardianManifestService{
     }));
     const artifactHash=numericHash(payload?.profile?.profileProgression?.data?.seasonalArtifact?.artifactHash);
     const artifactDefinition=payload.artifactDefinition||(artifactHash===null?null:await this.getAsync("DestinyArtifactDefinition",artifactHash));
+    const artifactCatalog=resolveArtifactTwoCatalog({
+      inventoryDefinitions:this.tables.get("DestinyInventoryItemDefinition")||definitions,
+      plugSetDefinitions:this.tables.get("DestinyPlugSetDefinition")||{},
+      manifestVersion:this.version||null
+    });
     const requested=[...inventory,...expandedHashes];
     const unresolved=requested.filter(hash=>!definitions[String(hash)]);
     const artifactPerkHashes=[...new Set(Object.values(payload?.profile?.characterProgressions?.data||{}).flatMap(progression=>(progression?.seasonalArtifact?.tiers||[]).flatMap(tier=>(tier?.items||[]).map(item=>numericHash(item?.itemHash)).filter(hash=>hash!==null))))];
@@ -339,10 +346,12 @@ class GuardianManifestService{
     payload.breakerDefinitions=breakerDefinitions;
     payload.equipableItemSets=equipableItemSets;
     payload.artifactDefinition=artifactDefinition;
+    payload.artifactCatalog=artifactCatalog;
     const resolutionSource=indexedDb?"indexeddb-manifest":"bungie-single-definition-endpoint";
     payload.definitionCoverage={requested:requested.length,resolved:requested.length-unresolved.length,unresolved,complete:unresolved.length===0,source:resolutionSource,version:this.version||null};
     const unresolvedArtifactPerks=artifactPerkHashes.filter(hash=>!definitions[String(hash)]);
     payload.artifactCoverage={hash:artifactHash,definitionResolved:Boolean(artifactDefinition),perkHashes:artifactPerkHashes,unresolvedPerkHashes:unresolvedArtifactPerks,complete:(artifactHash===null||Boolean(artifactDefinition))&&unresolvedArtifactPerks.length===0,source:resolutionSource,version:this.version||null};
+    payload.artifactCatalogCoverage={model:'artifact-2-socket-buckets',artifactCount:artifactCatalog.length,complete:artifactCatalog.length>0,source:resolutionSource,version:this.version||null};
     payload.manifestResolution={mode:indexedDb?"indexeddb":"live-fallback",version:this.version||null,versionMatched:indexedDb?this.versionMatched:false,source:indexedDb?"Destiny manifest component tables":"bungie-single-definition-endpoint"};
     return payload;
   }

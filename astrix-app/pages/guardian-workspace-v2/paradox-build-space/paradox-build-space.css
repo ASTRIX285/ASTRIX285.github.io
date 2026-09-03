@@ -113,7 +113,10 @@
 @media(max-width:720px){.socket-options,.fragment-options{grid-template-columns:repeat(4,minmax(54px,1fr))}.fragment-options{max-height:360px}}
 
 
-/* One equipped Artifact with compact active perks and verified tier matrix */
+/* Artifact 2.0 catalogue, compact staged perks and verified bucket matrix */
+.artifact-item-selector{display:grid;grid-template-columns:repeat(4,minmax(48px,1fr));gap:8px}
+.artifact-item-selector .selector-card.is-recommended{border-color:#d9b84f!important;box-shadow:0 0 0 2px rgba(217,184,79,.82),0 0 16px rgba(217,184,79,.3)!important;background:linear-gradient(145deg,rgba(217,184,79,.16),#0d0d10 70%)}
+.artifact-item-selector .selector-card.is-recommended::after{content:"BEST";background:#d9b84f;color:#130f05}
 .artifact-summary{border:1px solid rgba(180,132,45,.28);border-radius:9px;padding:10px;background:rgba(255,255,255,.018)}
 .artifact-summary strong,.artifact-summary small{display:block}
 .artifact-summary small{margin-top:5px;color:#8f8f98;font-size:9px;line-height:1.4}
@@ -148,7 +151,7 @@
 .artifact-best-badge{position:absolute;z-index:2;top:3px;right:3px;padding:2px 3px;border-radius:3px;background:#d9b84f;color:#130f05;font:900 5px Orbitron;letter-spacing:.06em}
 .artifact-perk.was-live-active:not(.is-recommended-choice){box-shadow:inset 0 0 0 1px rgba(88,191,255,.5)}
 .artifact-more-count{display:grid;place-items:center;min-height:42px;border:1px dashed rgba(217,184,79,.5);border-radius:7px;color:#d9b84f;font:800 7px Orbitron;letter-spacing:.06em}
-@media(max-width:720px){.artifact-tier-perks{grid-template-columns:repeat(4,minmax(54px,1fr))}.artifact-perk-matrix{max-height:430px}}
+@media(max-width:720px){.artifact-item-selector{grid-template-columns:repeat(3,minmax(54px,1fr))}.artifact-tier-perks{grid-template-columns:repeat(4,minmax(54px,1fr))}.artifact-perk-matrix{max-height:430px}}
 
 
 /* Prismatic keeps elemental Super identity and separates Transcendence sockets. */
