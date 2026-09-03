@@ -5,7 +5,7 @@ import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs';
 import {compatibleWithClass,exoticCatalogueGroups,setBonusOptions,toggleSetSelection} from './forge-loader-model.mjs';
-import {writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs';
+import {writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260903-storage-recovery-1';
 
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -362,11 +362,15 @@ async function evaluateInBuildForge(){
   }
   if(!profileBuild){byId('forgeRuntimeStatus').textContent='Build Forge could not resolve the equipped Guardian baseline. No build was changed.';return;}
   const baselineStored=writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores:[sessionStorage,localStorage]});
-  if(!baselineStored){byId('forgeRuntimeStatus').textContent='Browser storage rejected the protected Guardian baseline. No build was changed.';return;}
+  if(!baselineStored){
+    byId('forgeRuntimeStatus').textContent='Browser storage is full. Build Forge will recover the protected Original Build directly from Bungie.';
+    console.warn('[ASTRIX Forge Loader] Browser storage rejected the protected baseline; Build Forge will recover it from the authenticated Bungie profile.');
+  }
   const selected=prepareArmourSelection(payload,[...selectedSlots.values()]);
   const selection=createVaultArmourSelection({binding,slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision:forgeLoaderDecision(candidate,selectedCandidateIndex)});
   if(!writeVaultArmourSelection(selection)){byId('forgeRuntimeStatus').textContent='The staged load could not be stored on this device. No build was changed.';return;}
   const url=new URL('../guardian-workspace-v2/paradox-build-space/',location.href);url.searchParams.set('vault','selection');
+  if(!baselineStored)url.searchParams.set('baseline','bungie-recovery');
   for(const [key,value] of Object.entries(binding))if(value)url.searchParams.set(key,value);
   markGuardianFastReturn();location.href=url;
 }

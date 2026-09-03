@@ -76,7 +76,7 @@ function readState(){
       catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
     }
   }
-  activeLoadError=activeLoadError||'No current Build Forge snapshot was found. Return to the Guardian page and choose Improve My Guardian again.';
+  activeLoadError=activeLoadError||(params.get('baseline')==='bungie-recovery'?'Recovering the protected Original Build from the authenticated Bungie profile.':'No current Build Forge snapshot was found. Return to the Guardian page and choose Improve My Guardian again.');
   return null;
 }
 function emitLoad(stage,percent,label,status='loading',message=''){
@@ -256,13 +256,14 @@ function render(){
   emitLoad('snapshot',LOAD_STAGES.SNAPSHOT,'Locating protected build snapshot…');
   const state=readState(),original=state?.originalBuild||null,build=state?.workingBuild||original;
   if(!build||!original){
-    byId('sourcePill').textContent='BUILD SOURCE · ACTION REQUIRED';
-    byId('sourceLabel').textContent='NO BUILD SNAPSHOT FOUND';byId('sourceDetail').textContent='Return to Build Forge, load a Guardian or Bungie loadout, then press Improve My Guardian.';
-    byId('buildStateLabel').textContent='SNAPSHOT UNAVAILABLE';byId('buildStateDetail').textContent='No verified Original or Working Build has been loaded.';
+    const recovering=new URLSearchParams(location.search).get('baseline')==='bungie-recovery';
+    byId('sourcePill').textContent=recovering?'BUILD SOURCE · RECOVERING BUNGIE':'BUILD SOURCE · ACTION REQUIRED';
+    byId('sourceLabel').textContent=recovering?'RECOVERING VERIFIED GUARDIAN':'NO BUILD SNAPSHOT FOUND';byId('sourceDetail').textContent=recovering?'Rebuilding the protected Original Build before the staged armour is applied.':'Return to the Guardian page, load a Guardian or Bungie loadout, then press Improve My Guardian.';
+    byId('buildStateLabel').textContent=recovering?'PROTECTING ORIGINAL BUILD':'SNAPSHOT UNAVAILABLE';byId('buildStateDetail').textContent=recovering?'The Working Build will remain separate from the authenticated equipped baseline.':'No verified Original or Working Build has been loaded.';
     byId('artifactStatus').textContent='NOT CHECKED';byId('artifactStatusDetail').textContent='Artifact resolution starts only after a verified build snapshot is loaded.';
     const armButton=byId('armRangeTest');if(armButton)armButton.disabled=true;
     renderRecommendationControls({});renderForgeDecision({});
-    emitLoad('snapshot',LOAD_STAGES.SNAPSHOT,'Build snapshot required','error',activeLoadError);
+    emitLoad('snapshot',LOAD_STAGES.SNAPSHOT,recovering?'Recovering authenticated Guardian…':'Build snapshot required',recovering?'loading':'error',activeLoadError);
     completeBuildRender(null);
     return;
   }
