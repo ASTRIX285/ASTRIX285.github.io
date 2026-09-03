@@ -18,7 +18,7 @@
   </script>
   <script src="../../../shared/astrix-portal-loader.js?v=20260831-render-ready"></script>
   <link rel="stylesheet" href="../../../astrix-tokens.css?v=20260824-branch-preview-1">
-  <link rel="stylesheet" href="./paradox-build-space.css?v=20260903-artifact-fit-1">
+  <link rel="stylesheet" href="./paradox-build-space.css?v=20260903-artifact-fit-journey-header-1">
   <link rel="stylesheet" href="./build-test-modes.css?v=20260823-1">
   <link rel="stylesheet" href="../guardian-gear-layout.css?v=20260826-four-fixes-1">
   <link rel="stylesheet" href="../guardian-character-cards.css?v=20260902-recent-guardian-emblem-1">
@@ -36,14 +36,14 @@
   <style>/* keep the destination ribbon non-sticky here so it never overlaps the topbar */
     [data-astrix-destination-ribbon]{position:relative;top:auto;z-index:20}</style>
 </head>
-<body class="astrix-token-preview">
+<body class="astrix-token-preview build-forge-page">
   <div class="scene immersive" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
-  <header class="topbar">
-    <a class="brand" href="../"><img src="../../../../img/logo.png" alt="ASTRIX PARADOX"><span><b>ASTRIX <em>PARADOX</em></b><small>AI GAMING INTELLIGENCE</small></span></a>
-    <div class="workspace-title">GUARDIAN BUILD FORGE</div>
+  <header class="apx-destination-header topbar build-forge-header">
+    <a class="apx-destination-brand brand" href="../" aria-label="ASTRIX PARADOX Build Forge"><img src="../../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a>
+    <div class="apx-destination-header-copy workspace-title build-forge-header-copy"><strong>BUILD FORGE</strong><small>OPTIMISE, ANALYSE AND TEST YOUR GUARDIAN BUILD</small></div>
     <div class="guardian-character-selector build-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status" role="status">LOADING BUNGIE CHARACTERS</div></div>
-    <div class="source-pill" id="sourcePill">BUILD SOURCE · RESOLVING</div>
+    <span class="visually-hidden build-source-state" id="sourcePill" aria-live="polite">BUILD SOURCE · RESOLVING</span>
   </header>
   <div data-astrix-destination-ribbon data-active-destination="build-forge"></div>
   <main class="build-space">
@@ -96,6 +96,6 @@
       <button class="primary" disabled>RUN PARADOX ANALYSIS · NEXT ITERATION</button>
     </aside>
   </main>
-  <script type="module" src="./paradox-build-space.mjs?v=20260903-artifact-fit-1"></script>
+  <script type="module" src="./paradox-build-space.mjs?v=20260903-artifact-fit-journey-header-1"></script>
 </body>
 </html>

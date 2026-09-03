@@ -21,6 +21,29 @@ import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
 
+const buildForgeHeader=document.querySelector('.build-forge-page .build-forge-header');
+const buildForgeBrand=document.querySelector('.build-forge-page .apx-destination-brand');
+const buildForgeHeroCards=document.getElementById('guardianCharacterCards');
+function balanceBuildForgeHeader(){
+  if(!buildForgeHeader||!buildForgeBrand||!buildForgeHeroCards||innerWidth<1900)return;
+  const brandBounds=buildForgeBrand.getBoundingClientRect(),cardsBounds=buildForgeHeroCards.getBoundingClientRect();
+  if(cardsBounds.left<=brandBounds.right)return;
+  buildForgeHeader.style.setProperty('--build-forge-command-centre',`${(brandBounds.right+cardsBounds.left)/2}px`);
+}
+function installBuildForgeHeaderBalance(){
+  if(!buildForgeHeader||!buildForgeBrand||!buildForgeHeroCards)return;
+  balanceBuildForgeHeader();
+  globalThis.addEventListener('resize',balanceBuildForgeHeader,{passive:true});
+  if('ResizeObserver' in globalThis){
+    const observer=new ResizeObserver(balanceBuildForgeHeader);
+    observer.observe(buildForgeHeader);
+    observer.observe(buildForgeBrand);
+    observer.observe(buildForgeHeroCards);
+  }
+  requestAnimationFrame(balanceBuildForgeHeader);
+}
+installBuildForgeHeaderBalance();
+
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
 const BUILD_SNAPSHOT_KEY='astrix:guardian-build-snapshot:v1';
 const LOAD_STAGES=Object.freeze({SNAPSHOT:20,VALIDATE:40,PROFILE:58,SOCKETS:74,ARTIFACT:88,READY:100});

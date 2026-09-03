@@ -147,6 +147,15 @@ assert.match(handoff,/await afterPortalPaint\(\);[\s\S]*?markGuardianFastReturn\
 assert.doesNotMatch(superSync,/paradox-build-space-handoff\.mjs/,'The subclass bridge must not register a duplicate Build handoff owner');
 
 assert.match(buildHtml,/data-guardian-profile-mode="roster-only"/,'Build Tool must load the roster without replacing its protected snapshot');
+assert.match(buildHtml,/<body class="astrix-token-preview build-forge-page">/,'Build Forge must own a page-scoped Journey-style header presentation');
+assert.match(buildHtml,/<header class="apx-destination-header topbar build-forge-header">/,'Build Forge header must use the Journey header structure');
+assert.match(buildHtml,/<div class="apx-destination-header-copy workspace-title build-forge-header-copy"><strong>BUILD FORGE<\/strong><small>OPTIMISE, ANALYSE AND TEST YOUR GUARDIAN BUILD<\/small><\/div>/,'Build Forge must show its centred page name and plain-language purpose');
+assert.match(buildHtml,/<span class="visually-hidden build-source-state" id="sourcePill"/,'Build Source must remain available to runtime logic without showing beside the Bungie avatar');
+assert.match(buildCss,/\.build-forge-page \.build-forge-header-copy strong\{[^}]*color:var\(--apx-crimson-bright,#b22222\)/,'Build Forge page name must use the Journey crimson treatment');
+assert.match(buildCss,/\.build-forge-page \.build-forge-header-copy small\{[^}]*color:var\(--apx-gold,#c9a84c\)/,'Build Forge purpose line must use the Journey gold treatment');
+assert.match(buildCss,/@media\(min-width:1500px\)\{\.build-forge-page \.apx-destination-brand img\{width:46px;height:46px\}[\s\S]*?\.build-forge-page \.build-forge-header-copy strong\{font-size:1\.75rem\}/,'Build Forge must share the Journey desktop header proportions');
+assert.match(buildCss,/@media\(min-width:1900px\)\{\.build-forge-page \.build-forge-header-copy\{[^}]*left:var\(--build-forge-command-centre,calc\(25% - 5rem\)\)/,'Build Forge heading must share the Journey large-screen command-centre position');
+assert.match(buildModule,/function balanceBuildForgeHeader\(\)\{[\s\S]*?--build-forge-command-centre[\s\S]*?function installBuildForgeHeaderBalance\(\)/,'Build Forge must dynamically centre its header copy between the brand and Bungie character cards');
 assert.match(buildHtml,/id="guardianCharacterCards"/,'Build Tool character cards are missing');
 assert.match(buildHtml,/class="panel build-rail guardian-left-rail"/,'Build Tool must mount the shared Main left rail');
 assert.match(buildHtml,/id="guardianLoadouts"/,'Build Tool in-game loadout selector is missing');
@@ -165,8 +174,8 @@ assert.match(buildModule,/let volatileState=null/,'Build must retain a protected
 assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuildState\(next\);/,'Build writes must protect the in-page fallback before attempting Web Storage');
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
-assert.match(buildHtml,/paradox-build-space\.css\?v=20260903-artifact-fit-1/,'Build must load the verified Artifact fit presentation without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-artifact-fit-1/,'Build must load the verified Artifact recommendation runtime without a stale module cache');
+assert.match(buildHtml,/paradox-build-space\.css\?v=20260903-artifact-fit-journey-header-1/,'Build must load the verified Artifact fit and Journey header presentation without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-artifact-fit-journey-header-1/,'Build must load the verified Artifact recommendation runtime and Journey header balance without a stale module cache');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/const artifactItems=resolvedOptions\(build,'artifact'\)/,'Build Artifact selector must expose the verified Artifact 2.0 catalogue for Forge ranking');
