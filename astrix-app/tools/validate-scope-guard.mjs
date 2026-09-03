@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  '.github/workflows/paradox-validator.yml',
   'astrix-auth-worker/src/index.ts',
   'astrix-app/pages/guardian-workspace-v2/index.html',
   'astrix-app/pages/journey/index.html',
