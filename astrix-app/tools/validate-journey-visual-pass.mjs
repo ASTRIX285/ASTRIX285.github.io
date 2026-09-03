@@ -53,7 +53,7 @@ assert.match(journey,/const profilePromise=readVerifiedProfile\(session\);[\s\S]
 assert.match(journey,/waitWithin\(heroCardsReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS\)[\s\S]*?waitWithin\(mapReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS\)[\s\S]*?waitWithin\(waitForJourneyAtmosphere\(\),JOURNEY_BOOTSTRAP_UI_WAIT_MS\)/,'Noncritical Hero, map and atmosphere tasks must not hold the Journey loader indefinitely');
 assert.doesNotMatch(html,/GUARDIAN JOURNEY · SUMMARY HUB|Your top-line Guardian record|VERIFIED DATA ONLY/,'Journey must not repeat its title in a standalone dashboard banner');
 assert.match(heroCss,/header\.astrix-command-header:has\(>\[data-astrix-hero-cards\]\) \.apx-destination-header-copy\{[^}]*display:grid!important;[^}]*justify-items:center!important/,'Every page purpose line must sit beneath its centred command title');
-assert.match(heroCss,/header\.astrix-command-header:has\(>\[data-astrix-hero-cards\]\) \.apx-destination-header-copy strong\{[^}]*color:var\(--apx-crimson-bright,#b22222\)!important;[^}]*font:800 1\.75rem\/1 Orbitron/,'Every page name must use the shared bold crimson treatment');
+assert.match(heroCss,/header\.astrix-command-header:has\(>\[data-astrix-hero-cards\]\) \.apx-destination-header-copy strong\{[^}]*color:var\(--apx-crimson-bright,#b22222\)!important;[^}]*font:800 1\.25rem\/1 Orbitron/,'Every page name must use the shared compact crimson treatment');
 assert.match(heroCss,/header\.astrix-command-header:has\(>\[data-astrix-hero-cards\]\) \.apx-destination-header-copy small\{[^}]*color:var\(--apx-gold,#c9a84c\)!important/,'Every page purpose line must use the shared gold treatment');
 assert.match(heroCss,/\.apx-destination-header-state\{[^}]*position:absolute!important;[^}]*clip-path:inset\(50%\)!important/,'Runtime header state must remain accessible without displaying redundant copy beside the avatar');
 assert.doesNotMatch(html,/id="journeyAccountVisual"|id="journeyAccountAvatar"/,'Journey must not duplicate the shared Bungie account visual');
@@ -145,7 +145,7 @@ assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,7,'Shared Jour
 assert.ok(ribbon.indexOf("key:'forge-loader'")<ribbon.indexOf("key:'build-forge'"),'Forge Loader must appear before Build Forge');
 for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
-  assert.ok(page.includes('astrix-hero-cards.css?v=20260903-command-header-1'),'Every destination page must load the shared command-header presentation');
+  assert.ok(page.includes('astrix-hero-cards.css?v=20260903-command-header-2'),'Every destination page must load the centred shared command-header presentation');
   assert.equal((page.match(/astrix-command-header/g)??[]).length,1,'Every destination page must contain exactly one shared command header');
 }
 assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1'))).length,3,'Journey, Vault and Loadout must load the same scoped-profile Guardian renderer');
@@ -156,7 +156,8 @@ assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fi
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
 assert.doesNotMatch(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:relative!important;[\s\S]*?top:auto!important;/,'Mission Reports must not reattach the Guardian ribbon to its report columns');
 assert.match(heroCss,/position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?left:0!important;[\s\S]*?right:0!important;/,'Every hero-card topbar must remain fixed to the viewport top');
-assert.match(heroCss,/grid-template-columns:minmax\(220px,max-content\) minmax\(240px,1fr\) 910px minmax\(58px,max-content\)!important;/,'The command header must reserve independent brand, title, Guardian-card and account columns');
+assert.match(heroCss,/grid-template-columns:minmax\(0,1fr\) 910px minmax\(0,1fr\)!important;/,'The command header must keep its three-card Guardian rail centred in the page');
+assert.match(heroCss,/\.apx-destination-header-copy\{position:absolute!important;top:50%!important;left:calc\(25% - 5rem\)!important;[^}]*transform:translate\(-50%,-50%\)!important/,'The compact page identity must sit midway between the brand and the first Guardian card');
 assert.match(heroCss,/grid-template-columns:repeat\(3,300px\)!important;/,'The desktop hero track must retain three equal Character-format cards');
 assert.match(heroCss,/header:has\(>\[data-astrix-hero-cards\]\) \.guardian-character-card\.is-selected\{[^}]*border-color:rgba\(201,168,76,\.92\);[^}]*box-shadow:[^}]*rgba\(201,168,76,\.5\)[^}]*opacity:1\}/,'Every destination must use the same fully opaque gold-and-crimson selected Guardian glow');
 assert.match(heroCss,/header:has\(>\[data-astrix-hero-cards\]\) \.guardian-character-card\.is-selected::before\{opacity:1;filter:none\}/,'Every selected Guardian card must retain fully visible verified emblem artwork');

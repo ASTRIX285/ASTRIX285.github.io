@@ -6,7 +6,7 @@ html body header:has(>[data-astrix-hero-cards]){
   width:100%!important;
   z-index:90!important;
   display:grid!important;
-  grid-template-columns:minmax(220px,max-content) minmax(240px,1fr) 910px minmax(58px,max-content)!important;
+  grid-template-columns:minmax(0,1fr) 910px minmax(0,1fr)!important;
   grid-template-rows:88px!important;
   align-items:center!important;
   gap:18px!important;
@@ -25,9 +25,9 @@ body:has(>header.astrix-command-header>[data-astrix-hero-cards])>.apx-page-shell
 }
 
 html body header:has(>[data-astrix-hero-cards])>:is(.brand,.apx-destination-brand){grid-column:1!important;grid-row:1!important;justify-self:start!important}
-html body header:has(>[data-astrix-hero-cards])>:is(.ws-label,.workspace-title,.apx-destination-header-copy){grid-column:2!important;grid-row:1!important;justify-self:center!important;text-align:center!important}
+html body header:has(>[data-astrix-hero-cards])>:is(.ws-label,.workspace-title,.apx-destination-header-copy){grid-column:1!important;grid-row:1!important;justify-self:end!important;text-align:center!important}
 html body header:has(>[data-astrix-hero-cards])>.apx-destination-header-state{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
-html body header:has(>[data-astrix-hero-cards])>:is(.topbar-actions,.source-pill,.bungie-auth-control){grid-column:4!important;grid-row:1!important;justify-self:end!important}
+html body header:has(>[data-astrix-hero-cards])>:is(.topbar-actions,.source-pill,.bungie-auth-control){grid-column:3!important;grid-row:1!important;justify-self:end!important}
 
 /* One compact command ribbon across every destination page. Page-owned data,
    selection and authentication hooks remain unchanged. */
@@ -37,16 +37,16 @@ html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-desti
 html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-brand strong{color:#f4efe4!important;font:800 1rem/1 Orbitron,sans-serif!important;letter-spacing:.08em!important;white-space:nowrap!important}
 html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-brand strong em{color:var(--apx-crimson-bright,#b22222)!important;font-style:normal!important}
 html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-brand small{color:var(--apx-gold,#c9a84c)!important;font:700 .75rem/1 Orbitron,sans-serif!important;letter-spacing:.12em!important;white-space:nowrap!important}
-html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-header-copy{display:grid!important;min-width:0!important;max-width:100%!important;justify-items:center!important;gap:.375rem!important;white-space:normal!important}
-html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-header-copy strong{display:block!important;color:var(--apx-crimson-bright,#b22222)!important;font:800 1.75rem/1 Orbitron,sans-serif!important;letter-spacing:.14em!important;text-align:center!important;text-shadow:0 0 18px rgba(211,32,47,.3)!important;white-space:nowrap!important}
-html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-header-copy small{display:block!important;max-width:100%!important;margin:0!important;color:var(--apx-gold,#c9a84c)!important;font:800 .875rem/1.2 Orbitron,sans-serif!important;letter-spacing:.1em!important;text-align:center!important;text-wrap:balance!important}
+html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-header-copy{position:absolute!important;top:50%!important;left:calc(25% - 5rem)!important;display:grid!important;min-width:0!important;max-width:calc(50% - 20rem)!important;justify-items:center!important;gap:.375rem!important;transform:translate(-50%,-50%)!important;white-space:normal!important}
+html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-header-copy strong{display:block!important;color:var(--apx-crimson-bright,#b22222)!important;font:800 1.25rem/1 Orbitron,sans-serif!important;letter-spacing:.14em!important;text-align:center!important;text-shadow:0 0 18px rgba(211,32,47,.3)!important;white-space:nowrap!important}
+html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-header-copy small{display:block!important;max-width:100%!important;margin:0!important;color:var(--apx-gold,#c9a84c)!important;font:800 .75rem/1.2 Orbitron,sans-serif!important;letter-spacing:.1em!important;text-align:center!important;text-wrap:balance!important}
 html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .topbar-actions{display:flex!important;min-width:0!important;margin:0!important;align-items:center!important;justify-content:flex-end!important}
 html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .topbar-actions>:not(.bungie-auth-control){display:none!important}
 html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .bungie-auth-control{margin:0!important}
 
 html body header:has(>[data-astrix-hero-cards])>#guardianCharacterCards.guardian-character-cards{
   position:static!important;
-  grid-column:3!important;
+  grid-column:2!important;
   grid-row:1!important;
   display:grid!important;
   grid-template-columns:repeat(3,300px)!important;
@@ -191,7 +191,7 @@ body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]::afte
   body:has(header>[data-astrix-hero-cards]){padding-top:246px!important}
   html body header:has(>[data-astrix-hero-cards]){grid-template-columns:auto minmax(0,1fr) auto!important;grid-template-rows:48px 88px!important;height:174px!important;min-height:174px!important}
   html body header:has(>[data-astrix-hero-cards])>:is(.brand,.apx-destination-brand){grid-column:1!important;grid-row:1!important}
-  html body header:has(>[data-astrix-hero-cards])>:is(.ws-label,.workspace-title,.apx-destination-header-copy){grid-column:2!important;grid-row:1!important;justify-self:center!important;text-align:center!important}
+  html body header:has(>[data-astrix-hero-cards])>:is(.ws-label,.workspace-title,.apx-destination-header-copy){position:static!important;grid-column:2!important;grid-row:1!important;justify-self:center!important;max-width:100%!important;transform:none!important;text-align:center!important}
   html body header:has(>[data-astrix-hero-cards])>:is(.topbar-actions,.source-pill,.bungie-auth-control){grid-column:3!important;grid-row:1!important}
   html body header:has(>[data-astrix-hero-cards])>#guardianCharacterCards.guardian-character-cards{position:absolute!important;left:50%!important;bottom:10px!important;grid-column:auto!important;grid-row:auto!important;transform:translateX(-50%)!important}
   body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]{top:186px!important}
