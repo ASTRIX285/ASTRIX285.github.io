@@ -131,7 +131,11 @@ function renderSetBonuses(){
 
 function updateTargetLabel(label){
   const key=label?.dataset?.targetStat,input=label?.querySelector('input'),output=label?.querySelector('output');
-  if(key&&input&&output)output.textContent=`${input.value} / ${ARMOUR_STAT_CAP}`;
+  if(key&&input&&output){
+    const value=Math.min(ARMOUR_STAT_CAP,Math.max(0,Number(input.value||0)));
+    output.textContent=`${value} / ${ARMOUR_STAT_CAP}`;
+    input.style.setProperty('--forge-slider-fill',`${value/ARMOUR_STAT_CAP*100}%`);
+  }
 }
 
 function configureStats({reset=false}={}){

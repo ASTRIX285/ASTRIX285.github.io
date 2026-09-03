@@ -114,8 +114,10 @@ assert.ok(selectorIndex>=0&&selectorIndex<directivesIndex&&directivesIndex<outpu
 assert.ok(html.indexOf('forge-stat-selector')<html.indexOf('forge-set-selector'),'Set Protocol must sit underneath Stat Directive in the middle column.');
 assert.equal((html.match(/data-target-stat=/g)||[]).length,6,'Forge Loader must retain all six Armour 3.0 stat directives.');
 assert.equal((html.match(/max="200" value="0" step="1" disabled><output>0 \/ 200<\/output>/g)||[]).length,6,'All six Stat Directives must present the 200-point cap before live inventory finishes loading.');
-assert.match(runtime,/output\.textContent=`\$\{input\.value\} \/ \$\{ARMOUR_STAT_CAP\}`/,'Every Stat Directive output must use the fixed current-target / 200 presentation.');
+assert.match(runtime,/output\.textContent=`\$\{value\} \/ \$\{ARMOUR_STAT_CAP\}`/,'Every Stat Directive output must use the fixed current-target / 200 presentation.');
 assert.match(runtime,/input\.max=String\(ARMOUR_STAT_CAP\)/,'Every Stat Directive slider and MAX action must target the absolute 200-point cap.');
+assert.match(runtime,/--forge-slider-fill[\s\S]*?value\/ARMOUR_STAT_CAP\*100/,'Each slider must fill proportionally to its selected value on the 200-point scale.');
+assert.match(css,/linear-gradient\(90deg,#d9b340 0 var\(--forge-slider-fill,0%\),rgba\(41,199,143,\.5\) var\(--forge-slider-fill,0%\) 100%\)/,'The slider track must show gold through the selected point and Forge green through the unselected range.');
 assert.match(runtime,/type="checkbox"/,'Set bonuses must use checkboxes, not toggle switches.');
 assert.match(runtime,/setBonusOptions\(armourItems\(\),exotic,setSelections\)/);
 assert.match(runtime,/class="forge-set-trait-icon"[\s\S]*?effect\.icon/,'Each 2-piece and 4-piece block must render its verified Bungie trait icon.');
