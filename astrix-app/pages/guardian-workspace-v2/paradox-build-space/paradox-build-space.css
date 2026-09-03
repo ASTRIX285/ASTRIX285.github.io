@@ -15,7 +15,7 @@ html body.build-forge-page header:has(>[data-astrix-hero-cards]) .guardian-chara
 .design-canvas .gear-weapons{padding:0;background:none;border:0}.design-canvas .gear-weapons .weap-grid{grid-template-columns:repeat(3,82px)!important}.design-canvas .gear-combined{padding:0;background:none;border:0}
 
 /* Keep In-game Loadouts and Armour & Mods as independent design containers.
-   Their content retains Main-page dimensions; the document grows vertically. */
+   Their icons respond to the available column width; the document grows vertically. */
 .design-canvas .loadouts-design-section,
 .design-canvas .armour-design-section{
   margin:0 0 14px;
@@ -224,13 +224,107 @@ html,body{
 .build-back-btn{min-height:28px;padding:5px 10px;font:700 8px Orbitron,Inter,sans-serif;letter-spacing:.08em;cursor:pointer}
 .build-back-btn:hover,.build-back-btn:focus-visible{border-color:rgba(100,226,182,.62);color:#6fe3b6;outline:none}
 
-/* Complete Build Forge composition: Journey-style left / centre / right rails. */
-.build-space{grid-template-columns:minmax(280px,320px) minmax(700px,1fr) minmax(340px,360px);align-items:start}
-.build-right-rail{min-width:0;display:grid;align-content:start;gap:12px}
+/* Complete Build Forge composition: use the locked Journey left / centre / right proportions. */
+.build-space{grid-template-columns:minmax(360px,20%) minmax(720px,1fr) minmax(420px,24%);align-items:start}
+.build-right-rail{container-type:inline-size;min-width:0;display:grid;align-content:start;gap:12px}
 .build-right-rail>.panel{min-width:0;padding:16px}
+.build-rail{container-type:inline-size;--build-rail-icon:clamp(40px,21cqi,128px);--build-rail-gap:clamp(4px,1.5cqi,10px)}
+.build-rail .build-equipped-slots{gap:var(--build-rail-gap)!important;min-height:var(--build-rail-icon)!important}
+.build-rail :is(.build-ability-slots,.build-aspect-slots,.build-fragment-slots){grid-template-columns:repeat(auto-fit,var(--build-rail-icon))!important}
+.build-rail .build-equipped-slots>.icon-tile,
+.build-rail .build-artifact-row .perks>*,
+.build-rail .rail-empty-slot{width:var(--build-rail-icon)!important;min-width:var(--build-rail-icon)!important;max-width:var(--build-rail-icon)!important;height:var(--build-rail-icon)!important;min-height:var(--build-rail-icon)!important;max-height:var(--build-rail-icon)!important}
+.build-rail .artifact-row{grid-template-columns:var(--build-rail-icon) minmax(0,1fr)!important}
+.build-rail .artifact-row .art{width:var(--build-rail-icon)!important;height:var(--build-rail-icon)!important}
+.build-rail .artifact-row .perks{grid-template-columns:repeat(auto-fit,var(--build-rail-icon))!important;grid-auto-rows:var(--build-rail-icon)!important;gap:var(--build-rail-gap)!important;min-height:calc((var(--build-rail-icon) * 2) + var(--build-rail-gap))!important}
+.build-rail :is(.prismatic-transcendence__slots,.transcendence-slots){grid-template-columns:repeat(2,var(--build-rail-icon))!important;gap:var(--build-rail-gap)!important}
+.build-rail .prismatic-transcendence__slot{width:var(--build-rail-icon)!important;height:var(--build-rail-icon)!important}
+.build-rail .transcendence-options .selector-card{flex-basis:var(--build-rail-icon)!important;width:var(--build-rail-icon)!important}
 .design-canvas .loadouts-design-section,
 .design-canvas .armour-design-section,
-.design-canvas .weapon-design-section{margin:0 0 14px;padding:14px;border:1px solid rgba(180,132,45,.28);border-radius:12px;background:linear-gradient(180deg,rgba(18,15,23,.88),rgba(9,8,12,.9))}
+.design-canvas .weapon-design-section,
+.design-canvas .recommendation-panel{container-type:inline-size}
+.design-canvas .armour-design-section{
+  --build-armour-mod:clamp(40px,3.6cqi,240px);
+  --build-armour-gap:clamp(4px,.45cqi,14px);
+  --build-armour-art:clamp(92px,6cqi,360px);
+  --build-armour-rail-icon:clamp(18px,1.2cqi,72px);
+  --build-armour-corner-icon:clamp(21px,1.4cqi,84px);
+  --build-armour-bonus-icon:clamp(25px,1.6cqi,96px);
+  --build-armour-intrinsic:clamp(42px,2.8cqi,168px);
+  --build-armour-appearance:clamp(38px,2.5cqi,150px)
+}
+.design-canvas .armour-design-section .gear-arm-row{min-height:var(--build-armour-art)}
+.design-canvas .armour-design-section .gear-arm-anchor .arm{width:var(--build-armour-art)!important;height:var(--build-armour-art)!important}
+.design-canvas .armour-design-section .gear-mods{grid-template-columns:repeat(3,var(--build-armour-mod));grid-template-rows:repeat(2,var(--build-armour-mod));gap:var(--build-armour-gap)}
+.design-canvas .armour-design-section .gear-mod{width:var(--build-armour-mod);height:var(--build-armour-mod)}
+.design-canvas .armour-design-section .gear-intrinsic{width:var(--build-armour-intrinsic);height:var(--build-armour-intrinsic)}
+.design-canvas .armour-design-section .gear-appearance{width:var(--build-armour-appearance);height:var(--build-armour-appearance)}
+.design-canvas .armour-design-section .armour-tier-rail{width:var(--build-armour-rail-icon)}
+.design-canvas .armour-design-section .armour-season-icon{width:var(--build-armour-rail-icon);height:var(--build-armour-rail-icon)}
+.design-canvas .armour-design-section .armour-season-icon img{width:82%!important;height:82%!important}
+.design-canvas .armour-design-section .armour-tier-diamond{width:clamp(6px,.38cqi,24px);height:clamp(6px,.38cqi,24px);flex-basis:clamp(6px,.38cqi,24px)}
+.design-canvas .armour-design-section .armour-archetype-icon{width:var(--build-armour-corner-icon);height:var(--build-armour-corner-icon)}
+.design-canvas .armour-design-section .armour-archetype-icon img{width:82%!important;height:82%!important}
+.design-canvas .armour-design-section .armour-exotic-overlay,
+.design-canvas .armour-design-section .armour-set-bonus-icon,
+.design-canvas .armour-design-section .armour-set-threshold{width:var(--build-armour-bonus-icon);height:var(--build-armour-bonus-icon)}
+.design-canvas .armour-design-section .armour-exotic-overlay img{width:82%!important;height:82%!important}
+.design-canvas .weapon-design-section{
+  --build-weapon-art:clamp(82px,6cqi,360px);
+  --build-weapon-perk:clamp(22px,1.45cqi,88px);
+  --build-weapon-corner:clamp(19px,1.25cqi,76px)
+}
+.design-canvas .weapon-design-section .gear-weapons .weap-grid{grid-template-columns:repeat(3,var(--build-weapon-art))!important;gap:clamp(7px,.6cqi,18px)!important}
+.design-canvas .weapon-design-section .gear-weapons .weap{width:var(--build-weapon-art)!important;max-width:var(--build-weapon-art)!important;min-height:0!important}
+.design-canvas .weapon-design-section .gear-weapons .weap .art{width:var(--build-weapon-art)!important;height:calc(var(--build-weapon-art) * 1.317)!important}
+.design-canvas .weapon-design-section .gear-weapons .weap .cap{min-height:0!important}
+.design-canvas .weapon-design-section .gear-weapons .weapon-perk-icon,
+.design-canvas .weapon-design-section .weapon-recommended-perks>div span{width:var(--build-weapon-perk);height:var(--build-weapon-perk)}
+.design-canvas .weapon-design-section .gear-weapons .weapon-season-icon{width:var(--build-weapon-corner);height:var(--build-weapon-corner)}
+.design-canvas .weapon-design-section .gear-weapons .weapon-season-icon img{width:82%!important;height:82%!important}
+.design-canvas .weapon-design-section .gear-weapons .weapon-corner-icon{width:var(--build-weapon-corner);height:var(--build-weapon-corner)}
+.design-canvas .weapon-design-section .gear-weapons .weapon-corner-icon.is-intrinsic img{width:82%!important;height:82%!important}
+.design-canvas .weapon-design-section .gear-weapons .weapon-power img{width:clamp(13px,.85cqi,52px)!important;height:clamp(13px,.85cqi,52px)!important}
+
+/* Build Forge readability: Inter carries working text; Orbitron remains for major headings only. */
+.build-forge-page{
+  --dim:#b8b2bd;
+  --muted:#d0cad3;
+  color:#f6f3f7
+}
+.build-forge-page :is(
+  .gear-slot-label,.gear-subhead,.armour-verification-line,
+  .gear-weapons .weap .cap b,.weapon-recommended-perks>b,.weapon-recommended-perks>small,
+  .panel-head small,.section-title span,.intel-card small,.working-only-chip,
+  .element-recommendation-grid button,.generate-build-btn,.test-step
+){font-family:Inter,system-ui,sans-serif!important;letter-spacing:.055em!important}
+.design-canvas :is(.section-guidance,.notice,.gear-subhead span:last-child){color:#d0cad3}
+.design-canvas :is(.section-title h2,.armour-design-section .eq-head h3){font-size:clamp(.76rem,.58cqi,3rem)!important;line-height:1.25}
+.design-canvas :is(.section-title span,.armour-design-section .eq-head .tools,.gear-slot-label){font-size:clamp(.68rem,.48cqi,2.5rem)!important;line-height:1.3}
+.design-canvas :is(.section-guidance,.gear-subhead,.gear-subhead span:last-child){font-size:clamp(.72rem,.5cqi,2.6rem)!important;line-height:1.45}
+.design-canvas .armour-verification-line{font-size:clamp(.64rem,.44cqi,2.3rem);color:#83e8bf}
+.design-canvas .armour-verification-line span:last-child{color:#e3c765}
+.design-canvas .weapon-design-section .gear-weapons .weap .cap b{font-size:clamp(.68rem,.46cqi,2.4rem)!important;color:#f6f3f7}
+.design-canvas .weapon-recommended-perks>b,
+.design-canvas .weapon-recommended-perks>small{font-size:clamp(.64rem,.44cqi,2.3rem);color:#e3c765}
+.build-rail :is(.lbl,.manual-label,.artifact-copy b,.artifact-copy small,.super-feature__name){font-family:Inter,system-ui,sans-serif!important;letter-spacing:.055em!important}
+.build-rail :is(.lbl,.manual-label,.artifact-copy small){font-size:clamp(.68rem,3.8cqi,1.35rem)!important;color:#d0cad3!important}
+.build-rail :is(.artifact-copy b,.super-feature__name){font-size:clamp(.74rem,4.2cqi,1.55rem)!important;color:#f6f3f7!important}
+.build-right-rail :is(.recommendation-copy,.recommendation-readiness,.range-capture-status,.intel-card p,.forge-analysis p,.forge-analysis li){font-family:Inter,system-ui,sans-serif;color:#d0cad3;font-size:clamp(.78rem,1.15cqi,2rem);line-height:1.5}
+.build-right-rail :is(.panel-head h2,.section-title h2,.forge-analysis .ra-head h2){font-size:clamp(.9rem,1.5cqi,2.5rem)!important;line-height:1.2}
+.build-right-rail :is(.panel-head small,.section-title span,.intel-card small,.working-only-chip){font-size:clamp(.68rem,1cqi,1.8rem)!important;color:#e3c765}
+.build-right-rail :is(.element-recommendation-grid button,.generate-build-btn,.test-step){font-size:clamp(.7rem,1.05cqi,1.9rem)!important;color:#f2edf3}
+.build-right-rail :is(.generate-build-btn,.test-step,.primary):disabled{opacity:.62}
+.design-canvas .recommendation-panel :is(.recommendation-copy,.recommendation-readiness){font-family:Inter,system-ui,sans-serif;color:#d0cad3;font-size:clamp(.76rem,.52cqi,2.6rem);line-height:1.5}
+.design-canvas .recommendation-panel :is(.panel-head small,.working-only-chip){font-size:clamp(.68rem,.48cqi,2.5rem)!important;color:#e3c765}
+.design-canvas .recommendation-panel .panel-head h2{font-size:clamp(.86rem,.62cqi,3rem)!important;line-height:1.2}
+.design-canvas .recommendation-panel .element-recommendation-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+.design-canvas .recommendation-panel :is(.element-recommendation-grid button,.generate-build-btn){font-size:clamp(.7rem,.48cqi,2.4rem)!important;color:#f2edf3}
+.design-canvas .loadouts-design-section,
+.design-canvas .armour-design-section,
+.design-canvas .weapon-design-section,
+.design-canvas .recommendation-panel{margin:0 0 14px;padding:14px;border:1px solid rgba(180,132,45,.28);border-radius:12px;background:linear-gradient(180deg,rgba(18,15,23,.88),rgba(9,8,12,.9))}
 .section-guidance{margin:-3px 0 12px;color:#96949c;font-size:10px;line-height:1.5}
 .armour-verification-line{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:7px;padding-top:6px;border-top:1px solid rgba(255,255,255,.07);color:#71dcb2;font:700 6px/1.35 Orbitron,sans-serif;letter-spacing:.04em}
 .armour-verification-line span:last-child{color:#c8a747;text-align:right}
@@ -240,7 +334,7 @@ html,body{
 .weapon-recommended-perks>div span{width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(113,203,255,.7);background:rgba(77,177,255,.22);overflow:hidden}
 .weapon-recommended-perks>div img{width:100%;height:100%;object-fit:contain}
 
-/* Verified recommendation controls occupy their own right-rail container. */
+/* Verified recommendation controls occupy their own centre-column container. */
 .working-only-chip{padding:6px 8px;border:1px solid rgba(111,227,182,.38);border-radius:7px;color:#6fe3b6;background:rgba(30,106,78,.1);font:800 7px Orbitron,sans-serif;letter-spacing:.08em}
 .recommendation-copy{margin:12px 0;color:#aaa;font-size:10px;line-height:1.55}
 .element-recommendation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
@@ -286,6 +380,6 @@ html,body{
 .recommended-artifact-summary{display:grid;gap:14px}.recommended-build-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 20px;border-top:1px solid rgba(216,50,59,.35);background:#08080b}.recommended-build-actions>div{display:flex;align-items:center;justify-content:flex-end;gap:12px}.recommended-build-actions small{max-width:420px;color:#aaa;font-size:9px;line-height:1.4;text-align:right}.recommended-build-actions .primary{width:auto;min-width:220px;margin:0}.recommended-build-actions .primary:disabled{cursor:not-allowed}
 body.recommended-build-open{overflow:hidden!important}
 
-@media(max-width:1380px){.build-space{grid-template-columns:minmax(280px,330px) minmax(620px,1fr)}.build-right-rail{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.build-right-rail>.intelligence{grid-column:1/-1}.recommended-build-content{grid-template-columns:1fr}.recommended-build-content>section,.recommended-build-content>section:nth-child(2),.recommended-build-content>section:nth-child(3),.recommended-build-content>section:nth-child(4){grid-column:1;grid-row:auto}}
-@media(max-width:900px){.build-space{grid-template-columns:1fr}.build-rail,.design-canvas,.build-right-rail{grid-column:1}.build-right-rail{grid-template-columns:1fr}.recommended-build-safety,.recommended-build-actions,.recommended-build-actions>div{align-items:stretch;flex-direction:column}.recommended-build-actions small{text-align:left}.recommended-build-actions .primary{width:100%}.recommended-weapons-summary{grid-template-columns:1fr}}
-@media(max-width:720px){.validation-panel .test-configuration{grid-template-columns:1fr}.validation-panel .destination-control{grid-column:1}.validation-panel .test-flow{grid-template-columns:1fr}.recommended-build-content{padding:8px}.recommended-build-header,.recommended-build-safety{padding:14px}.recommended-armour-summary .gear-columns{grid-template-columns:1fr}.recommended-build-reveal{padding:8px}}
+@media(max-width:1760px){.build-space{grid-template-columns:392px minmax(0,1fr)}.build-right-rail{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.build-right-rail>.intelligence{grid-column:1/-1}.recommended-build-content{grid-template-columns:1fr}.recommended-build-content>section,.recommended-build-content>section:nth-child(2),.recommended-build-content>section:nth-child(3),.recommended-build-content>section:nth-child(4){grid-column:1;grid-row:auto}}
+@media(max-width:900px){.build-space{grid-template-columns:1fr}.build-rail,.design-canvas,.build-right-rail{grid-column:1}.build-right-rail{grid-template-columns:1fr}.design-canvas .recommendation-panel .element-recommendation-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.recommended-build-safety,.recommended-build-actions,.recommended-build-actions>div{align-items:stretch;flex-direction:column}.recommended-build-actions small{text-align:left}.recommended-build-actions .primary{width:100%}.recommended-weapons-summary{grid-template-columns:1fr}}
+@media(max-width:720px){.validation-panel .test-configuration{grid-template-columns:1fr}.validation-panel .destination-control{grid-column:1}.validation-panel .test-flow{grid-template-columns:1fr}.design-canvas .recommendation-panel .element-recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.recommended-build-content{padding:8px}.recommended-build-header,.recommended-build-safety{padding:14px}.recommended-armour-summary .gear-columns{grid-template-columns:1fr}.recommended-build-reveal{padding:8px}}
