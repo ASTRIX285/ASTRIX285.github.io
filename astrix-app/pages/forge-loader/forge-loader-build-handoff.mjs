@@ -3,8 +3,39 @@ import {bindingOf,bindingsEqual,createHandoffEnvelope} from '../guardian-workspa
 
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
 const BUILD_SNAPSHOT_KEY='astrix:guardian-build-snapshot:v1';
+const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';
 
 const text=value=>String(value??'').trim();
+const compactDisplayProperties=value=>({name:text(value?.name),description:text(value?.description),icon:text(value?.icon),highResIcon:text(value?.highResIcon)});
+function compactDefinition(value={}){
+  return {
+    hash:Number(value?.hash)||null,
+    displayProperties:compactDisplayProperties(value?.displayProperties),
+    itemType:Number.isFinite(Number(value?.itemType))?Number(value.itemType):null,
+    itemTypeDisplayName:text(value?.itemTypeDisplayName),
+    traitIds:Array.isArray(value?.traitIds)?value.traitIds.map(text).filter(Boolean):[],
+    inventory:value?.inventory?{tierType:Number(value.inventory.tierType)||0,tierTypeName:text(value.inventory.tierTypeName),tierTypeHash:Number(value.inventory.tierTypeHash)||null,bucketTypeHash:Number(value.inventory.bucketTypeHash)||null}:null,
+    plug:value?.plug?{plugCategoryIdentifier:text(value.plug.plugCategoryIdentifier),energyCost:value.plug.energyCost??null}:null,
+    investmentStats:Array.isArray(value?.investmentStats)?value.investmentStats.map(row=>({statTypeHash:Number(row?.statTypeHash)||null,value:Number(row?.value)||0,isConditionallyActive:Boolean(row?.isConditionallyActive)})):[],
+    defaultDamageTypeHash:Number(value?.defaultDamageTypeHash)||null,
+    breakerTypeHash:Number(value?.breakerTypeHash)||null,
+    iconWatermark:text(value?.iconWatermark),
+    quality:value?.quality?{displayVersionWatermarkIcons:Array.isArray(value.quality.displayVersionWatermarkIcons)?value.quality.displayVersionWatermarkIcons.map(text).filter(Boolean):[]}:null,
+    equipableItemSetHash:Number(value?.equipableItemSetHash)||null,
+    equippingBlock:value?.equippingBlock?{equipableItemSetHash:Number(value.equippingBlock.equipableItemSetHash)||null}:null
+  };
+}
+function compactValue(value,key=''){
+  if(value===null||value===undefined||typeof value!=='object')return value;
+  if(['definition','socketCategoryDefinition','elementDefinition','breakerDefinition'].includes(key))return compactDefinition(value);
+  if(Array.isArray(value))return value.map(row=>compactValue(row));
+  const output={};
+  for(const [childKey,childValue] of Object.entries(value)){
+    if(['itemRenderData','gearAssets','renderData','loadouts','resolvedSandboxPerks'].includes(childKey))continue;
+    output[childKey]=compactValue(childValue,childKey);
+  }
+  return output;
+}
 
 function compactForgeLoaderProfileBuild(profileBuild={},binding={}){
   const subclassBuild=profileBuild.subclassBuild&&typeof profileBuild.subclassBuild==='object'?profileBuild.subclassBuild:{};
@@ -25,28 +56,28 @@ function compactForgeLoaderProfileBuild(profileBuild={},binding={}){
     subclass:profileBuild.subclass||'',
     subclassName:profileBuild.subclassName||'',
     subclassIcon:profileBuild.subclassIcon||'',
-    subclassCatalog:profileBuild.subclassCatalog||[],
-    subclassBuild,
-    super:profileBuild.super??subclassBuild.super??null,
-    abilities:profileBuild.abilities||subclassBuild.abilities||[],
-    aspects:profileBuild.aspects||subclassBuild.aspects||[],
-    fragments:profileBuild.fragments||subclassBuild.fragments||[],
-    artifact:profileBuild.artifact||null,
-    artifactConfiguration:profileBuild.artifactConfiguration||profileBuild.artifact?.artifactConfiguration||null,
-    availableArtifacts:profileBuild.availableArtifacts||[],
-    artifactOptions:profileBuild.artifactOptions||[],
-    weapons:profileBuild.weapons||[],
-    armour:profileBuild.armour||[],
-    mods:profileBuild.mods||profileBuild.armourMods||[],
-    stats:profileBuild.stats||[],
-    emblem:profileBuild.emblem||null,
-    ghost:profileBuild.ghost||null,
-    shader:profileBuild.shader||null,
-    ornaments:profileBuild.ornaments||[],
-    hashCoverage:profileBuild.hashCoverage||null,
-    semanticCoverage:profileBuild.semanticCoverage||null,
-    paradoxAnalysis:profileBuild.paradoxAnalysis||null,
-    weaponRollAdvice:profileBuild.weaponRollAdvice||null,
+    subclassCatalog:compactValue(profileBuild.subclassCatalog||[]),
+    subclassBuild:compactValue(subclassBuild),
+    super:compactValue(profileBuild.super??subclassBuild.super??null),
+    abilities:compactValue(profileBuild.abilities||subclassBuild.abilities||[]),
+    aspects:compactValue(profileBuild.aspects||subclassBuild.aspects||[]),
+    fragments:compactValue(profileBuild.fragments||subclassBuild.fragments||[]),
+    artifact:compactValue(profileBuild.artifact||null),
+    artifactConfiguration:compactValue(profileBuild.artifactConfiguration||profileBuild.artifact?.artifactConfiguration||null),
+    availableArtifacts:compactValue(profileBuild.availableArtifacts||[]),
+    artifactOptions:compactValue(profileBuild.artifactOptions||[]),
+    weapons:compactValue(profileBuild.weapons||[]),
+    armour:compactValue(profileBuild.armour||[]),
+    mods:compactValue(profileBuild.mods||profileBuild.armourMods||[]),
+    stats:compactValue(profileBuild.stats||[]),
+    emblem:compactValue(profileBuild.emblem||null),
+    ghost:compactValue(profileBuild.ghost||null),
+    shader:compactValue(profileBuild.shader||null),
+    ornaments:compactValue(profileBuild.ornaments||[]),
+    hashCoverage:compactValue(profileBuild.hashCoverage||null),
+    semanticCoverage:compactValue(profileBuild.semanticCoverage||null),
+    paradoxAnalysis:null,
+    weaponRollAdvice:null,
     locks:{},
     objective:null,
     activityContext:null
@@ -64,7 +95,7 @@ function createForgeLoaderBuildSnapshot(profileBuild={},binding={}){
   const source=compactForgeLoaderProfileBuild(profileBuild,expected);
   const state=createBuildState(source);
   if(!bindingsEqual(bindingOf(state.originalBuild),expected)||!bindingsEqual(bindingOf(state.workingBuild),expected))return null;
-  return createHandoffEnvelope(state);
+  return createHandoffEnvelope(source);
 }
 
 function writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores=[]}={}){
@@ -79,11 +110,18 @@ function writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores=[]}={}){
     if(!store)continue;
     try{
       store.removeItem(BUILD_SPACE_KEY);
+      store.removeItem(BUILD_SNAPSHOT_KEY);
       store.setItem(BUILD_SNAPSHOT_KEY,json);
       stored=true;
-    }catch{}
+    }catch{
+      try{
+        store.removeItem(LAST_LOADOUT_KEY);
+        store.setItem(BUILD_SNAPSHOT_KEY,json);
+        stored=true;
+      }catch{}
+    }
   }
   return stored;
 }
 
-export {BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY,compactForgeLoaderProfileBuild,createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot};
+export {BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY,LAST_LOADOUT_KEY,compactForgeLoaderProfileBuild,createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot};

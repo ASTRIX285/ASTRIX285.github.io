@@ -46,7 +46,8 @@ function validateBuildState(state,expectedBinding={}){
 function decodeState(raw,{durable=false,expectedBinding={}}={}){
   if(!raw||typeof raw!=='object')return null;
   if(raw.schemaVersion===HANDOFF_SCHEMA){
-    const state=validateHandoffEnvelope(raw);
+    const payload=validateHandoffEnvelope(raw);
+    const state=payload?.originalBuild?payload:(payload?.characterId?createBuildState(payload):null);
     return state?validateBuildState(state,expectedBinding):null;
   }
   return durable?null:validateBuildState(raw,expectedBinding);
