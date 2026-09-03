@@ -182,8 +182,8 @@ assert.match(buildModule,/let volatileState=null/,'Build must retain a protected
 assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuildState\(next\);/,'Build writes must protect the in-page fallback before attempting Web Storage');
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
-assert.match(buildHtml,/paradox-build-space\.css\?v=20260903-responsive-build-forge-2/,'Build must load the responsive three-column Build Forge presentation without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-responsive-build-forge-2/,'Build must load the responsive verified recommendation runtime without stale code');
+assert.match(buildHtml,/paradox-build-space\.css\?v=20260903-armour-row-3/,'Build must load the responsive five-card Build Forge presentation without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-armour-row-3/,'Build must load the responsive verified recommendation runtime without stale code');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/const artifactItems=resolvedOptions\(build,'artifact'\)/,'Build Artifact selector must expose the verified Artifact 2.0 catalogue for Forge ranking');

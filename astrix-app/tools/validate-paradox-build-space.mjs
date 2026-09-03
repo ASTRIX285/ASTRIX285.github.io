@@ -31,13 +31,15 @@ assert.match(html,/PARADOX RECOMMENDATION[\s\S]*?ELEMENTAL BUILD OPTIONS/,'The a
 assert.doesNotMatch(html,/CHOOSE SUBCLASS/,'Build Forge must not label elemental damage recommendations as a subclass picker.');
 assert.match(css,/\.build-space\{grid-template-columns:minmax\(360px,20%\) minmax\(720px,1fr\) minmax\(420px,24%\)/,'Build Forge must use the locked Journey three-column proportions.');
 assert.match(css,/@media\(max-width:1760px\)\{\.build-space\{grid-template-columns:392px minmax\(0,1fr\)\}/,'Build Forge must follow Journey when the right rail moves below the two-column workspace.');
+assert.match(css,/\.build-forge-page \.astrix-platform-shell\{grid-template-columns:0 minmax\(0,1fr\) 0!important\}/,'Build Forge must reclaim the obsolete external media rails for the working columns.');
 assert.match(css,/\.build-rail\{container-type:inline-size;--build-rail-icon:clamp\(40px,21cqi,128px\)/,'Build left-rail icons must remain proportional to their column without taking ownership of the shared Character token.');
-assert.match(css,/--build-armour-art:clamp\(64px,7cqi,360px\)/,'Armour icons must respond to the Armour section width.');
-assert.match(css,/--build-armour-mod:clamp\(32px,3\.6cqi,240px\)/,'Armour mod icons must respond to the Armour section width.');
+assert.match(css,/\.armour-design-section \.gear-columns\{grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,'All five armour cards must remain on one row.');
+assert.match(css,/--build-armour-art:clamp\(64px,8cqi,360px\)/,'Armour icons must respond to the Armour section width at the enlarged scale.');
+assert.match(css,/--build-armour-mod:clamp\(32px,4\.2cqi,240px\)/,'Armour mod icons must respond to the Armour section width at the enlarged scale.');
 assert.match(css,/--build-weapon-art:clamp\(64px,7cqi,360px\)/,'Weapon icons must respond to the Weapons section width.');
 const responsiveWidthSamples=[1148,1332];
 const proportionalTokens=[
-  ['armour art',64,.07,360],['armour mod',32,.036,240],['armour rail',12,.012,72],
+  ['armour art',64,.08,360],['armour mod',32,.042,240],['armour rail',12,.012,72],
   ['armour corner',14,.014,84],['armour bonus',16,.016,96],['armour intrinsic',26,.028,168],
   ['armour appearance',24,.025,150],['weapon art',64,.07,360],['weapon perk',14,.0145,88],
   ['weapon corner',12,.0125,76],['weapon power',8,.0085,52]
