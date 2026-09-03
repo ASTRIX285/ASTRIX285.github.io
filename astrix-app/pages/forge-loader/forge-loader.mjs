@@ -22,6 +22,7 @@ let selectedExoticHash=null;
 let setSelections=[];
 let matchedBuilds=[];
 let selectedCandidateIndex=-1;
+let expandedCandidateIndex=-1;
 let targetMaximums=Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,0]));
 const selectedSlots=new Map();
 
@@ -155,9 +156,43 @@ function renderStaged(){
   byId('forgeEvaluate').disabled=selectedSlots.size!==5||!activeCharacterId;
 }
 
+function candidateSetProtocol(candidate){
+  if(!setSelections.length)return 'OPEN SET PROTOCOL';
+  return setSelections.map(selection=>{
+    const match=candidate.items.find(item=>Number(item?.setBonus?.hash??item?.armourSemantics?.set?.hash)===Number(selection.setHash));
+    return `${selection.count}P ${match?.setBonus?.identity?.name||match?.armourSemantics?.set?.identity?.name||`SET ${selection.setHash}`}`;
+  }).join(' + ');
+}
+
+function candidateStatMarkup(candidate,{itemRow=false}={}){
+  const stats=itemRow?armourStatVector(candidate):candidate.stats;
+  const targets=itemRow?{}:targetValues();
+  return ARMOUR_STAT_KEYS.map(key=>{
+    const value=Number(stats[key]||0),target=Number(targets[key]||0);
+    const state=target>0?(value>=target?' is-met':' is-short'):'';
+    return `<span class="forge-matrix-stat${state}"><small>${esc(ARMOUR_STAT_LABELS[key].toUpperCase())}</small><b>${value}</b>${itemRow?'':`<em>${target>0?`TARGET ${target}`:'OPEN'}</em>`}</span>`;
+  }).join('');
+}
+
+function candidateItemMeta(item){
+  const details=[item.source?.label||'Owned'];
+  if(item.power!==null&&item.power!==undefined)details.push(`Power ${item.power}`);
+  if(Number.isFinite(Number(item.energy?.capacity)))details.push(`Energy ${Number(item.energy.capacity)}`);
+  if((Number(item.state||0)&4)!==0)details.push('Masterworked');
+  const modCount=[...(item.generalMods||[]),...(item.slotMods||[])].length;
+  if(modCount)details.push(`${modCount} equipped mod${modCount===1?'':'s'}`);
+  return details.join(' · ');
+}
+
+function candidateItemMarkup(item){
+  return `<div class="forge-breakdown-item"><button type="button" class="forge-breakdown-identity" data-inspect-item="${esc(itemKey(item))}" aria-label="Inspect ${esc(item.name)}"><img src="${esc(item.icon)}" alt=""><span><b>${esc(item.name)}</b><small>${esc(item.slotLabel)} · ${esc(candidateItemMeta(item))}</small></span></button><div class="forge-breakdown-stats" aria-label="${esc(item.name)} armour stats">${candidateStatMarkup(item,{itemRow:true})}</div><span class="forge-breakdown-total"><small>TOTAL</small><b>${Number(item.totalStats||0)}</b></span></div>`;
+}
+
 function candidateMarkup(candidate,index){
   const outcome=candidate.score.met?'ALL TARGETS MET':`${candidate.score.shortfall} POINT${candidate.score.shortfall===1?'':'S'} SHORT`;
-  return `<article class="forge-candidate${candidate.score.met?' is-target-met':''}${selectedCandidateIndex===index?' is-selected':''}"><div class="forge-candidate-rank"><b>LOAD ${index+1}</b><small>${esc(outcome)}</small><small>${candidate.score.total} total stats</small></div><div class="forge-candidate-items">${candidate.items.map(item=>`<button type="button" class="forge-candidate-item" data-inspect-item="${esc(itemKey(item))}" aria-label="Inspect ${esc(item.name)}"><img src="${esc(item.icon)}" alt=""></button>`).join('')}</div><div class="forge-candidate-stats" aria-label="Calculated armour stats">${ARMOUR_STAT_KEYS.map(key=>`<span>${esc(ARMOUR_STAT_LABELS[key].toUpperCase())}<b>${Number(candidate.stats[key]||0)}</b></span>`).join('')}</div><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selectedCandidateIndex===index?'STAGED':'STAGE LOAD'}</button></article>`;
+  const expanded=expandedCandidateIndex===index,selected=selectedCandidateIndex===index;
+  const exotic=candidate.items.find(item=>item.isExotic)||candidate.items[0];
+  return `<article class="forge-candidate${candidate.score.met?' is-target-met':''}${selected?' is-selected':''}"><div class="forge-matrix-row"><button type="button" class="forge-matrix-expand" data-candidate-expand="${index}" aria-expanded="${expanded}" aria-controls="forgeLoadBreakdown${index}"><span><b>LOAD ${String(index+1).padStart(2,'0')}</b><small>${esc(outcome)}</small></span><i aria-hidden="true">⌄</i></button><span class="forge-matrix-exotic">${exotic?.icon?`<img src="${esc(exotic.icon)}" alt="">`:''}<small>EXOTIC</small></span><div class="forge-matrix-stats" aria-label="Calculated armour stats">${candidateStatMarkup(candidate)}</div><span class="forge-matrix-total"><small>TOTAL</small><b>${candidate.score.total}</b></span><span class="forge-matrix-protocol"><small>SET PROTOCOL</small><b>${esc(candidateSetProtocol(candidate))}</b></span><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button></div><div class="forge-load-breakdown" id="forgeLoadBreakdown${index}" ${expanded?'':'hidden'}><div class="forge-breakdown-heading"><div><span>LOAD BREAKDOWN</span><strong>Five exact Bungie armour instances</strong></div><span>${esc(outcome)}</span></div><div class="forge-breakdown-items">${candidate.items.map(candidateItemMarkup).join('')}</div><div class="forge-breakdown-summary"><div><small>VERIFIED ARMOUR TOTAL</small><strong>${candidate.score.total}</strong></div><div><small>ACTIVE SET PROTOCOL</small><strong>${esc(candidateSetProtocol(candidate))}</strong></div><div class="forge-breakdown-actions"><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button><button type="button" class="forge-candidate-evaluate" data-candidate-evaluate="${index}">EVALUATE IN BUILD FORGE</button></div></div></div></article>`;
 }
 
 function renderCandidates(){
@@ -172,6 +207,12 @@ function stageCandidate(index){
   renderStaged();renderCandidates();
 }
 
+function toggleCandidateBreakdown(index){
+  const candidate=matchedBuilds[Number(index)];if(!candidate)return;
+  expandedCandidateIndex=expandedCandidateIndex===Number(index)?-1:Number(index);
+  renderCandidates();
+}
+
 async function calculateBuilds(){
   const exotic=selectedExotic(),targets=targetValues();if(!exotic||!ARMOUR_STAT_KEYS.some(key=>targets[key]>0))return;
   const button=byId('forgeFindBuilds');button.disabled=true;button.textContent='CALCULATING VERIFIED LOADS…';
@@ -183,7 +224,7 @@ async function calculateBuilds(){
   byId('forgeRuntimeStatus').textContent=matchedBuilds.length?`${matchedBuilds.length} legal combination${matchedBuilds.length===1?'':'s'} calculated. Load 1 has been staged from exact owned instances.`:'No complete owned-armour combination satisfies the selected Exotic and set protocol.';
 }
 
-function resetResults(){matchedBuilds=[];selectedCandidateIndex=-1;selectedSlots.clear();renderStaged();renderCandidates();}
+function resetResults(){matchedBuilds=[];selectedCandidateIndex=-1;expandedCandidateIndex=-1;selectedSlots.clear();renderStaged();renderCandidates();}
 
 function selectExotic(hash){
   const next=exoticGroups().find(group=>group.owned&&group.hash===Number(hash));if(!next)return;
@@ -250,7 +291,11 @@ function installEvents(){
   byId('forgeStatTargets')?.addEventListener('click',event=>{const button=event.target.closest('[data-max-stat]');if(!button)return;const label=button.closest('[data-target-stat]'),input=label?.querySelector('input');if(!input)return;input.value=input.max;updateTargetLabel(label);configureStats();void calculateBuilds();});
   byId('forgeFindBuilds')?.addEventListener('click',calculateBuilds);
   byId('forgeResetTargets')?.addEventListener('click',()=>{for(const input of document.querySelectorAll('[data-target-stat] input'))input.value='0';resetResults();configureStats();byId('forgeRuntimeStatus').textContent='Stat targets reset. Exotic and set protocol remain selected.';});
-  byId('forgeCandidateBuilds')?.addEventListener('click',event=>{const button=event.target.closest('[data-candidate-index]');if(button)stageCandidate(button.dataset.candidateIndex);});
+  byId('forgeCandidateBuilds')?.addEventListener('click',event=>{
+    const evaluate=event.target.closest('[data-candidate-evaluate]');if(evaluate){stageCandidate(evaluate.dataset.candidateEvaluate);evaluateInBuildForge();return;}
+    const stage=event.target.closest('[data-candidate-index]');if(stage){stageCandidate(stage.dataset.candidateIndex);return;}
+    const expand=event.target.closest('[data-candidate-expand]');if(expand)toggleCandidateBreakdown(expand.dataset.candidateExpand);
+  });
   byId('forgeEvaluate')?.addEventListener('click',evaluateInBuildForge);
   document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-inspect-exotic],[data-inspect-item]');if(target)showInspect(target);});
   document.addEventListener('pointerout',event=>{const target=event.target.closest('[data-inspect-exotic],[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideInspect();});
