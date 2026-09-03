@@ -14,35 +14,22 @@
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css">
   <link rel="stylesheet" href="../guardian-workspace-v2/guardian-character-cards.css?v=20260902-recent-guardian-emblem-1">
   <link rel="stylesheet" href="./mission-reports.css?v=20260831-fixed-topbar">
-  <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1">
+  <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260903-command-header-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
 </head>
 <body class="apx-destination-page mission-reports-page astrix-paradox-map-background">
-  <header class="mission-topbar topbar">
+  <header class="mission-topbar topbar apx-destination-header astrix-command-header">
     <a class="mission-brand brand apx-destination-brand" href="../journey/" aria-label="ASTRIX PARADOX Journey">
       <img src="../../../img/logo.png" alt="ASTRIX PARADOX">
       <span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span>
     </a>
-    <div class="mission-workspace-title workspace-title">GUARDIAN JOURNEY</div>
+    <div class="mission-workspace-title workspace-title apx-destination-header-copy"><strong>MISSION REPORTS</strong><small>REVIEW VERIFIED GUARDIAN ACTIVITY</small></div>
     <div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters">
       <div class="guardian-character-cards__status is-pending" role="status">CHECKING BUNGIE CHARACTERS</div>
     </div>
-    <div class="mission-topbar-actions topbar-actions">
-      <div class="mission-utility-actions" aria-label="Guardian Journey utilities">
-        <button type="button" aria-label="Notifications" title="Notifications are not active" disabled>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9a5.5 5.5 0 0 1 11 0v4l2 3H4.5l2-3V9Zm3 9h5"/></svg>
-        </button>
-        <button type="button" aria-label="Settings" title="Settings are not active" disabled>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a8 8 0 0 0-1.7-1L14.5 3h-5L9 6a8 8 0 0 0-1.7 1L5 6.1 3 9.5 5 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1a8 8 0 0 0 1.7 1l.4 3.1h5l.4-3.1a8 8 0 0 0 1.7-1l2.4 1 2-3.4-2-1.5a7 7 0 0 0 .1-1Z"/></svg>
-        </button>
-        <button type="button" aria-label="Help" title="Help is not active" disabled>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 3.6 2.1c-.9.5-1.4 1-1.4 2.2M12 17h.01"/></svg>
-        </button>
-      </div>
-      <span class="char-switch" hidden></span>
-    </div>
+    <div class="mission-topbar-actions topbar-actions" aria-label="Bungie account"></div>
   </header>
   <div data-astrix-destination-ribbon data-active-destination="mission-reports"></div>
 

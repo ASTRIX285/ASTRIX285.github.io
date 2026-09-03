@@ -12,17 +12,17 @@
   <script>window.APX_LOGO='../../../img/logo.png';</script>
   <script src="../../shared/astrix-portal-loader.js?v=20260831-render-ready"></script>
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css">
-  <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1">
+  <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260903-command-header-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
   <link rel="stylesheet" href="./vault.css?v=20260902-forge-loader-split-1">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
 </head>
 <body class="apx-destination-page astrix-paradox-map-background">
-  <header class="apx-destination-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>VAULT</strong><small>INVENTORY COMMAND</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state" id="vaultHeaderState">BUNGIE INVENTORY</span></header>
+  <header class="apx-destination-header astrix-command-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>VAULT</strong><small>BROWSE VERIFIED OWNED GEAR</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state" id="vaultHeaderState">BUNGIE INVENTORY</span></header>
   <div data-astrix-destination-ribbon data-active-destination="vault"></div>
   <main class="apx-page-shell">
-    <div class="apx-page-heading"><div><p class="apx-eyebrow">VERIFIED INVENTORY COMMAND</p><h1>Vault</h1><p>Browse verified armour visually across the shared Vault, carried inventory, equipped Guardians and Postmaster. Hover or focus an item to inspect its exact Bungie instance.</p></div><span class="apx-status-chip" id="vaultConnectionState">RESOLVING</span></div>
+    <span class="apx-visually-hidden" id="vaultConnectionState" aria-live="polite">RESOLVING</span>
 
     <section class="vault-capacity" aria-label="Vault inventory totals">
       <article class="vault-capacity-total"><span>ALL VAULT ITEMS</span><strong id="vaultTotalCount">—</strong><small>Verified shared Vault entries</small></article>

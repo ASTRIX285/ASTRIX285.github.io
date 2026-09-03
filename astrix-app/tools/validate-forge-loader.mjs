@@ -145,7 +145,8 @@ const buildHandoff=read('astrix-app/pages/forge-loader/forge-loader-build-handof
 const perkPlanRuntime=read('astrix-app/pages/guardian-workspace-v2/guardian-perk-change-plan.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const access=read('astrix-app/pages/guardian-workspace-v2/guardian-vault-access.mjs');
-assert.match(html,/<h1>Forge Loader<\/h1>/);
+assert.match(html,/<header class="apx-destination-header astrix-command-header">[\s\S]*?<strong>FORGE LOADER<\/strong><small>SELECT AND MAXIMISE VERIFIED ARMOUR<\/small>/,'Forge Loader must present its page identity only in the shared compact command header.');
+assert.doesNotMatch(html,/<div class="apx-page-heading">[\s\S]*?<h1>Forge Loader<\/h1>/,'Forge Loader must not retain the oversized duplicate page hero.');
 assert.match(html,/id="forgeHeroCard"/);
 assert.match(html,/id="forgeExoticSlots"/);
 assert.match(html,/id="forgeSetList"/);
@@ -213,7 +214,7 @@ assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.r
 assert.match(html,/forge-loader\.mjs\?v=20260903-compact-baseline-1/,'Forge Loader must load the compact protected direct-entry handoff without a stale browser module.');
 assert.match(selectionState,/next\.workingBuild\.forgeLoaderDecision=clone\(verified\.forgeLoaderDecision\)/,'Build Forge application must retain the verified Forge Loader decision on Working Build only.');
 assert.match(buildRuntime,/const payload=validateHandoffEnvelope\(raw\);[\s\S]*?payload\?\.characterId\?createBuildState\(payload\):null/,'Build Forge must expand the single protected source into immutable Original and separate Working builds only after reading it.');
-assert.match(read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html'),/paradox-build-space\.mjs\?v=20260903-artifact-fit-journey-header-3/,'Build Forge must load the compact handoff, verified Artifact fit and centred Build-specific Journey header without stale browser code.');
+assert.match(read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html'),/paradox-build-space\.mjs\?v=20260903-artifact-fit-command-header-1/,'Build Forge must load the compact handoff, verified Artifact fit and shared command header without stale browser code.');
 assert.match(buildRuntime,/try\{\s*const analysis=analyzeLiveGuardian\(result\.state\.workingBuild\);[\s\S]*?catch\(error\)\{\s*result\.state\.workingBuild\.paradoxAnalysis=null;/,'A PARADOX analysis failure must preserve the protected staged armour and allow Build Forge to render.');
 assert.match(buildRuntime,/try\{\s*const initialVaultState=readState\(\);[\s\S]*?finally\{\s*render\(\);\s*queueMicrotask\(\(\)=>void refreshForgeArtifactRecommendation\(\)\);\s*\}/,'The initial Forge Loader handoff must release the 58% gate before asynchronous Artifact recommendation work.');
 assert.doesNotMatch(runtime,/method\s*:\s*['"]POST['"]|EquipItems?|TransferItem|PullFromPostmaster|SetItemLockState|socket-plug-free/,'Forge Loader must never call a live Bungie mutation route.');

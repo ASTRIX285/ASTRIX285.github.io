@@ -12,8 +12,6 @@ const signedOut=document.getElementById('journeySignedOut');
 const dashboard=document.getElementById('journeyDashboard');
 const status=document.getElementById('journeyAuthStatus');
 const connectButton=document.getElementById('journeyConnectButton');
-const journeyHeader=document.querySelector('.journey-page .apx-destination-header');
-const journeyBrand=document.querySelector('.journey-page .apx-destination-brand');
 const guardianUsage=document.getElementById('journeyGuardianUsage');
 const vaultCard=document.getElementById('journeyVault');
 const seasonRankCard=document.getElementById('journeySeasonRank');
@@ -165,29 +163,6 @@ function waitForJourneyAtmosphere(){
     if(image.complete)finish();
   });
 }
-
-function balanceJourneyHeader(){
-  if(!journeyHeader||!journeyBrand||!heroCards||innerWidth<1900)return;
-  const brandBounds=journeyBrand.getBoundingClientRect();
-  const cardsBounds=heroCards.getBoundingClientRect();
-  if(cardsBounds.left<=brandBounds.right)return;
-  journeyHeader.style.setProperty('--journey-command-centre',`${(brandBounds.right+cardsBounds.left)/2}px`);
-}
-
-function installJourneyHeaderBalance(){
-  if(!journeyHeader||!journeyBrand||!heroCards)return;
-  balanceJourneyHeader();
-  globalThis.addEventListener('resize',balanceJourneyHeader,{passive:true});
-  if('ResizeObserver' in globalThis){
-    const observer=new ResizeObserver(balanceJourneyHeader);
-    observer.observe(journeyHeader);
-    observer.observe(journeyBrand);
-    observer.observe(heroCards);
-  }
-  requestAnimationFrame(balanceJourneyHeader);
-}
-
-installJourneyHeaderBalance();
 
 const finiteNumber=value=>{
   if(value===null||value===undefined||value==='')return null;

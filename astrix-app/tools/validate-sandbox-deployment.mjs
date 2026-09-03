@@ -15,6 +15,7 @@ const guardianProfile=read('astrix-app/pages/guardian-workspace-v2/guardian-bung
 const journeyHtml=read('astrix-app/pages/journey/index.html');
 const journeyModule=read('astrix-app/pages/journey/journey.mjs');
 const journeyCss=read('astrix-app/pages/journey/journey-2560-visual.css');
+const sharedHeroCss=read('astrix-app/shared/astrix-hero-cards.css');
 
 assert.match(workflow,/push:\s*\n\s*branches:\s*\n\s*- sandbox/,'Sandbox deployment must trigger only from the sandbox branch');
 assert.doesNotMatch(workflow,/branches:\s*\n\s*- main/,'Sandbox deployment must not trigger from main');
@@ -40,8 +41,8 @@ assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2F
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
-assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-recent-guardian-emblem-1/,'Journey must load the cache-busted latest-Guardian and emblem styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260903-journey-progressive-records-1/,'Journey must load the cache-busted progressive Triumph and Records module graph');
+assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260903-command-header-1/,'Journey must load the cache-busted command-header cleanup');
+assert.match(journeyHtml,/journey\.mjs\?v=20260903-command-header-1/,'Journey must load the progressive records runtime without stale header-positioning code');
 assert.match(journeyModule,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey must not block on the full equipment manifest');
 assert.match(journeyModule,/ASTRIX_HERO_PROFILE_PROMISE/,'Journey must reuse the authenticated hero-card profile request');
 assert.doesNotMatch(journeyModule,/guardianManifest\.hydratePayload\(payload\)/,'Journey must not hydrate every equipment definition before binding records');
@@ -49,17 +50,17 @@ assert.match(journeyModule,/const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12\*1000;[\s
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?AstrixLoader\.authResolved\(\);[\s\S]*?finishJourneyLoader\(signedOut\)/,'Disconnected Journey must reveal its own Bungie connection screen instead of trapping the portal at 12 percent');
 assert.match(journeyModule,/const profilePromise=readVerifiedProfile\(session\);[\s\S]*?waitWithin\(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)[\s\S]*?profilePromise\.then\(lateProfile/,'Journey must render after the bounded profile wait and bind verified data when it arrives later');
 assert.doesNotMatch(journeyHtml,/GUARDIAN JOURNEY · SUMMARY HUB|Your top-line Guardian record|VERIFIED DATA ONLY/,'Journey must not repeat its title in a standalone dashboard banner');
-assert.match(journeyCss,/\.journey-page \.apx-destination-header-copy\{[\s\S]*?display:grid;[\s\S]*?justify-items:center/,'Journey command-console descriptor must sit beneath its centred title');
-assert.match(journeyCss,/\.journey-page \.apx-destination-header-copy small\{[\s\S]*?color:var\(--apx-gold\)/,'Journey command-console descriptor must use the gold brand colour');
-assert.doesNotMatch(journeyCss,/grid-template-columns:max-content minmax\(190px,1fr\) 910px/,'Journey must not move the globally centred Guardian-card rail');
-assert.match(journeyCss,/\.journey-page \.apx-destination-header-state\{[\s\S]*?position:absolute!important;[\s\S]*?clip-path:inset\(50%\)/,'Journey connection state must remain accessible without displaying redundant authenticated copy');
+assert.match(sharedHeroCss,/header\.astrix-command-header:has\(>\[data-astrix-hero-cards\]\) \.apx-destination-header-copy\{[^}]*display:grid!important;[^}]*justify-items:center!important/,'Journey command-console descriptor must inherit the shared centred title layout');
+assert.match(sharedHeroCss,/header\.astrix-command-header:has\(>\[data-astrix-hero-cards\]\) \.apx-destination-header-copy small\{[^}]*color:var\(--apx-gold,#c9a84c\)!important/,'Journey command-console descriptor must inherit the shared gold purpose treatment');
+assert.match(sharedHeroCss,/grid-template-columns:minmax\(220px,max-content\) minmax\(240px,1fr\) 910px minmax\(58px,max-content\)!important/,'Journey must use the collision-safe shared command-header columns');
+assert.match(sharedHeroCss,/\.apx-destination-header-state\{[^}]*position:absolute!important;[^}]*clip-path:inset\(50%\)!important/,'Journey connection state must remain accessible without displaying redundant authenticated copy');
 assert.doesNotMatch(journeyHtml,/id="journeyAccountVisual"|id="journeyAccountAvatar"/,'Journey must not duplicate the shared Bungie account visual');
 assert.match(guardianAuth,/\.bungie-account-visual\{[\s\S]*?background:conic-gradient\(from 218deg,#063d2e[\s\S]*?#16bd82[\s\S]*?#9dffda/,'The shared account visual must use a green outer ring as the connected confirmation');
 assert.match(guardianAuth,/if\(session\?\.authenticated\)\{[\s\S]*?control\.button\.hidden=true;[\s\S]*?control\.visual\.hidden=false;/,'Connected destinations must hide the old text button and show only the account visual');
 assert.match(guardianAuth,/fetch\(new URL\("\/bungie\/account",AUTH_ORIGIN\)[\s\S]*?setAccountVisual\(control,account,session\)/,'The shared header must load the signed-in user’s Bungie account avatar without another OAuth prompt');
 assert.match(authWorker,/function bungieAccountRoute[\s\S]*?membershipData\.Response\?\.bungieNetUser[\s\S]*?profilePicturePath/,'The auth Worker must expose the authenticated Bungie profile picture safely');
 assert.match(authWorker,/url\.pathname === "\/bungie\/account"[\s\S]*?bungieAccountRoute/,'The Bungie account route must be available to authenticated Journey sessions');
-assert.match(journeyModule,/function balanceJourneyHeader\(\)[\s\S]*?brandBounds\.right\+cardsBounds\.left\)\/2/,'Journey must centre its title between the brand and the first Guardian card');
+assert.doesNotMatch(journeyModule,/balanceJourneyHeader|--journey-command-centre/,'Journey must use only the shared command-header positioning system');
 assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card\.is-selected\{[\s\S]*?box-shadow:[\s\S]*?rgba\(201,168,76,\.48\)[\s\S]*?opacity:1!important/,'Journey’s active hero card must use an opaque glow-backed treatment');
 assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card\.is-selected::before\{[\s\S]*?opacity:1!important;[\s\S]*?filter:none!important/,'Journey’s active hero card must keep its verified emblem fully visible');
 assert.match(journeyCss,/body\.journey-page[\s\S]*?\.guardian-character-card__identity\{[\s\S]*?top:50%!important;[\s\S]*?left:50%!important;[\s\S]*?text-align:center!important/,'Journey class labels must be centred vertically and horizontally');
