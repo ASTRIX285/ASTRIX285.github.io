@@ -68,13 +68,14 @@ function adaptLiveGuardian(detail){
 }
 
 function analyzeLiveGuardian(detail){
-  if(!detail||detail.source!=="bungie-live")return null;
+  const verifiedSources=new Set(["bungie-live","bungie-loadout","current-guardian"]);
+  if(!detail||!verifiedSources.has(String(detail.source||"")))return null;
   const adapted=adaptLiveGuardian(detail);
   const analysis=analyzeGuardianBuild(adapted);
   return {
     ...analysis,
     source:"paradox-live-deterministic-engine",
-    evidenceSource:"bungie-live-resolved-only",
+    evidenceSource:`${String(detail.source)}-resolved-only`,
     characterId:detail.characterId||null,
     selectedLoadoutIndex:Number.isInteger(Number(detail.selectedLoadoutIndex))?Number(detail.selectedLoadoutIndex):null,
     coverage:clone(detail.hashCoverage||{}),

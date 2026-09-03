@@ -39,4 +39,5 @@ jobs:
           node --check pages/guardian-workspace-v2/guardian-artifact.mjs
           node --check pages/guardian-workspace-v2/paradox-build-space-handoff.mjs
           node --check pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs
+          node --check pages/guardian-workspace-v2/paradox-build-space/paradox-forge-intelligence.mjs
           node --check pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs

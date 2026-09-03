@@ -18,7 +18,7 @@
   </script>
   <script src="../../../shared/astrix-portal-loader.js?v=20260831-render-ready"></script>
   <link rel="stylesheet" href="../../../astrix-tokens.css?v=20260824-branch-preview-1">
-  <link rel="stylesheet" href="./paradox-build-space.css?v=20260903-armour-row-3">
+  <link rel="stylesheet" href="./paradox-build-space.css?v=20260903-forge-intelligence-1">
   <link rel="stylesheet" href="./build-test-modes.css?v=20260823-1">
   <link rel="stylesheet" href="../guardian-gear-layout.css?v=20260826-four-fixes-1">
   <link rel="stylesheet" href="../guardian-character-cards.css?v=20260902-recent-guardian-emblem-1">
@@ -60,7 +60,7 @@
       <div class="panel-head"><div><small>ORIGINAL → WORKING BUILD</small><h1>BUILD DESIGN</h1></div><span class="status-chip">ITERATION 1</span></div>
       <div class="notice"><span id="buildStateNotice"><b>Baseline protected.</b> The build loaded here is stored as the immutable starting point for Build Forge recommendations.</span><button type="button" class="restore-btn" id="restoreOriginal" disabled>RESTORE ORIGINAL</button></div>
       <section class="design-section loadouts-design-section" aria-labelledby="buildLoadoutsTitle"><div class="section-title"><h2 id="buildLoadoutsTitle">IN-GAME LOADOUTS</h2><span>BUNGIE · 1–20</span></div><div class="guardian-loadouts-panel guardian-loadouts-strip"><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div></section>
-      <section class="design-section armour-design-section gear-combined" aria-labelledby="buildArmourTitle"><div class="eq-head"><h3 id="buildArmourTitle">ARMOUR & MODS</h3><span class="tools">VERIFIED WORKING BUILD</span></div><div class="gear-subhead"><span>T5 armour above · masterwork + 2 general + 3 armour mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div id="armourGrid" class="gear-columns"></div></section>
+      <section class="design-section armour-design-section gear-combined" aria-labelledby="buildArmourTitle"><div class="eq-head"><h3 id="buildArmourTitle">ARMOUR & MODS</h3><span class="tools">VERIFIED WORKING BUILD</span></div><div class="gear-subhead"><span>Armour above · 6 functional mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div id="armourGrid" class="gear-columns"></div></section>
       <section class="design-section weapon-design-section" aria-labelledby="buildWeaponsTitle"><div class="section-title"><h2 id="buildWeaponsTitle">WEAPONS & PERKS</h2><span id="weaponRecommendationState">GENERATE TO RECOMMEND</span></div><p class="section-guidance">Verified owned weapons remain unchanged. Generate a max loadout to reveal Paradox-supported perk combinations for this build.</p><div class="gear-weapons"><div id="weaponGrid" class="weap-grid"></div></div></section>
       <section class="design-section recommendation-panel" aria-labelledby="recommendationTitle">
         <div class="panel-head"><div><small>PARADOX RECOMMENDATION</small><h2 id="recommendationTitle">ELEMENTAL BUILD OPTIONS</h2></div><span class="working-only-chip">WORKING BUILD ONLY</span></div>
@@ -100,6 +100,7 @@
       <section class="intel-card"><small>SOURCE</small><strong id="sourceLabel">Waiting for build</strong><p id="sourceDetail">The selected or most recently equipped Bungie loadout will be preferred.</p></section>
       <section class="intel-card"><small>BUILD STATE</small><strong id="buildStateLabel">RESOLVING</strong><p id="buildStateDetail">Validating the protected Original and Working Build snapshots.</p></section>
       <section class="intel-card"><small>ARTIFACT STATE</small><strong id="artifactStatus">RESOLVING</strong><p id="artifactStatusDetail">Reading the exact Artifact and active perks carried into this build.</p></section>
+      <section class="intel-card forge-decision-card"><small>FORGE DECISION</small><strong id="forgeDecisionLabel">AWAITING ARMOUR EVIDENCE</strong><p id="forgeDecisionDetail">Stage a verified Forge Loader result to begin armour-led build reasoning.</p><ul id="forgeDecisionReasons"><li>No component choice is claimed before generation.</li></ul></section>
       <section class="forge-analysis">
         <div class="ra-head"><h2>PARADOX ANALYSIS</h2><span class="upd">Awaiting verified evidence</span></div>
         <div class="health-card"><div class="ring"><span class="heart">♥</span></div><div><div class="eyebrow">GUARDIAN HEALTH</div><div class="verdict">EVIDENCE PENDING<small>Load a live Guardian build to begin verified analysis.</small></div></div></div>
@@ -117,14 +118,14 @@
       <header class="recommended-build-header"><div><small>PARADOX INTELLIGENCE · VERIFIED WORKING BUILD</small><h2 id="recommendedBuildTitle">RECOMMENDED BUILD</h2><p id="recommendedBuildSubtitle">Review every mapped component before any live action.</p></div><button type="button" class="recommended-build-close" id="closeRecommendedBuild" aria-label="Return to Build Forge">✕</button></header>
       <div class="recommended-build-safety" id="recommendedBuildSafety"><b>LIVE GUARDIAN UNCHANGED</b><span>This recommendation exists only in the protected Working Build until you explicitly confirm Build My Guardian.</span></div>
       <div class="recommended-build-content">
-        <section><div class="review-section-heading"><h3>SUBCLASS & LOOP</h3><span>VERIFIED CATALOGUE</span></div><div id="recommendedSubclassSummary" class="recommended-subclass-summary"></div></section>
-        <section><div class="review-section-heading"><h3>ARMOUR & MODS</h3><span>T5 BASE REQUIRED</span></div><div id="recommendedArmourSummary" class="recommended-armour-summary gear-combined"><div class="gear-columns"></div></div></section>
+        <section><div class="review-section-heading"><h3>SUBCLASS & LOOP</h3><span>VERIFIED CATALOGUE</span></div><div id="recommendedSubclassSummary" class="recommended-subclass-summary"></div><div class="review-intelligence-evidence"><b>WHY THIS BUILD</b><ul id="recommendedIntelligenceSummary"></ul></div></section>
+        <section><div class="review-section-heading"><h3>ARMOUR & MODS</h3><span>FORGE LOADER RESULT</span></div><div id="recommendedArmourSummary" class="recommended-armour-summary gear-combined"><div class="gear-columns"></div></div></section>
         <section><div class="review-section-heading"><h3>WEAPONS & PERKS</h3><span>OWNED ROLLS ONLY</span></div><div id="recommendedWeaponsSummary" class="recommended-weapons-summary"></div></section>
         <section><div class="review-section-heading"><h3>ARTIFACT 2.0</h3><span>LEGAL BUCKET PICKS</span></div><div id="recommendedArtifactSummary" class="recommended-artifact-summary"></div></section>
       </div>
       <footer class="recommended-build-actions"><button type="button" class="ghost-btn" id="returnToForge">BACK TO BUILD FORGE</button><div><small id="liveTransferStatus">Live transfer remains locked until every supported change is verified.</small><button type="button" class="primary" id="applyBuild" disabled>BUILD MY GUARDIAN</button></div></footer>
     </div>
   </section>
-  <script type="module" src="./paradox-build-space.mjs?v=20260903-armour-row-3"></script>
+  <script type="module" src="./paradox-build-space.mjs?v=20260903-forge-intelligence-1"></script>
 </body>
 </html>

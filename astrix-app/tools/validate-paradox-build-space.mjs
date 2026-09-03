@@ -3,17 +3,20 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createBuildState,diffBuilds,createValidationRecord,VALIDATION_STATUS} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 import {BUILD_ELEMENTS,verifiedMasterworkState,validateTierFiveArmour} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-recommendation.mjs';
+import {composeForgeRecommendation} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-forge-intelligence.mjs';
 const item=(hash,name)=>({hash,bungieHash:hash,name});
 const source={source:'bungie-loadout',characterId:'hunter-1',characterClass:'hunter',selectedLoadoutIndex:4,subclass:'stasis',subclassName:'Revenant',subclassBuild:{super:item(1,'Silence and Squall'),abilities:[item(2,'Dodge'),item(3,'Jump'),item(4,'Melee'),item(5,'Grenade')],aspects:[item(6,'Aspect A'),item(7,'Aspect B')],fragments:[item(8,'Fragment A'),item(9,'Fragment B')]},artifact:{hash:20,name:'Seasonal Artifact',activePerks:[item(21,'Perk A')]},weapons:[item(30,'Primary'),item(31,'Special'),item(32,'Heavy')],armour:[item(40,'Helmet'),item(41,'Arms'),item(42,'Chest'),item(43,'Legs'),item(44,'Class')]};
 const state=createBuildState(source);assert.equal(Object.isFrozen(state.originalBuild),true);assert.notEqual(state.originalBuild,state.workingBuild);state.workingBuild.weapons[2]=item(99,'Paradox Heavy');const changes=diffBuilds(state.originalBuild,state.workingBuild);assert.equal(changes.length,1);assert.equal(changes[0].path,'weapons.2');const test=createValidationRecord({build:state.workingBuild,targetActivity:'Vanguard Master Operation',objective:'survivability'});assert.match(test.testId,/^PF-TEST-/);assert.equal(test.status,VALIDATION_STATUS.UNTESTED);assert.equal(Object.isFrozen(test.buildSnapshot),true);
 
 const root=new URL('../pages/guardian-workspace-v2/',import.meta.url);
-const [html,runtime,css,gearRuntime,advisorRuntime]=await Promise.all([
+const [html,runtime,css,gearRuntime,advisorRuntime,intelligenceRuntime,liveAdapterRuntime]=await Promise.all([
   readFile(new URL('paradox-build-space/index.html',root),'utf8'),
   readFile(new URL('paradox-build-space/paradox-build-space.mjs',root),'utf8'),
   readFile(new URL('paradox-build-space/paradox-build-space.css',root),'utf8'),
   readFile(new URL('guardian-gear-layout.mjs',root),'utf8'),
-  readFile(new URL('guardian-weapon-roll-advisor.mjs',root),'utf8')
+  readFile(new URL('guardian-weapon-roll-advisor.mjs',root),'utf8'),
+  readFile(new URL('paradox-build-space/paradox-forge-intelligence.mjs',root),'utf8'),
+  readFile(new URL('guardian-paradox-live-adapter.mjs',root),'utf8')
 ]);
 
 const t5Armour=Array.from({length:5},(_,index)=>({itemInstanceId:`armour-${index}`,armourTier:5,masterwork:{semanticRole:'masterwork'}}));
@@ -22,7 +25,45 @@ assert.equal(validateTierFiveArmour({armour:t5Armour,forgeLoaderDecision:{rankin
 assert.equal(validateTierFiveArmour({armour:t5Armour.map((row,index)=>index===2?{...row,armourTier:4}:row),forgeLoaderDecision:{ranking:{maximized:true}}}).ready,false,'Any armour below T5 must block generation.');
 assert.equal(validateTierFiveArmour({armour:t5Armour,forgeLoaderDecision:{ranking:{maximized:false}}}).ready,false,'A non-Maximized Forge Loader result must block generation.');
 assert.equal(verifiedMasterworkState({armourTier:5}),'MASTERWORK NOT REPORTED','T5 alone must not be presented as verified masterwork evidence.');
-assert.equal(verifiedMasterworkState({armourTier:5,masterwork:{semanticRole:'masterwork'}}),'MASTERWORK VERIFIED','An explicit masterwork socket must remain visible.');
+assert.equal(verifiedMasterworkState({armourTier:5,masterwork:{semanticRole:'masterwork'}}),'MASTERWORK VERIFIED','An explicit masterwork socket must remain available to the hidden validation gate.');
+
+const verifiedComponent=(hash,name,description,componentType,extra={})=>({hash,bungieHash:hash,name,description,componentType,source:'bungie-manifest',definition:{displayProperties:{name,description},traitIds:extra.traitIds||[]},...extra});
+const quietSuper=verifiedComponent(101,'Quiet Super','Arc damage.','super');
+const joltSuper=verifiedComponent(102,'Jolt Super','Jolts targets with Arc damage.','super');
+const classAbility=verifiedComponent(103,'Class Ability','Activates the class ability.','classAbility');
+const movement=verifiedComponent(104,'Movement','Improves movement.','movementAbility');
+const quietMelee=verifiedComponent(105,'Quiet Melee','Arc melee damage.','melee');
+const joltMelee=verifiedComponent(106,'Jolt Melee','Arc melee jolts targets.','melee');
+const quietGrenade=verifiedComponent(107,'Quiet Grenade','Arc grenade damage.','grenade');
+const joltGrenade=verifiedComponent(108,'Jolt Grenade','Arc grenade jolts targets.','grenade');
+const joltAspect=verifiedComponent(109,'Jolt Aspect','Defeating jolted targets grants grenade energy.','aspect',{fragmentSlots:1});
+const utilityAspect=verifiedComponent(110,'Utility Aspect','Class ability energy.','aspect',{fragmentSlots:1});
+const unresolvedAspect={hash:111,bungieHash:111,name:'Unresolved Aspect',unresolved:true,componentType:'aspect'};
+const joltFragment=verifiedComponent(112,'Jolt Fragment','Grenades jolt targets.','fragment');
+const blindFragment=verifiedComponent(113,'Blind Fragment','Arc damage can blind targets.','fragment');
+const intelligenceCandidate={hash:200,bungieHash:200,name:'Arcstrider',element:'arc',source:'bungie-manifest',definition:{displayProperties:{name:'Arcstrider'}},subclassBuild:{
+  socketsAvailable:true,socketCoverage:{complete:true},
+  super:quietSuper,superOptions:[quietSuper,joltSuper],classAbility,movement,melee:quietMelee,grenade:quietGrenade,
+  abilities:[classAbility,movement,quietMelee,quietGrenade],
+  abilityOptionsBySocket:{classAbility:[classAbility],movement:[movement],melee:[quietMelee,joltMelee],grenade:[quietGrenade,joltGrenade]},
+  aspects:[utilityAspect,joltAspect],availableAspects:[utilityAspect,joltAspect,unresolvedAspect],fragments:[blindFragment,joltFragment],availableFragments:[blindFragment,joltFragment]
+}};
+const intelligenceSource={source:'bungie-loadout',characterId:'hunter-1',characterClass:'hunter',forgeLoaderDecision:{buildAnchor:{perk:verifiedComponent(300,'Jolt Anchor','Jolting targets grants grenade energy.','armourEffect')},setProtocol:[],statDirective:{priorities:{grenade:1}},ranking:{maximized:true}},weapons:[],armour:t5Armour};
+const analyseCandidate=build=>{const rows=[build.super,...(build.abilities||[]),...(build.aspects||[]),...(build.fragments||[])].filter(Boolean),links=rows.filter(row=>/jolt/i.test(row.description||'')).map((row,index)=>({chain:`${row.name} -> jolt -> anchor ${index}`}));return {buildLoop:links,strengths:links,weakLinks:[],confidence:{level:links.length?'high':'insufficient'}};};
+const composed=composeForgeRecommendation({build:intelligenceSource,candidate:intelligenceCandidate,element:'arc',analyzeBuild:analyseCandidate});
+assert.equal(composed.workingBuild.subclassBuild.super.hash,joltSuper.hash,'The Forge intelligence must prefer the verified Super with the strongest directed armour-loop evidence.');
+assert.equal(composed.workingBuild.subclassBuild.melee.hash,joltMelee.hash,'The Forge intelligence must score verified ability alternatives.');
+assert.equal(composed.workingBuild.subclassBuild.grenade.hash,joltGrenade.hash,'The Forge intelligence must score every verified ability socket.');
+assert.ok(composed.workingBuild.subclassBuild.aspects.every(row=>row.unresolved!==true),'Unresolved options must never enter a generated recommendation.');
+assert.deepEqual(composed.workingBuild.abilities.map(row=>row.hash),composed.workingBuild.subclassBuild.abilities.map(row=>row.hash),'The root live-transfer projection must match the recommended subclass socket projection.');
+assert.equal(composed.intelligence.source,'verified-forge-loader-bungie-catalogue');
+assert.ok(composed.intelligence.evidence.directedLinks>=4,'The decision ledger must preserve directed evidence metrics.');
+assert.throws(()=>composeForgeRecommendation({build:intelligenceSource,candidate:{...intelligenceCandidate,subclassBuild:{...intelligenceCandidate.subclassBuild,socketsAvailable:false}},element:'arc',analyzeBuild:analyseCandidate}),/complete verified Bungie subclass socket set/,'A canonical element without a live verified socket set must never be offered as an intelligence result.');
+const prismaticFragments=['arc','solar','void','stasis','strand'].map((element,index)=>verifiedComponent(400+index,`${element} fragment`,`${element} damage interaction.`, 'fragment',{element}));
+const prismaticCandidate={...intelligenceCandidate,element:'prismatic',name:'Prismatic',subclassBuild:{...intelligenceCandidate.subclassBuild,aspects:[{...joltAspect,fragmentSlots:5}],availableAspects:[{...joltAspect,fragmentSlots:5}],fragments:prismaticFragments.slice(0,2),availableFragments:prismaticFragments}};
+const prismatic=composeForgeRecommendation({build:intelligenceSource,candidate:prismaticCandidate,element:'prismatic',analyzeBuild:null});
+assert.deepEqual([...prismatic.intelligence.prismaticCoverage.covered].sort(),['arc','solar','stasis','strand','void'],'Prismatic recommendations must score and report verified coverage across all five damage families when that evidence exists.');
+assert.deepEqual(prismatic.intelligence.prismaticCoverage.missing,[],'A fully evidenced Prismatic combination must not claim a missing damage family.');
 
 const loadoutsAt=html.indexOf('loadouts-design-section'),armourAt=html.indexOf('armour-design-section'),weaponsAt=html.indexOf('weapon-design-section'),recommendationAt=html.indexOf('recommendation-panel'),rightRailAt=html.indexOf('build-right-rail'),validationAt=html.indexOf('validation-panel'),intelligenceAt=html.indexOf('data-paradox-analysis');
 assert.ok(loadoutsAt>0&&loadoutsAt<armourAt&&armourAt<weaponsAt&&weaponsAt<recommendationAt&&recommendationAt<rightRailAt,'Centre column order must be In-game Loadouts, Armour & Mods, Weapons & Perks, then Elemental Build Options.');
@@ -30,6 +71,8 @@ assert.ok(rightRailAt<validationAt&&validationAt<intelligenceAt,'The right rail 
 assert.match(html,/PARADOX RECOMMENDATION[\s\S]*?ELEMENTAL BUILD OPTIONS/,'The armour-driven recommendation controls must not be presented as a second subclass picker.');
 assert.doesNotMatch(html,/CHOOSE SUBCLASS/,'Build Forge must not label elemental damage recommendations as a subclass picker.');
 assert.match(css,/\.build-space\{grid-template-columns:minmax\(360px,20%\) minmax\(720px,1fr\) minmax\(420px,24%\)/,'Build Forge must use the locked Journey three-column proportions.');
+assert.match(css,/\.build-space\{grid-template-columns:minmax\(360px,20%\) minmax\(720px,1fr\) minmax\(420px,24%\);align-items:stretch\}/,'Loaded Build Forge columns must stretch to the centre-column height.');
+assert.match(css,/\.build-space>\.build-rail,\.build-space>\.design-canvas,\.build-space>\.build-right-rail,\.build-right-rail>\.intelligence\{height:100%\}/,'All three desktop columns must consume the same loaded row height.');
 assert.match(css,/@media\(max-width:1760px\)\{\.build-space\{grid-template-columns:392px minmax\(0,1fr\)\}/,'Build Forge must follow Journey when the right rail moves below the two-column workspace.');
 assert.match(css,/\.build-forge-page \.astrix-platform-shell\{grid-template-columns:0 minmax\(0,1fr\) 0!important\}/,'Build Forge must reclaim the obsolete external media rails for the working columns.');
 assert.match(css,/\.build-rail\{container-type:inline-size;--build-rail-icon:clamp\(40px,21cqi,128px\)/,'Build left-rail icons must remain proportional to their column without taking ownership of the shared Character token.');
@@ -55,14 +98,20 @@ const elementButtons=[...html.matchAll(/data-recommendation-element="([^"]+)"/g)
 assert.deepEqual(elementButtons,BUILD_ELEMENTS,'Recommendation buttons must be ARC, SOLAR, STRAND, STASIS, VOID and PRISMATIC only.');
 assert.match(html,/id="generateMaxLoadout" disabled>GENERATE MAX LOADOUT/,'Generation must begin locked until verified inputs pass.');
 assert.match(runtime,/function generateMaxLoadout\(\)/,'Build Forge must expose an explicit recommendation generation boundary.');
-assert.match(runtime,/applySubclassCandidate\(working,candidate\)[\s\S]*?analyzeLiveGuardian\(working\)[\s\S]*?adviseLiveWeaponRolls\(working,working\.paradoxAnalysis\|\|\{\}, \{insertSocketPlugFree:false\}\)/,'Generation must use the verified subclass catalogue, deterministic analysis and recommendation-only weapon advice.');
+assert.match(runtime,/composeForgeRecommendation\(\{build:working,candidate,element:selectedRecommendationElement,analyzeBuild:analyzeLiveGuardian\}\)/,'Generation must compare verified subclass sockets through the deterministic Forge intelligence composer.');
+assert.match(runtime,/resolvedSubclassOptions\(build\)\.filter\(hasVerifiedSubclassSockets\)/,'Element buttons must enable only complete live Bungie subclass socket sets, not canonical catalogue placeholders.');
+assert.match(runtime,/working\.paradoxAnalysis=analyzeLiveGuardian\(working\)[\s\S]*?adviseLiveWeaponRolls\(working,working\.paradoxAnalysis\|\|\{\}, \{insertSocketPlugFree:false\}\)/,'Generation must re-run directed analysis after Artifact selection before recommendation-only weapon advice.');
 assert.match(runtime,/applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)/,'Generation must refresh the verified legal Artifact fit.');
+assert.match(intelligenceRuntime,/liveTransferAuthorized:false/,'The generated intelligence result must never authorize live transfer.');
+assert.match(liveAdapterRuntime,/"bungie-live","bungie-loadout","current-guardian"/,'Directed analysis must accept protected snapshots that retain their exact live Bungie provenance label.');
 assert.match(advisorRuntime,/new URL\("\.\.\/\.\.\/data\/paradox-forge\/intelligence\/weapon-perk-intelligence\.json",import\.meta\.url\)/,'Weapon intelligence must resolve from the module rather than the current page URL.');
 
 assert.match(html,/id="recommendedBuildReveal"[\s\S]*?aria-modal="true"[\s\S]*?hidden/,'The complete recommended build must open in a hidden review layer.');
 assert.match(html,/id="recommendedArmourSummary"[\s\S]*?id="recommendedWeaponsSummary"[\s\S]*?id="recommendedArtifactSummary"/,'The review must expose armour, weapon and Artifact sections.');
 assert.match(runtime,/decorateRecommendedWeaponPerks/,'Build weapons must add recommendation icons only after generation.');
 assert.match(runtime,/if\(!generated\)return/,'Weapon recommendations must remain hidden before Generate Max Loadout.');
+assert.doesNotMatch(runtime,/armour-verification-line|decorateBuildArmour/,'Build Forge must not render the internal T5 or masterwork gate as repeated armour-card footer text.');
+assert.doesNotMatch(html,/T5 BASE REQUIRED|T5 VERIFIED|MASTERWORK NOT REPORTED/,'Internal armour validation must not clutter the user-facing armour layout.');
 assert.match(gearRuntime,/return \[masterwork, \.\.\.clean\(generalSource\)\.slice\(0, 2\), \.\.\.clean\(slotSource\)\.slice\(0, 3\)\]/,'Armour mapping must remain masterwork, two general slots and three armour slots.');
 
 assert.match(html,/id="applyBuild" disabled>BUILD MY GUARDIAN<\/button>/,'The only live action must be the explicit Build My Guardian confirmation control.');

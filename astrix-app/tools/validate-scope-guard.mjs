@@ -5,6 +5,9 @@ import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
   '.github/workflows/deploy-astrix-sandbox.yml',
+  '.github/workflows/live-artifact-validation.yml',
+  '.github/workflows/validate-artifact-provenance.yml',
+  '.github/workflows/validate-build-design-selectors.yml',
   'astrix-auth-worker/src/index.ts',
   'astrix-auth-worker/wrangler.toml',
   'astrix-sandbox/cloudflare-pages.mjs',
@@ -33,6 +36,7 @@ const allowed=new Set([
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-artifact-selection.mjs',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-recommendation.mjs',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-forge-intelligence.mjs',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs',
   'astrix-app/pages/guardian-alpha/guardian-alpha.mjs',
   'astrix-app/pages/guardian-alpha/index.html',
