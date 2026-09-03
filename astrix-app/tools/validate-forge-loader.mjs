@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {armourTargetMaximums,matchArmourBuilds} from '../pages/vault/vault-armour-matcher.mjs';
+import {applyVaultArmourSelection,createVaultArmourSelection,validateVaultArmourSelection} from '../pages/vault/vault-selection-state.mjs';
 import {exoticCatalogueGroups,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection} from '../pages/forge-loader/forge-loader-model.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const read=path=>readFileSync(new URL(path,`file://${root}/`),'utf8');
-const set=(hash,name)=>({hash,unresolved:false,identity:{name,description:`${name} description`,icon:''},twoPiece:{requiredSetCount:2,name:`${name} two`,description:'Two-piece effect'},fourPiece:{requiredSetCount:4,name:`${name} four`,description:'Four-piece effect'}});
+const set=(hash,name)=>({hash,unresolved:false,identity:{name,description:`${name} description`,icon:''},twoPiece:{requiredSetCount:2,name:`${name} two`,description:'Two-piece effect',icon:`/set-${hash}-2.png`},fourPiece:{requiredSetCount:4,name:`${name} four`,description:'Four-piece effect',icon:`/set-${hash}-4.png`}});
 const stats=value=>[{name:'Health',value},{name:'Weapon',value:Math.max(1,12-value)}];
 const item=(slot,itemHash,instance,value,{exotic=false,setHash=null,name=`Item ${instance}`}={})=>({slotIndex:slot,slotKey:['helmet','gauntlets','chest','legs','class-item'][slot],slotLabel:['Helmet','Gauntlets','Chest','Legs','Class Item'][slot],itemHash,itemInstanceId:instance,name,icon:'/item.png',characterClass:'hunter',isExotic:exotic,totalStats:value+Math.max(1,12-value),stats:stats(value),setBonus:setHash?set(setHash,setHash===7001?'Seraph Protocol':setHash===7002?'Deep Protocol':'Duplicate Protocol'):null});
 
@@ -53,7 +54,9 @@ assert.equal(setSelectionFeasible(items,exotic,[{setHash:7001,count:2},{setHash:
 
 let options=setBonusOptions(items,exotic,[]);
 assert.equal(options.find(row=>row.hash===7001)?.four.disabled,false,'Four compatible pieces must enable the four-piece checkbox.');
+assert.equal(options.find(row=>row.hash===7001)?.four.owned,true,'An owned four-piece trait must receive the available visual state.');
 assert.equal(options.find(row=>row.hash===7002)?.four.disabled,true,'Two compatible pieces must not enable a four-piece checkbox.');
+assert.equal(options.find(row=>row.hash===7002)?.four.owned,false,'A four-piece trait without four compatible owned slots must retain the unavailable visual state.');
 assert.equal(options.find(row=>row.hash===7003)?.two.disabled,true,'Two copies in the same slot must keep the two-piece checkbox disabled.');
 
 let selected=toggleSetSelection(items,exotic,[],{setHash:7001,count:4},true);
@@ -76,10 +79,25 @@ const matches=matchArmourBuilds(items,{health:35},{...constrained,all:true});
 assert.equal(matches.length,3,'The Forge Loader must return every legal exact-instance combination rather than an arbitrary top-five subset.');
 assert.equal(matches[0].items[0].itemInstanceId,'exotic-reissue','The solver must rank the strongest exact duplicate or reissued Exotic instance first.');
 assert.equal(matches[0].items.filter(row=>row.setBonus?.hash===7001).length,4,'Every returned load must honour the selected four-piece protocol.');
+const binding={characterId:'hunter-1',membershipId:'membership-1',membershipType:'3'};
+const forgeLoaderDecision={schemaVersion:1,buildAnchor:{identityKey:exotic.key,name:exotic.name,itemHashes:exotic.hashes,selectedItemHash:9004,selectedItemInstanceId:'exotic-reissue',perk:{hash:88001,name:'Verified Exotic perk',description:'Verified perk description',icon:'/perk.png'}},statDirective:{targets:{health:35,melee:0,grenade:0,super:0,class:0,weapon:0},achieved:matches[0].stats,allTargetsMet:matches[0].score.met,shortfall:matches[0].score.shortfall,rawTotal:matches[0].score.total,modsApplied:false},setProtocol:[{setHash:7001,count:4,setName:'Seraph Protocol',trait:{hash:77001,name:'Seraph four',description:'Four-piece effect',icon:'/set-7001-4.png'}}],ranking:{position:1,totalCombinations:matches.length,maximized:true}};
+const selection=createVaultArmourSelection({binding,slots:matches[0].items.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision});
+const verifiedSelection=validateVaultArmourSelection(selection,{expectedBinding:binding});
+assert.equal(verifiedSelection?.forgeLoaderDecision?.buildAnchor?.selectedItemInstanceId,'exotic-reissue','The exact solver-selected Exotic instance must survive the protected handoff.');
+assert.deepEqual(verifiedSelection?.forgeLoaderDecision?.statDirective?.targets,forgeLoaderDecision.statDirective.targets,'All six user stat directives must survive the protected handoff.');
+assert.equal(verifiedSelection?.forgeLoaderDecision?.setProtocol?.[0]?.count,4,'The selected armour set protocol must survive the protected handoff.');
+assert.equal(verifiedSelection?.forgeLoaderDecision?.ranking?.maximized,true,'The top-ranked load must retain its maximized evidence.');
+assert.equal(validateVaultArmourSelection({...selection,forgeLoaderDecision:{...selection.forgeLoaderDecision,buildAnchor:{...selection.forgeLoaderDecision.buildAnchor,selectedItemInstanceId:'wrong-instance'}}},{expectedBinding:binding}),null,'The handoff must reject decision evidence that does not match the staged exact Exotic instance.');
+const sourceState={originalBuild:{...binding,armour:Array(5).fill(null)},workingBuild:{...binding,armour:Array(5).fill(null)},recommendation:{stale:true},validationRecords:[{stale:true}]};
+const appliedSelection=applyVaultArmourSelection(sourceState,verifiedSelection);
+assert.equal(appliedSelection.applied,true,'Build Forge must accept the character-bound Forge Loader handoff.');
+assert.deepEqual(appliedSelection.state.workingBuild.forgeLoaderDecision,verifiedSelection.forgeLoaderDecision,'Build Forge Working Build must retain the complete Forge Loader decision chain in the background.');
+assert.equal(sourceState.originalBuild.armour.every(item=>item===null),true,'The Forge Loader decision must never mutate the protected Original Build.');
 
 const html=read('astrix-app/pages/forge-loader/index.html');
 const css=read('astrix-app/pages/forge-loader/forge-loader.css');
 const runtime=read('astrix-app/pages/forge-loader/forge-loader.mjs');
+const selectionState=read('astrix-app/pages/vault/vault-selection-state.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const access=read('astrix-app/pages/guardian-workspace-v2/guardian-vault-access.mjs');
 assert.match(html,/<h1>Forge Loader<\/h1>/);
@@ -94,6 +112,10 @@ assert.ok(html.indexOf('forge-stat-selector')<html.indexOf('forge-set-selector')
 assert.equal((html.match(/data-target-stat=/g)||[]).length,6,'Forge Loader must retain all six Armour 3.0 stat directives.');
 assert.match(runtime,/type="checkbox"/,'Set bonuses must use checkboxes, not toggle switches.');
 assert.match(runtime,/setBonusOptions\(armourItems\(\),exotic,setSelections\)/);
+assert.match(runtime,/class="forge-set-trait-icon"[\s\S]*?effect\.icon/,'Each 2-piece and 4-piece block must render its verified Bungie trait icon.');
+assert.match(runtime,/forge-set-trait-copy[\s\S]*?effect\?\.description/,'Each set block must expose the verified trait name and description.');
+assert.match(css,/\.forge-set-choice\.is-owned \.forge-set-trait-icon\{[^}]*background:rgba\(77,177,255,\.34\)/,'Owned feasible set traits must use the blue Bungie-style icon background.');
+assert.match(css,/\.forge-set-trait-icon img\{[^}]*filter:grayscale\(1\) brightness\(2\)/,'Unavailable set traits must retain a white trait icon on the dark block.');
 assert.match(runtime,/fixedExoticHashes:exotic\.hashes/,'The selected Exotic identity must pass every owned item hash to the solver.');
 assert.match(runtime,/matchArmourBuilds\(armourItems\(\),targets,\{\.\.\.solverOptions\(\),all:true/,'Forge Loader must calculate every legal combination.');
 assert.match(runtime,/exoticCatalogueGroups\(catalogue\.armour,inventoryDefinitions\(\),activeCharacterClass,ARMOUR_BUCKETS\)/,'Forge Loader must add verified class collection definitions without fabricating inventory instances.');
@@ -111,10 +133,14 @@ assert.match(runtime,/Five exact Bungie armour instances · no mods[\s\S]*?UNMOD
 assert.doesNotMatch(runtime,/ARMOUR_STAT_LABELS\[key\]\.slice/,'Calculated loads must show full stat names rather than unreadable abbreviations.');
 assert.match(html,/<h2 id="forgeResultsTitle">Forge Matrix<\/h2>/,'Calculated combinations must use the independent PARADOX Forge Matrix identity.');
 assert.match(runtime,/class="forge-matrix-row"[\s\S]*?class="forge-matrix-stats"[\s\S]*?class="forge-matrix-total"[\s\S]*?class="forge-matrix-protocol"/,'Each compact load must expose six calculated stats, total and set protocol in one comparison row.');
+assert.match(runtime,/maximized=index===0[\s\S]*?is-maximized[\s\S]*?MAXIMIZED/,'The highest-ranked complete owned load must receive the unique PARADOX Maximized state.');
+assert.match(css,/\.forge-candidate\.is-maximized\{[^}]*border:2px solid #e4bd49/,'The Maximized load must use a deliberate gold perimeter rather than a generic selected state.');
 assert.match(runtime,/data-candidate-expand="\$\{index\}"[\s\S]*?aria-controls="forgeLoadBreakdown\$\{index\}"/,'Every Forge Matrix row must provide an accessible expandable breakdown control.');
 assert.match(runtime,/Five exact Bungie armour instances[\s\S]*?candidate\.items\.map\(candidateItemMarkup\)/,'Expanded loads must enumerate all five exact owned armour instances.');
 assert.match(runtime,/item\.source\?\.label[\s\S]*?item\.power[\s\S]*?item\.energy\?\.capacity[\s\S]*?Number\(item\.state\|\|0\)&4/,'The breakdown may show only verified source, Power, energy and masterwork instance data.');
 assert.match(runtime,/data-candidate-evaluate="\$\{index\}"/,'An expanded verified load must retain its protected Build Forge evaluation action.');
+assert.match(runtime,/forgeLoaderDecision:forgeLoaderDecision\(candidate,selectedCandidateIndex\)/,'The staged load must send the user\'s complete three-stage decision to Build Forge.');
+assert.match(selectionState,/next\.workingBuild\.forgeLoaderDecision=clone\(verified\.forgeLoaderDecision\)/,'Build Forge application must retain the verified Forge Loader decision on Working Build only.');
 assert.doesNotMatch(runtime,/\bDIM\b|d2armou?rpicker/i,'Forge Loader must not copy external picker branding or actions.');
 assert.match(css,/\.forge-loader-workspace\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/,'Wide Forge Loader must use three equal columns.');
 assert.doesNotMatch(css,/@media\(max-width:1700px\)[\s\S]*?\.forge-loader-output\{grid-column:1\/-1\}/,'Forge Loader must retain three equal desktop columns until the tablet breakpoint.');

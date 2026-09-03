@@ -138,13 +138,14 @@ function setBonusOptions(items=[],fixedExotic={},selections=[]){
     const choiceState=count=>{
       const checked=selected.some(selection=>selection.setHash===row.hash&&selection.count===count);
       const effect=count===2?row.twoPiece:row.fourPiece;
+      const owned=Boolean(effect)&&setSelectionFeasible(items,fixedExotic,[{setHash:row.hash,count}]);
       let feasible=Boolean(effect)&&setSelectionFeasible(items,fixedExotic,[...selected.filter(selection=>selection.setHash!==row.hash),{setHash:row.hash,count}]);
       if(activeFour)feasible=checked;
       else if(activeTwos.length){
         if(count===4)feasible=false;
         else if(!checked&&activeTwos.length>=2)feasible=false;
       }
-      return {checked,disabled:!checked&&!feasible,feasible,effect};
+      return {checked,disabled:!checked&&!feasible,feasible,owned,effect};
     };
     return {...row,usableSlots:row.slots.size,two:choiceState(2),four:choiceState(4)};
   }).sort((left,right)=>left.name.localeCompare(right.name));

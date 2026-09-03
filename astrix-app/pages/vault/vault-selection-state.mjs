@@ -10,6 +10,8 @@ const clone=value=>{
 };
 const text=value=>String(value??'').trim();
 const itemIdentity=item=>text(item?.itemInstanceId||item?.instanceId||item?.hash||item?.itemHash||item?.bungieHash);
+const positiveInteger=value=>{const number=Number(value);return Number.isInteger(number)&&number>0?number:null;};
+const nonNegative=value=>Math.max(0,Number.isFinite(Number(value))?Number(value):0);
 
 function normaliseBinding(binding={}){
   return {
@@ -30,18 +32,47 @@ function normaliseSlots(slots=[]){
   return [...unique.values()].sort((left,right)=>left.slot-right.slot);
 }
 
-function createVaultArmourSelection({binding={},slots=[],sourcePage='vault'}={}){
+function normaliseTrait(value){
+  if(!value)return null;
+  const trait={hash:positiveInteger(value.hash),name:text(value.name),description:text(value.description),icon:text(value.icon)};
+  return trait.hash||trait.name||trait.description?trait:null;
+}
+
+function normaliseStatVector(value={}){
+  return Object.fromEntries(['health','melee','grenade','super','class','weapon'].map(key=>[key,nonNegative(value?.[key])]));
+}
+
+function normaliseForgeLoaderDecision(value){
+  if(!value||Number(value.schemaVersion)!==1)return null;
+  const anchor=value.buildAnchor||{},instanceId=text(anchor.selectedItemInstanceId),selectedItemHash=positiveInteger(anchor.selectedItemHash);
+  if(!instanceId||!selectedItemHash)return null;
+  const targets=normaliseStatVector(value.statDirective?.targets),achieved=normaliseStatVector(value.statDirective?.achieved);
+  const setProtocol=(Array.isArray(value.setProtocol)?value.setProtocol:[]).map(row=>({setHash:positiveInteger(row?.setHash),count:Number(row?.count),setName:text(row?.setName),trait:normaliseTrait(row?.trait)})).filter(row=>row.setHash&&(row.count===2||row.count===4));
+  const position=Math.max(1,Math.round(nonNegative(value.ranking?.position)||1));
+  const totalCombinations=Math.max(position,Math.round(nonNegative(value.ranking?.totalCombinations)||position));
+  return {
+    schemaVersion:1,
+    buildAnchor:{identityKey:text(anchor.identityKey),name:text(anchor.name),itemHashes:[...new Set((Array.isArray(anchor.itemHashes)?anchor.itemHashes:[]).map(positiveInteger).filter(Boolean))],selectedItemHash,selectedItemInstanceId:instanceId,perk:normaliseTrait(anchor.perk)},
+    statDirective:{targets,achieved,allTargetsMet:Boolean(value.statDirective?.allTargetsMet),shortfall:nonNegative(value.statDirective?.shortfall),rawTotal:nonNegative(value.statDirective?.rawTotal),modsApplied:false},
+    setProtocol,
+    ranking:{position,totalCombinations,maximized:position===1&&Boolean(value.ranking?.maximized)}
+  };
+}
+
+function createVaultArmourSelection({binding={},slots=[],sourcePage='vault',forgeLoaderDecision=null}={}){
   const createdAt=Date.now();
+  const sourcePageValue=text(sourcePage)||'vault',decision=normaliseForgeLoaderDecision(forgeLoaderDecision);
   return {
     schemaVersion:VAULT_SELECTION_SCHEMA,
     kind:VAULT_SELECTION_KIND,
     createdAt,
     expiresAt:createdAt+VAULT_SELECTION_TTL_MS,
     source:'bungie-live-vault',
-    sourcePage:text(sourcePage)||'vault',
+    sourcePage:sourcePageValue,
     target:'build-forge',
     binding:normaliseBinding(binding),
-    slots:normaliseSlots(slots)
+    slots:normaliseSlots(slots),
+    ...(sourcePageValue==='forge-loader'&&decision?{forgeLoaderDecision:decision}:{})
   };
 }
 
@@ -56,7 +87,15 @@ function validateVaultArmourSelection(value,{expectedBinding={}}={}){
   if(expected.membershipType&&binding.membershipType!==expected.membershipType)return null;
   const slots=normaliseSlots(value.slots);
   if(!slots.length)return null;
-  return {...clone(value),binding,slots};
+  const decision=value.forgeLoaderDecision?normaliseForgeLoaderDecision(value.forgeLoaderDecision):null;
+  if(value.forgeLoaderDecision&&(!decision||text(value.sourcePage)!=='forge-loader'))return null;
+  if(decision){
+    const anchor=slots.find(row=>itemIdentity(row.item)===decision.buildAnchor.selectedItemInstanceId);
+    const anchorHash=positiveInteger(anchor?.item?.itemHash??anchor?.item?.hash);
+    if(!anchor||anchorHash!==decision.buildAnchor.selectedItemHash||anchor.item?.isExotic!==true)return null;
+    if(decision.setProtocol.some(protocol=>slots.filter(row=>setHash(row.item)===protocol.setHash).length<protocol.count))return null;
+  }
+  return {...clone(value),binding,slots,...(decision?{forgeLoaderDecision:decision}:{})};
 }
 
 function writeVaultArmourSelection(selection,storage=globalThis.sessionStorage){
@@ -164,10 +203,13 @@ function applyVaultArmourSelection(state,selection){
   next.workingBuild.weaponRollAdvice=null;
   next.workingBuild.vaultArmourSelection={
     source:verified.source,
+    sourcePage:verified.sourcePage,
     createdAt:new Date(verified.createdAt).toISOString(),
     itemInstanceIds:verified.slots.map(row=>itemIdentity(row.item)),
     slots:verified.slots.map(row=>row.slot)
   };
+  if(verified.forgeLoaderDecision)next.workingBuild.forgeLoaderDecision=clone(verified.forgeLoaderDecision);
+  else delete next.workingBuild.forgeLoaderDecision;
   next.recommendation=null;
   next.validationRecords=[];
   return {state:next,applied:true,selection:verified};

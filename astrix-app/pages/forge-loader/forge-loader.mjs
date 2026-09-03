@@ -126,7 +126,7 @@ function renderSetBonuses(){
   const options=setBonusOptions(armourItems(),exotic,setSelections);
   const selectedLabel=setSelections.length?setSelections.map(row=>`${row.count}P`).join(' + '):'OPTIONAL';
   byId('forgeSetStatus').textContent=`${options.length} VERIFIED SET${options.length===1?'':'S'} · ${selectedLabel}`;
-  host.innerHTML=options.length?options.map(row=>`<article class="forge-set"><div class="forge-set-head">${row.icon?`<img src="${esc(row.icon)}" alt="">`:'<span></span>'}<span><strong>${esc(row.name)}</strong><small>${esc(row.description||'Verified Bungie armour set')}</small></span><small class="forge-set-count">${row.usableSlots} USABLE SLOTS</small></div><div class="forge-set-choices">${[2,4].map(count=>{const choice=count===2?row.two:row.four;return `<label class="forge-set-choice${choice.disabled?' is-disabled':''}"><input type="checkbox" data-set-hash="${row.hash}" data-set-count="${count}" ${choice.checked?'checked':''} ${choice.disabled?'disabled':''}><span><b>${count} PIECE</b><small>${esc(bonusReason(row,count,choice))}</small></span></label>`;}).join('')}</div></article>`).join(''):'<div class="forge-empty">No verified 2-piece or 4-piece armour-set combinations are available around this Exotic.</div>';
+  host.innerHTML=options.length?options.map(row=>`<article class="forge-set"><div class="forge-set-head">${row.icon?`<img src="${esc(row.icon)}" alt="">`:'<span></span>'}<span><strong>${esc(row.name)}</strong><small>${esc(row.description||'Verified Bungie armour set')}</small></span><small class="forge-set-count">${row.usableSlots} USABLE SLOTS</small></div><div class="forge-set-choices">${[2,4].map(count=>{const choice=count===2?row.two:row.four,effect=choice.effect;return `<label class="forge-set-choice${choice.owned?' is-owned':' is-unowned'}${choice.disabled?' is-disabled':''}"><input type="checkbox" data-set-hash="${row.hash}" data-set-count="${count}" ${choice.checked?'checked':''} ${choice.disabled?'disabled':''}>${effect?.icon?`<span class="forge-set-trait-icon"><img src="${esc(effect.icon)}" alt=""></span>`:''}<span class="forge-set-trait-copy"><b>${count} PIECE${effect?.name?` · ${esc(effect.name)}`:''}</b><small>${esc(effect?.description||`${count}-piece trait unavailable`)}</small><em>${esc(bonusReason(row,count,choice))}</em></span></label>`;}).join('')}</div></article>`).join(''):'<div class="forge-empty">No verified 2-piece or 4-piece armour-set combinations are available around this Exotic.</div>';
 }
 
 function updateTargetLabel(label){
@@ -166,6 +166,44 @@ function candidateSetProtocol(candidate){
   }).join(' + ');
 }
 
+function verifiedTraitContext(effect){
+  if(!effect)return null;
+  const hash=Number(effect.hash??effect.plugHash??effect.bungieHash);
+  return {hash:Number.isInteger(hash)&&hash>0?hash:null,name:text(effect.name),description:text(effect.description),icon:text(effect.icon)};
+}
+
+function forgeLoaderDecision(candidate,index){
+  const exoticGroup=selectedExotic(),exoticItem=candidate?.items?.find(item=>item?.isExotic)||null;
+  if(!exoticGroup||!exoticItem)return null;
+  const exoticPerk=exoticItem.exoticPerk||exoticItem.armourSemantics?.exoticPerk||null;
+  const setOptions=setBonusOptions(armourItems(),exoticGroup,setSelections);
+  return {
+    schemaVersion:1,
+    buildAnchor:{
+      identityKey:exoticGroup.key,
+      name:exoticGroup.name,
+      itemHashes:exoticGroup.hashes,
+      selectedItemHash:Number(exoticItem.itemHash??exoticItem.hash)||null,
+      selectedItemInstanceId:text(exoticItem.itemInstanceId||exoticItem.instanceId),
+      perk:verifiedTraitContext(exoticPerk)
+    },
+    statDirective:{
+      targets:targetValues(),
+      achieved:Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Number(candidate.stats?.[key]||0)])),
+      allTargetsMet:Boolean(candidate.score?.met),
+      shortfall:Number(candidate.score?.shortfall||0),
+      rawTotal:Number(candidate.score?.total||0),
+      modsApplied:false
+    },
+    setProtocol:setSelections.map(selection=>{
+      const row=setOptions.find(option=>Number(option.hash)===Number(selection.setHash));
+      const effect=selection.count===2?row?.two?.effect:row?.four?.effect;
+      return {setHash:Number(selection.setHash),count:Number(selection.count),setName:text(row?.name),trait:verifiedTraitContext(effect)};
+    }),
+    ranking:{position:Number(index)+1,totalCombinations:matchedBuilds.length,maximized:Number(index)===0}
+  };
+}
+
 function candidateStatMarkup(candidate,{itemRow=false}={}){
   const stats=itemRow?armourStatVector(candidate):candidate.stats;
   const targets=itemRow?{}:targetValues();
@@ -190,9 +228,9 @@ function candidateItemMarkup(item){
 
 function candidateMarkup(candidate,index){
   const outcome=candidate.score.met?'ALL TARGETS MET':`${candidate.score.shortfall} POINT${candidate.score.shortfall===1?'':'S'} SHORT`;
-  const expanded=expandedCandidateIndex===index,selected=selectedCandidateIndex===index;
+  const expanded=expandedCandidateIndex===index,selected=selectedCandidateIndex===index,maximized=index===0;
   const exotic=candidate.items.find(item=>item.isExotic)||candidate.items[0];
-  return `<article class="forge-candidate${candidate.score.met?' is-target-met':''}${selected?' is-selected':''}"><div class="forge-matrix-row"><button type="button" class="forge-matrix-expand" data-candidate-expand="${index}" aria-expanded="${expanded}" aria-controls="forgeLoadBreakdown${index}"><span><b>LOAD ${String(index+1).padStart(2,'0')}</b><small>${esc(outcome)}</small></span><i aria-hidden="true">⌄</i></button><span class="forge-matrix-exotic">${exotic?.icon?`<img src="${esc(exotic.icon)}" alt="">`:''}<small>EXOTIC</small></span><div class="forge-matrix-stats" aria-label="Calculated unmodded armour stats">${candidateStatMarkup(candidate)}</div><span class="forge-matrix-total"><small>RAW TOTAL</small><b>${candidate.score.total}</b></span><span class="forge-matrix-protocol"><small>SET PROTOCOL</small><b>${esc(candidateSetProtocol(candidate))}</b></span><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button></div><div class="forge-load-breakdown" id="forgeLoadBreakdown${index}" ${expanded?'':'hidden'}><div class="forge-breakdown-heading"><div><span>LOAD BREAKDOWN</span><strong>Five exact Bungie armour instances · no mods</strong></div><span>${esc(outcome)}</span></div><div class="forge-breakdown-items">${candidate.items.map(candidateItemMarkup).join('')}</div><div class="forge-breakdown-summary"><div><small>UNMODDED ARMOUR TOTAL</small><strong>${candidate.score.total}</strong></div><div><small>ACTIVE SET PROTOCOL</small><strong>${esc(candidateSetProtocol(candidate))}</strong></div><div class="forge-breakdown-actions"><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button><button type="button" class="forge-candidate-evaluate" data-candidate-evaluate="${index}">EVALUATE IN BUILD FORGE</button></div></div></div></article>`;
+  return `<article class="forge-candidate${candidate.score.met?' is-target-met':''}${selected?' is-selected':''}${maximized?' is-maximized':''}"><div class="forge-matrix-row"><button type="button" class="forge-matrix-expand" data-candidate-expand="${index}" aria-expanded="${expanded}" aria-controls="forgeLoadBreakdown${index}"><span>${maximized?'<em class="forge-maximized">MAXIMIZED</em>':''}<b>LOAD ${String(index+1).padStart(2,'0')}</b><small>${esc(outcome)}</small></span><i aria-hidden="true">⌄</i></button><span class="forge-matrix-exotic">${exotic?.icon?`<img src="${esc(exotic.icon)}" alt="">`:''}<small>EXOTIC</small></span><div class="forge-matrix-stats" aria-label="Calculated unmodded armour stats">${candidateStatMarkup(candidate)}</div><span class="forge-matrix-total"><small>RAW TOTAL</small><b>${candidate.score.total}</b></span><span class="forge-matrix-protocol"><small>SET PROTOCOL</small><b>${esc(candidateSetProtocol(candidate))}</b></span><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button></div><div class="forge-load-breakdown" id="forgeLoadBreakdown${index}" ${expanded?'':'hidden'}><div class="forge-breakdown-heading"><div><span>${maximized?'MAXIMIZED LOAD':'LOAD BREAKDOWN'}</span><strong>Five exact Bungie armour instances · no mods</strong></div><span>${esc(outcome)}</span></div><div class="forge-breakdown-items">${candidate.items.map(candidateItemMarkup).join('')}</div><div class="forge-breakdown-summary"><div><small>UNMODDED ARMOUR TOTAL</small><strong>${candidate.score.total}</strong></div><div><small>ACTIVE SET PROTOCOL</small><strong>${esc(candidateSetProtocol(candidate))}</strong></div><div class="forge-breakdown-actions"><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button><button type="button" class="forge-candidate-evaluate" data-candidate-evaluate="${index}">EVALUATE IN BUILD FORGE</button></div></div></div></article>`;
 }
 
 function renderCandidates(){
@@ -278,8 +316,9 @@ function hideInspect(){const panel=byId('forgeItemInspect');if(panel){panel.hidd
 
 function evaluateInBuildForge(){
   if(selectedSlots.size!==5)return;
+  const candidate=matchedBuilds[selectedCandidateIndex];if(!candidate)return;
   const selected=prepareArmourSelection(payload,[...selectedSlots.values()]);
-  const selection=createVaultArmourSelection({binding:membershipBinding(),slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader'});
+  const selection=createVaultArmourSelection({binding:membershipBinding(),slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision:forgeLoaderDecision(candidate,selectedCandidateIndex)});
   if(!writeVaultArmourSelection(selection)){byId('forgeRuntimeStatus').textContent='The staged load could not be stored on this device. No build was changed.';return;}
   const url=new URL('../guardian-workspace-v2/paradox-build-space/',location.href);url.searchParams.set('vault','selection');
   for(const [key,value] of Object.entries(membershipBinding()))if(value)url.searchParams.set(key,value);
