@@ -540,6 +540,10 @@ async function titlePresentationCandidates(payload){
     const catalog=await titlePresentationCatalog(payload);
     if(catalog.length)return catalog;
   }catch(error){console.info('[ASTRIX Journey] complete title catalogue unavailable',error);}
+  return profileTitlePresentationCandidates(payload);
+}
+
+async function profileTitlePresentationCandidates(payload){
   const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
   await manifestReady;
   const definitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
@@ -576,9 +580,8 @@ function titleCollectionProgress(payload,characterId,item,completionRecordHash,v
   return {completed,total,unit,earned,complete:earned||completed!==null&&total!==null&&total>0&&completed>=total,gilded:view==='titles'&&state!==null&&(state&128)===128,requirementEntries};
 }
 
-async function resolvedTitleCollection(payload,character,view='titles'){
+async function resolvedTitleCollectionFromCandidates(payload,character,view='titles',candidates=[]){
   const characterId=String(character?.characterId||'');
-  const candidates=await titlePresentationCandidates(payload);
   const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',candidates.map(item=>item.definition?.completionRecordHash));
   const equippedHash=finiteNumber(character?.titleRecordHash);
   const titles=candidates.map(item=>{
@@ -594,6 +597,16 @@ async function resolvedTitleCollection(payload,character,view='titles'){
   }).filter(Boolean);
   const progressRatio=item=>item.completed!==null&&item.total!==null&&item.total>0?item.completed/item.total:-1;
   return titles.sort((left,right)=>Number(right.equipped)-Number(left.equipped)||Number(right.earned)-Number(left.earned)||progressRatio(right)-progressRatio(left)||left.name.localeCompare(right.name));
+}
+
+async function resolvedProfileTitleCollection(payload,character,view='titles'){
+  const candidates=await profileTitlePresentationCandidates(payload);
+  return resolvedTitleCollectionFromCandidates(payload,character,view,candidates);
+}
+
+async function resolvedTitleCollection(payload,character,view='titles'){
+  const candidates=await titlePresentationCandidates(payload);
+  return resolvedTitleCollectionFromCandidates(payload,character,view,candidates);
 }
 
 async function presentationRecordCategories(entries,nodes,characterId,recordKind){
@@ -1262,6 +1275,17 @@ async function bindTitleTriumphPanel(payload,view=recordRootView(activeRecordVie
   const character=characters[selectedCharacterId]||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
   const characterId=String(character?.characterId||'');
   if(isTitleCollection){
+    let profileTitles=[];
+    try{profileTitles=await resolvedProfileTitleCollection(payload,character,view);}
+    catch(error){console.info('[ASTRIX Journey] profile title nodes unavailable',error);}
+    if(requestId!==titleTriumphRequest)return;
+    if(profileTitles.length){
+      renderJourneyRecordList(titleCollectionList,profileTitles,`No verified Destiny ${titleCollectionLabel.toLowerCase()} were returned in the profile nodes.`,titleCollectionSelect);
+      if(recordsStatus){
+        const earned=view==='titles'?profileTitles.filter(title=>title.earned).length:null;
+        recordsStatus.textContent=view==='titles'?`${profileTitles.length} VERIFIED TITLES · ${earned} EARNED · SYNCING COMPLETE CATALOGUE`:`${profileTitles.length} VERIFIED ${titleCollectionLabel} · SYNCING COMPLETE CATALOGUE`;
+      }
+    }
     let titles=[];
     try{titles=await resolvedTitleCollection(payload,character,view);}
     catch(error){console.info('[ASTRIX Journey] title collection unavailable',error);}
@@ -2057,6 +2081,16 @@ async function bindTitleAndProgression(payload){
     const breakdown=document.createElement('dl');breakdown.className='journey-triumph-breakdown';breakdown.innerHTML=`<div><dt>ACTIVE</dt><dd>${activeScore===null?'—':numberFormatter.format(activeScore)}</dd></div><div><dt>LEGACY</dt><dd>${legacyScore===null?'—':numberFormatter.format(legacyScore)}</dd></div>`;
     triumphStatsCard.append(total,breakdown);
   }
+
+  let profileTitles=[];
+  try{profileTitles=await resolvedProfileTitleCollection(payload,character,'titles');}
+  catch(error){console.info('[ASTRIX Journey] title summary profile nodes unavailable',error);}
+  if(requestId!==profileIdentityRequest)return;
+  const profileEquipped=titleHash===null?null:profileTitles.find(title=>title.completionRecordHash===titleHash);
+  if(profileEquipped)renderEquippedTitleSummary(profileEquipped);
+  const profileNext=profileTitles.filter(title=>!title.earned&&title.completed!==null&&title.total!==null&&title.total>0&&title.completed<title.total)
+    .sort((left,right)=>(right.completed/right.total)-(left.completed/left.total)||(left.total-left.completed)-(right.total-right.completed))[0];
+  if(profileNext)renderNextTitleSummary(profileNext);
 
   let titles=[];
   try{titles=await resolvedTitleCollection(payload,character,'titles');}

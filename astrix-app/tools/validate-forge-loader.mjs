@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {armourTargetMaximums,matchArmourBuilds} from '../pages/vault/vault-armour-matcher.mjs';
-import {ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection} from '../pages/forge-loader/forge-loader-model.mjs';
+import {exoticCatalogueGroups,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection} from '../pages/forge-loader/forge-loader-model.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const read=path=>readFileSync(new URL(path,`file://${root}/`),'utf8');
@@ -24,6 +24,23 @@ assert.equal(exotics.length,1,'Forge Loader must show one tile per owned Exotic 
 assert.equal(exotics[0].instances.length,2,'Duplicate Exotic instances must remain available to the solver.');
 assert.equal(exotics[0].representative.itemInstanceId,'exotic-high','The strongest exact copy must lead the Exotic tile.');
 assert.equal(ownedExoticGroups(items,'titan').length,0,'The Exotic selector must isolate the selected Guardian class.');
+const definitions={
+  9001:{hash:9001,itemType:2,classType:1,equippable:true,inventory:{tierType:6,tierTypeName:'Exotic',bucketTypeHash:3448274439},displayProperties:{name:'Verified Exotic',icon:'/item.png'}},
+  9002:{hash:9002,itemType:2,classType:1,equippable:true,inventory:{tierType:6,tierTypeName:'Exotic',bucketTypeHash:3551918588},displayProperties:{name:'Unowned Hunter Exotic',description:'Verified collection definition',icon:'/unowned.png'}},
+  9003:{hash:9003,itemType:2,classType:0,equippable:true,inventory:{tierType:6,tierTypeName:'Exotic',bucketTypeHash:3551918588},displayProperties:{name:'Titan Exotic',icon:'/titan.png'}}
+};
+const buckets=[
+  {hash:3448274439,key:'helmet',label:'Helmet'},
+  {hash:3551918588,key:'gauntlets',label:'Gauntlets'},
+  {hash:14239492,key:'chest',label:'Chest'},
+  {hash:20886954,key:'legs',label:'Legs'},
+  {hash:1585787867,key:'class-item',label:'Class Item'}
+];
+const catalogueExotics=exoticCatalogueGroups(items,definitions,'hunter',buckets);
+assert.equal(catalogueExotics.length,2,'Forge Loader must combine owned instances with verified unowned collection definitions for the selected class.');
+assert.equal(catalogueExotics.find(row=>row.hash===9001)?.owned,true,'Owned Exotic definitions must remain selectable instance groups.');
+assert.equal(catalogueExotics.find(row=>row.hash===9002)?.owned,false,'Unowned Exotic definitions must remain visibly distinct from owned instances.');
+assert.equal(catalogueExotics.some(row=>row.hash===9003),false,'Exotic collection entries must remain isolated to the selected Guardian class.');
 
 const exotic=exotics[0];
 assert.equal(setSelectionFeasible(items,exotic,[{setHash:7001,count:4}]),true,'A legal four-slot set must enable its four-piece bonus.');
@@ -64,11 +81,24 @@ assert.match(html,/<h1>Forge Loader<\/h1>/);
 assert.match(html,/id="forgeHeroCard"/);
 assert.match(html,/id="forgeExoticSlots"/);
 assert.match(html,/id="forgeSetList"/);
+const selectorIndex=html.indexOf('class="forge-loader-selector"');
+const directivesIndex=html.indexOf('class="forge-loader-directives"');
+const outputIndex=html.indexOf('class="forge-loader-output"');
+assert.ok(selectorIndex>=0&&selectorIndex<directivesIndex&&directivesIndex<outputIndex,'Forge Loader desktop DOM must order selection, directives and Working Load as three columns.');
+assert.ok(html.indexOf('forge-stat-selector')<html.indexOf('forge-set-selector'),'Set Protocol must sit underneath Stat Directive in the middle column.');
 assert.equal((html.match(/data-target-stat=/g)||[]).length,6,'Forge Loader must retain all six Armour 3.0 stat directives.');
 assert.match(runtime,/type="checkbox"/,'Set bonuses must use checkboxes, not toggle switches.');
 assert.match(runtime,/setBonusOptions\(armourItems\(\),exotic,setSelections\)/);
 assert.match(runtime,/fixedExoticHash:exotic\.hash/);
 assert.match(runtime,/matchArmourBuilds\(armourItems\(\),targets,\{\.\.\.solverOptions\(\),limit:5/);
+assert.match(runtime,/exoticCatalogueGroups\(catalogue\.armour,inventoryDefinitions\(\),activeCharacterClass,ARMOUR_BUCKETS\)/,'Forge Loader must add verified class collection definitions without fabricating inventory instances.');
+assert.match(runtime,/group\.owned\?'':'disabled'/,'Unowned Exotic definitions must render disabled and never enter the selection event path.');
+assert.match(runtime,/group\.owned&&group\.hash===Number\(hash\)/,'The runtime must reject any unowned Exotic selection attempt.');
+assert.doesNotMatch(runtime,/ARMOUR_STAT_LABELS\[key\]\.slice/,'Calculated loads must show full stat names rather than unreadable abbreviations.');
+assert.match(runtime,/class="forge-candidate-items"[\s\S]*?class="forge-candidate-stats"/,'Calculated stats must sit beside the five-piece selection as a sibling region.');
+assert.match(css,/\.forge-loader-workspace\{[^}]*grid-template-columns:minmax\(24rem,30rem\) minmax\(22rem,28rem\) minmax\(38rem,1fr\)/,'Wide Forge Loader must use three readable columns.');
+assert.match(css,/\.forge-hero-card\{[^}]*aspect-ratio:474\/96[^}]*overflow:hidden/,'The selected Guardian emblem must fit inside its card boundary.');
+assert.match(css,/\.forge-stat-targets label>span\{[^}]*\.9rem/,'Eligible stat labels must retain the enlarged readable type scale.');
 assert.match(runtime,/document\.documentElement\.append\(panel\)/,'The inspection card must escape the density-scaled body before viewport positioning.');
 assert.match(runtime,/getBoundingClientRect\(\)/,'The inspection card must anchor to the selected item.');
 assert.doesNotMatch(css,/\.forge-item-inspect\{[^}]*right:/,'The inspection card must not be fixed to the top-right dashboard corner.');

@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css?v=20260902-forge-loader-1">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
-  <link rel="stylesheet" href="./forge-loader.css?v=20260902-forge-loader-1">
+  <link rel="stylesheet" href="./forge-loader.css?v=20260903-forge-loader-morning-1">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
 </head>
@@ -26,7 +26,7 @@
     <div class="apx-page-heading"><div><p class="apx-eyebrow">VERIFIED ARMOUR ASSEMBLY</p><h1>Forge Loader</h1><p>Anchor the build to one owned Exotic, apply compatible armour-set bonuses, then calculate exact armour combinations from the selected Guardian’s inventory.</p></div><span class="apx-status-chip" id="forgeConnectionState">RESOLVING</span></div>
 
     <section class="forge-loader-workspace" aria-label="Forge Loader armour builder">
-      <aside class="forge-loader-selector" aria-label="Guardian, Exotic and armour-set selector">
+      <aside class="forge-loader-selector" aria-label="Guardian and Exotic selector">
         <section class="forge-panel forge-selected-guardian" aria-labelledby="forgeGuardianTitle">
           <div class="forge-panel-heading"><div><p class="apx-eyebrow">SELECTED GUARDIAN</p><h2 id="forgeGuardianTitle">Guardian</h2></div><span id="forgeGuardianClass">RESOLVING</span></div>
           <div class="forge-hero-card" id="forgeHeroCard"><span>Resolving verified Guardian…</span></div>
@@ -34,18 +34,13 @@
 
         <section class="forge-panel forge-exotic-selector" aria-labelledby="forgeExoticTitle">
           <div class="forge-panel-heading"><div><p class="apx-eyebrow">BUILD ANCHOR</p><h2 id="forgeExoticTitle">Select Exotic armour</h2></div><span id="forgeExoticStatus">WAITING</span></div>
-          <p class="forge-guidance">Only verified Exotic armour owned by the selected class is available. Multiple copies are evaluated as exact Bungie instances.</p>
+          <p class="forge-guidance">Every verified Exotic for the selected class is shown. Owned pieces are selectable; unowned pieces remain visible and locked. Duplicate copies are evaluated as exact Bungie instances.</p>
           <div class="forge-exotic-slots" id="forgeExoticSlots"></div>
         </section>
 
-        <section class="forge-panel forge-set-selector" aria-labelledby="forgeSetTitle">
-          <div class="forge-panel-heading"><div><p class="apx-eyebrow">SET PROTOCOL</p><h2 id="forgeSetTitle">Armour set bonuses</h2></div><span id="forgeSetStatus">SELECT EXOTIC</span></div>
-          <p class="forge-guidance">Choose one four-piece bonus or up to two compatible two-piece bonuses. Unavailable combinations remain locked.</p>
-          <div class="forge-set-list" id="forgeSetList"><div class="forge-empty">Select an Exotic to calculate compatible set bonuses.</div></div>
-        </section>
       </aside>
 
-      <section class="forge-loader-output" aria-label="Stat targets and matched armour">
+      <section class="forge-loader-directives" aria-label="Stat directive and armour-set protocol">
         <section class="forge-panel forge-stat-selector" aria-labelledby="forgeStatsTitle">
           <div class="forge-panel-heading"><div><p class="apx-eyebrow">STAT DIRECTIVE</p><h2 id="forgeStatsTitle">Desired stat distribution</h2></div><span id="forgeStatStatus">SELECT EXOTIC</span></div>
           <div class="forge-stat-targets" id="forgeStatTargets">
@@ -60,6 +55,14 @@
           <p class="forge-runtime-status" id="forgeRuntimeStatus" role="status">Select an owned Exotic to initialise the Forge Loader.</p>
         </section>
 
+        <section class="forge-panel forge-set-selector" aria-labelledby="forgeSetTitle">
+          <div class="forge-panel-heading"><div><p class="apx-eyebrow">SET PROTOCOL</p><h2 id="forgeSetTitle">Armour set bonuses</h2></div><span id="forgeSetStatus">SELECT EXOTIC</span></div>
+          <p class="forge-guidance">Choose one four-piece bonus or up to two compatible two-piece bonuses. Unavailable combinations remain locked.</p>
+          <div class="forge-set-list" id="forgeSetList"><div class="forge-empty">Select an Exotic to calculate compatible set bonuses.</div></div>
+        </section>
+      </section>
+
+      <section class="forge-loader-output" aria-label="Working load and matched armour">
         <section class="forge-panel forge-staged" aria-labelledby="forgeStagedTitle">
           <div class="forge-panel-heading"><div><p class="apx-eyebrow">WORKING LOAD</p><h2 id="forgeStagedTitle">Staged armour</h2></div><span id="forgeStagedStatus">NO COMBINATION</span></div>
           <div class="forge-staged-slots" id="forgeStagedSlots"></div>
@@ -82,6 +85,6 @@
 
   <aside class="forge-item-inspect" id="forgeItemInspect" hidden aria-hidden="true"></aside>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-forge-loader-1"></script>
-  <script type="module" src="./forge-loader.mjs?v=20260902-forge-loader-1"></script>
+  <script type="module" src="./forge-loader.mjs?v=20260903-forge-loader-morning-1"></script>
 </body>
 </html>

@@ -39,7 +39,7 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260902-recent-guardian-emblem-1"'),'Journey must load the cache-busted emblem alignment treatment');
-assert.ok(html.includes('src="./journey.mjs?v=20260902-journey-fast-records-1"'),'Journey must load the nonblocking Triumph and Records module graph');
+assert.ok(html.includes('src="./journey.mjs?v=20260903-journey-progressive-records-1"'),'Journey must load the progressive Triumph and Records module graph');
 assert.match(journey,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey startup must not download the heavyweight Character and Build equipment manifest');
 assert.doesNotMatch(journey,/const manifestReady=guardianManifest\.ready\(\)/,'Journey must keep the full equipment manifest off its critical loading path');
 assert.match(heroModule,/IS_JOURNEY_PAGE[\s\S]*?ASTRIX_HERO_PROFILE_PROMISE[\s\S]*?scope/,'Journey hero cards must expose and reuse their scoped authenticated profile request');
@@ -86,6 +86,8 @@ assert.match(css,/\.journey-page \.journey-left-summaries \.journey-equipped-tit
 assert.match(journey,/profileRecords\?\.data\?\.recordSealsRootNodeHash[\s\S]*?titlePresentationCatalog/,'Journey Titles must start from Bungie’s authoritative Triumph Seals root');
 assert.match(journey,/const hookedRows=isTitleCollection\?null:journeyRecordHookRows\(payload,view\)/,'The complete title catalogue must not be replaced by a partial supplied row list');
 assert.match(journey,/titlePresentationCatalog[\s\S]*?definition\?\.children\?\.presentationNodes[\s\S]*?completionRecordHash/,'Journey must traverse the complete manifest seal hierarchy rather than only returned progress nodes');
+assert.match(journey,/profileTitlePresentationCandidates[\s\S]*?profilePresentationNodes\?\.data\?\.nodes[\s\S]*?DestinyPresentationNodeDefinition/,'Journey must map verified returned title nodes before the complete seal traversal finishes');
+assert.match(journey,/bindTitleTriumphPanel[\s\S]*?resolvedProfileTitleCollection[\s\S]*?SYNCING COMPLETE CATALOGUE[\s\S]*?resolvedTitleCollection/,'Journey must progressively render verified profile Titles and then reconcile the complete catalogue');
 assert.match(journey,/requirementStates[\s\S]*?\(state&4\)!==4[\s\S]*?requirementEntries\.length/,'Missing presentation-node totals must be derived from verified title requirement records');
 assert.match(journey,/const earned=view==='titles'&&state!==null&&\(state&64\)===64/,'Journey must use Bungie’s CanEquipTitle record state for earned titles');
 assert.match(journey,/recordsStatus\.textContent=view==='titles'\?`\$\{titles\.length\} TITLES · \$\{earned\} EARNED`/,'Titles status must distinguish the complete catalogue from the earned subset');

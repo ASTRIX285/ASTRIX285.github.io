@@ -41,7 +41,7 @@ assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidde
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
 assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260902-recent-guardian-emblem-1/,'Journey must load the cache-busted latest-Guardian and emblem styling');
-assert.match(journeyHtml,/journey\.mjs\?v=20260902-journey-fast-records-1/,'Journey must load the cache-busted nonblocking Triumph and Records module graph');
+assert.match(journeyHtml,/journey\.mjs\?v=20260903-journey-progressive-records-1/,'Journey must load the cache-busted progressive Triumph and Records module graph');
 assert.match(journeyModule,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey must not block on the full equipment manifest');
 assert.match(journeyModule,/ASTRIX_HERO_PROFILE_PROMISE/,'Journey must reuse the authenticated hero-card profile request');
 assert.doesNotMatch(journeyModule,/guardianManifest\.hydratePayload\(payload\)/,'Journey must not hydrate every equipment definition before binding records');
@@ -76,6 +76,8 @@ assert.match(journeyCss,/\.journey-page \.journey-left-summaries \.journey-equip
 assert.match(journeyModule,/profileRecords\?\.data\?\.recordSealsRootNodeHash[\s\S]*?titlePresentationCatalog/,'The sandbox must enumerate Titles from Bungie’s authoritative Triumph Seals root');
 assert.match(journeyModule,/const hookedRows=isTitleCollection\?null:journeyRecordHookRows\(payload,view\)/,'The sandbox must not replace the full title catalogue with a partial supplied row list');
 assert.match(journeyModule,/titlePresentationCatalog[\s\S]*?definition\?\.children\?\.presentationNodes[\s\S]*?completionRecordHash/,'The sandbox must traverse all seal definitions instead of only earned profile nodes');
+assert.match(journeyModule,/profileTitlePresentationCandidates[\s\S]*?profilePresentationNodes\?\.data\?\.nodes[\s\S]*?DestinyPresentationNodeDefinition/,'The sandbox must publish verified returned title nodes before complete seal reconciliation');
+assert.match(journeyModule,/bindTitleTriumphPanel[\s\S]*?resolvedProfileTitleCollection[\s\S]*?SYNCING COMPLETE CATALOGUE[\s\S]*?resolvedTitleCollection/,'The sandbox must reconcile progressive title rows with the authoritative complete catalogue');
 assert.match(journeyModule,/requirementStates[\s\S]*?\(state&4\)!==4[\s\S]*?requirementEntries\.length/,'All title rows must retain verified requirement progress when presentation totals are absent');
 assert.match(journeyModule,/const earned=view==='titles'&&state!==null&&\(state&64\)===64/,'The sandbox must count earned Titles with Bungie’s CanEquipTitle flag');
 assert.match(journeyModule,/recordsStatus\.textContent=view==='titles'\?`\$\{titles\.length\} TITLES · \$\{earned\} EARNED`/,'The sandbox must display complete and earned title totals separately');

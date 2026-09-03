@@ -1,6 +1,8 @@
 import {armourSetHash} from '../vault/vault-armour-matcher.mjs';
 
 const finite=value=>Number.isFinite(Number(value))?Number(value):0;
+const CLASS_TYPES=Object.freeze({titan:0,hunter:1,warlock:2});
+const BUNGIE_ORIGIN='https://www.bungie.net';
 
 function compatibleWithClass(item,className=''){
   const requested=String(className||'').trim().toLowerCase();
@@ -21,6 +23,27 @@ function ownedExoticGroups(items=[],className=''){
     group.representative=group.instances[0]||null;
     return group;
   }).sort((left,right)=>left.slotIndex-right.slotIndex||left.name.localeCompare(right.name));
+}
+
+function exoticCatalogueGroups(items=[],definitions={},className='',armourBuckets=[]){
+  const owned=ownedExoticGroups(items,className);
+  const groups=new Map(owned.map(group=>[group.hash,{...group,owned:true,definition:null,preview:group.representative}]));
+  const classType=CLASS_TYPES[String(className||'').trim().toLowerCase()];
+  const slots=new Map((Array.isArray(armourBuckets)?armourBuckets:[]).map((slot,index)=>[Number(slot?.hash),{...slot,index}]));
+  if(Number.isInteger(classType)){
+    for(const [key,definition] of Object.entries(definitions||{})){
+      const hash=Number(definition?.hash??key);
+      const slot=slots.get(Number(definition?.inventory?.bucketTypeHash));
+      const display=definition?.displayProperties||{};
+      if(!Number.isInteger(hash)||hash<=0||groups.has(hash)||!slot)continue;
+      if(Number(definition?.itemType)!==2||Number(definition?.inventory?.tierType)!==6||Number(definition?.classType)!==classType)continue;
+      if(definition?.redacted===true||definition?.equippable===false||!String(display.name||'').trim()||!String(display.icon||'').trim())continue;
+      const icon=new URL(display.icon,BUNGIE_ORIGIN).toString();
+      const preview={itemHash:hash,hash,name:String(display.name).trim(),description:String(display.description||'').trim(),icon,slotIndex:slot.index,slotKey:slot.key,slotLabel:slot.label,tier:String(definition?.inventory?.tierTypeName||'Exotic'),isExotic:true,characterClass:String(className).toLowerCase(),verifiedDefinition:true,definition};
+      groups.set(hash,{hash,itemHash:hash,name:preview.name,slotIndex:slot.index,slotKey:slot.key,slotLabel:slot.label,icon,description:preview.description,characterClass:preview.characterClass,instances:[],representative:null,preview,owned:false,definition});
+    }
+  }
+  return [...groups.values()].sort((left,right)=>left.slotIndex-right.slotIndex||Number(right.owned)-Number(left.owned)||left.name.localeCompare(right.name));
 }
 
 function constrainedSlotChoices(items=[],fixedExotic={}){
@@ -119,4 +142,4 @@ function toggleSetSelection(items=[],fixedExotic={},selections=[],choice={},chec
   return setSelectionFeasible(items,fixedExotic,next)?next:normaliseSelections(selections);
 }
 
-export {compatibleWithClass,normaliseSelections,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection};
+export {compatibleWithClass,exoticCatalogueGroups,normaliseSelections,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection};
