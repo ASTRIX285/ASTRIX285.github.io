@@ -88,6 +88,26 @@ function normaliseTargets(targets={}){
   return Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Math.min(ARMOUR_STAT_CAP,Math.max(0,Math.round(finite(targets[key]))))]));
 }
 
+function normaliseStatPriorities(priorities={}){
+  const used=new Set();
+  return Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>{
+    const rank=Math.round(finite(priorities[key]));
+    if(rank<1||rank>ARMOUR_STAT_KEYS.length||used.has(rank))return [key,0];
+    used.add(rank);return [key,rank];
+  }));
+}
+
+function comparePriorityShortfalls(left=[],right=[]){
+  for(let index=0;index<Math.max(left.length,right.length);index++){
+    const delta=finite(left[index])-finite(right[index]);if(delta)return delta;
+  }
+  return 0;
+}
+
+function compareArmourScores(left={},right={}){
+  return comparePriorityShortfalls(left.priorityShortfalls,right.priorityShortfalls)||finite(left.shortfall)-finite(right.shortfall)||finite(right.priorityTotal)-finite(left.priorityTotal)||finite(right.effectiveTotal)-finite(left.effectiveTotal)||finite(right.total)-finite(left.total);
+}
+
 function armourTargetMaximums(items=[],options={}){
   const groups=constrainedGroups(items,options);
   const requirements=setRequirements(options);
@@ -113,10 +133,12 @@ function armourTargetMaximums(items=[],options={}){
   }));
 }
 
-function scoreArmourStats(stats={},targets={}){
+function scoreArmourStats(stats={},targets={},priorities={}){
   const requested=normaliseTargets(targets);
+  const statPriorities=normaliseStatPriorities(priorities);
   const effectiveStats=Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Math.min(ARMOUR_STAT_CAP,Math.max(0,finite(stats[key])))]));
   const active=ARMOUR_STAT_KEYS.filter(key=>requested[key]>0);
+  const priorityOrder=active.filter(key=>statPriorities[key]>0).sort((left,right)=>statPriorities[left]-statPriorities[right]);
   let shortfall=0,overshoot=0,distance=0;
   for(const key of active){
     const delta=effectiveStats[key]-requested[key];
@@ -126,17 +148,21 @@ function scoreArmourStats(stats={},targets={}){
   const total=ARMOUR_STAT_KEYS.reduce((sum,key)=>sum+finite(stats[key]),0);
   const effectiveTotal=ARMOUR_STAT_KEYS.reduce((sum,key)=>sum+effectiveStats[key],0);
   const priorityTotal=active.reduce((sum,key)=>sum+effectiveStats[key],0);
-  return {active,effectiveStats,met:active.length>0&&shortfall===0,shortfall,overshoot,distance,total,effectiveTotal,priorityTotal,rank:shortfall*1_000_000_000-priorityTotal*1_000_000-effectiveTotal*1_000-total};
+  const shortfallByStat=Object.fromEntries(active.map(key=>[key,Math.max(0,requested[key]-effectiveStats[key])]));
+  const priorityShortfalls=priorityOrder.map(key=>shortfallByStat[key]);
+  return {active,statPriorities,priorityOrder,priorityShortfalls,shortfallByStat,effectiveStats,met:active.length>0&&shortfall===0,shortfall,overshoot,distance,total,effectiveTotal,priorityTotal};
 }
 
 function matchArmourBuilds(items=[],targets={},options={}){
   const requested=normaliseTargets(targets);
-  if(!ARMOUR_STAT_KEYS.some(key=>requested[key]>0))return [];
+  if(!ARMOUR_STAT_KEYS.some(key=>requested[key]>0)&&options.autoMaximum!==true)return [];
   const returnAll=options.all===true;
   const limit=returnAll?Number.POSITIVE_INFINITY:Math.max(1,Math.min(20,Math.round(finite(options.limit)||5)));
   const beamLimit=returnAll?Number.POSITIVE_INFINITY:Math.max(100,Math.min(10000,Math.round(finite(options.beamLimit)||2500)));
   const groups=constrainedGroups(items,options);
   const requirements=setRequirements(options);
+  const statPriorities=normaliseStatPriorities(options.statPriorities);
+  const priorityOrder=ARMOUR_STAT_KEYS.filter(key=>requested[key]>0&&statPriorities[key]>0).sort((left,right)=>statPriorities[left]-statPriorities[right]);
   if(groups.some(group=>group.length===0))return [];
   if(!canCompleteSetRequirements(groups,0,requirements.map(()=>0),requirements))return [];
   const remaining=Array.from({length:groups.length+1},emptyVector);
@@ -146,13 +172,15 @@ function matchArmourBuilds(items=[],targets={},options={}){
   }
   const partialRank=(state,nextSlot)=>{
     let optimisticShortfall=0,lockedOvershoot=0;
+    const priorityShortfalls=[];
     for(const key of ARMOUR_STAT_KEYS.filter(name=>requested[name]>0)){
       const current=Math.min(ARMOUR_STAT_CAP,state.stats[key]),optimistic=Math.min(ARMOUR_STAT_CAP,state.stats[key]+remaining[nextSlot][key]);
-      optimisticShortfall+=Math.max(0,requested[key]-optimistic);
+      const shortfall=Math.max(0,requested[key]-optimistic);optimisticShortfall+=shortfall;
+      if(priorityOrder.includes(key))priorityShortfalls[priorityOrder.indexOf(key)]=shortfall;
       lockedOvershoot+=Math.max(0,current-requested[key]);
     }
     const effectiveTotal=ARMOUR_STAT_KEYS.reduce((sum,key)=>sum+Math.min(ARMOUR_STAT_CAP,state.stats[key]),0);
-    return optimisticShortfall*1_000_000_000+lockedOvershoot*1_000_000-effectiveTotal;
+    return {priorityShortfalls,optimisticShortfall,lockedOvershoot,effectiveTotal};
   };
   let beam=[{items:[],stats:emptyVector(),exoticCount:0,setCounts:requirements.map(()=>0),signature:''}];
   for(let slot=0;slot<groups.length;slot++){
@@ -169,12 +197,12 @@ function matchArmourBuilds(items=[],targets={},options={}){
       candidate.partialRank=partialRank(candidate,slot+1);
       next.push(candidate);
     }
-    next.sort((left,right)=>left.partialRank-right.partialRank||left.signature.localeCompare(right.signature));
+    next.sort((left,right)=>comparePriorityShortfalls(left.partialRank.priorityShortfalls,right.partialRank.priorityShortfalls)||left.partialRank.optimisticShortfall-right.partialRank.optimisticShortfall||left.partialRank.lockedOvershoot-right.partialRank.lockedOvershoot||right.partialRank.effectiveTotal-left.partialRank.effectiveTotal||left.signature.localeCompare(right.signature));
     beam=returnAll?next:next.slice(0,beamLimit);
   }
-  return beam.map(candidate=>({...candidate,score:scoreArmourStats(candidate.stats,requested)}))
-    .sort((left,right)=>left.score.rank-right.score.rank||left.signature.localeCompare(right.signature))
+  return beam.map(candidate=>({...candidate,score:scoreArmourStats(candidate.stats,requested,statPriorities)}))
+    .sort((left,right)=>compareArmourScores(left.score,right.score)||left.signature.localeCompare(right.signature))
     .slice(0,limit);
 }
 
-export {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourSetHash,armourStatVector,armourTargetMaximums,matchArmourBuilds,normaliseTargets,scoreArmourStats,setRequirements,statKey};
+export {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourSetHash,armourStatVector,armourTargetMaximums,compareArmourScores,matchArmourBuilds,normaliseStatPriorities,normaliseTargets,scoreArmourStats,setRequirements,statKey};

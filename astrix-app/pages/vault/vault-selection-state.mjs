@@ -43,6 +43,15 @@ function normaliseStatVector(value={}){
   return Object.fromEntries(['health','melee','grenade','super','class','weapon'].map(key=>[key,Math.min(ARMOUR_STAT_CAP,nonNegative(value?.[key]))]));
 }
 
+function normaliseStatPriorities(value={}){
+  const used=new Set();
+  return Object.fromEntries(['health','melee','grenade','super','class','weapon'].map(key=>{
+    const rank=Math.round(nonNegative(value?.[key]));
+    if(rank<1||rank>6||used.has(rank))return [key,0];
+    used.add(rank);return [key,rank];
+  }));
+}
+
 function normaliseForgeLoaderDecision(value){
   if(!value||Number(value.schemaVersion)!==1)return null;
   const anchor=value.buildAnchor||{},instanceId=text(anchor.selectedItemInstanceId),selectedItemHash=positiveInteger(anchor.selectedItemHash);
@@ -54,7 +63,7 @@ function normaliseForgeLoaderDecision(value){
   return {
     schemaVersion:1,
     buildAnchor:{identityKey:text(anchor.identityKey),name:text(anchor.name),itemHashes:[...new Set((Array.isArray(anchor.itemHashes)?anchor.itemHashes:[]).map(positiveInteger).filter(Boolean))],selectedItemHash,selectedItemInstanceId:instanceId,perk:normaliseTrait(anchor.perk)},
-    statDirective:{targets,achieved,allTargetsMet:Boolean(value.statDirective?.allTargetsMet),shortfall:nonNegative(value.statDirective?.shortfall),rawTotal:nonNegative(value.statDirective?.rawTotal),modsApplied:false},
+    statDirective:{targets,priorities:normaliseStatPriorities(value.statDirective?.priorities),achieved,allTargetsMet:Boolean(value.statDirective?.allTargetsMet),shortfall:nonNegative(value.statDirective?.shortfall),rawTotal:nonNegative(value.statDirective?.rawTotal),modsApplied:false},
     setProtocol,
     ranking:{position,totalCombinations,maximized:position===1&&Boolean(value.ranking?.maximized)}
   };

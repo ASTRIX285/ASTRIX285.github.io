@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css?v=20260902-forge-loader-1">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260902-recent-guardian-emblem-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
-  <link rel="stylesheet" href="./forge-loader.css?v=20260903-slider-fill-1">
+  <link rel="stylesheet" href="./forge-loader.css?v=20260903-stat-priority-1">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
 </head>
@@ -43,12 +43,12 @@
         <section class="forge-panel forge-stat-selector" aria-labelledby="forgeStatsTitle">
           <div class="forge-panel-heading"><div><p class="apx-eyebrow">STAT DIRECTIVE</p><h2 id="forgeStatsTitle">Desired stat distribution</h2></div><span id="forgeStatStatus">SELECT EXOTIC</span></div>
           <div class="forge-stat-targets" id="forgeStatTargets">
-            <label data-target-stat="health"><span>HEALTH</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="health" disabled>MAX</button></label>
-            <label data-target-stat="melee"><span>MELEE</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="melee" disabled>MAX</button></label>
-            <label data-target-stat="grenade"><span>GRENADE</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="grenade" disabled>MAX</button></label>
-            <label data-target-stat="super"><span>SUPER</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="super" disabled>MAX</button></label>
-            <label data-target-stat="class"><span>CLASS</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="class" disabled>MAX</button></label>
-            <label data-target-stat="weapon"><span>WEAPON</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="weapon" disabled>MAX</button></label>
+            <label data-target-stat="health"><span>HEALTH</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="health" disabled>MAX</button><select data-stat-priority="health" aria-label="Health priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="melee"><span>MELEE</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="melee" disabled>MAX</button><select data-stat-priority="melee" aria-label="Melee priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="grenade"><span>GRENADE</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="grenade" disabled>MAX</button><select data-stat-priority="grenade" aria-label="Grenade priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="super"><span>SUPER</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="super" disabled>MAX</button><select data-stat-priority="super" aria-label="Super priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="class"><span>CLASS</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="class" disabled>MAX</button><select data-stat-priority="class" aria-label="Class priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="weapon"><span>WEAPON</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="weapon" disabled>MAX</button><select data-stat-priority="weapon" aria-label="Weapon priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
           </div>
           <div class="forge-stat-actions"><button type="button" id="forgeFindBuilds" disabled>CALCULATE ALL COMBINATIONS</button><button type="button" id="forgeResetTargets" disabled>RESET TARGETS</button></div>
           <p class="forge-runtime-status" id="forgeRuntimeStatus" role="status">Select an owned Exotic to initialise the Forge Loader.</p>
@@ -85,6 +85,6 @@
 
   <aside class="forge-item-inspect" id="forgeItemInspect" hidden aria-hidden="true"></aside>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-forge-loader-1"></script>
-  <script type="module" src="./forge-loader.mjs?v=20260903-slider-fill-1"></script>
+  <script type="module" src="./forge-loader.mjs?v=20260903-stat-priority-1"></script>
 </body>
 </html>
