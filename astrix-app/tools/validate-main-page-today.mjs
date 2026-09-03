@@ -183,7 +183,7 @@ assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuil
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
 assert.match(buildHtml,/paradox-build-space\.css\?v=20260903-loadout-intelligence-1/,'Build must load the responsive five-card Build Forge presentation without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-compact-selection-1/,'Build must load the compact staged-armour recovery runtime without stale code');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-build-render-rescue-1/,'Build must load the recovered-profile render rescue without stale code');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/const artifactItems=resolvedOptions\(build,'artifact'\)/,'Build Artifact selector must expose the verified Artifact 2.0 catalogue for Forge ranking');
