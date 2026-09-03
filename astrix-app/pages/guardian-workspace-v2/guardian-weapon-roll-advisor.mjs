@@ -1,6 +1,6 @@
 import {adviseWeaponRoll} from "../../core/weapon-roll-advisor.mjs";
 
-const INTELLIGENCE_URL="../../data/paradox-forge/intelligence/weapon-perk-intelligence.json";
+const INTELLIGENCE_URL=new URL("../../data/paradox-forge/intelligence/weapon-perk-intelligence.json",import.meta.url);
 let intelligencePromise=null;
 
 function loadIntelligence(){

@@ -223,3 +223,69 @@ html,body{
 .build-rail-nav{display:flex;justify-content:flex-end;min-height:30px;margin:-4px 0 6px}
 .build-back-btn{min-height:28px;padding:5px 10px;font:700 8px Orbitron,Inter,sans-serif;letter-spacing:.08em;cursor:pointer}
 .build-back-btn:hover,.build-back-btn:focus-visible{border-color:rgba(100,226,182,.62);color:#6fe3b6;outline:none}
+
+/* Complete Build Forge composition: Journey-style left / centre / right rails. */
+.build-space{grid-template-columns:minmax(280px,320px) minmax(700px,1fr) minmax(340px,360px);align-items:start}
+.build-right-rail{min-width:0;display:grid;align-content:start;gap:12px}
+.build-right-rail>.panel{min-width:0;padding:16px}
+.design-canvas .loadouts-design-section,
+.design-canvas .armour-design-section,
+.design-canvas .weapon-design-section{margin:0 0 14px;padding:14px;border:1px solid rgba(180,132,45,.28);border-radius:12px;background:linear-gradient(180deg,rgba(18,15,23,.88),rgba(9,8,12,.9))}
+.section-guidance{margin:-3px 0 12px;color:#96949c;font-size:10px;line-height:1.5}
+.armour-verification-line{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:7px;padding-top:6px;border-top:1px solid rgba(255,255,255,.07);color:#71dcb2;font:700 6px/1.35 Orbitron,sans-serif;letter-spacing:.04em}
+.armour-verification-line span:last-child{color:#c8a747;text-align:right}
+.weapon-recommended-perks{margin-top:7px;padding-top:6px;border-top:1px solid rgba(216,180,82,.24)}
+.weapon-recommended-perks>b,.weapon-recommended-perks>small{display:block;color:#d9b84f;font:800 6px/1.35 Orbitron,sans-serif;letter-spacing:.06em}
+.weapon-recommended-perks>div{display:flex;gap:4px;margin-top:5px}
+.weapon-recommended-perks>div span{width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(113,203,255,.7);background:rgba(77,177,255,.22);overflow:hidden}
+.weapon-recommended-perks>div img{width:100%;height:100%;object-fit:contain}
+
+/* Verified recommendation controls occupy their own right-rail container. */
+.working-only-chip{padding:6px 8px;border:1px solid rgba(111,227,182,.38);border-radius:7px;color:#6fe3b6;background:rgba(30,106,78,.1);font:800 7px Orbitron,sans-serif;letter-spacing:.08em}
+.recommendation-copy{margin:12px 0;color:#aaa;font-size:10px;line-height:1.55}
+.element-recommendation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.element-recommendation-grid button{min-height:42px;border:1px solid rgba(180,132,45,.34);border-radius:7px;background:#0b0b0e;color:#aaa;font:800 8px Orbitron,sans-serif;letter-spacing:.08em;cursor:pointer}
+.element-recommendation-grid button:hover:not(:disabled),.element-recommendation-grid button:focus-visible{border-color:#d9b84f;color:#fff;outline:none}
+.element-recommendation-grid button.is-selected{border-color:#f2d468;color:#fff;background:linear-gradient(145deg,rgba(196,38,48,.24),rgba(217,184,79,.12));box-shadow:0 0 0 1px rgba(217,184,79,.48),0 0 15px rgba(217,184,79,.16)}
+.element-recommendation-grid button:disabled{opacity:.28;cursor:not-allowed}
+.element-recommendation-grid [data-recommendation-element="arc"]{--element-colour:#70d8ff}.element-recommendation-grid [data-recommendation-element="solar"]{--element-colour:#ff8a37}.element-recommendation-grid [data-recommendation-element="strand"]{--element-colour:#49d36e}.element-recommendation-grid [data-recommendation-element="stasis"]{--element-colour:#4c83ff}.element-recommendation-grid [data-recommendation-element="void"]{--element-colour:#a56cff}.element-recommendation-grid [data-recommendation-element="prismatic"]{--element-colour:#e69cff}
+.element-recommendation-grid button.is-selected{box-shadow:inset 3px 0 var(--element-colour),0 0 0 1px rgba(217,184,79,.48),0 0 15px rgba(217,184,79,.16)}
+.recommendation-readiness{margin-top:10px;padding:9px 10px;border-left:2px solid #b5363f;background:rgba(95,13,20,.12);color:#b3afb5;font-size:9px;line-height:1.45}
+.recommendation-readiness.is-ready{border-left-color:#6fe3b6;background:rgba(30,106,78,.1);color:#83e4bd}
+.generate-build-btn{width:100%;margin-top:10px;min-height:42px;border:1px solid rgba(216,50,59,.82);border-radius:8px;background:linear-gradient(180deg,#6f0d14,#3e070b);color:#efd46c;font:800 8px Orbitron,sans-serif;letter-spacing:.08em;cursor:pointer}
+.generate-build-btn:hover:not(:disabled),.generate-build-btn:focus-visible{border-color:#efd46c;color:#fff;outline:none;box-shadow:0 0 16px rgba(216,50,59,.22)}
+.generate-build-btn:disabled{opacity:.36;cursor:not-allowed}
+
+/* Validation is intentionally isolated from generation and live transfer. */
+.validation-panel{margin:0!important;padding:16px!important}
+.validation-panel .test-configuration{grid-template-columns:repeat(2,minmax(0,1fr))}
+.validation-panel .destination-control{grid-column:1/-1}
+.validation-panel .test-flow{grid-template-columns:1fr auto 1fr auto 1fr}
+.validation-panel #downloadRangeEvidence{width:100%;margin-top:9px}
+.intelligence{padding:16px}
+
+/* Full review hides the forge visually but cannot perform a live action by itself. */
+.recommended-build-reveal[hidden]{display:none!important}
+.recommended-build-reveal{position:fixed;inset:0;z-index:120;display:grid;place-items:start center;padding:clamp(18px,4vh,52px) clamp(12px,3vw,48px);overflow:auto;background:rgba(2,2,5,.88);backdrop-filter:blur(10px)}
+.recommended-build-dialog{width:min(1500px,100%);border:1px solid rgba(216,50,59,.72);border-radius:14px;background:linear-gradient(155deg,rgba(24,18,23,.99),rgba(7,7,10,.995) 58%);box-shadow:0 30px 100px rgba(0,0,0,.82),0 0 40px rgba(190,25,35,.16);overflow:hidden}
+.recommended-build-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:20px 22px;border-bottom:1px solid rgba(216,50,59,.35)}
+.recommended-build-header small,.review-section-heading span{color:#c8a747;font:700 8px Orbitron,sans-serif;letter-spacing:.12em}.recommended-build-header h2{margin:5px 0 0;color:#fff;font:800 22px Orbitron,sans-serif;letter-spacing:.07em}.recommended-build-header p{margin:7px 0 0;color:#aaa;font-size:11px}
+.recommended-build-close{width:38px;height:38px;border:1px solid rgba(255,255,255,.18);border-radius:8px;background:#0a0a0d;color:#fff;cursor:pointer}.recommended-build-close:hover,.recommended-build-close:focus-visible{border-color:#d9b84f;outline:none}
+.recommended-build-safety{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 22px;border-bottom:1px solid rgba(111,227,182,.22);background:rgba(30,106,78,.11)}
+.recommended-build-safety b{color:#6fe3b6;font:800 9px Orbitron,sans-serif;letter-spacing:.09em}.recommended-build-safety span{color:#b9c8c2;font-size:10px;text-align:right}
+.recommended-build-content{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(700px,1.8fr);gap:12px;padding:16px}
+.recommended-build-content>section{min-width:0;padding:14px;border:1px solid rgba(180,132,45,.28);border-radius:11px;background:rgba(255,255,255,.018)}
+.recommended-build-content>section:nth-child(2),.recommended-build-content>section:nth-child(3){grid-column:2}.recommended-build-content>section:nth-child(4){grid-column:1;grid-row:2/4}
+.review-section-heading{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,.08)}.review-section-heading h3{margin:0;font:800 11px Orbitron,sans-serif;letter-spacing:.08em}
+.recommended-subclass-summary{display:grid;gap:12px}.review-subclass-identity,.review-artifact-identity{display:flex;align-items:center;gap:10px}.review-subclass-identity>div,.review-artifact-identity>div{display:grid;gap:4px}.review-subclass-identity b,.review-artifact-identity b{font:800 10px Orbitron,sans-serif}.review-subclass-identity span,.review-artifact-identity span{color:#999;font-size:9px}
+.review-icon{min-width:0;width:44px;display:grid;gap:4px;justify-items:center;color:#aaa;text-align:center}.review-icon>img,.review-icon:not(:has(img)){width:44px;height:44px;object-fit:contain;border:1px solid rgba(113,203,255,.48);border-radius:7px;background:#090b0d;padding:2px}.review-icon small{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:6px}
+.review-socket-group>b{display:block;margin-bottom:7px;color:#c8a747;font:700 7px Orbitron,sans-serif;letter-spacing:.08em}.review-socket-group>div,.review-artifact-perks{display:flex;flex-wrap:wrap;gap:7px}
+.recommended-armour-summary .gear-columns{grid-template-columns:repeat(5,minmax(120px,1fr))}
+.recommended-armour-summary .gear-slot{padding:7px}.recommended-armour-summary .gear-arm-anchor .arm{width:82px!important;height:82px!important}
+.recommended-weapons-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.review-weapon{min-width:0;padding:10px;border:1px solid rgba(147,35,43,.46);border-radius:9px;background:#09090c}.review-weapon>div:first-child{display:flex;align-items:center;gap:8px}.review-weapon>div:first-child>span{min-width:0;display:grid;gap:4px}.review-weapon b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:800 8px Orbitron,sans-serif}.review-weapon small{color:#929099;font-size:8px}.review-weapon-perks{display:flex;gap:6px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+.recommended-artifact-summary{display:grid;gap:14px}.recommended-build-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 20px;border-top:1px solid rgba(216,50,59,.35);background:#08080b}.recommended-build-actions>div{display:flex;align-items:center;justify-content:flex-end;gap:12px}.recommended-build-actions small{max-width:420px;color:#aaa;font-size:9px;line-height:1.4;text-align:right}.recommended-build-actions .primary{width:auto;min-width:220px;margin:0}.recommended-build-actions .primary:disabled{cursor:not-allowed}
+body.recommended-build-open{overflow:hidden!important}
+
+@media(max-width:1380px){.build-space{grid-template-columns:minmax(280px,330px) minmax(620px,1fr)}.build-right-rail{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.build-right-rail>.intelligence{grid-column:1/-1}.recommended-build-content{grid-template-columns:1fr}.recommended-build-content>section,.recommended-build-content>section:nth-child(2),.recommended-build-content>section:nth-child(3),.recommended-build-content>section:nth-child(4){grid-column:1;grid-row:auto}}
+@media(max-width:900px){.build-space{grid-template-columns:1fr}.build-rail,.design-canvas,.build-right-rail{grid-column:1}.build-right-rail{grid-template-columns:1fr}.recommended-build-safety,.recommended-build-actions,.recommended-build-actions>div{align-items:stretch;flex-direction:column}.recommended-build-actions small{text-align:left}.recommended-build-actions .primary{width:100%}.recommended-weapons-summary{grid-template-columns:1fr}}
+@media(max-width:720px){.validation-panel .test-configuration{grid-template-columns:1fr}.validation-panel .destination-control{grid-column:1}.validation-panel .test-flow{grid-template-columns:1fr}.recommended-build-content{padding:8px}.recommended-build-header,.recommended-build-safety{padding:14px}.recommended-armour-summary .gear-columns{grid-template-columns:1fr}.recommended-build-reveal{padding:8px}}
