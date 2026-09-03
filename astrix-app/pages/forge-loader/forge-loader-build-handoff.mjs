@@ -66,6 +66,8 @@ function compactForgeLoaderProfileBuild(profileBuild={},binding={}){
     artifactConfiguration:compactValue(profileBuild.artifactConfiguration||profileBuild.artifact?.artifactConfiguration||null),
     availableArtifacts:compactValue(profileBuild.availableArtifacts||[]),
     artifactOptions:compactValue(profileBuild.artifactOptions||[]),
+    currentSeasonNumber:Number.isInteger(Number(profileBuild.currentSeasonNumber))?Number(profileBuild.currentSeasonNumber):null,
+    currentSeason:compactValue(profileBuild.currentSeason||null),
     weapons:compactValue(profileBuild.weapons||[]),
     armour:compactValue(profileBuild.armour||[]),
     mods:compactValue(profileBuild.mods||profileBuild.armourMods||[]),

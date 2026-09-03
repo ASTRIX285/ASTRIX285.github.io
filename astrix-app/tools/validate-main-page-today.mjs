@@ -156,6 +156,7 @@ assert.match(buildHtml,/<section class="design-section loadouts-design-section"[
 assert.doesNotMatch(buildHtml,/<section class="design-section armour-design-section gear-combined"[\s\S]*?id="guardianLoadouts"/,'Build Armour & Mods must not contain the in-game loadout tray');
 assert.match(buildHtml,/<section class="design-section armour-design-section gear-combined"[\s\S]*?<div class="eq-head"><h3 id="buildArmourTitle">ARMOUR & MODS<\/h3><span class="tools">LIVE BUNGIE STATE<\/span><\/div>[\s\S]*?<div class="gear-subhead"><span>Armour above · 6 functional mod slots below<\/span><span>Hover any sourced icon for Bungie details<\/span><\/div>[\s\S]*?id="armourGrid" class="gear-columns"/,'Build Armour must duplicate the locked Character section structure');
 assert.match(buildHtml,/id="artifactPickerPanel"[\s\S]*?hidden/,'Build Artifact catalogue must stay collapsed behind the equipped summary');
+assert.match(buildHtml,/id="artifactRecommendation" role="status" aria-live="polite"/,'Build Artifact matrix must expose the verified Forge Loader recommendation summary');
 assert.match(buildModule,/import '\.\.\/guardian-character-cards\.mjs(?:\?[^']+)?'/,'Build Tool must reuse the Main character-card renderer');
 assert.match(buildModule,/import '\.\.\/guardian-loadouts\.mjs'/,'Build Tool must reuse the Main in-game loadout renderer');
 assert.match(buildModule,/import '\.\.\/guardian-bungie-profile\.mjs(?:\?[^']+)?'/,'Build Tool must reuse strict Main character selection');
@@ -164,11 +165,15 @@ assert.match(buildModule,/let volatileState=null/,'Build must retain a protected
 assert.match(buildModule,/function writeState\(next\)\{volatileState=protectBuildState\(next\);/,'Build writes must protect the in-page fallback before attempting Web Storage');
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
-assert.match(buildHtml,/paradox-build-space\.css\?v=20260829-armour-slot-fill-1/,'Build must load the full-slot Armour artwork rule without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-compact-source-handoff-1/,'Build must load the compact protected Forge Loader handoff without a stale module cache');
+assert.match(buildHtml,/paradox-build-space\.css\?v=20260903-artifact-fit-1/,'Build must load the verified Artifact fit presentation without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260903-artifact-fit-1/,'Build must load the verified Artifact recommendation runtime without a stale module cache');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
-assert.match(buildModule,/resolvedOptions\(build,'artifact'\)\.slice\(0,6\)/,'Build Artifact catalogue must use the specified 2-2-2 six-card field');
+assert.match(buildModule,/const artifactItems=artifactUnavailable\?\[\]:\[artifact\]/,'Build Artifact selector must expose only the active seasonal Artifact and never historical alternatives');
+assert.match(buildModule,/applyForgeArtifactRecommendation/,'Build Forge must calculate Artifact choices from its staged Forge Loader decision');
+assert.match(buildModule,/current-season/,'Build Forge must verify Artifact freshness against current Bungie season metadata');
+assert.match(buildModule,/Working Build only; live Guardian unchanged/,'Artifact recommendations must remain explicit non-live Working Build state');
+assert.match(buildCss,/\.artifact-perk\.is-recommended-choice\{[^}]*border-color:#d9b84f!important/,'PARADOX-recommended Artifact perks must have a unique gold selection state');
 assert.match(buildModule,/astrix:build-render-complete/,'Build Tool must publish render completion');
 assert.match(buildModule,/status=ready\?'ready':'pending'/,'Build Tool must not publish its temporary empty state as ready');
 assert.match(buildModule,/window\.AstrixLoader\?\.set\(percent\)/,'Build milestones must drive the shared portal');

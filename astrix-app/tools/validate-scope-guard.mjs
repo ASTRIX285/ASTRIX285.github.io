@@ -12,6 +12,8 @@ const allowed=new Set([
   'astrix-sandbox/prepare-deployment.mjs',
   'astrix-sandbox/wrangler.toml',
   'astrix-app/pages/guardian-workspace-v2/guardian-bungie-profile.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-artifact-provenance.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-artifact-recommender.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-character-cards.css',
   'astrix-app/pages/guardian-workspace-v2/guardian-bungie-auth.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-beta-readiness.mjs',
@@ -21,6 +23,8 @@ const allowed=new Set([
   'astrix-app/pages/guardian-workspace-v2/index.html',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.css',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-artifact-selection.mjs',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs',
   'astrix-app/pages/guardian-alpha/guardian-alpha.mjs',
   'astrix-app/pages/guardian-alpha/index.html',
@@ -57,6 +61,9 @@ const allowed=new Set([
   'astrix-app/tools/validate-tools-hub.mjs',
   'astrix-app/tools/validate-vault-foundation.mjs',
   'astrix-app/tools/validate-forge-loader.mjs',
+  'astrix-app/tools/test-artifact-provenance.mjs',
+  'astrix-app/tools/test-artifact-recommender.mjs',
+  'astrix-app/tools/test-forge-artifact-selection.mjs',
   'astrix-app/tools/paradox-validator.mjs',
 ]);
 const changed=execFileSync('git',['diff','--name-only','origin/main...HEAD'],{cwd:root,encoding:'utf8'})

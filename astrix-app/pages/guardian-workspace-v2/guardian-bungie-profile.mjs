@@ -78,6 +78,8 @@ function resolvedBuildSnapshot(detail={}){
     artifactConfiguration:cloneBuildValue(detail.artifactConfiguration||detail.artifact?.artifactConfiguration||null),
     availableArtifacts:cloneBuildValue(detail.availableArtifacts||[]),
     artifactOptions:cloneBuildValue(detail.artifactOptions||[]),
+    currentSeasonNumber:Number.isInteger(Number(detail.currentSeasonNumber))?Number(detail.currentSeasonNumber):null,
+    currentSeason:cloneBuildValue(detail.currentSeason||null),
     stats:cloneBuildValue(detail.stats||[]),
     hashCoverage:cloneBuildValue(detail.hashCoverage||null),
     semanticCoverage:cloneBuildValue(detail.semanticCoverage||null),
@@ -148,6 +150,17 @@ async function fetchJsonWithTimeout(url,timeoutMs=PROFILE_REQUEST_TIMEOUT_MS){
     throw error;
   }finally{
     clearTimeout(timer);
+  }
+}
+
+async function fetchCurrentSeasonMetadata(){
+  try{
+    const metadata=await fetchJsonWithTimeout(new URL('/bungie/current-season',AUTH_ORIGIN),15_000);
+    const seasonNumber=Number(metadata?.season?.seasonNumber);
+    return Number.isInteger(seasonNumber)?{...metadata,season:{...(metadata.season||{}),seasonNumber}}:null;
+  }catch(error){
+    console.info('[ASTRIX Artifact] Current season metadata is temporarily unavailable.',error);
+    return null;
   }
 }
 
@@ -547,6 +560,8 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     availableArtifacts,
     artifactOptions:availableArtifacts,
     artifactConfiguration:artifact?.artifactConfiguration||null,
+    currentSeasonNumber:Number.isInteger(Number(payload?.currentSeasonNumber??payload?.currentSeason?.seasonNumber))?Number(payload.currentSeasonNumber??payload.currentSeason.seasonNumber):null,
+    currentSeason:cloneBuildValue(payload?.currentSeason||null),
     hashCoverage,
     power:character.light??null,
     guardianRank:rank,
@@ -616,6 +631,8 @@ function mergeLoadoutContext(payload){
   payload.gearAssets={...(live.gearAssets||{}),...(payload.gearAssets||{})};
   payload.artifactDefinition=payload.artifactDefinition||live.artifactDefinition||null;
   payload.artifactCoverage=payload.artifactCoverage||live.artifactCoverage||null;
+  payload.currentSeasonNumber=Number.isInteger(Number(payload.currentSeasonNumber))?Number(payload.currentSeasonNumber):live.currentSeasonNumber??null;
+  payload.currentSeason=payload.currentSeason||live.currentSeason||null;
   payload.definitionCoverage=payload.definitionCoverage||live.definitionCoverage||null;
   payload.membership=payload.membership||live.membership;
   return payload;
@@ -730,7 +747,10 @@ async function loadLiveProfile(session,{background=false}={}){
     setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
     document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
   }
-  const payload=await hydrateManifestPayload(await fetchJsonWithTimeout(await manifestRequestUrl("/bungie/profile")));
+  const profileUrl=await manifestRequestUrl('/bungie/profile');
+  const [profilePayload,currentSeason]=await Promise.all([fetchJsonWithTimeout(profileUrl),fetchCurrentSeasonMetadata()]);
+  if(currentSeason){profilePayload.currentSeason=currentSeason.season;profilePayload.currentSeasonNumber=currentSeason.season.seasonNumber;}
+  const payload=await hydrateManifestPayload(profilePayload);
   await cacheBungieProfile(session,payload);
   return activateLiveProfile(payload,session);
 }

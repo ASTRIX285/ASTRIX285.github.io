@@ -50,7 +50,7 @@ function resolveArtifactByProvenance(payload,characterId){
   const manifestDefinition=definition(definitions,artifactHash);
   const resolvedArtifactDefinition=manifestDefinition||(definitionHash===artifactHash?artifactDefinition:null);
   const seasonNumber=numberOrNull(payload?.seasonNumber??payload?.currentSeasonNumber??payload?.artifactCoverage?.seasonNumber??resolvedArtifactDefinition?.seasonNumber);
-  const base={hash:artifactHash,bungieHash:artifactHash,name:resolvedArtifactDefinition?.displayProperties?.name||`Unresolved Destiny definition ${artifactHash}`,description:resolvedArtifactDefinition?.displayProperties?.description||'',icon:abs(resolvedArtifactDefinition?.displayProperties?.icon),definition:resolvedArtifactDefinition,displayResolved:Boolean(resolvedArtifactDefinition),unresolved:!resolvedArtifactDefinition,coverage:payload?.artifactCoverage||null};
+  const base={hash:artifactHash,bungieHash:artifactHash,name:resolvedArtifactDefinition?.displayProperties?.name||`Unresolved Destiny definition ${artifactHash}`,description:resolvedArtifactDefinition?.displayProperties?.description||'',icon:abs(resolvedArtifactDefinition?.displayProperties?.icon),definition:resolvedArtifactDefinition,displayResolved:Boolean(resolvedArtifactDefinition),unresolved:!resolvedArtifactDefinition,seasonNumber,pointsUsed:numberOrNull(seasonalArtifact?.pointsUsed),coverage:payload?.artifactCoverage||null};
   const provenance={provider:'bungie',endpoint:'Destiny2.GetProfile',component:202,componentName:'CharacterProgressions',characterId:cid,path:`characterProgressions.data.${cid}.seasonalArtifact.tiers[].items[isActive=true]`};
   const unavailable=stateMessage=>{
     const artifactConfiguration=createArtifactConfiguration({artifactHash,seasonNumber,selectedPerkHashes:null,source:'bungie-live-state-unavailable',provenance:{...provenance,state:'state-unavailable'}});
@@ -61,15 +61,35 @@ function resolveArtifactByProvenance(payload,characterId){
     return unavailable('Artifact activation state for the selected character is unavailable.');
   }
 
-  const items=seasonalArtifact.tiers.flatMap(tier=>Array.isArray(tier?.items)?tier.items:[]);
+  const definitionTiers=Array.isArray(resolvedArtifactDefinition?.tiers)?resolvedArtifactDefinition.tiers:[];
+  const items=seasonalArtifact.tiers.flatMap((tier,tierIndex)=>{
+    const definitionTier=definitionTiers.find(row=>numberOrNull(row?.tierHash)===numberOrNull(tier?.tierHash))||definitionTiers[tierIndex]||null;
+    const definitionItems=Array.isArray(definitionTier?.items)?definitionTier.items:[];
+    return (Array.isArray(tier?.items)?tier.items:[]).map((item,itemIndex)=>{
+      const definitionItem=definitionItems.find(row=>numberOrNull(row?.itemHash)===numberOrNull(item?.itemHash))||definitionItems[itemIndex]||null;
+      return {
+        ...item,
+        tierHash:numberOrNull(tier?.tierHash??definitionTier?.tierHash),
+        tierIndex,
+        itemIndex,
+        column:tierIndex+1,
+        order:itemIndex+1,
+        tierTitle:String(definitionTier?.displayTitle||''),
+        tierUnlocked:typeof tier?.isUnlocked==='boolean'?tier.isUnlocked:null,
+        pointsToUnlock:numberOrNull(tier?.pointsToUnlock??definitionTier?.minimumUnlockPointsUsedRequirement),
+        minimumUnlockPointsUsedRequirement:numberOrNull(definitionTier?.minimumUnlockPointsUsedRequirement??tier?.pointsToUnlock),
+        definitionItemHash:numberOrNull(definitionItem?.itemHash)
+      };
+    });
+  });
   if(!items.length){
     return unavailable('Bungie returned no Artifact tier item state for the selected character.');
   }
-  if(items.some(item=>numberOrNull(item?.itemHash)===null||typeof item?.isActive!=='boolean')){
+  if(items.some(item=>numberOrNull(item?.itemHash)===null||typeof item?.isActive!=='boolean'||typeof item?.isVisible!=='boolean')){
     return unavailable('Bungie returned incomplete Artifact tier activation evidence for the selected character.');
   }
 
-  const perks=items.map(item=>({...displayItem(definitions,item.itemHash),isActive:item.isActive,isVisible:item.isVisible!==false}));
+  const perks=items.map(item=>({...displayItem(definitions,item.itemHash),isActive:item.isActive,isVisible:item.isVisible,tierHash:item.tierHash,tierIndex:item.tierIndex,itemIndex:item.itemIndex,column:item.column,order:item.order,tierTitle:item.tierTitle,tierUnlocked:item.tierUnlocked,pointsToUnlock:item.pointsToUnlock,minimumUnlockPointsUsedRequirement:item.minimumUnlockPointsUsedRequirement}));
   const activePerks=perks.filter(item=>item.isActive);
   const selectedPerkHashes=activePerks.map(item=>item.hash);
   const unresolvedPerkHashes=activePerks.filter(item=>item.unresolved).map(item=>item.hash);

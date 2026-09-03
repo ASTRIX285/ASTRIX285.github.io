@@ -1,8 +1,10 @@
+import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {recommendArtifactPerks,resolveBuildWeapons} from '../pages/guardian-workspace-v2/guardian-artifact-recommender.mjs';
 import {resolveArtifactByProvenance} from '../pages/guardian-workspace-v2/guardian-artifact-provenance.mjs';
+
 const d='astrix-app/data/paradox-forge/beta/';
-const artifact=JSON.parse(await fs.readFile(d+'beta-current-artifact.json','utf8'));
+const betaArtifact=JSON.parse(await fs.readFile(d+'beta-current-artifact.json','utf8'));
 const fixtures=JSON.parse(await fs.readFile(d+'ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json','utf8'));
 const hashes=[4019651319,2965080304,17096506];
 const definitions={
@@ -15,24 +17,85 @@ const curatedTags={inventoryItems:{
   '2965080304':{weaponType:'Sniper Rifle',element:'Arc'},
   '17096506':{weaponType:'Machine Gun',element:'Void'}
 }};
-const resolved=resolveBuildWeapons(hashes,definitions,curatedTags);if(resolved.unresolved.length)throw new Error('unresolved weapons '+resolved.unresolved);
-const build={subclass:{name:'Gunslinger',element:'Solar'},weapons:resolved.weapons};
-const fixtureResult=recommendArtifactPerks(build,artifact,{currentSeasonNumber:28});
-if(fixtureResult.status!=='current'||!fixtureResult.recommendations.length)throw new Error('fixture recommendations missing '+JSON.stringify(fixtureResult));
-if(JSON.stringify(fixtureResult)!==JSON.stringify(recommendArtifactPerks(build,artifact,{currentSeasonNumber:28})))throw new Error('non-deterministic');
-const fixture=fixtures.fixtures.find(x=>x.fixtureId==='PF-BETA-01');if(!fixture||fixture.artifactSeason!==null)throw new Error('fixture contract changed');
-const defs={'123':{displayProperties:{name:'Verified Active Perk',icon:'/common/destiny2_content/icons/test.png'}}};
-const livePayload={profile:{profileProgression:{data:{seasonalArtifact:{artifactHash:999}}},characterProgressions:{data:{'cid-live':{seasonalArtifact:{tiers:[{items:[{itemHash:123,isActive:true,isVisible:true}]}]}}}}},definitions:defs,artifactDefinition:{hash:999,displayProperties:{name:'Test Artifact'}}};
-const live=resolveArtifactByProvenance(livePayload,'cid-live');if(live.state!=='resolved'||live.activePerks.length!==1||live.activePerks[0].hash!==123)throw new Error('live active resolution failed '+JSON.stringify(live));
-if(live.artifactConfiguration?.artifactHash!==999||live.artifactConfiguration?.selectedPerkHashes?.[0]!==123||live.artifactConfiguration?.provenance?.component!==202)throw new Error('live artifactConfiguration provenance failed '+JSON.stringify(live.artifactConfiguration));
-const nonePayload=structuredClone(livePayload);nonePayload.profile.characterProgressions.data['cid-live'].seasonalArtifact.tiers[0].items[0].isActive=false;
-const none=resolveArtifactByProvenance(nonePayload,'cid-live');if(none.state!=='none-active'||none.activePerks.length)throw new Error('none-active failed '+JSON.stringify(none));
-const bad=resolveArtifactByProvenance(livePayload,'cid-missing');if(bad.state!=='state-unavailable'||bad.activePerks!==null||bad.artifactConfiguration?.selectedPerkHashes!==null)throw new Error('bad character fallback '+JSON.stringify(bad));
-const shared=resolveArtifactByProvenance({profile:{profileProgression:{data:{seasonalArtifact:{artifactHash:999}}}},artifactDefinition:{hash:999,displayProperties:{name:'Test Artifact'}}},'cid-live');if(shared.state!=='state-unavailable'||shared.activePerks!==null)throw new Error('share provenance failed '+JSON.stringify(shared));
-const unresolvedPayload=structuredClone(livePayload);unresolvedPayload.profile.characterProgressions.data['cid-live'].seasonalArtifact.tiers[0].items[0].itemHash=456;
-const unresolved=resolveArtifactByProvenance(unresolvedPayload,'cid-live');if(unresolved.activePerks[0].name!=='Unresolved Destiny definition 456'||unresolved.unresolvedPerkHashes[0]!==456)throw new Error('unresolved manifest display must be labelled, not invented '+JSON.stringify(unresolved));
-console.log('FIXTURE_RECOMMENDATIONS='+JSON.stringify({fixtureId:fixture.fixtureId,state:'state-unavailable',recommendationCount:fixtureResult.recommendations.length,recommendations:fixtureResult.recommendations}));
-console.log('LIVE_ACTIVE='+JSON.stringify({state:live.state,provenance:live.provenance,activePerks:live.activePerks.map(x=>({hash:x.hash,name:x.name}))}));
-console.log('LIVE_NONE_ACTIVE='+JSON.stringify({state:none.state,activePerks:none.activePerks}));
-console.log('BAD_CHARACTER='+JSON.stringify({state:bad.state,message:bad.stateMessage,activePerks:bad.activePerks}));
-console.log('SHARE_FIXTURE='+JSON.stringify({state:shared.state,message:shared.stateMessage}));
+const resolved=resolveBuildWeapons(hashes,definitions,curatedTags);
+assert.deepEqual(resolved.unresolved,[]);
+const betaBuild={subclass:{name:'Gunslinger',element:'Solar'},weapons:resolved.weapons};
+const betaResult=recommendArtifactPerks(betaBuild,betaArtifact,{currentSeasonNumber:28});
+assert.equal(betaResult.status,'current');
+assert.ok(betaResult.recommendations.length>0);
+assert.deepEqual(betaResult,recommendArtifactPerks(betaBuild,betaArtifact,{currentSeasonNumber:28}),'ranking must be deterministic');
+const fixture=fixtures.fixtures.find(row=>row.fixtureId==='PF-BETA-01');
+assert.ok(fixture&&fixture.artifactSeason===null,'fixture contract changed');
+
+const liveDefinitions={
+  '101':{displayProperties:{name:'Piercing Sidearm',description:'Your equipped Sidearms stun Barrier Champions.',icon:'/artifact/101.png'}},
+  '102':{displayProperties:{name:'Solar Grenade Engine',description:'Solar grenade final blows improve grenade recharge.',icon:'/artifact/102.png'}},
+  '103':{displayProperties:{name:'Precision Reserve',description:'Precision weapon final blows improve ammo reserves.',icon:'/artifact/103.png'}},
+  '104':{displayProperties:{name:'Hidden Solar Surge',description:'Solar weapons deal increased damage.',icon:'/artifact/104.png'}},
+  '105':{displayProperties:{name:'Charged Ordnance',description:'Armour Charge improves grenade damage.',icon:'/artifact/105.png'}},
+  '106':{displayProperties:{name:'Void Recovery',description:'Void effects grant overshield.',icon:'/artifact/106.png'}}
+};
+const livePayload={
+  currentSeasonNumber:31,
+  profile:{
+    profileProgression:{data:{seasonalArtifact:{artifactHash:999}}},
+    characterProgressions:{data:{'cid-live':{seasonalArtifact:{artifactHash:999,pointsUsed:3,tiers:[
+      {tierHash:700,isUnlocked:true,pointsToUnlock:0,items:[{itemHash:101,isActive:true,isVisible:true},{itemHash:106,isActive:false,isVisible:true}]},
+      {tierHash:701,isUnlocked:true,pointsToUnlock:1,items:[{itemHash:102,isActive:true,isVisible:true},{itemHash:103,isActive:false,isVisible:true}]},
+      {tierHash:702,isUnlocked:true,pointsToUnlock:2,items:[{itemHash:104,isActive:false,isVisible:false},{itemHash:105,isActive:true,isVisible:true}]}
+    ]}}}}
+  },
+  definitions:liveDefinitions,
+  artifactDefinition:{hash:999,seasonNumber:31,displayProperties:{name:'Verified Current Artifact'},tiers:[
+    {tierHash:700,displayTitle:'Champion',minimumUnlockPointsUsedRequirement:0,items:[{itemHash:101},{itemHash:106}]},
+    {tierHash:701,displayTitle:'Operations',minimumUnlockPointsUsedRequirement:1,items:[{itemHash:102},{itemHash:103}]},
+    {tierHash:702,displayTitle:'Power',minimumUnlockPointsUsedRequirement:2,items:[{itemHash:104},{itemHash:105}]}
+  ]}
+};
+const live=resolveArtifactByProvenance(livePayload,'cid-live');
+assert.equal(live.state,'resolved');
+assert.equal(live.pointsUsed,3);
+assert.equal(live.perks[4].isVisible,false);
+assert.equal(live.perks[5].minimumUnlockPointsUsedRequirement,2);
+
+const forgeBuild={
+  characterId:'cid-live',
+  subclass:'Solar',
+  subclassBuild:{
+    super:{hash:501,name:'Solar Super',description:'Solar Super final blows ignite targets.'},
+    abilities:[{hash:502,name:'Fusion Grenade',description:'A Solar grenade that scorches targets.'}],
+    aspects:[],
+    fragments:[]
+  },
+  weapons:[{hash:601,name:'Verified Sidearm',weaponType:'Sidearm',element:'Solar'}],
+  forgeLoaderDecision:{
+    buildAnchor:{perk:{hash:801,name:'Exotic Grenade Loop',description:'Solar grenade final blows grant Armour Charge.'}},
+    statDirective:{targets:{health:0,melee:0,grenade:200,super:0,class:0,weapon:100},priorities:{health:null,melee:null,grenade:1,super:null,class:null,weapon:2}},
+    setProtocol:[{count:4,trait:{hash:901,name:'Charged Arsenal',description:'Armour Charge improves grenade and weapon damage.'}}]
+  }
+};
+const liveResult=recommendArtifactPerks(forgeBuild,live,{currentSeasonNumber:31});
+assert.equal(liveResult.status,'current');
+assert.equal(liveResult.selectionStatus,'ready');
+assert.equal(liveResult.selectionLimit,3,'Bungie pointsUsed must determine the complete legal selection size');
+assert.equal(liveResult.selectedPerkHashes.length,3);
+assert.ok(liveResult.selectedPerkHashes.includes(101),'equipped Sidearm champion coverage must rank');
+assert.ok(liveResult.selectedPerkHashes.includes(102),'selected Solar grenade loop must rank');
+assert.ok(liveResult.selectedPerkHashes.includes(105),'selected Armour Charge set trait must rank');
+assert.ok(!liveResult.selectedPerkHashes.includes(104),'an invisible Artifact perk must never be recommended');
+assert.equal(liveResult.selectedMatchedCount,3);
+assert.ok(liveResult.recommendations.every(row=>row.reasons.length>0),'every ranked perk needs an explicit verified reason');
+assert.deepEqual(liveResult,recommendArtifactPerks(forgeBuild,live,{currentSeasonNumber:31}),'live Forge Loader ranking must be deterministic');
+
+const stale=recommendArtifactPerks(forgeBuild,live,{currentSeasonNumber:32});
+assert.equal(stale.status,'stale-artifact');
+assert.equal(stale.selectionStatus,'blocked');
+assert.deepEqual(stale.selectedPerkHashes,[]);
+const unverifiedSeason=recommendArtifactPerks(forgeBuild,live,{});
+assert.equal(unverifiedSeason.status,'current-season-unresolved');
+assert.equal(unverifiedSeason.selectionStatus,'blocked');
+
+console.log('ARTIFACT_RECOMMENDER=PASS');
+console.log('ARTIFACT_LEGAL_SELECTION=PASS');
+console.log('ARTIFACT_FORGE_LOADER_FIT=PASS');
+console.log('ARTIFACT_SEASON_GUARD=PASS');
