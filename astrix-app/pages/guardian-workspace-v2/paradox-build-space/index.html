@@ -17,8 +17,8 @@
   </script>
   <script src="../../../shared/astrix-portal-loader.js?v=20260831-render-ready"></script>
   <link rel="stylesheet" href="../../../astrix-tokens.css?v=20260824-branch-preview-1">
-  <link rel="stylesheet" href="./paradox-build-space.css?v=20260904-elemental-options-loader-1">
-  <link rel="stylesheet" href="./build-test-modes.css?v=20260823-1">
+  <link rel="stylesheet" href="./paradox-build-space.css?v=20260904-synergy-review-1">
+  <link rel="stylesheet" href="./build-test-modes.css?v=20260904-post-test-review-1">
   <link rel="stylesheet" href="../guardian-gear-layout.css?v=20260826-four-fixes-1">
   <link rel="stylesheet" href="../guardian-character-cards.css?v=20260902-recent-guardian-emblem-1">
   <link rel="stylesheet" href="../guardian-super-formation.css?v=20260828-subclass-header-1">
@@ -113,6 +113,7 @@
         </div>
         <div class="range-capture-status" id="rangeCaptureStatus" role="status">Choose PvE or PvP, then arm the exact Working Build before playing.</div>
         <div class="candidate-confirmation" id="candidateConfirmation" hidden aria-label="Confirm completed activity"></div>
+        <section class="paradox-test-review" id="paradoxTestReview" aria-labelledby="paradoxTestReviewTitle" hidden><small>PARADOX POST-TEST REVIEW</small><strong id="paradoxTestReviewTitle">AWAITING COMPLETED TEST</strong><p id="paradoxTestReviewSummary">Arm this exact Working Build, play the selected activity, then pull the Bungie result for review.</p><div id="paradoxTestReviewMetrics"></div></section>
         <button type="button" class="test-step" id="downloadRangeEvidence" disabled>DOWNLOAD RAW EVIDENCE</button>
         <pre class="range-capture-output" id="rangeCaptureOutput" hidden></pre>
       </section>
@@ -141,12 +142,12 @@
       <div class="recommended-build-content">
         <section><div class="review-section-heading"><h3>SUBCLASS & LOOP</h3><span>VERIFIED CATALOGUE</span></div><div id="recommendedSubclassSummary" class="recommended-subclass-summary"></div><div class="review-intelligence-evidence"><b>WHY THIS BUILD</b><ul id="recommendedIntelligenceSummary"></ul></div></section>
         <section><div class="review-section-heading"><h3>ARMOUR & MODS</h3><span>RAW RANKING · VERIFIED SOCKET PLAN</span></div><div id="recommendedArmourSummary" class="recommended-armour-summary gear-combined"><div class="gear-columns"></div></div><div id="recommendedModPlan" class="recommended-mod-plan"></div></section>
-        <section><div class="review-section-heading"><h3>WEAPONS & PERKS</h3><span>OWNED ROLLS ONLY</span></div><div id="recommendedWeaponsSummary" class="recommended-weapons-summary"></div></section>
+        <section><div class="review-section-heading"><h3>WEAPONS & PERKS</h3><span>OWNED VAULT + CHARACTER INVENTORY</span></div><div id="recommendedWeaponsSummary" class="recommended-weapons-summary"></div></section>
         <section><div class="review-section-heading"><h3>ARTIFACT 2.0</h3><span>LEGAL BUCKET PICKS</span></div><div id="recommendedArtifactSummary" class="recommended-artifact-summary"></div></section>
       </div>
-      <footer class="recommended-build-actions"><button type="button" class="ghost-btn" id="returnToForge">BACK TO BUILD FORGE</button><div><small id="liveTransferStatus">Live transfer remains locked until every supported change is verified.</small><button type="button" class="primary" id="applyBuild" disabled>BUILD MY GUARDIAN LOADOUT</button></div></footer>
+      <footer class="recommended-build-actions"><button type="button" class="ghost-btn" id="returnToForge">BACK TO BUILD FORGE</button><div><small id="liveTransferStatus">Test this recommendation first. Paradox will review the captured Bungie result before the next iteration.</small><button type="button" class="primary test-build-review-btn" id="continueToBuildTest">TEST THIS BUILD</button><button type="button" class="ghost-btn" id="applyBuild" disabled>BUILD MY GUARDIAN LOADOUT</button></div></footer>
     </div>
   </section>
-  <script type="module" src="./paradox-build-space.mjs?v=20260904-elemental-options-loader-1"></script>
+  <script type="module" src="./paradox-build-space.mjs?v=20260904-synergy-review-1"></script>
 </body>
 </html>

@@ -161,7 +161,7 @@ function scoreWeapon(weapon,build,objective,currentIds){
 }
 
 function selectOwnedWeapons({build={},objective='balanced'}={}){
-  const working=clone(build),resolvedObjective=objectiveName(objective||working.objective),owned=(working.ownedWeapons||working.weapons||[]).filter(item=>item?.itemInstanceId&&item?.definition&&Object.keys(item.definition).length),currentIds=new Set((working.weapons||[]).map(itemIdentity)),decisions=[],selected=[];
+  const working=clone(build),resolvedObjective=objectiveName(objective||working.objective),ownedSources=[...(working.ownedWeapons||[]),...(working.vaultWeapons||[]),...(working.inventoryWeapons||[]),...(working.weapons||[])],owned=ownedSources.filter(item=>item?.itemInstanceId&&item?.definition&&Object.keys(item.definition).length).filter((item,index,all)=>all.findIndex(other=>itemIdentity(other)===itemIdentity(item))===index),currentIds=new Set((working.weapons||[]).map(itemIdentity)),decisions=[],selected=[];
   for(const bucketHash of WEAPON_BUCKETS){
     const candidates=owned.filter(item=>Number(item.bucketHash)===bucketHash).map(item=>scoreWeapon(item,working,resolvedObjective,currentIds)).sort((left,right)=>right.score-left.score||itemName(left.weapon).localeCompare(itemName(right.weapon))||itemIdentity(left.weapon).localeCompare(itemIdentity(right.weapon)));
     const best=candidates[0]||null,current=(working.weapons||[]).find(item=>Number(item?.bucketHash)===bucketHash)||null,choice=best?.weapon||current;
@@ -170,7 +170,7 @@ function selectOwnedWeapons({build={},objective='balanced'}={}){
   }
   working.weapons=selected;working.objective=resolvedObjective;
   const limitations=[];if(!(working.ownedWeapons||[]).length)limitations.push('A broader owned-weapon catalogue was unavailable; current equipped weapons were retained.');for(const row of decisions)if(!row.candidateCount)limitations.push(`Weapon bucket ${row.bucketHash}: no verified exact owned instance was resolved.`);
-  const recommendation={schemaVersion:1,source:'bungie-owned-exact-weapon-instances',method:'deterministic-owned-weapon-evidence-rank-v1',objective:resolvedObjective,status:'review-required',decisions,candidateCount:owned.length,limitations,requiresReview:true,liveTransferAuthorized:false};
+  const recommendation={schemaVersion:1,source:'bungie-owned-exact-weapon-instances',inventoryScope:(working.ownedWeapons||[]).length?'vault-character-and-equipped':'equipped-fallback',method:'deterministic-owned-weapon-evidence-rank-v1',objective:resolvedObjective,status:'review-required',decisions,candidateCount:owned.length,limitations,requiresReview:true,liveTransferAuthorized:false};
   working.weaponSelectionRecommendation=recommendation;
   return {workingBuild:working,recommendation};
 }

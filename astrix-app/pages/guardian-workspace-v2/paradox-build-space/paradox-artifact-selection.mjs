@@ -31,7 +31,7 @@ function recommendationFingerprint(build={},currentSeasonNumber=null){
     abilities:(build.subclassBuild?.abilities||build.abilities||[]).map(hashOf),
     aspects:(build.subclassBuild?.aspects||build.aspects||[]).map(hashOf),
     fragments:(build.subclassBuild?.fragments||build.fragments||[]).map(hashOf),
-    weapons:(build.weapons||[]).map(weapon=>({hash:hashOf(weapon),element:weapon?.element||weapon?.elementDefinition?.displayProperties?.name||'',type:weapon?.weaponType||weapon?.itemTypeDisplayName||weapon?.definition?.itemTypeDisplayName||''}))
+    weapons:(build.weapons||[]).map(weapon=>({hash:hashOf(weapon),itemInstanceId:String(weapon?.itemInstanceId||''),element:weapon?.element||weapon?.elementDefinition?.displayProperties?.name||'',type:weapon?.weaponType||weapon?.itemTypeDisplayName||weapon?.definition?.itemTypeDisplayName||'',selectedPerks:(weapon?.weaponSemantics?.selectedPerks||weapon?.selectedPerks||[]).map(hashOf)}))
   });
 }
 

@@ -182,8 +182,8 @@ assert.match(buildModule,/let volatileState=null/,'Build must retain a protected
 assert.match(buildModule,/function writeState\(next,\{memoryOnly=volatileStateMemoryOnly\}=\{\}\)\{[\s\S]*?const state=protectBuildState\(next\);[\s\S]*?volatileState=state;/,'Build writes must protect the in-page fallback before attempting persistence');
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
-assert.match(buildHtml,/paradox-build-space\.css\?v=20260904-elemental-options-loader-1/,'Build must load the coloured elemental options and in-page generation loader without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260904-elemental-options-loader-1/,'Build must load the coloured elemental options and in-page generation sequence without stale code');
+assert.match(buildHtml,/paradox-build-space\.css\?v=20260904-synergy-review-1/,'Build must load the expanded recommendation review without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260904-synergy-review-1/,'Build must load the Artifact-aware inventory recommendation and test sequence without stale code');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/const artifactItems=resolvedOptions\(build,'artifact'\)/,'Build Artifact selector must expose the verified Artifact 2.0 catalogue for Forge ranking');
