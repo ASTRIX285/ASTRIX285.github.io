@@ -140,6 +140,8 @@ function validateVaultArmourSelection(value,{expectedBinding={}}={}){
   const decision=value.forgeLoaderDecision?normaliseForgeLoaderDecision(value.forgeLoaderDecision):null;
   if(value.forgeLoaderDecision&&(!decision||text(value.sourcePage)!=='forge-loader'))return null;
   if(decision){
+    const exoticSlots=slots.filter(row=>row.item?.isExotic===true);
+    if(exoticSlots.length!==1)return null;
     const anchor=slots.find(row=>itemIdentity(row.item)===decision.buildAnchor.selectedItemInstanceId);
     const anchorHash=positiveInteger(anchor?.item?.itemHash??anchor?.item?.hash);
     if(!anchor||anchorHash!==decision.buildAnchor.selectedItemHash||anchor.item?.isExotic!==true)return null;

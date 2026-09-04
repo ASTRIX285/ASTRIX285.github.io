@@ -74,15 +74,27 @@ function selectedComponents(build={}){
 
 function optionSources(build={}){
   const decision=build.forgeLoaderDecision||{},sources=[];
-  const add=(kind,item)=>{if(item)sources.push({kind,item,name:itemName(item,kind),tokens:explicitTokens(item)});};
-  add('selected Exotic',decision?.buildAnchor?.perk);
+  const add=(kind,item,{name='',weight=1}={})=>{if(item)sources.push({kind,item,name:name||itemName(item,kind),tokens:explicitTokens(item),weight});};
+  const anchor=decision?.buildAnchor||{},anchorPerk=anchor?.perk;
+  add('selected Exotic armour',anchorPerk,{name:[anchor?.name,itemName(anchorPerk,'Exotic perk')].filter(Boolean).join(' · '),weight:5});
   for(const row of decision?.setProtocol||[])add(`${Number(row?.count)||0}-piece armour set`,row?.trait||row);
   for(const row of build?.paradoxEvidence?.armour||[])if(row?.verified!==false)add('equipped armour evidence',row);
   for(const weapon of build.weapons||[]){
     add('owned weapon',weapon);
     for(const perk of weapon?.weaponSemantics?.selectedPerks||[])add(`${itemName(weapon,'weapon')} perk`,perk);
   }
-  return sources.filter(source=>source.tokens.length);
+  return sources.filter(source=>source.tokens.length||source.weight>1);
+}
+
+function filterExoticCompatibleSubclasses(build={},candidates=[]){
+  const rows=(Array.isArray(candidates)?candidates:[]).filter(Boolean),perk=build.forgeLoaderDecision?.buildAnchor?.perk,perkText=itemEvidence(perk);
+  if(!perk||!perkText)return rows;
+  const matching=new Set();
+  for(const candidate of rows){
+    const sb=candidate.subclassBuild||candidate.build||{},components=[sb.super,...(sb.superOptions||[]),sb.classAbility,sb.movement,sb.melee,sb.grenade,...Object.values(sb.abilityOptionsBySocket||{}).flat(),...(sb.aspects||[]),...(sb.availableAspects||sb.aspectOptions||[]),...(sb.fragments||[]),...(sb.availableFragments||sb.fragmentOptions||[])].filter(Boolean);
+    if(components.some(component=>{const name=lower(itemName(component,''));return name.length>=5&&perkText.includes(name);}))matching.add(itemKey(candidate));
+  }
+  return matching.size?rows.filter(candidate=>matching.has(itemKey(candidate))):rows;
 }
 
 function elementOf(value){
@@ -128,8 +140,11 @@ function componentEvidenceScore(item,context={}){
   const add=(code,label,score,evidence=null)=>reasons.push({code,label,score,evidence});
   for(const source of context.sources||[]){
     for(const token of tokens.filter(value=>source.tokens.includes(value)).slice(0,3)){
-      add(`mechanic:${token}:${source.kind}`,`${itemName(item)} shares verified ${token} evidence with ${source.kind} · ${source.name}`,36,{componentHash:Number(itemKey(item)),sourceKind:source.kind,sourceName:source.name,token});
+      const points=36*Math.max(1,Number(source.weight)||1);
+      add(`mechanic:${token}:${source.kind}`,`${itemName(item)} shares verified ${token} evidence with ${source.kind} · ${source.name}`,points,{componentHash:Number(itemKey(item)),sourceKind:source.kind,sourceName:source.name,token});
     }
+    const componentName=lower(itemName(item,'')),sourceText=itemEvidence(source.item);
+    if(source.weight>1&&componentName.length>=4&&sourceText.includes(componentName))add('exotic-anchor-exact-ability',`${source.name} explicitly names ${itemName(item)}; it is required for the selected Exotic armour loop.`,360,{componentHash:Number(itemKey(item)),sourceKind:source.kind,sourceName:source.name,componentName:itemName(item)});
   }
   const element=elementOf(item);
   if(context.element&&context.element!=='prismatic'&&element===context.element)add('element-match',`${itemName(item)} matches the requested ${context.element.toUpperCase()} damage build`,18,{element});
@@ -263,4 +278,4 @@ function composeForgeRecommendation({build={},candidate={},element='',analyzeBui
   };
 }
 
-export {ABILITY_SOCKETS,COMBAT_TERMS,ELEMENTS,composeForgeRecommendation,explicitTokens,hasVerifiedSubclassSockets,resolvedItem,stageVerifiedSubclassCandidate,synchroniseSubclassProjection};
+export {ABILITY_SOCKETS,COMBAT_TERMS,ELEMENTS,composeForgeRecommendation,explicitTokens,filterExoticCompatibleSubclasses,hasVerifiedSubclassSockets,resolvedItem,stageVerifiedSubclassCandidate,synchroniseSubclassProjection};

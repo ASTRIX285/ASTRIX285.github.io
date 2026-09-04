@@ -22,6 +22,7 @@ const itemText=item=>[
   itemName(item,''),item?.description,item?.itemTypeDisplayName,item?.definition?.displayProperties?.description,
   item?.definition?.itemTypeDisplayName,item?.definition?.plug?.plugCategoryIdentifier,...(item?.definition?.traitIds||[])
 ].map(clean).filter(Boolean).join(' · ').toLowerCase();
+const isExoticItem=item=>Boolean(item&&(item.isExotic===true||Number(item.tierType??item.definition?.inventory?.tierType)===6||/\bexotic\b/i.test([item.rarity,item.tier,item.tierTypeName,item.definition?.inventory?.tierTypeName].map(clean).join(' '))||item.definition?.equippingBlock?.uniqueLabelHash));
 const uniqueByHash=rows=>{const seen=new Set();return (rows||[]).filter(Boolean).filter(row=>{const key=itemHash(row);if(!Number.isInteger(key)||seen.has(key))return false;seen.add(key);return true;});};
 const objectiveName=value=>Object.hasOwn(OBJECTIVE_TERMS,lower(value))?lower(value):'balanced';
 
@@ -55,8 +56,9 @@ function modStats(mod){
 
 function buildEvidence(build={}){
   const decision=build.forgeLoaderDecision||{},rows=[];
-  const add=(kind,item)=>{if(item)rows.push({kind,name:itemName(item,kind),tokens:explicitTokens(item),text:itemText(item)});};
-  add('Exotic perk',decision?.buildAnchor?.perk);
+  const add=(kind,item,{name='',weight=1}={})=>{if(item)rows.push({kind,name:name||itemName(item,kind),tokens:explicitTokens(item),text:itemText(item),weight});};
+  const anchor=decision?.buildAnchor||{},anchorPerk=anchor?.perk;
+  add('selected Exotic armour',anchorPerk,{name:[anchor?.name,itemName(anchorPerk,'Exotic perk')].filter(Boolean).join(' · '),weight:5});
   for(const row of decision?.setProtocol||[])add(`${Number(row?.count)||0}-piece set`,row?.trait||row);
   const subclass=build.subclassBuild||{};
   for(const item of [subclass.super,...(subclass.abilities||[]),...(subclass.aspects||[]),...(subclass.fragments||[])])add('subclass',item);
@@ -67,17 +69,17 @@ function buildEvidence(build={}){
 }
 
 function scoreMod(mod,{build={},objective='balanced'}={}){
-  const decision=build.forgeLoaderDecision?.statDirective||{},targets=decision.targets||{},achieved=decision.achieved||{},priorities=decision.priorities||{},stats=modStats(mod),reasons=[];
+  const decision=build.forgeLoaderDecision?.statDirective||{},targets=decision.targets||{},achieved=decision.achieved||{},priorities=decision.priorities||{},stats=modStats(mod),reasons=[],evidence=buildEvidence(build),anchorStats=new Set(evidence.filter(source=>source.weight>1).flatMap(source=>source.tokens).map(token=>token==='class ability'?'class':STAT_KEYS.includes(token)?token:null).filter(Boolean));
   let score=0;
   for(const key of STAT_KEYS){
     const value=Number(stats[key]||0);if(!value)continue;
-    const target=Number(targets[key]||0),raw=Number(achieved[key]||0),shortfall=Math.max(0,target-raw),rank=Number(priorities[key]||0),weight=rank>0?Math.max(4,12-rank):shortfall>0?5:2,points=value*weight;
-    score+=points;reasons.push({kind:'stat',label:`${value>0?'+':''}${value} ${key.toUpperCase()} supports ${rank>0?`priority ${rank}`:shortfall>0?`${shortfall}-point raw shortfall`:'the projected stat total'}.`,score:points,stat:key,value});
+    const target=Number(targets[key]||0),raw=Number(achieved[key]||0),shortfall=Math.max(0,target-raw),rank=Number(priorities[key]||0),anchorBonus=anchorStats.has(key)?12:0,weight=(rank>0?Math.max(4,12-rank):shortfall>0?5:2)+anchorBonus,points=value*weight;
+    score+=points;reasons.push({kind:anchorBonus?'exotic-anchor-stat':'stat',label:`${value>0?'+':''}${value} ${key.toUpperCase()} supports ${anchorBonus?'the selected Exotic armour loop':rank>0?`priority ${rank}`:shortfall>0?`${shortfall}-point raw shortfall`:'the projected stat total'}.`,score:points,stat:key,value});
   }
-  const tokens=explicitTokens(mod),evidence=buildEvidence(build);
+  const tokens=explicitTokens(mod);
   for(const source of evidence){
     const shared=tokens.filter(token=>source.tokens.includes(token)).slice(0,2);
-    for(const token of shared){score+=9;reasons.push({kind:'synergy',label:`Verified ${token} wording matches ${source.kind} · ${source.name}.`,score:9,token});}
+    for(const token of shared){const points=9*Math.max(1,Number(source.weight)||1);score+=points;reasons.push({kind:source.weight>1?'exotic-anchor-synergy':'synergy',label:`Verified ${token} wording matches ${source.kind} · ${source.name}.`,score:points,token});}
   }
   const objectiveTerms=OBJECTIVE_TERMS[objectiveName(objective)],text=itemText(mod);
   const objectiveMatches=objectiveTerms.filter(term=>text.includes(term)).slice(0,3);
@@ -156,7 +158,7 @@ function weaponEvidence(weapon){return [weapon,weapon?.weaponSemantics?.intrinsi
 function scoreWeapon(weapon,objective,currentIds,sources){
   const evidence=weaponEvidence(weapon),tokens=[...new Set(evidence.flatMap(explicitTokens))],text=evidence.map(itemText).join(' · '),reasons=[];
   let score=currentIds.has(itemIdentity(weapon))?2:0;
-  for(const source of sources){for(const token of tokens.filter(value=>source.tokens.includes(value)).slice(0,3)){score+=12;reasons.push({kind:'synergy',label:`${itemName(weapon,'Weapon')} has verified ${token} evidence matching ${source.kind} · ${source.name}.`,score:12,token});}}
+  for(const source of sources){for(const token of tokens.filter(value=>source.tokens.includes(value)).slice(0,3)){const points=12*Math.max(1,Number(source.weight)||1);score+=points;reasons.push({kind:source.weight>1?'exotic-anchor-synergy':'synergy',label:`${itemName(weapon,'Weapon')} has verified ${token} evidence matching ${source.kind} · ${source.name}.`,score:points,token});}}
   for(const term of OBJECTIVE_TERMS[objectiveName(objective)].filter(term=>text.includes(term)).slice(0,5)){score+=7;reasons.push({kind:'objective',label:`Explicit ${term} wording supports the ${objectiveName(objective)} objective.`,score:7,term});}
   reasons.sort((left,right)=>right.score-left.score||left.label.localeCompare(right.label));
   return {weapon,score,reasons,tokens};
@@ -166,17 +168,36 @@ function selectOwnedWeapons({build={},objective='balanced'}={}){
   // Weapon selection changes three exact instances only. Deep-cloning the full
   // Vault here multiplies memory use and can stall Chrome on larger accounts.
   const working={...(build||{})},resolvedObjective=objectiveName(objective||working.objective),ownedSources=[...(working.ownedWeapons||[]),...(working.vaultWeapons||[]),...(working.inventoryWeapons||[]),...(working.weapons||[])],seenOwned=new Set(),owned=ownedSources.filter(item=>item?.itemInstanceId&&item?.definition&&Object.keys(item.definition).length).filter(item=>{const key=itemIdentity(item);if(!key||seenOwned.has(key))return false;seenOwned.add(key);return true;}),currentIds=new Set((working.weapons||[]).map(itemIdentity)),sources=buildEvidence({...working,weapons:[]}),decisions=[],selected=[];
-  for(const bucketHash of WEAPON_BUCKETS){
-    const candidates=owned.filter(item=>Number(item.bucketHash)===bucketHash).map(item=>scoreWeapon(item,resolvedObjective,currentIds,sources)).sort((left,right)=>right.score-left.score||itemName(left.weapon).localeCompare(itemName(right.weapon))||itemIdentity(left.weapon).localeCompare(itemIdentity(right.weapon)));
-    const best=candidates[0]||null,current=(working.weapons||[]).find(item=>Number(item?.bucketHash)===bucketHash)||null,choice=best?.weapon||current;
+  const rankedByBucket=WEAPON_BUCKETS.map(bucketHash=>owned.filter(item=>Number(item.bucketHash)===bucketHash).map(item=>scoreWeapon(item,resolvedObjective,currentIds,sources)).sort((left,right)=>right.score-left.score||itemName(left.weapon).localeCompare(itemName(right.weapon))||itemIdentity(left.weapon).localeCompare(itemIdentity(right.weapon))));
+  let plans=[{rows:[],score:0,exoticCount:0,signature:''}];
+  for(const candidates of rankedByBucket){
+    const options=[candidates.find(row=>!isExoticItem(row.weapon)),candidates.find(row=>isExoticItem(row.weapon))].filter(Boolean);
+    const choices=options.length?options:[null],next=[];
+    for(const plan of plans)for(const row of choices){const exoticCount=plan.exoticCount+Number(isExoticItem(row?.weapon));if(exoticCount>1)continue;const identity=itemIdentity(row?.weapon);next.push({rows:[...plan.rows,row],score:plan.score+Number(row?.score||0),exoticCount,signature:`${plan.signature}|${identity}`});}
+    plans=next.sort((left,right)=>right.score-left.score||left.signature.localeCompare(right.signature));
+  }
+  const chosenPlan=plans[0]||{rows:[null,null,null],exoticCount:0};
+  for(const [index,bucketHash] of WEAPON_BUCKETS.entries()){
+    const candidates=rankedByBucket[index],best=chosenPlan.rows[index]||null,current=(working.weapons||[]).find(item=>Number(item?.bucketHash)===bucketHash)||null,choice=best?.weapon||current;
     if(choice)selected.push(clone(choice));
-    decisions.push({bucketHash,current:clone(current),recommended:clone(choice),action:current&&choice&&itemIdentity(current)===itemIdentity(choice)?'KEEP':current&&choice?'REPLACE':choice?'ADD':'UNRESOLVED',score:best?.score||0,reasons:(best?.reasons||[]).slice(0,4),candidateCount:candidates.length});
+    const exoticExcluded=candidates.find(row=>isExoticItem(row.weapon)&&itemIdentity(row.weapon)!==itemIdentity(choice)),reasons=(best?.reasons||[]).slice(0,4);
+    if(exoticExcluded&&chosenPlan.exoticCount===1&&!isExoticItem(choice))reasons.push({kind:'equip-rule',label:`${itemName(exoticExcluded.weapon,'Exotic weapon')} was excluded because Destiny permits only one Exotic weapon in a loadout.`,score:0});
+    decisions.push({bucketHash,current:clone(current),recommended:clone(choice),action:current&&choice&&itemIdentity(current)===itemIdentity(choice)?'KEEP':current&&choice?'REPLACE':choice?'ADD':'UNRESOLVED',score:best?.score||0,reasons,candidateCount:candidates.length,isExotic:isExoticItem(choice)});
   }
   working.weapons=selected;working.objective=resolvedObjective;
   const limitations=[];if(!(working.ownedWeapons||[]).length)limitations.push('A broader owned-weapon catalogue was unavailable; current equipped weapons were retained.');for(const row of decisions)if(!row.candidateCount)limitations.push(`Weapon bucket ${row.bucketHash}: no verified exact owned instance was resolved.`);
-  const recommendation={schemaVersion:1,source:'bungie-owned-exact-weapon-instances',inventoryScope:(working.ownedWeapons||[]).length?'vault-character-and-equipped':'equipped-fallback',method:'deterministic-owned-weapon-evidence-rank-v1',objective:resolvedObjective,status:'review-required',decisions,candidateCount:owned.length,limitations,requiresReview:true,liveTransferAuthorized:false};
+  const selectedExoticWeaponCount=selected.filter(isExoticItem).length,recommendation={schemaVersion:1,source:'bungie-owned-exact-weapon-instances',inventoryScope:(working.ownedWeapons||[]).length?'vault-character-and-equipped':'equipped-fallback',method:'deterministic-owned-weapon-evidence-rank-v2-exotic-constrained',objective:resolvedObjective,status:'review-required',decisions,candidateCount:owned.length,constraints:{maxExoticWeapons:1,selectedExoticWeaponCount},limitations,requiresReview:true,liveTransferAuthorized:false};
   working.weaponSelectionRecommendation=recommendation;
   return {workingBuild:working,recommendation};
 }
 
-export {OBJECTIVE_TERMS,STAT_KEYS,WEAPON_BUCKETS,isVerifiedMod,modCost,modStats,recommendArmourMods,scoreMod,selectOwnedWeapons};
+function validateExoticLoadout(build={}, {requireArmourAnchor=false}={}){
+  const exoticArmour=(build.armour||[]).filter(isExoticItem),exoticWeapons=(build.weapons||[]).filter(isExoticItem),anchorId=String(build.forgeLoaderDecision?.buildAnchor?.selectedItemInstanceId||''),anchorMatch=anchorId?exoticArmour.some(item=>itemIdentity(item)===anchorId):false;
+  if(exoticArmour.length>1)return {ready:false,reason:'Destiny permits only one Exotic armour piece. Return to Forge Loader and stage a legal armour result.',exoticArmourCount:exoticArmour.length,exoticWeaponCount:exoticWeapons.length};
+  if(requireArmourAnchor&&exoticArmour.length!==1)return {ready:false,reason:'The selected Forge Loader Exotic armour piece is missing from this build.',exoticArmourCount:exoticArmour.length,exoticWeaponCount:exoticWeapons.length};
+  if(requireArmourAnchor&&anchorId&&!anchorMatch)return {ready:false,reason:'The staged Exotic armour instance does not match the Forge Loader build anchor.',exoticArmourCount:exoticArmour.length,exoticWeaponCount:exoticWeapons.length};
+  if(exoticWeapons.length>1)return {ready:false,reason:'Destiny permits only one Exotic weapon. Paradox must replace the additional Exotic before review.',exoticArmourCount:exoticArmour.length,exoticWeaponCount:exoticWeapons.length};
+  return {ready:true,reason:'',exoticArmourCount:exoticArmour.length,exoticWeaponCount:exoticWeapons.length};
+}
+
+export {OBJECTIVE_TERMS,STAT_KEYS,WEAPON_BUCKETS,isExoticItem,isVerifiedMod,modCost,modStats,recommendArmourMods,scoreMod,selectOwnedWeapons,validateExoticLoadout};
