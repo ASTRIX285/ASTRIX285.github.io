@@ -6,7 +6,7 @@ import {
   normaliseWeaponSemantics,
   normaliseGuardianStats,
   validateArtifact
-} from "./guardian-semantic-resolver.mjs?v=20260829-weapon-perk-hash-1";
+} from "./guardian-semantic-resolver.mjs?v=20260904-weapon-tier-rows-1";
 
 const rawFetch=globalThis.fetch?.bind(globalThis);
 let livePayload=null;
@@ -226,20 +226,28 @@ function enrichWeaponCollection(collection,payload,profile,rows){
     if(!item)return item;
     const rawItem=rawItemFor(item,rows,payload);
     const plugs=enrichedPlugs(item,rawItem,profile);
+    const weaponInstance=instanceData(profile,rawItem);
     const weaponSemantics=normaliseWeaponSemantics({
       profile,
       item:rawItem,
+      itemDefinition:item?.definition||definitionFor(payload,rawItem?.itemHash),
       plugs,
-      instance:instanceData(profile,rawItem),
+      instance:weaponInstance,
       stats:statData(profile,rawItem),
-      alternativeColumns:alternativeColumnsFor(rawItem,profile,payload)
+      alternativeColumns:alternativeColumnsFor(rawItem,profile,payload),
+      isExotic:item?.isExotic===true||Number(item?.tierType??item?.definition?.inventory?.tierType)===6
     });
     return {
       ...item,
       itemInstanceId:rawItem?.itemInstanceId||null,
+      gearTier:Number.isInteger(Number(item?.gearTier))?Number(item.gearTier):(Number.isInteger(Number(weaponInstance?.gearTier))?Number(weaponInstance.gearTier):null),
       weaponSemantics,
       intrinsic:weaponSemantics.intrinsic,
       selectedPerks:weaponSemantics.selectedPerks,
+      weaponPerkModel:weaponSemantics.perkModel,
+      weaponPerkRows:weaponSemantics.perkRows,
+      weaponPerkRowCount:weaponSemantics.perkRowCount,
+      exoticWeaponTraits:weaponSemantics.exoticTraits,
       weaponMasterwork:weaponSemantics.masterwork,
       weaponMod:weaponSemantics.mod,
       catalyst:weaponSemantics.catalyst,

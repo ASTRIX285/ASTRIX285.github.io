@@ -40,8 +40,8 @@ assert.match(sessionCache,/indexedDB\.open\(DB_NAME,DB_VERSION\)/,'Guardian sess
 assert.match(sessionCache,/PROFILE_TTL_MS=12\*60\*60\*1000/,'Cached Guardian evidence must survive the complete browser work session');
 assert.match(profile,/const BUILD_SPACE_KEY="astrix:paradox-build-space:v1";/,'Character must identify the stale explicit Build snapshot before securing a fresh handoff');
 assert.match(profile,/function persistResolvedBuildSnapshot\(\)\{[\s\S]*?store\.removeItem\(BUILD_SPACE_KEY\);store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Improve My Guardian must free the stale Build snapshot before writing the full current Character payload');
-assert.match(workspace,/guardian-bungie-profile\.mjs\?v=20260903-loadout-intelligence-1/,'Main must load the owned-weapon and exact-socket profile evidence without a stale profile-module cache');
-assert.match(workspaceHtml,/guardian-workspace-v2\.mjs\?v=20260903-loadout-intelligence-1/,'Main must load the corrected workspace dependency graph without a stale module cache');
+assert.match(workspace,/guardian-bungie-profile\.mjs\?v=20260904-weapon-tier-rows-1/,'Main must load the tier-aware owned-weapon and exact-socket profile evidence without a stale profile-module cache');
+assert.match(workspaceHtml,/guardian-workspace-v2\.mjs\?v=20260904-weapon-tier-rows-1/,'Main must load the tier-aware workspace dependency graph without a stale module cache');
 assert.match(profile,/PROFILE_REQUEST_TIMEOUT_MS=60_000/,'Authenticated Bungie profile resolution must allow manifest enrichment to finish');
 assert.match(profile,/return ensureLiveProfile\(session,\{background:false,silent:false\}\)/,'Authenticated profile recovery must issue one visible request rather than duplicate retries');
 assert.doesNotMatch(profile,/ensureLiveProfile\(globalThis\.ASTRIX_BUNGIE_SESSION\|\|null/,'Profile bootstrap must not make an unauthenticated profile request before session resolution');
@@ -181,9 +181,9 @@ assert.match(buildModule,/createBuildState\(boundDetail\)/,'Selected Build Tool 
 assert.match(buildModule,/let volatileState=null/,'Build must retain a protected in-page snapshot when Web Storage rejects the handoff');
 assert.match(buildModule,/function writeState\(next,\{memoryOnly=volatileStateMemoryOnly\}=\{\}\)\{[\s\S]*?const state=protectBuildState\(next\);[\s\S]*?volatileState=state;/,'Build writes must protect the in-page fallback before attempting persistence');
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
-assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
-assert.match(buildHtml,/paradox-build-space\.css\?v=20260904-cross-system-loop-1/,'Build must load the expanded cross-system recommendation review without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260904-cross-system-loop-1/,'Build must load the complete cross-system recommendation without stale code');
+assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260904-weapon-tier-rows-1'/,'Build Armour must import the same current tier-aware renderer as the locked Character section');
+assert.match(buildHtml,/paradox-build-space\.css\?v=20260904-weapon-tier-rows-1/,'Build must load the readable tier-aware recommendation review without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260904-weapon-tier-rows-1/,'Build must load the complete tier-aware recommendation without stale code');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/const artifactItems=resolvedOptions\(build,'artifact'\)/,'Build Artifact selector must expose the verified Artifact 2.0 catalogue for Forge ranking');

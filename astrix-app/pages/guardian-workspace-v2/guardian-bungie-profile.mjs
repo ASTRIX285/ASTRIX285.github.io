@@ -1,7 +1,7 @@
 import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1";
 import {createArtifactConfiguration,resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {subclassPlugComponent} from "./guardian-subclass-plug-classifier.mjs";
-import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260829-weapon-perk-hash-1";
+import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260904-weapon-tier-rows-1";
 import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260904-artifact-sandbox-effects-1";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
@@ -426,7 +426,8 @@ function normaliseItem(profile,definitions,item,payload={}){
     );
   });
   const socketOptions=reusableSocketOptions(profile,definitions,item,payload);
-  const weaponSemantics=WEAPON_ORDER.includes(Number(base.bucketHash))?normaliseWeaponSemantics({profile,item,plugs,instance,stats:profile?.itemComponents?.stats?.data?.[item.itemInstanceId]||null,alternativeColumns:socketOptions}):null;
+  const isExotic=String(base.tier).toLowerCase()==="exotic";
+  const weaponSemantics=WEAPON_ORDER.includes(Number(base.bucketHash))?normaliseWeaponSemantics({profile,item,itemDefinition:base.definition,plugs,instance,stats:profile?.itemComponents?.stats?.data?.[item.itemInstanceId]||null,alternativeColumns:socketOptions,isExotic}):null;
   return {
     ...base,
     itemHash:Number(item.itemHash),
@@ -443,14 +444,14 @@ function normaliseItem(profile,definitions,item,payload={}){
     damageTypeHash:instance?.damageTypeHash??base.definition?.defaultDamageTypeHash??null,
     elementDefinition:payload?.damageDefinitions?.[String(instance?.damageTypeHash??base.definition?.defaultDamageTypeHash)]||null,
     breakerDefinition:payload?.breakerDefinitions?.[String(instance?.breakerTypeHash??base.definition?.breakerTypeHash)]||null,
-    isExotic:String(base.tier).toLowerCase()==="exotic",
+    isExotic,
     shader,
     ornament,
     intrinsicTrait,
     appearancePlugs:[shader,ornament].filter(Boolean),
     mods,
     socketOptions,
-    ...(weaponSemantics?{weaponSemantics,intrinsic:weaponSemantics.intrinsic,selectedPerks:weaponSemantics.selectedPerks,weaponMasterwork:weaponSemantics.masterwork,weaponMod:weaponSemantics.mod,catalyst:weaponSemantics.catalyst,championCapability:weaponSemantics.champion,weaponStats:weaponSemantics.stats}:{}),
+    ...(weaponSemantics?{weaponSemantics,intrinsic:weaponSemantics.intrinsic,selectedPerks:weaponSemantics.selectedPerks,weaponPerkModel:weaponSemantics.perkModel,weaponPerkRows:weaponSemantics.perkRows,weaponPerkRowCount:weaponSemantics.perkRowCount,exoticWeaponTraits:weaponSemantics.exoticTraits,weaponMasterwork:weaponSemantics.masterwork,weaponMod:weaponSemantics.mod,catalyst:weaponSemantics.catalyst,championCapability:weaponSemantics.champion,weaponStats:weaponSemantics.stats}:{}),
     socketsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]),
     socketCoverage
   };

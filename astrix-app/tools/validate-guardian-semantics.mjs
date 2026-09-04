@@ -110,6 +110,39 @@ try{
   if(!/data-bungie-hash/.test(uiSource)||!/hashAttribute\(perk\)/.test(uiSource)||!/hashAttribute\(semantics\.intrinsic\)/.test(uiSource))fail('G3b: weapon perk/intrinsic DOM icons do not expose their Bungie hash');
 }catch(error){fail(`G3b threw: ${error.message}`);}
 
+// G3c — Weapon perks are modeled in stable socket-column order with the exact
+// number of rows allowed by the verified weapon tier. Exotic weapon traits
+// remain subordinate to the intrinsic instead of being flattened as mods.
+try{
+  const perk=(hash,name,socketIndex,category='traits',socketName='Weapon Perks')=>({hash,bungieHash:hash,name,socketIndex,definition:{displayProperties:{name,icon:`/common/${hash}.png`},plug:{plugCategoryIdentifier:category}},socketCategoryDefinition:{displayProperties:{name:socketName}}});
+  const intrinsic=perk(2500,'Command Frame IV',0,'intrinsics','Intrinsic Traits');
+  const selectedBarrel=perk(2501,'Fluted Barrel',1,'barrels');
+  const selectedTrait=perk(2511,'Destabilizing Rounds Retrofit',3,'traits','Weapon Mods');
+  const result=semantics.normaliseWeaponSemantics({
+    item:{itemInstanceId:'tier-five-exotic'},
+    itemDefinition:{resolvedSandboxPerks:[
+      {hash:2600,displayProperties:{name:'Command Frame IV',description:'Verified intrinsic frame.',icon:'/common/2600.png'}},
+      {hash:2601,displayProperties:{name:'Choir of One',description:'Verified Exotic weapon trait.',icon:'/common/2601.png'}}
+    ]},
+    instance:{gearTier:5},
+    isExotic:true,
+    plugs:[intrinsic,selectedBarrel,selectedTrait],
+    alternativeColumns:{
+      1:[selectedBarrel,perk(2502,'Arrowhead Brake',1,'barrels'),perk(2503,'Corkscrew Rifling',1,'barrels')],
+      3:[perk(2510,'Repulsor Brace',3,'traits','Weapon Mods'),selectedTrait,perk(2512,'Onslaught Retrofit',3,'traits','Weapon Mods')]
+    }
+  });
+  if(result.perkRowCount!==3||result.perkRows.length!==3)fail('G3c: Tier 5 weapon did not produce exactly three perk rows');
+  if(result.perkModel.columns.map(column=>column.socketIndex).join(',')!=='1,3')fail('G3c: weapon perk columns did not preserve Bungie socket order');
+  if(result.perkRows[0]?.slots?.[0]?.perk?.name!=='Fluted Barrel'||result.perkRows[1]?.slots?.[1]?.perk?.name!=='Destabilizing Rounds Retrofit')fail('G3c: perk alternatives were not integrated into the tier row model');
+  if(!result.perkRows[0]?.slots?.[0]?.isSelected||!result.perkRows[1]?.slots?.[1]?.isSelected)fail('G3c: selected perks lost their exact modeled row positions');
+  if(result.intrinsic?.name!=='Command Frame IV'||result.exoticTraits.map(row=>row.name).join(',')!=='Choir of One')fail('G3c: verified Exotic weapon trait was not kept beneath the intrinsic hierarchy');
+  if(semantics.classifyWeaponPlug(selectedTrait)!=='perk')fail('G3c: definition-level Exotic trait was misclassified by the broad Weapon Mods socket title');
+  if(semantics.weaponPerkRowCountForTier(4)!==2||[1,2,3].some(tier=>semantics.weaponPerkRowCountForTier(tier)!==1))fail('G3c: Tier 1–4 weapon row rules drifted');
+  const uiSource=await readFile(new URL('../pages/guardian-workspace-v2/guardian-semantic-ui.mjs',import.meta.url),'utf8');
+  if(!/function weaponPerkMatrixMarkup/.test(uiSource)||!/data-perk-row-count/.test(uiSource)||!/EXOTIC WEAPON TRAITS/.test(uiSource)||!/weaponTraitHierarchyMarkup/.test(uiSource))fail('G3c: tier matrix or Exotic trait hierarchy is missing from the semantic UI');
+}catch(error){fail(`G3c threw: ${error.message}`);}
+
 // G4 — Stat threshold is above 100, not merely at 100.
 try{
   const stats=semantics.normaliseGuardianStats([['Grenade',110],['Weapons',105],['Health',100],['Class',95]]);

@@ -173,7 +173,7 @@ try {
   const weapon=semantics.normaliseWeaponSemantics({
     profile,
     item:{itemInstanceId:'abc'},
-    instance:{breakerType:2,breakerTypeHash:456},
+    instance:{gearTier:5,breakerType:2,breakerTypeHash:456},
     stats:{stats:{range:{value:80}}},
     plugs:[
       plug(20,'Adaptive Frame','intrinsics'),
@@ -185,6 +185,8 @@ try {
   });
   if (!weapon.intrinsic || !weapon.masterwork || !weapon.mod || !weapon.catalyst) fail('C7: weapon semantic families missing');
   if (weapon.selectedPerks.length !== 1) fail('C7: weapon selected perk classification failed');
+  if (weapon.perkRowCount !== 3 || weapon.perkRows.length !== 3) fail('C7: Tier 5 weapon did not retain its three-row perk model');
+  if (semantics.weaponPerkRowCountForTier(4) !== 2 || semantics.weaponPerkRowCountForTier(3) !== 1) fail('C7: weapon tier-to-row rules drifted');
   if (weapon.champion?.source !== 'bungie-item-instance') fail('C7: champion capability lacks direct Bungie instance source');
   if (weapon.catalyst.progress?.completed !== false || weapon.catalyst.progress?.active !== false) fail('C7: incomplete catalyst incorrectly became active');
 } catch (e) { fail('C7: weapon semantic contract threw: ' + e.message); }
