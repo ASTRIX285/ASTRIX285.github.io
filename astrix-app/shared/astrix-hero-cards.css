@@ -208,18 +208,38 @@ body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]::afte
 }
 
 @media(max-width:720px){
-  body:has(header>[data-astrix-hero-cards]){padding-top:234px!important}
-  html body header:has(>[data-astrix-hero-cards]){padding:9px 14px!important}
-  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__identity{left:12px;right:44px}
-  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__head strong{font-size:10px}
-  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__power{right:7px;font-size:11px}
-  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__stats{left:8px;right:3px;gap:1px}
-  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__stat{gap:2px;padding:1px}
-  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__stat .guardian-stat-icon{width:12px;height:12px;flex-basis:12px}
-  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__stat b{font-size:9px}
+  body:has(header>[data-astrix-hero-cards]){padding-top:274px!important}
+  html body header:has(>[data-astrix-hero-cards]){height:174px!important;min-height:174px!important;padding:9px 12px!important}
+  html body header.astrix-command-header:has(>[data-astrix-hero-cards])>#guardianCharacterCards.guardian-character-cards{
+    left:12px!important;
+    right:12px!important;
+    bottom:10px!important;
+    width:auto!important;
+    max-width:none!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+    transform:none!important;
+  }
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card{
+    height:88px!important;
+    min-height:88px!important;
+    border-radius:10px!important;
+  }
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__identity{top:12px;left:10px;right:42px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__head strong{font-size:12px;line-height:1.1;letter-spacing:.04em}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__power{top:12px;right:8px;font-size:12px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__stats{display:none!important}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card::before{background-position:center!important}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-cards__status{min-height:88px;font-size:.78rem;line-height:1.35;padding:12px}
   body:has(header>[data-astrix-hero-cards])>[data-astrix-destination-ribbon]{top:174px!important}
   html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-brand img{width:38px!important;height:38px!important}
   html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-brand span{display:none!important}
   html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-header-copy strong{font-size:.875rem!important}
   html body header.astrix-command-header:has(>[data-astrix-hero-cards]) .apx-destination-header-copy small{display:none!important}
+}
+
+@media(max-width:430px){
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__identity{left:8px;right:38px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__head strong{font-size:11px}
+  html body header:has(>[data-astrix-hero-cards]) .guardian-character-card__power{right:6px;font-size:11px}
 }

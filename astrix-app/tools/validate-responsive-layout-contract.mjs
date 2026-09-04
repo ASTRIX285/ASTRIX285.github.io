@@ -16,6 +16,8 @@ const sources={
 const mainHtml=await readFile(new URL('index.html',ROOT),'utf8');
 const buildHtml=await readFile(new URL('paradox-build-space/index.html',ROOT),'utf8');
 const densityCss=await readFile(new URL('../../shared/astrix-desktop-density.css',ROOT),'utf8');
+const sharedHeroCss=await readFile(new URL('../../shared/astrix-hero-cards.css',ROOT),'utf8');
+const destinationRibbonCss=await readFile(new URL('../../shared/astrix-destination-ribbon.css',ROOT),'utf8');
 const journeyCss=await readFile(new URL('../journey/journey-2560-visual.css',ROOT),'utf8');
 const missionCss=await readFile(new URL('../mission-reports/mission-reports.css',ROOT),'utf8');
 const forgeLoaderCss=await readFile(new URL('../forge-loader/forge-loader.css',ROOT),'utf8');
@@ -58,8 +60,11 @@ assert.doesNotMatch(densityCss,/transform\s*:\s*scale\(/,'The shared density lay
 assert.match(sources.characters,/html body \.topbar\{[\s\S]*?position:sticky!important/,'The character-card ribbon must remain anchored to the tool header');
 assert.match(sources.characters,/@media\s*\(max-width:860px\)\{[\s\S]*?#guardianCharacterCards\.guardian-character-cards\{[^}]*display:grid!important;[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;[^}]*overflow:hidden!important/,'All three character cards must remain fixed and contained in the phone ribbon');
 assert.doesNotMatch(sources.characters,/scroll-snap-type|overflow-x:auto/,'The fixed character-card ribbon must not become a separate scrolling container');
+assert.match(sharedHeroCss,/@media\(max-width:720px\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;[\s\S]*?\.guardian-character-card__stats\{display:none!important\}/,'Shared phone hero cards must retain all three Guardians without compressing six stat groups into each card');
+assert.match(destinationRibbonCss,/@media\(max-width:720px\)\{[\s\S]*?grid-template-columns:repeat\(4,minmax\(0,1fr\)\);grid-template-rows:repeat\(2,42px\);[\s\S]*?overflow:hidden/,'Phone destination navigation must show every route in a contained two-row grid');
 assert.match(sources.build,/@media\(max-width:1100px\)\{\.build-space\{grid-template-columns:1fr\}/,'Build must share the single-column compact breakpoint');
 assert.match(sources.build,/@media\s*\(max-width:720px\)\{[\s\S]*?\.build-space\{grid-template-columns:1fr/,'Build must collapse to one document-flow column on phones');
+assert.match(sources.build,/@media\(max-width:720px\)\{[\s\S]*?\.design-canvas \.gear-weapons \.weap-grid\{grid-template-columns:1fr!important\}/,'Build weapon models must use their complete single-column composition on phones');
 for(const [label,source] of [['Journey',journeyCss],['Build Forge',sources.build],['Mission Reports',missionCss]]){
   assert.match(source,/grid-template-columns:var\(--apx-workspace-columns,/u,label+' must consume the shared wide workspace tracks');
   assert.match(source,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,label+' must consume the shared compact workspace tracks');
@@ -83,6 +88,8 @@ for(const [label,html] of appPages){
   assert.match(html,/\/css\/astrix-site-typography\.css/,label+' must load the shared ASTRIX typography layer');
   assert.doesNotMatch(html,/fonts\.(?:googleapis|gstatic)\.com/,label+' must not load a competing interface font service');
   assert.match(styles.at(-1)||'',/astrix-desktop-density\.css$/,label+' must load the shared desktop density layer last');
+  assert.match(html,/astrix-destination-ribbon\.css\?v=20260904-mobile-crosscheck-1/,label+' must load the current contained mobile destination navigation');
+  assert.match(html,/astrix-hero-cards\.css\?v=20260904-mobile-crosscheck-1/,label+' must load the current shared mobile hero cards');
 }
 
 console.log('RESPONSIVE_SINGLE_OWNER=PASS');
