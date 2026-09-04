@@ -1,4 +1,4 @@
-import {adviseWeaponRoll} from "../../core/weapon-roll-advisor.mjs";
+import {adviseWeaponRoll} from "../../core/weapon-roll-advisor.mjs?v=20260904-weapon-model-2";
 
 const INTELLIGENCE_URL=new URL("../../data/paradox-forge/intelligence/weapon-perk-intelligence.json",import.meta.url);
 let intelligencePromise=null;
@@ -24,11 +24,14 @@ function contextFromAnalysis(analysis={}){
 
 function weaponInput(item={}){
   const semantics=item.weaponSemantics||{};
+  const catalyst=semantics.catalyst||item.catalyst||null,catalystMasterworked=Boolean(catalyst?.progress?.masterworked||catalyst?.progress?.active);
   return {
     itemHash:item.hash??item.bungieHash??null,
     itemInstanceId:item.itemInstanceId??null,
     selectedPerkHashes:(semantics.selectedPerks||[]).map(perk=>String(perk.hash)),
     selectedPerks:(semantics.selectedPerks||[]).map(perk=>({hash:String(perk.hash),name:perk.name||"",socketIndex:perk.socketIndex})),
+    fixedTraits:[semantics.intrinsic,...(semantics.exoticTraits||[]),...(catalystMasterworked?[catalyst]:[])].filter(Boolean),
+    catalyst:catalyst?{hash:String(catalyst.hash||""),masterworked:catalystMasterworked,completed:Boolean(catalyst?.progress?.completed),inserted:Boolean(catalyst?.progress?.inserted)}:null,
     perkColumns:(semantics.alternativePerkColumns||[]).map(column=>({
       socketIndex:column.socketIndex,
       options:(column.options||[]).map(option=>({...option,socketIndex:column.socketIndex}))

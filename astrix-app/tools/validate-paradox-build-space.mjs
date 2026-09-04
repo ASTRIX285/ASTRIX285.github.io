@@ -5,6 +5,7 @@ import {createBuildState,diffBuilds,createValidationRecord,VALIDATION_STATUS} fr
 import {BUILD_ELEMENTS,verifiedMasterworkState,validateTierFiveArmour} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-recommendation.mjs';
 import {composeForgeRecommendation,filterExoticCompatibleSubclasses} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-forge-intelligence.mjs';
 import {createLiveTransferPreflight,deriveLoadoutIntent,isExoticItem,recommendArmourMods,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateLoadoutCoherence} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-loadout-intelligence.mjs';
+import {normaliseWeaponPerkModel} from '../pages/guardian-workspace-v2/guardian-semantic-resolver.mjs';
 const item=(hash,name)=>({hash,bungieHash:hash,name});
 const source={source:'bungie-loadout',characterId:'hunter-1',characterClass:'hunter',selectedLoadoutIndex:4,subclass:'stasis',subclassName:'Revenant',subclassBuild:{super:item(1,'Silence and Squall'),abilities:[item(2,'Dodge'),item(3,'Jump'),item(4,'Melee'),item(5,'Grenade')],aspects:[item(6,'Aspect A'),item(7,'Aspect B')],fragments:[item(8,'Fragment A'),item(9,'Fragment B')]},artifact:{hash:20,name:'Seasonal Artifact',activePerks:[item(21,'Perk A')]},weapons:[item(30,'Primary'),item(31,'Special'),item(32,'Heavy')],armour:[item(40,'Helmet'),item(41,'Arms'),item(42,'Chest'),item(43,'Legs'),item(44,'Class')]};
 const state=createBuildState(source);assert.equal(Object.isFrozen(state.originalBuild),true);assert.notEqual(state.originalBuild,state.workingBuild);state.workingBuild.weapons[2]=item(99,'Paradox Heavy');const changes=diffBuilds(state.originalBuild,state.workingBuild);assert.equal(changes.length,1);assert.equal(changes[0].path,'weapons.2');const test=createValidationRecord({build:state.workingBuild,targetActivity:'Vanguard Master Operation',objective:'survivability'});assert.match(test.testId,/^PF-TEST-/);assert.equal(test.status,VALIDATION_STATUS.UNTESTED);assert.equal(Object.isFrozen(test.buildSnapshot),true);
@@ -112,7 +113,12 @@ assert.match(invalidSingleCopyValidation.reason,/Special Finisher cannot be reco
 const stackableMod=armourMod(508,'Stackable Grenade Mod','Grenade energy gains stack with additional copies.','slot-mod',2,1),stackableArmour=[{...t5Armour[4],name:'Stackable Test',energy:{capacity:11,used:0},generalMods:[],slotMods:[],armourSemantics:{energy:{capacity:11,used:0},generalMods:[],slotMods:[]},armourModOptions:{2:[stackableMod],3:[stackableMod]}}],stackableResult=recommendArmourMods({build:{...nothingManaclesModSource,armour:stackableArmour},objective:'ability-uptime'});
 assert.equal(stackableResult.recommendation.decisions.filter(row=>row.recommended?.hash===stackableMod.hash).length,2,'Mods without Bungie single-copy evidence must remain eligible to stack.');
 
-const exactWeapon=(hash,instance,name,description,bucketHash,extra={})=>({hash,bungieHash:hash,itemInstanceId:instance,name,description,bucketHash,definition:{displayProperties:{name,description},traitIds:[],inventory:{tierType:extra.isExotic?6:5,tierTypeName:extra.isExotic?'Exotic':'Legendary'}},weaponSemantics:{selectedPerks:[],alternativePerkColumns:[]},...extra});
+const exactWeapon=(hash,instance,name,description,bucketHash,extra={})=>{
+  const gearTier=Number(extra.gearTier)||5,capacities=gearTier>=5?[2,2,3,3,2]:gearTier>=3?[2,2,2,2,2]:[1,1,1,1,1];
+  const alternativePerkColumns=capacities.map((count,columnIndex)=>({socketIndex:10+columnIndex,options:Array.from({length:count},(_,rowIndex)=>{const perkHash=hash*100+(columnIndex+1)*10+rowIndex+1,perkName=`${name} perk ${columnIndex+1}.${rowIndex+1}`;return {hash:perkHash,bungieHash:perkHash,name:perkName,socketIndex:10+columnIndex,definition:{displayProperties:{name:perkName,description:'Verified synthetic test perk.'},plug:{plugCategoryIdentifier:'weapon.perks'}}};})}));
+  const selectedPerks=alternativePerkColumns.map(column=>column.options[0]),perkModel=normaliseWeaponPerkModel({gearTier,selectedPerks,alternativePerkColumns});
+  return {hash,bungieHash:hash,itemInstanceId:instance,name,description,bucketHash,gearTier,definition:{displayProperties:{name,description},traitIds:[],inventory:{tierType:extra.isExotic?6:5,tierTypeName:extra.isExotic?'Exotic':'Legendary'}},weaponSemantics:{gearTier,selectedPerks,alternativePerkColumns,perkModel},...extra};
+};
 const currentPrimary=exactWeapon(601,'weapon-current','Plain Rifle','A reliable rifle.',1498876634),joltPrimary=exactWeapon(602,'weapon-jolt','Jolt Rifle','Final blows jolt nearby targets and grant grenade energy.',1498876634),energyWeapon=exactWeapon(603,'weapon-energy','Energy Weapon','Verified energy weapon.',2465295065),powerWeapon=exactWeapon(604,'weapon-power','Power Weapon','Verified power weapon.',953998645);
 const ownedWeaponCatalogue=[currentPrimary,joltPrimary,energyWeapon,powerWeapon];
 const weaponResult=selectOwnedWeapons({build:{...intelligenceSource,weapons:[currentPrimary,energyWeapon,powerWeapon],ownedWeapons:ownedWeaponCatalogue,vaultWeapons:ownedWeaponCatalogue},objective:'add-clear'});
@@ -229,12 +235,12 @@ assert.match(html,/id="recommendedBuildReveal"[\s\S]*?aria-modal="true"[\s\S]*?h
 assert.match(html,/id="recommendedArmourSummary"[\s\S]*?id="recommendedWeaponsSummary"[\s\S]*?id="recommendedArtifactSummary"/,'The review must expose armour, weapon and Artifact sections.');
 assert.match(html,/id="recommendedModPlan"/,'The review must expose installed-versus-recommended armour-mod decisions.');
 assert.match(runtime,/RAW → CURRENT → RECOMMENDED/,'The review must distinguish mod-free raw stats from installed and recommended projections.');
-assert.match(runtime,/decorateRecommendedWeaponPerks/,'Build weapons must add recommendation icons only after generation.');
-assert.match(runtime,/if\(!generated\)return/,'Weapon recommendations must remain hidden before Generate Max Loadout.');
+assert.doesNotMatch(runtime,/decorateRecommendedWeaponPerks|weapon-recommended-perks/,'Build weapons must not duplicate recommendation icons outside the canonical perk matrix.');
+assert.match(advisorRuntime,/item\.weaponRollAdvice=advice/,'Weapon recommendation state must attach to the exact owned instance before the canonical perk matrix renders.');
 assert.match(runtime,/weaponPerkMatrixMarkup\(item,\{recommendedHashes\}\)/,'Recommended weapons must render the integrated tier-driven perk model.');
 assert.match(runtime,/weaponTraitHierarchyMarkup\(item,\{compact:true\}\)/,'Recommended Exotic weapon traits must remain directly beneath the intrinsic hierarchy.');
 assert.match(runtime,/TIER \$\{tier\}[\s\S]*?\$\{rowCount\} PERK ROW/,'Recommended weapons must identify the exact tier and modeled perk-row count.');
-assert.match(css,/\.review-weapon \.weapon-perk-row\{grid-template-columns:repeat\(var\(--weapon-perk-columns\),minmax\(38px,48px\)\)/,'Build review must preserve perk columns across each tier row.');
+assert.match(css,/\.review-weapon \.weapon-perk-row\{grid-template-columns:repeat\(var\(--weapon-perk-columns\),minmax\(42px,54px\)\)/,'Build review must preserve perk columns across each tier row.');
 assert.match(css,/body\.build-forge-page \.review-weapon small\{font-size:13px!important/,'Build review weapon copy must remain readable instead of reverting to the former tiny type.');
 assert.match(gearCss,/\.weapon-detail-drawer\{[^}]*width:min\(1120px,96vw\)[^}]*font-size:16px/,'The weapon detail drawer must use the enlarged readable layout.');
 assert.match(gearCss,/\.weapon-exotic-traits\{[^}]*border-left:2px/,'Exotic weapon traits must have a subordinate visual stack beneath the intrinsic.');
@@ -246,8 +252,9 @@ assert.match(html,/id="applyBuild" disabled>BUILD MY GUARDIAN LOADOUT<\/button>/
 assert.match(html,/LIVE GUARDIAN UNCHANGED/,'The review must state that generation does not alter the live Guardian.');
 assert.match(runtime,/if\(!build\?\.recommendationGeneratedAt\)throw new Error/,'Live apply must reject any build that has not passed generation and review.');
 const applyStart=runtime.indexOf('async function applyBuild()'),applyEnd=runtime.indexOf('function setRangeStatus',applyStart),applySource=runtime.slice(applyStart,applyEnd);
-assert.ok(applySource.indexOf('window.confirm')<applySource.indexOf('confirmPerkChangePlan')&&applySource.indexOf('confirmPerkChangePlan')<applySource.indexOf('applyConfirmedPerkChangePlan'),'The live route must ask the user, confirm the plan, then call the authenticated mutation route in that order.');
-assert.match(applySource,/Armour, mods and unsupported changes remain untouched/,'The final confirmation must describe the exact supported mutation scope.');
+assert.ok(applySource.indexOf('createLiveTransferPreflight')<applySource.indexOf('createLiveTransferPlan'),'The live route must validate exact loadout coherence before constructing its ordered transfer plan.');
+assert.match(applySource,/if\(!preflight\.ready\)[\s\S]*?if\(!plan\.ready\)[\s\S]*?complete authenticated live-transfer executor is not enabled/,'The live route must stop before mutation unless both exact preflight and every transfer capability pass.');
+assert.doesNotMatch(applySource,/window\.confirm|confirmPerkChangePlan|applyConfirmedPerkChangePlan|fetch\(/,'The UI must not expose the obsolete partial perk-only mutation path.');
 
 console.log('PARADOX_BUILD_SPACE_STATE=PASS');
 console.log('ORIGINAL_WORKING_ISOLATION=PASS');

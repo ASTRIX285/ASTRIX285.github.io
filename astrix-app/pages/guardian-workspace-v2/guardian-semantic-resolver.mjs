@@ -94,9 +94,15 @@ function normaliseArmourSemantics({plugs=[],instance=null,stats=null}={}){
 function classifyWeaponPlug(plug){
   const category=plugCategory(plug),socket=socketCategory(plug),text=semanticText(plug);
   if(/shader|ornament|skin/.test(text))return "appearance";
+  if(category.includes("infusion")||/\binfus(e|ion)\b/.test(text))return "infuse";
   if(category.includes("catalyst")||/\bcatalyst\b/.test(text))return "catalyst";
   if(category.includes("masterwork")||/weapon masterwork|masterwork level/.test(text))return "masterwork";
   if(category.includes("intrinsic")||/\b(frame|intrinsic)\b/.test(text))return "intrinsic";
+  // These two families are visually close in Bungie's inspection screen but
+  // are not interchangeable. Level Boost is a weapon-mod socket; Kill Tracker
+  // is a perk choice and stays in the final perk column.
+  if(/weapon level boost|level boost socket/.test(text))return "weapon-mod";
+  if(/\bkill tracker\b/.test(text))return "perk";
   if(category.includes("barrel")||category.includes("magazine")||category.includes("trait")||category.includes("perk"))return "perk";
   if(category.includes("weapon.mods")||/weapon mod/.test(text))return "weapon-mod";
   // Definition-level identity wins over a broad socket label. Exotic traits
@@ -123,7 +129,18 @@ function weaponPerkRowCountForTier(value){
   const tier=Number(value);
   if(!Number.isInteger(tier)||tier<1)return null;
   if(tier>=5)return 3;
-  if(tier===4)return 2;
+  if(tier>=3)return 2;
+  return 1;
+}
+
+function weaponPerkColumnRowCountForTier(value,columnNumber){
+  const tier=Number(value),column=Number(columnNumber);
+  if(!Number.isInteger(tier)||tier<1||!Number.isInteger(column)||column<1)return null;
+  // Tier 5 adds a third selectable perk only to visual columns 3 and 4.
+  // The other columns remain two rows, exactly as Bungie's weapon inspection
+  // model presents them. Tier 3 and 4 weapons use two rows throughout.
+  if(tier>=5)return column===3||column===4?3:2;
+  if(tier>=3)return 2;
   return 1;
 }
 
@@ -133,19 +150,24 @@ function normaliseWeaponPerkModel({gearTier=null,selectedPerks=[],alternativePer
   const selectedBySocket=new Map((selectedPerks||[]).filter(perk=>Number.isInteger(Number(perk?.socketIndex))).map(perk=>[Number(perk.socketIndex),perk]));
   const alternativesBySocket=new Map((alternativePerkColumns||[]).filter(column=>Number.isInteger(Number(column?.socketIndex))).map(column=>[Number(column.socketIndex),(column.options||[]).filter(option=>classifyWeaponPlug(option)==="perk")]));
   const socketIndexes=[...new Set([...selectedBySocket.keys(),...alternativesBySocket.keys()])].sort((left,right)=>left-right);
-  const columns=socketIndexes.map(socketIndex=>{
+  const columns=socketIndexes.map((socketIndex,columnIndex)=>{
     const selected=selectedBySocket.get(socketIndex)||null,available=uniq(alternativesBySocket.get(socketIndex)||[]);
     const selectedHash=Number(selected?.hash??selected?.itemHash??selected?.bungieHash);
     const selectedInAvailable=selected&&available.some(option=>Number(option?.hash??option?.itemHash??option?.bungieHash)===selectedHash);
     const options=selected&&!selectedInAvailable?uniq([selected,...available]):available;
-    const visibleOptions=options.slice(0,expectedRowCount);
+    const columnNumber=columnIndex+1,columnRowCount=weaponPerkColumnRowCountForTier(weaponTier,columnNumber)??expectedRowCount;
+    let visibleOptions=options.slice(0,columnRowCount);
+    if(selected&&!visibleOptions.some(option=>Number(option?.hash??option?.itemHash??option?.bungieHash)===selectedHash))visibleOptions=uniq([...visibleOptions.slice(0,Math.max(0,columnRowCount-1)),selected]);
     const selectedVisible=!selected||visibleOptions.some(option=>Number(option?.hash??option?.itemHash??option?.bungieHash)===selectedHash);
     return {
       socketIndex,
+      columnNumber,
       family:weaponPerkFamily(selected||options[0]),
+      expectedRowCount:columnRowCount,
       selectedPlugHash:Number.isInteger(selectedHash)&&selectedHash>0?selectedHash:null,
       options:visibleOptions,
-      overflowOptionCount:Math.max(0,options.length-visibleOptions.length),
+      overflowOptionCount:Math.max(0,options.length-columnRowCount),
+      missingOptionCount:Math.max(0,columnRowCount-visibleOptions.length),
       selectedVisible
     };
   }).filter(column=>column.options.length||column.selectedPlugHash);
@@ -158,15 +180,16 @@ function normaliseWeaponPerkModel({gearTier=null,selectedPerks=[],alternativePer
   });
   const unindexedPerks=(selectedPerks||[]).filter(perk=>!Number.isInteger(Number(perk?.socketIndex)));
   return {
-    schemaVersion:1,
+    schemaVersion:2,
     source:"bungie-instance-gear-tier-and-reusable-plugs",
     weaponTier,
     expectedRowCount,
+    rowPolicy:{tier1:1,tier2:1,tier3:2,tier4:2,tier5:{default:2,column3:3,column4:3}},
     columnCount:columns.length,
     columns,
     rows,
     unindexedPerks,
-    complete:weaponTier!==null&&columns.every(column=>column.selectedVisible&&column.overflowOptionCount===0)
+    complete:weaponTier!==null&&columns.every(column=>column.selectedVisible&&column.overflowOptionCount===0&&column.missingOptionCount===0)
   };
 }
 
@@ -176,7 +199,8 @@ function catalystProgress(profile,itemInstanceId,catalyst){
   const byPlug=row?.objectivesPerPlug||{};
   const objectives=byPlug[String(catalyst.hash)]||byPlug[catalyst.hash]||[];
   const completed=objectives.length>0&&objectives.every(objective=>Boolean(objective.complete));
-  return {acquired:true,objectives,completed,active:Boolean(catalyst.isEnabled)&&completed};
+  const inserted=Boolean(catalyst.isEnabled),masterworked=inserted&&completed;
+  return {acquired:true,inserted,objectives,completed,masterworked,active:masterworked};
 }
 
 function enhancementState(item){
@@ -192,18 +216,19 @@ function normaliseAlternativeColumns(columns={}){
 }
 
 function normaliseWeaponSemantics({profile=null,item=null,itemDefinition=null,plugs=[],instance=null,stats=null,alternativeColumns={},isExotic=false}={}){
-  const groups={intrinsic:[],perks:[],masterwork:[],mod:[],catalyst:[],unknown:[]};
+  const groups={intrinsic:[],perks:[],masterwork:[],mod:[],catalyst:[],discarded:[],unknown:[]};
   for(const sourcePlug of plugs){
     const plug=weaponPerkIdentity(sourcePlug);
     if(!plug?.bungieHash){groups.unknown.push(plug);continue;}
     const role=classifyWeaponPlug(plug);
     if(role==="appearance")continue;
+    if(role==="infuse")groups.discarded.push({...plug,semanticRole:"infuse"});
     if(role==="intrinsic")groups.intrinsic.push(plug);
     else if(role==="perk")groups.perks.push(plug);
     else if(role==="masterwork")groups.masterwork.push(plug);
     else if(role==="weapon-mod")groups.mod.push(plug);
     else if(role==="catalyst")groups.catalyst.push(plug);
-    else groups.unknown.push(plug);
+    else if(role!=="infuse")groups.unknown.push(plug);
   }
   const catalyst=groups.catalyst[0]||null;
   const alternativePerkColumns=normaliseAlternativeColumns(alternativeColumns);
@@ -214,14 +239,17 @@ function normaliseWeaponSemantics({profile=null,item=null,itemDefinition=null,pl
     return weaponPerkIdentity({hash,bungieHash:hash,name:display.name||"",description:display.description||"",icon:display.icon||"",definition,semanticRole:"intrinsic-trait",identitySource:"DestinySandboxPerkDefinition"});
   }).filter(trait=>trait?.bungieHash);
   const intrinsic=groups.intrinsic[0]||definitionTraits[0]||null,intrinsicTraits=uniqTraits([intrinsic,...groups.intrinsic.slice(1),...definitionTraits].filter(Boolean)),exoticTraits=isExotic?intrinsicTraits.slice(1):[];
+  const modSockets=uniqSockets([...groups.masterwork,...groups.mod,...groups.catalyst]).sort((left,right)=>Number(left?.socketIndex??Number.MAX_SAFE_INTEGER)-Number(right?.socketIndex??Number.MAX_SAFE_INTEGER));
+  const socketOrder=uniqSockets(plugs.map(weaponPerkIdentity).filter(plug=>plug?.bungieHash).map(plug=>({...plug,semanticRole:classifyWeaponPlug(plug)}))).filter(plug=>!['appearance','infuse','unknown'].includes(plug.semanticRole)).sort((left,right)=>Number(left?.socketIndex??Number.MAX_SAFE_INTEGER)-Number(right?.socketIndex??Number.MAX_SAFE_INTEGER)).map(plug=>({socketIndex:Number.isInteger(Number(plug.socketIndex))?Number(plug.socketIndex):null,plugHash:plug.bungieHash,role:plug.semanticRole,name:plug.name||''}));
   const iconItems=uniq([...intrinsicTraits,...groups.perks,...groups.masterwork,...groups.mod,...groups.catalyst,...alternativePerkColumns.flatMap(column=>column.options)]);
   const perkIconHashMap=Object.fromEntries(iconItems.filter(item=>item.icon&&item.iconHash===item.bungieHash).map(item=>[String(item.bungieHash),item.icon]));
   return {
     gearTier,intrinsic,intrinsicTraits,selectedPerks,alternativePerkColumns,perkModel,perkRows:perkModel.rows,perkRowCount:perkModel.expectedRowCount,perkIconHashMap,exoticTraits,
-    enhancementState:enhancementState(item),masterwork:groups.masterwork[0]||null,mod:groups.mod[0]||null,
+    enhancementState:enhancementState(item),masterwork:groups.masterwork[0]||null,mod:groups.mod[0]||null,modSockets,
     catalyst:catalyst?{...catalyst,progress:catalystProgress(profile,item?.itemInstanceId,catalyst)}:null,
     champion:(instance?.breakerTypeHash||instance?.breakerType)?{breakerType:instance.breakerType??null,breakerTypeHash:instance.breakerTypeHash??null,source:"bungie-item-instance"}:null,
-    stats:stats?.stats||stats||null,unknownPlugs:uniq(groups.unknown),complete:groups.unknown.length===0
+    socketModel:{schemaVersion:2,source:"bungie-instance-socket-order",socketOrder,sections:{perks:perkModel.columns.map(column=>column.socketIndex),mods:modSockets.map(plug=>Number.isInteger(Number(plug.socketIndex))?Number(plug.socketIndex):null),intrinsic:intrinsicTraits.map(plug=>Number.isInteger(Number(plug.socketIndex))?Number(plug.socketIndex):null),catalyst:catalyst&&Number.isInteger(Number(catalyst.socketIndex))?Number(catalyst.socketIndex):null}},
+    stats:stats?.stats||stats||null,discarded:uniq(groups.discarded),unknownPlugs:uniq(groups.unknown),complete:groups.unknown.length===0
   };
 }
 
@@ -233,4 +261,4 @@ function validateArtifact(artifact){
   return {activeCount:active.length,uniqueActiveCount:new Set(hashes).size,noDuplicateActiveHashes:new Set(hashes).size===hashes.length};
 }
 
-export {WEAPON_PERK_MANIFEST_AUDIT,semanticText,plugCategory,classifyArmourPlug,normaliseArmourSemantics,classifyWeaponPlug,weaponPerkIdentity,weaponPerkFamily,weaponPerkRowCountForTier,normaliseWeaponPerkModel,normaliseWeaponSemantics,normaliseGuardianStats,validateArtifact,enhancementState};
+export {WEAPON_PERK_MANIFEST_AUDIT,semanticText,plugCategory,classifyArmourPlug,normaliseArmourSemantics,classifyWeaponPlug,weaponPerkIdentity,weaponPerkFamily,weaponPerkRowCountForTier,weaponPerkColumnRowCountForTier,normaliseWeaponPerkModel,normaliseWeaponSemantics,normaliseGuardianStats,validateArtifact,enhancementState};

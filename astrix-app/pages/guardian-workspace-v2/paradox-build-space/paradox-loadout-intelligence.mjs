@@ -1,4 +1,4 @@
-import {classifyArmourPlug} from '../guardian-semantic-resolver.mjs';
+import {classifyArmourPlug,classifyWeaponPlug,weaponPerkColumnRowCountForTier,weaponPerkRowCountForTier} from '../guardian-semantic-resolver.mjs';
 import {explicitTokens} from './paradox-forge-intelligence.mjs';
 
 const STAT_KEYS=Object.freeze(['health','melee','grenade','super','class','weapon']);
@@ -241,7 +241,7 @@ function recommendArmourMods({build={},objective='balanced'}={}){
   return {workingBuild:working,recommendation:plan};
 }
 
-function weaponEvidence(weapon){return [weapon,weapon?.weaponSemantics?.intrinsic,...(weapon?.weaponSemantics?.selectedPerks||[]),...(weapon?.weaponSemantics?.alternativePerkColumns||[]).flatMap(column=>column.options||[])].filter(Boolean);}
+function weaponEvidence(weapon){const semantics=weapon?.weaponSemantics||{},catalyst=semantics.catalyst||weapon?.catalyst,catalystMasterworked=Boolean(catalyst?.progress?.masterworked||catalyst?.progress?.active);return [weapon,semantics.intrinsic,...(semantics.exoticTraits||[]),...(semantics.selectedPerks||[]),...(semantics.alternativePerkColumns||[]).flatMap(column=>column.options||[]),...(catalystMasterworked?[catalyst]:[])].filter(Boolean);}
 function scoreWeapon(weapon,objective,currentIds,sources,intent){
   const evidence=weaponEvidence(weapon),tokens=[...new Set(evidence.flatMap(explicitTokens))],text=evidence.map(itemText).join(' · '),reasons=[];
   let score=currentIds.has(itemIdentity(weapon))?2:0;
@@ -289,10 +289,32 @@ function validateExoticLoadout(build={}, {requireArmourAnchor=false}={}){
   return {ready:true,reason:'',exoticArmourCount:exoticArmour.length,exoticWeaponCount:exoticWeapons.length};
 }
 
+function validateWeaponModel(build={}){
+  const violations=[];
+  for(const weapon of (build.weapons||[]).filter(Boolean)){
+    const semantics=weapon.weaponSemantics||{},model=semantics.perkModel||weapon.weaponPerkModel||{},tier=Number(model.weaponTier??semantics.gearTier??weapon.gearTier),name=itemName(weapon,'Weapon'),columns=model.columns||[];
+    const expectedRows=weaponPerkRowCountForTier(tier);
+    if(!expectedRows||Number(model.expectedRowCount)!==expectedRows)violations.push(`${name}: the verified Tier ${Number.isInteger(tier)?tier:'unknown'} perk-row model is incomplete.`);
+    const ordered=columns.map(column=>Number(column.socketIndex));
+    if(ordered.some((socketIndex,index)=>index>0&&socketIndex<ordered[index-1]))violations.push(`${name}: perk columns do not preserve Bungie's socket order.`);
+    for(const [index,column] of columns.entries()){
+      const columnNumber=index+1,required=weaponPerkColumnRowCountForTier(tier,columnNumber);
+      if(required&&Number(column.expectedRowCount)!==required)violations.push(`${name}: perk column ${columnNumber} must contain ${required} row${required===1?'':'s'} at Tier ${tier}.`);
+      if(required&&(column.options||[]).length<required)violations.push(`${name}: Bungie evidence for perk column ${columnNumber} contains fewer than ${required} verified options.`);
+      if((column.options||[]).some(option=>classifyWeaponPlug(option)!=='perk'))violations.push(`${name}: a non-perk socket was placed in perk column ${columnNumber}.`);
+    }
+    const modSockets=semantics.modSockets||[];
+    if(modSockets.some(option=>classifyWeaponPlug(option)==='infuse'))violations.push(`${name}: Infuse must not enter the weapon-mod model.`);
+    if(modSockets.some(option=>!['masterwork','weapon-mod','catalyst'].includes(classifyWeaponPlug(option))))violations.push(`${name}: a perk or trait was incorrectly placed in the weapon-mod row.`);
+  }
+  return {ready:violations.length===0,reason:violations[0]||'',violations:[...new Set(violations)]};
+}
+
 function validateLoadoutCoherence(build={}){
-  const violations=[],intent=build.loadoutIntent||deriveLoadoutIntent(build),exotic=validateExoticLoadout(build,{requireArmourAnchor:true}),mods=validateArmourModLoadout(build),artifact=build.artifactRecommendation||null,selectedMods=(build.armour||[]).flatMap(item=>[...(item?.generalMods||item?.armourSemantics?.generalMods||[]),...(item?.slotMods||item?.armourSemantics?.slotMods||[])]);
+  const violations=[],intent=build.loadoutIntent||deriveLoadoutIntent(build),exotic=validateExoticLoadout(build,{requireArmourAnchor:true}),mods=validateArmourModLoadout(build),weaponModel=validateWeaponModel(build),artifact=build.artifactRecommendation||null,selectedMods=(build.armour||[]).flatMap(item=>[...(item?.generalMods||item?.armourSemantics?.generalMods||[]),...(item?.slotMods||item?.armourSemantics?.slotMods||[])]);
   if(!exotic.ready)violations.push(exotic.reason);
   if(!mods.ready)violations.push(mods.reason);
+  if(!weaponModel.ready)violations.push(...weaponModel.violations);
   for(const mod of selectedMods){const compatibility=modCompatibleWithWeapons(mod,build);if(!compatibility.compatible)violations.push(`${itemName(mod)} requires a selected ${String(compatibility.requiredElement).toUpperCase()} weapon.`);}
   if(artifact&&!(artifact.selectionStatus==='ready'&&artifact.selectionLimit>0&&artifact.selectedPerkHashes?.length===artifact.selectionLimit))violations.push('The complete legal Artifact selection was not resolved.');
   const roles=new Set(selectedMods.map(modLoopRole).filter(Boolean)),available=(build.armour||[]).flatMap(item=>Object.values(item?.armourModOptions||item?.socketOptions||{}).flat()).filter(Boolean),availableRoles=new Set(available.map(modLoopRole).filter(Boolean));
@@ -301,7 +323,7 @@ function validateLoadoutCoherence(build={}){
   const matchingWeapons=(build.weapons||[]).filter(weapon=>itemElement(weapon)===intent.element);
   const matchingOwned=[...(build.ownedWeapons||[]),...(build.vaultWeapons||[]),...(build.inventoryWeapons||[])].filter(weapon=>itemElement(weapon)===intent.element);
   if(intent.requiresMatchingWeapon&&matchingOwned.length&&!matchingWeapons.length)violations.push(`A verified owned ${String(intent.element).toUpperCase()} weapon exists but none was selected.`);
-  return {ready:violations.length===0,reason:violations[0]||'',violations:[...new Set(violations)],intent,coverage:{matchingWeaponCount:matchingWeapons.length,grenadeOrb:roles.has('grenade-orb'),grenadeSuper:roles.has('grenade-super'),elementSiphon:roles.has('element-siphon'),artifactPicks:Number(artifact?.selectedPerkHashes?.length||0),artifactLimit:Number(artifact?.selectionLimit||0)}};
+  return {ready:violations.length===0,reason:violations[0]||'',violations:[...new Set(violations)],intent,weaponModel,coverage:{matchingWeaponCount:matchingWeapons.length,grenadeOrb:roles.has('grenade-orb'),grenadeSuper:roles.has('grenade-super'),elementSiphon:roles.has('element-siphon'),artifactPicks:Number(artifact?.selectedPerkHashes?.length||0),artifactLimit:Number(artifact?.selectionLimit||0)}};
 }
 
 function createLiveTransferPreflight(build={}){
@@ -313,4 +335,4 @@ function createLiveTransferPreflight(build={}){
   return {schemaVersion:1,status:violations.length?'blocked':'ready',ready:violations.length===0,checkedAt:new Date().toISOString(),characterId:String(build.characterId||''),violations:[...new Set(violations)],coherence,scope:{weapons:weapons.map(item=>String(item.itemInstanceId||'')),armour:armour.map(item=>String(item.itemInstanceId||'')),artifactHash:Number(build.artifactConfiguration?.artifactHash)||null,artifactPerkHashes:[...(build.artifactConfiguration?.selectedPerkHashes||[])],armourModChanges:Number(build.armourModRecommendation?.summary?.replace||0)+Number(build.armourModRecommendation?.summary?.add||0)+Number(build.armourModRecommendation?.summary?.remove||0)}};
 }
 
-export {OBJECTIVE_TERMS,STAT_KEYS,WEAPON_BUCKETS,createLiveTransferPreflight,deriveLoadoutIntent,isExoticItem,isVerifiedMod,itemElement,modCost,modStats,recommendArmourMods,scoreMod,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateLoadoutCoherence};
+export {OBJECTIVE_TERMS,STAT_KEYS,WEAPON_BUCKETS,createLiveTransferPreflight,deriveLoadoutIntent,isExoticItem,isVerifiedMod,itemElement,modCost,modStats,recommendArmourMods,scoreMod,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateWeaponModel,validateLoadoutCoherence};

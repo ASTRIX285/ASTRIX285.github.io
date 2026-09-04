@@ -6,7 +6,7 @@ import {
   normaliseWeaponSemantics,
   normaliseGuardianStats,
   validateArtifact
-} from "./guardian-semantic-resolver.mjs?v=20260904-weapon-tier-rows-1";
+} from "./guardian-semantic-resolver.mjs?v=20260904-weapon-model-2";
 
 const rawFetch=globalThis.fetch?.bind(globalThis);
 let livePayload=null;
