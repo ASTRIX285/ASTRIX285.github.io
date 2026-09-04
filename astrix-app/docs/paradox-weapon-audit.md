@@ -48,9 +48,11 @@ Journey now requests Collectibles (component 800) and resolves badges from `coll
 
 Presentation nodes, records, objectives, collectibles and the other Journey component tables load on demand and reuse the manifest-version cache. Simultaneous requests are coalesced. Transient definition failures can retry instead of poisoning the cache. The shared manifest service remains one instance across page import versions. Normal card display does not download the complete audit catalogue.
 
+The regenerated Forge armour index also exposed a pre-existing size-budget failure. Schema 5 shares repeated definition, socket-entry and quality data. The current complete index is 7,271,210 bytes, within the existing 7 MiB gate, including the armour version watermarks. Lossless expansion was compared against all original fields for 6,029 armour records and 6,507 plugs. Schema 4 inputs remain readable. The review workflow now regenerates this index before running the regression suite, just as deployment does.
+
 ## Validation and release gates
 
-Local exhaustive model, reference, identity, watermark, Journey, cache, character-isolation, application regression, scope and sandbox packaging checks pass. The auth Worker passes TypeScript and Wrangler dry-run checks.
+Local exhaustive model, reference, identity, watermark, Journey, cache, character-isolation, application regression, scope and sandbox packaging checks pass. The auth Worker passes TypeScript and Wrangler dry-run checks. Browser regression passed for the weapon card changes in [validation run 33929191300](https://github.com/ASTRIX285/ASTRIX285.github.io/actions/runs/33929191300), covering all 17 weapon types at four widths. Subsequent pipeline status is authoritative in the latest GitHub Actions run; report statuses describe the preparation checkpoint recorded in that commit.
 
 `Validate PARADOX weapon audit` runs on the isolated `paradox/weapon-audit-20260905` review branch. It repeats the regression gates, builds the Worker, renders all 17 weapon types at 320, 390, 768 and 1440 pixels, and preserves Praxic Blade screenshots. The review branch does not deploy. Sandbox is updated only after that workflow passes; the sandbox workflow repeats the application gates before deployment.
 

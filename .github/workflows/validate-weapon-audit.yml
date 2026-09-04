@@ -16,7 +16,14 @@ jobs:
         with:
           node-version: 22
       - name: Catalogue and application regression gates
-        run: node astrix-app/tools/paradox-validator.mjs
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+          FORGE_INDEX_ONLY: '1'
+        run: |
+          python3 astrix-app/tools/import-armor-information.py
+          node astrix-app/tools/paradox-validator.mjs
+      - name: Verify generated index transport
+        run: node astrix-app/tools/test-forge-index-transport.mjs
       - name: Sandbox deployment contract
         run: node astrix-app/tools/validate-sandbox-deployment.mjs
       - name: Auth Worker build

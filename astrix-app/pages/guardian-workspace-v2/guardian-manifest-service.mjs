@@ -1,5 +1,6 @@
 import {openGuardianDatabase,MANIFEST_STORE_NAME} from "./guardian-session-cache.mjs";
 import {resolveArtifactTwoCatalog} from "./guardian-artifact-catalog.mjs?v=20260904-artifact-sandbox-effects-1";
+import {expandForgeArmourIndex} from '../../core/forge-index-transport.mjs';
 import {paradoxDefinitionId} from '../../core/bungie-item-identity.mjs';
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
@@ -292,7 +293,7 @@ class GuardianManifestService{
       const payload=await this.fetchJson(requestUrl);
       const version=String(payload?.manifestVersion||"").trim();
       if(!version||version!==this.version)throw new Error(`Forge armour index is stale (${version||"unknown"}; expected ${this.version||"current"}).`);
-      if(Number(payload?.schemaVersion)!==4)throw new Error("Forge armour and Artifact index schema is unsupported.");
+      if(![4,5].includes(Number(payload?.schemaVersion)))throw new Error("Forge armour and Artifact index schema is unsupported.");
       if(!payload?.definitions||typeof payload.definitions!=="object"||Array.isArray(payload.definitions))throw new Error("Forge armour index contains no definition map.");
       if(!Array.isArray(payload?.artifactCatalog)||payload.artifactCatalog.length===0)throw new Error("Forge index contains no verified Artifact 2.0 catalogue.");
       return payload;
@@ -301,6 +302,7 @@ class GuardianManifestService{
   }
 
   applyForgeArmourIndex(payload={},index={}){
+    index=expandForgeArmourIndex(index);
     const version=String(index?.manifestVersion||"").trim();
     if(!version||version!==this.version)return false;
     const socketLayouts=index.socketLayouts||{};

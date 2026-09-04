@@ -152,7 +152,7 @@ jobs:
           missing = required - payload.keys()
           if missing:
               raise SystemExit(f"Forge armour index fields missing: {sorted(missing)}")
-          if payload["schemaVersion"] != 4:
+          if payload["schemaVersion"] != 5:
               raise SystemExit(f"Unsupported Forge index schema: {payload['schemaVersion']}")
           if not payload["definitions"]:
               raise SystemExit("Forge armour index contains no armour definitions")

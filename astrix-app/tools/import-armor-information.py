@@ -213,9 +213,12 @@ def forge_armour_definition(hash_text: str, item: dict[str, Any]) -> dict[str, A
     ]
     if socket_entries or socket_categories:
         definition["sockets"] = {"socketEntries": socket_entries, "socketCategories": socket_categories}
-    for key in ("equipableItemSetHash", "collectibleHash", "displaySource", "iconWatermark"):
+    for key in ("equipableItemSetHash", "collectibleHash", "displaySource", "iconWatermark", "iconWatermarkShelved", "iconWatermarkFeatured", "isFeaturedItem"):
         if item.get(key) not in (None, ""):
             definition[key] = item[key]
+    quality = item.get("quality") or {}
+    if quality:
+        definition["quality"] = {key: quality[key] for key in ("currentVersion", "displayVersionWatermarkIcons") if key in quality}
     return definition
 
 
@@ -449,6 +452,43 @@ def artifact_catalog(
     return sorted(catalog, key=lambda row: (row["name"].lower(), row["hash"]))
 
 
+def pack_forge_index(payload: dict[str, Any]) -> dict[str, Any]:
+    """Deduplicate repeated data without dropping any definition fields."""
+    templates: list[dict[str, Any]] = []
+    template_ids: dict[str, int] = {}
+    entries: list[dict[str, Any]] = []
+    entry_ids: dict[str, int] = {}
+    keep = {"hash", "itemType", "displayProperties", "socketLayoutKey", "collectibleHash", "displaySource", "iconWatermark"}
+
+    def intern(value: dict[str, Any], rows: list[dict[str, Any]], ids: dict[str, int]) -> int:
+        key = canonical_json(value)
+        if key not in ids:
+            ids[key] = len(rows)
+            rows.append(value)
+        return ids[key]
+
+    packed = dict(payload)
+    for kind in ("definitions", "plugDefinitions"):
+        packed[kind] = {}
+        for hash_text, row in sorted(payload[kind].items(), key=lambda pair: int(pair[0])):
+            template = {key: value for key, value in row.items() if key not in keep}
+            identity = {key: value for key, value in row.items() if key in keep}
+            packed[kind][hash_text] = {**identity, "templateId": intern(template, templates, template_ids)}
+    packed["socketLayouts"] = {}
+    for key, layout in sorted(payload["socketLayouts"].items()):
+        packed["socketLayouts"][key] = {
+            **{name: value for name, value in layout.items() if name != "socketEntries"},
+            "socketEntryIds": [intern(entry, entries, entry_ids) for entry in layout.get("socketEntries", [])],
+        }
+    qualities: list[dict[str, Any]] = []
+    quality_ids: dict[str, int] = {}
+    for template in templates:
+        if "quality" in template:
+            template["qualityId"] = intern(template.pop("quality"), qualities, quality_ids)
+    packed.update({"schemaVersion": 5, "transportEncoding": "shared-definitions-v1", "definitionTemplates": templates, "socketEntryDefinitions": entries, "qualityDefinitions": qualities})
+    return packed
+
+
 def forge_index_payload(
     manifest_version: str,
     inventory: dict[str, Any],
@@ -559,8 +599,8 @@ def forge_index_payload(
         if isinstance(socket_category_definitions.get(str(hash_value)), dict)
     }
     compact_artifacts = artifact_catalog(inventory, plug_set_definitions, sandbox_perks, manifest_version)
-    return {
-        "schemaVersion": 4,
+    return pack_forge_index({
+        "schemaVersion": 5,
         "manifestVersion": manifest_version,
         "generatedAt": utc_now(),
         "definitions": armour,
@@ -571,7 +611,7 @@ def forge_index_payload(
         "plugDefinitions": compact_plugs,
         "socketCategoryDefinitions": compact_socket_categories,
         "artifactCatalog": compact_artifacts,
-    }
+    })
 
 
 def write_forge_index(payload: dict[str, Any]) -> bool:
@@ -581,7 +621,7 @@ def write_forge_index(payload: dict[str, Any]) -> bool:
             previous = json.loads(FORGE_INDEX_PATH.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             previous = None
-    meaningful_keys = ("schemaVersion", "manifestVersion", "definitions", "socketLayouts", "equipableItemSets", "sandboxPerks", "statDefinitions", "plugDefinitions", "socketCategoryDefinitions", "artifactCatalog")
+    meaningful_keys = ("schemaVersion", "manifestVersion", "definitions", "socketLayouts", "equipableItemSets", "sandboxPerks", "statDefinitions", "plugDefinitions", "socketCategoryDefinitions", "artifactCatalog", "transportEncoding", "definitionTemplates", "socketEntryDefinitions", "qualityDefinitions")
     changed = previous is None or any(previous.get(key) != payload.get(key) for key in meaningful_keys)
     if changed:
         FORGE_INDEX_PATH.write_text(json.dumps(payload, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")

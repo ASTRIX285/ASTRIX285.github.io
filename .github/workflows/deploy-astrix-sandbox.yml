@@ -38,7 +38,7 @@ jobs:
 
           path = Path("astrix-app/data/forge-armour-index.json")
           payload = json.loads(path.read_text(encoding="utf-8"))
-          if payload.get("schemaVersion") != 4:
+          if payload.get("schemaVersion") != 5:
               raise SystemExit(f"Unsupported Forge index schema: {payload.get('schemaVersion')}")
           artifacts = payload.get("artifactCatalog") or []
           if not artifacts:
