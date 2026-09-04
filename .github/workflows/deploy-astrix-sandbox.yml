@@ -25,11 +25,33 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Generate current compact Forge armour index
+      - name: Generate current compact Forge armour and Artifact index
         env:
           BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
           FORGE_INDEX_ONLY: '1'
         run: python3 astrix-app/tools/import-armor-information.py
+      - name: Validate generated Forge Artifact catalogue
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          from pathlib import Path
+
+          path = Path("astrix-app/data/forge-armour-index.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          if payload.get("schemaVersion") != 4:
+              raise SystemExit(f"Unsupported Forge index schema: {payload.get('schemaVersion')}")
+          artifacts = payload.get("artifactCatalog") or []
+          if not artifacts:
+              raise SystemExit("Generated Forge index contains no verified Artifact 2.0 catalogue")
+          for artifact in artifacts:
+              slots = artifact.get("selectionSlots") or []
+              perks = artifact.get("perks") or []
+              if artifact.get("availabilityModel") != "artifact-2-socket-buckets":
+                  raise SystemExit(f"Unsupported Artifact selection model: {artifact.get('hash')}")
+              if not slots or not perks or artifact.get("selectionLimit", 0) <= 0:
+                  raise SystemExit(f"Incomplete Artifact catalogue record: {artifact.get('hash')}")
+          print(f"FORGE_ARTIFACT_CATALOGUE=PASS artifacts={len(artifacts)}")
+          PYEOF
       - name: Validate sandbox contract
         run: |
           node astrix-app/tools/validate-scope-guard.mjs

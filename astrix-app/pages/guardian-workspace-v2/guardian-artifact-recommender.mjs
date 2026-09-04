@@ -5,6 +5,7 @@ const CHAMPION_LABELS = [
 ];
 
 const ELEMENTS = ['Kinetic', 'Arc', 'Solar', 'Void', 'Stasis', 'Strand'];
+const LEGACY_ARTIFACT_PLAN_LIMIT = 12;
 const MECHANICS = [
   ['grenade', /\bgrenades?\b/i],
   ['melee', /\bmelee\b/i],
@@ -362,7 +363,7 @@ export function resolveBuildWeapons(weaponHashes, manifestDefinitions, curatedTa
   return { weapons, unresolved };
 }
 
-export function recommendArtifactPerks(build, artifactData, { currentSeasonNumber } = {}) {
+export function recommendArtifactPerks(build, artifactData, { currentSeasonNumber, planFullBuild = false } = {}) {
   const state = artifactState(artifactData, currentSeasonNumber);
   const effectiveSeason = finiteInteger(artifactData?.seasonNumber);
   const artifactHash = hashOf(artifactData) ?? finiteInteger(artifactData?.artifactHash);
@@ -383,7 +384,7 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
   const artifactTwo=artifactData?.availabilityModel === 'artifact-2-socket-buckets';
   const strictLiveEvidence = !artifactTwo&&(artifactData?.provenance === 'bungie-character-progressions-202' || artifactData?.artifactConfiguration?.provenance?.component === 202);
   const normalized = artifactData.perks.map((perk, index) => normalizePerk(perk, index, strictLiveEvidence));
-  const eligible = normalized.filter(perk => perk.eligible);
+  const eligible = normalized.filter(perk => planFullBuild ? perk.verified : perk.eligible);
   const weapons = (build?.weapons ?? []).map(normalizeWeapon).filter(weapon => weapon.hash !== null);
   const subclassElement = elementOf(build?.subclassBuild?.super) ?? elementOf(build?.subclass) ?? elementOf(build?.subclassName);
   const sources = effectSources(build, weapons);
@@ -391,7 +392,8 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
   const activeCount = normalized.filter(perk => perk.active).length;
   const pointsUsed = finiteInteger(artifactData?.pointsUsed);
   const socketSelection=artifactTwo?selectSocketBucketConfiguration(rows,artifactData.selectionSlots):null;
-  const selectionLimit = artifactTwo?socketSelection.selectionLimit:Math.min(eligible.length, Math.max(0, pointsUsed ?? activeCount));
+  const liveSelectionLimit=Math.min(eligible.length,Math.max(0,pointsUsed??activeCount));
+  const selectionLimit = artifactTwo?socketSelection.selectionLimit:(planFullBuild?Math.min(eligible.length,LEGACY_ARTIFACT_PLAN_LIMIT):liveSelectionLimit);
   const selected = artifactTwo?socketSelection.selected:selectLegalConfiguration(rows, selectionLimit);
   const selectedHashes = new Set(selected.map(row => row.perk.hash));
   const selectionOrder = new Map(selected.map((row, index) => [row.perk.hash, index + 1]));
@@ -404,7 +406,7 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
   }));
   const selectedMatchedCount = selected.filter(row => row.score > 0).length;
   const blockers = [];
-  if (selectionLimit === 0) blockers.push(artifactTwo?'Artifact 2.0 exposes no selectable socket buckets.':'Bungie reports no Artifact unlock points available for this configuration.');
+  if (selectionLimit === 0) blockers.push(artifactTwo?'Artifact 2.0 exposes no selectable socket buckets.':planFullBuild?'No verified current Artifact perks are available for a target build plan.':'Bungie reports no Artifact unlock points available for this configuration.');
   if (socketSelection?.shortages.length) blockers.push('One or more Artifact 2.0 buckets could not be filled from verified manifest perk choices.');
   if (selected.length < selectionLimit) blockers.push(`Only ${selected.length} of ${selectionLimit} legal Artifact selections could be resolved from verified tier evidence.`);
   if (!recommendations.length) blockers.push('No explicit match was found between verified Artifact descriptions and the staged Forge Loader build.');
@@ -418,6 +420,8 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
     artifactHash,
     artifactName:text(artifactData?.name),
     selectionModel:artifactTwo?'artifact-2-socket-buckets':'legacy-character-progression-points',
+    planMode:planFullBuild&&!artifactTwo?'full-build-target':'current-availability',
+    liveSelectionLimit,
     selectionSlots:artifactTwo?artifactData.selectionSlots.map(slot=>({tierIndex:finiteInteger(slot?.tierIndex),bucket:finiteInteger(slot?.bucket),capacity:finiteInteger(slot?.capacity),perkHashes:(slot?.perkHashes||[]).map(finiteInteger).filter(hash=>hash!==null)})):null,
     selectionLimit,
     selectedPerkHashes: selected.map(row => row.perk.hash),

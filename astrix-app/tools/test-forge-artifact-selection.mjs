@@ -65,10 +65,30 @@ assert.equal(result.state.workingBuild.artifactConfiguration.source,'paradox-for
 assert.equal(result.state.workingBuild.artifactConfiguration.provenance.state,'recommended-working-build-only');
 assert.equal(result.state.workingBuild.artifactRecommendation.source,'paradox-forge-loader-artifact-fit');
 assert.equal(result.state.workingBuild.artifactRecommendation.selectionStatus,'ready');
-assert.equal(result.state.workingBuild.artifactRecommendation.selectionLimit,3);
-assert.deepEqual(result.state.workingBuild.artifactConfiguration.selectedPerkHashes,[101,102,105]);
+assert.equal(result.state.workingBuild.artifactRecommendation.selectionLimit,5,'Build Forge must stage the complete target tree rather than stopping at currently spent points');
+assert.deepEqual(result.state.workingBuild.artifactConfiguration.selectedPerkHashes,[101,102,103,105,106]);
 assert.equal('confirmed' in result.state.workingBuild.artifactConfiguration,false,'a recommendation must not masquerade as user confirmation');
 assert.equal('liveApplied' in result.state.workingBuild.artifactConfiguration,false,'a recommendation must not claim a live mutation');
+
+const zeroPointSource={
+  ...source,
+  artifact:{
+    ...source.artifact,
+    pointsUsed:0,
+    perks:source.artifact.perks.map(row=>({...row,isActive:false})),
+    activePerks:[],
+    artifactConfiguration:{...source.artifact.artifactConfiguration,selectedPerkHashes:[]}
+  },
+  artifactConfiguration:{...source.artifactConfiguration,selectedPerkHashes:[]}
+};
+const zeroPointState=createBuildState(zeroPointSource);
+const zeroPointOriginal=JSON.stringify(zeroPointState.originalBuild);
+const zeroPointResult=applyForgeArtifactRecommendation(zeroPointState,{currentSeasonNumber:31});
+assert.equal(zeroPointResult.applied,true,'Build Forge must stage the complete Artifact target plan even when no unused live unlock points are reported');
+assert.equal(zeroPointResult.recommendation.planMode,'full-build-target');
+assert.equal(zeroPointResult.recommendation.liveSelectionLimit,0);
+assert.equal(zeroPointResult.state.workingBuild.artifactConfiguration.selectedPerkHashes.length,source.artifact.perks.length);
+assert.equal(JSON.stringify(zeroPointResult.state.originalBuild),zeroPointOriginal,'a full Artifact target plan must not alter the captured live Original Build');
 
 const repeated=applyForgeArtifactRecommendation(result.state,{currentSeasonNumber:31});
 assert.equal(repeated.applied,false,'unchanged inputs must reuse the deterministic recommendation');
@@ -118,3 +138,4 @@ console.log('FORGE_ARTIFACT_WORKING_ONLY=PASS');
 console.log('FORGE_ARTIFACT_ORIGINAL_PROTECTED=PASS');
 console.log('FORGE_ARTIFACT_CONFIRMATION_BOUNDARY=PASS');
 console.log('FORGE_ARTIFACT_2_BEST_FIT=PASS');
+console.log('FORGE_ARTIFACT_FULL_TARGET_PLAN=PASS livePoints=0');

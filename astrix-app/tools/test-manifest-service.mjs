@@ -56,6 +56,32 @@ assert.equal(first.identity(201).name,'Rolled Perk');
 assert.equal(first.identity(201).icon,'https://www.bungie.net/perk.png');
 assert.equal(first.identity(203).name,'Sandbox Effect');
 
+const compactArtifact={
+  hash:2001,
+  name:'Compact Artifact 2.0',
+  availabilityModel:'artifact-2-socket-buckets',
+  selectionLimit:1,
+  selectionSlots:[{tierIndex:0,bucket:1,capacity:1,perkHashes:[2101]}],
+  perks:[{hash:2101,name:'Compact Artifact Perk',description:'Void grenade final blows improve grenade recharge.',displayResolved:true}],
+  activePerks:[]
+};
+const compactPayload={};
+assert.equal(first.applyForgeArmourIndex(compactPayload,{
+  schemaVersion:4,
+  manifestVersion:'v1',
+  definitions:{'400':{hash:400,itemType:2,displayProperties:{name:'Compact Armour'}}},
+  socketLayouts:{},
+  equipableItemSets:{},
+  sandboxPerks:{},
+  statDefinitions:{},
+  plugDefinitions:{},
+  socketCategoryDefinitions:{},
+  artifactCatalog:[compactArtifact]
+}),true,'matching compact Forge armour and Artifact evidence must merge');
+assert.deepEqual(compactPayload.artifactCatalog,[compactArtifact]);
+assert.deepEqual(compactPayload.artifactCatalogCoverage,{model:'artifact-2-socket-buckets',artifactCount:1,complete:true,source:'hourly-compact-manifest',version:'v1'});
+assert.equal(compactPayload.forgeArmourIndexCoverage.artifactCatalog,1);
+
 const payload={
   profile:{
     characterEquipment:{data:{c1:{items:[{itemHash:100,itemInstanceId:'weapon-1'}]}}},
@@ -99,4 +125,5 @@ console.log('MANIFEST_VERSION_MATCH_SKIP=PASS componentDownloads=0');
 console.log(`MANIFEST_VERSION_CHANGE_DOWNLOAD=${componentCalls.slice(COMPONENT_TYPES.length).join(',')}`);
 console.log('MANIFEST_LOCAL_ROLL_RESOLUTION=PASS weapon=Freshly Rolled Weapon perk=Rolled Perk alternative=Alternative Perk');
 console.log('MANIFEST_ARTIFACT_RESOLUTION=PASS artifact=Current Artifact activePerk=Active Artifact Perk');
+console.log('MANIFEST_COMPACT_ARTIFACT_CATALOGUE=PASS artifacts=1');
 console.log('MANIFEST_INDEXEDDB_FALLBACK=PASS source=bungie-single-definition-endpoint');

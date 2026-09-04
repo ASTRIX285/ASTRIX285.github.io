@@ -277,7 +277,9 @@ class GuardianManifestService{
       const payload=await this.fetchJson(requestUrl);
       const version=String(payload?.manifestVersion||"").trim();
       if(!version||version!==this.version)throw new Error(`Forge armour index is stale (${version||"unknown"}; expected ${this.version||"current"}).`);
+      if(Number(payload?.schemaVersion)!==4)throw new Error("Forge armour and Artifact index schema is unsupported.");
       if(!payload?.definitions||typeof payload.definitions!=="object"||Array.isArray(payload.definitions))throw new Error("Forge armour index contains no definition map.");
+      if(!Array.isArray(payload?.artifactCatalog)||payload.artifactCatalog.length===0)throw new Error("Forge index contains no verified Artifact 2.0 catalogue.");
       return payload;
     })());
     return this.forgeIndexPromises.get(key);
@@ -296,6 +298,10 @@ class GuardianManifestService{
     payload.sandboxPerks={...(index.sandboxPerks||{}),...(payload.sandboxPerks||{})};
     payload.statDefinitions={...(index.statDefinitions||{}),...(payload.statDefinitions||{})};
     payload.socketCategoryDefinitions={...(index.socketCategoryDefinitions||{}),...(payload.socketCategoryDefinitions||{})};
+    if(Array.isArray(index.artifactCatalog)&&index.artifactCatalog.length){
+      payload.artifactCatalog=index.artifactCatalog;
+      payload.artifactCatalogCoverage={model:"artifact-2-socket-buckets",artifactCount:index.artifactCatalog.length,complete:true,source:"hourly-compact-manifest",version};
+    }
     payload.forgeArmourIndexCoverage={
       version,
       definitions:Object.keys(index.definitions||{}).length,
@@ -304,6 +310,7 @@ class GuardianManifestService{
       sandboxPerks:Object.keys(index.sandboxPerks||{}).length,
       plugDefinitions:Object.keys(index.plugDefinitions||{}).length,
       socketCategories:Object.keys(index.socketCategoryDefinitions||{}).length,
+      artifactCatalog:Array.isArray(index.artifactCatalog)?index.artifactCatalog.length:0,
       complete:Object.keys(index.definitions||{}).length>0,
       source:"hourly-compact-manifest"
     };

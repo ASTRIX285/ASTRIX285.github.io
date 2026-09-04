@@ -140,7 +140,7 @@ jobs:
           )
           PYEOF
 
-      - name: Validate compact Forge armour index
+      - name: Validate compact Forge armour and Artifact index
         run: |
           python3 - << 'PYEOF'
           import json
@@ -148,20 +148,32 @@ jobs:
 
           path = Path("astrix-app/data/forge-armour-index.json")
           payload = json.loads(path.read_text(encoding="utf-8"))
-          required = {"schemaVersion", "manifestVersion", "generatedAt", "definitions", "socketLayouts", "equipableItemSets", "sandboxPerks", "statDefinitions"}
+          required = {"schemaVersion", "manifestVersion", "generatedAt", "definitions", "socketLayouts", "equipableItemSets", "sandboxPerks", "statDefinitions", "plugDefinitions", "socketCategoryDefinitions", "artifactCatalog"}
           missing = required - payload.keys()
           if missing:
               raise SystemExit(f"Forge armour index fields missing: {sorted(missing)}")
+          if payload["schemaVersion"] != 4:
+              raise SystemExit(f"Unsupported Forge index schema: {payload['schemaVersion']}")
           if not payload["definitions"]:
               raise SystemExit("Forge armour index contains no armour definitions")
           if any(row.get("itemType") != 2 for row in payload["definitions"].values()):
               raise SystemExit("Forge armour index contains a non-armour definition")
+          if not payload["artifactCatalog"]:
+              raise SystemExit("Forge index contains no verified Artifact 2.0 catalogue")
+          for artifact in payload["artifactCatalog"]:
+              if artifact.get("availabilityModel") != "artifact-2-socket-buckets":
+                  raise SystemExit("Forge index contains an unsupported Artifact selection model")
+              slots = artifact.get("selectionSlots") or []
+              perks = artifact.get("perks") or []
+              if not slots or not perks or artifact.get("selectionLimit", 0) <= 0:
+                  raise SystemExit(f"Incomplete Artifact catalogue record: {artifact.get('hash')}")
           print(json.dumps({
               "manifestVersion": payload["manifestVersion"],
               "armourDefinitions": len(payload["definitions"]),
               "socketLayouts": len(payload["socketLayouts"]),
               "equipableSets": len(payload["equipableItemSets"]),
               "sandboxPerks": len(payload["sandboxPerks"]),
+              "artifactCatalog": len(payload["artifactCatalog"]),
               "fileBytes": path.stat().st_size,
           }, indent=2))
           PYEOF
@@ -210,6 +222,7 @@ jobs:
           MATCHED: ${{ steps.armor.outputs.matched }}
           UNRESOLVED: ${{ steps.armor.outputs.unresolved }}
           AMBIGUOUS: ${{ steps.armor.outputs.ambiguous }}
+          ARTIFACT_CATALOG: ${{ steps.armor.outputs.artifact_catalog }}
           FILE_CHANGED: ${{ steps.generated.outputs.changed }}
         run: |
           {
@@ -221,6 +234,7 @@ jobs:
             echo "- Curated rows matched: ${MATCHED:-0}"
             echo "- Unresolved rows: ${UNRESOLVED:-0}"
             echo "- Ambiguous rows: ${AMBIGUOUS:-0}"
+            echo "- Verified Artifact 2.0 records: ${ARTIFACT_CATALOG:-0}"
             echo "- Served catalogue changed: ${FILE_CHANGED:-false}"
             echo "- Raw catalogue retained: no"
           } >> "$GITHUB_STEP_SUMMARY"

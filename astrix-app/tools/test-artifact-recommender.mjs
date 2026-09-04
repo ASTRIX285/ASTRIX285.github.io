@@ -89,6 +89,23 @@ assert.equal(liveResult.selectedMatchedCount,3);
 assert.ok(liveResult.recommendations.every(row=>row.reasons.length>0),'every ranked perk needs an explicit verified reason');
 assert.deepEqual(liveResult,recommendArtifactPerks(forgeBuild,live,{currentSeasonNumber:31}),'live Forge Loader ranking must be deterministic');
 
+const zeroPointArtifact={
+  ...live,
+  pointsUsed:0,
+  perks:live.perks.map(perk=>({...perk,isActive:false})),
+  activePerks:[],
+  artifactConfiguration:{...live.artifactConfiguration,selectedPerkHashes:[]}
+};
+const fullTargetResult=recommendArtifactPerks(forgeBuild,zeroPointArtifact,{currentSeasonNumber:31,planFullBuild:true});
+assert.equal(fullTargetResult.status,'current');
+assert.equal(fullTargetResult.selectionStatus,'ready','zero currently available points must not suppress the complete Artifact target plan');
+assert.equal(fullTargetResult.planMode,'full-build-target');
+assert.equal(fullTargetResult.liveSelectionLimit,0,'the recommendation must preserve the distinction between live availability and the target build');
+assert.equal(fullTargetResult.selectionLimit,zeroPointArtifact.perks.length);
+assert.equal(fullTargetResult.selectedPerkHashes.length,zeroPointArtifact.perks.length);
+assert.ok(fullTargetResult.selectedPerkHashes.includes(102),'the full plan must retain the verified grenade-loop recommendation');
+assert.ok(fullTargetResult.selectedPerkHashes.includes(105),'the full plan must retain the verified Armour Charge recommendation');
+
 const stale=recommendArtifactPerks(forgeBuild,live,{currentSeasonNumber:32});
 assert.equal(stale.status,'stale-artifact');
 assert.equal(stale.selectionStatus,'blocked');
@@ -135,4 +152,5 @@ console.log('ARTIFACT_LEGAL_SELECTION=PASS');
 console.log('ARTIFACT_FORGE_LOADER_FIT=PASS');
 console.log('ARTIFACT_SEASON_GUARD=PASS');
 console.log('ARTIFACT_2_SOCKET_BUCKETS=PASS');
+console.log('ARTIFACT_FULL_TARGET_PLAN=PASS livePoints=0');
 console.log('SUBCLASS_ASPECT_FRAGMENT_LABELS=PASS');

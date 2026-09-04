@@ -183,13 +183,13 @@ assert.match(buildModule,/function writeState\(next,\{memoryOnly=volatileStateMe
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260829-weapon-perk-hash-1'/,'Build Armour must import the same current renderer as the locked Character section');
 assert.match(buildHtml,/paradox-build-space\.css\?v=20260904-synergy-review-1/,'Build must load the expanded recommendation review without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260904-exotic-anchor-1/,'Build must load the Exotic-constrained armour-led inventory recommendation without stale code');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260904-full-artifact-plan-1/,'Build must load the complete Artifact-aware Exotic-constrained recommendation without stale code');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/const artifactItems=resolvedOptions\(build,'artifact'\)/,'Build Artifact selector must expose the verified Artifact 2.0 catalogue for Forge ranking');
 assert.match(buildModule,/applyForgeArtifactRecommendation/,'Build Forge must calculate Artifact choices from its staged Forge Loader decision');
 assert.match(buildModule,/current-season/,'Build Forge must verify Artifact freshness against current Bungie season metadata');
-assert.match(buildModule,/Working Build\. Live Guardian unchanged/,'Artifact recommendations must remain explicit non-live Working Build state');
+assert.match(buildModule,/Working Build only · currently unlocked and equipped perks remain unchanged/,'Artifact recommendations must remain explicit non-live Working Build state');
 assert.match(buildCss,/\.artifact-perk\.is-recommended-choice\{[^}]*border-color:#d9b84f!important/,'PARADOX-recommended Artifact perks must have a unique gold selection state');
 assert.match(buildModule,/astrix:build-render-complete/,'Build Tool must publish render completion');
 assert.match(buildModule,/status=ready\?'ready':'pending'/,'Build Tool must not publish its temporary empty state as ready');

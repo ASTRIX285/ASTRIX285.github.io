@@ -19,6 +19,7 @@ const [html,runtime,css,gearRuntime,advisorRuntime,intelligenceRuntime,liveAdapt
   readFile(new URL('paradox-build-space/paradox-forge-intelligence.mjs',root),'utf8'),
   readFile(new URL('guardian-paradox-live-adapter.mjs',root),'utf8')
 ]);
+const artifactSelectionRuntime=await readFile(new URL('paradox-build-space/paradox-artifact-selection.mjs',root),'utf8');
 
 const t5Armour=Array.from({length:5},(_,index)=>({itemInstanceId:`armour-${index}`,armourTier:5,masterwork:{semanticRole:'masterwork'}}));
 assert.deepEqual(BUILD_ELEMENTS,['arc','solar','strand','stasis','void','prismatic'],'Recommendation controls must contain the six supported Destiny elements in the approved order.');
@@ -165,6 +166,8 @@ assert.match(html,/id="weaponExoticRule">OWNED VAULT \+ CHARACTER INVENTORY · 1
 assert.match(runtime,/EXOTIC ANCHOR: \$\{String\(anchorName\)\.toUpperCase\(\)\}/,'The recommendation heading must name the selected Exotic armour anchor.');
 assert.match(runtime,/changedItems=\(plan\.items\|\|\[\]\)[\s\S]*?filter\(row=>row\.action!=='KEEP'\)/,'The review must omit unchanged mod sockets and present only proposed changes.');
 assert.match(runtime,/review-artifact-synergy[\s\S]*?ARTIFACT SYNERGY/,'The review must expose the evidence behind the Artifact recommendation.');
+assert.match(artifactSelectionRuntime,/recommendArtifactPerks\(build,effectiveArtifact,\{currentSeasonNumber:season,planFullBuild:true\}\)/,'Build Forge must produce a complete target Artifact plan when only the current CharacterProgressions tree is available.');
+assert.match(runtime,/PARADOX FULL TARGET PLAN[\s\S]*?currently unlocked and equipped perks remain unchanged/,'The Artifact recommendation must distinguish the complete target plan from the live unlocked and equipped state.');
 assert.match(css,/\.recommended-build-dialog\{width:calc\(100vw - 20px\);max-width:none;border:0/,'The recommendation review must use the page width without the cramped red outer container.');
 assert.match(html,/id="continueToBuildTest">TEST THIS BUILD/,'The recommendation review must lead into the user-run Build Test.');
 assert.match(runtime,/function renderParadoxTestReview\(capture=readCapture\(\)\)[\s\S]*?Causal perk activation, DPS and uptime remain inference/,'Paradox must review confirmed post-test Bungie evidence without inventing causal telemetry.');

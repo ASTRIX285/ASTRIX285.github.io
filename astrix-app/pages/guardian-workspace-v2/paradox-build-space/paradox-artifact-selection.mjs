@@ -54,7 +54,7 @@ function applyForgeArtifactRecommendation(state,{currentSeasonNumber=null,force=
   }
   const recommendationBase=artifactOptions.length
     ?recommendArtifactLoadout(build,artifactOptions,{currentSeasonNumber:season})
-    :recommendArtifactPerks(build,effectiveArtifact,{currentSeasonNumber:season});
+    :recommendArtifactPerks(build,effectiveArtifact,{currentSeasonNumber:season,planFullBuild:true});
   const recommendation={...recommendationBase,fingerprint,userOverride:false,source:'paradox-forge-loader-artifact-fit'};
   // The protected Original Build never changes. Only Artifact fields are
   // replaced, so keep the large owned-inventory catalogues structurally shared.
