@@ -14,22 +14,26 @@ const itemIdentity=item=>text(item?.itemInstanceId||item?.instanceId||item?.hash
 const positiveInteger=value=>{const number=Number(value);return Number.isInteger(number)&&number>0?number:null;};
 const nonNegative=value=>Math.max(0,Number.isFinite(Number(value))?Number(value):0);
 const compactDisplayProperties=value=>({name:text(value?.name),description:text(value?.description),icon:text(value?.icon),highResIcon:text(value?.highResIcon)});
+const compactPlugRules=value=>Array.isArray(value)?value.map(row=>({failureMessage:text(row?.failureMessage)})).filter(row=>row.failureMessage):[];
+const compactTooltipNotifications=value=>Array.isArray(value)?value.map(row=>({displayString:text(row?.displayString??row?.displayText),displayStyle:text(row?.displayStyle)})).filter(row=>row.displayString):[];
 
 function compactDefinition(value={}){
-  return {
+  const insertionRules=compactPlugRules(value?.plug?.insertionRules),enabledRules=compactPlugRules(value?.plug?.enabledRules),tooltipNotifications=compactTooltipNotifications(value?.tooltipNotifications),plug=value?.plug?{plugCategoryIdentifier:text(value.plug.plugCategoryIdentifier),energyCost:value.plug.energyCost??null}:null;
+  if(plug&&insertionRules.length)plug.insertionRules=insertionRules;if(plug&&enabledRules.length)plug.enabledRules=enabledRules;
+  const compact={
     hash:positiveInteger(value?.hash),
     displayProperties:compactDisplayProperties(value?.displayProperties),
     itemType:Number.isFinite(Number(value?.itemType))?Number(value.itemType):null,
     itemTypeDisplayName:text(value?.itemTypeDisplayName),
     traitIds:Array.isArray(value?.traitIds)?value.traitIds.map(text).filter(Boolean):[],
     inventory:value?.inventory?{tierType:Number(value.inventory.tierType)||0,tierTypeName:text(value.inventory.tierTypeName),tierTypeHash:positiveInteger(value.inventory.tierTypeHash),bucketTypeHash:positiveInteger(value.inventory.bucketTypeHash)}:null,
-    plug:value?.plug?{plugCategoryIdentifier:text(value.plug.plugCategoryIdentifier),energyCost:value.plug.energyCost??null}:null,
+    plug,
     investmentStats:Array.isArray(value?.investmentStats)?value.investmentStats.map(row=>({statTypeHash:positiveInteger(row?.statTypeHash),value:Number(row?.value)||0,isConditionallyActive:Boolean(row?.isConditionallyActive)})):[],
     iconWatermark:text(value?.iconWatermark),
     quality:value?.quality?{displayVersionWatermarkIcons:Array.isArray(value.quality.displayVersionWatermarkIcons)?value.quality.displayVersionWatermarkIcons.map(text).filter(Boolean):[]}:null,
     equipableItemSetHash:positiveInteger(value?.equipableItemSetHash),
     equippingBlock:value?.equippingBlock?{equipableItemSetHash:positiveInteger(value.equippingBlock.equipableItemSetHash)}:null
-  };
+  };if(tooltipNotifications.length)compact.tooltipNotifications=tooltipNotifications;return compact;
 }
 
 function compactSelectionValue(value,key=''){

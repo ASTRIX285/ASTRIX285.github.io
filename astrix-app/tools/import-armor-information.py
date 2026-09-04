@@ -238,6 +238,19 @@ def compact_set_definition(hash_text: str, definition: dict[str, Any]) -> dict[s
 def compact_plug_definition(hash_text: str, definition: dict[str, Any]) -> dict[str, Any]:
     inventory = definition.get("inventory") or {}
     plug = definition.get("plug") or {}
+    compact_plug = {
+        key: plug[key]
+        for key in ("plugCategoryIdentifier", "plugCategoryHash", "energyCost")
+        if plug.get(key) is not None
+    }
+    for rules_key in ("insertionRules", "enabledRules"):
+        rules = [
+            {"failureMessage": str(rule.get("failureMessage") or "")}
+            for rule in plug.get(rules_key) or []
+            if isinstance(rule, dict) and str(rule.get("failureMessage") or "").strip()
+        ]
+        if rules:
+            compact_plug[rules_key] = rules
     compact: dict[str, Any] = {
         "hash": int(hash_text),
         "itemType": definition.get("itemType", -1),
@@ -250,11 +263,7 @@ def compact_plug_definition(hash_text: str, definition: dict[str, Any]) -> dict[
             for key in ("tierType", "tierTypeName", "bucketTypeHash")
             if inventory.get(key) is not None
         },
-        "plug": {
-            key: plug[key]
-            for key in ("plugCategoryIdentifier", "plugCategoryHash", "energyCost")
-            if plug.get(key) is not None
-        },
+        "plug": compact_plug,
         "investmentStats": [
             {
                 key: stat[key]
@@ -265,6 +274,17 @@ def compact_plug_definition(hash_text: str, definition: dict[str, Any]) -> dict[
             if isinstance(stat, dict) and isinstance(stat.get("statTypeHash"), int)
         ],
     }
+    tooltip_notifications = [
+        {
+            key: notification[key]
+            for key in ("displayString", "displayStyle")
+            if notification.get(key) not in (None, "")
+        }
+        for notification in definition.get("tooltipNotifications") or []
+        if isinstance(notification, dict) and str(notification.get("displayString") or "").strip()
+    ]
+    if tooltip_notifications:
+        compact["tooltipNotifications"] = tooltip_notifications
     for key in ("traitIds", "itemCategoryHashes", "iconWatermark"):
         if definition.get(key) not in (None, "", []):
             compact[key] = definition[key]

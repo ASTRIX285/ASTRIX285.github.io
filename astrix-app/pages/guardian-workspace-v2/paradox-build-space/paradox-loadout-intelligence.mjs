@@ -11,6 +11,8 @@ const OBJECTIVE_TERMS=Object.freeze({
   'ability-uptime':['grenade','melee','class ability','super','ionic trace','orb of power','energy','cooldown']
 });
 const EMPTY_MOD=/^(empty|no)\b|empty (armou?r )?mod|no mod/i;
+const SINGLE_COPY_MOD_TEXT=/similar (?:armou?r )?mod already applied|additional copies? (?:of this mod )?(?:provide|provides) no benefit|does not stack|cannot be stacked|only one copy/i;
+const VERIFIED_SINGLE_COPY_MOD_HASHES=new Set([4004774872]); // Special Finisher; verified against the in-game duplicate warning.
 
 const clone=value=>{try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}};
 const clean=value=>String(value??'').trim();
@@ -42,6 +44,23 @@ function modCost(mod){
 function isVerifiedMod(mod){
   const hash=itemHash(mod),definition=mod?.definition;
   return Number.isInteger(hash)&&hash>0&&mod?.isEnabled!==false&&Boolean(definition&&Object.keys(definition).length)&&!EMPTY_MOD.test(itemName(mod,''))&&['general-mod','slot-mod'].includes(classifyArmourPlug(mod));
+}
+
+function modRuleMessages(mod){
+  const definition=mod?.definition||{},plug=definition?.plug||mod?.plug||{};
+  return [
+    ...(plug?.insertionRules||[]).map(row=>row?.failureMessage),
+    ...(plug?.enabledRules||[]).map(row=>row?.failureMessage),
+    ...(definition?.tooltipNotifications||mod?.tooltipNotifications||[]).map(row=>row?.displayString??row?.displayText??row?.failureMessage)
+  ].map(clean).filter(Boolean);
+}
+
+function singleCopyModEvidence(mod){
+  const hash=itemHash(mod),message=modRuleMessages(mod).find(value=>SINGLE_COPY_MOD_TEXT.test(value));
+  if(!Number.isInteger(hash)||hash<=0)return null;
+  if(message)return {key:`single-copy:${hash}`,message};
+  if(VERIFIED_SINGLE_COPY_MOD_HASHES.has(hash))return {key:`single-copy:${hash}`,message:'Destiny marks additional copies of this mod as providing no benefit.'};
+  return null;
 }
 
 function modStats(mod){
@@ -104,15 +123,17 @@ function socketRows(item={}){
 function rankArmourModPlan(item,build,objective){
   const sockets=socketRows(item),energy=item.energy||item.armourSemantics?.energy||{},capacity=energy?.capacity===null||energy?.capacity===undefined?null:Number(energy.capacity),reportedUsed=energy?.used===null||energy?.used===undefined?null:Number(energy.used);
   const installed=sockets.map(row=>row.current).filter(Boolean),installedCost=installed.reduce((sum,mod)=>sum+modCost(mod),0),baseUsed=Number.isFinite(reportedUsed)?Math.max(0,reportedUsed-installedCost):0,limit=Number.isFinite(capacity)?capacity:Number.POSITIVE_INFINITY;
-  let beam=[{score:0,used:baseUsed,choices:[]}];
+  let beam=[{score:0,used:baseUsed,choices:[],singleCopyKeys:new Set()}];
   for(const socket of sockets){
     const scored=uniqueByHash([socket.current,...socket.options]).map(mod=>({mod,...scoreMod(mod,{build,objective})}));
     const useful=scored.filter(row=>row.mod===socket.current||row.score>0),choices=[...useful,{mod:null,score:0,stats:Object.fromEntries(STAT_KEYS.map(key=>[key,0])),reasons:[]}];
     const next=[];
     for(const state of beam)for(const choice of choices){
+      const singleCopy=singleCopyModEvidence(choice.mod);if(singleCopy&&state.singleCopyKeys.has(singleCopy.key))continue;
       const used=state.used+modCost(choice.mod);if(used>limit)continue;
       const currentHash=itemHash(socket.current),choiceHash=itemHash(choice.mod),same=(!socket.current&&!choice.mod)||(Number.isInteger(currentHash)&&currentHash===choiceHash),stability=same?2:0,changePenalty=same?0:1;
-      next.push({score:state.score+choice.score+stability-changePenalty,used,choices:[...state.choices,{socket,...choice}]});
+      const singleCopyKeys=new Set(state.singleCopyKeys);if(singleCopy)singleCopyKeys.add(singleCopy.key);
+      next.push({score:state.score+choice.score+stability-changePenalty,used,choices:[...state.choices,{socket,...choice}],singleCopyKeys});
     }
     next.sort((left,right)=>right.score-left.score||left.used-right.used||JSON.stringify(left.choices.map(row=>itemHash(row.mod)||0)).localeCompare(JSON.stringify(right.choices.map(row=>itemHash(row.mod)||0))));
     beam=next.slice(0,64);
@@ -127,6 +148,9 @@ function rankArmourModPlan(item,build,objective){
   if(!sockets.length)limitations.push(`${itemName(item,'Armour')}: Bungie supplied no resolved functional mod sockets.`);
   if(!Number.isFinite(capacity))limitations.push(`${itemName(item,'Armour')}: energy capacity was not resolved, so no capacity claim is made.`);
   for(const row of sockets)if(!row.options.length)limitations.push(`${itemName(item,'Armour')} socket ${row.socketIndex}: no verified insertable alternatives were supplied; the installed state is preserved.`);
+  const repeatedSingleCopyOptions=new Map();
+  for(const row of sockets)for(const mod of uniqueByHash([row.current,...row.options])){const evidence=singleCopyModEvidence(mod);if(!evidence)continue;const existing=repeatedSingleCopyOptions.get(evidence.key)||{mod,evidence,sockets:new Set()};existing.sockets.add(row.socketIndex);repeatedSingleCopyOptions.set(evidence.key,existing);}
+  for(const {mod,sockets:eligible} of repeatedSingleCopyOptions.values())if(eligible.size>1)limitations.push(`${itemName(item,'Armour')}: ${itemName(mod,'Mod')} is limited to one copy because Bungie marks additional copies as conflicting or non-beneficial.`);
   return {itemInstanceId:String(item.itemInstanceId||''),itemName:itemName(item,'Armour'),capacity:Number.isFinite(capacity)?capacity:null,reportedUsed:Number.isFinite(reportedUsed)?reportedUsed:null,projectedUsed:Number.isFinite(best.used)?best.used:null,score:best.score,decisions,limitations};
 }
 
@@ -143,13 +167,27 @@ function applyRecommendedMods(item,decisions){
   return next;
 }
 
+function validateArmourModLoadout(build={}){
+  const violations=[];
+  for(const item of build.armour||[]){
+    if(!item)continue;
+    const seen=new Map(),mods=[...(item.generalMods||item.armourSemantics?.generalMods||[]),...(item.slotMods||item.armourSemantics?.slotMods||[])];
+    for(const mod of mods){
+      const evidence=singleCopyModEvidence(mod);if(!evidence)continue;
+      const prior=seen.get(evidence.key);if(prior)violations.push({armourItemInstanceId:String(item.itemInstanceId||''),armourName:itemName(item,'Armour'),modHash:itemHash(mod),modName:itemName(mod,'Mod'),socketIndexes:[Number(prior.socketIndex),Number(mod.socketIndex)].filter(Number.isFinite),reason:evidence.message});else seen.set(evidence.key,mod);
+    }
+  }
+  const first=violations[0];
+  return {ready:violations.length===0,reason:first?`Invalid armour-mod plan: ${first.modName} cannot be recommended more than once on ${first.armourName}.`:'',violations};
+}
+
 function recommendArmourMods({build={},objective='balanced'}={}){
   // Keep the large verified catalogues structurally shared. This function only
   // replaces the five Working Build armour rows and its recommendation record.
   const working={...(build||{})},resolvedObjective=objectiveName(objective||working.objective),items=(working.armour||[]).filter(Boolean),itemPlans=items.map(item=>rankArmourModPlan(item,working,resolvedObjective)),decisions=itemPlans.flatMap(row=>row.decisions),limitations=itemPlans.flatMap(row=>row.limitations);
   const byItem=new Map(itemPlans.map(row=>[row.itemInstanceId,row]));
   working.armour=(working.armour||[]).map(item=>item?applyRecommendedMods(item,byItem.get(String(item.itemInstanceId||''))?.decisions||[]):item);
-  const plan={schemaVersion:1,source:'bungie-item-sockets-and-reusable-plugs',method:'deterministic-energy-bounded-mod-beam-v1',objective:resolvedObjective,status:'review-required',rawStatsModFree:true,projectedStats:projectedStats(working,decisions),items:itemPlans,decisions,summary:{keep:decisions.filter(row=>row.action==='KEEP').length,replace:decisions.filter(row=>row.action==='REPLACE').length,add:decisions.filter(row=>row.action==='ADD').length,remove:decisions.filter(row=>row.action==='REMOVE').length},limitations:[...new Set(limitations)],requiresReview:true,liveTransferAuthorized:false};
+  const validation=validateArmourModLoadout(working),plan={schemaVersion:1,source:'bungie-item-sockets-and-reusable-plugs',method:'deterministic-energy-bounded-mod-beam-v2-single-copy-constrained',objective:resolvedObjective,status:validation.ready?'review-required':'invalid',rawStatsModFree:true,projectedStats:projectedStats(working,decisions),items:itemPlans,decisions,summary:{keep:decisions.filter(row=>row.action==='KEEP').length,replace:decisions.filter(row=>row.action==='REPLACE').length,add:decisions.filter(row=>row.action==='ADD').length,remove:decisions.filter(row=>row.action==='REMOVE').length},constraints:{singleCopyConflicts:validation.violations.length},validation,limitations:[...new Set(limitations)],requiresReview:true,liveTransferAuthorized:false};
   working.objective=resolvedObjective;working.armourModRecommendation=plan;
   return {workingBuild:working,recommendation:plan};
 }
@@ -200,4 +238,4 @@ function validateExoticLoadout(build={}, {requireArmourAnchor=false}={}){
   return {ready:true,reason:'',exoticArmourCount:exoticArmour.length,exoticWeaponCount:exoticWeapons.length};
 }
 
-export {OBJECTIVE_TERMS,STAT_KEYS,WEAPON_BUCKETS,isExoticItem,isVerifiedMod,modCost,modStats,recommendArmourMods,scoreMod,selectOwnedWeapons,validateExoticLoadout};
+export {OBJECTIVE_TERMS,STAT_KEYS,WEAPON_BUCKETS,isExoticItem,isVerifiedMod,modCost,modStats,recommendArmourMods,scoreMod,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout};

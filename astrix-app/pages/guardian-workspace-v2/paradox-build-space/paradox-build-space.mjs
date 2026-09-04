@@ -16,7 +16,7 @@ import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelec
 import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs?v=20260904-full-artifact-plan-1';
 import {BUILD_ELEMENTS,validateTierFiveArmour} from './paradox-build-recommendation.mjs';
 import {composeForgeRecommendation,filterExoticCompatibleSubclasses,hasVerifiedSubclassSockets,synchroniseSubclassProjection} from './paradox-forge-intelligence.mjs?v=20260904-exotic-anchor-1';
-import {recommendArmourMods,selectOwnedWeapons,validateExoticLoadout} from './paradox-loadout-intelligence.mjs?v=20260904-exotic-anchor-1';
+import {recommendArmourMods,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout} from './paradox-loadout-intelligence.mjs?v=20260904-single-copy-mods-1';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
 import '../guardian-loadouts.mjs';
 import '../guardian-bungie-profile.mjs?v=20260903-loadout-intelligence-1';
@@ -345,7 +345,7 @@ async function generateMaxLoadout(){
     const artifactAwareWeaponResult=selectOwnedWeapons({build:working,objective:selectedRecommendationObjective});working=artifactAwareWeaponResult.workingBuild;working.paradoxAnalysis=analyzeLiveGuardian(working)||working.paradoxAnalysis||null;
     const generatedExoticValidation=validateExoticLoadout(working,{requireArmourAnchor:true});if(!generatedExoticValidation.ready)throw new Error(generatedExoticValidation.reason);
     await updateForgeGenerationPhase('OPTIMISING VERIFIED ARMOUR MOD CHANGES…');
-    const modResult=recommendArmourMods({build:working,objective:selectedRecommendationObjective});working=modResult.workingBuild;working.paradoxAnalysis=analyzeLiveGuardian(working)||working.paradoxAnalysis||null;
+    const modResult=recommendArmourMods({build:working,objective:selectedRecommendationObjective});working=modResult.workingBuild;const generatedModValidation=validateArmourModLoadout(working);if(!generatedModValidation.ready)throw new Error(generatedModValidation.reason);working.paradoxAnalysis=analyzeLiveGuardian(working)||working.paradoxAnalysis||null;
     await updateForgeGenerationPhase('VERIFYING RECOMMENDED WEAPON PERK ROLLS…');
     await adviseLiveWeaponRolls(working,working.paradoxAnalysis||{}, {insertSocketPlugFree:false});if(working.forgeIntelligence&&working.paradoxAnalysis){working.forgeIntelligence.evidence={...working.forgeIntelligence.evidence,directedLinks:working.paradoxAnalysis.buildLoop?.length||0,strengths:working.paradoxAnalysis.strengths?.length||0,weakLinks:working.paradoxAnalysis.weakLinks?.length||0,confidence:working.paradoxAnalysis.confidence?.level||'evidence-limited',ownedWeaponCandidates:working.weaponSelectionRecommendation?.candidateCount||0,artifactSynergyScore:Number(working.artifactRecommendation?.totalScore||0),armourModDecisions:working.armourModRecommendation?.decisions?.length||0};working.forgeIntelligence.limitations=[...new Set([...(working.forgeIntelligence.limitations||[]),...(working.weaponSelectionRecommendation?.limitations||[]),...(working.armourModRecommendation?.limitations||[])])];}
     await updateForgeGenerationPhase('PREPARING BUILD REVIEW…');

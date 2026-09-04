@@ -6,15 +6,19 @@ const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';
 
 const text=value=>String(value??'').trim();
 const compactDisplayProperties=value=>({name:text(value?.name),description:text(value?.description),icon:text(value?.icon),highResIcon:text(value?.highResIcon)});
+const compactPlugRules=value=>Array.isArray(value)?value.map(row=>({failureMessage:text(row?.failureMessage)})).filter(row=>row.failureMessage):[];
+const compactTooltipNotifications=value=>Array.isArray(value)?value.map(row=>({displayString:text(row?.displayString??row?.displayText),displayStyle:text(row?.displayStyle)})).filter(row=>row.displayString):[];
 function compactDefinition(value={}){
-  return {
+  const insertionRules=compactPlugRules(value?.plug?.insertionRules),enabledRules=compactPlugRules(value?.plug?.enabledRules),tooltipNotifications=compactTooltipNotifications(value?.tooltipNotifications),plug=value?.plug?{plugCategoryIdentifier:text(value.plug.plugCategoryIdentifier),energyCost:value.plug.energyCost??null}:null;
+  if(plug&&insertionRules.length)plug.insertionRules=insertionRules;if(plug&&enabledRules.length)plug.enabledRules=enabledRules;
+  const compact={
     hash:Number(value?.hash)||null,
     displayProperties:compactDisplayProperties(value?.displayProperties),
     itemType:Number.isFinite(Number(value?.itemType))?Number(value.itemType):null,
     itemTypeDisplayName:text(value?.itemTypeDisplayName),
     traitIds:Array.isArray(value?.traitIds)?value.traitIds.map(text).filter(Boolean):[],
     inventory:value?.inventory?{tierType:Number(value.inventory.tierType)||0,tierTypeName:text(value.inventory.tierTypeName),tierTypeHash:Number(value.inventory.tierTypeHash)||null,bucketTypeHash:Number(value.inventory.bucketTypeHash)||null}:null,
-    plug:value?.plug?{plugCategoryIdentifier:text(value.plug.plugCategoryIdentifier),energyCost:value.plug.energyCost??null}:null,
+    plug,
     investmentStats:Array.isArray(value?.investmentStats)?value.investmentStats.map(row=>({statTypeHash:Number(row?.statTypeHash)||null,value:Number(row?.value)||0,isConditionallyActive:Boolean(row?.isConditionallyActive)})):[],
     defaultDamageTypeHash:Number(value?.defaultDamageTypeHash)||null,
     breakerTypeHash:Number(value?.breakerTypeHash)||null,
@@ -22,7 +26,7 @@ function compactDefinition(value={}){
     quality:value?.quality?{displayVersionWatermarkIcons:Array.isArray(value.quality.displayVersionWatermarkIcons)?value.quality.displayVersionWatermarkIcons.map(text).filter(Boolean):[]}:null,
     equipableItemSetHash:Number(value?.equipableItemSetHash)||null,
     equippingBlock:value?.equippingBlock?{equipableItemSetHash:Number(value.equippingBlock.equipableItemSetHash)||null}:null
-  };
+  };if(tooltipNotifications.length)compact.tooltipNotifications=tooltipNotifications;return compact;
 }
 function compactValue(value,key=''){
   if(value===null||value===undefined||typeof value!=='object')return value;

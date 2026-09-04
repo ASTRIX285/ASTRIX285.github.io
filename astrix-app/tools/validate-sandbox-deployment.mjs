@@ -17,6 +17,7 @@ const journeyModule=read('astrix-app/pages/journey/journey.mjs');
 const journeyCss=read('astrix-app/pages/journey/journey-2560-visual.css');
 const sharedHeroCss=read('astrix-app/shared/astrix-hero-cards.css');
 const armourWorkflow=read('.github/workflows/update-armor-information.yml');
+const armourImporter=read('astrix-app/tools/import-armor-information.py');
 
 assert.match(workflow,/push:\s*\n\s*branches:\s*\n\s*- sandbox/,'Sandbox deployment must trigger only from the sandbox branch');
 assert.doesNotMatch(workflow,/branches:\s*\n\s*- main/,'Sandbox deployment must not trigger from main');
@@ -24,6 +25,7 @@ assert.match(workflow,/name: Deploy sandbox Worker[\s\S]*?workingDirectory: astr
 assert.match(workflow,/workingDirectory: astrix-auth-worker[\s\S]*?command: deploy/,'Sandbox workflow must deploy the exact authenticated sandbox origin');
 assert.match(workflow,/Generate current compact Forge armour and Artifact index[\s\S]*?FORGE_INDEX_ONLY: '1'[\s\S]*?import-armor-information\.py[\s\S]*?Validate generated Forge Artifact catalogue[\s\S]*?FORGE_ARTIFACT_CATALOGUE=PASS[\s\S]*?Validate sandbox contract/,'Sandbox must generate and validate the current compact Forge armour and Artifact index before deployment.');
 assert.match(armourWorkflow,/schedule:[\s\S]*?cron: '17 \* \* \* \*'/,'The published compact Forge armour index must refresh hourly.');
+assert.match(armourImporter,/compact_plug_definition[\s\S]*?"insertionRules"[\s\S]*?"enabledRules"[\s\S]*?"tooltipNotifications"/,'The hourly compact Forge index must retain Bungie mod-conflict and non-stacking evidence.');
 assert.match(prepare,/astrix-app\/data\/armor-information\.json/,'Oversized verified armour data must be streamed instead of uploaded as a static asset');
 assert.match(prepare,/ASTRIX285\.github\.io/,'The duplicate legacy repository tree must not be uploaded');
 assert.match(pagesWorker,/RAW_BRANCH_ROOT='https:\/\/raw\.githubusercontent\.com\/ASTRIX285\/ASTRIX285\.github\.io\/sandbox'/,'Streamed sandbox data must come from the sandbox branch');
