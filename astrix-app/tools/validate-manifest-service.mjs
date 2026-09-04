@@ -38,12 +38,15 @@ assert.match(service,/loadForgeArmourIndex[\s\S]*?manifestVersion[\s\S]*?version
 assert.match(service,/requestUrl\.searchParams\.set\("manifest",this\.version\)/,'The compact Forge index request must bypass stale static-asset caches when Bungie changes manifest version.');
 assert.match(service,/applyForgeArmourIndex[\s\S]*?hourly-compact-manifest/,'The compact Forge index must merge only as an explicit verified payload source');
 assert.match(service,/options\.waitForManifest!==false/,'Selective payload hydration must be able to proceed without waiting for every full manifest table');
+assert.match(service,/allowNetwork=options\.allowNetwork!==false/,'The compact Forge join must be able to forbid live per-hash definition expansion on its critical path.');
 if(forgeIndex){
-  assert.equal(forgeIndex.schemaVersion,2,'The compact Forge index schema must remain explicit.');
+  assert.equal(forgeIndex.schemaVersion,3,'The compact Forge index schema must remain explicit.');
   assert.ok(Object.keys(forgeIndex.definitions).length>5000,'The compact Forge index must contain the complete verified armour definition catalogue.');
   assert.ok(Object.values(forgeIndex.definitions).every(row=>row.itemType===2),'The compact Forge index must never include non-armour inventory definitions.');
+  assert.ok(Object.keys(forgeIndex.plugDefinitions).length>0,'The compact Forge index must carry pre-resolved armour plug definitions so Forge Loader never expands them one request at a time.');
+  assert.ok(Object.keys(forgeIndex.socketCategoryDefinitions).length>0,'The compact Forge index must carry the socket-category evidence used to classify installed armour mods.');
   assert.ok(Object.keys(forgeIndex.socketLayouts).length>0,'Repeated armour socket layouts must be deduplicated into a shared index.');
-  assert.ok(Buffer.byteLength(forgeIndexSource)<5*1024*1024,'The Forge index must remain small enough to replace the multi-table browser bootstrap.');
+  assert.ok(Buffer.byteLength(forgeIndexSource)<7*1024*1024,'The Forge index must remain small enough to replace the multi-table browser bootstrap.');
 }
 
 assert.match(worker,/Destiny2\/Manifest\//,'Worker must call GetDestinyManifest with the Bungie API key');

@@ -201,7 +201,8 @@ assert.match(runtime,/FORGE_ARMOUR_INDEX_URL=new URL\('\/astrix-app\/data\/forge
 assert.match(runtime,/scope','forge'/,'Forge Loader must request its dedicated private-inventory component scope.');
 assert.match(runtime,/fetchProfile\(\{clientManifest:true\}\)/,'The normal Forge path must fetch private inventory without redundant Worker definition expansion.');
 assert.match(runtime,/loadForgeArmourIndex\(FORGE_ARMOUR_INDEX_URL\)/,'Forge Loader must version-check the compact public index before joining it to private inventory.');
-assert.match(runtime,/hydratePayload\(next,\{waitForManifest:false,armourOnly:Boolean\(forgeIndex\),includeReusable:true\}\)/,'Owned combinations and their legal armour-mod options must hydrate without blocking on unrelated full manifest data.');
+assert.match(runtime,/hydratePayload\(next,\{waitForManifest:false,armourOnly:Boolean\(forgeIndex\),includeReusable:true,allowNetwork:!forgeIndex\}\)/,'Owned combinations and their legal armour-mod options must hydrate without blocking on unrelated full manifest data or live per-hash requests.');
+assert.match(runtime,/pre-resolved armour and mod index/,'The 46-percent join must use the pre-resolved backend index instead of expanding every reusable mod through live per-hash requests.');
 assert.doesNotMatch(runtime,/await guardianManifest\.ready\(\)/,'Forge Loader must never return to the 58-percent full-manifest startup gate.');
 assert.match(html,/<header class="apx-destination-header astrix-command-header">[\s\S]*?<strong>FORGE LOADER<\/strong><small>SELECT AND MAXIMISE VERIFIED ARMOUR<\/small>/,'Forge Loader must present its page identity only in the shared compact command header.');
 assert.doesNotMatch(html,/<div class="apx-page-heading">[\s\S]*?<h1>Forge Loader<\/h1>/,'Forge Loader must not retain the oversized duplicate page hero.');

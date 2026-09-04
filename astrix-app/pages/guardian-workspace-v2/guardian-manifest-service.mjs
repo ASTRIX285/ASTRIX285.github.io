@@ -291,16 +291,19 @@ class GuardianManifestService{
       const sockets=socketLayouts[definition?.socketLayoutKey];
       return [hash,sockets?{...definition,sockets}:definition];
     }));
-    payload.definitions={...armourDefinitions,...(payload.definitions||{})};
+    payload.definitions={...armourDefinitions,...(index.plugDefinitions||{}),...(payload.definitions||{})};
     payload.equipableItemSets={...(index.equipableItemSets||{}),...(payload.equipableItemSets||{})};
     payload.sandboxPerks={...(index.sandboxPerks||{}),...(payload.sandboxPerks||{})};
     payload.statDefinitions={...(index.statDefinitions||{}),...(payload.statDefinitions||{})};
+    payload.socketCategoryDefinitions={...(index.socketCategoryDefinitions||{}),...(payload.socketCategoryDefinitions||{})};
     payload.forgeArmourIndexCoverage={
       version,
       definitions:Object.keys(index.definitions||{}).length,
       socketLayouts:Object.keys(socketLayouts).length,
       equipableItemSets:Object.keys(index.equipableItemSets||{}).length,
       sandboxPerks:Object.keys(index.sandboxPerks||{}).length,
+      plugDefinitions:Object.keys(index.plugDefinitions||{}).length,
+      socketCategories:Object.keys(index.socketCategoryDefinitions||{}).length,
       complete:Object.keys(index.definitions||{}).length>0,
       source:"hourly-compact-manifest"
     };
@@ -375,11 +378,12 @@ class GuardianManifestService{
   async hydratePayload(payload={},options={}){
     if(options.waitForManifest!==false)await this.ready();
     const indexedDb=this.mode==="indexeddb";
+    const allowNetwork=options.allowNetwork!==false;
     const {inventory,stats}=collectPayloadHashes(payload,options);
     let definitions=indexedDb?await this.getMany("DestinyInventoryItemDefinition",inventory):{...(payload.definitions||{})};
     if(!indexedDb){
       const missing=[...inventory].filter(hash=>!definitions[String(hash)]);
-      if(missing.length)definitions={...definitions,...await this.getMany("DestinyInventoryItemDefinition",missing)};
+      if(allowNetwork&&missing.length)definitions={...definitions,...await this.getMany("DestinyInventoryItemDefinition",missing)};
     }
     const socketCategories=new Set();
     const sandboxPerkHashes=new Set();
@@ -410,7 +414,8 @@ class GuardianManifestService{
       }
     }
     if(expandedHashes.size){
-      const expanded=await this.getMany("DestinyInventoryItemDefinition",expandedHashes);
+      const missingExpanded=[...expandedHashes].filter(hash=>!definitions[String(hash)]);
+      const expanded=allowNetwork&&missingExpanded.length?await this.getMany("DestinyInventoryItemDefinition",missingExpanded):{};
       definitions={...definitions,...expanded};
       Object.values(expanded).forEach(inspectDefinition);
     }
@@ -420,7 +425,7 @@ class GuardianManifestService{
     }
     let equipableItemSets=indexedDb?{}:{...(payload.equipableItemSets||{})};
     const missingSetHashes=[...equipableSetHashes].filter(hash=>!equipableItemSets[String(hash)]);
-    if(missingSetHashes.length)equipableItemSets={...equipableItemSets,...await this.getMany("DestinyEquipableItemSetDefinition",missingSetHashes)};
+    if(allowNetwork&&missingSetHashes.length)equipableItemSets={...equipableItemSets,...await this.getMany("DestinyEquipableItemSetDefinition",missingSetHashes)};
     for(const set of Object.values(equipableItemSets))for(const perk of set?.setPerks||[]){const hash=numericHash(perk?.sandboxPerkHash);if(hash!==null)sandboxPerkHashes.add(hash);}
     const missingDefinitions=(existing,hashes)=>[...hashes].filter(hash=>!existing?.[String(hash)]);
     const existingSandbox=indexedDb?{}:{...(payload.sandboxPerks||{})};
@@ -428,12 +433,13 @@ class GuardianManifestService{
     const existingSockets=indexedDb?{}:{...(payload.socketCategoryDefinitions||{})};
     const existingDamage=indexedDb?{}:{...(payload.damageDefinitions||{})};
     const existingBreaker=indexedDb?{}:{...(payload.breakerDefinitions||{})};
+    const localOrFetch=(type,hashes)=>allowNetwork?this.getMany(type,hashes):Promise.resolve({});
     const [fetchedSandbox,fetchedStats,fetchedSockets,fetchedDamage,fetchedBreaker]=await Promise.all([
-      this.getMany("DestinySandboxPerkDefinition",missingDefinitions(existingSandbox,sandboxPerkHashes)),
-      this.getMany("DestinyStatDefinition",missingDefinitions(existingStats,stats)),
-      this.getMany("DestinySocketCategoryDefinition",missingDefinitions(existingSockets,socketCategories)),
-      this.getMany("DestinyDamageTypeDefinition",missingDefinitions(existingDamage,damageTypeHashes)),
-      this.getMany("DestinyBreakerTypeDefinition",missingDefinitions(existingBreaker,breakerTypeHashes))
+      localOrFetch("DestinySandboxPerkDefinition",missingDefinitions(existingSandbox,sandboxPerkHashes)),
+      localOrFetch("DestinyStatDefinition",missingDefinitions(existingStats,stats)),
+      localOrFetch("DestinySocketCategoryDefinition",missingDefinitions(existingSockets,socketCategories)),
+      localOrFetch("DestinyDamageTypeDefinition",missingDefinitions(existingDamage,damageTypeHashes)),
+      localOrFetch("DestinyBreakerTypeDefinition",missingDefinitions(existingBreaker,breakerTypeHashes))
     ]);
     const sandboxPerks={...existingSandbox,...fetchedSandbox};
     const statDefinitions={...existingStats,...fetchedStats};

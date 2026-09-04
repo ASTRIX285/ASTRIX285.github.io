@@ -1,5 +1,5 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
-import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260904-forge-index-1';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260904-forge-index-2';
 import {cacheBungieProfile,cacheForgeLoaderTransfer,markGuardianFastReturn,readCachedBungieProfile,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260903-loadout-intelligence-1';
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
@@ -85,8 +85,8 @@ async function loadVerifiedPayload(){
   if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
   await cacheBungieProfile(session,next);
   if(forgeIndex)guardianManifest.applyForgeArmourIndex(next,forgeIndex);
-  loaderProgress(46,forgeIndex?'Joining private inventory to the hourly armour index…':'Resolving owned Bungie armour definitions…');
-  await guardianManifest.hydratePayload(next,{waitForManifest:false,armourOnly:Boolean(forgeIndex),includeReusable:true});
+  loaderProgress(46,forgeIndex?'Joining private inventory to the pre-resolved armour and mod index…':'Resolving owned Bungie armour definitions…');
+  await guardianManifest.hydratePayload(next,{waitForManifest:false,armourOnly:Boolean(forgeIndex),includeReusable:true,allowNetwork:!forgeIndex});
   return next;
 }
 
