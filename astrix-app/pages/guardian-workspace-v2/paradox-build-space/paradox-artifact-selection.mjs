@@ -12,6 +12,7 @@ const sortedHashes=values=>[...new Set((Array.isArray(values)?values:[]).map(int
 function recommendationFingerprint(build={},currentSeasonNumber=null){
   const artifact=build.artifact||{};
   return JSON.stringify({
+    artifactPlanVersion:2,
     characterId:String(build.characterId||''),
     currentSeasonNumber:integer(currentSeasonNumber),
     artifactHash:hashOf(artifact),

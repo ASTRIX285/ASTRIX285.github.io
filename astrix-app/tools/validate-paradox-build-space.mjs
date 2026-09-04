@@ -167,6 +167,7 @@ assert.match(runtime,/EXOTIC ANCHOR: \$\{String\(anchorName\)\.toUpperCase\(\)\}
 assert.match(runtime,/changedItems=\(plan\.items\|\|\[\]\)[\s\S]*?filter\(row=>row\.action!=='KEEP'\)/,'The review must omit unchanged mod sockets and present only proposed changes.');
 assert.match(runtime,/review-artifact-synergy[\s\S]*?ARTIFACT SYNERGY/,'The review must expose the evidence behind the Artifact recommendation.');
 assert.match(artifactSelectionRuntime,/recommendArtifactPerks\(build,effectiveArtifact,\{currentSeasonNumber:season,planFullBuild:true\}\)/,'Build Forge must produce a complete target Artifact plan when only the current CharacterProgressions tree is available.');
+assert.match(artifactSelectionRuntime,/artifactPlanVersion:2/,'The full Artifact-plan release must invalidate previously cached empty recommendation fingerprints.');
 assert.match(runtime,/PARADOX FULL TARGET PLAN[\s\S]*?currently unlocked and equipped perks remain unchanged/,'The Artifact recommendation must distinguish the complete target plan from the live unlocked and equipped state.');
 assert.match(css,/\.recommended-build-dialog\{width:calc\(100vw - 20px\);max-width:none;border:0/,'The recommendation review must use the page width without the cramped red outer container.');
 assert.match(html,/id="continueToBuildTest">TEST THIS BUILD/,'The recommendation review must lead into the user-run Build Test.');

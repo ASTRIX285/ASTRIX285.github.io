@@ -69,6 +69,7 @@ assert.equal(result.state.workingBuild.artifactRecommendation.selectionLimit,5,'
 assert.deepEqual(result.state.workingBuild.artifactConfiguration.selectedPerkHashes,[101,102,103,105,106]);
 assert.equal('confirmed' in result.state.workingBuild.artifactConfiguration,false,'a recommendation must not masquerade as user confirmation');
 assert.equal('liveApplied' in result.state.workingBuild.artifactConfiguration,false,'a recommendation must not claim a live mutation');
+assert.equal(JSON.parse(result.recommendation.fingerprint).artifactPlanVersion,2,'the full-plan release must invalidate an older cached empty Artifact recommendation');
 
 const zeroPointSource={
   ...source,
