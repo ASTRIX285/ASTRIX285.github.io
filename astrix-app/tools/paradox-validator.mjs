@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 const tools=fileURLToPath(new URL('./',import.meta.url));
 const validators=[
   'validate-scope-guard.mjs',
+  'validate-site-typography.mjs',
   'validate-guardian-adaptive-layout.py',
   'validate-guardian-character-cards.py',
   'validate-guardian-complete-loadout.py',
@@ -13,9 +14,14 @@ const validators=[
   'validate-destination-theming.mjs',
   'validate-portal-loader.mjs',
   'validate-tools-hub.mjs',
+  'validate-vault-foundation.mjs',
+  'validate-forge-loader.mjs',
   'validate-journey-visual-pass.mjs',
   'validate-public-deep-space.mjs',
   'validate-live-artifact-contract.mjs',
+  'test-artifact-provenance.mjs',
+  'test-artifact-recommender.mjs',
+  'test-forge-artifact-selection.mjs',
   'validate-manifest-service.mjs',
   'test-manifest-service.mjs',
   'test-build-space-character-isolation.mjs',

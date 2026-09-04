@@ -4,9 +4,9 @@
    with 6 functional mod tiles each without tearing down sibling DOM blocks.
    ========================================================================== */
 
-import "./guardian-semantic-ui.mjs?v=20260829-weapon-perk-hash-1";
+import "./guardian-semantic-ui.mjs?v=20260904-weapon-model-2";
 import { openArmourDrawer } from "./guardian-beta-runtime.mjs";
-import { classifyArmourPlug } from "./guardian-semantic-resolver.mjs";
+import { classifyArmourPlug } from "./guardian-semantic-resolver.mjs?v=20260904-weapon-model-2";
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const bungieIcon = (value) => {

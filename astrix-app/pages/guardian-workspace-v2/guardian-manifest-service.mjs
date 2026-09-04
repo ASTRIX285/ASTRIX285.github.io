@@ -1,4 +1,5 @@
 import {openGuardianDatabase,MANIFEST_STORE_NAME} from "./guardian-session-cache.mjs";
+import {resolveArtifactTwoCatalog} from "./guardian-artifact-catalog.mjs?v=20260904-artifact-sandbox-effects-1";
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
@@ -7,6 +8,7 @@ const COMPONENT_TYPES=Object.freeze([
   "DestinyInventoryItemDefinition",
   "DestinySandboxPerkDefinition",
   "DestinyArtifactDefinition",
+  "DestinyPlugSetDefinition",
   "DestinyStatDefinition",
   "DestinySocketCategoryDefinition",
   "DestinyEquipableItemSetDefinition"
@@ -102,27 +104,32 @@ async function responseJsonWithProgress(response,onProgress){
   return new Response(stream,{headers:{"Content-Type":response.headers.get("Content-Type")||"application/json"}}).json();
 }
 
-function collectPayloadHashes(payload={}){
+function collectPayloadHashes(payload={},options={}){
   const inventory=new Set();
   const stats=new Set();
   const profile=payload.profile||{};
+  const armourOnly=options.armourOnly===true;
+  const includeReusable=options.includeReusable!==false;
+  const armourInstances=new Set();
   const addItem=item=>{
     const itemHash=numericHash(item?.itemHash);
+    if(armourOnly&&Number(payload?.definitions?.[String(itemHash)]?.itemType)!==2)return;
     const styleHash=numericHash(item?.overrideStyleItemHash);
     if(itemHash!==null)inventory.add(itemHash);
     if(styleHash!==null)inventory.add(styleHash);
     for(const hash of item?.plugItemHashes||[]){const value=numericHash(hash);if(value!==null)inventory.add(value);}
+    if(item?.itemInstanceId)armourInstances.add(String(item.itemInstanceId));
   };
   for(const item of profile?.profileInventory?.data?.items||[])addItem(item);
   for(const row of Object.values(profile?.characterInventories?.data||{}))for(const item of row?.items||[])addItem(item);
   for(const row of Object.values(profile?.characterEquipment?.data||{}))for(const item of row?.items||[])addItem(item);
   for(const item of payload.selectedItems||[])addItem(item);
-  for(const row of Object.values(profile?.itemComponents?.sockets?.data||{}))for(const socket of row?.sockets||[]){const hash=numericHash(socket?.plugHash);if(hash!==null)inventory.add(hash);}
-  for(const row of Object.values(profile?.itemComponents?.reusablePlugs?.data||{}))for(const plugs of Object.values(row?.plugs||{}))for(const plug of plugs||[]){const hash=numericHash(plug?.plugItemHash??plug?.plugHash);if(hash!==null)inventory.add(hash);}
-  for(const plugs of [profile?.profilePlugSets?.data?.plugs,...Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs)])for(const rows of Object.values(plugs||{}))for(const plug of rows||[]){const hash=numericHash(plug?.plugItemHash??plug?.plugHash);if(hash!==null)inventory.add(hash);}
-  for(const progression of Object.values(profile?.characterProgressions?.data||{}))for(const tier of progression?.seasonalArtifact?.tiers||[])for(const item of tier?.items||[]){const hash=numericHash(item?.itemHash);if(hash!==null)inventory.add(hash);}
+  for(const [instanceId,row] of Object.entries(profile?.itemComponents?.sockets?.data||{}))if(!armourOnly||armourInstances.has(String(instanceId)))for(const socket of row?.sockets||[]){const hash=numericHash(socket?.plugHash);if(hash!==null)inventory.add(hash);}
+  if(includeReusable)for(const [instanceId,row] of Object.entries(profile?.itemComponents?.reusablePlugs?.data||{}))if(!armourOnly||armourInstances.has(String(instanceId)))for(const plugs of Object.values(row?.plugs||{}))for(const plug of plugs||[]){const hash=numericHash(plug?.plugItemHash??plug?.plugHash);if(hash!==null)inventory.add(hash);}
+  if(includeReusable&&!armourOnly)for(const plugs of [profile?.profilePlugSets?.data?.plugs,...Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs)])for(const rows of Object.values(plugs||{}))for(const plug of rows||[]){const hash=numericHash(plug?.plugItemHash??plug?.plugHash);if(hash!==null)inventory.add(hash);}
+  if(!armourOnly)for(const progression of Object.values(profile?.characterProgressions?.data||{}))for(const tier of progression?.seasonalArtifact?.tiers||[])for(const item of tier?.items||[]){const hash=numericHash(item?.itemHash);if(hash!==null)inventory.add(hash);}
   for(const character of Object.values(profile?.characters?.data||{}))for(const hash of Object.keys(character?.stats||{})){const value=numericHash(hash);if(value!==null)stats.add(value);}
-  for(const row of Object.values(profile?.itemComponents?.stats?.data||{}))for(const hash of Object.keys(row?.stats||{})){const value=numericHash(hash);if(value!==null)stats.add(value);}
+  for(const [instanceId,row] of Object.entries(profile?.itemComponents?.stats?.data||{}))if(!armourOnly||armourInstances.has(String(instanceId)))for(const hash of Object.keys(row?.stats||{})){const value=numericHash(hash);if(value!==null)stats.add(value);}
   return {inventory,stats};
 }
 
@@ -134,6 +141,10 @@ class GuardianManifestService{
     this.tables=new Map();
     this.cachedTypes=new Set();
     this.fallbackDefinitions=new Map();
+    this.versionPromise=null;
+    this.manifestPaths={};
+    this.cachePromise=null;
+    this.forgeIndexPromises=new Map();
     this.readyPromise=null;
     this.version="";
     this.mode="idle";
@@ -157,10 +168,8 @@ class GuardianManifestService{
     }
     try{
       emitProgress({status:"checking",percent:12,label:"Checking Bungie manifest version"});
-      const metadata=await this.fetchJson(`${this.authOrigin}/bungie/manifest`);
-      const paths=metadata?.jsonWorldComponentContentPaths?.en||metadata?.paths||{};
-      const version=String(metadata?.version||"").trim();
-      if(!version)throw new Error("Bungie manifest version is missing.");
+      const version=await this.checkVersion();
+      const paths=this.manifestPaths;
       const downloadableTypes=COMPONENT_TYPES.filter(type=>paths[type]);
       if(downloadableTypes.length===0)throw new Error("Bungie manifest exposes no known component paths.");
       this.version=version;
@@ -213,8 +222,104 @@ class GuardianManifestService{
     }
   }
 
+  checkVersion(){
+    if(!this.versionPromise)this.versionPromise=(async()=>{
+      const metadata=await this.fetchJson(`${this.authOrigin}/bungie/manifest`);
+      const paths=metadata?.jsonWorldComponentContentPaths?.en||metadata?.paths||{};
+      const version=String(metadata?.version||"").trim();
+      if(!version)throw new Error("Bungie manifest version is missing.");
+      this.version=version;this.manifestPaths=paths;
+      return version;
+    })();
+    return this.versionPromise;
+  }
+
+  async initialiseCached(){
+    if(!this.storage?.available){this.mode="live-fallback";return this;}
+    try{
+      emitProgress({status:"checking",percent:12,label:"Checking cached Bungie manifest"});
+      const version=await this.checkVersion();
+      const paths=this.manifestPaths;
+      const downloadableTypes=COMPONENT_TYPES.filter(type=>paths[type]);
+      this.version=version;
+      const current=await this.storage.readCurrent();
+      if(current?.version===version&&downloadableTypes.length){
+        const records=await Promise.all(downloadableTypes.map(type=>this.storage.readTable(version,type)));
+        if(records.every(record=>record?.definitions&&typeof record.definitions==="object")){
+          downloadableTypes.forEach((type,index)=>{this.tables.set(type,records[index].definitions);this.cachedTypes.add(type);});
+          this.mode="indexeddb";this.versionMatched=true;
+          emitProgress({status:"ready",percent:58,label:`Bungie manifest ${version} loaded from IndexedDB`,version,versionMatched:true});
+          return this;
+        }
+      }
+      this.mode="live-fallback";this.versionMatched=false;
+      emitProgress({status:"selective",percent:24,label:"Backend manifest current · resolving owned armour only",version});
+      return this;
+    }catch(error){
+      this.mode="live-fallback";this.versionMatched=false;
+      emitProgress({status:"fallback",percent:24,label:"Manifest cache unavailable · resolving definitions live",message:error?.message||String(error)});
+      return this;
+    }
+  }
+
+  cached(){
+    if(!this.cachePromise)this.cachePromise=this.initialiseCached();
+    return this.cachePromise;
+  }
+
+  loadForgeArmourIndex(url){
+    const key=String(url||"");
+    if(!key)return Promise.reject(new Error("Forge armour index URL is missing."));
+    if(!this.forgeIndexPromises.has(key))this.forgeIndexPromises.set(key,(async()=>{
+      await this.checkVersion();
+      const requestUrl=new URL(key,globalThis.location?.href||this.authOrigin);
+      requestUrl.searchParams.set("manifest",this.version);
+      const payload=await this.fetchJson(requestUrl);
+      const version=String(payload?.manifestVersion||"").trim();
+      if(!version||version!==this.version)throw new Error(`Forge armour index is stale (${version||"unknown"}; expected ${this.version||"current"}).`);
+      if(Number(payload?.schemaVersion)!==4)throw new Error("Forge armour and Artifact index schema is unsupported.");
+      if(!payload?.definitions||typeof payload.definitions!=="object"||Array.isArray(payload.definitions))throw new Error("Forge armour index contains no definition map.");
+      if(!Array.isArray(payload?.artifactCatalog)||payload.artifactCatalog.length===0)throw new Error("Forge index contains no verified Artifact 2.0 catalogue.");
+      return payload;
+    })());
+    return this.forgeIndexPromises.get(key);
+  }
+
+  applyForgeArmourIndex(payload={},index={}){
+    const version=String(index?.manifestVersion||"").trim();
+    if(!version||version!==this.version)return false;
+    const socketLayouts=index.socketLayouts||{};
+    const armourDefinitions=Object.fromEntries(Object.entries(index.definitions||{}).map(([hash,definition])=>{
+      const sockets=socketLayouts[definition?.socketLayoutKey];
+      return [hash,sockets?{...definition,sockets}:definition];
+    }));
+    payload.definitions={...armourDefinitions,...(index.plugDefinitions||{}),...(payload.definitions||{})};
+    payload.equipableItemSets={...(index.equipableItemSets||{}),...(payload.equipableItemSets||{})};
+    payload.sandboxPerks={...(index.sandboxPerks||{}),...(payload.sandboxPerks||{})};
+    payload.statDefinitions={...(index.statDefinitions||{}),...(payload.statDefinitions||{})};
+    payload.socketCategoryDefinitions={...(index.socketCategoryDefinitions||{}),...(payload.socketCategoryDefinitions||{})};
+    if(Array.isArray(index.artifactCatalog)&&index.artifactCatalog.length){
+      payload.artifactCatalog=index.artifactCatalog;
+      payload.artifactCatalogCoverage={model:"artifact-2-socket-buckets",artifactCount:index.artifactCatalog.length,complete:true,source:"hourly-compact-manifest",version};
+    }
+    payload.forgeArmourIndexCoverage={
+      version,
+      definitions:Object.keys(index.definitions||{}).length,
+      socketLayouts:Object.keys(socketLayouts).length,
+      equipableItemSets:Object.keys(index.equipableItemSets||{}).length,
+      sandboxPerks:Object.keys(index.sandboxPerks||{}).length,
+      plugDefinitions:Object.keys(index.plugDefinitions||{}).length,
+      socketCategories:Object.keys(index.socketCategoryDefinitions||{}).length,
+      artifactCatalog:Array.isArray(index.artifactCatalog)?index.artifactCatalog.length:0,
+      complete:Object.keys(index.definitions||{}).length>0,
+      source:"hourly-compact-manifest"
+    };
+    payload.manifestResolution={mode:"forge-index",version,versionMatched:true,source:"hourly compact Forge armour manifest"};
+    return true;
+  }
+
   ready(){
-    if(!this.readyPromise)this.readyPromise=this.initialise();
+    if(!this.readyPromise)this.readyPromise=this.cached().then(()=>this.mode==="indexeddb"?this:this.initialise());
     return this.readyPromise;
   }
 
@@ -277,14 +382,16 @@ class GuardianManifestService{
     return rows;
   }
 
-  async hydratePayload(payload={}){
-    await this.ready();
+  async hydratePayload(payload={},options={}){
+    if(options.waitForManifest!==false)await this.ready();
     const indexedDb=this.mode==="indexeddb";
-    const {inventory,stats}=collectPayloadHashes(payload);
+    const allowNetwork=options.allowNetwork!==false;
+    const profile=payload?.profile||{};
+    const {inventory,stats}=collectPayloadHashes(payload,options);
     let definitions=indexedDb?await this.getMany("DestinyInventoryItemDefinition",inventory):{...(payload.definitions||{})};
     if(!indexedDb){
       const missing=[...inventory].filter(hash=>!definitions[String(hash)]);
-      if(missing.length)definitions={...definitions,...await this.getMany("DestinyInventoryItemDefinition",missing)};
+      if(allowNetwork&&missing.length)definitions={...definitions,...await this.getMany("DestinyInventoryItemDefinition",missing)};
     }
     const socketCategories=new Set();
     const sandboxPerkHashes=new Set();
@@ -292,10 +399,12 @@ class GuardianManifestService{
     const damageTypeHashes=new Set();
     const breakerTypeHashes=new Set();
     const expandedHashes=new Set();
+    const reusablePlugSetHashes=new Set();
     const inspectDefinition=definition=>{
       for(const entry of definition?.sockets?.socketEntries||[]){
         const initial=numericHash(entry?.singleInitialItemHash);if(initial!==null&&initial!==0)expandedHashes.add(initial);
         for(const plug of entry?.reusablePlugItems||[]){const hash=numericHash(plug?.plugItemHash);if(hash!==null)expandedHashes.add(hash);}
+        const plugSet=numericHash(entry?.reusablePlugSetHash);if(plugSet!==null)reusablePlugSetHashes.add(plugSet);
       }
       for(const category of definition?.sockets?.socketCategories||[]){const hash=numericHash(category?.socketCategoryHash);if(hash!==null)socketCategories.add(hash);}
       for(const perk of definition?.perks||[]){const hash=numericHash(perk?.perkHash);if(hash!==null)sandboxPerkHashes.add(hash);}
@@ -303,9 +412,18 @@ class GuardianManifestService{
       const damageHash=numericHash(definition?.defaultDamageTypeHash);if(damageHash!==null)damageTypeHashes.add(damageHash);
       const breakerHash=numericHash(definition?.breakerTypeHash);if(breakerHash!==null)breakerTypeHashes.add(breakerHash);
     };
-    Object.values(definitions).forEach(inspectDefinition);
+    const definitionsToInspect=options.armourOnly===true?[...inventory].map(hash=>definitions[String(hash)]).filter(Boolean):Object.values(definitions);
+    definitionsToInspect.forEach(inspectDefinition);
+    if(options.includeReusable!==false&&reusablePlugSetHashes.size){
+      const plugSets=[profile?.profilePlugSets?.data?.plugs,...Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs)];
+      for(const plugSetHash of reusablePlugSetHashes)for(const rows of plugSets)for(const plug of rows?.[String(plugSetHash)]||[]){
+        if(plug?.canInsert===false||plug?.enabled===false)continue;
+        const hash=numericHash(plug?.plugItemHash??plug?.plugHash);if(hash!==null)expandedHashes.add(hash);
+      }
+    }
     if(expandedHashes.size){
-      const expanded=await this.getMany("DestinyInventoryItemDefinition",expandedHashes);
+      const missingExpanded=[...expandedHashes].filter(hash=>!definitions[String(hash)]);
+      const expanded=allowNetwork&&missingExpanded.length?await this.getMany("DestinyInventoryItemDefinition",missingExpanded):{};
       definitions={...definitions,...expanded};
       Object.values(expanded).forEach(inspectDefinition);
     }
@@ -313,21 +431,42 @@ class GuardianManifestService{
       const damageHash=numericHash(row?.damageTypeHash);if(damageHash!==null)damageTypeHashes.add(damageHash);
       const breakerHash=numericHash(row?.breakerTypeHash);if(breakerHash!==null)breakerTypeHashes.add(breakerHash);
     }
-    const equipableItemSets=await this.getMany("DestinyEquipableItemSetDefinition",equipableSetHashes);
+    let equipableItemSets=indexedDb?{}:{...(payload.equipableItemSets||{})};
+    const missingSetHashes=[...equipableSetHashes].filter(hash=>!equipableItemSets[String(hash)]);
+    if(allowNetwork&&missingSetHashes.length)equipableItemSets={...equipableItemSets,...await this.getMany("DestinyEquipableItemSetDefinition",missingSetHashes)};
     for(const set of Object.values(equipableItemSets))for(const perk of set?.setPerks||[]){const hash=numericHash(perk?.sandboxPerkHash);if(hash!==null)sandboxPerkHashes.add(hash);}
-    const [sandboxPerks,statDefinitions,socketCategoryDefinitions,damageDefinitions,breakerDefinitions]=await Promise.all([
-      this.getMany("DestinySandboxPerkDefinition",sandboxPerkHashes),
-      this.getMany("DestinyStatDefinition",stats),
-      this.getMany("DestinySocketCategoryDefinition",socketCategories),
-      this.getMany("DestinyDamageTypeDefinition",damageTypeHashes),
-      this.getMany("DestinyBreakerTypeDefinition",breakerTypeHashes)
+    const missingDefinitions=(existing,hashes)=>[...hashes].filter(hash=>!existing?.[String(hash)]);
+    const existingSandbox=indexedDb?{}:{...(payload.sandboxPerks||{})};
+    const existingStats=indexedDb?{}:{...(payload.statDefinitions||{})};
+    const existingSockets=indexedDb?{}:{...(payload.socketCategoryDefinitions||{})};
+    const existingDamage=indexedDb?{}:{...(payload.damageDefinitions||{})};
+    const existingBreaker=indexedDb?{}:{...(payload.breakerDefinitions||{})};
+    const localOrFetch=(type,hashes)=>allowNetwork?this.getMany(type,hashes):Promise.resolve({});
+    const [fetchedSandbox,fetchedStats,fetchedSockets,fetchedDamage,fetchedBreaker]=await Promise.all([
+      localOrFetch("DestinySandboxPerkDefinition",missingDefinitions(existingSandbox,sandboxPerkHashes)),
+      localOrFetch("DestinyStatDefinition",missingDefinitions(existingStats,stats)),
+      localOrFetch("DestinySocketCategoryDefinition",missingDefinitions(existingSockets,socketCategories)),
+      localOrFetch("DestinyDamageTypeDefinition",missingDefinitions(existingDamage,damageTypeHashes)),
+      localOrFetch("DestinyBreakerTypeDefinition",missingDefinitions(existingBreaker,breakerTypeHashes))
     ]);
+    const sandboxPerks={...existingSandbox,...fetchedSandbox};
+    const statDefinitions={...existingStats,...fetchedStats};
+    const socketCategoryDefinitions={...existingSockets,...fetchedSockets};
+    const damageDefinitions={...existingDamage,...fetchedDamage};
+    const breakerDefinitions={...existingBreaker,...fetchedBreaker};
     definitions=Object.fromEntries(Object.entries(definitions).map(([hash,definition])=>{
       const resolvedSandboxPerks=(definition?.perks||[]).map(perk=>sandboxPerks[String(perk?.perkHash)]).filter(Boolean);
       return [hash,resolvedSandboxPerks.length?{...definition,resolvedSandboxPerks}:definition];
     }));
-    const artifactHash=numericHash(payload?.profile?.profileProgression?.data?.seasonalArtifact?.artifactHash);
-    const artifactDefinition=payload.artifactDefinition||(artifactHash===null?null:await this.getAsync("DestinyArtifactDefinition",artifactHash));
+    const resolveArtifact=options.armourOnly!==true;
+    const artifactHash=resolveArtifact?numericHash(payload?.profile?.profileProgression?.data?.seasonalArtifact?.artifactHash):null;
+    const artifactDefinition=resolveArtifact?(payload.artifactDefinition||(artifactHash===null?null:await this.getAsync("DestinyArtifactDefinition",artifactHash))):(payload.artifactDefinition||null);
+    const artifactCatalog=resolveArtifact?resolveArtifactTwoCatalog({
+      inventoryDefinitions:this.tables.get("DestinyInventoryItemDefinition")||definitions,
+      plugSetDefinitions:this.tables.get("DestinyPlugSetDefinition")||{},
+      sandboxPerkDefinitions:this.tables.get("DestinySandboxPerkDefinition")||sandboxPerks,
+      manifestVersion:this.version||null
+    }):(payload.artifactCatalog||[]);
     const requested=[...inventory,...expandedHashes];
     const unresolved=requested.filter(hash=>!definitions[String(hash)]);
     const artifactPerkHashes=[...new Set(Object.values(payload?.profile?.characterProgressions?.data||{}).flatMap(progression=>(progression?.seasonalArtifact?.tiers||[]).flatMap(tier=>(tier?.items||[]).map(item=>numericHash(item?.itemHash)).filter(hash=>hash!==null))))];
@@ -339,10 +478,12 @@ class GuardianManifestService{
     payload.breakerDefinitions=breakerDefinitions;
     payload.equipableItemSets=equipableItemSets;
     payload.artifactDefinition=artifactDefinition;
+    payload.artifactCatalog=artifactCatalog;
     const resolutionSource=indexedDb?"indexeddb-manifest":"bungie-single-definition-endpoint";
     payload.definitionCoverage={requested:requested.length,resolved:requested.length-unresolved.length,unresolved,complete:unresolved.length===0,source:resolutionSource,version:this.version||null};
     const unresolvedArtifactPerks=artifactPerkHashes.filter(hash=>!definitions[String(hash)]);
     payload.artifactCoverage={hash:artifactHash,definitionResolved:Boolean(artifactDefinition),perkHashes:artifactPerkHashes,unresolvedPerkHashes:unresolvedArtifactPerks,complete:(artifactHash===null||Boolean(artifactDefinition))&&unresolvedArtifactPerks.length===0,source:resolutionSource,version:this.version||null};
+    payload.artifactCatalogCoverage={model:'artifact-2-socket-buckets',artifactCount:artifactCatalog.length,complete:artifactCatalog.length>0,source:resolutionSource,version:this.version||null};
     payload.manifestResolution={mode:indexedDb?"indexeddb":"live-fallback",version:this.version||null,versionMatched:indexedDb?this.versionMatched:false,source:indexedDb?"Destiny manifest component tables":"bungie-single-definition-endpoint"};
     return payload;
   }

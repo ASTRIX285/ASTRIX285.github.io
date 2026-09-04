@@ -85,7 +85,7 @@ html, body {
 body {
   margin: 0;
   color: var(--text);
-  font-family: Rajdhani, system-ui, Arial, sans-serif;
+  font-family: bahnschrift, system-ui, Arial, sans-serif;
   font-weight: 500;
   background:
     radial-gradient(1200px 760px at 62% 42%, rgba(139, 92, 246, 0.20), transparent 60%),
@@ -143,7 +143,7 @@ button {
   display: grid;
   place-items: center;
   color: #fff;
-  font-family: Orbitron, sans-serif;
+  font-family: bahnschrift-semicondensed, sans-serif;
   font-weight: 800;
   background: linear-gradient(150deg, var(--violet), #5b21b6);
   clip-path: polygon(50% 0, 100% 38%, 82% 100%, 18% 100%, 0 38%);
@@ -151,7 +151,7 @@ button {
 }
 
 .brand .nm {
-  font-family: Orbitron, sans-serif;
+  font-family: bahnschrift-semicondensed, sans-serif;
   font-weight: 800;
   font-size: 1.05rem;
   letter-spacing: 0.06em;
@@ -167,7 +167,7 @@ button {
 
 .ws-label {
   color: var(--violet-2);
-  font-family: Orbitron, sans-serif;
+  font-family: bahnschrift-semicondensed, sans-serif;
   font-weight: 700;
   font-size: 0.82rem;
   letter-spacing: 0.22em;
@@ -195,7 +195,7 @@ button {
 
 .season b {
   display: block;
-  font-family: Orbitron, sans-serif;
+  font-family: bahnschrift-semicondensed, sans-serif;
   font-size: 0.66rem;
   letter-spacing: 0.14em;
 }
@@ -235,7 +235,7 @@ button {
 }
 
 .char-switch b {
-  font-family: Orbitron, sans-serif;
+  font-family: bahnschrift-semicondensed, sans-serif;
   font-size: 0.8rem;
   display: flex;
   align-items: center;
@@ -310,7 +310,7 @@ button {
 }
 
 .gtag b {
-  font-family: Orbitron, sans-serif;
+  font-family: bahnschrift-semicondensed, sans-serif;
   font-size: 0.8rem;
 }
 
@@ -334,7 +334,7 @@ button {
 
 .eyebrow {
   color: var(--dim);
-  font-family: Orbitron, sans-serif;
+  font-family: bahnschrift-semicondensed, sans-serif;
   font-weight: 600;
   font-size: 0.58rem;
   letter-spacing: 0.24em;
@@ -459,7 +459,7 @@ button {
   color: var(--text) !important;
   border: 1px solid var(--line-2) !important;
   border-radius: 6px !important;
-  font-family: Orbitron, sans-serif !important;
+  font-family: bahnschrift-semicondensed, sans-serif !important;
   font-size: 0.68rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.12em !important;

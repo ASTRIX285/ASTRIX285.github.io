@@ -87,14 +87,14 @@ html body .workspace .left .subclass-super-shell.equipped-subclass-stack{
 .equipped-subclass__copy{display:grid;gap:5px;min-width:0}
 .equipped-subclass__copy strong{
   color:#fff;
-  font:800 clamp(1.05rem,1.65vw,1.55rem)/1.03 Inter,sans-serif;
+  font:800 clamp(1.05rem,1.65vw,1.55rem)/1.03 bahnschrift,sans-serif;
   letter-spacing:-.025em;
   text-transform:uppercase;
   text-wrap:balance;
 }
 .equipped-subclass__copy small{
   color:rgba(224,220,232,.60);
-  font:700 clamp(.58rem,.72vw,.72rem)/1.1 Inter,sans-serif;
+  font:700 clamp(.58rem,.72vw,.72rem)/1.1 bahnschrift,sans-serif;
   letter-spacing:.035em;
   text-transform:uppercase;
 }
@@ -245,16 +245,21 @@ html body .workspace .left .equipped-subclass-stack>.super-feature{
 .super-feature .super-feature__name{
   position:static!important;
   display:block!important;
-  width:min(230px,94%)!important;
-  max-width:94%!important;
-  min-height:18px!important;
+  width:min(280px,100%)!important;
+  max-width:100%!important;
+  min-height:32px!important;
   margin:8px auto 0!important;
-  padding:5px 10px!important;
+  padding:6px 10px!important;
   transform:none!important;
+  color:#f6f3f7!important;
+  font:700 var(--apx-type-subsection-title,.875rem)/1.3 bahnschrift,system-ui,sans-serif!important;
+  letter-spacing:.02em!important;
   text-align:center!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
+  text-transform:none!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  text-wrap:balance!important;
 }
 .super-feature .super-feature__name::before{display:none!important}
 

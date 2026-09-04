@@ -30,7 +30,7 @@ html.apx-booting body{visibility:hidden!important}
 body.apx-loading{overflow:hidden!important}
 
 .apx-stage{--apx-portal-size:min(520px,84vw,58vh);display:grid;justify-items:center;gap:clamp(12px,2.2vh,26px);position:relative;z-index:2}
-.apx-pct{font:800 2rem Orbitron,sans-serif;color:#fff;letter-spacing:.02em;
+.apx-pct{font:800 2rem bahnschrift-semicondensed,sans-serif;color:#fff;letter-spacing:.02em;
   text-shadow:0 0 12px rgba(211,32,47,.95),0 0 28px rgba(255,211,106,.6)}
 
 .apx-portal{position:relative;width:var(--apx-portal-size);height:var(--apx-portal-size);display:grid;place-items:center;perspective:1400px}
@@ -70,19 +70,19 @@ body.apx-loading{overflow:hidden!important}
 .apx-logo{position:relative;width:120px;height:120px;object-fit:contain;
   filter:drop-shadow(0 0 16px rgba(224,169,78,.5))}
 
-.apx-brand{display:flex;align-items:center;gap:10px;font:800 1.05rem Orbitron,sans-serif;
+.apx-brand{display:flex;align-items:center;gap:10px;font:800 1.05rem bahnschrift-semicondensed,sans-serif;
   letter-spacing:.14em;color:var(--apx-loader-text)}
 .apx-brand em{font-style:normal;color:var(--apx-loader-gold)}
-.apx-status{font:600 .7rem Orbitron,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#f0bc5c}
+.apx-status{font:600 .7rem bahnschrift-semicondensed,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#f0bc5c}
 .apx-auth-panel{display:grid;justify-items:center;gap:10px;width:min(420px,82vw);padding:18px 22px;
   border:1px solid rgba(255,211,106,.42);border-radius:12px;background:rgba(27,2,5,.9);
   box-shadow:0 18px 54px rgba(0,0,0,.46),inset 0 0 24px rgba(224,169,78,.05);text-align:center}
 .apx-auth-panel[hidden]{display:none}
-.apx-auth-panel strong{font:800 .78rem Orbitron,sans-serif;letter-spacing:.17em;color:#fff}
-.apx-auth-panel span{font:600 .65rem/1.55 Inter,sans-serif;color:rgba(255,247,228,.72)}
+.apx-auth-panel strong{font:800 .78rem bahnschrift-semicondensed,sans-serif;letter-spacing:.17em;color:#fff}
+.apx-auth-panel span{font:600 .65rem/1.55 bahnschrift,sans-serif;color:rgba(255,247,228,.72)}
 .apx-auth-button{appearance:none;min-width:210px;margin-top:4px;padding:12px 18px;border:1px solid rgba(224,169,78,.78);
   border-radius:8px;background:linear-gradient(180deg,rgba(224,169,78,.24),rgba(192,67,63,.16));color:#fff;
-  font:800 .68rem Orbitron,sans-serif;letter-spacing:.13em;cursor:pointer;
+  font:800 .68rem bahnschrift-semicondensed,sans-serif;letter-spacing:.13em;cursor:pointer;
   box-shadow:0 0 22px rgba(224,169,78,.12),inset 0 0 0 1px rgba(255,255,255,.04)}
 .apx-auth-button:hover{border-color:#ffd17c;background:linear-gradient(180deg,rgba(224,169,78,.34),rgba(192,67,63,.24))}
 .apx-auth-button:focus-visible{outline:2px solid var(--apx-loader-gold);outline-offset:3px}

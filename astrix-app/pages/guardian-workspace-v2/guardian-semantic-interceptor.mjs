@@ -6,7 +6,7 @@ import {
   normaliseWeaponSemantics,
   normaliseGuardianStats,
   validateArtifact
-} from "./guardian-semantic-resolver.mjs?v=20260829-weapon-perk-hash-1";
+} from "./guardian-semantic-resolver.mjs?v=20260904-weapon-model-2";
 
 const rawFetch=globalThis.fetch?.bind(globalThis);
 let livePayload=null;
@@ -68,12 +68,32 @@ function definitionFor(payload,hash){
 
 function rawItemFor(normalised,rows,payload){
   if(!normalised)return null;
+  const instanceId=String(normalised.itemInstanceId||'');
+  if(instanceId){
+    const exact=(rows||[]).find(item=>String(item?.itemInstanceId||'')===instanceId);
+    if(exact)return exact;
+  }
   const bucket=Number(normalised.bucketHash);
   const candidates=(rows||[]).filter(item=>{
     const def=definitionFor(payload,item.itemHash);
     return Number(def?.inventory?.bucketTypeHash)===bucket;
   });
   return candidates.find(item=>Number(item.itemHash)===Number(normalised.hash))||candidates[0]||null;
+}
+
+function allOwnedItems(profile){
+  return [
+    ...(profile?.profileInventory?.data?.items||[]),
+    ...Object.values(profile?.characterInventories?.data||{}).flatMap(row=>row?.items||[]),
+    ...Object.values(profile?.characterEquipment?.data||{}).flatMap(row=>row?.items||[])
+  ];
+}
+
+function statContributions(payload,definition){
+  return (definition?.investmentStats||[]).map(row=>{
+    const hash=Number(row?.statTypeHash),stat=payload?.statDefinitions?.[String(hash)]||livePayload?.statDefinitions?.[String(hash)]||null;
+    return {hash:Number.isInteger(hash)?hash:null,name:String(stat?.displayProperties?.name||''),value:Number(row?.value||0),isConditionallyActive:Boolean(row?.isConditionallyActive)};
+  }).filter(row=>row.hash&&Number.isFinite(row.value)&&row.value!==0);
 }
 
 function enrichedPlugs(normalised,rawItem,profile){
@@ -100,19 +120,19 @@ function enrichedPlugs(normalised,rawItem,profile){
 function alternativeColumnsFor(rawItem,profile,payload){
   if(!rawItem?.itemInstanceId)return {};
   const reusable=profile?.itemComponents?.reusablePlugs?.data?.[rawItem.itemInstanceId]?.plugs||{};
-  return Object.fromEntries(Object.entries(reusable).map(([socketIndex,rows])=>[
-    socketIndex,
-    (rows||[]).filter(row=>row?.canInsert!==false).map(row=>{
+  const itemDefinition=definitionFor(payload,rawItem.itemHash),entries=itemDefinition?.sockets?.socketEntries||[],weaponBuckets=new Set([1498876634,2465295065,953998645]),weapon=weaponBuckets.has(Number(itemDefinition?.inventory?.bucketTypeHash)),indexes=new Set([...Object.keys(reusable).map(Number),...(weapon?[]:entries.map((_,index)=>index))]),profileSets=profile?.profilePlugSets?.data?.plugs||{},characterSets=Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs||{});
+  return Object.fromEntries([...indexes].sort((a,b)=>a-b).map(socketIndex=>{
+    const entry=entries[socketIndex]||{},setHashes=weapon?[]:[entry?.reusablePlugSetHash].map(Number).filter(Number.isInteger),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]),...setRows],seen=new Set();
+    return [String(socketIndex),rows.filter(row=>row?.canInsert!==false&&row?.enabled!==false).map(row=>{
       const hash=Number(row?.plugItemHash??row?.plugHash);
       const definition=definitionFor(payload,hash);
-      if(!Number.isInteger(hash))return null;
-      const itemDefinition=definitionFor(payload,rawItem.itemHash);
+      if(!Number.isInteger(hash)||seen.has(hash))return null;seen.add(hash);
       const category=(itemDefinition?.sockets?.socketCategories||[]).find(item=>(item?.socketIndexes||[]).map(Number).includes(Number(socketIndex)))||null;
       const socketCategoryHash=Number(category?.socketCategoryHash);
       const socketCategoryDefinition=Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null;
-      return {hash,bungieHash:hash,name:definition?.displayProperties?.name||`Unresolved Destiny definition ${hash}`,description:definition?.displayProperties?.description||"",icon:definition?.displayProperties?.icon||"",definition,socketIndex:Number(socketIndex),socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,canInsert:true,unresolved:!definition};
+      return {hash,bungieHash:hash,name:definition?.displayProperties?.name||`Unresolved Destiny definition ${hash}`,description:definition?.displayProperties?.description||"",icon:definition?.displayProperties?.icon||"",definition,socketIndex:Number(socketIndex),socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,canInsert:true,unresolved:!definition,statContributions:statContributions(payload,definition)};
     }).filter(Boolean)
-  ]).filter(([,rows])=>rows.length));
+  ]}).filter(([,rows])=>rows.length));
 }
 
 function instanceData(profile,rawItem){
@@ -188,6 +208,7 @@ function enrichArmour(detail,payload,profile,rows){
       setBonus:armourSemantics.set,
       generalMods,
       slotMods,
+      armourModOptions:alternativeColumnsFor(rawItem,profile,payload),
       // Position 1 is permanently reserved for the verified armour upgrade
       // level. The following five positions retain Bungie's socket order.
       // Do not erase Bungie's cached socket list when the original network
@@ -200,25 +221,33 @@ function enrichArmour(detail,payload,profile,rows){
   });
 }
 
-function enrichWeapons(detail,payload,profile,rows){
-  detail.weapons=(detail.weapons||[]).map(item=>{
+function enrichWeaponCollection(collection,payload,profile,rows){
+  return (collection||[]).map(item=>{
     if(!item)return item;
     const rawItem=rawItemFor(item,rows,payload);
     const plugs=enrichedPlugs(item,rawItem,profile);
+    const weaponInstance=instanceData(profile,rawItem);
     const weaponSemantics=normaliseWeaponSemantics({
       profile,
       item:rawItem,
+      itemDefinition:item?.definition||definitionFor(payload,rawItem?.itemHash),
       plugs,
-      instance:instanceData(profile,rawItem),
+      instance:weaponInstance,
       stats:statData(profile,rawItem),
-      alternativeColumns:alternativeColumnsFor(rawItem,profile,payload)
+      alternativeColumns:alternativeColumnsFor(rawItem,profile,payload),
+      isExotic:item?.isExotic===true||Number(item?.tierType??item?.definition?.inventory?.tierType)===6
     });
     return {
       ...item,
       itemInstanceId:rawItem?.itemInstanceId||null,
+      gearTier:Number.isInteger(Number(item?.gearTier))?Number(item.gearTier):(Number.isInteger(Number(weaponInstance?.gearTier))?Number(weaponInstance.gearTier):null),
       weaponSemantics,
       intrinsic:weaponSemantics.intrinsic,
       selectedPerks:weaponSemantics.selectedPerks,
+      weaponPerkModel:weaponSemantics.perkModel,
+      weaponPerkRows:weaponSemantics.perkRows,
+      weaponPerkRowCount:weaponSemantics.perkRowCount,
+      exoticWeaponTraits:weaponSemantics.exoticTraits,
       weaponMasterwork:weaponSemantics.masterwork,
       weaponMod:weaponSemantics.mod,
       catalyst:weaponSemantics.catalyst,
@@ -226,6 +255,11 @@ function enrichWeapons(detail,payload,profile,rows){
       weaponStats:weaponSemantics.stats
     };
   });
+}
+
+function enrichWeapons(detail,payload,profile,rows){
+  detail.weapons=enrichWeaponCollection(detail.weapons,payload,profile,rows);
+  detail.ownedWeapons=enrichWeaponCollection(detail.ownedWeapons,payload,profile,allOwnedItems(profile));
 }
 
 function aggregateCoverage(items=[]){
@@ -263,6 +297,7 @@ function enrich(detail){
   detail.hashCoverage=detail.hashCoverage||{};
   detail.hashCoverage.armour=aggregateCoverage(detail.armour);
   detail.hashCoverage.weapons=aggregateCoverage(detail.weapons);
+  detail.hashCoverage.ownedWeapons=aggregateCoverage(detail.ownedWeapons);
   detail.hashCoverage.armourSets=payload.armourSetCoverage||null;
   detail.paradoxEvidence=detail.paradoxEvidence||{};
   detail.paradoxEvidence.armour=detail.armour.flatMap(armourEvidence).filter(row=>row.active&&row.verified);

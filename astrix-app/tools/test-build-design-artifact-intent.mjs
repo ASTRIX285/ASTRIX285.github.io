@@ -40,6 +40,17 @@ protectedHydrated.workingBuild.artifactConfiguration.selectedPerkHashes.push(777
 assert.deepEqual(protectedHydrated.originalBuild.artifactConfiguration.selectedPerkHashes,[123]);
 assert.deepEqual(protectedHydrated.workingBuild.artifactConfiguration.selectedPerkHashes,[501,502,777]);
 assert.deepEqual(protectedHydrated.validationRecords,[{testId:'preserved-history'}]);
+assert.strictEqual(protectBuildState(protectedHydrated),protectedHydrated,'re-reading an already protected in-memory build must not deep-clone its full inventory again');
+
+const nativeStructuredClone=globalThis.structuredClone;
+let fullCloneCount=0;
+globalThis.structuredClone=(value,...args)=>{fullCloneCount+=1;return nativeStructuredClone(value,...args);};
+const inventoryState=createBuildState({characterId:'memory-regression',ownedWeapons:Array.from({length:250},(_,index)=>({itemInstanceId:`weapon-${index}`,description:'verified weapon evidence'.repeat(40)}))});
+const creationCloneCount=fullCloneCount;
+assert.equal(creationCloneCount,2,'creating Original and Working builds must use only one normalization copy and one Working Build copy');
+assert.strictEqual(protectBuildState(inventoryState),inventoryState);
+assert.equal(fullCloneCount,creationCloneCount,'repeated protection must not copy a large owned-weapon inventory');
+globalThis.structuredClone=nativeStructuredClone;
 
 const perkOnly=createBuildState({characterId:'fixture',artifact:{hash:1001},artifactConfiguration:{artifactHash:1001,seasonNumber:29,selectedPerkHashes:[501]}});
 perkOnly.workingBuild.artifactConfiguration.selectedPerkHashes=[501,502];

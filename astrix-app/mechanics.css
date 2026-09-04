@@ -24,7 +24,7 @@
   background: var(--panel-2);
   color: var(--text);
   padding: 0 11px;
-  font: 600 .78rem Inter, sans-serif;
+  font: 600 .78rem bahnschrift, sans-serif;
 }
 
 .filter-reset {
@@ -34,7 +34,7 @@
   background: rgba(255,255,255,.03);
   color: var(--text);
   padding: 0 14px;
-  font: 700 .76rem Inter, sans-serif;
+  font: 700 .76rem bahnschrift, sans-serif;
   cursor: pointer;
 }
 

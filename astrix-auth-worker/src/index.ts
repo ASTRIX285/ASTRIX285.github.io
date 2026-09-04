@@ -7,6 +7,8 @@ const BUNGIE_AUTHORIZE = "https://www.bungie.net/en/oauth/authorize";
 const BUNGIE_TOKEN = "https://www.bungie.net/platform/app/oauth/token/";
 const BUNGIE_MEMBERSHIPS = "https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/";
 const BUNGIE_PLATFORM = "https://www.bungie.net/Platform";
+const MANIFEST_METADATA_CACHE_KEY = "https://auth.astrixparadox.com/.cache/manifest-metadata/current";
+const MANIFEST_METADATA_TTL_SECONDS = 60 * 60;
 const SESSION_COOKIE = "astrix_session";
 const OAUTH_TTL_MS = 10 * 60 * 1000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -14,6 +16,7 @@ const MANIFEST_COMPONENT_TYPES = new Set([
   "DestinyInventoryItemDefinition",
   "DestinySandboxPerkDefinition",
   "DestinyArtifactDefinition",
+  "DestinyPlugSetDefinition",
   "DestinyStatDefinition",
   "DestinySocketCategoryDefinition",
   "DestinyEquipableItemSetDefinition"
@@ -51,6 +54,13 @@ type BungieMembershipResponse = {
       displayName?: string;
     }>;
     primaryMembershipId?: string;
+    bungieNetUser?: {
+      membershipId?: string;
+      uniqueName?: string;
+      displayName?: string;
+      profilePicturePath?: string;
+      profilePictureWidePath?: string;
+    };
   };
   ErrorCode?: number;
   Message?: string;
@@ -101,7 +111,7 @@ type DestinyProfilePayload = {
   [key: string]: unknown;
 };
 
-const PROFILE_COMPONENTS = [
+const CHARACTER_PROFILE_COMPONENTS = [
   100, // Profiles
   102, // ProfileInventories
   103, // ProfileCurrencies
@@ -118,7 +128,25 @@ const PROFILE_COMPONENTS = [
   304, // ItemStats
   305, // ItemSockets
   309, // ItemPlugObjectives
-  310, // ItemReusablePlugs
+  310  // ItemReusablePlugs
+] as const;
+
+const JOURNEY_PROFILE_COMPONENTS = [
+  100, // Profiles
+  102, // ProfileInventories
+  104, // ProfileProgression
+  200, // Characters
+  201, // CharacterInventories
+  202, // CharacterProgressions
+  205, // CharacterEquipment
+  700, // PresentationNodes
+  900, // Records
+  1100, // Metrics
+  1300  // Craftables
+] as const;
+
+const PROFILE_COMPONENTS = [
+  ...CHARACTER_PROFILE_COMPONENTS,
   700, // PresentationNodes
   800, // Collectibles
   900, // Records
@@ -137,13 +165,41 @@ function publicBungieHeaders(env: Env): HeadersInit {
   };
 }
 
-async function destinyManifest(env: Env): Promise<DestinyManifestResponse> {
+async function destinyManifest(env: Env, options: { forceRefresh?: boolean } = {}): Promise<DestinyManifestResponse> {
+  let defaultCache: Cache | null = null;
+  const cacheKey = new Request(MANIFEST_METADATA_CACHE_KEY, { method: "GET" });
+  try {
+    defaultCache = (caches as unknown as { default: Cache }).default;
+    if (!options.forceRefresh) {
+      const cached = await defaultCache.match(cacheKey);
+      const cachedManifest = await cached?.json<DestinyManifestResponse>().catch(() => null);
+      if (cachedManifest?.version && cachedManifest.jsonWorldComponentContentPaths?.en) return cachedManifest;
+    }
+  } catch {}
+
   const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/`, { headers: publicBungieHeaders(env) });
   const payload = await response.json<BungieApiResponse<DestinyManifestResponse>>().catch(() => null);
   if (!response.ok || !payload?.Response?.version || !payload.Response.jsonWorldComponentContentPaths?.en) {
     throw new Error(`bungie_manifest_failed:${response.status}`);
   }
+  if (defaultCache) {
+    try {
+      await defaultCache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": `public, max-age=${MANIFEST_METADATA_TTL_SECONDS}`
+        }
+      }));
+    } catch (error) {
+      console.warn("manifest_metadata_cache_write_failed", { error: String(error) });
+    }
+  }
   return payload.Response;
+}
+
+async function refreshDestinyManifestMetadata(env: Env): Promise<void> {
+  const manifest = await destinyManifest(env, { forceRefresh: true });
+  console.log("bungie_manifest_metadata_refreshed", { version: manifest.version });
 }
 
 async function manifestMetadataRoute(request: Request, env: Env): Promise<Response> {
@@ -153,7 +209,9 @@ async function manifestMetadataRoute(request: Request, env: Env): Promise<Respon
   if (Object.keys(paths).length !== MANIFEST_COMPONENT_TYPES.size) {
     return withCors(request, env, json({ error: "bungie_manifest_component_path_missing" }, 502));
   }
-  return withCors(request, env, json({ version: manifest.version, jsonWorldComponentContentPaths: { en: paths } }, 200, { "Cache-Control": "no-cache" }));
+  return withCors(request, env, json({ version: manifest.version, jsonWorldComponentContentPaths: { en: paths } }, 200, {
+    "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=300"
+  }));
 }
 
 async function manifestComponentRoute(request: Request, env: Env): Promise<Response> {
@@ -188,6 +246,75 @@ async function manifestComponentRoute(request: Request, env: Env): Promise<Respo
   return withCors(request, env, new Response(upstream.body, { status: 200, headers }));
 }
 
+async function manifestDefinitionTable(env: Env, manifest: DestinyManifestResponse, type: string): Promise<Record<string, Record<string, any>>> {
+  const path = manifest.jsonWorldComponentContentPaths?.en?.[type] || "";
+  if (!path.startsWith("/common/destiny2_content/json/")) throw new Error(`bungie_${type}_path_missing`);
+  const bungieUrl = new URL(path, "https://www.bungie.net");
+  if (bungieUrl.origin !== "https://www.bungie.net") throw new Error(`bungie_${type}_origin_invalid`);
+  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/manifest/${encodeURIComponent(manifest.version || "unknown")}/${encodeURIComponent(type)}`);
+  const defaultCache = (caches as unknown as { default: Cache }).default;
+  let response = await defaultCache.match(cacheKey);
+  if (!response) {
+    const upstream = await fetch(bungieUrl, { headers: { "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)" } });
+    if (!upstream.ok) throw new Error(`bungie_${type}_failed:${upstream.status}`);
+    const headers = new Headers(upstream.headers);
+    headers.set("Cache-Control", "public, max-age=3600");
+    response = new Response(upstream.body, { status: 200, headers });
+    await defaultCache.put(cacheKey, response.clone());
+  }
+  const table = await response.json<Record<string, Record<string, any>>>().catch(() => null);
+  if (!table || typeof table !== "object" || Array.isArray(table)) throw new Error(`bungie_${type}_invalid`);
+  return table;
+}
+
+async function currentSeasonRoute(request: Request, env: Env): Promise<Response> {
+  const manifest = await destinyManifest(env);
+  const seasons = Object.values(await manifestDefinitionTable(env, manifest, "DestinySeasonDefinition"));
+  const now = Date.now();
+  const started = seasons.filter(season => {
+    const start = Date.parse(String(season.startDate || ""));
+    return Number.isFinite(start) && start <= now;
+  }).sort((left, right) => Date.parse(String(right.startDate || "")) - Date.parse(String(left.startDate || "")));
+  const activeSeason = started.find(season => {
+    const end = Date.parse(String(season.endDate || ""));
+    return !Number.isFinite(end) || now < end;
+  }) || started[0];
+  if (!activeSeason) return withCors(request, env, json({ error: "current_season_not_found" }, 404));
+
+  const passEntries = Array.isArray(activeSeason.seasonPassList) ? activeSeason.seasonPassList : [];
+  const activePassEntry = passEntries.find((entry: Record<string, any>) => {
+    const start = Date.parse(String(entry.seasonPassStartDate || ""));
+    const end = Date.parse(String(entry.seasonPassEndDate || ""));
+    return (!Number.isFinite(start) || start <= now) && (!Number.isFinite(end) || now < end);
+  }) || passEntries[passEntries.length - 1] || null;
+  const passHash = Number(activePassEntry?.seasonPassHash ?? activeSeason.seasonPassHash);
+  let seasonPass: Record<string, any> | null = null;
+  if (Number.isInteger(passHash)) {
+    const passes = await manifestDefinitionTable(env, manifest, "DestinySeasonPassDefinition");
+    seasonPass = passes[String(passHash)] || null;
+  }
+  const seasonDisplay = activeSeason.displayProperties || {};
+  const passImages = seasonPass?.images || {};
+  return withCors(request, env, json({
+    manifestVersion: manifest.version,
+    season: {
+      hash: activeSeason.hash ?? null,
+      seasonNumber: activeSeason.seasonNumber ?? null,
+      name: seasonDisplay.name || "",
+      startDate: activeSeason.startDate || null,
+      endDate: activeSeason.endDate || null,
+      seasonPassProgressionHash: activeSeason.seasonPassProgressionHash ?? null
+    },
+    pass: seasonPass ? {
+      hash: passHash,
+      rewardProgressionHash: seasonPass.rewardProgressionHash ?? null,
+      prestigeProgressionHash: seasonPass.prestigeProgressionHash ?? null,
+      iconPath: passImages.iconImagePath || "",
+      backgroundImagePath: passImages.themeBackgroundImagePath || ""
+    } : null
+  }, 200, { "Cache-Control": "public, max-age=300" }));
+}
+
 async function manifestDefinitionRoute(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const type = url.searchParams.get("type") || "";
@@ -195,12 +322,20 @@ async function manifestDefinitionRoute(request: Request, env: Env): Promise<Resp
   if (!LIVE_DEFINITION_TYPES.has(type) || !/^\d+$/.test(hash)) {
     return withCors(request, env, json({ error: "invalid_manifest_definition_request" }, 400));
   }
+  const manifest = await destinyManifest(env);
+  const defaultCache = (caches as unknown as { default: Cache }).default;
+  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/manifest-definition/${encodeURIComponent(manifest.version || "unknown")}/${encodeURIComponent(type)}/${hash}`, { method: "GET" });
+  const cached = await defaultCache.match(cacheKey).catch(() => null);
+  if (cached) return withCors(request, env, cached);
+
   const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/${type}/${hash}/`, { headers: publicBungieHeaders(env) });
   const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
   if (!response.ok || !payload?.Response) {
     return withCors(request, env, json({ error: "bungie_manifest_definition_failed", status: response.status }, response.status === 404 ? 404 : 502));
   }
-  return withCors(request, env, json({ type, hash: Number(hash), definition: payload.Response }, 200, { "Cache-Control": "public, max-age=604800" }));
+  const resolved = json({ type, hash: Number(hash), definition: payload.Response }, 200, { "Cache-Control": "public, max-age=604800, immutable" });
+  await defaultCache.put(cacheKey, resolved.clone()).catch(error => console.warn("manifest_definition_cache_write_failed", { type, hash, error: String(error) }));
+  return withCors(request, env, resolved);
 }
 
 function bindingInfo(value: unknown): { present: boolean; type: string; length: number | null } {
@@ -361,6 +496,24 @@ function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
       for (const socket of socketData?.sockets || []) {
         if (Number.isInteger(socket.plugHash)) hashes.add(Number(socket.plugHash));
       }
+    }
+  }
+  return [...hashes];
+}
+
+function ownedDefinitionHashes(profile: DestinyProfilePayload): number[] {
+  const hashes = new Set<number>();
+  const items = [
+    ...(profile.profileInventory?.data?.items || []),
+    ...Object.values(profile.characterInventories?.data || {}).flatMap(row => row.items || []),
+    ...Object.values(profile.characterEquipment?.data || {}).flatMap(row => row.items || [])
+  ];
+  for (const item of items) {
+    if (Number.isInteger(item.itemHash)) hashes.add(Number(item.itemHash));
+    if (Number.isInteger(item.overrideStyleItemHash)) hashes.add(Number(item.overrideStyleItemHash));
+    if (!item.itemInstanceId) continue;
+    for (const socket of profile.itemComponents?.sockets?.data?.[item.itemInstanceId]?.sockets || []) {
+      if (Number.isInteger(socket.plugHash)) hashes.add(Number(socket.plugHash));
     }
   }
   return [...hashes];
@@ -572,6 +725,13 @@ async function fetchGearAssetDefinitions(
 }
 
 async function profileRoute(request: Request, env: Env): Promise<Response> {
+  const requestUrl = new URL(request.url);
+  const profileScope = requestUrl.searchParams.get("scope");
+  const requestedComponents = profileScope === "character" || profileScope === "forge"
+    ? CHARACTER_PROFILE_COMPONENTS
+    : profileScope === "journey"
+      ? JOURNEY_PROFILE_COMPONENTS
+      : PROFILE_COMPONENTS;
   const sessionId = cookieValue(request, SESSION_COOKIE);
   if (!sessionId) return withCors(request, env, json({ authenticated: false, error: "authentication_required" }, 401));
 
@@ -611,7 +771,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   const profileUrl = new URL(
     `${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Profile/${encodeURIComponent(membership.membershipId)}/`
   );
-  profileUrl.searchParams.set("components", PROFILE_COMPONENTS.join(","));
+  profileUrl.searchParams.set("components", requestedComponents.join(","));
 
   const response = await fetch(profileUrl, {
     headers: {
@@ -635,12 +795,12 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  if (new URL(request.url).searchParams.get("definitions") === "client-manifest") {
+  if (requestUrl.searchParams.get("definitions") === "client-manifest") {
     await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
     return withCors(request, env, json({
       authenticated: true,
       membership,
-      components: PROFILE_COMPONENTS,
+      components: requestedComponents,
       profile: payload.Response,
       definitions: {},
       damageDefinitions: {},
@@ -651,7 +811,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   }
 
   const baseDefinitionHashes = [...new Set([
-    ...equippedDefinitionHashes(payload.Response),
+    ...(profileScope === "forge" ? ownedDefinitionHashes(payload.Response) : equippedDefinitionHashes(payload.Response)),
     ...artifactPerkHashes(payload.Response)
   ])];
   const definitions = await fetchInventoryDefinitions(baseDefinitionHashes, session.accessToken, env);
@@ -696,7 +856,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   return withCors(request, env, json({
     authenticated: true,
     membership,
-    components: PROFILE_COMPONENTS,
+    components: requestedComponents,
     profile: payload.Response,
     definitions,
     damageDefinitions,
@@ -749,7 +909,7 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
   const membership = session.activeDestinyMembership;
   if (!membership) return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
   const profileUrl = new URL(`${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Profile/${encodeURIComponent(membership.membershipId)}/`);
-  profileUrl.searchParams.set("components", PROFILE_COMPONENTS.join(","));
+  profileUrl.searchParams.set("components", CHARACTER_PROFILE_COMPONENTS.join(","));
   const response = await fetch(profileUrl, { headers: {
     Authorization: `Bearer ${session.accessToken}`,
     "X-API-Key": env.BUNGIE_API_KEY,
@@ -958,6 +1118,27 @@ function bungieHeaders(session: SessionRecord, env: Env): HeadersInit {
   };
 }
 
+async function bungieAccountRoute(request: Request, env: Env): Promise<Response> {
+  const auth = await authenticatedSession(request, env);
+  if (auth instanceof Response) return auth;
+
+  const membershipData = await fetchMemberships(auth.session.accessToken, env);
+  const account = membershipData.Response?.bungieNetUser;
+  if (!account) {
+    return withCors(request, env, json({ error: "bungie_account_not_found" }, 404));
+  }
+
+  await putSession(env, auth.sessionId, { ...auth.session, lastUsedAt: Date.now() });
+  return withCors(request, env, json({
+    authenticated: true,
+    membershipId: account.membershipId || auth.session.bungieMembershipId,
+    uniqueName: account.uniqueName || null,
+    displayName: account.displayName || account.uniqueName || auth.session.activeDestinyMembership?.displayName || null,
+    profilePicturePath: account.profilePicturePath || null,
+    profilePictureWidePath: account.profilePictureWidePath || null
+  }));
+}
+
 async function activityHistoryRoute(request: Request, env: Env): Promise<Response> {
   const auth = await authenticatedSession(request, env);
   if (auth instanceof Response) return auth;
@@ -1086,6 +1267,13 @@ async function pgcrRoute(request: Request, env: Env, instanceId: string): Promis
 }
 
 export default {
+  scheduled(_controller: ScheduledController, env: Env, context: ExecutionContext): void {
+    context.waitUntil(refreshDestinyManifestMetadata(env).catch(error => {
+      console.error("bungie_manifest_metadata_refresh_failed", {
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }));
+  },
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
@@ -1105,9 +1293,11 @@ export default {
       if (request.method === "GET" && url.pathname === "/bungie/start") return startOAuth(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/callback") return oauthCallback(request, env);
       if (request.method === "GET" && url.pathname === "/session") return sessionRoute(request, env);
+      if (request.method === "GET" && url.pathname === "/bungie/account") return bungieAccountRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest") return manifestMetadataRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/component") return manifestComponentRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/definition") return manifestDefinitionRoute(request, env);
+      if (request.method === "GET" && url.pathname === "/bungie/current-season") return currentSeasonRoute(request, env);
       if (request.method === "GET" && (url.pathname === "/bungie/profile" || url.pathname === "/v1/destiny/profile")) {
         return profileRoute(request, env);
       }

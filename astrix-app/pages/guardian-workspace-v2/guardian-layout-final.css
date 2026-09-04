@@ -26,16 +26,9 @@
 /* Keep the hero completely clear for the AE Guardian presentation. */
 @media (min-width:981px){.workspace>.stage{padding-top:clamp(10px,.7vw,14px)!important}}
 
-/* -------------------- DESKTOP FRAME WIDTHS -------------------- */
-@media (min-width:1500px){
-  .workspace{grid-template-columns:clamp(360px,20vw,420px) minmax(0,1fr) clamp(420px,29vw,580px)!important}
-}
-@media (min-width:1281px) and (max-width:1499px){
-  .workspace{grid-template-columns:clamp(340px,25vw,380px) minmax(500px,1fr) clamp(350px,25vw,520px)!important}
-}
-@media (min-width:981px) and (max-width:1280px){
-  .workspace{grid-template-columns:clamp(320px,28vw,350px) minmax(0,1fr) clamp(270px,27vw,330px)!important}
-}
+/* -------------------- DESKTOP FRAME WIDTHS --------------------
+   Character has no analysis rail, so it consumes the shared left and centre
+   tracks while retaining the same rail measurement as the three-column tools. */
 
 /* -------------------- SUBCLASS + SUPER -------------------- */
 .workspace>.left{--rail-slot:var(--guardian-square)!important;--rail-slot-gap:var(--guardian-square-gap)!important}
@@ -69,7 +62,7 @@
 .left .subclass-rail__label{
   grid-column:1/-1!important;
   width:100%!important;margin:0 0 4px!important;color:rgba(var(--pf-gold),.78)!important;
-  font:700 .52rem Inter,sans-serif!important;letter-spacing:.14em!important;text-align:center!important
+  font:700 .52rem bahnschrift,sans-serif!important;letter-spacing:.14em!important;text-align:center!important
 }
 .left .subclass-option{
   display:grid!important;place-items:center!important;width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;
@@ -83,7 +76,7 @@
 }
 .left .subclass-option__diamond>span{
   display:grid!important;place-items:center!important;transform:rotate(-45deg)!important;color:rgba(255,245,220,.78)!important;
-  font:800 .48rem Inter,sans-serif!important
+  font:800 .48rem bahnschrift,sans-serif!important
 }
 html[data-subclass="arc"] .subclass-option[data-subclass-option="arc"],
 html[data-subclass="solar"] .subclass-option[data-subclass-option="solar"],
@@ -107,11 +100,11 @@ html[data-subclass="prismatic"] .subclass-option[data-subclass-option="prismatic
 }
 .left .super-feature__label{
   display:block!important;margin:0!important;color:rgba(var(--pf-gold),.78)!important;
-  font:700 .52rem Inter,sans-serif!important;letter-spacing:.14em!important
+  font:700 .52rem bahnschrift,sans-serif!important;letter-spacing:.14em!important
 }
 /* -------------------- ONE SOCKET LANGUAGE -------------------- */
 .left>.grp{padding-left:10px!important;padding-right:10px!important}
-.left .grp .lbl{margin:0 0 6px!important;color:rgba(var(--pf-gold),.76)!important;font:700 .50rem Inter,sans-serif!important;letter-spacing:.13em!important}
+.left .grp .lbl{margin:0 0 6px!important;color:rgba(var(--pf-gold),.76)!important;font:700 .50rem bahnschrift,sans-serif!important;letter-spacing:.13em!important}
 #abilityList,#aspectList,#fragList{
   display:grid!important;grid-auto-flow:row!important;align-items:start!important;justify-content:start!important;gap:var(--guardian-square-gap)!important;min-height:var(--guardian-square)!important
 }
@@ -207,10 +200,12 @@ html[data-subclass="prismatic"] .subclass-option[data-subclass-option="prismatic
   .brand .sub{display:none!important}.ws-label{font-size:.68rem!important;letter-spacing:.12em!important}
   .topbar{height:64px!important;min-height:64px!important}
 }
-@media (max-width:980px){
+@media (max-width:1100px){
   .topbar{position:relative!important;display:grid!important;grid-template-columns:auto 1fr auto!important;height:56px!important;min-height:56px!important;padding:0 10px!important}
   .topbar .brand{grid-column:1;grid-row:1}.topbar .ws-label{grid-column:2;grid-row:1;justify-self:center}.topbar-actions{grid-column:3;grid-row:1}
+  .workspace{grid-template-columns:1fr!important;grid-template-rows:auto!important;grid-template-areas:"left" "stage" "equip"!important;gap:var(--apx-workspace-gap,.625rem)!important}
   .workspace>.left{display:flex!important;flex-direction:column!important}
+  .workspace>.left{grid-area:left!important}.workspace>.stage{grid-area:stage!important}.workspace>.equip{grid-area:equip!important}
   .left .subclass-super-shell{grid-template-columns:168px minmax(0,1fr)!important}
   .left .subclass-rail{width:168px!important;min-width:168px!important}
 }
@@ -231,8 +226,8 @@ html[data-subclass="prismatic"] .subclass-option[data-subclass-option="prismatic
 }
 /* Main Guardian view owns live equipment only. Full intelligence lives in Guardian Build Forge. */
 .workspace>.right[hidden]{display:none!important}
-@media (min-width:981px){
-  .workspace{grid-template-columns:clamp(320px,22vw,420px) minmax(0,1fr)!important;grid-template-areas:"left stage" "left equip"!important}
+@media (min-width:1101px){
+  .workspace{grid-template-columns:var(--apx-workspace-left,minmax(360px,20%)) var(--apx-workspace-centre,minmax(720px,1fr))!important;gap:var(--apx-workspace-gap,.625rem)!important;grid-template-areas:"left stage" "left equip"!important}
   .workspace>.left{grid-column:1!important;grid-row:1/3!important}
   .workspace>.stage{grid-column:2!important;grid-row:1!important}
   .workspace>.equip{grid-column:2!important;grid-row:2!important}

@@ -1,6 +1,8 @@
-import {getBungieSession} from "./guardian-bungie-auth.mjs";
-import {resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
-import {guardianManifest} from "./guardian-manifest-service.mjs";
+import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1";
+import {createArtifactConfiguration,resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
+import {subclassPlugComponent} from "./guardian-subclass-plug-classifier.mjs";
+import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260904-weapon-model-2";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260904-artifact-sandbox-effects-1";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
 import {mergeSubclassCatalog} from "./guardian-super-catalog.mjs?v=20260829-subclass-identity-1";
@@ -36,6 +38,7 @@ const manifestReady=guardianManifest.ready();
 let fixtureProfileDetail=null;
 let latestResolvedBuild=null;
 let authenticatedSession=globalThis.ASTRIX_BUNGIE_SESSION?.authenticated?globalThis.ASTRIX_BUNGIE_SESSION:null;
+let explicitlySelectedCharacterId="";
 
 const currentAuthenticatedSession=()=>authenticatedSession?.authenticated?authenticatedSession:(globalThis.ASTRIX_BUNGIE_SESSION?.authenticated?globalThis.ASTRIX_BUNGIE_SESSION:null);
 const isFixtureDetail=detail=>detail?.source==="paradox-beta-fixture";
@@ -71,12 +74,15 @@ function resolvedBuildSnapshot(detail={}){
     aspects:cloneBuildValue(aspects),
     fragments:cloneBuildValue(fragments),
     weapons:cloneBuildValue(detail.weapons||[]),
+    ownedWeapons:cloneBuildValue(detail.ownedWeapons||detail.weapons||[]),
     armour:cloneBuildValue(detail.armour||[]),
     mods:cloneBuildValue(detail.mods||detail.armourMods||[]),
     artifact:cloneBuildValue(detail.artifact||null),
     artifactConfiguration:cloneBuildValue(detail.artifactConfiguration||detail.artifact?.artifactConfiguration||null),
     availableArtifacts:cloneBuildValue(detail.availableArtifacts||[]),
     artifactOptions:cloneBuildValue(detail.artifactOptions||[]),
+    currentSeasonNumber:Number.isInteger(Number(detail.currentSeasonNumber))?Number(detail.currentSeasonNumber):null,
+    currentSeason:cloneBuildValue(detail.currentSeason||null),
     stats:cloneBuildValue(detail.stats||[]),
     hashCoverage:cloneBuildValue(detail.hashCoverage||null),
     semanticCoverage:cloneBuildValue(detail.semanticCoverage||null),
@@ -150,9 +156,24 @@ async function fetchJsonWithTimeout(url,timeoutMs=PROFILE_REQUEST_TIMEOUT_MS){
   }
 }
 
+async function fetchCurrentSeasonMetadata(){
+  try{
+    const metadata=await fetchJsonWithTimeout(new URL('/bungie/current-season',AUTH_ORIGIN),15_000);
+    const seasonNumber=Number(metadata?.season?.seasonNumber);
+    return Number.isInteger(seasonNumber)?{...metadata,season:{...(metadata.season||{}),seasonNumber}}:null;
+  }catch(error){
+    console.info('[ASTRIX Artifact] Current season metadata is temporarily unavailable.',error);
+    return null;
+  }
+}
+
 async function manifestRequestUrl(path){
   await manifestReady;
   const url=new URL(path,AUTH_ORIGIN);
+  if(path==="/bungie/profile"){
+    if(location.pathname.includes("/pages/journey/"))url.searchParams.set("scope","journey");
+    else if(location.pathname.includes("/guardian-workspace-v2/"))url.searchParams.set("scope","character");
+  }
   if(guardianManifest.status().mode==="indexeddb")url.searchParams.set("definitions","client-manifest");
   return url;
 }
@@ -181,15 +202,6 @@ function classifySubclass(item){
 function activeCharacter(profile){
   const rows=Object.values(profile?.characters?.data||{});
   return rows.sort((a,b)=>String(b.dateLastPlayed||"").localeCompare(String(a.dateLastPlayed||"")))[0]||null;
-}
-
-function rememberedCharacterId(profile){
-  try{
-    const id=String(sessionStorage.getItem(SELECTED_CHARACTER_KEY)||"");
-    return id&&profile?.characters?.data?.[id]?id:"";
-  }catch{
-    return "";
-  }
 }
 
 function rememberCharacterId(characterId){
@@ -247,6 +259,7 @@ function characterRoster(payload,selectedCharacterId=null){
     return {
       characterId:String(character.characterId||""),
       characterClass,
+      dateLastPlayed:String(character.dateLastPlayed||""),
       power:character.light??null,
       guardianRank:rank,
       titleHash:title.hash,
@@ -296,7 +309,8 @@ function socketResolution(profile,definitions,item,payload={}){
     const category=socketCategories.find(row=>(row?.socketIndexes||[]).map(Number).includes(socketIndex))||null;
     const socketCategoryHash=Number(category?.socketCategoryHash);
     const socketCategoryDefinition=Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null;
-    return Number.isFinite(hash)?{...displayItem(definitions,hash),socketIndex,socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition}:null;
+    const plug=Number.isFinite(hash)?displayItem(definitions,hash):null;
+    return plug?{...plug,socketIndex,socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,statContributions:plugStatContributions(payload,plug.definition)}:null;
   }).filter(Boolean);
   const plugs=rows;
   const resolved=plugs.filter(row=>row.definition&&Object.keys(row.definition).length>0).map(row=>Number(row.hash));
@@ -306,6 +320,42 @@ function socketResolution(profile,definitions,item,payload={}){
 
 function socketPlugs(profile,definitions,item,payload={}){
   return socketResolution(profile,definitions,item,payload).plugs;
+}
+
+function plugStatContributions(payload={},plugDefinition={}){
+  return (plugDefinition?.investmentStats||[]).map(row=>{
+    const hash=Number(row?.statTypeHash),stat=payload?.statDefinitions?.[String(hash)]||null;
+    return {
+      hash:Number.isInteger(hash)?hash:null,
+      name:String(stat?.displayProperties?.name||''),
+      value:Number(row?.value||0),
+      isConditionallyActive:Boolean(row?.isConditionallyActive)
+    };
+  }).filter(row=>row.hash&&Number.isFinite(row.value)&&row.value!==0);
+}
+
+function reusableSocketOptions(profile,definitions,item,payload={}){
+  if(!item?.itemInstanceId)return {};
+  const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]?.plugs||{};
+  const itemDefinition=definition(definitions,item.itemHash)||{};
+  const entries=itemDefinition?.sockets?.socketEntries||[],weapon=WEAPON_ORDER.includes(Number(itemDefinition?.inventory?.bucketTypeHash)),indexes=new Set([...Object.keys(reusable).map(Number),...(weapon?[]:entries.map((_,index)=>index))]),profileSets=profile?.profilePlugSets?.data?.plugs||{},characterSets=Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs||{});
+  return Object.fromEntries([...indexes].sort((a,b)=>a-b).map(socketIndex=>{
+    const entry=entries[socketIndex]||{},setHashes=weapon?[]:[entry?.reusablePlugSetHash].map(Number).filter(Number.isInteger),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]),...setRows];
+    return [String(socketIndex),uniqueItems((Array.isArray(rows)?rows:[]).filter(row=>row?.canInsert!==false&&row?.enabled!==false).map(row=>{
+      const hash=Number(row?.plugItemHash??row?.plugHash),plugDefinition=definition(definitions,hash);
+      if(!Number.isInteger(hash)||!plugDefinition)return null;
+      const category=(itemDefinition?.sockets?.socketCategories||[]).find(value=>(value?.socketIndexes||[]).map(Number).includes(Number(socketIndex)))||null;
+      const socketCategoryHash=Number(category?.socketCategoryHash);
+      return {
+        ...displayItem(definitions,hash),
+        socketIndex:Number(socketIndex),
+        socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,
+        socketCategoryDefinition:Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null,
+        canInsert:true,
+        statContributions:plugStatContributions(payload,plugDefinition)
+      };
+    }).filter(Boolean))];
+  }).filter(([,rows])=>rows.length));
 }
 
 function plugType(plug){
@@ -319,23 +369,18 @@ function plugType(plug){
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
-/* Bungie subclass plugs use stable category identifiers such as "supers",
- * "class_abilities", "movement", "melee", "grenades", "aspects" and
- * "fragments". Do not require the display text to contain an exact singular
- * English word: that caused valid equipped Supers to be missed. */
+/* Bungie subclass plug categories are authoritative. Descriptions can mention
+ * other component types (an Aspect commonly mentions Fragment slots), so a
+ * descriptive substring must never cross-classify the same plug into two
+ * lanes. */
 const plugCategory=plug=>String(plug?.definition?.plug?.plugCategoryIdentifier||"").toLowerCase();
-const matchesCategory=(plug,categoryWords,textPattern)=>{
-  const category=plugCategory(plug);
-  if(categoryWords.some(word=>category===word||category.includes(word)))return true;
-  return textPattern.test(plugType(plug));
-};
-const isSuperPlug=plug=>matchesCategory(plug,["super","supers"],/(^|[\W_])supers?([\W_]|$)|super ability|super_ability/);
-const isClassAbilityPlug=plug=>matchesCategory(plug,["class_abilit","classabilit"],/class ability|class_ability/);
-const isMovementPlug=plug=>matchesCategory(plug,["movement","jump","lift","glide"],/movement|jump|lift|glide/);
-const isMeleePlug=plug=>matchesCategory(plug,["melee"],/melee/);
-const isGrenadePlug=plug=>matchesCategory(plug,["grenade"],/grenade/);
-const isAspectPlug=plug=>matchesCategory(plug,["aspect"],/aspect/);
-const isFragmentPlug=plug=>matchesCategory(plug,["fragment"],/fragment/);
+const isSuperPlug=plug=>subclassPlugComponent(plug)==="super";
+const isClassAbilityPlug=plug=>subclassPlugComponent(plug)==="classAbility";
+const isMovementPlug=plug=>subclassPlugComponent(plug)==="movementAbility";
+const isMeleePlug=plug=>subclassPlugComponent(plug)==="melee";
+const isGrenadePlug=plug=>subclassPlugComponent(plug)==="grenade";
+const isAspectPlug=plug=>subclassPlugComponent(plug)==="aspect";
+const isFragmentPlug=plug=>subclassPlugComponent(plug)==="fragment";
 const isTranscendencePlug=plug=>{
   const itemType=String(plug?.itemTypeDisplayName||plug?.definition?.itemTypeDisplayName||"").toLowerCase();
   const name=String(plug?.name||plug?.definition?.displayProperties?.name||"").toLowerCase();
@@ -380,8 +425,13 @@ function normaliseItem(profile,definitions,item,payload={}){
       ||Number(plug.definition?.itemType)===19
     );
   });
+  const socketOptions=reusableSocketOptions(profile,definitions,item,payload);
+  const isExotic=String(base.tier).toLowerCase()==="exotic";
+  const weaponSemantics=WEAPON_ORDER.includes(Number(base.bucketHash))?normaliseWeaponSemantics({profile,item,itemDefinition:base.definition,plugs,instance,stats:profile?.itemComponents?.stats?.data?.[item.itemInstanceId]||null,alternativeColumns:socketOptions,isExotic}):null;
   return {
     ...base,
+    itemHash:Number(item.itemHash),
+    itemInstanceId:String(item.itemInstanceId||''),
     icon:override?.definition&&Object.keys(override.definition).length?override.icon:base.icon,
     exactStyleHash:override?.definition&&Object.keys(override.definition).length?Number(item.overrideStyleItemHash):null,
     isHolofoil:Boolean((override?.definition||base.definition)?.isHolofoil),
@@ -394,29 +444,47 @@ function normaliseItem(profile,definitions,item,payload={}){
     damageTypeHash:instance?.damageTypeHash??base.definition?.defaultDamageTypeHash??null,
     elementDefinition:payload?.damageDefinitions?.[String(instance?.damageTypeHash??base.definition?.defaultDamageTypeHash)]||null,
     breakerDefinition:payload?.breakerDefinitions?.[String(instance?.breakerTypeHash??base.definition?.breakerTypeHash)]||null,
-    isExotic:String(base.tier).toLowerCase()==="exotic",
+    isExotic,
     shader,
     ornament,
     intrinsicTrait,
     appearancePlugs:[shader,ornament].filter(Boolean),
     mods,
+    socketOptions,
+    ...(weaponSemantics?{weaponSemantics,intrinsic:weaponSemantics.intrinsic,selectedPerks:weaponSemantics.selectedPerks,weaponPerkModel:weaponSemantics.perkModel,weaponPerkRows:weaponSemantics.perkRows,weaponPerkRowCount:weaponSemantics.perkRowCount,exoticWeaponTraits:weaponSemantics.exoticTraits,weaponMasterwork:weaponSemantics.masterwork,weaponMod:weaponSemantics.mod,catalyst:weaponSemantics.catalyst,championCapability:weaponSemantics.champion,weaponStats:weaponSemantics.stats}:{}),
     socketsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]),
     socketCoverage
   };
 }
 
+function ownedItemRows(profile={}){
+  const priority={profile:0,vault:1,carried:2,postmaster:3,equipped:4},rows=[];
+  for(const item of profile?.profileInventory?.data?.items||[])rows.push({item,source:{kind:Number(item?.bucketHash)===138197802?'vault':'profile',characterId:null,label:Number(item?.bucketHash)===138197802?'Vault':'Shared inventory'}});
+  for(const [characterId,inventory] of Object.entries(profile?.characterInventories?.data||{}))for(const item of inventory?.items||[])rows.push({item,source:{kind:Number(item?.bucketHash)===215593132?'postmaster':'carried',characterId:String(characterId),label:Number(item?.bucketHash)===215593132?'Postmaster':'Carried'}});
+  for(const [characterId,equipment] of Object.entries(profile?.characterEquipment?.data||{}))for(const item of equipment?.items||[])rows.push({item,source:{kind:'equipped',characterId:String(characterId),label:'Equipped'}});
+  const unique=new Map();
+  for(const row of rows){
+    const key=String(row?.item?.itemInstanceId||'');
+    if(!key)continue;
+    const prior=unique.get(key);
+    if(!prior||priority[row.source.kind]>priority[prior.source.kind])unique.set(key,row);
+  }
+  return [...unique.values()];
+}
+
 function subclassConfiguration(profile,definitions,item,payload={},characterId=""){
   const socketCoverage=socketResolution(profile,definitions,item,payload);
   const plugs=socketCoverage.plugs;
-  const superItem=plugs.find(isSuperPlug)||null;
+  const typed=(row,type)=>row?{...row,componentType:type}:null;
+  const superItem=typed(plugs.find(isSuperPlug),"super");
   console.log("[TRACE super] subclassItem:", item?.itemHash, "instance:", item?.itemInstanceId, "→ super:", superItem?.hash, superItem?.name, "| cat:", superItem?.definition?.plug?.plugCategoryIdentifier);
-  const classAbility=plugs.find(isClassAbilityPlug)||null;
-  const movement=plugs.find(isMovementPlug)||null;
-  const melee=plugs.find(isMeleePlug)||null;
-  const grenade=plugs.find(isGrenadePlug)||null;
+  const classAbility=typed(plugs.find(isClassAbilityPlug),"classAbility");
+  const movement=typed(plugs.find(isMovementPlug),"movementAbility");
+  const melee=typed(plugs.find(isMeleePlug),"melee");
+  const grenade=typed(plugs.find(isGrenadePlug),"grenade");
 
   const candidates=subclassCandidatePlugs(profile,definitions,item,characterId);
-  const optionsFor=(equipped,predicate)=>uniqueItems([equipped,...candidates.filter(predicate)]);
+  const optionsFor=(equipped,predicate,type)=>uniqueItems([equipped,...candidates.filter(predicate)]).map(row=>typed(row,type));
 
   const superOptions=[
     superItem,
@@ -425,18 +493,18 @@ function subclassConfiguration(profile,definitions,item,payload={},characterId="
     .map(row=>{
       const damageHash=Number(row?.damageTypeHash??row?.definition?.defaultDamageTypeHash??row?.definition?.damageTypeHashes?.[0]);
       const elementDefinition=Number.isFinite(damageHash)?payload?.damageDefinitions?.[String(damageHash)]||null:null;
-      return {...row,damageTypeHash:Number.isFinite(damageHash)?damageHash:null,elementDefinition};
+      return {...row,componentType:"super",damageTypeHash:Number.isFinite(damageHash)?damageHash:null,elementDefinition};
     });
   const transcendenceOptions=plugs.filter(isTranscendencePlug);
   const transcendenceSlots=transcendenceOptions.slice(0,2).map(row=>({socketIndex:row.socketIndex,equipped:row,options:[row]}));
   const abilityOptionsBySocket={
-    classAbility:optionsFor(classAbility,isClassAbilityPlug),
-    movement:optionsFor(movement,isMovementPlug),
-    melee:optionsFor(melee,isMeleePlug),
-    grenade:optionsFor(grenade,isGrenadePlug)
+    classAbility:optionsFor(classAbility,isClassAbilityPlug,"classAbility"),
+    movement:optionsFor(movement,isMovementPlug,"movementAbility"),
+    melee:optionsFor(melee,isMeleePlug,"melee"),
+    grenade:optionsFor(grenade,isGrenadePlug,"grenade")
   };
-  const availableAspects=optionsFor(null,isAspectPlug);
-  const availableFragments=optionsFor(null,isFragmentPlug);
+  const availableAspects=optionsFor(null,isAspectPlug,"aspect");
+  const availableFragments=optionsFor(null,isFragmentPlug,"fragment");
 
   return {
     super:superItem||null,
@@ -450,8 +518,8 @@ function subclassConfiguration(profile,definitions,item,payload={},characterId="
     abilities:[classAbility,movement,melee,grenade].filter(Boolean),
     abilityOptionsBySocket,
     availableAbilities:uniqueItems(Object.values(abilityOptionsBySocket).flat()),
-    aspects:plugs.filter(isAspectPlug),
-    fragments:plugs.filter(isFragmentPlug),
+    aspects:plugs.filter(isAspectPlug).map(row=>typed(row,"aspect")),
+    fragments:plugs.filter(isFragmentPlug).map(row=>typed(row,"fragment")),
     availableAspects,
     aspectOptions:availableAspects,
     availableFragments,
@@ -467,6 +535,8 @@ function currentArtifact(payload,characterId){
 }
 
 function availableArtifactItems(payload,current){
+  const artifactCatalog=Array.isArray(payload?.artifactCatalog)?payload.artifactCatalog:[];
+  if(artifactCatalog.length)return uniqueItems(artifactCatalog);
   const profile=payload?.profile||{};
   const definitions=payload?.definitions||{};
   const inventoryItems=[
@@ -479,6 +549,27 @@ function availableArtifactItems(payload,current){
     return type.includes("artifact");
   });
   return uniqueItems([current,...inventoryArtifacts]);
+}
+
+function equippedArtifactFromCatalog(profile,equipment,availableArtifacts,seasonNumber){
+  const catalog=(availableArtifacts||[]).filter(item=>item?.availabilityModel==="artifact-2-socket-buckets");
+  if(!catalog.length)return null;
+  const byHash=new Map(catalog.map(item=>[Number(item.hash),item]));
+  const equipped=equipment.find(item=>byHash.has(Number(item?.itemHash)));
+  if(!equipped)return null;
+  const source=byHash.get(Number(equipped.itemHash));
+  const sockets=profile?.itemComponents?.sockets?.data?.[equipped.itemInstanceId]?.sockets||[];
+  const selected=new Set(sockets.map(socket=>Number(socket?.plugHash)).filter(Number.isFinite));
+  const perks=(source.perks||[]).map(perk=>({...perk,isActive:selected.has(Number(perk.hash))}));
+  const activePerks=perks.filter(perk=>perk.isActive);
+  const artifactConfiguration=createArtifactConfiguration({
+    artifactHash:source.hash,
+    seasonNumber,
+    selectedPerkHashes:activePerks.map(perk=>perk.hash),
+    source:'bungie-artifact-2-item-sockets',
+    provenance:{provider:'bungie',endpoint:'Destiny2.GetProfile',component:305,componentName:'ItemSockets',itemInstanceId:equipped.itemInstanceId||null,path:`itemComponents.sockets.data.${equipped.itemInstanceId}.sockets[].plugHash`,state:activePerks.length?'resolved':'none-active'}
+  });
+  return {...source,itemInstanceId:equipped.itemInstanceId||null,state:activePerks.length?'resolved':'none-active',perks,activePerks,artifactConfiguration,stateMessage:activePerks.length?`${activePerks.length} Artifact 2.0 perk(s) resolved from the equipped item sockets.`:'Artifact 2.0 item resolved with no active socket selections.'};
 }
 
 function identityCosmetics(profile,definitions,equipment,character,payload={}){
@@ -498,7 +589,9 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   if(!character?.characterId)throw new Error("No Destiny character was returned for this membership.");
   const equipment=profile?.characterEquipment?.data?.[character.characterId]?.items||[];
   const byBucket=hash=>equipment.find(item=>definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===hash)||null;
-  const weapons=WEAPON_ORDER.map(hash=>byBucket(hash)).filter(Boolean).map(item=>normaliseItem(profile,definitions,item,payload));
+  const weapons=WEAPON_ORDER.map(hash=>byBucket(hash)).filter(Boolean).map(item=>({...normaliseItem(profile,definitions,item,payload),source:{kind:'equipped',characterId:String(character.characterId),label:'Equipped'}}));
+  const weaponBuckets=new Set(WEAPON_ORDER);
+  const ownedWeapons=ownedItemRows(profile).filter(row=>weaponBuckets.has(Number(definition(definitions,row.item?.itemHash)?.inventory?.bucketTypeHash))).map(row=>({...normaliseItem(profile,definitions,row.item,payload),source:row.source})).sort((left,right)=>WEAPON_ORDER.indexOf(Number(left.bucketHash))-WEAPON_ORDER.indexOf(Number(right.bucketHash))||Number(right.source?.kind==='equipped')-Number(left.source?.kind==='equipped')||String(left.name).localeCompare(String(right.name)));
   const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
@@ -508,8 +601,10 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const verifiedSubclassCatalog=mergeSubclassCatalog(subclassCatalog,characterClass);
   const subclassBuild=verifiedSubclassCatalog.find(item=>Number(item.hash)===Number(subclassItem?.itemHash))?.subclassBuild||{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character,payload);
-  const artifact=currentArtifact(payload,character.characterId);
-  const availableArtifacts=availableArtifactItems(payload,artifact);
+  const legacyArtifact=currentArtifact(payload,character.characterId);
+  const availableArtifacts=availableArtifactItems(payload,legacyArtifact);
+  const currentSeasonNumber=Number.isInteger(Number(payload?.currentSeasonNumber??payload?.currentSeason?.seasonNumber))?Number(payload.currentSeasonNumber??payload.currentSeason.seasonNumber):null;
+  const artifact=equippedArtifactFromCatalog(profile,equipment,availableArtifacts,currentSeasonNumber)||legacyArtifact;
   const characterLoadouts=profile?.characterLoadouts?.data?.[character.characterId];
   const loadoutsAvailable=Array.isArray(characterLoadouts?.loadouts);
   const rank=guardianRank(profile);
@@ -550,6 +645,8 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     availableArtifacts,
     artifactOptions:availableArtifacts,
     artifactConfiguration:artifact?.artifactConfiguration||null,
+    currentSeasonNumber,
+    currentSeason:cloneBuildValue(payload?.currentSeason||null),
     hashCoverage,
     power:character.light??null,
     guardianRank:rank,
@@ -557,6 +654,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     title:title.name,
     stats:characterStats(payload,character),
     weapons,
+    ownedWeapons,
     armour,
     ...cosmetics,
     ornaments:armour.map(item=>item?.ornament).filter(Boolean),
@@ -619,6 +717,8 @@ function mergeLoadoutContext(payload){
   payload.gearAssets={...(live.gearAssets||{}),...(payload.gearAssets||{})};
   payload.artifactDefinition=payload.artifactDefinition||live.artifactDefinition||null;
   payload.artifactCoverage=payload.artifactCoverage||live.artifactCoverage||null;
+  payload.currentSeasonNumber=Number.isInteger(Number(payload.currentSeasonNumber))?Number(payload.currentSeasonNumber):live.currentSeasonNumber??null;
+  payload.currentSeason=payload.currentSeason||live.currentSeason||null;
   payload.definitionCoverage=payload.definitionCoverage||live.definitionCoverage||null;
   payload.membership=payload.membership||live.membership;
   return payload;
@@ -691,7 +791,8 @@ async function activateLiveProfile(payload,session,{fromCache=false}={}){
   liveProfilePayload=payload;
   liveProfileSession=session;
   const rememberedLoadout=rememberedLoadoutSelection(payload.profile);
-  const selectedCharacterId=rememberedCharacterId(payload.profile)||rememberedLoadout?.characterId||String(activeCharacter(payload.profile)?.characterId||"");
+  const explicitCharacter=payload.profile?.characters?.data?.[explicitlySelectedCharacterId]||null;
+  const selectedCharacterId=String(explicitCharacter?.characterId||activeCharacter(payload.profile)?.characterId||"");
   if(selectedCharacterId)rememberCharacterId(selectedCharacterId);
   publishCharacterRoster(payload,selectedCharacterId);
 
@@ -732,7 +833,10 @@ async function loadLiveProfile(session,{background=false}={}){
     setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
     document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
   }
-  const payload=await hydrateManifestPayload(await fetchJsonWithTimeout(await manifestRequestUrl("/bungie/profile")));
+  const profileUrl=await manifestRequestUrl('/bungie/profile');
+  const [profilePayload,currentSeason]=await Promise.all([fetchJsonWithTimeout(profileUrl),fetchCurrentSeasonMetadata()]);
+  if(currentSeason){profilePayload.currentSeason=currentSeason.season;profilePayload.currentSeasonNumber=currentSeason.season.seasonNumber;}
+  const payload=await hydrateManifestPayload(profilePayload);
   await cacheBungieProfile(session,payload);
   return activateLiveProfile(payload,session);
 }
@@ -762,6 +866,7 @@ function selectLiveCharacter(characterId,expectedClass=""){
   const detail=normaliseLiveProfile(liveProfilePayload,liveProfileSession,characterId);
   const expected=String(expectedClass||"").trim().toLowerCase();
   if(expected&&detail.characterClass!==expected)throw new Error(`Selected ${expected} card resolved ${detail.characterClass} data for character ${characterId}.`);
+  explicitlySelectedCharacterId=detail.characterId;
   forgetLoadoutSelection();
   rememberCharacterId(detail.characterId);
   document.documentElement.dataset.guardianSource="bungie-live";

@@ -1,8 +1,7 @@
-import {AUTH_ORIGIN} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
+import {AUTH_ORIGIN} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
 
 const REQUEST_TIMEOUT_MS=30_000;
-const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
 const BUNGIE_ORIGIN='https://www.bungie.net';
 const SUBCLASS_BUCKET_HASH=3284755031;
 const CLASS_NAMES=['titan','hunter','warlock'];
@@ -90,15 +89,6 @@ const profileCharacters=payload=>{
   const data=payload?.profile?.characters?.data??payload?.Response?.characters?.data;
   return data&&typeof data==='object'?Object.values(data):[];
 };
-
-function rememberedCharacterId(characters){
-  try{
-    const characterId=String(sessionStorage.getItem(SELECTED_CHARACTER_KEY)||'');
-    return characters.some(character=>String(character?.characterId||'')===characterId)?characterId:'';
-  }catch{
-    return '';
-  }
-}
 
 function mostRecentCharacterId(characters){
   return String([...characters]
@@ -240,7 +230,7 @@ async function normaliseMissionProfile(payload,session={},preferredCharacterId='
   const characters=await Promise.all(rawCharacters.map(character=>normaliseCharacter(payload,character)));
   const classOrder={hunter:0,warlock:1,titan:2};
   characters.sort((left,right)=>(classOrder[left.characterClass]??9)-(classOrder[right.characterClass]??9));
-  const selectedCharacterId=String(preferredCharacterId||rememberedCharacterId(rawCharacters)||mostRecentCharacterId(rawCharacters));
+  const selectedCharacterId=String(preferredCharacterId||mostRecentCharacterId(rawCharacters));
   const selected=characters.find(character=>character.characterId===selectedCharacterId)||characters[0]||null;
   const subclass=selected?await equippedSubclass(payload,selected.characterId):null;
   const minutes=characters.map(character=>character.minutesPlayedTotal).filter(Number.isFinite);

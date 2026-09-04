@@ -1,5 +1,5 @@
 import { analyzeGuardianBuild } from "./guardian-paradox-engine.mjs";
-import { adviseLiveWeaponRolls } from "./guardian-weapon-roll-advisor.mjs";
+import { adviseLiveWeaponRolls } from "./guardian-weapon-roll-advisor.mjs?v=20260904-weapon-model-2";
 
 const clone=v=>v==null?v:structuredClone(v);
 
@@ -39,7 +39,9 @@ function adaptLiveGuardian(detail){
   build.source="paradox-beta-fixture";
   build.fixtureId=`LIVE-${String(detail?.characterId||"GUARDIAN")}${Number.isInteger(Number(detail?.selectedLoadoutIndex))?`-L${Number(detail.selectedLoadoutIndex)+1}`:""}`;
   build.artifact=detail?.artifact?{...clone(detail.artifact),perks:clone(activeArtifact)}:null;
-  build.aspects=[...(clone(detail?.aspects)||[]),...armourEvidence];
+  build.aspects=clone(detail?.aspects)||[];
+  build.fragments=clone(detail?.fragments)||[];
+  build.armourEffects=armourEvidence;
   build.weapons=(clone(detail?.weapons)||[]).map(weapon=>{
     const selected=weapon?.weaponSemantics?.selectedPerks||weapon?.selectedPerks||[];
     const catalyst=weapon?.catalyst;
@@ -66,13 +68,14 @@ function adaptLiveGuardian(detail){
 }
 
 function analyzeLiveGuardian(detail){
-  if(!detail||detail.source!=="bungie-live")return null;
+  const verifiedSources=new Set(["bungie-live","bungie-loadout","current-guardian"]);
+  if(!detail||!verifiedSources.has(String(detail.source||"")))return null;
   const adapted=adaptLiveGuardian(detail);
   const analysis=analyzeGuardianBuild(adapted);
   return {
     ...analysis,
     source:"paradox-live-deterministic-engine",
-    evidenceSource:"bungie-live-resolved-only",
+    evidenceSource:`${String(detail.source)}-resolved-only`,
     characterId:detail.characterId||null,
     selectedLoadoutIndex:Number.isInteger(Number(detail.selectedLoadoutIndex))?Number(detail.selectedLoadoutIndex):null,
     coverage:clone(detail.hashCoverage||{}),

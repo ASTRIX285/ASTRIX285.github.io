@@ -1,6 +1,6 @@
 /* astrix-location-atmosphere.css
    Journey location selector + reactive art-backdrop atmosphere.
-   Styled to the apx- destination system (Orbitron labels, crimson/gold tokens).
+   Styled to the apx- destination system (bahnschrift-semicondensed labels, crimson/gold tokens).
    Behaviour: selected location's art becomes the page background (slightly blurred,
    faded in); selector blocks are squared and one neutral colour, only the SELECTED
    block takes its location's atmospheric colour; hover shows a white pulsing stroke.
@@ -55,8 +55,8 @@ body.apx-destination-page{background:transparent}
 .apx-loc-select{padding:6px}
 .apx-loc-select-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:8px 10px 12px}
-.apx-loc-select-head b{color:var(--apx-gold);font:700 9px/1 Orbitron,sans-serif;letter-spacing:.18em;text-transform:uppercase}
-.apx-loc-select-head span{color:var(--apx-muted);font:700 8px/1 Orbitron,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.apx-loc-select-head b{color:var(--apx-gold);font:700 9px/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.18em;text-transform:uppercase}
+.apx-loc-select-head span{color:var(--apx-muted);font:700 8px/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.1em;text-transform:uppercase}
 .apx-loc-list{display:flex;flex-direction:column;max-height:440px;overflow-y:auto;min-width:0}
 .apx-loc-list::-webkit-scrollbar{width:6px}
 .apx-loc-list::-webkit-scrollbar-thumb{background:rgba(201,168,76,.24);border-radius:3px}
@@ -65,11 +65,11 @@ body.apx-destination-page{background:transparent}
   width:100%;min-width:0;max-width:100%;overflow:hidden;text-align:left;cursor:pointer;
   border:0;border-left:3px solid transparent;border-radius:2px;      /* squared, not rounded */
   margin:4px 0;padding:11px 14px;background:rgba(255,255,255,.028);
-  color:var(--apx-muted);font-family:Rajdhani,Questrial,sans-serif;
+  color:var(--apx-muted);font-family:bahnschrift,Questrial,sans-serif;
   transition:background .3s ease,color .2s,box-shadow .2s}
 .apx-loc-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font-size:14px;font-weight:600;letter-spacing:.02em}
-.apx-loc-meta{flex:0 0 auto;color:#77716a;font:700 9px/1 Orbitron,sans-serif;letter-spacing:.08em;white-space:nowrap}
+.apx-loc-meta{flex:0 0 auto;color:#77716a;font:700 9px/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;white-space:nowrap}
 .apx-loc:hover{color:var(--apx-text)}
 .apx-loc:hover{animation:apx-loc-pulse 1.35s ease-in-out infinite}   /* white pulsing outer stroke */
 @keyframes apx-loc-pulse{
@@ -82,13 +82,13 @@ body.apx-destination-page{background:transparent}
 
 /* ---- selected-destination checklist ("what's left to do") ---- */
 .apx-loc-band{margin:0 0 12px;color:rgba(244,239,228,.34);text-align:center;
-  font:700 12px/1 Orbitron,sans-serif;letter-spacing:.5em;text-transform:uppercase;transition:color .5s}
+  font:700 12px/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.5em;text-transform:uppercase;transition:color .5s}
 .apx-loc-desc{margin:0 0 12px;color:var(--apx-muted);font-size:14px;line-height:1.5;font-style:italic}
 .apx-loc-prog{display:flex;align-items:center;gap:12px;margin:0 0 4px}
 .apx-loc-prog-bar{flex:1;min-width:0;height:3px;background:rgba(255,255,255,.09);border-radius:2px;overflow:hidden}
 .apx-loc-prog-bar>i{display:block;height:100%;width:0;background:var(--apx-gold);transition:width .5s}
 .apx-loc-prog span{flex:0 0 auto;color:var(--apx-muted);font-size:13px}
-.apx-loc-group{margin:16px 0 6px;color:#77716a;font:700 9px/1 Orbitron,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.apx-loc-group{margin:16px 0 6px;color:#77716a;font:700 9px/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.12em;text-transform:uppercase}
 .apx-loc-item{display:flex;align-items:center;gap:11px;min-width:0;padding:6px 0;font-size:14px;
   border-bottom:1px solid rgba(255,255,255,.05)}
 .apx-loc-item:last-child{border-bottom:0}

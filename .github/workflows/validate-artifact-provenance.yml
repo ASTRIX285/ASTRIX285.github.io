@@ -31,6 +31,7 @@ jobs:
           node --check astrix-app/pages/guardian-workspace-v2/guardian-artifact.mjs
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-forge-intelligence.mjs
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs
       - name: Test Artifact provenance and immutable build state
         run: node astrix-app/tools/test-artifact-provenance.mjs

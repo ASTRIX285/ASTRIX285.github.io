@@ -1,11 +1,261 @@
-/* ASTRIX PARADOX desktop density
-   Matches the approved 75% showcase view at normal browser zoom while fluid
-   grids continue to use the full monitor. Mobile and tablet remain at 100%. */
-:root{--astrix-desktop-density:.75}
+/* ASTRIX PARADOX interface contract
+   One source of truth for workspace proportions and readable type roles across
+   Journey, Character, Forge Loader, Build Forge, Mission Reports, Vault and
+   Loadout. Page-owned data, interactions and icon geometry remain untouched. */
+:root{
+  --apx-workspace-left:minmax(360px,20%);
+  --apx-workspace-centre:minmax(720px,1fr);
+  --apx-workspace-right:minmax(420px,24%);
+  --apx-workspace-columns:var(--apx-workspace-left) var(--apx-workspace-centre) var(--apx-workspace-right);
+  --apx-workspace-compact-columns:392px minmax(0,1fr);
+  --apx-workspace-gap:.625rem;
+  --apx-page-gutter:.625rem;
+  --apx-font-copy:"bahnschrift",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --apx-font-display:"bahnschrift-semicondensed",var(--apx-font-copy);
+  --apx-text-primary:#f4efe4;
+  --apx-text-readable:#c8c2b8;
+  --apx-text-muted:#aaa294;
+  --apx-type-page-title:1.25rem;
+  --apx-type-page-subtitle:.75rem;
+  --apx-type-section-title:1rem;
+  --apx-type-subsection-title:.875rem;
+  --apx-type-body:.875rem;
+  --apx-type-control:.8125rem;
+  --apx-type-label:.75rem;
+  --apx-type-meta:.75rem;
+}
 
 html,body{max-width:100%;overflow-x:hidden}
+html{font-size:16px}
+
+body:has(header>[data-astrix-hero-cards]){
+  font-family:var(--apx-font-copy);
+  font-size:var(--apx-type-body);
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Shared heading hierarchy. The approved command-header title and subtitle
+   remain compact; section titles below it use the same scale on every tool. */
+body:has(header>[data-astrix-hero-cards]) :is(
+  .apx-destination-header-copy strong,
+  .ws-label .title
+){font-family:var(--apx-font-display)!important;font-size:var(--apx-type-page-title)!important;line-height:1.1!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .apx-destination-header-copy small,
+  .ws-label .subtitle
+){font-family:var(--apx-font-display)!important;font-size:var(--apx-type-page-subtitle)!important;line-height:1.3!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .apx-section-heading h2,
+  .forge-panel-heading h2,
+  .mission-panel-heading h2,
+  .eq-head h3,
+  .section-title h2,
+  .section-title h3,
+  .rail-heading h3,
+  .review-section-heading h3
+){font-family:var(--apx-font-display)!important;font-size:var(--apx-type-section-title)!important;line-height:1.25!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .forge-exotic-slot>h3,
+  .forge-set-head>span strong,
+  .mission-timeline article h3,
+  .mission-recent-progression h3,
+  .mission-build-card h3,
+  .vault-optimiser-heading h3,
+  .vault-selection-head h3
+){font-size:var(--apx-type-subsection-title)!important;line-height:1.3!important}
+
+/* Copy stays in bahnschrift at a stable reading size; display text stays in bahnschrift-semicondensed. */
+body:has(header>[data-astrix-hero-cards]) :is(
+  .apx-section p,
+  .forge-guidance,
+  .section-guidance,
+  .intel-card p,
+  .intel-card li,
+  .forge-analysis li,
+  .forge-analysis .improve p,
+  .mission-inline-empty,
+  .mission-data-empty,
+  .mission-chart-empty,
+  .mission-build-card>p,
+  .vault-context,
+  .vault-optimiser-heading p,
+  .working-selection-note
+){color:var(--apx-text-readable)!important;font-family:var(--apx-font-copy)!important;font-size:var(--apx-type-body)!important;line-height:1.5!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .apx-empty-state,
+  .forge-empty,
+  .forge-runtime-status,
+  .range-capture-status,
+  .vault-runtime-status
+){font-family:var(--apx-font-copy)!important;font-size:var(--apx-type-body)!important;line-height:1.5!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .apx-eyebrow,
+  .apx-status-chip,
+  .forge-panel-heading>span,
+  .forge-set-count,
+  .mission-kicker,
+  .mission-eyebrow,
+  .mission-verified-badge,
+  .mission-panel-heading>span,
+  .mission-section-nav a,
+  .mission-tabs button,
+  .mission-feed-state,
+  .mission-category-chips button,
+  .mission-mastery-head,
+  .mission-text-action,
+  .mission-evidence-tag,
+  .mission-analyse-link,
+  .mission-history-action,
+  .mission-build-card>header,
+  .mission-build-link,
+  .vault-capacity span,
+  .vault-optimiser-class,
+  .vault-filters label,
+  .vault-selection-head button,
+  .vault-load-more,
+  .vault-connect,
+  .manual-label,
+  .panel-head small,
+  .rail-section h3,
+  .section-title span,
+  .intel-card small,
+  .review-section-heading span,
+  .grp .lbl,
+  .subclass-rail__label,
+  .super-feature__label,
+  .gear-subhead,
+  .gear-slot-label,
+  .mission-time-filter legend,
+  .mission-confidence-donut small,
+  .forge-analysis .eyebrow,
+  .forge-analysis .t,
+  .forge-analysis .label,
+  .forge-set-trait-copy em,
+  .review-socket-group>b,
+  .review-intelligence-evidence>b
+){font-family:var(--apx-font-display)!important;font-size:var(--apx-type-label)!important;line-height:1.25!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .mission-timeline article p,
+  .mission-timeline article time,
+  .mission-metric-card small,
+  .mission-metric-card div>span,
+  .mission-mastery-summary span,
+  .mission-mastery-summary strong,
+  .mission-mastery-summary small,
+  .mission-mastery-detail,
+  .mission-evidence-name strong,
+  .mission-evidence-name small,
+  .mission-evidence-cell,
+  .mission-chart-dates,
+  .mission-chart-legend,
+  .mission-confidence-rows dt,
+  .mission-confidence-rows dd,
+  .mission-build-metrics span,
+  .mission-footer,
+  .vault-capacity small,
+  .vault-candidate-rank small,
+  .vault-candidate-item b,
+  .vault-candidate-item small,
+  .vault-candidate-stats span,
+  .vault-item-copy b,
+  .vault-item-copy small,
+  .vault-item-statline span,
+  .vault-item-statline strong,
+  .recommended-build-header p,
+  .recommended-build-safety span,
+  .review-subclass-identity span,
+  .review-artifact-identity span,
+  .review-icon small,
+  .review-intelligence-evidence li,
+  .review-weapon small,
+  .recommended-build-actions small
+){font-family:var(--apx-font-copy)!important;font-size:var(--apx-type-meta)!important;line-height:1.35!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .mission-mastery-head,
+  .mission-timeline article p,
+  .mission-timeline article time,
+  .mission-metric-card small,
+  .mission-metric-card div>span,
+  .mission-mastery-summary span,
+  .mission-mastery-summary small,
+  .mission-mastery-detail,
+  .mission-evidence-name small,
+  .mission-evidence-cell,
+  .mission-chart-dates,
+  .mission-chart-legend,
+  .mission-confidence-rows dt,
+  .mission-confidence-rows dd,
+  .mission-build-metrics span,
+  .mission-footer,
+  .vault-capacity small,
+  .vault-candidate-rank small,
+  .vault-candidate-item small,
+  .vault-candidate-stats span,
+  .vault-item-copy small,
+  .vault-item-statline span,
+  .recommended-build-header p,
+  .recommended-build-safety span,
+  .review-subclass-identity span,
+  .review-artifact-identity span,
+  .review-icon small,
+  .review-intelligence-evidence li,
+  .review-weapon small,
+  .recommended-build-actions small
+){color:var(--apx-text-muted)!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .mission-mastery-summary strong,
+  .mission-evidence-name strong,
+  .vault-candidate-item b,
+  .vault-item-copy b,
+  .vault-item-statline strong
+){color:var(--apx-text-primary)!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .vault-item-power,
+  .vault-item-total,
+  .vault-item-source
+){font-size:var(--apx-type-label)!important;line-height:1!important}
+
+body:has(header>[data-astrix-hero-cards]) :is(
+  .forge-stat-targets button,
+  .forge-stat-targets select,
+  .forge-stat-actions button,
+  .forge-evaluate,
+  .forge-candidate-select,
+  .forge-candidate-evaluate,
+  .forge-show-more,
+  .mission-panel-heading select,
+  .vault-filters input,
+  .vault-filters select,
+  .vault-optimiser-actions button,
+  .vault-candidate-select,
+  .vault-evaluate,
+  .test-step,
+  .primary,
+  .generate-build-btn
+){font-size:var(--apx-type-control)!important;line-height:1.2!important}
+
+/* Single-column destination pages use the same edge spacing as workspaces. */
+body.apx-destination-page .apx-page-shell{
+  width:100%;
+  max-width:none;
+  padding-inline:var(--apx-page-gutter);
+}
 
 @media (min-width:1500px){
-  body{zoom:var(--astrix-desktop-density)}
   body.apx-destination-page .apx-page-shell{width:100%;max-width:none}
+}
+
+@media (max-width:720px){
+  :root{--apx-page-gutter:.5rem;--apx-workspace-gap:.5rem}
 }

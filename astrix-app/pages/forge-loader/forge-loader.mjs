@@ -1,0 +1,504 @@
+import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260904-forge-artifact-index-1';
+import {cacheBungieProfile,cacheForgeLoaderTransfer,markGuardianFastReturn,readCachedBungieProfile,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
+import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260903-loadout-intelligence-1';
+import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchTopArmourBuilds} from '../vault/vault-armour-matcher.mjs?v=20260904-top-50-scan-1';
+import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
+import {compatibleWithClass,createOpenProtocolTieBreaker,exoticCatalogueGroups,naturalSetProtocols,rankOpenProtocolCandidates,setBonusOptions,toggleSetSelection,unownedSetTargets} from './forge-loader-model.mjs?v=20260904-top-50-scan-1';
+import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-memory-safe-transfer-1';
+
+const CLASS_NAMES=['titan','hunter','warlock'];
+const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
+const CANDIDATE_BATCH_SIZE=50;
+const FORGE_ARMOUR_INDEX_URL=new URL('/astrix-app/data/forge-armour-index.json',location.origin).toString();
+const byId=id=>document.getElementById(id);
+const text=value=>String(value??'').trim();
+const esc=value=>String(value??'').replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+const params=new URLSearchParams(location.search);
+
+let session=null;
+let payload=null;
+let catalogue={armour:[],postmasterByCharacter:{}};
+let activeCharacterId=text(params.get('characterId'));
+let activeCharacterClass='';
+let selectedExoticKey='';
+let setSelections=[];
+let matchedBuilds=[];
+let selectedCandidateIndex=-1;
+let expandedCandidateIndex=-1;
+let visibleCandidateCount=0;
+let targetMaximums=Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,0]));
+let activeSetUpgradeTarget=null;
+let upgradeRenderSequence=0;
+const selectedSlots=new Map();
+const setUpgradeTargetCache=new Map();
+
+function loaderProgress(percent,label){globalThis.AstrixLoader?.set?.(percent);globalThis.AstrixLoader?.status?.(label);}
+function characters(){return Object.values(payload?.profile?.characters?.data||{});}
+function selectedCharacter(){return characters().find(character=>text(character.characterId)===activeCharacterId)||null;}
+function mostRecentCharacter(){return characters().sort((left,right)=>text(right?.dateLastPlayed).localeCompare(text(left?.dateLastPlayed)))[0]||null;}
+function characterClass(character){return CLASS_NAMES[Number(character?.classType)]||'';}
+function classLabel(value=activeCharacterClass){return value?value[0].toUpperCase()+value.slice(1):'Guardian';}
+function rememberActiveCharacter(){try{sessionStorage.setItem(SELECTED_CHARACTER_KEY,activeCharacterId);}catch{}}
+
+function resolveActiveCharacter(requestedId=''){
+  let stored='';try{stored=text(sessionStorage.getItem(SELECTED_CHARACTER_KEY));}catch{}
+  const requested=text(requestedId||activeCharacterId||stored);
+  const character=characters().find(row=>text(row.characterId)===requested)||mostRecentCharacter();
+  activeCharacterId=text(character?.characterId);
+  activeCharacterClass=characterClass(character);
+  if(activeCharacterId)rememberActiveCharacter();
+  return character;
+}
+
+function membershipBinding(){
+  const membership=session?.activeDestinyMembership||{};
+  return {characterId:activeCharacterId,membershipId:text(membership.membershipId||session?.primaryMembershipId||session?.bungieMembershipId),membershipType:text(membership.membershipType)};
+}
+
+async function fetchProfile({clientManifest=false}={}){
+  const url=new URL('/bungie/profile',AUTH_ORIGIN);url.searchParams.set('scope','forge');
+  if(clientManifest)url.searchParams.set('definitions','client-manifest');
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000);
+  try{
+    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(result?.error||`Bungie inventory request failed (${response.status}).`);
+    return result;
+  }catch(error){if(error?.name==='AbortError')throw new Error('Bungie inventory request timed out. Refresh or reconnect Bungie.');throw error;}
+  finally{clearTimeout(timer);}
+}
+
+async function loadVerifiedPayload(){
+  loaderProgress(18,'Checking verified Guardian armour…');
+  const indexPromise=guardianManifest.loadForgeArmourIndex(FORGE_ARMOUR_INDEX_URL).catch(error=>{console.warn('[ASTRIX Forge Loader] Compact manifest unavailable',error);return null;});
+  const cached=await readCachedBungieProfile(session);
+  const shared=globalThis.ASTRIX_HERO_PROFILE_PAYLOAD||await globalThis.ASTRIX_HERO_PROFILE_PROMISE;
+  let next=shared?.profile?shared:cached?.profile?cached:null;
+  let forgeIndex=null;
+  if(next){forgeIndex=await indexPromise;if(!forgeIndex)next=await fetchProfile();}
+  else{
+    const [raw,index]=await Promise.all([fetchProfile({clientManifest:true}),indexPromise]);
+    forgeIndex=index;
+    next=forgeIndex?raw:await fetchProfile();
+  }
+  if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
+  await cacheBungieProfile(session,next);
+  if(forgeIndex)guardianManifest.applyForgeArmourIndex(next,forgeIndex);
+  loaderProgress(46,forgeIndex?'Joining private inventory to the pre-resolved armour, mod and Artifact index…':'Resolving owned Bungie armour and Artifact definitions…');
+  await guardianManifest.hydratePayload(next,{waitForManifest:false,armourOnly:Boolean(forgeIndex),includeReusable:true,allowNetwork:!forgeIndex});
+  return next;
+}
+
+function armourItems(){return catalogue.armour.filter(item=>compatibleWithClass(item,activeCharacterClass));}
+function inventoryDefinitions(){return guardianManifest.tables.get('DestinyInventoryItemDefinition')||payload?.definitions||{};}
+function equipableSetDefinitions(){return guardianManifest.tables.get('DestinyEquipableItemSetDefinition')||payload?.equipableItemSets||{};}
+function sandboxPerkDefinitions(){return guardianManifest.tables.get('DestinySandboxPerkDefinition')||payload?.sandboxPerks||{};}
+function exoticGroups(){return exoticCatalogueGroups(catalogue.armour,inventoryDefinitions(),activeCharacterClass,ARMOUR_BUCKETS);}
+function selectedExotic(){return exoticGroups().find(group=>group.owned&&group.key===selectedExoticKey)||null;}
+function targetValues(){return Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Number(document.querySelector(`[data-target-stat="${key}"] input`)?.value||0)]));}
+function priorityValues(){return Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Number(document.querySelector(`[data-stat-priority="${key}"]`)?.value||0)]));}
+function solverOptions(){const exotic=selectedExotic();return exotic?{fixedExoticHashes:exotic.hashes,fixedExoticSlot:exotic.slotIndex,setSelections,statPriorities:priorityValues(),autoMaximum:true}:{};}
+function activeTargetCount(){const targets=targetValues();return ARMOUR_STAT_KEYS.filter(key=>targets[key]>0).length;}
+function activePriorityCount(){const priorities=priorityValues();return ARMOUR_STAT_KEYS.filter(key=>priorities[key]>0).length;}
+
+function renderHero(){
+  const character=selectedCharacter(),host=byId('forgeHeroCard'),label=classLabel();
+  byId('forgeGuardianTitle').textContent=character?`${label} selected`:'Guardian';
+  byId('forgeGuardianClass').textContent=character?`${label.toUpperCase()} · POWER ${Number(character.light||0)||'—'}`:'UNAVAILABLE';
+  byId('forgeHeaderState').textContent=character?`${label.toUpperCase()} FORGE`:'BUNGIE ARMOUR';
+  if(!host)return;
+  const emblem=character?.emblemBackgroundPath||character?.emblemPath||'';
+  host.style.backgroundImage=emblem?`url("${esc(new URL(emblem,'https://www.bungie.net').toString())}")`:'';
+  host.innerHTML=character?`<strong>${esc(label.toUpperCase())}</strong><span>Active Guardian · exact owned armour only</span><b>✦ ${esc(character.light??'—')}</b>`:'<span>Verified Guardian unavailable.</span>';
+}
+
+function renderExotics(){
+  const groups=exoticGroups(),host=byId('forgeExoticSlots');
+  const ownedCount=groups.filter(group=>group.owned).length;
+  byId('forgeExoticStatus').textContent=`${ownedCount} OWNED · ${groups.length} TOTAL`;
+  host.innerHTML=ARMOUR_BUCKETS.map((slot,index)=>{
+    const rows=groups.filter(group=>group.slotIndex===index);
+    return `<section class="forge-exotic-slot"><h3>${esc(slot.label.toUpperCase())}</h3><div class="forge-exotic-grid">${rows.length?rows.map(group=>{
+      const selected=group.owned&&group.key===selectedExoticKey;
+      const ownership=group.owned?`${group.instances.length} owned ${group.instances.length===1?'copy':'copies'}`:'not owned';
+      return `<button type="button" class="forge-exotic${selected?' is-selected':''}${group.owned?'':' is-unowned'}" ${group.owned?`data-exotic-key="${esc(group.key)}"`:''} data-inspect-exotic-key="${esc(group.key)}" aria-pressed="${selected}" aria-disabled="${group.owned?'false':'true'}" aria-label="${group.owned?'Select':'Inspect'} ${esc(group.name)}, ${ownership}"><img src="${esc(group.icon)}" alt="" loading="lazy" decoding="async"></button>`;
+    }).join(''):'<div class="forge-empty">No verified Exotic definitions</div>'}</div></section>`;
+  }).join('');
+}
+
+function bonusReason(row,count,choice){
+  if(choice.checked)return `${count} PIECE SELECTED`;
+  if(!choice.effect)return `${count} PIECE PERK UNAVAILABLE`;
+  if(setSelections.some(selection=>selection.count===4))return 'FOUR-PIECE LOAD ACTIVE';
+  if(count===4&&setSelections.some(selection=>selection.count===2))return 'LOCKED BY TWO-PIECE LOAD';
+  if(count===2&&setSelections.filter(selection=>selection.count===2).length>=2)return 'TWO BONUS LIMIT REACHED';
+  if(choice.disabled)return `${row.usableSlots} COMPATIBLE SLOT${row.usableSlots===1?'':'S'}`;
+  return choice.effect.description||`${count}-piece verified set bonus`;
+}
+
+function renderSetBonuses(){
+  const exotic=selectedExotic(),host=byId('forgeSetList');
+  upgradeRenderSequence+=1;activeSetUpgradeTarget=null;
+  if(!exotic){byId('forgeSetStatus').textContent='SELECT EXOTIC';host.innerHTML='<div class="forge-empty">Select an Exotic to calculate compatible set bonuses.</div>';return;}
+  const options=setBonusOptions(armourItems(),exotic,setSelections);
+  const selectedLabel=setSelections.length?setSelections.map(row=>`${row.count}P`).join(' + '):'OPEN ARMOUR';
+  byId('forgeSetStatus').textContent=`${options.length} VERIFIED SET${options.length===1?'':'S'} · ${selectedLabel}`;
+  const open=`<button type="button" class="forge-open-protocol${setSelections.length?'':' is-active'}" data-open-set-protocol aria-pressed="${setSelections.length===0}"><span><b>OPEN ARMOUR · NO SET BONUS REQUIRED</b><small>Rank the top 50 exact owned combinations, then use verified Exotic-to-set perk evidence as a tie-break.</small></span><em>${setSelections.length?'SELECT':'ACTIVE'}</em></button><article class="forge-set-upgrade" id="forgeSetUpgrade" hidden></article>`;
+  const cards=options.length?options.map(row=>`<article class="forge-set"><div class="forge-set-head">${row.icon?`<img src="${esc(row.icon)}" alt="">`:'<span></span>'}<span><strong>${esc(row.name)}</strong><small>${esc(row.description||'Verified Bungie armour set')}</small></span><small class="forge-set-count">${row.usableSlots} USABLE SLOTS</small></div><div class="forge-set-choices">${[2,4].map(count=>{const choice=count===2?row.two:row.four,effect=choice.effect;return `<label class="forge-set-choice${choice.owned?' is-owned':' is-unowned'}${choice.disabled?' is-disabled':''}"><input type="checkbox" data-set-hash="${row.hash}" data-set-count="${count}" ${choice.checked?'checked':''} ${choice.disabled?'disabled':''}>${effect?.icon?`<span class="forge-set-trait-icon"><img src="${esc(effect.icon)}" alt=""></span>`:''}<span class="forge-set-trait-copy"><b>${count} PIECE${effect?.name?` · ${esc(effect.name)}`:''}</b><small>${esc(effect?.description||`${count}-piece trait unavailable`)}</small><em>${esc(bonusReason(row,count,choice))}</em></span></label>`;}).join('')}</div></article>`).join(''):'<div class="forge-empty">No verified 2-piece or 4-piece owned set requirement is available around this Exotic.</div>';
+  host.innerHTML=open+cards;
+  if(!setSelections.length)void renderSetUpgradeRecommendation(exotic);
+}
+
+async function resolveSetUpgradeTarget(exotic){
+  const key=`${guardianManifest.status().version}:${activeCharacterClass}:${exotic.key}`;
+  if(!setUpgradeTargetCache.has(key))setUpgradeTargetCache.set(key,(async()=>{
+    await new Promise(resolve=>typeof requestIdleCallback==='function'?requestIdleCallback(resolve,{timeout:1200}):setTimeout(resolve,0));
+    const targets=unownedSetTargets({definitions:inventoryDefinitions(),setDefinitions:equipableSetDefinitions(),sandboxPerks:sandboxPerkDefinitions(),ownedItems:armourItems(),fixedExotic:exotic,className:activeCharacterClass,armourBuckets:ARMOUR_BUCKETS});
+    const target=targets[0]||null;if(!target)return null;
+    const sources=new Set(target.displaySources||[]);
+    if(!sources.size){
+      const hashes=target.missingPieces.map(piece=>piece?.collectibleHash).filter(Boolean).slice(0,6);
+      const collectibles=await guardianManifest.getMany('DestinyCollectibleDefinition',hashes);
+      for(const definition of Object.values(collectibles))if(text(definition?.sourceString))sources.add(text(definition.sourceString));
+    }
+    return {...target,sources:[...sources]};
+  })());
+  return setUpgradeTargetCache.get(key);
+}
+
+async function renderSetUpgradeRecommendation(exotic){
+  const sequence=upgradeRenderSequence,host=byId('forgeSetUpgrade');if(!host)return;
+  host.hidden=false;host.innerHTML='<span>OPTIONAL TARGET UPGRADE</span><strong>Checking verified Bungie set variants and acquisition sources…</strong>';
+  const target=await resolveSetUpgradeTarget(exotic).catch(()=>null);
+  if(sequence!==upgradeRenderSequence||selectedExoticKey!==exotic.key||setSelections.length)return;
+  activeSetUpgradeTarget=target;
+  if(!target){host.innerHTML='<span>OPTIONAL TARGET UPGRADE</span><strong>No evidence-bound unowned set match identified.</strong><p>Load 01 remains the best exact combination from this Guardian’s current vault.</p>';return;}
+  const source=target.sources.length?target.sources.join(' · '):'Bungie acquisition source is unresolved; no activity is claimed.';
+  host.innerHTML=`<span>OPTIONAL TARGET UPGRADE</span><strong>${target.count}P ${esc(target.setName)} · ${esc(target.trait.name)}</strong><p>${esc(target.trait.description)}</p><small>PERK MATCH · ${esc(target.evidence.join(' · ').toUpperCase())}</small><small>OWNED ${target.ownedSlots} OF ${target.count} REQUIRED COMPATIBLE SLOTS · ${target.variantCount} VERIFIED VARIANT${target.variantCount===1?'':'S'} CHECKED</small><small>BUNGIE-LISTED SOURCE · ${esc(source)}</small><em>Availability is not assumed and future roll stats are unknown. Load 01 remains the best exact owned fallback.</em>`;
+}
+
+function updateTargetLabel(label){
+  const key=label?.dataset?.targetStat,input=label?.querySelector('input'),output=label?.querySelector('output');
+  if(key&&input&&output){
+    const value=Math.min(ARMOUR_STAT_CAP,Math.max(0,Number(input.value||0)));
+    const available=Math.min(ARMOUR_STAT_CAP,Math.max(0,Number(targetMaximums[key]||0)));
+    output.textContent=`${value===0?available:value} / ${ARMOUR_STAT_CAP}`;
+    if(value===0)output.dataset.available='true';else delete output.dataset.available;
+    input.style.setProperty('--forge-slider-fill',`${value/ARMOUR_STAT_CAP*100}%`);
+    input.style.setProperty('--forge-slider-available',`${(value===0?available:value)/ARMOUR_STAT_CAP*100}%`);
+  }
+}
+
+function availableStatMaximums(exotic){
+  const absolute=armourTargetMaximums(armourItems(),solverOptions());
+  if(!exotic||!matchedBuilds.length)return absolute;
+  const targets=targetValues(),best=matchedBuilds[0]?.score||{},bestShortfalls=best.priorityShortfalls||[];
+  const legalPriorityPool=matchedBuilds.filter(candidate=>Number(candidate.score?.shortfall||0)===Number(best.shortfall||0)&&(candidate.score?.priorityShortfalls||[]).every((value,index)=>value===bestShortfalls[index]));
+  return Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>{
+    if(targets[key]>0)return [key,absolute[key]];
+    const maximum=Math.max(0,...legalPriorityPool.map(candidate=>Number(candidate.score?.effectiveStats?.[key]??candidate.stats?.[key]??0)));
+    return [key,Math.min(ARMOUR_STAT_CAP,maximum)];
+  }));
+}
+
+function configureStats({reset=false}={}){
+  const exotic=selectedExotic();
+  targetMaximums=exotic?availableStatMaximums(exotic):Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,0]));
+  const available=Boolean(exotic)&&ARMOUR_STAT_KEYS.some(key=>targetMaximums[key]>0);
+  for(const label of document.querySelectorAll('[data-target-stat]')){
+    const key=label.dataset.targetStat,input=label.querySelector('input'),maxButton=label.querySelector('[data-max-stat]'),priority=label.querySelector('[data-stat-priority]');
+    input.max=String(ARMOUR_STAT_CAP);input.disabled=!available;input.value=String(reset?0:Math.min(ARMOUR_STAT_CAP,Number(input.value||0)));maxButton.disabled=input.disabled;
+    if(priority){priority.disabled=!available;if(reset)priority.value='';}
+    updateTargetLabel(label);
+  }
+  const count=activeTargetCount(),priorityCount=activePriorityCount();
+  byId('forgeFindBuilds').disabled=!available;byId('forgeResetTargets').disabled=!available||(count===0&&priorityCount===0);
+  byId('forgeStatStatus').textContent=!exotic?'SELECT EXOTIC':available?(count||priorityCount?`${count} TARGET${count===1?'':'S'} · ${priorityCount} PRIORIT${priorityCount===1?'Y':'IES'}`:'AUTO MAXIMUM'):'NO COMPLETE LOAD';
+}
+
+function stagedMarkup(slot,index){
+  const item=selectedSlots.get(index);
+  return `<div class="forge-staged-slot">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:'<span class="forge-stage-empty">◇</span>'}<span><b>${esc(item?.name||slot.label)}</b><small>${esc(item?`${item.totalStats} total · ${item.source?.label||'Owned'}`:'No item staged')}</small></span></div>`;
+}
+
+function renderStaged(){
+  byId('forgeStagedSlots').innerHTML=ARMOUR_BUCKETS.map(stagedMarkup).join('');
+  byId('forgeStagedStatus').textContent=selectedSlots.size===5?'COMPLETE VERIFIED LOAD':`${selectedSlots.size} OF 5 STAGED`;
+  byId('forgeEvaluate').disabled=selectedSlots.size!==5||!activeCharacterId;
+}
+
+function candidateSetProtocol(candidate){
+  if(!setSelections.length){
+    const protocols=candidate?.openProtocol?.protocols||naturalSetProtocols(candidate);
+    return protocols.length?`OPEN · ${protocols.map(row=>`${row.count}P ${row.setName}`).join(' + ')}`:'OPEN · NO ACTIVE SET';
+  }
+  return setSelections.map(selection=>{
+    const match=candidate.items.find(item=>Number(item?.setBonus?.hash??item?.armourSemantics?.set?.hash)===Number(selection.setHash));
+    return `${selection.count}P ${match?.setBonus?.identity?.name||match?.armourSemantics?.set?.identity?.name||`SET ${selection.setHash}`}`;
+  }).join(' + ');
+}
+
+function verifiedTraitContext(effect){
+  if(!effect)return null;
+  const hash=Number(effect.hash??effect.plugHash??effect.bungieHash);
+  return {hash:Number.isInteger(hash)&&hash>0?hash:null,name:text(effect.name),description:text(effect.description),icon:text(effect.icon)};
+}
+
+function forgeLoaderDecision(candidate,index){
+  const exoticGroup=selectedExotic(),exoticItem=candidate?.items?.find(item=>item?.isExotic)||null;
+  if(!exoticGroup||!exoticItem)return null;
+  const exoticPerk=exoticItem.exoticPerk||exoticItem.armourSemantics?.exoticPerk||null;
+  const setOptions=setBonusOptions(armourItems(),exoticGroup,setSelections);
+  return {
+    schemaVersion:1,
+    buildAnchor:{
+      identityKey:exoticGroup.key,
+      name:exoticGroup.name,
+      itemHashes:exoticGroup.hashes,
+      selectedItemHash:Number(exoticItem.itemHash??exoticItem.hash)||null,
+      selectedItemInstanceId:text(exoticItem.itemInstanceId||exoticItem.instanceId),
+      perk:verifiedTraitContext(exoticPerk)
+    },
+    statDirective:{
+      targets:targetValues(),
+      priorities:priorityValues(),
+      achieved:Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,Math.min(ARMOUR_STAT_CAP,Number(candidate.stats?.[key]||0))])),
+      allTargetsMet:Boolean(candidate.score?.met),
+      shortfall:Number(candidate.score?.shortfall||0),
+      rawTotal:Number(candidate.score?.total||0),
+      modsApplied:false
+    },
+    setProtocol:(setSelections.length?setSelections.map(selection=>{
+      const row=setOptions.find(option=>Number(option.hash)===Number(selection.setHash));
+      const effect=selection.count===2?row?.two?.effect:row?.four?.effect;
+      return {setHash:Number(selection.setHash),count:Number(selection.count),setName:text(row?.name),trait:verifiedTraitContext(effect)};
+    }):naturalSetProtocols(candidate).map(row=>({setHash:Number(row.setHash),count:Number(row.count),setName:text(row.setName),trait:verifiedTraitContext(row.trait)}))),
+    ranking:{position:Number(index)+1,totalCombinations:Number(matchedBuilds.combinationsEvaluated||matchedBuilds.length),maximized:Number(index)===0}
+  };
+}
+
+function candidateStatMarkup(candidate,{itemRow=false}={}){
+  const stats=itemRow?armourStatVector(candidate):candidate.stats;
+  const targets=itemRow?{}:targetValues();
+  return ARMOUR_STAT_KEYS.map(key=>{
+    const value=itemRow?Number(stats[key]||0):Math.min(ARMOUR_STAT_CAP,Number(stats[key]||0)),target=Number(targets[key]||0);
+    const state=target>0?(value>=target?' is-met':' is-short'):'';
+    return `<span class="forge-matrix-stat${state}"><small>${esc(ARMOUR_STAT_LABELS[key].toUpperCase())}</small><b>${value}</b>${itemRow?'':`<em>${target>0?`TARGET ${target}`:'OPEN'}</em>`}</span>`;
+  }).join('');
+}
+
+function candidateItemMeta(item){
+  const details=[item.source?.label||'Owned'];
+  if(item.power!==null&&item.power!==undefined)details.push(`Power ${item.power}`);
+  if(Number.isFinite(Number(item.energy?.capacity)))details.push(`Energy ${Number(item.energy.capacity)}`);
+  if((Number(item.state||0)&4)!==0)details.push('Masterworked');
+  return details.join(' · ');
+}
+
+function candidateItemMarkup(item){
+  return `<div class="forge-breakdown-item"><button type="button" class="forge-breakdown-identity" data-inspect-item="${esc(itemKey(item))}" aria-label="Inspect ${esc(item.name)}"><img src="${esc(item.icon)}" alt=""><span><b>${esc(item.name)}</b><small>${esc(item.slotLabel)} · ${esc(candidateItemMeta(item))}</small></span></button><div class="forge-breakdown-stats" aria-label="${esc(item.name)} armour stats">${candidateStatMarkup(item,{itemRow:true})}</div><span class="forge-breakdown-total"><small>TOTAL</small><b>${Number(item.totalStats||0)}</b></span></div>`;
+}
+
+function candidateMarkup(candidate,index){
+  const hasTargets=activeTargetCount()>0,outcome=!hasTargets?'MAXIMUM STAT LOAD':candidate.score.met?'ALL TARGETS MET':`${candidate.score.shortfall} POINT${candidate.score.shortfall===1?'':'S'} SHORT`;
+  const expanded=expandedCandidateIndex===index,selected=selectedCandidateIndex===index,maximized=index===0;
+  const exotic=candidate.items.find(item=>item.isExotic)||candidate.items[0];
+  return `<article class="forge-candidate${candidate.score.met?' is-target-met':''}${selected?' is-selected':''}${maximized?' is-maximized':''}"><div class="forge-matrix-row"><button type="button" class="forge-matrix-expand" data-candidate-expand="${index}" aria-expanded="${expanded}" aria-controls="forgeLoadBreakdown${index}"><span>${maximized?'<em class="forge-maximized">MAXIMIZED</em>':''}<b>LOAD ${String(index+1).padStart(2,'0')}</b><small>${esc(outcome)}</small></span><i aria-hidden="true">⌄</i></button><span class="forge-matrix-exotic">${exotic?.icon?`<img src="${esc(exotic.icon)}" alt="">`:''}<small>EXOTIC</small></span><div class="forge-matrix-stats" aria-label="Calculated unmodded armour stats">${candidateStatMarkup(candidate)}</div><span class="forge-matrix-total"><small>RAW TOTAL</small><b>${candidate.score.total}</b></span><span class="forge-matrix-protocol"><small>SET PROTOCOL</small><b>${esc(candidateSetProtocol(candidate))}</b></span><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button></div><div class="forge-load-breakdown" id="forgeLoadBreakdown${index}" ${expanded?'':'hidden'}><div class="forge-breakdown-heading"><div><span>${maximized?'MAXIMIZED LOAD':'LOAD BREAKDOWN'}</span><strong>Five exact Bungie armour instances · no mods</strong></div><span>${esc(outcome)}</span></div><div class="forge-breakdown-items">${candidate.items.map(candidateItemMarkup).join('')}</div><div class="forge-breakdown-summary"><div><small>UNMODDED ARMOUR TOTAL</small><strong>${candidate.score.total}</strong></div><div><small>ACTIVE SET PROTOCOL</small><strong>${esc(candidateSetProtocol(candidate))}</strong></div><div class="forge-breakdown-actions"><button type="button" class="forge-candidate-select" data-candidate-index="${index}">${selected?'STAGED':'STAGE LOAD'}</button><button type="button" class="forge-candidate-evaluate" data-candidate-evaluate="${index}">EVALUATE IN BUILD FORGE</button></div></div></div></article>`;
+}
+
+function renderCandidates(){
+  const panel=byId('forgeResults'),exotic=selectedExotic();panel.hidden=!exotic;
+  const shown=Math.min(visibleCandidateCount,matchedBuilds.length),remaining=matchedBuilds.length-shown;
+  const evaluated=Number(matchedBuilds.combinationsEvaluated||matchedBuilds.length);
+  byId('forgeResultStatus').textContent=matchedBuilds.length?`${shown} OF ${evaluated.toLocaleString()} COMBINATIONS`:'0 COMBINATIONS';
+  byId('forgeCandidateBuilds').innerHTML=matchedBuilds.length?matchedBuilds.slice(0,shown).map(candidateMarkup).join(''):'<div class="forge-empty">No complete owned-armour combination is available for this Exotic and set protocol.</div>';
+  const more=byId('forgeShowMore');more.hidden=remaining<=0;more.textContent=remaining>0?`SHOW NEXT ${Math.min(CANDIDATE_BATCH_SIZE,remaining)} OF ${remaining}`:'';
+}
+
+function renderCandidateLoading(exotic){
+  const panel=byId('forgeResults');panel.hidden=false;
+  byId('forgeResultStatus').textContent='SCANNING OWNED ARMOUR';
+  byId('forgeCandidateBuilds').innerHTML=`<div class="forge-empty">Locking ${esc(exotic.name)} into every load and finding the top ${CANDIDATE_BATCH_SIZE} exact owned combinations…</div>`;
+  byId('forgeShowMore').hidden=true;
+}
+
+function stageCandidate(index){
+  const candidate=matchedBuilds[Number(index)];if(!candidate)return;
+  selectedCandidateIndex=Number(index);selectedSlots.clear();for(const item of candidate.items)selectedSlots.set(item.slotIndex,item);
+  renderStaged();renderCandidates();
+}
+
+function toggleCandidateBreakdown(index){
+  const candidate=matchedBuilds[Number(index)];if(!candidate)return;
+  expandedCandidateIndex=expandedCandidateIndex===Number(index)?-1:Number(index);
+  renderCandidates();
+}
+
+async function calculateBuilds(){
+  const exotic=selectedExotic(),targets=targetValues();if(!exotic)return;
+  const button=byId('forgeFindBuilds');button.disabled=true;button.textContent='CALCULATING VERIFIED LOADS…';
+  renderCandidateLoading(exotic);
+  byId('forgeRuntimeStatus').textContent=activeTargetCount()||activePriorityCount()?'Applying the Exotic anchor, set protocol and ranked stat constraints…':'No stat priority selected. Ranking the complete legal pool by maximum unmodded stats…';
+  await new Promise(resolve=>requestAnimationFrame(resolve));
+  const scanStarted=performance.now();
+  const secondaryScore=!setSelections.length?createOpenProtocolTieBreaker(exotic):null;
+  matchedBuilds=matchTopArmourBuilds(armourItems(),targets,{...solverOptions(),limit:CANDIDATE_BATCH_SIZE,secondaryScore});
+  if(!setSelections.length)matchedBuilds=rankOpenProtocolCandidates(matchedBuilds,exotic);
+  const scanDuration=performance.now()-scanStarted;
+  visibleCandidateCount=Math.min(CANDIDATE_BATCH_SIZE,matchedBuilds.length);
+  selectedCandidateIndex=-1;selectedSlots.clear();configureStats();if(matchedBuilds.length)stageCandidate(0);else{renderStaged();renderCandidates();}
+  button.textContent='REFRESH TOP 50 COMBINATIONS';button.disabled=false;
+  const evaluated=Number(matchedBuilds.combinationsEvaluated||matchedBuilds.length);
+  const durationLabel=scanDuration<1000?`${Math.max(1,Math.round(scanDuration))} ms`:`${(scanDuration/1000).toFixed(2)} s`;
+  byId('forgeRuntimeStatus').textContent=matchedBuilds.length?`${evaluated.toLocaleString()} exact owned combinations scanned in ${durationLabel}. Showing the top ${matchedBuilds.length}; Load 1 is the best fit with ${exotic.name} locked${activeSetUpgradeTarget?`; ${activeSetUpgradeTarget.setName} remains an optional target upgrade`:''}.`:'No complete owned-armour combination satisfies the selected Exotic and set protocol.';
+}
+
+function resetResults(){matchedBuilds=[];selectedCandidateIndex=-1;expandedCandidateIndex=-1;visibleCandidateCount=0;selectedSlots.clear();renderStaged();renderCandidates();}
+
+function selectExotic(key){
+  const next=exoticGroups().find(group=>group.owned&&group.key===String(key||''));if(!next)return;
+  selectedExoticKey=next.key;setSelections=[];resetResults();renderExotics();renderSetBonuses();configureStats({reset:true});
+  const exotic=selectedExotic();
+  byId('forgeRuntimeStatus').textContent=exotic?`${exotic.name} anchored. Ranking the maximum-stat owned load automatically.`:'Select an owned Exotic to initialise the Forge Loader.';
+  if(exotic)void calculateBuilds();
+}
+
+function toggleBonus(input){
+  const exotic=selectedExotic();if(!exotic)return;
+  setSelections=toggleSetSelection(armourItems(),exotic,setSelections,{setHash:Number(input.dataset.setHash),count:Number(input.dataset.setCount)},input.checked);
+  resetResults();renderSetBonuses();configureStats();
+  byId('forgeRuntimeStatus').textContent=setSelections.length?`Set protocol active: ${setSelections.map(row=>`${row.count}-piece`).join(' + ')}. Stat ceilings recalculated.`:'No set bonus required. Stat ceilings recalculated from all compatible armour.';
+  void calculateBuilds();
+}
+
+function openSetProtocol(){
+  if(!selectedExotic())return;
+  setSelections=[];resetResults();renderSetBonuses();configureStats();
+  byId('forgeRuntimeStatus').textContent='Open armour active. Ranking the top owned combinations with verified Exotic-to-set perk evidence.';
+  void calculateBuilds();
+}
+
+function setStatPriority(select){
+  const rank=Number(select?.value||0);
+  if(rank>0)for(const other of document.querySelectorAll('[data-stat-priority]'))if(other!==select&&Number(other.value)===rank)other.value='';
+  resetResults();configureStats();
+  byId('forgeRuntimeStatus').textContent=rank>0?`Priority ${rank} assigned. Re-ranking every legal owned-armour combination.`:'Priority returned to AUTO. Re-ranking by the remaining directives and maximum stats.';
+  if(selectedExotic())void calculateBuilds();
+}
+
+function inspectItemFromTarget(target){
+  const exoticKey=String(target?.dataset?.inspectExoticKey||'');
+  if(exoticKey){const group=exoticGroups().find(row=>row.key===exoticKey);return group?{...(group.representative||group.preview),ownedInstance:group.owned}:null;}
+  const key=target?.dataset?.inspectItem;
+  return catalogue.armour.find(item=>itemKey(item)===String(key||''))||null;
+}
+
+function inspectStatsMarkup(item){
+  if(item?.ownedInstance===false)return '<div class="forge-inspect-unowned">NOT OWNED · exact instance stats become available after acquisition.</div>';
+  const stats=armourStatVector(item);
+  return `<div class="forge-inspect-stats">${ARMOUR_STAT_KEYS.map(key=>{const value=Number(stats[key]||0),maximum=Math.max(1,...armourItems().map(row=>Number(armourStatVector(row)[key]||0)));return `<div class="forge-inspect-stat"><span>${esc(ARMOUR_STAT_LABELS[key])}</span><span class="forge-inspect-bar"><i style="width:${Math.min(100,value/maximum*100)}%"></i></span><b>${value}</b></div>`;}).join('')}</div>`;
+}
+
+function positionInspect(panel,anchor){
+  const gap=12,bounds=anchor.getBoundingClientRect(),width=panel.offsetWidth,height=panel.offsetHeight;
+  let left=bounds.right+gap;if(left+width>innerWidth-gap)left=bounds.left-width-gap;
+  left=Math.max(gap,Math.min(left,innerWidth-width-gap));
+  const top=Math.max(gap,Math.min(bounds.top,innerHeight-height-gap));
+  panel.style.left=`${Math.round(left)}px`;panel.style.top=`${Math.round(top)}px`;panel.style.right='auto';
+}
+
+function showInspect(target){
+  const item=inspectItemFromTarget(target),panel=byId('forgeItemInspect');if(!item||!panel)return;
+  if(panel.parentElement!==document.documentElement)document.documentElement.append(panel);
+  const owned=item.ownedInstance!==false;
+  const statSummary=owned?`${item.power!==null?`✦ ${esc(item.power)} · `:''}Σ ${Number(item.totalStats||0)}`:'COLLECTION ENTRY';
+  panel.innerHTML=`<div class="forge-inspect-brand">ASTRIX PARADOX · ${owned?'VERIFIED INSTANCE':'VERIFIED DEFINITION'}</div><div class="forge-inspect-tier"><h3>${esc(item.name)}</h3><p>${esc(`${item.slotLabel} · ${item.tier||'Exotic armour'}`)}</p></div><div class="forge-inspect-main">${item.icon?`<img src="${esc(item.icon)}" alt="">`:''}<div><strong>${statSummary}</strong><p>${esc(item.exoticPerk?.name||item.archetype?.name||(owned?'Verified armour':'Not owned'))}</p><p>${esc(item.exoticPerk?.description||item.description||'')}</p></div></div>${inspectStatsMarkup(item)}<div class="forge-inspect-foot"><span>${esc(owned?String(item.source?.label||'OWNED').toUpperCase():'NOT OWNED')}</span><span>${owned?'EXACT BUNGIE DATA':'BUNGIE COLLECTION DATA'}</span></div>`;
+  panel.hidden=false;panel.setAttribute('aria-hidden','false');requestAnimationFrame(()=>positionInspect(panel,target));
+}
+
+function hideInspect(){const panel=byId('forgeItemInspect');if(panel){panel.hidden=true;panel.setAttribute('aria-hidden','true');}}
+
+async function evaluateInBuildForge(){
+  if(selectedSlots.size!==5)return;
+  const candidate=matchedBuilds[selectedCandidateIndex];if(!candidate)return;
+  const binding=membershipBinding();
+  byId('forgeRuntimeStatus').textContent='Protecting the verified equipped Guardian before Build Forge opens…';
+  let profileBuild=null;
+  try{
+    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260903-loadout-intelligence-1');
+    profileBuild=normaliseLiveProfile(payload,session,activeCharacterId);
+  }catch(error){
+    console.error('[ASTRIX Forge Loader] The protected Guardian baseline could not be prepared.',error);
+  }
+  if(!profileBuild){byId('forgeRuntimeStatus').textContent='Build Forge could not resolve the equipped Guardian baseline. No build was changed.';return;}
+  const snapshotEnvelope=createForgeLoaderBuildSnapshot(profileBuild,binding);
+  const selected=prepareArmourSelection(payload,[...selectedSlots.values()]);
+  const selection=createVaultArmourSelection({binding,slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision:forgeLoaderDecision(candidate,selectedCandidateIndex)});
+  if(!snapshotEnvelope||!selection){byId('forgeRuntimeStatus').textContent='The verified Guardian transfer could not be prepared. No build was changed.';return;}
+  byId('forgeRuntimeStatus').textContent='Securing the complete protected Build Forge transfer…';
+  const transferStored=await cacheForgeLoaderTransfer(binding,{snapshotEnvelope,armourSelection:selection});
+  let baselineStored=transferStored,selectionStored=transferStored;
+  // IndexedDB is the atomic primary route. Use quota-limited Web Storage only
+  // when that route is unavailable, rather than retaining three large copies.
+  if(!transferStored){
+    baselineStored=writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores:[sessionStorage,localStorage],snapshotEnvelope});
+    selectionStored=writeVaultArmourSelection(selection);
+    if(!selectionStored){releaseGuardianSessionStorageFallbacks();selectionStored=writeVaultArmourSelection(selection);}
+  }
+  if(!selectionStored){byId('forgeRuntimeStatus').textContent='The protected staged load could not be stored on this device. No build was changed.';return;}
+  if(!baselineStored&&!transferStored){
+    byId('forgeRuntimeStatus').textContent='Browser storage is full. Build Forge will recover the protected Original Build directly from Bungie.';
+    console.warn('[ASTRIX Forge Loader] Browser storage rejected the protected baseline; Build Forge will recover it from the authenticated Bungie profile.');
+  }
+  const url=new URL('../guardian-workspace-v2/paradox-build-space/',location.href);url.searchParams.set('vault','selection');
+  if(!baselineStored&&!transferStored)url.searchParams.set('baseline','bungie-recovery');
+  for(const [key,value] of Object.entries(binding))if(value)url.searchParams.set(key,value);
+  markGuardianFastReturn();location.href=url;
+}
+
+function installEvents(){
+  byId('forgeExoticSlots')?.addEventListener('click',event=>{const button=event.target.closest('[data-exotic-key]');if(button)selectExotic(button.dataset.exoticKey);});
+  byId('forgeSetList')?.addEventListener('click',event=>{if(event.target.closest('[data-open-set-protocol]'))openSetProtocol();});
+  byId('forgeSetList')?.addEventListener('change',event=>{const input=event.target.closest('[data-set-hash]');if(input)toggleBonus(input);});
+  byId('forgeStatTargets')?.addEventListener('input',event=>{if(event.target.matches('[data-stat-priority]'))return;const label=event.target.closest('[data-target-stat]');if(!label)return;updateTargetLabel(label);resetResults();configureStats();byId('forgeRuntimeStatus').textContent='Stat target changed. Calculate to rank every legal combination.';});
+  byId('forgeStatTargets')?.addEventListener('change',event=>{if(event.target.matches('[data-stat-priority]')){setStatPriority(event.target);return;}if(event.target.matches('input[type="range"]'))void calculateBuilds();});
+  byId('forgeStatTargets')?.addEventListener('click',event=>{const button=event.target.closest('[data-max-stat]');if(!button)return;const label=button.closest('[data-target-stat]'),input=label?.querySelector('input'),key=label?.dataset?.targetStat;if(!input||!key)return;input.value=String(Math.min(ARMOUR_STAT_CAP,Math.max(0,Number(targetMaximums[key]||0))));updateTargetLabel(label);configureStats();void calculateBuilds();});
+  byId('forgeFindBuilds')?.addEventListener('click',calculateBuilds);
+  byId('forgeResetTargets')?.addEventListener('click',()=>{for(const input of document.querySelectorAll('[data-target-stat] input'))input.value='0';for(const select of document.querySelectorAll('[data-stat-priority]'))select.value='';resetResults();configureStats();byId('forgeRuntimeStatus').textContent='Stat targets and priorities reset. Ranking by maximum unmodded stats.';void calculateBuilds();});
+  byId('forgeCandidateBuilds')?.addEventListener('click',event=>{
+    const evaluate=event.target.closest('[data-candidate-evaluate]');if(evaluate){stageCandidate(evaluate.dataset.candidateEvaluate);void evaluateInBuildForge();return;}
+    const stage=event.target.closest('[data-candidate-index]');if(stage){stageCandidate(stage.dataset.candidateIndex);return;}
+    const expand=event.target.closest('[data-candidate-expand]');if(expand)toggleCandidateBreakdown(expand.dataset.candidateExpand);
+  });
+  byId('forgeEvaluate')?.addEventListener('click',()=>void evaluateInBuildForge());
+  byId('forgeShowMore')?.addEventListener('click',()=>{visibleCandidateCount=Math.min(matchedBuilds.length,visibleCandidateCount+CANDIDATE_BATCH_SIZE);renderCandidates();});
+  document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target)showInspect(target);});
+  document.addEventListener('pointerout',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideInspect();});
+  document.addEventListener('focusin',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target)showInspect(target);});
+  document.addEventListener('focusout',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideInspect();});
+  addEventListener('resize',hideInspect,{passive:true});addEventListener('scroll',hideInspect,{passive:true,capture:true});
+  document.addEventListener('astrix:character-selected',event=>{resolveActiveCharacter(event.detail?.characterId);selectedExoticKey='';setSelections=[];resetResults();renderHero();renderExotics();renderSetBonuses();configureStats({reset:true});byId('forgeRuntimeStatus').textContent=`${classLabel()} active. Select an owned Exotic.`;});
+  document.addEventListener('astrix:manifest-progress',event=>loaderProgress(Math.max(24,Number(event.detail?.percent)||24),event.detail?.label||'Preparing Bungie manifest…'));
+}
+
+async function settleVisibleImages(){
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const images=[...document.querySelectorAll('#forgeExoticSlots img,#forgeHeroCard img')].slice(0,30).filter(image=>!image.complete);
+  await Promise.race([Promise.all(images.map(image=>new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});}))),new Promise(resolve=>setTimeout(resolve,3500))]);
+}
+
+async function init(){
+  installEvents();byId('forgeConnectButton').href=authStartUrl();renderStaged();
+  try{
+    session=await getBungieSession();
+    if(session?.authenticated!==true){byId('forgeSignedOut').hidden=false;byId('forgeConnectionState').textContent='SIGNED OUT';byId('forgeHeaderState').textContent='CONNECT BUNGIE';globalThis.AstrixLoader?.authRequired?.(authStartUrl());return;}
+    byId('forgeConnectionState').textContent='BUNGIE CONNECTED';payload=await loadVerifiedPayload();
+    loaderProgress(78,'Building verified Forge Loader inventory…');catalogue=createVaultCatalogue(payload);resolveActiveCharacter(activeCharacterId);
+    renderHero();renderExotics();renderSetBonuses();configureStats({reset:true});
+    const groups=exoticGroups(),ownedCount=groups.filter(group=>group.owned).length;byId('forgeRuntimeStatus').textContent=ownedCount?`${ownedCount} owned of ${groups.length} verified ${classLabel()} Exotic definition${groups.length===1?'':'s'}. Select an owned piece to begin.`:`${groups.length} verified ${classLabel()} Exotic definition${groups.length===1?'':'s'} shown; no owned instance can be selected.`;
+    loaderProgress(92,'Rendering Forge Loader selector…');await settleVisibleImages();globalThis.AstrixLoader?.done?.();
+  }catch(error){console.error('[ASTRIX Forge Loader]',error);byId('forgeConnectionState').textContent='ARMOUR UNAVAILABLE';byId('forgeRuntimeStatus').textContent=error?.message||'Verified Bungie armour is unavailable.';globalThis.AstrixLoader?.done?.();}
+}
+
+init();

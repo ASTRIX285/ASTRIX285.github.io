@@ -1,6 +1,9 @@
-import {AUTH_ORIGIN,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
+import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
-import {readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
+import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
+import {validateHandoffEnvelope} from '../guardian-workspace-v2/paradox-build-binding.mjs';
+import {readCapture,readCaptureArchive} from '../guardian-workspace-v2/guardian-shooting-range-capture.mjs?v=20260902-journey-data-hooks-1';
+import {buildMissionReportView,normaliseActivityHistory} from '../mission-reports/mission-reports-data.mjs?v=20260902-journey-data-hooks-1';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
 import {initJourneyLocationMaps,publishJourneyDestinationData,publishJourneyRegionChestProgress} from './journey-location-maps.mjs?v=20260901-destination-data-panels';
 
@@ -8,16 +11,17 @@ const resolving=document.getElementById('journeyResolving');
 const signedOut=document.getElementById('journeySignedOut');
 const dashboard=document.getElementById('journeyDashboard');
 const status=document.getElementById('journeyAuthStatus');
-const favouriteCharacter=document.getElementById('journeyFavouriteCharacter');
+const connectButton=document.getElementById('journeyConnectButton');
+const guardianUsage=document.getElementById('journeyGuardianUsage');
 const vaultCard=document.getElementById('journeyVault');
-const milestonesCard=document.getElementById('journeyMilestones');
+const seasonRankCard=document.getElementById('journeySeasonRank');
 const heroCards=document.getElementById('guardianCharacterCards');
 const feedStatus=document.getElementById('journeyFeedStatus');
 const trendEmpty=document.getElementById('journeyTrendEmpty');
 const guardianClass=document.getElementById('journeyGuardianClass');
 const guardianSubclass=document.getElementById('journeyGuardianSubclass');
-const journeyLevel=document.getElementById('journeyLevel');
-const verifiedGuardian=document.getElementById('journeyVerifiedGuardian');
+const guardianRankSummary=document.getElementById('journeyGuardianRankSummary');
+const guardianStats=document.getElementById('journeyGuardianStats');
 const guardianCrest=document.getElementById('journeyGuardianCrest');
 const guardianCrestEmpty=document.getElementById('journeyGuardianCrestEmpty');
 const totalPlaytime=document.getElementById('journeyTotalPlaytime');
@@ -30,6 +34,15 @@ const metricCompletion=document.getElementById('journeyMetricCompletion');
 const metricPve=document.getElementById('journeyMetricPve');
 const metricPvp=document.getElementById('journeyMetricPvp');
 const trendChart=document.getElementById('journeyTrendChart');
+const confidenceDonutValue=document.getElementById('journeyConfidenceDonutValue');
+const confidenceHighPercent=document.getElementById('journeyConfidenceHighPercent');
+const confidenceHigh=document.getElementById('journeyConfidenceHigh');
+const confidenceMedium=document.getElementById('journeyConfidenceMedium');
+const confidenceLow=document.getElementById('journeyConfidenceLow');
+const confidenceStatus=document.getElementById('journeyConfidenceStatus');
+const mostUsedCard=document.getElementById('journeyMostUsed');
+const buildSummaryCard=document.getElementById('journeyBuildSummary');
+const missionHighlightsCard=document.getElementById('journeyMissionHighlights');
 const focusHeading=document.getElementById('journeyFocusHeading');
 const focusStatus=document.getElementById('journeyFocusStatus');
 const locationSelector=document.getElementById('journeyLocationSelector');
@@ -62,35 +75,74 @@ const recordsDetailHeading=document.getElementById('journeyRecordsDetailHeading'
 const recordsSubcategories=document.getElementById('journeyRecordsSubcategories');
 const recordsDetailList=document.getElementById('journeyRecordsDetailList');
 const CLASS_NAMES=['TITAN','HUNTER','WARLOCK'];
-const MILESTONES_PENDING='No verified milestone or achievement source is connected.';
+const CLASS_USAGE_COLOURS=['#d3202f','#c9a84c','#4169e1'];
+const STAT_ORDER=[2996146975,392767087,1943323491,1735777505,144602215,4244567218];
 const RECENT_ACTIVITY_PENDING='Recent activity data is not connected.';
 const BUNGIE_ORIGIN='https://www.bungie.net';
+const JOURNEY_BACKGROUND_REFRESH_MS=5*60*1000;
+const JOURNEY_REFRESH_TIMEOUT_MS=60*1000;
+const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12*1000;
+const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6*1000;
+const JOURNEY_LOADER_READY_WAIT_MS=6*1000;
+const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
+const BUILD_SNAPSHOT_KEY='astrix:guardian-build-snapshot:v1';
+const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';
+const BUILD_EVIDENCE_STORAGE_KEYS=new Set([BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY,LAST_LOADOUT_KEY,'astrix:shooting-range-capture:v1','astrix:shooting-range-capture-archive:v1']);
 const numberFormatter=new Intl.NumberFormat('en-GB');
 const activityDateFormatter=new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-const manifestReady=guardianManifest.ready();
-const PVP_MODES=new Set([5,10,12,15,19,25,31,32,37,38,39,41,42,43,44,45,48,49,50,51,52,53,54,55,56,57,59,60,61,62,65,67,68,69,70,71,72,73,74,80,81,84,88,89,90,91,92]);
-const GAMBIT_MODES=new Set([63,75]);
+// Journey resolves only the record definitions it needs. Downloading the full
+// Character/Build equipment manifest here delayed profile and Triumph binding.
+const manifestReady=Promise.resolve(guardianManifest);
 let activeView='overview';
-let timeFilter='all';
 let selectedCharacterId='';
 let selectedClassName='';
 let verifiedProfile=null;
 let journeySession=null;
-let recentActivityRequest=0;
+let journeyActivityRequest=0;
 let profileIdentityRequest=0;
 let historicalStatsRequest=0;
-let currentFormRequest=0;
 let titleTriumphRequest=0;
 let triumphSectionRequest=0;
 let recordsCategoryRequest=0;
 let guardianRankRequest=0;
 let guardianRankObjectiveRequest=0;
+let guardianRankSummaryRequest=0;
 let destinationProgressRequest=0;
 let activeRecordView='';
 let selectedTitle=null;
 let selectedTitleKind='titles';
+let equippedTitleSummary=null;
+let nextTitleSummary=null;
+let currentSeasonPromise=null;
+let currentSeasonFetchedAt=0;
+let titleCatalogueRootHash='';
+let titleCataloguePromise=null;
 let selectedTriumphCategory=null;
 let selectedRecordSection=null;
+let journeyBackgroundRefreshTimer=0;
+let journeyBackgroundRefreshRequest=null;
+let journeyBackgroundRefreshPending=false;
+let journeyLastRefreshAt=0;
+const journeyActivityCache=new Map();
+let currentActivityEvidence=null;
+
+function waitWithin(promise,timeoutMs){
+  let timer=0;
+  return Promise.race([
+    Promise.resolve(promise).catch(error=>{console.info('[ASTRIX Journey] noncritical bootstrap task unavailable',error);return null;}),
+    new Promise(resolve=>{timer=globalThis.setTimeout(()=>resolve(null),timeoutMs);})
+  ]).finally(()=>globalThis.clearTimeout(timer));
+}
+
+async function finishJourneyLoader(root=document){
+  globalThis.AstrixLoader.set(96);
+  globalThis.AstrixLoader.status('Journey rendered');
+  let timer=0;
+  await Promise.race([
+    Promise.resolve(globalThis.AstrixLoader.ready(root)).catch(()=>globalThis.AstrixLoader.done()),
+    new Promise(resolve=>{timer=globalThis.setTimeout(()=>{globalThis.AstrixLoader.done();resolve();},JOURNEY_LOADER_READY_WAIT_MS);})
+  ]).finally(()=>globalThis.clearTimeout(timer));
+}
 
 function waitForHeroCards(){
   if(!heroCards||!heroCards.querySelector('.guardian-character-cards__status.is-pending'))return Promise.resolve();
@@ -118,46 +170,134 @@ const finiteNumber=value=>{
   return Number.isFinite(number)?number:null;
 };
 
-function bindFavouriteCharacter(payload){
-  const characters=Object.values(payload?.profile?.characters?.data||{}).map(character=>({
-    className:CLASS_NAMES[Number(character?.classType)]||'',
-    minutesPlayedTotal:finiteNumber(character?.minutesPlayedTotal),
-    power:finiteNumber(character?.light)
-  })).filter(character=>character.className&&character.minutesPlayedTotal!==null);
-  if(!characters.length)return false;
-  const highestMinutes=Math.max(...characters.map(character=>character.minutesPlayedTotal));
-  const favourites=characters.filter(character=>character.minutesPlayedTotal===highestMinutes);
-  const label=favourites.map(character=>character.className).join(' / ');
-  const powers=[...new Set(favourites.map(character=>character.power).filter(Number.isFinite))];
-  favouriteCharacter.textContent=`${label} · ${numberFormatter.format(highestMinutes)} MINUTES PLAYED${powers.length===1?` · POWER ${numberFormatter.format(powers[0])}`:''}`;
-  return true;
+function createRankBadge(rank,label=`Rank ${rank}`){
+  const badge=document.createElement('span');
+  badge.className='journey-rank-badge';
+  badge.setAttribute('role','img');
+  badge.setAttribute('aria-label',label);
+  const number=document.createElement('strong');
+  number.textContent=numberFormatter.format(rank);
+  badge.appendChild(number);
+  return badge;
 }
 
-const VAULT_BUCKET=138197802, POSTMASTER_BUCKET=215593132;
+async function currentSeasonMetadata(){
+  if(!currentSeasonPromise||Date.now()-currentSeasonFetchedAt>=JOURNEY_BACKGROUND_REFRESH_MS){
+    currentSeasonPromise=fetch(`${AUTH_ORIGIN}/bungie/current-season`,{credentials:'include',headers:{Accept:'application/json'}})
+      .then(response=>{if(!response.ok)throw new Error(`Current season request failed (${response.status}).`);currentSeasonFetchedAt=Date.now();return response.json();})
+      .catch(error=>{currentSeasonPromise=null;throw error;});
+  }
+  return currentSeasonPromise;
+}
+
+async function bindSeasonRank(payload){
+  if(!seasonRankCard)return;
+  renderDetailHero(seasonRankCard,{name:'Season Rank unavailable',description:'Current seasonal progression is awaiting verified Bungie data.'});
+  try{
+    const metadata=await currentSeasonMetadata();
+    const progressions=payload?.profile?.profileProgression?.data?.progressions||{};
+    const reward=progressions[String(metadata?.pass?.rewardProgressionHash||'')];
+    const prestige=progressions[String(metadata?.pass?.prestigeProgressionHash||'')];
+    const direct=progressions[String(metadata?.season?.seasonPassProgressionHash||'')];
+    const rewardLevel=finiteNumber(reward?.level)??0;
+    const prestigeLevel=finiteNumber(prestige?.level)??0;
+    const active=prestige&&((finiteNumber(prestige?.level)??0)>0||(finiteNumber(reward?.levelCap)!==null&&rewardLevel>=finiteNumber(reward?.levelCap)))?prestige:(reward||direct);
+    const rank=reward||prestige?rewardLevel+prestigeLevel:finiteNumber(active?.level);
+    if(rank===null||rank===undefined)return;
+    const completed=finiteNumber(active?.progressToNextLevel);
+    const total=finiteNumber(active?.nextLevelAt);
+    const seasonNumber=finiteNumber(metadata?.season?.seasonNumber);
+    const seasonName=String(metadata?.season?.name||'CURRENT SEASON').trim();
+    const description=[seasonNumber===null?'':`SEASON ${seasonNumber}`,seasonName].filter(Boolean).join(' · ');
+    renderDetailHero(seasonRankCard,{name:`RANK ${rank}`,badge:rank,description,completed,total,unit:`XP TO RANK ${rank+1}`});
+  }catch(error){console.info('[ASTRIX Journey] current Season Rank unavailable',error);}
+}
+
+function bindGuardianUsage(payload){
+  if(!guardianUsage)return false;
+  const usage=CLASS_NAMES.map((name,index)=>({name,colour:CLASS_USAGE_COLOURS[index],minutes:0,power:null}));
+  for(const character of Object.values(payload?.profile?.characters?.data||{})){
+    const classType=Number(character?.classType);
+    const minutes=finiteNumber(character?.minutesPlayedTotal);
+    const power=finiteNumber(character?.light);
+    if(!usage[classType]||minutes===null)continue;
+    usage[classType].minutes+=Math.max(0,minutes);
+    if(power!==null)usage[classType].power=Math.max(usage[classType].power??0,power);
+  }
+  const total=usage.reduce((sum,item)=>sum+item.minutes,0);
+  guardianUsage.replaceChildren();
+  if(total<=0){const empty=document.createElement('span');empty.className='apx-empty-state';empty.textContent='Verified class playtime is not available.';guardianUsage.appendChild(empty);return false;}
+  usage.forEach(item=>{item.percent=item.minutes/total*100;});
+  const top=[...usage].sort((left,right)=>right.minutes-left.minutes)[0];
+  const layout=document.createElement('div');layout.className='journey-usage-layout';
+  const chart=document.createElement('div');chart.className='journey-usage-chart';chart.style.setProperty('--titan-end',`${usage[0].percent}%`);chart.style.setProperty('--hunter-end',`${usage[0].percent+usage[1].percent}%`);chart.setAttribute('role','img');chart.setAttribute('aria-label',usage.map(item=>`${item.name} ${item.percent.toFixed(1)} percent`).join(', '));
+  const centre=document.createElement('span');centre.innerHTML=`<small>MOST USED</small><strong>${top.name}</strong>`;chart.appendChild(centre);
+  const table=document.createElement('table');table.className='journey-usage-table';table.setAttribute('aria-label','Guardian class usage');
+  const body=document.createElement('tbody');
+  usage.forEach(item=>{const row=document.createElement('tr');row.innerHTML=`<th><i class="journey-usage-dot" style="--usage-colour:${item.colour}"></i>${item.name}</th><td><strong>${item.percent.toFixed(1)}%</strong></td><td>${formatPlaytime(item.minutes)}${item.power===null?'':` · POWER ${numberFormatter.format(item.power)}`}</td>`;body.appendChild(row);});
+  table.appendChild(body);layout.append(chart,table);guardianUsage.appendChild(layout);return true;
+}
+
+const VAULT_BUCKET=138197802, POSTMASTER_BUCKET=215593132, ARMOUR_ITEM_TYPE=2;
 const SUBCLASS_BUCKET=3284755031;
 function bindVault(payload){
   if(!vaultCard)return;
   const vaultItems=payload?.profile?.profileInventory?.data?.items;
   if(!Array.isArray(vaultItems))return;
-  const vaultCount=vaultItems.filter(i=>i?.bucketHash===VAULT_BUCKET).length;
+  const stored=vaultItems.filter(item=>item?.bucketHash===VAULT_BUCKET);
+  const armourCount=stored.filter(item=>Number(payload?.definitions?.[String(item?.itemHash)]?.itemType)===ARMOUR_ITEM_TYPE).length;
+  const equipmentCount=stored.length-armourCount;
   let postmasterMax=0;
   for(const char of Object.values(payload?.profile?.characterInventories?.data||{})){
     const pm=(char?.items||[]).filter(i=>i?.bucketHash===POSTMASTER_BUCKET).length;
     if(pm>postmasterMax)postmasterMax=pm;
   }
-  const warn=postmasterMax>=18?` · POSTMASTER ${postmasterMax}/21`:'';
-  vaultCard.textContent=`${numberFormatter.format(vaultCount)} ITEMS IN VAULT${warn}`;
+  vaultCard.replaceChildren();
+  const total=document.createElement('div');
+  total.className='journey-vault-total';
+  total.innerHTML=`<span>ALL</span><strong>${numberFormatter.format(stored.length)}</strong>`;
+  const breakdown=document.createElement('dl');
+  breakdown.className='journey-vault-breakdown';
+  breakdown.innerHTML=`<div><dt>ARMOUR</dt><dd>${numberFormatter.format(armourCount)}</dd></div><div><dt>WEAPONS &amp; EQUIPMENT</dt><dd>${numberFormatter.format(equipmentCount)}</dd></div>`;
+  vaultCard.append(total,breakdown);
+  if(postmasterMax>=18){
+    const warning=document.createElement('p');
+    warning.className='journey-vault-warning';
+    warning.textContent=`POSTMASTER NEAR CAPACITY · ${postmasterMax}/21 ON A GUARDIAN`;
+    vaultCard.appendChild(warning);
+  }
 }
-function bindMilestones(payload){
-  if(!milestonesCard)return;
-  milestonesCard.textContent=MILESTONES_PENDING;
-  const prog=payload?.profile?.characterProgressions?.data;
-  if(!prog)return;
-  const hashes=new Set();
-  const characters=selectedCharacterId&&prog[selectedCharacterId]?[prog[selectedCharacterId]]:Object.values(prog);
-  for(const char of characters)for(const h of Object.keys(char?.milestones||{}))hashes.add(h);
-  if(!hashes.size)return;
-  milestonesCard.textContent=`${hashes.size} MILESTONES AVAILABLE THIS RESET`;
+
+function bindGuardianStats(payload,character){
+  if(!guardianStats)return;
+  guardianStats.replaceChildren();
+  const definitions=payload?.statDefinitions||{};
+  for(const hash of STAT_ORDER){
+    const definition=definitions[String(hash)]||null;
+    const name=String(definition?.displayProperties?.name||`Guardian stat ${hash}`);
+    const value=character?finiteNumber(character?.stats?.[String(hash)]):null;
+    const item=document.createElement('span');
+    item.className='journey-identity-stat';
+    item.title=value===null?`${name} unavailable`:`${name} ${numberFormatter.format(value)}`;
+    item.setAttribute('aria-label',item.title);
+    const iconUrl=bungieIconUrl(definition?.displayProperties?.icon);
+    if(iconUrl){
+      const icon=document.createElement('img');
+      icon.src=iconUrl;
+      icon.alt='';
+      icon.setAttribute('aria-hidden','true');
+      icon.decoding='async';
+      item.appendChild(icon);
+    }else{
+      const icon=document.createElement('i');
+      icon.setAttribute('aria-hidden','true');
+      item.appendChild(icon);
+    }
+    const output=document.createElement('strong');
+    output.textContent=value===null?'—':numberFormatter.format(value);
+    item.appendChild(output);
+    guardianStats.appendChild(item);
+  }
 }
 
 function formatPlaytime(minutes){
@@ -170,22 +310,24 @@ function formatPlaytime(minutes){
 function bindActiveGuardian(payload){
   guardianClass.textContent='Guardian unavailable';
   guardianSubclass.textContent='Subclass awaiting verified data';
-  verifiedGuardian.hidden=true;
+  bindGuardianStats(payload,null);
   guardianCrest.hidden=true;
   guardianCrest.removeAttribute('src');
   guardianCrestEmpty.hidden=false;
   totalPlaytime.textContent='—';
 
   const characters=Object.values(payload?.profile?.characters?.data||{});
+  const accountMinutes=characters.map(character=>finiteNumber(character?.minutesPlayedTotal)).filter(Number.isFinite);
+  totalPlaytime.textContent=accountMinutes.length?formatPlaytime(accountMinutes.reduce((sum,minutes)=>sum+minutes,0)):'—';
   const selected=characters.find(character=>String(character?.characterId||'')===selectedCharacterId)
     ||[...characters].sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
   if(!selected)return;
 
   guardianClass.textContent=CLASS_NAMES[Number(selected.classType)]||'Guardian';
-  verifiedGuardian.hidden=false;
-  totalPlaytime.textContent=formatPlaytime(finiteNumber(selected.minutesPlayedTotal));
-  if(selected.emblemPath){
-    guardianCrest.src=new URL(selected.emblemPath,BUNGIE_ORIGIN).toString();
+  bindGuardianStats(payload,selected);
+  const emblemArtwork=selected.emblemBackgroundPath||selected.emblemPath;
+  if(emblemArtwork){
+    guardianCrest.src=new URL(emblemArtwork,BUNGIE_ORIGIN).toString();
     guardianCrest.hidden=false;
     guardianCrestEmpty.hidden=true;
   }
@@ -195,18 +337,87 @@ function bindActiveGuardian(payload){
   if(subclassName)guardianSubclass.textContent=String(subclassName).toUpperCase();
 }
 
-function bindGuardianRank(payload){
-  if(!journeyLevel)return;
-  const rank=finiteNumber(payload?.profile?.profile?.data?.currentGuardianRank);
-  if(rank===null||rank<1){journeyLevel.textContent='—';return;}
-  journeyLevel.innerHTML='';
-  const img=document.createElement('img');
-  img.className='journey-rank-badge';
-  img.width=26;img.height=26;
-  img.alt=`Guardian Rank ${rank}`;
-  img.src=`../../../img/guardian-ranks/rank-${rank}.png`;
-  img.onerror=()=>{journeyLevel.textContent=`RANK ${rank}`;};
-  journeyLevel.appendChild(img);
+function highestCompletedGuardianRank(payload){
+  const profile=payload?.profile?.profile?.data||{};
+  const completedRanks=[profile.lifetimeHighestGuardianRank,profile.currentGuardianRank,profile.renewedGuardianRank].map(finiteNumber).filter(rank=>rank!==null&&rank>=1);
+  return completedRanks.length?Math.max(...completedRanks):null;
+}
+
+async function bindGuardianRankSummary(payload){
+  if(!guardianRankSummary)return;
+  const requestId=++guardianRankSummaryRequest;
+  const rank=highestCompletedGuardianRank(payload);
+  if(rank===null){
+    renderGuardianRankSummary({rank:null});
+    return;
+  }
+  const hooked=(payload?.journeyRecordOverview?.guardianRank?.ranks||[]).find(item=>finiteNumber(item?.rank)===rank);
+  let name=String(hooked?.name||'').trim();
+  let icon=bungieIconUrl(hooked?.iconPath);
+  if(!name||!icon){
+    try{
+      await manifestReady;
+      const constants=await guardianManifest.getAsync('DestinyGuardianRankConstantsDefinition',1);
+      const rankHashes=constants?.guardianRankHashes||[];
+      const definitions=await guardianManifest.getMany('DestinyGuardianRankDefinition',rankHashes);
+      const rankHash=rankHashes[rank-1];
+      const definition=Object.values(definitions).find(item=>finiteNumber(item?.rankNumber)===rank)||definitions[String(rankHash)]||null;
+      name=name||String(definition?.displayProperties?.name||'').trim();
+      icon=icon||bungiePresentationIcon(definition);
+    }catch(error){console.info('[ASTRIX Journey] Guardian Rank summary definition unavailable',error);}
+  }
+  if(requestId!==guardianRankSummaryRequest)return;
+  renderGuardianRankSummary({rank,name:name||`Guardian Rank ${rank}`});
+}
+
+function renderGuardianRankSummary({rank,name=''}){
+  if(!guardianRankSummary)return;
+  guardianRankSummary.replaceChildren();
+  guardianRankSummary.classList.toggle('has-no-icon',rank===null);
+  if(rank!==null)guardianRankSummary.appendChild(createRankBadge(rank,`Highest completed Guardian Rank ${rank}`));
+  const copy=document.createElement('div');
+  copy.className='journey-record-detail-copy';
+  const heading=document.createElement('h4');
+  heading.textContent=rank===null?'Guardian Rank unavailable':name;
+  const description=document.createElement('p');
+  description.textContent=rank===null?'Highest completed Guardian Rank awaiting verified Bungie data.':`HIGHEST COMPLETED GUARDIAN RANK ${rank}`;
+  const link=document.createElement('a');
+  link.className='journey-record-link';
+  link.id='journeyGuardianRankDetailsLink';
+  link.href='#journeyGuardianRankHeading';
+  link.textContent='VIEW GUARDIAN RANK DETAILS';
+  copy.append(heading,description,link);
+  guardianRankSummary.appendChild(copy);
+}
+
+function renderEquippedTitleSummary(title=null,unavailableText='Equipped title awaiting verified Bungie data.'){
+  if(!titleSealCard)return;
+  equippedTitleSummary=title;
+  const name=title?.name||'Equipped title unavailable';
+  const description=title?[`EQUIPPED TITLE AND SEAL${title.gilded?' · GILDED':''}`,title.description].filter(Boolean).join(' · '):unavailableText;
+  renderDetailHero(titleSealCard,{name,icon:title?.icon||'',description,completed:title?.completed??null,total:title?.total??null,unit:title?.unit||'TITLE REQUIREMENTS'});
+  const copy=titleSealCard.querySelector('.journey-record-detail-copy');
+  if(!copy)return;
+  const link=document.createElement('a');
+  link.className='journey-record-link';
+  link.id='journeyEquippedTitleDetailsLink';
+  link.href='#journeyTitlesHeading';
+  link.textContent=title?'VIEW TITLE DETAILS':'VIEW ALL TITLES';
+  copy.appendChild(link);
+}
+
+function renderNextTitleSummary(title=null){
+  if(!titleProgressCard)return;
+  nextTitleSummary=title;
+  renderDetailHero(titleProgressCard,{name:title?.name||'Next title unavailable',icon:title?.icon||'',description:title?.description||'Verified title progress is not available.',completed:title?.completed??null,total:title?.total??null,unit:title?.unit||'TITLE REQUIREMENTS'});
+  const copy=titleProgressCard.querySelector('.journey-record-detail-copy');
+  if(!copy)return;
+  const link=document.createElement('a');
+  link.className='journey-record-link';
+  link.id='journeyNextTitleDetailsLink';
+  link.href='#journeyTitlesHeading';
+  link.textContent=title?'VIEW TITLE DETAILS':'VIEW ALL TITLES';
+  copy.appendChild(link);
 }
 
 function resetRecentActivity(){
@@ -215,17 +426,6 @@ function resetRecentActivity(){
   const fallback=recentActivityCard.querySelector('.apx-empty-state');
   if(fallback){fallback.hidden=false;fallback.textContent=RECENT_ACTIVITY_PENDING;}
   return fallback;
-}
-
-async function resolveActivityName(activity){
-  const details=activity?.activityDetails||{};
-  const hash=finiteNumber(details.referenceId??details.directorActivityHash);
-  if(hash===null)return 'ACTIVITY NAME UNAVAILABLE';
-  try{
-    await manifestReady;
-    const definition=await guardianManifest.getAsync('DestinyActivityDefinition',hash);
-    return String(definition?.displayProperties?.name||'').trim()||'ACTIVITY NAME UNAVAILABLE';
-  }catch{return 'ACTIVITY NAME UNAVAILABLE';}
 }
 
 async function resolveManifestDefinition(type,hash){
@@ -274,6 +474,114 @@ function titleRequirementRow(payload,characterId,entry,definition,objectiveDefin
   }).filter(objective=>objective.completed!==null&&objective.total!==null&&objective.total>0);
   const complete=state!==null?(state&4)!==4:objectives.length>0&&objectives.every(objective=>objective.complete);
   return {hash,name:String(definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(definition),description:String(state!==null&&(state&8)===8?definition?.stateInfo?.obscuredDescription||'':definition?.displayProperties?.description||''),complete,objectives};
+}
+
+async function titlePresentationCatalog(payload){
+  const rootHash=finiteNumber(payload?.profile?.profileRecords?.data?.recordSealsRootNodeHash);
+  if(rootHash===null)return [];
+  const cacheKey=String(rootHash);
+  if(titleCatalogueRootHash===cacheKey&&titleCataloguePromise)return titleCataloguePromise;
+  titleCatalogueRootHash=cacheKey;
+  titleCataloguePromise=(async()=>{
+    await manifestReady;
+    const catalog=[];
+    const seen=new Set();
+    let pending=[{presentationNodeHash:rootHash,nodeDisplayPriority:0}];
+    while(pending.length){
+      const level=pending;
+      pending=[];
+      const definitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',level.map(entry=>entry.presentationNodeHash));
+      level.sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0)).forEach(entry=>{
+        const hash=String(entry?.presentationNodeHash||'');
+        if(!hash||seen.has(hash))return;
+        seen.add(hash);
+        const definition=definitions[hash];
+        if(!definition)return;
+        if(finiteNumber(definition?.completionRecordHash)!==null)catalog.push({hash,definition});
+        pending.push(...(definition?.children?.presentationNodes||[]));
+      });
+    }
+    return catalog;
+  })();
+  try{return await titleCataloguePromise;}
+  catch(error){
+    if(titleCatalogueRootHash===cacheKey)titleCataloguePromise=null;
+    throw error;
+  }
+}
+
+async function titlePresentationCandidates(payload){
+  try{
+    const catalog=await titlePresentationCatalog(payload);
+    if(catalog.length)return catalog;
+  }catch(error){console.info('[ASTRIX Journey] complete title catalogue unavailable',error);}
+  return profileTitlePresentationCandidates(payload);
+}
+
+async function profileTitlePresentationCandidates(payload){
+  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
+  await manifestReady;
+  const definitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
+  return Object.keys(nodes).map(hash=>({hash,definition:definitions[hash]})).filter(item=>item.definition&&finiteNumber(item.definition?.completionRecordHash)!==null);
+}
+
+function titleCollectionProgress(payload,characterId,item,completionRecordHash,view){
+  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
+  const node=nodes[String(item.hash)];
+  const requirementEntries=(item.definition?.children?.records||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
+  const activityProgress=payload?.journeyTitleActivityProgress?.[String(item.hash)];
+  const activityCompleted=finiteNumber(activityProgress?.completedActivities);
+  const activityTotal=finiteNumber(activityProgress?.totalActivities);
+  const nodeCompleted=finiteNumber(node?.progressValue);
+  const nodeTotal=finiteNumber(node?.completionValue);
+  const requirementStates=requirementEntries.map(entry=>finiteNumber(titleRecordFor(payload,characterId,entry?.recordHash)?.state));
+  const hasVerifiedRequirements=requirementStates.some(state=>state!==null);
+  let completed=null;
+  let total=null;
+  let unit=view==='badges'?'BADGE REQUIREMENTS':'TITLE REQUIREMENTS';
+  if(activityCompleted!==null&&activityTotal!==null&&activityTotal>0){
+    completed=activityCompleted;
+    total=activityTotal;
+    unit='ACTIVITIES';
+  }else if(nodeCompleted!==null&&nodeTotal!==null&&nodeTotal>0){
+    completed=nodeCompleted;
+    total=nodeTotal;
+  }else if(requirementEntries.length&&hasVerifiedRequirements){
+    completed=requirementStates.filter(state=>state!==null&&(state&4)!==4).length;
+    total=requirementEntries.length;
+  }
+  const state=finiteNumber(titleRecordFor(payload,characterId,completionRecordHash)?.state);
+  const earned=view==='titles'&&state!==null&&(state&64)===64;
+  return {completed,total,unit,earned,complete:earned||completed!==null&&total!==null&&total>0&&completed>=total,gilded:view==='titles'&&state!==null&&(state&128)===128,requirementEntries};
+}
+
+async function resolvedTitleCollectionFromCandidates(payload,character,view='titles',candidates=[]){
+  const characterId=String(character?.characterId||'');
+  const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',candidates.map(item=>item.definition?.completionRecordHash));
+  const equippedHash=finiteNumber(character?.titleRecordHash);
+  const titles=candidates.map(item=>{
+    const completionRecordHash=finiteNumber(item.definition?.completionRecordHash);
+    if(completionRecordHash===null)return null;
+    const recordDefinition=recordDefinitions[String(completionRecordHash)];
+    const hasTitle=recordDefinition?.titleInfo?.hasTitle===true;
+    if(!recordDefinition?.titleInfo||(view==='titles')!==hasTitle)return null;
+    const name=view==='badges'?String(item.definition?.displayProperties?.name||'').trim():titleNameFor(recordDefinition,character,item.definition?.displayProperties?.name);
+    if(!name)return null;
+    const progress=titleCollectionProgress(payload,characterId,item,completionRecordHash,view);
+    return {hash:item.hash,completionRecordHash,name,detailName:String(item.definition?.displayProperties?.name||name).trim(),icon:bungiePresentationIcon(item.definition),description:String(item.definition?.displayProperties?.description||recordDefinition?.displayProperties?.description||'').trim(),completed:progress.completed,total:progress.total,unit:progress.unit,earned:progress.earned,complete:progress.complete,gilded:progress.gilded,equipped:equippedHash===completionRecordHash,requirements:null,requirementEntries:progress.requirementEntries,characterId};
+  }).filter(Boolean);
+  const progressRatio=item=>item.completed!==null&&item.total!==null&&item.total>0?item.completed/item.total:-1;
+  return titles.sort((left,right)=>Number(right.equipped)-Number(left.equipped)||Number(right.earned)-Number(left.earned)||progressRatio(right)-progressRatio(left)||left.name.localeCompare(right.name));
+}
+
+async function resolvedProfileTitleCollection(payload,character,view='titles'){
+  const candidates=await profileTitlePresentationCandidates(payload);
+  return resolvedTitleCollectionFromCandidates(payload,character,view,candidates);
+}
+
+async function resolvedTitleCollection(payload,character,view='titles'){
+  const candidates=await titlePresentationCandidates(payload);
+  return resolvedTitleCollectionFromCandidates(payload,character,view,candidates);
 }
 
 async function presentationRecordCategories(entries,nodes,characterId,recordKind){
@@ -337,6 +645,35 @@ async function presentationLeafCategories(rootHash,nodes,childKey){
   };
 }
 
+async function recordPresentationTree(payload){
+  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
+  const rootHash=finiteNumber(payload?.profile?.profileRecords?.data?.recordCategoriesRootNodeHash);
+  if(rootHash===null)return null;
+  const definition=await guardianManifest.getAsync('DestinyPresentationNodeDefinition',rootHash);
+  if(!definition)return null;
+  const entries=(definition?.children?.presentationNodes||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
+  const definitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',entries.map(entry=>entry.presentationNodeHash));
+  return {
+    hash:String(rootHash),
+    definition,
+    node:nodes[String(rootHash)],
+    nodes,
+    roots:entries.map(entry=>({entry,hash:String(entry.presentationNodeHash),definition:definitions[String(entry.presentationNodeHash)],node:nodes[String(entry.presentationNodeHash)]})).filter(item=>item.definition)
+  };
+}
+
+async function currentRecordBranch(root,nodes){
+  if(!root?.definition)return null;
+  const entries=(root.definition?.children?.presentationNodes||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
+  if(!entries.length)return root;
+  const definitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',entries.map(entry=>entry.presentationNodeHash));
+  const rootName=recordCategoryKey(root.definition?.displayProperties?.name);
+  const entry=entries.find(item=>recordCategoryKey(definitions[String(item.presentationNodeHash)]?.displayProperties?.name)===rootName);
+  if(!entry)return root;
+  const hash=String(entry.presentationNodeHash);
+  return {entry,hash,definition:definitions[hash],node:nodes?.[hash]};
+}
+
 const DESTINATION_NAME_ALIASES=Object.freeze({
   'pale-heart':['Pale Heart','The Pale Heart'],
   'dreaming-city':['Dreaming City','The Dreaming City'],
@@ -364,16 +701,13 @@ function destinationCategoryItem(section,label){
 }
 
 async function destinationRecordSections(payload,key,characterId){
-  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
-  const presentationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
-  const resolved=Object.entries(nodes).map(([hash,node])=>({hash,node,definition:presentationDefinitions[hash]})).filter(item=>item.definition);
-  const definitionByHash=Object.fromEntries(resolved.map(item=>[String(item.hash),item.definition]));
-  const recordsRootHash=finiteNumber(payload?.profile?.profileRecords?.data?.recordCategoriesRootNodeHash);
-  const recordsRoot=resolved.find(item=>String(item.hash)===String(recordsRootHash))||resolved.find(item=>!(item.definition?.parentNodeHashes||[]).length&&(item.definition?.children?.presentationNodes||[]).length>2&&(item.definition?.children?.presentationNodes||[]).some(entry=>{const definition=definitionByHash[String(entry.presentationNodeHash)];return definition?.displayProperties?.name===item.definition?.displayProperties?.name&&(definition?.children?.presentationNodes||[]).length;}));
-  const currentEntry=(recordsRoot?.definition?.children?.presentationNodes||[]).find(entry=>definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name===recordsRoot?.definition?.displayProperties?.name);
-  const currentDefinition=definitionByHash[String(currentEntry?.presentationNodeHash||'')];
-  const destinationEntry=(currentDefinition?.children?.presentationNodes||[]).find(entry=>destinationNameMatches(key,definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name));
-  const destinationDefinition=definitionByHash[String(destinationEntry?.presentationNodeHash||'')];
+  const tree=await recordPresentationTree(payload);
+  const nodes=tree?.nodes||{};
+  const triumphRoot=tree?.roots.find(item=>recordCategoryKey(item.definition?.displayProperties?.name)===recordCategoryKey(tree.definition?.displayProperties?.name));
+  const destinationEntries=triumphRoot?.definition?.children?.presentationNodes||[];
+  const destinationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',destinationEntries.map(entry=>entry.presentationNodeHash));
+  const destinationEntry=destinationEntries.find(entry=>destinationNameMatches(key,destinationDefinitions[String(entry.presentationNodeHash)]?.displayProperties?.name));
+  const destinationDefinition=destinationDefinitions[String(destinationEntry?.presentationNodeHash||'')];
   const destinationNode=nodes[String(destinationEntry?.presentationNodeHash||'')];
   const destinationState=finiteNumber(destinationNode?.state);
   if(!destinationDefinition||destinationState!==null&&(destinationState&1)===1)return {triumphs:[],records:[],endgame:[]};
@@ -398,7 +732,7 @@ async function destinationRecordSections(payload,key,characterId){
   });
   const activityHashes=[...new Set(recordsBySection.flatMap(({records})=>records.flatMap(item=>(item.component?.objectives||[]).map(objective=>finiteNumber(objective?.activityHash)).filter(hash=>hash!==null))))];
   const activityDefinitions=await guardianManifest.getMany('DestinyActivityDefinition',activityHashes);
-  const destinationDefinitions=await guardianManifest.getMany('DestinyDestinationDefinition',Object.values(activityDefinitions).map(definition=>definition?.destinationHash));
+  const activityDestinationDefinitions=await guardianManifest.getMany('DestinyDestinationDefinition',Object.values(activityDefinitions).map(definition=>definition?.destinationHash));
   const groups=new Map();
   recordsBySection.flatMap(({records})=>records).forEach(item=>{
     (item.component?.objectives||[]).filter(objective=>objective?.visible!==false).forEach(objective=>{
@@ -406,7 +740,7 @@ async function destinationRecordSections(payload,key,characterId){
       const activity=activityDefinitions[String(activityHash)];
       const modes=activity?.activityModeTypes||[];
       const type=modes.includes(4)?'RAID':modes.includes(82)?'DUNGEON':'';
-      const destination=destinationDefinitions[String(activity?.destinationHash||'')];
+      const destination=activityDestinationDefinitions[String(activity?.destinationHash||'')];
       const name=String(activity?.displayProperties?.name||'').trim();
       if(!type||!name||!destinationNameMatches(key,destination?.displayProperties?.name))return;
       const groupKey=`${type}:${name}`;
@@ -542,7 +876,7 @@ const PATTERN_CATALYST_TYPE_DEFINITIONS=[
   {key:'heavy',name:'Heavy Weapon Patterns',shortName:'Heavy',categories:['Grenade Launchers','Linear Fusion Rifles','Machine Guns','Rocket Launchers','Swords']},
   {key:'catalysts',name:'Exotic Catalysts',shortName:'Catalysts',categories:['Kinetic Weapons','Energy Weapons','Power Weapons']}
 ];
-function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,unit='',gilded=false,complete=false,crafted=false,claimed=false,value=null,onSelect=null,objectives=[]}){
+function makeJourneyRecordRow({hash,name,icon,description='',completed=null,total=null,threshold=null,unit='',gilded=false,complete=false,crafted=false,claimed=false,value=null,onSelect=null,objectives=[]}){
   const interactive=typeof onSelect==='function';
   const row=document.createElement(interactive?'button':'article');
   if(interactive){row.type='button';row.addEventListener('click',onSelect);}
@@ -591,6 +925,30 @@ function makeJourneyRecordRow({hash,name,icon,description='',completed=null,tota
     track.appendChild(fill);
     copy.appendChild(track);
   }
+  const verifiedThreshold=finiteNumber(threshold);
+  const thresholdValue=finiteNumber(value);
+  if(verifiedThreshold!==null&&verifiedThreshold>0&&thresholdValue!==null){
+    const bounded=Math.max(0,Math.min(verifiedThreshold,thresholdValue));
+    const progress=document.createElement('div');
+    progress.className='journey-record-progress';
+    const label=document.createElement('span');
+    label.textContent='COMPLETION THRESHOLD';
+    const output=document.createElement('b');
+    output.textContent=`${numberFormatter.format(verifiedThreshold)}${complete?' · MET':''}`;
+    progress.append(label,output);
+    const track=document.createElement('div');
+    track.className='journey-record-track';
+    track.setAttribute('role','progressbar');
+    track.setAttribute('aria-label',`${name} completion threshold`);
+    track.setAttribute('aria-valuemin','0');
+    track.setAttribute('aria-valuemax',String(verifiedThreshold));
+    track.setAttribute('aria-valuenow',String(bounded));
+    const fill=document.createElement('i');
+    fill.className='journey-record-fill';
+    fill.style.width=`${bounded/verifiedThreshold*100}%`;
+    track.appendChild(fill);
+    copy.append(progress,track);
+  }
   objectives.forEach(objective=>{
     if(objective.completed===null||objective.total===null||objective.total<=0)return;
     const bounded=Math.max(0,Math.min(objective.total,objective.completed));
@@ -633,11 +991,12 @@ function renderJourneyRecordList(list,rows,emptyText,onSelect=null){
   list.appendChild(fragment);
 }
 
-function renderDetailHero(host,{name,icon='',description='',completed=null,total=null,unit=''}){
+function renderDetailHero(host,{name,icon='',badge=null,description='',completed=null,total=null,unit=''}){
   if(!host)return;
   host.replaceChildren();
-  host.classList.toggle('has-no-icon',!icon);
-  if(icon){const image=document.createElement('img');image.className='journey-record-detail-icon';image.src=icon;image.alt='';host.appendChild(image);}
+  host.classList.toggle('has-no-icon',!icon&&badge===null);
+  if(badge!==null)host.appendChild(createRankBadge(badge,`${name} rank ${badge}`));
+  else if(icon){const image=document.createElement('img');image.className='journey-record-detail-icon';image.src=icon;image.alt='';host.appendChild(image);}
   const copy=document.createElement('div');
   copy.className='journey-record-detail-copy';
   const heading=document.createElement('h4');
@@ -880,60 +1239,57 @@ async function bindTitleTriumphPanel(payload,view=recordRootView(activeRecordVie
   const titleCollectionLabel=view==='badges'?'BADGES':'TITLES';
   const titleCollectionSelect=view==='badges'?showBadgeDetail:showTitleDetail;
   if(recordsStatus)recordsStatus.textContent='LOADING VERIFIED BUNGIE DEFINITIONS';
-  const hookedRows=journeyRecordHookRows(payload,view);
+  const hookedRows=isTitleCollection?null:journeyRecordHookRows(payload,view);
   if(hookedRows){
     renderJourneyRecordList(isTitleCollection?titleCollectionList:triumphCategoriesList,hookedRows,isTitleCollection?`No verified Destiny ${titleCollectionLabel.toLowerCase()} were returned.`:'No verified Triumph category rows were returned.',isTitleCollection?titleCollectionSelect:showTriumphDetail);
     if(recordsStatus)recordsStatus.textContent=isTitleCollection?`${hookedRows.length} ${titleCollectionLabel}`:`${hookedRows.length} TRIUMPH CATEGORIES`;
     return;
   }
-  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes;
-  if(!nodes||typeof nodes!=='object'){
-    if(view==='titles')renderJourneyRecordList(titlesList,[],'Title presentation nodes are not present in the verified profile response.');
-    if(view==='badges')renderJourneyRecordList(badgesList,[],'Badge presentation nodes are not present in the verified profile response.');
-    if(view==='triumphs')renderJourneyRecordList(triumphCategoriesList,[],'Triumph presentation nodes are not present in the verified profile response.');
-    if(recordsStatus)recordsStatus.textContent='VERIFIED RECORD DATA UNAVAILABLE';
-    return;
-  }
+  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes||{};
   const characters=payload?.profile?.characters?.data||{};
   const character=characters[selectedCharacterId]||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
   const characterId=String(character?.characterId||'');
-  await manifestReady;
-  const presentationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
-  const resolved=Object.entries(nodes).map(([hash,node])=>({hash,node,definition:presentationDefinitions[hash]})).filter(item=>item.definition);
-  if(requestId!==titleTriumphRequest)return;
-  const titleCandidates=resolved.filter(item=>finiteNumber(item.definition?.completionRecordHash)!==null);
   if(isTitleCollection){
-    const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',titleCandidates.map(item=>item.definition.completionRecordHash));
-    const titles=titleCandidates.map(item=>{
-      const completionRecordHash=finiteNumber(item.definition.completionRecordHash);
-      const recordDefinition=recordDefinitions[String(completionRecordHash)];
-      const hasTitle=recordDefinition?.titleInfo?.hasTitle===true;
-      if(view==='titles'?!hasTitle:hasTitle)return null;
-      const name=view==='badges'?String(item.definition?.displayProperties?.name||'').trim():titleNameFor(recordDefinition,character,item.definition?.displayProperties?.name);
-      if(!name||!recordDefinition?.titleInfo)return null;
-      const activityProgress=payload?.journeyTitleActivityProgress?.[String(item.hash)];
-      const activityCompleted=finiteNumber(activityProgress?.completedActivities);
-      const activityTotal=finiteNumber(activityProgress?.totalActivities);
-      const hasActivityCounts=activityCompleted!==null&&activityTotal!==null&&activityTotal>0;
-      const state=finiteNumber(titleRecordFor(payload,characterId,completionRecordHash)?.state);
-      const requirementEntries=(item.definition?.children?.records||[]).slice().sort((left,right)=>Number(left?.nodeDisplayPriority||0)-Number(right?.nodeDisplayPriority||0));
-      return {hash:item.hash,name,detailName:String(item.definition?.displayProperties?.name||name),icon:bungiePresentationIcon(item.definition),description:String(item.definition?.displayProperties?.description||''),completed:hasActivityCounts?activityCompleted:finiteNumber(item.node?.progressValue),total:hasActivityCounts?activityTotal:finiteNumber(item.node?.completionValue),unit:hasActivityCounts?'ACTIVITIES':view==='badges'?'BADGE REQUIREMENTS':'TITLE REQUIREMENTS',gilded:view==='titles'&&state!==null&&(state&128)===128,requirements:null,requirementEntries,characterId};
-    }).filter(Boolean).sort((left,right)=>left.name.localeCompare(right.name));
+    let profileTitles=[];
+    try{profileTitles=await resolvedProfileTitleCollection(payload,character,view);}
+    catch(error){console.info('[ASTRIX Journey] profile title nodes unavailable',error);}
     if(requestId!==titleTriumphRequest)return;
-    renderJourneyRecordList(titleCollectionList,titles,`No Destiny ${titleCollectionLabel.toLowerCase()} presentation nodes were returned for this profile.`,titleCollectionSelect);
-    if(recordsStatus)recordsStatus.textContent=`${titles.length} ${titleCollectionLabel}`;
+    if(profileTitles.length){
+      renderJourneyRecordList(titleCollectionList,profileTitles,`No verified Destiny ${titleCollectionLabel.toLowerCase()} were returned in the profile nodes.`,titleCollectionSelect);
+      if(recordsStatus){
+        const earned=view==='titles'?profileTitles.filter(title=>title.earned).length:null;
+        recordsStatus.textContent=view==='titles'?`${profileTitles.length} VERIFIED TITLES · ${earned} EARNED · SYNCING COMPLETE CATALOGUE`:`${profileTitles.length} VERIFIED ${titleCollectionLabel} · SYNCING COMPLETE CATALOGUE`;
+      }
+    }
+    let titles=[];
+    try{titles=await resolvedTitleCollection(payload,character,view);}
+    catch(error){console.info('[ASTRIX Journey] title collection unavailable',error);}
+    if(requestId!==titleTriumphRequest)return;
+    renderJourneyRecordList(titleCollectionList,titles,`No Destiny ${titleCollectionLabel.toLowerCase()} definitions were returned from the verified Bungie seal catalogue.`,titleCollectionSelect);
+    if(recordsStatus){
+      const earned=view==='titles'?titles.filter(title=>title.earned).length:null;
+      recordsStatus.textContent=view==='titles'?`${titles.length} TITLES · ${earned} EARNED`:`${titles.length} ${titleCollectionLabel}`;
+    }
     return;
   }
-  const definitionByHash=Object.fromEntries(resolved.map(item=>[String(item.hash),item.definition]));
-  const triumphRoot=resolved.find(item=>!(item.definition?.parentNodeHashes||[]).length&&(item.definition?.children?.presentationNodes||[]).length>2&&(item.definition?.children?.presentationNodes||[]).some(entry=>{const definition=definitionByHash[String(entry.presentationNodeHash)];return definition?.displayProperties?.name===item.definition?.displayProperties?.name&&(definition?.children?.presentationNodes||[]).length;}));
-  const currentTriumphEntry=(triumphRoot?.definition?.children?.presentationNodes||[]).find(entry=>definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name===triumphRoot?.definition?.displayProperties?.name);
-  const currentTriumphDefinition=definitionByHash[String(currentTriumphEntry?.presentationNodeHash||'')];
+  if(!Object.keys(nodes).length){
+    renderJourneyRecordList(triumphCategoriesList,[],'Triumph presentation nodes are not present in the verified profile response.');
+    if(recordsStatus)recordsStatus.textContent='VERIFIED RECORD DATA UNAVAILABLE';
+    return;
+  }
+  await manifestReady;
+  const tree=await recordPresentationTree(payload);
+  const currentTriumph=tree?.roots.find(item=>recordCategoryKey(item.definition?.displayProperties?.name)===recordCategoryKey(tree.definition?.displayProperties?.name));
+  const currentTriumphDefinition=currentTriumph?.definition;
+  const categoryEntries=currentTriumphDefinition?.children?.presentationNodes||[];
+  const categoryDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',categoryEntries.map(entry=>entry.presentationNodeHash));
   const categories=(currentTriumphDefinition?.children?.presentationNodes||[]).map(entry=>{
     const hash=String(entry.presentationNodeHash);
-    const definition=definitionByHash[hash];
+    const definition=categoryDefinitions[hash];
     const node=nodes[hash];
-    return {hash,name:String(definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(definition),description:String(definition?.displayProperties?.description||''),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),unit:'TRIUMPHS',subcategories:null,nodeEntries:definition?.children?.presentationNodes||[],nodes,characterId};
-  }).filter(item=>item.name);
+    const state=finiteNumber(node?.state);
+    return state!==null&&(state&1)===1?null:{hash,name:String(definition?.displayProperties?.name||'').trim(),icon:bungiePresentationIcon(definition),description:String(definition?.displayProperties?.description||''),completed:finiteNumber(node?.progressValue),total:finiteNumber(node?.completionValue),unit:'TRIUMPHS',subcategories:null,nodeEntries:definition?.children?.presentationNodes||[],nodes,characterId};
+  }).filter(item=>item?.name);
   if(requestId!==titleTriumphRequest)return;
   renderJourneyRecordList(triumphCategoriesList,categories,'No Triumph category presentation nodes were returned for this profile.',showTriumphDetail);
   if(recordsStatus)recordsStatus.textContent=`${categories.length} TRIUMPH CATEGORIES`;
@@ -991,7 +1347,7 @@ async function bindGuardianRankPanel(payload){
       guardianRankStrip.querySelectorAll('button').forEach(row=>row.setAttribute('aria-current',String(row===button)));
       const next=data.currentRank===null?null:data.ranks.find(rank=>rank.rank===data.currentRank+1);
       const description=data.currentRank===null?'Current Guardian Rank unavailable':`CURRENT RANK ${data.currentRank}${data.currentRankName?` · ${data.currentRankName}`:''}${next?` · NEXT RANK ${next.rank} · ${next.name}`:' · MAXIMUM RANK'}`;
-      renderDetailHero(guardianRankHero,{name:item.name,icon:item.icon,description,completed:item.completed,total:item.total,unit:'RANK PROGRESS'});
+      renderDetailHero(guardianRankHero,{name:item.name,badge:item.rank,description,completed:item.completed,total:item.total,unit:'RANK PROGRESS'});
       const objectiveRequest=++guardianRankObjectiveRequest;
       if(Array.isArray(item.objectives)){renderJourneyRecordList(guardianRankObjectives,item.objectives,'No verified objectives were returned for this Guardian Rank.');return;}
       renderJourneyRecordList(guardianRankObjectives,[],'Loading verified Guardian Rank objectives.');
@@ -1078,43 +1434,36 @@ async function verifiedCraftablePatternTypes(payload,characterId){
     ...(payload?.profile?.profilePresentationNodes?.data?.nodes||{}),
     ...(payload?.profile?.characterPresentationNodes?.data?.[componentCharacterId]?.nodes||{})
   };
-  const tree=await presentationLeafCategories(rootHash,nodes,'craftables');
+  const tree=await presentationLeafCategories(rootHash,nodes,'records');
   if(!tree)return null;
   const entries=tree.sections.flatMap(section=>section.entries);
-  const definitions=await guardianManifest.getMany('DestinyInventoryItemDefinition',entries.map(entry=>entry.craftableItemHash));
-  const typeByAmmo=new Map([[1,'primary'],[2,'special'],[3,'heavy']]);
+  const recordDefinitions=await guardianManifest.getMany('DestinyRecordDefinition',entries.map(entry=>entry.recordHash));
+  const objectiveDefinitions=await guardianManifest.getMany('DestinyObjectiveDefinition',Object.values(recordDefinitions).flatMap(definition=>definition?.objectiveHashes||[]));
   const types=new Map(PATTERN_CATALYST_TYPE_DEFINITIONS.filter(type=>type.key!=='catalysts').map(type=>[type.key,{key:type.key,icon:'',categories:new Map(),completed:0,total:0}]));
   tree.sections.forEach(section=>{
     const categoryName=String(section.path.at(-1)||section.name||'').trim();
-    if(!categoryName)return;
+    const typeName=String(section.path[0]||'').trim();
+    const type=types.get(recordCategoryKey(typeName).replace(/-weapon-patterns$/,''));
+    if(!categoryName||!type)return;
     section.entries.forEach(entry=>{
-      const hash=finiteNumber(entry?.craftableItemHash);
+      const hash=finiteNumber(entry?.recordHash);
       if(hash===null)return;
-      const state=craftables[String(hash)];
-      const definition=definitions[String(hash)];
-      if(!state||state.visible!==true||!definition||definition.redacted===true)return;
-      const type=types.get(typeByAmmo.get(finiteNumber(definition?.equippingBlock?.ammoType)));
-      const name=String(definition?.displayProperties?.name||'').trim();
-      if(!type||!name)return;
-      const failedRequirements=Array.isArray(state.failedRequirementIndexes)?state.failedRequirementIndexes:null;
-      const unlocked=failedRequirements===null?null:failedRequirements.length===0;
+      const definition=recordDefinitions[String(hash)];
+      const row=titleRequirementRow(payload,componentCharacterId,entry,definition,objectiveDefinitions);
+      if(!row?.name)return;
       const categoryKey=recordCategoryKey(categoryName);
       if(!type.categories.has(categoryKey))type.categories.set(categoryKey,{key:categoryKey,name:categoryName,icon:section.icon,items:[]});
       type.categories.get(categoryKey).items.push({
-        hash,
-        name,
-        icon:bungiePresentationIcon(definition),
-        description:String(definition?.itemTypeDisplayName||definition?.displayProperties?.description||'').trim(),
-        unit:'PATTERN STATUS',
-        value:unlocked===true?'UNLOCKED':unlocked===false?'LOCKED':'VISIBLE',
-        complete:unlocked===true,
-        patternStateVerified:unlocked!==null
+        ...row,
+        unit:'PATTERN PROGRESS',
+        value:row.complete?'UNLOCKED':'INCOMPLETE'
       });
       if(!type.icon)type.icon=section.icon;
-      if(unlocked!==null){type.total+=1;if(unlocked)type.completed+=1;}
+      type.total+=1;
+      if(row.complete)type.completed+=1;
     });
   });
-  return [...types.values()].map(type=>({...type,total:type.total||null,completed:type.total?type.completed:null,categories:[...type.categories.values()].map(category=>({...category,items:category.items.map(({patternStateVerified,...item})=>item)}))}));
+  return [...types.values()].map(type=>({...type,total:type.total||null,completed:type.total?type.completed:null,categories:[...type.categories.values()]}));
 }
 
 function mergeVerifiedPatternTypes(section,verifiedTypes){
@@ -1168,15 +1517,17 @@ async function verifiedStatTrackerSection(payload){
       if(!state||state.invisible===true||!definition||definition.redacted===true||current===null||!name)return null;
       const objective=objectiveDefinitions[String(definition?.trackingObjectiveHash||'')];
       const hasThreshold=total!==null&&total>0;
+      const lifetimeExceedsThreshold=hasThreshold&&current>total;
       return {
         hash,
         name,
         icon:bungiePresentationIcon(definition),
         description:String(definition?.displayProperties?.description||objective?.progressDescription||'').trim(),
-        completed:hasThreshold?current:null,
-        total:hasThreshold?total:null,
-        unit:hasThreshold?'TRACKER PROGRESS':'TRACKER VALUE',
-        value:hasThreshold?null:current,
+        completed:hasThreshold&&!lifetimeExceedsThreshold?current:null,
+        total:hasThreshold&&!lifetimeExceedsThreshold?total:null,
+        threshold:lifetimeExceedsThreshold?total:null,
+        unit:lifetimeExceedsThreshold||!hasThreshold?'TRACKER VALUE':'TRACKER PROGRESS',
+        value:lifetimeExceedsThreshold||!hasThreshold?current:null,
         complete:progress?.complete===true,
         gilded:false
       };
@@ -1248,28 +1599,28 @@ async function bindRecordsPanel(payload){
   if(!Array.isArray(payload?.journeyRecordOverview?.records?.sections)&&nodes&&typeof nodes==='object'){
     if(recordsStatus)recordsStatus.textContent='LOADING VERIFIED BUNGIE RECORDS';
     await manifestReady;
-    const presentationDefinitions=await guardianManifest.getMany('DestinyPresentationNodeDefinition',Object.keys(nodes));
-    const resolved=Object.entries(nodes).map(([hash,node])=>({hash,node,definition:presentationDefinitions[hash]})).filter(item=>item.definition);
-    const definitionByHash=Object.fromEntries(resolved.map(item=>[String(item.hash),item.definition]));
-    const recordsRoot=resolved.find(item=>!(item.definition?.parentNodeHashes||[]).length&&(item.definition?.children?.presentationNodes||[]).length>2&&(item.definition?.children?.presentationNodes||[]).some(entry=>{const definition=definitionByHash[String(entry.presentationNodeHash)];return definition?.displayProperties?.name===item.definition?.displayProperties?.name&&(definition?.children?.presentationNodes||[]).length;}));
+    const tree=await recordPresentationTree(payload);
     const characters=payload?.profile?.characters?.data||{};
     const character=characters[selectedCharacterId]||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
     const characterId=String(character?.characterId||'');
-    if(recordsRoot){
-      sections=recordsFrameworkSections({...payload,journeyRecordOverview:{...(payload?.journeyRecordOverview||{}),records:{sections:[{key:'medals'},{key:'patterns-catalysts'},{key:'lore',available:true},{key:'stat-trackers'}]}}});
-      const roots=(recordsRoot.definition?.children?.presentationNodes||[]).map(entry=>definitionByHash[String(entry.presentationNodeHash)]).filter(Boolean);
+    if(tree){
       for(const [sectionKey,rootName,recordKind] of [['medals','Medals','medals'],['lore','Lore','lore'],['patterns-catalysts','Exotic Catalysts','catalysts']]){
-        const root=roots.find(definition=>definition?.displayProperties?.name===rootName);
-        const currentEntry=(root?.children?.presentationNodes||[]).find(entry=>definitionByHash[String(entry.presentationNodeHash)]?.displayProperties?.name===rootName);
-        const currentDefinition=definitionByHash[String(currentEntry?.presentationNodeHash||'')];
+        const root=tree.roots.find(item=>recordCategoryKey(item.definition?.displayProperties?.name)===recordCategoryKey(rootName));
+        const current=await currentRecordBranch(root,tree.nodes);
+        const currentDefinition=current?.definition;
         if(!currentDefinition)continue;
         const categories=await presentationRecordCategories(currentDefinition?.children?.presentationNodes||[],nodes,characterId,recordKind);
-        const currentNode=nodes[String(currentEntry.presentationNodeHash)];
-        const section=sections.find(item=>item.key===sectionKey);
+        const currentNode=current?.node;
+        let section=sections.find(item=>item.key===sectionKey);
+        if(sectionKey==='lore'&&categories.length){
+          const definition=RECORD_SECTION_DEFINITIONS.find(item=>item.key==='lore');
+          section={...definition,icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),unit:'',categories};
+          sections.splice(Math.min(2,sections.length),0,section);
+        }
         if(sectionKey==='patterns-catalysts'){
           const catalysts=section?.types?.find(type=>type.key==='catalysts');
           if(catalysts)Object.assign(catalysts,{icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),categories});
-        }else if(section)Object.assign(section,{icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),categories});
+        }else if(section&&sectionKey!=='lore')Object.assign(section,{icon:bungiePresentationIcon(currentDefinition),completed:finiteNumber(currentNode?.progressValue),total:finiteNumber(currentNode?.completionValue),categories});
       }
     }
   }
@@ -1333,41 +1684,21 @@ function showDestinationPanel(returnFocus=true){
   if(returnFocus)({titles:titlesOpen,badges:badgesOpen,triumphs:triumphsOpen,'guardian-rank':guardianRankOpen,records:recordsOpen}[previousRoot])?.focus();
 }
 
-async function bindRecentActivity(session){
+function renderRecentActivity(activities=[]){
   const fallback=resetRecentActivity();
-  if(!recentActivityCard||session?.authenticated!==true||!selectedCharacterId)return;
-  const requestId=++recentActivityRequest;
-  try{
-    await manifestReady;
-    const membership=session?.activeDestinyMembership;
-    if(!membership?.membershipType||!membership?.membershipId)return;
-    const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
-    url.searchParams.set('membershipType',String(membership.membershipType));
-    url.searchParams.set('membershipId',String(membership.membershipId));
-    url.searchParams.set('characterId',selectedCharacterId);
-    url.searchParams.set('page','0');
-    if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
-    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}});
-    if(!response.ok)return;
-    const payload=await response.json();
-    const rows=payload?.Response?.activities??payload?.response?.activities??payload?.activities;
-    if(!Array.isArray(rows)||!rows.length)return;
-    const activities=await Promise.all(rows.slice(0,5).map(async activity=>({activity,name:await resolveActivityName(activity)})));
-    if(requestId!==recentActivityRequest)return;
-    const list=document.createElement('div');
-    list.dataset.journeyRecentList='';
-    for(const {activity,name} of activities){
-      const row=document.createElement('p');
-      const period=typeof activity?.period==='string'&&activity.period?new Date(activity.period):null;
-      const date=period&&!Number.isNaN(period.getTime())?activityDateFormatter.format(period):'DATE NOT RETURNED';
-      const completed=finiteNumber(activity?.values?.completed?.basic?.value);
-      const state=completed===null?'COMPLETION NOT RETURNED':completed!==0?'COMPLETED':'NOT COMPLETED';
-      row.textContent=`${name} · ${date} · ${state}`;
-      list.appendChild(row);
-    }
-    if(fallback)fallback.hidden=true;
-    recentActivityCard.appendChild(list);
-  }catch{}
+  if(!recentActivityCard||!activities.length)return;
+  const list=document.createElement('div');
+  list.dataset.journeyRecentList='';
+  for(const activity of activities.slice(0,5)){
+    const row=document.createElement('p');
+    const period=typeof activity?.period==='string'&&activity.period?new Date(activity.period):null;
+    const date=period&&!Number.isNaN(period.getTime())?activityDateFormatter.format(period):'DATE NOT RETURNED';
+    const state=activity?.completed===null||activity?.completed===undefined?'COMPLETION NOT RETURNED':activity.completed?'COMPLETED':'NOT COMPLETED';
+    row.textContent=`${String(activity?.activityName||'ACTIVITY NAME UNAVAILABLE').toLocaleUpperCase('en-GB')} · ${date} · ${state}`;
+    list.appendChild(row);
+  }
+  if(fallback)fallback.hidden=true;
+  recentActivityCard.appendChild(list);
 }
 
 const historicalValue=(mode,key)=>finiteNumber(mode?.allTime?.[key]?.basic?.value);
@@ -1429,128 +1760,351 @@ function trendPath(values,maxValue){
   }).join(' ');
 }
 
-async function bindCurrentForm(session){
-  if(!trendChart||!trendEmpty||session?.authenticated!==true||!selectedCharacterId)return;
-  const requestId=++currentFormRequest;
+function resetCurrentForm(){
+  if(!trendChart||!trendEmpty)return;
   trendChart.querySelectorAll('.mission-chart-line').forEach(path=>path.setAttribute('d',''));
+  trendChart.setAttribute('aria-label','No verified performance trend available');
   trendEmpty.hidden=false;
+  const dates=trendChart.closest('.mission-current-form')?.querySelectorAll('.mission-chart-dates span');
+  if(dates?.length===2){dates[0].textContent='—';dates[1].textContent='—';}
+}
+
+function renderCurrentForm(view){
+  resetCurrentForm();
+  if(!trendChart||!trendEmpty||!view)return;
+  const pveSeries=Array.isArray(view?.trends?.pve)?view.trends.pve:[];
+  const pvpSeries=Array.isArray(view?.trends?.pvp)?view.trends.pvp:[];
+  const pvePath=trendPath(pveSeries.map(point=>point.value),100);
+  const pvpValues=pvpSeries.map(point=>point.value);
+  const pvpPath=trendPath(pvpValues,Math.max(1,...pvpValues));
+  if(!pvePath&&!pvpPath)return;
+  trendChart.querySelector('[data-journey-trend="pve"]')?.setAttribute('d',pvePath);
+  trendChart.querySelector('[data-journey-trend="pvp"]')?.setAttribute('d',pvpPath);
+  trendChart.setAttribute('aria-label','Verified 30-day PVE success and PVP K/D trends');
+  trendEmpty.hidden=true;
+  const dated=[...pveSeries,...pvpSeries].filter(point=>point?.date).sort((left,right)=>left.date.localeCompare(right.date));
+  const dates=trendChart.closest('.mission-current-form')?.querySelectorAll('.mission-chart-dates span');
+  if(dates?.length===2&&dated.length){
+    dates[0].textContent=activityDateFormatter.format(new Date(`${dated[0].date}T00:00:00Z`));
+    dates[1].textContent=activityDateFormatter.format(new Date(`${dated[dated.length-1].date}T00:00:00Z`));
+  }
+}
+
+function resetEvidenceConfidence(){
+  confidenceDonutValue?.setAttribute('stroke-dasharray','0 100');
+  if(confidenceHighPercent)confidenceHighPercent.textContent='—';
+  if(confidenceHigh)confidenceHigh.textContent='—';
+  if(confidenceMedium)confidenceMedium.textContent='—';
+  if(confidenceLow)confidenceLow.textContent='—';
+  if(confidenceStatus)confidenceStatus.textContent='Confidence is calculated only from returned live activity fields.';
+}
+
+function renderEvidenceConfidence(confidence){
+  resetEvidenceConfidence();
+  if(!confidence)return;
+  confidenceDonutValue?.setAttribute('stroke-dasharray',`${confidence.highPercent} ${100-confidence.highPercent}`);
+  if(confidenceHighPercent)confidenceHighPercent.textContent=`${confidence.highPercent}%`;
+  if(confidenceHigh)confidenceHigh.textContent=`${numberFormatter.format(confidence.high)} · ${confidence.highPercent}%`;
+  if(confidenceMedium)confidenceMedium.textContent=`${numberFormatter.format(confidence.medium)} · ${confidence.mediumPercent}%`;
+  if(confidenceLow)confidenceLow.textContent=`${numberFormatter.format(confidence.low)} · ${confidence.lowPercent}%`;
+  if(confidenceStatus)confidenceStatus.textContent=`Coverage across ${numberFormatter.format(confidence.total)} returned live activity records.`;
+}
+
+function setEvidenceEmpty(mount,text){
+  if(!mount)return;
+  mount.className='apx-empty-state';
+  mount.replaceChildren(document.createTextNode(text));
+}
+
+function renderEvidenceRows(mount,rows=[]){
+  if(!mount||!rows.length)return;
+  const list=document.createElement('dl');
+  list.className='journey-evidence-rows';
+  for(const row of rows){
+    const item=document.createElement('div');
+    const label=document.createElement('dt');
+    const value=document.createElement('dd');
+    label.textContent=row.label;
+    value.textContent=row.value;
+    item.append(label,value);
+    list.appendChild(item);
+  }
+  mount.className='journey-evidence-list';
+  mount.replaceChildren(list);
+}
+
+function renderMissionHighlights(activities=[],view=null){
+  setEvidenceEmpty(missionHighlightsCard,'No verified activity history is available for Mission Report highlights.');
+  if(!activities.length||!view)return;
+  const rows=[];
+  const leader=view.mastery?.[0];
+  if(leader)rows.push({label:'ACTIVITY LEADER',value:`${leader.activityName} · ${numberFormatter.format(leader.evidenceCount)} RUN${leader.evidenceCount===1?'':'S'}`});
+  const latest=[...activities].filter(activity=>activity?.period).sort((left,right)=>String(right.period).localeCompare(String(left.period)))[0];
+  if(latest){
+    const date=new Date(latest.period);
+    const dateLabel=Number.isNaN(date.getTime())?'DATE NOT RETURNED':activityDateFormatter.format(date);
+    const state=typeof latest.completed==='boolean'?(latest.completed?'COMPLETED':'NOT COMPLETED'):'COMPLETION NOT RETURNED';
+    rows.push({label:'LATEST RESULT',value:`${latest.activityName} · ${dateLabel} · ${state}`});
+  }
+  if(view.summary?.completionRate!==null)rows.push({label:'RETURNED COMPLETION',value:`${view.summary.completionRate}% ACROSS ${numberFormatter.format(view.summary.totalActivities)} RECORDS`});
+  else if(view.summary?.pvpKd!==null)rows.push({label:'RETURNED PVP K/D',value:Number(view.summary.pvpKd).toFixed(2)});
+  renderEvidenceRows(missionHighlightsCard,rows);
+}
+
+function storageValue(store,key,options){
   try{
-    const membership=session?.activeDestinyMembership;
-    if(!membership?.membershipType||!membership?.membershipId)return;
-    const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
-    url.searchParams.set('membershipType',String(membership.membershipType));
-    url.searchParams.set('membershipId',String(membership.membershipId));
-    url.searchParams.set('characterId',selectedCharacterId);
-    url.searchParams.set('page','0');
-    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}});
-    if(!response.ok)return;
-    const payload=await response.json();
-    const rows=payload?.Response?.activities??payload?.response?.activities??payload?.activities;
-    if(!Array.isArray(rows)||!rows.length||requestId!==currentFormRequest)return;
-    const cutoff=Date.now()-30*24*60*60*1000;
-    const buckets=new Map();
-    for(const activity of rows){
-      const date=new Date(activity?.period||'');
-      if(Number.isNaN(date.getTime())||date.getTime()<cutoff)continue;
-      const day=date.toISOString().slice(0,10);
-      if(!buckets.has(day))buckets.set(day,{day,pveTotal:0,pveCleared:0,kills:0,deaths:0,pvpEvidence:false});
-      const bucket=buckets.get(day);
-      const mode=finiteNumber(activity?.activityDetails?.mode);
-      if(mode===null)continue;
-      const values=activity?.values||{};
-      if(PVP_MODES.has(mode)){
-        const kills=finiteNumber(values?.kills?.basic?.value);
-        const deaths=finiteNumber(values?.deaths?.basic?.value);
-        if(kills!==null&&deaths!==null){bucket.kills+=kills;bucket.deaths+=deaths;bucket.pvpEvidence=true;}
-      }else if(!GAMBIT_MODES.has(mode)){
-        const completed=finiteNumber(values?.completed?.basic?.value);
-        if(completed!==null){bucket.pveTotal+=1;if(completed!==0)bucket.pveCleared+=1;}
-      }
+    const parsed=JSON.parse(store.getItem(key)||'null');
+    return parsed?validateHandoffEnvelope(parsed,options):null;
+  }catch{return null;}
+}
+
+function readJourneyBuildState(session,characterId){
+  const membership=session?.activeDestinyMembership||{};
+  const expected={
+    expectedCharacterId:String(characterId||''),
+    expectedMembershipId:String(membership.membershipId||''),
+    expectedMembershipType:String(membership.membershipType||'')
+  };
+  const sources=[
+    [BUILD_SPACE_KEY,'WORKING BUILD'],
+    [LAST_LOADOUT_KEY,'BUNGIE LOADOUT'],
+    [BUILD_SNAPSHOT_KEY,'CURRENT EQUIPPED']
+  ];
+  for(const [key,label] of sources){
+    for(const store of [sessionStorage,localStorage]){
+      const payload=storageValue(store,key,{...expected,allowLegacy:false});
+      const build=payload?.workingBuild||payload?.originalBuild||payload;
+      if(build&&String(build.characterId||'')===String(characterId||''))return {build,label,key};
     }
-    const daily=[...buckets.values()].sort((left,right)=>left.day.localeCompare(right.day));
-    const pve=daily.filter(day=>day.pveTotal>0).map(day=>day.pveCleared/day.pveTotal*100);
-    const pvp=daily.filter(day=>day.pvpEvidence&&day.deaths>0).map(day=>day.kills/day.deaths);
-    const pvePath=trendPath(pve,100);
-    const pvpPath=trendPath(pvp,Math.max(1,...pvp));
-    if(requestId!==currentFormRequest||(!pvePath&&!pvpPath))return;
-    trendChart.querySelector('[data-journey-trend="pve"]')?.setAttribute('d',pvePath);
-    trendChart.querySelector('[data-journey-trend="pvp"]')?.setAttribute('d',pvpPath);
-    trendChart.setAttribute('aria-label','Verified 30-day PVE success and PVP K/D trends');
-    trendEmpty.hidden=true;
-    const dates=trendChart.closest('.mission-current-form')?.querySelectorAll('.mission-chart-dates span');
-    if(dates?.length===2&&daily.length){
-      dates[0].textContent=activityDateFormatter.format(new Date(`${daily[0].day}T00:00:00Z`));
-      dates[1].textContent=activityDateFormatter.format(new Date(`${daily[daily.length-1].day}T00:00:00Z`));
+  }
+  return null;
+}
+
+function renderBuildSummary(session=journeySession){
+  setEvidenceEmpty(buildSummaryCard,'No verified Build Forge state is available for this Guardian.');
+  if(session?.authenticated!==true||!selectedCharacterId)return;
+  const result=readJourneyBuildState(session,selectedCharacterId);
+  if(!result)return;
+  const build=result.build;
+  const className=String(build.characterClass||build.className||selectedClassName||'GUARDIAN').toLocaleUpperCase('en-GB');
+  const subclass=String(build.subclassName||build.subclass||'SUBCLASS NOT RETURNED').toLocaleUpperCase('en-GB');
+  const loadout=Number.isInteger(build.selectedLoadoutIndex)?`BUNGIE LOADOUT ${build.selectedLoadoutIndex+1}`:result.label;
+  const weapons=Array.isArray(build.weapons)?build.weapons.length:0;
+  const armour=Array.isArray(build.armour)?build.armour.length:Array.isArray(build.armor)?build.armor.length:0;
+  const rows=[
+    {label:'LINKED BUILD',value:`${className} · ${subclass}`},
+    {label:'SOURCE',value:loadout},
+    {label:'EQUIPMENT SNAPSHOT',value:`${weapons} WEAPONS · ${armour} ARMOUR`}
+  ];
+  if(build.paradoxAnalysis)rows.push({label:'PARADOX EVIDENCE',value:'LIVE ANALYSIS LINKED'});
+  renderEvidenceRows(buildSummaryCard,rows);
+}
+
+function buildSnapshotIdentity(snapshot={}){
+  const itemIdentity=item=>String(item?.itemInstanceId??item?.instanceId??item?.itemHash??item?.hash??item?.name??'').trim();
+  const items=[
+    ...(Array.isArray(snapshot.weapons)?snapshot.weapons:[]),
+    ...(Array.isArray(snapshot.armour)?snapshot.armour:[]),
+    ...(Array.isArray(snapshot.armor)?snapshot.armor:[]),
+    ...(Array.isArray(snapshot.items)?snapshot.items:[])
+  ].map(itemIdentity).filter(Boolean).sort();
+  const id=String(snapshot.id??snapshot.snapshotId??snapshot.buildId??'').trim();
+  const name=String(snapshot.name??snapshot.buildName??'').trim();
+  const className=String(snapshot.characterClass??snapshot.className??'').trim();
+  const subclass=String(snapshot.subclassName??snapshot.subclass??'').trim();
+  const loadout=Number.isInteger(snapshot.selectedLoadoutIndex)?snapshot.selectedLoadoutIndex:null;
+  const fingerprint=id||name||[className,subclass,loadout??'',...items].join('|');
+  if(!fingerprint.replaceAll('|',''))return null;
+  const label=name||(loadout!==null?`BUNGIE LOADOUT ${loadout+1}`:[subclass,className,'BUILD'].filter(Boolean).join(' '));
+  return {fingerprint,label:label.toLocaleUpperCase('en-GB')};
+}
+
+function captureEvidenceRows(session=journeySession){
+  const membership=session?.activeDestinyMembership||{};
+  const captures=[readCapture(),...readCaptureArchive()].filter(Boolean);
+  const seen=new Set();
+  const rows=[];
+  for(const capture of captures){
+    const testId=String(capture?.testId||'');
+    if(testId&&seen.has(testId))continue;
+    if(testId)seen.add(testId);
+    if(String(capture?.characterId||'')!==selectedCharacterId)continue;
+    if(String(capture?.membership?.membershipId||'')!==String(membership.membershipId||''))continue;
+    if(String(capture?.membership?.membershipType||'')!==String(membership.membershipType||''))continue;
+    const completed=(capture?.candidates||[]).some(candidate=>candidate?.activity?.completed===true);
+    if(capture?.status!=='collected'||!completed)continue;
+    const identity=buildSnapshotIdentity(capture.buildSnapshot||{});
+    if(identity)rows.push({...identity,source:'BUILD TEST'});
+  }
+  return rows;
+}
+
+function renderMostUsed(activities=[],session=journeySession){
+  setEvidenceEmpty(mostUsedCard,'No verified Build Test or Mission Report loadout evidence has been recorded.');
+  const activityRows=activities.map(activity=>{
+    const identity=buildSnapshotIdentity(activity?.buildSnapshot||{});
+    return identity?{...identity,source:'MISSION REPORT'}:null;
+  }).filter(Boolean);
+  const evidence=[...captureEvidenceRows(session),...activityRows];
+  if(!evidence.length)return;
+  const groups=new Map();
+  for(const row of evidence){
+    const current=groups.get(row.fingerprint)||{...row,count:0,sources:new Set()};
+    current.count+=1;
+    current.sources.add(row.source);
+    groups.set(row.fingerprint,current);
+  }
+  const winner=[...groups.values()].sort((left,right)=>right.count-left.count||left.label.localeCompare(right.label))[0];
+  const percent=Math.round(winner.count/evidence.length*100);
+  renderEvidenceRows(mostUsedCard,[
+    {label:'MOST OBSERVED BUILD',value:winner.label},
+    {label:'VERIFIED USAGE',value:`${winner.count} OF ${evidence.length} SAMPLES · ${percent}%`},
+    {label:'EVIDENCE SOURCE',value:[...winner.sources].join(' + ')}
+  ]);
+}
+
+function bindJourneyCrossPageEvidence(activities=currentActivityEvidence?.activities||[]){
+  renderBuildSummary();
+  renderMostUsed(activities);
+}
+
+function journeyActivityCacheKey(session,characterId){
+  const membership=session?.activeDestinyMembership||{};
+  return `${membership.membershipType||''}:${membership.membershipId||''}:${characterId}`;
+}
+
+async function fetchJourneyActivityEvidence(session,characterId,{force=false}={}){
+  const membership=session?.activeDestinyMembership;
+  if(session?.authenticated!==true||!membership?.membershipType||!membership?.membershipId||!characterId)return null;
+  const key=journeyActivityCacheKey(session,characterId);
+  const cached=journeyActivityCache.get(key);
+  if(cached?.promise)return cached.promise;
+  if(!force&&cached?.status==='ok'&&Date.now()-cached.fetchedAt<JOURNEY_BACKGROUND_REFRESH_MS)return cached;
+  const promise=(async()=>{
+    try{
+      await manifestReady;
+      const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
+      url.searchParams.set('membershipType',String(membership.membershipType));
+      url.searchParams.set('membershipId',String(membership.membershipId));
+      url.searchParams.set('characterId',characterId);
+      url.searchParams.set('count','25');
+      url.searchParams.set('page','0');
+      if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
+      const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}});
+      if(!response.ok)throw new Error(`Journey activity history failed (${response.status}).`);
+      const payload=await response.json();
+      const activities=await normaliseActivityHistory(payload);
+      const evidence={status:'ok',characterId,activities,view:buildMissionReportView(activities),fetchedAt:Date.now()};
+      journeyActivityCache.set(key,evidence);
+      return evidence;
+    }catch(error){
+      console.info('[ASTRIX Journey] activity evidence unavailable',error);
+      if(cached?.status==='ok'){journeyActivityCache.set(key,cached);return cached;}
+      journeyActivityCache.delete(key);
+      return {status:'unavailable',characterId,activities:[],view:null,fetchedAt:Date.now()};
     }
-  }catch{}
+  })();
+  journeyActivityCache.set(key,{...cached,promise});
+  return promise;
+}
+
+function renderJourneyActivityEvidence(evidence){
+  const activities=evidence?.status==='ok'?evidence.activities:[];
+  const view=evidence?.status==='ok'?evidence.view:null;
+  renderRecentActivity(activities);
+  renderCurrentForm(view);
+  renderEvidenceConfidence(view?.confidence||null);
+  renderMissionHighlights(activities,view);
+  renderMostUsed(activities);
+}
+
+async function bindJourneyActivityEvidence(session,{force=false}={}){
+  const characterId=selectedCharacterId;
+  if(session?.authenticated!==true||!characterId){
+    currentActivityEvidence=null;
+    renderJourneyActivityEvidence(null);
+    return null;
+  }
+  const requestId=++journeyActivityRequest;
+  const evidence=await fetchJourneyActivityEvidence(session,characterId,{force});
+  if(requestId!==journeyActivityRequest||characterId!==selectedCharacterId)return null;
+  currentActivityEvidence=evidence;
+  renderJourneyActivityEvidence(evidence);
+  renderJourneyContextStatus();
+  return evidence;
 }
 
 async function bindTitleAndProgression(payload){
   const requestId=++profileIdentityRequest;
-  if(titleSealCard)titleSealCard.textContent='No verified title or seal source is connected to Journey.';
-  if(titleProgressCard)titleProgressCard.textContent='Title progression data is not connected.';
-  if(triumphStatsCard)triumphStatsCard.textContent='No verified Triumph or progression values are available.';
+  renderEquippedTitleSummary();
+  renderNextTitleSummary();
+  if(triumphStatsCard)triumphStatsCard.innerHTML='<span class="apx-empty-state">No verified Triumph or progression values are available.</span>';
 
   const characters=payload?.profile?.characters?.data||{};
   const character=characters[selectedCharacterId]
     ||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
   const characterId=String(character?.characterId||'');
   const titleHash=finiteNumber(character?.titleRecordHash);
-  if(titleSealCard&&titleHash!==null){
-    const definition=await resolveManifestDefinition('DestinyRecordDefinition',titleHash);
-    if(requestId!==profileIdentityRequest)return;
-    const genderHash=String(character?.genderHash||'');
-    const titleName=String(definition?.titleInfo?.titlesByGenderHash?.[genderHash]
-      ||definition?.titleInfo?.titlesByGender?.[character?.genderType]
-      ||definition?.displayProperties?.name||'').trim();
-    const profileRecord=payload?.profile?.profileRecords?.data?.records?.[String(titleHash)];
-    const characterRecord=payload?.profile?.characterRecords?.data?.[characterId]?.records?.[String(titleHash)];
-    const record=characterRecord||profileRecord;
-    if(titleName){
-      const state=finiteNumber(record?.state);
-      const gilded=state!==null&&(state&128)===128;
-      const completedCount=finiteNumber(record?.completedCount);
-      const gildLabel=gilded?(completedCount!==null?` · GILDED ×${numberFormatter.format(completedCount)}`:' · GILDED'):'';
-      titleSealCard.textContent=`${titleName.toUpperCase()}${gildLabel}`;
-    }
-  }
 
   const records=payload?.profile?.profileRecords?.data;
   const lifetimeScore=finiteNumber(records?.lifetimeScore);
   if(triumphStatsCard&&lifetimeScore!==null){
     const activeScore=finiteNumber(records?.activeScore);
     const legacyScore=finiteNumber(records?.legacyScore);
-    const detail=[activeScore!==null?`ACTIVE ${numberFormatter.format(activeScore)}`:'',legacyScore!==null?`LEGACY ${numberFormatter.format(legacyScore)}`:''].filter(Boolean).join(' · ');
-    triumphStatsCard.textContent=`TRIUMPH SCORE ${numberFormatter.format(lifetimeScore)}${detail?` · ${detail}`:''}`;
+    triumphStatsCard.replaceChildren();
+    const total=document.createElement('div');total.className='journey-triumph-total';total.innerHTML=`<span>TRIUMPH SCORE</span><strong>${numberFormatter.format(lifetimeScore)}</strong>`;
+    const breakdown=document.createElement('dl');breakdown.className='journey-triumph-breakdown';breakdown.innerHTML=`<div><dt>ACTIVE</dt><dd>${activeScore===null?'—':numberFormatter.format(activeScore)}</dd></div><div><dt>LEGACY</dt><dd>${legacyScore===null?'—':numberFormatter.format(legacyScore)}</dd></div>`;
+    triumphStatsCard.append(total,breakdown);
   }
 
-  const nodes=payload?.profile?.profilePresentationNodes?.data?.nodes;
-  if(titleProgressCard&&nodes&&typeof nodes==='object'){
-    const candidates=Object.entries(nodes).map(([hash,node])=>({
-      hash,
-      progress:finiteNumber(node?.progressValue),
-      completion:finiteNumber(node?.completionValue)
-    })).filter(candidate=>candidate.progress!==null&&candidate.completion!==null&&candidate.completion>0&&candidate.progress<candidate.completion)
-      .sort((left,right)=>(left.completion-left.progress)-(right.completion-right.progress));
-    for(const candidate of candidates){
-      const definition=await resolveManifestDefinition('DestinyPresentationNodeDefinition',candidate.hash);
-      if(requestId!==profileIdentityRequest)return;
-      const name=String(definition?.displayProperties?.name||'').trim();
-      if(!name||!finiteNumber(definition?.completionRecordHash))continue;
-      titleProgressCard.textContent=`${numberFormatter.format(candidate.progress)} / ${numberFormatter.format(candidate.completion)} TO ${name.toUpperCase()}`;
-      break;
-    }
+  let profileTitles=[];
+  try{profileTitles=await resolvedProfileTitleCollection(payload,character,'titles');}
+  catch(error){console.info('[ASTRIX Journey] title summary profile nodes unavailable',error);}
+  if(requestId!==profileIdentityRequest)return;
+  const profileEquipped=titleHash===null?null:profileTitles.find(title=>title.completionRecordHash===titleHash);
+  if(profileEquipped)renderEquippedTitleSummary(profileEquipped);
+  const profileNext=profileTitles.filter(title=>!title.earned&&title.completed!==null&&title.total!==null&&title.total>0&&title.completed<title.total)
+    .sort((left,right)=>(right.completed/right.total)-(left.completed/left.total)||(left.total-left.completed)-(right.total-right.completed))[0];
+  if(profileNext)renderNextTitleSummary(profileNext);
+
+  let titles=[];
+  try{titles=await resolvedTitleCollection(payload,character,'titles');}
+  catch(error){console.info('[ASTRIX Journey] title summary catalogue unavailable',error);}
+  if(requestId!==profileIdentityRequest)return;
+  let equipped=titleHash===null?null:titles.find(title=>title.completionRecordHash===titleHash);
+  if(!equipped&&titleHash!==null){
+    const definition=await resolveManifestDefinition('DestinyRecordDefinition',titleHash);
+    if(requestId!==profileIdentityRequest)return;
+    const name=titleNameFor(definition,character,definition?.displayProperties?.name);
+    const state=finiteNumber(titleRecordFor(payload,characterId,titleHash)?.state);
+    if(name)equipped={completionRecordHash:titleHash,name,detailName:name,icon:bungiePresentationIcon(definition),description:String(definition?.displayProperties?.description||'').trim(),completed:null,total:null,unit:'TITLE REQUIREMENTS',earned:state!==null&&(state&64)===64,complete:state!==null&&(state&64)===64,gilded:state!==null&&(state&128)===128,requirements:null,requirementEntries:[],characterId};
   }
+  if(equipped)renderEquippedTitleSummary(equipped);
+  else renderEquippedTitleSummary(null,character&&titleHash===null?'No title is equipped on the selected Guardian.':'Equipped title awaiting verified Bungie data.');
+
+  const next=titles.filter(title=>!title.earned&&title.completed!==null&&title.total!==null&&title.total>0&&title.completed<title.total)
+    .sort((left,right)=>(right.completed/right.total)-(left.completed/left.total)||(left.total-left.completed)-(right.total-right.completed))[0];
+  renderNextTitleSummary(next||null);
 }
 
 function bindProfileCards(payload){
-  bindFavouriteCharacter(payload);bindVault(payload);bindMilestones(payload);bindActiveGuardian(payload);bindGuardianRank(payload);void bindTitleAndProgression(payload);
+  bindGuardianUsage(payload);bindVault(payload);bindActiveGuardian(payload);void bindGuardianRankSummary(payload);void bindSeasonRank(payload);void bindTitleAndProgression(payload);
   if(recordsPanel&&!recordsPanel.hidden){
     const root=recordRootView(activeRecordView);
     if(root==='titles'||root==='badges'||root==='triumphs')void bindTitleTriumphPanel(payload,root);
     else if(root==='guardian-rank')bindGuardianRankPanel(payload);
     else if(root==='records')bindRecordsPanel(payload);
   }
+}
+
+function renderJourneyContextStatus(){
+  if(!feedStatus)return;
+  const guardian=selectedClassName||'GUARDIAN';
+  const evidence=currentActivityEvidence?.characterId===selectedCharacterId?currentActivityEvidence:null;
+  const source=evidence?.status==='ok'
+    ?`${numberFormatter.format(evidence.activities.length)} VERIFIED ACTIVITY RECORDS`
+    :evidence?.status==='unavailable'?'ACTIVITY EVIDENCE UNAVAILABLE':'AWAITING VERIFIED ACTIVITY DATA';
+  feedStatus.textContent=`${guardian} · ${activeView.toUpperCase()} · ${source}`;
 }
 
 function renderJourneyContext(){
@@ -1560,11 +2114,8 @@ function renderJourneyContext(){
   document.querySelectorAll('[data-journey-character-panel]').forEach(panel=>{
     panel.dataset.characterId=selectedCharacterId;
     panel.dataset.journeyView=activeView;
-    panel.dataset.timeFilter=timeFilter;
   });
-  const guardian=selectedClassName||'GUARDIAN';
-  const period=timeFilter==='30-days'?'LAST 30 DAYS':'ALL TIME';
-  feedStatus.textContent=`${guardian} · ${activeView.toUpperCase()} · ${period} · AWAITING VERIFIED ACTIVITY DATA`;
+  renderJourneyContextStatus();
   document.querySelectorAll('[data-journey-metric]').forEach(card=>{
     const lens=card.dataset.journeyMetric;
     card.hidden=activeView==='pve'&&lens==='pvp'||activeView==='pvp'&&lens==='pve';
@@ -1579,12 +2130,18 @@ function renderJourneyContext(){
 }
 
 function selectJourneyCharacter(characterId,className){
-  selectedCharacterId=String(characterId||'');
+  const nextCharacterId=String(characterId||'');
+  const characterChanged=nextCharacterId!==selectedCharacterId;
+  selectedCharacterId=nextCharacterId;
   selectedClassName=String(className||'').toUpperCase();
+  if(characterChanged){
+    currentActivityEvidence=null;
+    renderJourneyActivityEvidence(null);
+  }
   renderJourneyContext();
   if(verifiedProfile)void bindDestinationProgress(verifiedProfile);
-  if(journeySession)void bindRecentActivity(journeySession);
-  if(journeySession)void bindCurrentForm(journeySession);
+  bindJourneyCrossPageEvidence();
+  if(journeySession)void bindJourneyActivityEvidence(journeySession);
 }
 
 function syncSelectedCharacterFromCards(){
@@ -1609,26 +2166,26 @@ titlesOpen?.addEventListener('click',()=>showGuardianRecordPanel('titles'));
 badgesOpen?.addEventListener('click',()=>showGuardianRecordPanel('badges'));
 triumphsOpen?.addEventListener('click',()=>showGuardianRecordPanel('triumphs'));
 guardianRankOpen?.addEventListener('click',()=>showGuardianRecordPanel('guardian-rank'));
+guardianRankSummary?.addEventListener('click',event=>{
+  if(!event.target.closest('#journeyGuardianRankDetailsLink'))return;
+  event.preventDefault();
+  showGuardianRecordPanel('guardian-rank');
+});
+titleSealCard?.addEventListener('click',event=>{
+  if(!event.target.closest('#journeyEquippedTitleDetailsLink'))return;
+  event.preventDefault();
+  showGuardianRecordPanel('titles');
+  if(equippedTitleSummary)showTitleDetail(equippedTitleSummary,'titles');
+});
+titleProgressCard?.addEventListener('click',event=>{
+  if(!event.target.closest('#journeyNextTitleDetailsLink'))return;
+  event.preventDefault();
+  showGuardianRecordPanel('titles');
+  if(nextTitleSummary)showTitleDetail(nextTitleSummary,'titles');
+});
 recordsOpen?.addEventListener('click',()=>showGuardianRecordPanel('records'));
 recordsBack?.addEventListener('click',handleRecordBack);
 locationSelector?.addEventListener('click',event=>{if(event.target.closest('.apx-loc[data-loc]'))showDestinationPanel(false);});
-
-document.querySelectorAll('.journey-section-nav a').forEach(link=>link.addEventListener('click',()=>{
-  document.querySelectorAll('.journey-section-nav a').forEach(item=>{
-    const active=item===link;
-    item.classList.toggle('is-active',active);
-    if(active)item.setAttribute('aria-current','page');
-    else item.removeAttribute('aria-current');
-  });
-  const view=link.dataset.journeyViewLink;
-  if(view)selectJourneyView(view);
-}));
-
-document.querySelectorAll('input[name="journeyTime"]').forEach(input=>input.addEventListener('change',()=>{
-  if(!input.checked)return;
-  timeFilter=input.value;
-  renderJourneyContext();
-}));
 
 document.addEventListener('astrix:character-selected',event=>{
   selectJourneyCharacter(event.detail?.characterId,event.detail?.className||event.detail?.characterClass);
@@ -1640,41 +2197,101 @@ if(heroCards){
 }
 
 function hasJourneyRecordComponents(payload){
-  return payload?.profile?.metrics?.data&&payload?.profile?.characterCraftables?.data;
+  return payload?.profile?.profilePresentationNodes?.data?.nodes&&payload?.profile?.profileRecords?.data;
 }
 
 async function readVerifiedProfile(session){
   const cached=await readCachedBungieProfile(session);
   if(cached?.profile?.characters?.data&&hasJourneyRecordComponents(cached))return cached;
-  return new Promise(async resolve=>{
-    let settled=false;
-    const fallback=cached?.profile?.characters?.data?cached:null;
-    const finish=(payload,force=false)=>{
-      if(settled)return;
-      const verified=payload?.profile?.characters?.data?payload:fallback;
-      if(!force&&!hasJourneyRecordComponents(verified))return;
-      settled=true;
-      document.removeEventListener('astrix:bungie-profile-loaded',onLoaded);
-      document.removeEventListener('astrix:profile-error',onError);
-      resolve(verified);
-    };
-    const onLoaded=event=>readCachedBungieProfile(session).then(payload=>finish(payload,event.detail?.sessionCacheRestored!==true)).catch(()=>finish(null,true));
-    const onError=()=>finish(null,true);
-    document.addEventListener('astrix:bungie-profile-loaded',onLoaded);
-    document.addEventListener('astrix:profile-error',onError);
+  const sharedProfile=await waitWithin(globalThis.ASTRIX_HERO_PROFILE_PROMISE,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
+  if(sharedProfile?.profile?.characters?.data){
+    await cacheBungieProfile(session,sharedProfile);
+    return sharedProfile;
+  }
+  try{
+    const refreshed=await fetchJourneyProfileRefresh();
+    return refreshed?.profile?.characters?.data?refreshed:(cached?.profile?.characters?.data?cached:null);
+  }catch(error){
+    console.info('[ASTRIX Journey] verified Bungie profile unavailable',error);
+    return cached?.profile?.characters?.data?cached:null;
+  }
+}
+
+async function fetchJourneyProfileRefresh(){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),JOURNEY_REFRESH_TIMEOUT_MS);
+  try{
+    await manifestReady;
+    const url=new URL('/bungie/profile',AUTH_ORIGIN);
+    url.searchParams.set('scope','journey');
+    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload?.error||`Journey refresh failed (${response.status}).`);
+    const availableStats=payload?.statDefinitions||verifiedProfile?.statDefinitions||globalThis.ASTRIX_HERO_PROFILE_PAYLOAD?.statDefinitions;
+    payload.statDefinitions=availableStats&&Object.keys(availableStats).length
+      ?availableStats
+      :await guardianManifest.getMany('DestinyStatDefinition',STAT_ORDER);
+    await cacheBungieProfile(journeySession,payload);
+    return payload;
+  }finally{
+    clearTimeout(timeout);
+  }
+}
+
+async function refreshJourneyProfile(){
+  if(journeySession?.authenticated!==true)return null;
+  if(document.visibilityState==='hidden'){
+    journeyBackgroundRefreshPending=true;
+    return null;
+  }
+  if(journeyBackgroundRefreshRequest)return journeyBackgroundRefreshRequest;
+  journeyBackgroundRefreshPending=false;
+  journeyBackgroundRefreshRequest=(async()=>{
     try{
-      await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260829-subclass-identity-1-build-handoff-storage-order-1');
-      const loaded=await readCachedBungieProfile(session);
-      if(loaded?.profile?.characters?.data)finish(loaded);
+      const profile=await fetchJourneyProfileRefresh();
+      if(!profile?.profile?.characters?.data)return null;
+      verifiedProfile=profile;
+      bindProfileCards(profile);
+      await bindDestinationProgress(profile);
+      await bindJourneyActivityEvidence(journeySession,{force:true});
+      bindJourneyCrossPageEvidence();
+      document.dispatchEvent(new CustomEvent('astrix:journey-profile-refreshed',{detail:{refreshedAt:Date.now()}}));
+      return profile;
     }catch(error){
-      console.info('[ASTRIX Journey] verified Bungie profile unavailable',error);
-      finish(null,true);
+      console.info('[ASTRIX Journey] background profile refresh unavailable',error);
+      return null;
+    }finally{
+      journeyLastRefreshAt=Date.now();
+      journeyBackgroundRefreshRequest=null;
     }
+  })();
+  return journeyBackgroundRefreshRequest;
+}
+
+function startJourneyBackgroundRefresh(){
+  if(journeyBackgroundRefreshTimer)return;
+  journeyLastRefreshAt=Date.now();
+  journeyBackgroundRefreshTimer=globalThis.setInterval(()=>void refreshJourneyProfile(),JOURNEY_BACKGROUND_REFRESH_MS);
+  const refreshWhenVisible=()=>{
+    if(document.visibilityState==='hidden')return;
+    bindJourneyCrossPageEvidence();
+    if(journeyBackgroundRefreshPending||Date.now()-journeyLastRefreshAt>=JOURNEY_BACKGROUND_REFRESH_MS)void refreshJourneyProfile();
+  };
+  document.addEventListener('visibilitychange',refreshWhenVisible);
+  globalThis.addEventListener('focus',refreshWhenVisible);
+  globalThis.addEventListener('storage',event=>{
+    if(BUILD_EVIDENCE_STORAGE_KEYS.has(event.key))bindJourneyCrossPageEvidence();
   });
 }
 
 function showSignedOut(){
-  location.replace('https://astrixparadox.com/astrix-app/pages/guardian-workspace-v2/');
+  resolving.hidden=true;
+  dashboard.hidden=true;
+  signedOut.hidden=false;
+  status.textContent='BUNGIE CONNECTION REQUIRED';
+  if(connectButton)connectButton.href=authStartUrl();
+  globalThis.AstrixLoader.authResolved();
+  void finishJourneyLoader(signedOut);
 }
 
 let locationSelectorReady=false;
@@ -1685,6 +2302,7 @@ function showJourney(){
   dashboard.hidden=false;
   status.textContent='AUTHENTICATED JOURNEY';
   renderJourneyContext();
+  bindJourneyCrossPageEvidence();
   if(!locationSelectorReady){
     locationSelectorReady=true;
     // Reactive art-backdrop atmosphere + destination selector. Honest empty checklist
@@ -1701,24 +2319,46 @@ function showJourney(){
 try{
   globalThis.AstrixLoader.set(12);globalThis.AstrixLoader.status('Connecting Journey');
   const session=await getBungieSession();
+  globalThis.AstrixLoader.set(28);globalThis.AstrixLoader.status('Opening Journey');
   const authenticated=session?.authenticated===true&&globalThis.ASTRIX_BUNGIE_SESSION?.authenticated===true;
   if(authenticated){
     journeySession=session;
     void bindHistoricalStats(session);
     const heroCardsReady=waitForHeroCards();
     const mapReady=showJourney();
-    const profile=await readVerifiedProfile(session);
+    globalThis.AstrixLoader.set(42);globalThis.AstrixLoader.status('Loading verified Guardian data');
+    const profilePromise=readVerifiedProfile(session);
+    const profile=await waitWithin(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
     if(profile){
       verifiedProfile=profile;
       bindProfileCards(profile);
       void bindDestinationProgress(profile);
+    }else{
+      void profilePromise.then(lateProfile=>{
+        if(!lateProfile?.profile?.characters?.data){void refreshJourneyProfile();return;}
+        verifiedProfile=lateProfile;
+        bindProfileCards(lateProfile);
+        void bindDestinationProgress(lateProfile);
+      }).catch(error=>console.info('[ASTRIX Journey] deferred verified profile unavailable',error));
     }
-    await Promise.all([heroCardsReady,mapReady,waitForJourneyAtmosphere()]);
-    globalThis.AstrixLoader.set(96);globalThis.AstrixLoader.status('Journey rendered');
-    await globalThis.AstrixLoader.ready(document);
+    startJourneyBackgroundRefresh();
+    globalThis.AstrixLoader.set(78);globalThis.AstrixLoader.status('Finalising Journey');
+    await Promise.all([
+      waitWithin(heroCardsReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS),
+      waitWithin(mapReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS),
+      waitWithin(waitForJourneyAtmosphere(),JOURNEY_BOOTSTRAP_UI_WAIT_MS)
+    ]);
+    await finishJourneyLoader(document);
   }
   else showSignedOut();
 }catch(error){
   console.info('[ASTRIX Journey] existing Bungie session unavailable',error);
-  showSignedOut();
+  if(journeySession?.authenticated===true){
+    resolving.hidden=true;
+    signedOut.hidden=true;
+    dashboard.hidden=false;
+    status.textContent='AUTHENTICATED JOURNEY · LIVE REFRESH PENDING';
+    startJourneyBackgroundRefresh();
+    void finishJourneyLoader(document);
+  }else showSignedOut();
 }

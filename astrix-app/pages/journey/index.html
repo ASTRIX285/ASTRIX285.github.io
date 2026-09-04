@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="ASTRIX PARADOX Guardian Journey summary dashboard">
   <title>Journey — ASTRIX PARADOX</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&family=Orbitron:wght@700;800&family=Questrial&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.typekit.net/tnp6kbq.css">
+  <link rel="stylesheet" href="/css/astrix-site-typography.css?v=20260903-bahnschrift-1">
   <link rel="stylesheet" href="../../shared/astrix-portal-loader.css?v=20260831-paradox-map-crimson-gold">
   <script>window.APX_LOGO='../../../img/logo.png';</script>
   <script src="../../shared/astrix-portal-loader.js?v=20260831-render-ready"></script>
@@ -15,17 +14,17 @@
   <link rel="stylesheet" href="../../astrix-destinations.css">
   <link rel="stylesheet" href="../../shared/astrix-location-atmosphere.css">
   <link rel="stylesheet" href="../mission-reports/mission-reports.css">
-  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260831-fixed-ribbons-destination-subtitle">
-  <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260831-global-fixed-stack">
+  <link rel="stylesheet" href="./journey-2560-visual.css?v=20260903-command-header-1">
+  <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260903-command-header-2">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <style>
     .journey-page .journey-focus-selector-column,.journey-page .journey-focus-detail-column{display:grid;gap:12px;min-width:0}
     .journey-page .journey-record-selector-panel .apx-loc-list{max-height:none}
-    .journey-page .journey-records-back{min-height:32px;padding:0 12px;border:1px solid rgba(201,168,76,.34);background:rgba(139,0,0,.14);color:var(--apx-gold);font:700 .75rem/1 Orbitron,sans-serif;letter-spacing:.08em;cursor:pointer}
+    .journey-page .journey-records-back{min-height:32px;padding:0 12px;border:1px solid rgba(201,168,76,.34);background:rgba(139,0,0,.14);color:var(--apx-gold);font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;cursor:pointer}
     .journey-page .journey-records-back:hover,.journey-page .journey-records-back:focus-visible{border-color:rgba(201,168,76,.8);background:rgba(139,0,0,.26);outline:none}
     .journey-page .journey-records-panel{min-height:0;overflow-y:auto;border:1px solid color-mix(in srgb,var(--loc) 24%,transparent);background:rgba(6,6,6,.32);scrollbar-color:rgba(201,168,76,.42) transparent}
     .journey-page .journey-records-toolbar{position:sticky;z-index:2;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(6,6,6,.96)}
-    .journey-page .journey-records-status{color:#77716a;font:700 .75rem/1 Orbitron,sans-serif;letter-spacing:.08em;text-align:right}
+    .journey-page .journey-records-status{color:#77716a;font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;text-align:right}
     .journey-page .journey-records-group{padding:16px}
     .journey-page .journey-records-group+.journey-records-group{border-top:1px solid rgba(201,168,76,.18)}
     .journey-page .journey-records-group>h3{margin:0 0 12px;color:var(--apx-gold);font-size:.875rem;letter-spacing:.1em}
@@ -38,45 +37,45 @@
     .journey-page .journey-record-row.is-complete{border-color:rgba(201,168,76,.32)}
     .journey-page .journey-record-icon{display:block;width:48px;height:48px;object-fit:contain}
     .journey-page .journey-record-copy{min-width:0}
-    .journey-page .journey-record-title{display:block;overflow:hidden;color:#f4efe4;font:800 .875rem/1.15 Orbitron,sans-serif;letter-spacing:.04em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
-    .journey-page .journey-record-description{display:block;margin-top:5px;overflow:hidden;color:#8e887e;font:.8125rem/1.25 Rajdhani,sans-serif;text-overflow:ellipsis;white-space:nowrap}
-    .journey-page .journey-record-progress{display:flex;justify-content:space-between;gap:12px;margin-top:7px;color:#8e887e;font:.8125rem/1 Rajdhani,sans-serif}
+    .journey-page .journey-record-title{display:block;overflow:hidden;color:#f4efe4;font:800 .875rem/1.15 bahnschrift-semicondensed,sans-serif;letter-spacing:.04em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+    .journey-page .journey-record-description{display:block;margin-top:5px;overflow:hidden;color:#8e887e;font:.8125rem/1.25 bahnschrift,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+    .journey-page .journey-record-progress{display:flex;justify-content:space-between;gap:12px;margin-top:7px;color:#8e887e;font:.8125rem/1 bahnschrift,sans-serif}
     .journey-page .journey-record-progress b{color:var(--apx-gold);font-weight:700}
     .journey-page .journey-record-track{height:7px;margin-top:7px;overflow:hidden;background:rgba(255,255,255,.08)}
     .journey-page .journey-record-fill{display:block;height:100%;background:linear-gradient(90deg,#8b0000,#d3202f 48%,#c9a84c)}
     .journey-page .journey-record-row.is-gilded .journey-record-fill{background:linear-gradient(90deg,#b87321,#f4d37b 56%,#fff0b1)}
     .journey-page .journey-record-check{float:right;color:var(--apx-gold)}
-    .journey-page .journey-record-link{display:inline-block;margin-top:9px;color:var(--apx-gold);font:700 .6875rem/1 Orbitron,sans-serif;letter-spacing:.08em;text-decoration:none}
+    .journey-page .journey-record-link{display:inline-block;margin-top:9px;color:var(--apx-gold);font:700 .6875rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;text-decoration:none}
     .journey-page .journey-record-link:hover,.journey-page .journey-record-link:focus-visible{text-decoration:underline;outline:none}
     .journey-page .journey-record-detail-hero{display:grid;grid-template-columns:96px minmax(0,1fr);gap:16px;align-items:center;margin-bottom:16px;padding:14px;border:1px solid rgba(201,168,76,.18);background:rgba(255,255,255,.018)}
     .journey-page .journey-record-detail-hero.has-no-icon{grid-template-columns:1fr}
     .journey-page .journey-record-detail-icon{display:block;width:88px;height:88px;object-fit:contain}
-    .journey-page .journey-record-detail-copy h4{margin:0;color:#f4efe4;font:800 1rem/1.2 Orbitron,sans-serif;letter-spacing:.08em;text-transform:uppercase}
-    .journey-page .journey-record-detail-copy p{margin:7px 0 0;color:#8e887e;font:.875rem/1.35 Rajdhani,sans-serif}
+    .journey-page .journey-record-detail-copy h4{margin:0;color:#f4efe4;font:800 1rem/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+    .journey-page .journey-record-detail-copy p{margin:7px 0 0;color:#8e887e;font:.875rem/1.35 bahnschrift,sans-serif}
     .journey-page .journey-record-submenu{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
-    .journey-page .journey-record-submenu button{min-height:38px;padding:8px 12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:700 .75rem/1 Orbitron,sans-serif;letter-spacing:.08em;text-align:left;cursor:pointer}
+    .journey-page .journey-record-submenu button{min-height:38px;padding:8px 12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:700 .75rem/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;text-align:left;cursor:pointer}
     .journey-page .journey-record-submenu button[aria-current="true"]{border-left:3px solid var(--apx-gold);background:rgba(201,168,76,.1);color:#f4efe4}
     .journey-page .journey-record-type-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
-    .journey-page .journey-record-type-tabs button{display:grid;place-items:center;gap:5px;min-height:72px;padding:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.018);color:#8e887e;font:700 .6875rem/1.15 Orbitron,sans-serif;letter-spacing:.06em;text-align:center;cursor:pointer}
+    .journey-page .journey-record-type-tabs button{display:grid;place-items:center;gap:5px;min-height:72px;padding:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.018);color:#8e887e;font:700 .6875rem/1.15 bahnschrift-semicondensed,sans-serif;letter-spacing:.06em;text-align:center;cursor:pointer}
     .journey-page .journey-record-type-tabs button[aria-current="true"]{border-color:rgba(201,168,76,.72);background:rgba(201,168,76,.1);color:#f4efe4}
     .journey-page .journey-record-type-tabs img{display:block;width:40px;height:40px;object-fit:contain}
-    .journey-page .journey-record-type-tabs small{color:var(--apx-gold);font:700 .6875rem/1 Rajdhani,sans-serif}
+    .journey-page .journey-record-type-tabs small{color:var(--apx-gold);font:700 .6875rem/1 bahnschrift,sans-serif}
     .journey-page .journey-record-detail-grid{display:grid;grid-template-columns:minmax(150px,210px) minmax(0,1fr);gap:14px;align-items:start}
     .journey-page .journey-record-detail-grid .journey-record-submenu{margin-bottom:0}
     .journey-page .journey-records-group.is-patterns-catalysts .journey-records-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
     .journey-page .journey-records-group.is-patterns-catalysts .journey-record-row.is-complete,.journey-page .journey-records-group.is-patterns-catalysts .journey-record-row.is-crafted{border-color:rgba(244,211,123,.5);background:linear-gradient(90deg,rgba(184,115,33,.1),rgba(255,240,177,.035))}
     .journey-page .journey-rank-strip{display:grid;grid-template-columns:repeat(11,minmax(40px,1fr));gap:5px;margin-bottom:14px;overflow-x:auto}
-    .journey-page .journey-rank-strip button{min-width:40px;min-height:40px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:800 .75rem/1 Orbitron,sans-serif;cursor:pointer}
+    .journey-page .journey-rank-strip button{min-width:40px;min-height:40px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.018);color:#8e887e;font:800 .75rem/1 bahnschrift-semicondensed,sans-serif;cursor:pointer}
     .journey-page .journey-rank-strip button[aria-current="true"]{border-color:rgba(201,168,76,.7);background:rgba(201,168,76,.12);color:var(--apx-gold)}
     .journey-page .journey-records-empty{margin:0}
     @media(max-width:720px){.journey-page .journey-records-toolbar{align-items:flex-start;flex-direction:column}.journey-page .journey-records-status{text-align:left}.journey-page .journey-record-detail-hero,.journey-page .journey-record-detail-grid{grid-template-columns:1fr}.journey-page .journey-record-type-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.journey-page .journey-records-group.is-patterns-catalysts .journey-records-list{grid-template-columns:1fr}.journey-page .journey-rank-strip{grid-template-columns:repeat(11,40px)}}
   </style>
-  <script src="../../shared/astrix-destination-ribbon.js" defer></script>
+  <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
   <script src="../../shared/astrix-destination-theme.js" defer></script>
   <script src="../../shared/astrix-location-visuals.js" defer></script>
 </head>
 <body class="apx-destination-page journey-page">
-  <header class="apx-destination-header topbar">
+  <header class="apx-destination-header topbar astrix-command-header">
     <a class="apx-destination-brand" href="./" aria-label="ASTRIX PARADOX Journey"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a>
     <div class="apx-destination-header-copy"><strong>JOURNEY</strong><small>GUARDIAN COMMAND CONSOLE</small></div>
     <div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div>
@@ -91,12 +90,10 @@
       <p class="apx-eyebrow">ENTER THE PARADOX</p>
       <h1>Connect your Guardian.</h1>
       <p>Journey requires an authenticated Bungie session. No Guardian data is displayed until the existing secure connection confirms access.</p>
-      <div class="apx-landing-actions" id="journeyConnectAction" aria-label="Bungie connection action"><a class="bungie-auth-btn" href="https://astrixparadox.com/astrix-app/pages/guardian-workspace-v2/">CONNECT BUNGIE</a></div>
+      <div class="apx-landing-actions" id="journeyConnectAction" aria-label="Bungie connection action"><a class="bungie-auth-btn" id="journeyConnectButton" href="https://auth.astrixparadox.com/bungie/start?return=https%3A%2F%2Fastrixparadox.com%2Fastrix-app%2Fpages%2Fjourney%2F">CONNECT BUNGIE</a></div>
     </section>
 
     <section id="journeyDashboard" hidden>
-      <div class="apx-page-heading"><div><p class="apx-eyebrow">GUARDIAN JOURNEY · SUMMARY HUB</p><h1>Journey</h1><p>Your top-line Guardian record. Every value remains pending until its verified source is connected.</p></div><span class="apx-status-chip">VERIFIED DATA ONLY</span></div>
-
       <div class="journey-console">
         <aside class="mission-left-rail journey-left-rail" data-journey-character-panel aria-label="Guardian Journey navigation and identity">
           <section class="mission-identity-card">
@@ -105,48 +102,26 @@
               <span id="journeyGuardianCrestEmpty">◇</span>
             </div>
             <div class="mission-identity-copy">
-              <p class="mission-kicker">ACTIVE GUARDIAN</p>
               <h1 id="journeyGuardianClass">Guardian unavailable</h1>
               <p id="journeyGuardianSubclass">Subclass awaiting verified data</p>
             </div>
-            <span class="mission-verified-badge" id="journeyVerifiedGuardian" hidden>✓ VERIFIED GUARDIAN</span>
+            <div class="journey-identity-stats" id="journeyGuardianStats" aria-label="Selected Guardian statistics" aria-live="polite"></div>
           </section>
 
-          <section class="mission-guardian-stats" aria-label="Guardian Journey statistics">
+          <section class="mission-guardian-stats journey-account-summary" aria-label="Account Journey statistics">
             <dl>
-              <div><dt>Total playtime</dt><dd id="journeyTotalPlaytime">—</dd></div>
-              <div><dt>Account age</dt><dd id="journeyAccountAge">—</dd></div>
-              <div><dt>Journey level</dt><dd id="journeyLevel">—</dd></div>
+              <div><dt>Account playtime</dt><dd id="journeyTotalPlaytime">—</dd></div>
             </dl>
-            <div class="mission-xp" aria-label="Journey XP unavailable">
-              <div class="mission-xp-track"><span id="journeyXpFill"></span></div>
-              <span id="journeyXpLabel">XP source unavailable</span>
-            </div>
+            <article class="journey-record-detail-hero journey-guardian-rank-summary has-no-icon" id="journeyGuardianRankSummary" aria-live="polite"><div class="journey-record-detail-copy"><h4>Guardian Rank unavailable</h4><p>Highest completed Guardian Rank awaiting verified Bungie data.</p><a class="journey-record-link" id="journeyGuardianRankDetailsLink" href="#journeyGuardianRankHeading">VIEW GUARDIAN RANK DETAILS</a></div></article>
           </section>
-
-          <nav class="mission-section-nav journey-section-nav" aria-label="Journey sections">
-            <a class="is-active" href="#journeyTopSummary" aria-current="page"><span aria-hidden="true">⌂</span>OVERVIEW</a>
-            <a href="#journeyRecentActivity"><span aria-hidden="true">◫</span>ACTIVITY HISTORY</a>
-            <a href="#journeyTopSummary" data-journey-view-link="pve"><span aria-hidden="true">⬡</span>PVE MASTERY</a>
-            <a href="#journeyCurrentForm" data-journey-view-link="pvp"><span aria-hidden="true">◇</span>PVP PERFORMANCE</a>
-            <a href="#journeyBuildSummary"><span aria-hidden="true">△</span>BUILD EVOLUTION</a>
-            <a href="#journeyMilestones"><span aria-hidden="true">✦</span>TRIUMPHS &amp; MILESTONES</a>
-          </nav>
-
-          <fieldset class="mission-time-filter journey-time-filter">
-            <legend>TIME FILTER</legend>
-            <label><input type="radio" name="journeyTime" value="all" checked><span>All Time</span></label>
-            <label title="Season boundaries are not returned by the current activity feed"><input type="radio" name="journeyTime" value="season" disabled><span>Season</span></label>
-            <label><input type="radio" name="journeyTime" value="30-days"><span>Last 30 Days</span></label>
-          </fieldset>
 
           <section class="journey-column-summaries journey-left-summaries" aria-labelledby="journeyIdentitySummariesTitle">
             <h2 id="journeyIdentitySummariesTitle">IDENTITY &amp; PROGRESSION</h2>
-            <article class="apx-scaffold-card"><h2>Equipped title and seal</h2><span class="apx-empty-state" id="journeyTitleSeal">No verified title or seal source is connected to Journey.</span></article>
-            <article class="apx-scaffold-card"><h2>Progress to next titles</h2><span class="apx-empty-state" id="journeyTitleProgress">Title progression data is not connected.</span></article>
-            <article class="apx-scaffold-card"><h2>Triumph and progression statistics</h2><span class="apx-empty-state" id="journeyTriumphStats">No verified Triumph or progression values are available.</span></article>
-            <article class="apx-scaffold-card"><h2>Favourite character</h2><span class="apx-empty-state" id="journeyFavouriteCharacter">No usage history has been recorded for this scaffold.</span></article>
-            <article class="apx-scaffold-card"><h2>Milestones and achievements</h2><span class="apx-empty-state" id="journeyMilestones">No verified milestone or achievement source is connected.</span></article>
+            <article class="apx-scaffold-card" data-journey-equipped-title><h2>Equipped title and seal</h2><div class="journey-record-detail-hero journey-equipped-title-summary has-no-icon" id="journeyTitleSeal" aria-live="polite"><div class="journey-record-detail-copy"><h4>Equipped title unavailable</h4><p>Equipped title awaiting verified Bungie data.</p><a class="journey-record-link" id="journeyEquippedTitleDetailsLink" href="#journeyTitlesHeading">VIEW ALL TITLES</a></div></div></article>
+            <article class="apx-scaffold-card" data-journey-next-title><h2>Progress to next title</h2><div class="journey-record-detail-hero journey-next-title-summary has-no-icon" id="journeyTitleProgress" aria-live="polite"><div class="journey-record-detail-copy"><h4>Next title unavailable</h4><p>Verified title progress is not available.</p><a class="journey-record-link" id="journeyNextTitleDetailsLink" href="#journeyTitlesHeading">VIEW ALL TITLES</a></div></div></article>
+            <article class="apx-scaffold-card journey-triumph-card"><h2>Triumph and progression statistics</h2><div class="journey-triumph-summary" id="journeyTriumphStats" aria-live="polite"><span class="apx-empty-state">No verified Triumph or progression values are available.</span></div></article>
+            <article class="apx-scaffold-card journey-usage-card"><h2>Guardian class usage</h2><div class="journey-usage-summary" id="journeyGuardianUsage" aria-live="polite"><span class="apx-empty-state">Verified class playtime is not available.</span></div></article>
+            <article class="apx-scaffold-card journey-season-card"><h2>Current Season Rank</h2><div class="journey-record-detail-hero journey-season-rank-summary has-no-icon" id="journeySeasonRank" aria-live="polite"><div class="journey-record-detail-copy"><h4>Season Rank unavailable</h4><p>Current seasonal progression is awaiting verified Bungie data.</p></div></div></article>
           </section>
         </aside>
 
@@ -242,31 +217,31 @@
             <header class="mission-panel-heading"><div><p class="mission-eyebrow">SOURCE COVERAGE</p><h2 id="journeyConfidenceTitle">EVIDENCE CONFIDENCE</h2></div></header>
             <div class="mission-confidence-layout">
               <div class="mission-confidence-donut">
-                <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48"/><circle class="mission-donut-value" cx="60" cy="60" r="48" pathLength="100"/></svg>
-                <span><strong>—</strong><small>HIGH</small></span>
+                <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48"/><circle class="mission-donut-value" id="journeyConfidenceDonutValue" cx="60" cy="60" r="48" pathLength="100"/></svg>
+                <span><strong id="journeyConfidenceHighPercent">—</strong><small>HIGH</small></span>
               </div>
               <dl class="mission-confidence-rows">
-                <div><dt><i class="is-high"></i>High confidence</dt><dd>—</dd></div>
-                <div><dt><i class="is-medium"></i>Medium confidence</dt><dd>—</dd></div>
-                <div><dt><i class="is-low"></i>Low confidence</dt><dd>—</dd></div>
+                <div><dt><i class="is-high"></i>High confidence</dt><dd id="journeyConfidenceHigh">—</dd></div>
+                <div><dt><i class="is-medium"></i>Medium confidence</dt><dd id="journeyConfidenceMedium">—</dd></div>
+                <div><dt><i class="is-low"></i>Low confidence</dt><dd id="journeyConfidenceLow">—</dd></div>
               </dl>
             </div>
-            <div class="mission-inline-empty">Confidence is calculated only from returned live activity fields.</div>
+            <div class="mission-inline-empty" id="journeyConfidenceStatus">Confidence is calculated only from returned live activity fields.</div>
           </section>
 
           <section class="journey-column-summaries journey-right-summaries" aria-labelledby="journeyEvidenceSummariesTitle">
             <h2 id="journeyEvidenceSummariesTitle">EVIDENCE &amp; TOOLS</h2>
-            <article class="apx-scaffold-card"><h2>Most used since connecting ASTRIX PARADOX</h2><span class="apx-empty-state" id="journeyMostUsed">No ASTRIX PARADOX loadout history has been recorded.</span></article>
+            <article class="apx-scaffold-card"><h2>Most used since connecting ASTRIX PARADOX</h2><div class="apx-empty-state" id="journeyMostUsed" aria-live="polite">No verified Build Test or Mission Report loadout evidence has been recorded.</div></article>
             <article class="apx-scaffold-card" id="journeyRecentActivity"><h2>Recent activity</h2><span class="apx-empty-state">Recent activity data is not connected.</span></article>
-            <article class="apx-scaffold-card" id="journeyBuildSummary"><h2>Build Forge summary</h2><span class="apx-empty-state">No Build Forge summary is available in Journey yet.</span></article>
-            <article class="apx-scaffold-card"><h2>Vault capacity and Postmaster warning</h2><span class="apx-empty-state" id="journeyVault">Capacity and Postmaster warning states require verified inventory data.</span></article>
-            <article class="apx-scaffold-card"><h2>Mission Report highlights</h2><span class="apx-empty-state" id="journeyMissionHighlights">No Mission Report evidence is connected.</span></article>
+            <article class="apx-scaffold-card"><h2>Build Forge summary</h2><div class="apx-empty-state" id="journeyBuildSummary" aria-live="polite">No verified Build Forge state is available for this Guardian.</div></article>
+            <article class="apx-scaffold-card journey-vault-card"><h2>Vault inventory</h2><div class="journey-vault-summary" id="journeyVault" aria-live="polite"><span class="apx-empty-state">Vault inventory is awaiting verified Bungie data.</span></div></article>
+            <article class="apx-scaffold-card"><h2>Mission Report highlights</h2><div class="apx-empty-state" id="journeyMissionHighlights" aria-live="polite">No verified activity history is available for Mission Report highlights.</div></article>
           </section>
         </aside>
       </div>
     </section>
   </main>
-  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260831-loader-render-complete"></script>
-  <script type="module" src="./journey.mjs?v=20260902-stat-trackers-no-report-link"></script>
+  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1"></script>
+  <script type="module" src="./journey.mjs?v=20260903-command-header-1"></script>
 </body>
 </html>

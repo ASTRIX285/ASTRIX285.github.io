@@ -15,6 +15,47 @@ function weaponDetailTile(item,label=""){
   return `<div class="weapon-detail-tile"${hashAttribute(item)} title="${esc([text(item),item.description].filter(Boolean).join(" — "))}">${icon?`<img src="${esc(icon)}"${hashAttribute(item)} alt="">`:"◆"}<span>${esc(label||text(item)||"Resolved item")}</span></div>`;
 }
 
+function uniqueByHash(items=[]){
+  return (items||[]).filter((item,index,rows)=>item&&rows.findIndex(other=>{const hash=bungieHash(item),otherHash=bungieHash(other);return hash&&otherHash?hash===otherHash:other===item;})===index);
+}
+
+function hasResolvedIdentity(item){
+  const name=text(item);
+  return Boolean(bungieHash(item)&&name&&item?.unresolved!==true&&!/^unresolved\b/i.test(name));
+}
+
+const isExoticWeapon=item=>Boolean(item&&(item.isExotic===true||Number(item.tierType??item.definition?.inventory?.tierType)===6||/\bexotic\b/i.test([item.tier,item.tierTypeName,item.definition?.inventory?.tierTypeName].filter(Boolean).join(" "))));
+
+function weaponPerkMatrixMarkup(item,{compact=false,recommendedHashes=[]}={}){
+  const semantics=item?.weaponSemantics||{},model=semantics.perkModel||item?.weaponPerkModel||null;
+  const recommended=new Set((recommendedHashes||[]).map(String));
+  const modelColumns=model?.columns||[];
+  const fallbackPerks=semantics.selectedPerks||item?.selectedPerks||[];
+  const columns=modelColumns.length?modelColumns:fallbackPerks.map((perk,index)=>({socketIndex:Number.isInteger(Number(perk?.socketIndex))?Number(perk.socketIndex):index,options:[perk],selectedPlugHash:bungieHash(perk),family:"perk"}));
+  if(!columns.length)return "";
+  const expectedRows=Math.max(1,Number(model?.expectedRowCount||item?.weaponPerkRowCount)||1),rows=model?.rows||[];
+  const rowMarkup=Array.from({length:expectedRows},(_,rowIndex)=>{
+    const modelRow=rows[rowIndex]||null;
+    const slots=columns.map((column,columnIndex)=>{
+      const slot=modelRow?.slots?.find(row=>Number(row?.socketIndex)===Number(column.socketIndex))||null,perk=slot?.perk||column.options?.[rowIndex]||null,hash=String(bungieHash(perk)||""),selected=slot?slot.isSelected:Boolean(hash&&String(column.selectedPlugHash||"")===hash),icon=perk?bungieIcon(perk.icon??perk.displayProperties?.icon):"";
+      if(!perk||!hash)return `<span class="weapon-perk-cell is-empty" data-perk-column="${columnIndex+1}" aria-hidden="true"></span>`;
+      const title=[text(perk),perk.description].filter(Boolean).join(" — ");
+      return `<span class="weapon-perk-cell ${selected?"is-selected":""} ${recommended.has(hash)?"is-recommended":""} ${isEnhancedPerk(perk)?"is-enhanced":""}" data-perk-column="${columnIndex+1}"${hashAttribute(perk)} title="${esc(title)}">${icon?`<img src="${esc(icon)}"${hashAttribute(perk)} alt="${esc(text(perk))}">`:'<span aria-hidden="true">◆</span>'}</span>`;
+    }).join("");
+    return `<div class="weapon-perk-row" data-perk-row="${rowIndex+1}"><span class="weapon-perk-row-label">${compact?"":`ROW ${rowIndex+1}`}</span>${slots}</div>`;
+  }).join("");
+  const tier=Number(model?.weaponTier??semantics.gearTier??item?.gearTier),tierLabel=Number.isInteger(tier)&&tier>0?`Tier ${tier}`:"Tier unresolved";
+  return `<div class="weapon-perk-matrix ${compact?"is-compact":""}" style="--weapon-perk-columns:${columns.length}" data-weapon-tier="${Number.isInteger(tier)?tier:""}" data-perk-row-count="${expectedRows}" aria-label="${esc(`${tierLabel} weapon perks in ${expectedRows} row${expectedRows===1?"":"s"}`)}">${rowMarkup}</div>`;
+}
+
+function weaponTraitHierarchyMarkup(item,{compact=false}={}){
+  const semantics=item?.weaponSemantics||{},candidateIntrinsic=semantics.intrinsic||item?.intrinsic||null,intrinsic=hasResolvedIdentity(candidateIntrinsic)?candidateIntrinsic:null,intrinsicTraits=uniqueByHash(semantics.intrinsicTraits||[]).filter(hasResolvedIdentity),exoticTraits=isExoticWeapon(item)?uniqueByHash([...intrinsicTraits.filter(trait=>bungieHash(trait)!==bungieHash(intrinsic)),...(semantics.exoticTraits||item?.exoticWeaponTraits||[])]).filter(hasResolvedIdentity):[];
+  if(!intrinsic&&!exoticTraits.length)return "";
+  const lead=intrinsic?`<div class="weapon-intrinsic-lead">${weaponDetailTile(intrinsic)}<div><b>${esc(text(intrinsic))}</b>${compact||!intrinsic.description?"":`<p>${esc(intrinsic.description)}</p>`}</div></div>`:"";
+  const traits=exoticTraits.length?`<div class="weapon-exotic-traits"><h4>EXOTIC WEAPON TRAITS</h4>${exoticTraits.map(trait=>`<div class="weapon-exotic-trait">${weaponDetailTile(trait)}<div><b>${esc(text(trait))}</b>${compact||!trait.description?"":`<p>${esc(trait.description)}</p>`}</div></div>`).join("")}</div>`:"";
+  return `<div class="weapon-trait-hierarchy ${compact?"is-compact":""}">${lead}${traits}</div>`;
+}
+
 function openWeaponDetail(item){
   let host=document.getElementById("weaponDetailDrawer");
   if(!host){
@@ -25,12 +66,11 @@ function openWeaponDetail(item){
   const s=item?.weaponSemantics||{};
   const stats=s.stats||item?.weaponStats||{};
   const statRows=WEAPON_STATS.map(([hash,name])=>{const raw=stats?.[hash]??stats?.[String(hash)];const value=Number(raw?.value??raw);return Number.isFinite(value)?`<div class="weapon-stat"><span>${esc(name)}</span><i><b style="width:${Math.max(0,Math.min(100,value))}%"></b></i><strong>${esc(value)}</strong></div>`:"";}).join("");
-  const perks=[s.intrinsic,...(s.selectedPerks||[])].filter(Boolean);
-  const mods=[s.masterwork,s.mod,s.catalyst].filter(Boolean);
-  const advice=item?.weaponRollAdvice||null;
-  const adviceMarkup=advice?.hasVerifiedRecommendation?`<h3>PARADOX PERK RECOMMENDATION</h3><div class="weapon-roll-advice"><b>${esc(advice.alreadySelected?"Current selected perks already support this build":"Verified owned-roll match")}</b><p>${esc(advice.best?.reasons?.join(" · ")||"")}</p><div class="weapon-detail-tiles">${(advice.best?.options||[]).map(option=>`<span class="weapon-advice-option"${hashAttribute(option)}>${esc(option.name||`Perk ${option.hash}`)}</span>`).join("")}</div><small>${esc(advice.action?.remotePerkMutationSupported?"Requires confirmation before applying.":"Recommendation staged; live Bungie apply route is not yet enabled.")}</small></div>`:`<h3>PARADOX PERK RECOMMENDATION</h3><p class="weapon-detail-empty">No verified selectable perk match is currently supported by curated Paradox intelligence.</p>`;
+  const mods=uniqueByHash((s.modSockets?.length?s.modSockets:[s.masterwork,s.mod,s.catalyst]).filter(hasResolvedIdentity));
+  const perkMatrix=weaponPerkMatrixMarkup(item),perkRows=Number(s.perkModel?.expectedRowCount||s.perkRowCount)||1,weaponTier=Number(s.perkModel?.weaponTier??s.gearTier??item?.gearTier),perkHeading=`WEAPON PERKS${Number.isInteger(weaponTier)&&weaponTier>0?` · TIER ${weaponTier}`:""} · ${perkRows} ROW${perkRows===1?"":"S"}`;
+  const traitHierarchy=weaponTraitHierarchyMarkup(item);
   const content=host.querySelector(".weapon-detail-content");
-  if(content)content.innerHTML=`<header class="weapon-detail-head"><div class="weapon-detail-icon"><img src="${esc(bungieIcon(item.icon))}" alt=""></div><div><h2>${esc(item.name||"Weapon")}</h2><p>${esc(item.itemTypeDisplayName||item.weaponType||"Weapon")}</p></div><div class="weapon-detail-power"><small>POWER</small><b>${esc(item.power??"—")}</b></div></header><p class="weapon-flavour">${esc(item.description||"")}</p><div class="weapon-detail-grid"><section><h3>WEAPON PERKS</h3><div class="weapon-detail-tiles">${perks.map(x=>weaponDetailTile(x)).join("")||'<p class="weapon-detail-empty">No resolved perk evidence.</p>'}</div><h3>WEAPON MODS</h3><div class="weapon-detail-tiles">${mods.map(x=>weaponDetailTile(x)).join("")||'<p class="weapon-detail-empty">No resolved mod evidence.</p>'}</div>${s.intrinsic?`<h3>INTRINSIC TRAIT</h3>${weaponDetailTile(s.intrinsic)}`:""}${adviceMarkup}</section><section><h3>WEAPON STATS</h3><div class="weapon-stats">${statRows||'<p class="weapon-detail-empty">Stats unresolved.</p>'}</div></section></div>`;
+  if(content)content.innerHTML=`<header class="weapon-detail-head"><div class="weapon-detail-icon"><img src="${esc(bungieIcon(item.icon))}" alt=""></div><div><h2>${esc(item.name||"Weapon")}</h2><p>${esc(item.itemTypeDisplayName||item.weaponType||"Weapon")}</p></div><div class="weapon-detail-power"><small>POWER</small><b>${esc(item.power??"—")}</b></div></header><p class="weapon-flavour">${esc(item.description||"")}</p><div class="weapon-detail-grid"><section><h3>${perkHeading}</h3>${perkMatrix||'<p class="weapon-detail-empty">No resolved perk evidence.</p>'}<h3>WEAPON MODS</h3><div class="weapon-detail-tiles">${mods.map(x=>weaponDetailTile(x)).join("")||'<p class="weapon-detail-empty">No resolved mod evidence.</p>'}</div>${traitHierarchy?`<h3>INTRINSIC TRAITS</h3>${traitHierarchy}`:""}</section><section><h3>WEAPON STATS</h3><div class="weapon-stats">${statRows||'<p class="weapon-detail-empty">Stats unresolved.</p>'}</div></section></div>`;
   host.setAttribute("aria-hidden","false");document.body.classList.add("weapon-detail-open");
 }
 
@@ -112,9 +152,9 @@ function renderWeapons(weapons=[]){
     if(cap)cap.innerHTML=`<b>${esc(item.name||"Weapon")}</b><small title="${esc(weaponSubtitle(item))}">${esc(weaponSubtitle(item))}</small>`;
     let perkStrip=card.querySelector(".weapon-perk-strip");
     if(!perkStrip){perkStrip=document.createElement("div");perkStrip.className="weapon-perk-strip";perkStrip.setAttribute("aria-label","Resolved weapon perks");card.append(perkStrip);}
-    const selectedPerks=(semantics.selectedPerks||[]).filter(perk=>bungieHash(perk)&&bungieIcon(perk?.icon));
-    perkStrip.innerHTML=selectedPerks.map(perk=>`<span class="weapon-perk-icon ${isEnhancedPerk(perk)?"is-enhanced":""}"${hashAttribute(perk)} title="${esc(perk.name||"Resolved perk")}"><img src="${esc(bungieIcon(perk.icon))}"${hashAttribute(perk)} alt="${esc(perk.name||"")}"></span>`).join("");
-    perkStrip.hidden=selectedPerks.length===0;
+    const recommendedHashes=(item?.weaponRollAdvice?.best?.options||[]).map(option=>option?.hash).filter(Boolean),perkMatrix=weaponPerkMatrixMarkup(item,{compact:true,recommendedHashes});
+    perkStrip.innerHTML=perkMatrix;
+    perkStrip.hidden=!perkMatrix;
     let supportStrip=card.querySelector(".weapon-support-icons");
     if(!supportStrip){supportStrip=document.createElement("div");supportStrip.className="weapon-support-icons";supportStrip.setAttribute("aria-label","Equipped weapon mod and masterwork");card.append(supportStrip);}
     supportStrip.innerHTML=`${equippedModIcon?`<span class="weapon-support-icon is-mod"${hashAttribute(equippedMod)} title="${esc(text(equippedMod)||"Equipped weapon mod")}"><img src="${esc(equippedModIcon)}"${hashAttribute(equippedMod)} alt=""></span>`:""}${masterworkIcon?`<span class="weapon-support-icon is-masterwork"${hashAttribute(masterwork)} title="${esc(masterworkName)}"><img src="${esc(masterworkIcon)}"${hashAttribute(masterwork)} alt=""></span>`:""}`;
@@ -172,4 +212,4 @@ function render(detail){
 document.addEventListener("astrix:guardian-selection-changed",event=>render(event.detail));
 ensureStyle();
 
-export {render,renderWeapons};
+export {render,renderWeapons,weaponPerkMatrixMarkup,weaponTraitHierarchyMarkup};

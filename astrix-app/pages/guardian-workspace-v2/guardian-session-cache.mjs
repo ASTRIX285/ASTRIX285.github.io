@@ -8,10 +8,13 @@ const DB_NAME="astrix-guardian-session";
 const DB_VERSION=2;
 const STORE_NAME="guardian-data";
 const MANIFEST_STORE_NAME="manifest-data";
+const FORGE_TRANSFER_PREFIX="forge-loader-transfer:v1";
 // The profile cache belongs to the current browser session. Keep the last
 // verified Guardian available for a full working session so Main <-> Build
 // navigation never collapses to placeholders while Bungie refreshes.
 const PROFILE_TTL_MS=12*60*60*1000;
+const FORGE_TRANSFER_TTL_MS=30*60*1000;
+const FORGE_TRANSFER_IO_TIMEOUT_MS=4000;
 
 const safeSessionRead=key=>{
   try{return JSON.parse(sessionStorage.getItem(key)||"null");}
@@ -81,6 +84,42 @@ async function readRecord(key){
   });
 }
 
+function forgeTransferBinding(value={}){
+  return {
+    characterId:String(value.characterId||""),
+    membershipId:String(value.membershipId||value.bungieMembershipId||""),
+    membershipType:String(value.membershipType??"")
+  };
+}
+
+function forgeTransferRecordKey(value={}){
+  const binding=forgeTransferBinding(value);
+  if(!binding.characterId||!binding.membershipId||!binding.membershipType)return "";
+  return `${FORGE_TRANSFER_PREFIX}:${binding.membershipType}:${binding.membershipId}:${binding.characterId}`;
+}
+
+function boundedForgeTransferIo(task,fallback){
+  return Promise.race([task,new Promise(resolve=>setTimeout(()=>resolve(fallback),FORGE_TRANSFER_IO_TIMEOUT_MS))]);
+}
+
+async function cacheForgeLoaderTransfer(binding,transfer){
+  const normalized=forgeTransferBinding(binding),key=forgeTransferRecordKey(normalized);
+  if(!key||!transfer?.snapshotEnvelope||!transfer?.armourSelection)return false;
+  try{return await boundedForgeTransferIo(writeRecord({key,binding:normalized,savedAt:Date.now(),transfer}),false);}
+  catch{return false;}
+}
+
+async function readForgeLoaderTransfer(binding){
+  const normalized=forgeTransferBinding(binding),key=forgeTransferRecordKey(normalized);
+  if(!key)return null;
+  let record=null;
+  try{record=await boundedForgeTransferIo(readRecord(key),null);}catch{return null;}
+  const stored=forgeTransferBinding(record?.binding||{});
+  if(!record||Date.now()-Number(record.savedAt||0)>FORGE_TRANSFER_TTL_MS)return null;
+  if(stored.characterId!==normalized.characterId||stored.membershipId!==normalized.membershipId||stored.membershipType!==normalized.membershipType)return null;
+  return record.transfer?.snapshotEnvelope&&record.transfer?.armourSelection?record.transfer:null;
+}
+
 function profileRecordKey(identity){return `profile:v2:${identity}`;}
 function loadoutRecordKey(identity,characterId,index){return `loadout:v2:${identity}:${characterId}:${index}`;}
 function isFresh(record){return Boolean(record&&Date.now()-Number(record.savedAt||0)<=PROFILE_TTL_MS);}
@@ -105,6 +144,16 @@ async function readCachedBungieProfile(session){
   if(stored?.identity===identity&&isFresh(stored)&&stored.payload)return stored.payload;
   const fallback=safeSessionRead(PROFILE_FALLBACK_KEY);
   return fallback?.identity===identity&&fallback?.key===marker.key&&isFresh(fallback)?fallback.payload:null;
+}
+
+function releaseGuardianSessionStorageFallbacks(storage=globalThis.sessionStorage){
+  if(!storage)return 0;
+  try{
+    const keys=[];
+    for(let index=0;index<storage.length;index+=1){const key=String(storage.key(index)||'');if(key===PROFILE_FALLBACK_KEY||key.startsWith(LOADOUT_FALLBACK_PREFIX))keys.push(key);}
+    for(const key of keys)storage.removeItem(key);
+    return keys.length;
+  }catch{return 0;}
 }
 
 async function cacheBungieLoadoutDetail(session,characterId,index,detail){
@@ -151,6 +200,9 @@ export {
   readCachedBungieSession,
   cacheBungieProfile,
   readCachedBungieProfile,
+  cacheForgeLoaderTransfer,
+  readForgeLoaderTransfer,
+  releaseGuardianSessionStorageFallbacks,
   cacheBungieLoadoutDetail,
   readCachedBungieLoadoutDetail,
   markGuardianFastReturn,

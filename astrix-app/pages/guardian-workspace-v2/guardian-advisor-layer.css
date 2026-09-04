@@ -18,14 +18,14 @@
 .left .super-focus-icon .ico-badge{border:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
 .left .super-focus-icon .ico-badge img{width:100%!important;height:100%!important;object-fit:contain!important;filter:drop-shadow(0 0 14px var(--stage-accent-soft))}
 .left .super-focus-copy{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%}
-.left .super-focus-copy small{font-family:Orbitron;font-size:.48rem;letter-spacing:.18em;color:var(--dim)}
+.left .super-focus-copy small{font-family:bahnschrift-semicondensed;font-size:.48rem;letter-spacing:.18em;color:var(--dim)}
 .left .super-focus-copy b{margin-top:2px;max-width:100%;font-size:.82rem;line-height:1.12;white-space:normal;text-align:center}
-.left .super-focus-copy em{margin-top:3px;font-family:Rajdhani;font-style:normal;font-size:.63rem;color:var(--stage-accent);letter-spacing:.06em}
+.left .super-focus-copy em{margin-top:3px;font-family:bahnschrift;font-style:normal;font-size:.63rem;color:var(--stage-accent);letter-spacing:.06em}
 
 /* Abilities, aspects and fragments deliberately share one visual size and section rhythm. */
 .left>.grp{padding-top:8px;border-top:1px solid rgba(168,130,255,.12)}
 .left>.grp:first-of-type{border-top:0;padding-top:0}
-#abilityList::before{content:"ABILITIES";display:block;grid-column:1/-1;color:var(--dim);font-family:Orbitron;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px}
+#abilityList::before{content:"ABILITIES";display:block;grid-column:1/-1;color:var(--dim);font-family:bahnschrift-semicondensed;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px}
 #abilityList{display:grid!important;grid-template-columns:repeat(4,58px)!important;gap:10px!important;justify-content:start!important}
 .slot-list{display:grid!important;gap:10px!important;justify-content:start!important}
 #aspectList{grid-template-columns:repeat(5,58px)!important}

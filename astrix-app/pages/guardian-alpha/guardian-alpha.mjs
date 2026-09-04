@@ -1,20 +1,7 @@
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||'https://auth.astrixparadox.com';
-const ACCESS_CODE='PARADOX285';
-const ACCESS_STORAGE_KEY='astrix-paradox-beta-access';
-const BUILD_FORGE_URL='../guardian-workspace-v2/paradox-build-space/';
+const JOURNEY_URL='../journey/';
 
-const form=document.getElementById('alphaAccessForm');
-const input=document.getElementById('alphaAccessCode');
-const submit=document.getElementById('alphaAccessSubmit');
-const message=document.getElementById('alphaAccessMessage');
-
-function hasAlphaAccess(){
-  try{return sessionStorage.getItem(ACCESS_STORAGE_KEY)==='granted'}catch{return false}
-}
-
-function grantAlphaAccess(){
-  try{sessionStorage.setItem(ACCESS_STORAGE_KEY,'granted')}catch{}
-}
+const message=document.getElementById('guardianAccessMessage');
 
 function authReturnUrl(){
   const current=new URL(location.href);
@@ -46,44 +33,21 @@ async function getBungieSession(){
   }
 }
 
-function openBuildForge(){
-  location.replace(BUILD_FORGE_URL);
+function openJourney(){
+  location.replace(JOURNEY_URL);
 }
 
-form.addEventListener('submit',async event=>{
-  event.preventDefault();
-
-  if(input.value.trim()!==ACCESS_CODE){
-    message.textContent='Access code not recognised.';
-    input.select();
-    return;
-  }
-
-  grantAlphaAccess();
-  submit.disabled=true;
+async function continueToGuardianJourney(){
   message.textContent='Checking your Bungie connection.';
 
   const session=await getBungieSession();
   if(session?.authenticated){
-    openBuildForge();
+    openJourney();
     return;
   }
 
   message.textContent='Opening Bungie secure sign in.';
   location.assign(authStartUrl());
-});
-
-async function restoreAuthenticatedAccess(){
-  if(!hasAlphaAccess())return;
-  const session=await getBungieSession();
-  if(!session?.authenticated){
-    if(new URLSearchParams(location.search).has('bungie')){
-      message.textContent='Bungie connection was not completed. Enter your Alpha code to try again.';
-    }
-    return;
-  }
-
-  openBuildForge();
 }
 
-restoreAuthenticatedAccess();
+continueToGuardianJourney();

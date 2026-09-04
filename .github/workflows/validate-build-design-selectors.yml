@@ -21,6 +21,7 @@ jobs:
       - name: Check Build Design modules
         run: |
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs
+          node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-forge-intelligence.mjs
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-space-handoff.mjs
           node --check astrix-app/pages/guardian-workspace-v2/paradox-build-binding.mjs

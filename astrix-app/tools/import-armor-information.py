@@ -16,9 +16,12 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 CURATED_PATH = ROOT / "astrix-app/data/armor-information.curated.json"
 OUTPUT_PATH = ROOT / "astrix-app/data/armor-information.json"
+FORGE_INDEX_PATH = ROOT / "astrix-app/data/forge-armour-index.json"
 API_ROOT = "https://www.bungie.net/Platform"
 BUNGIE_ROOT = "https://www.bungie.net"
 DESTINY_ITEM_TYPE_ARMOR = 2
+ARTIFACT_TYPE_LABEL = "artifact"
+ARTIFACT_PERK_TYPE_LABEL = "artifact perk"
 CLASS_NAMES = {0: "Titan", 1: "Hunter", 2: "Warlock", 3: "Unknown"}
 FORBIDDEN_FIELDS = {"rank", "ranking", "tier", "score", "position"}
 
@@ -102,11 +105,19 @@ def manifest_paths(manifest: dict[str, Any]) -> tuple[str, dict[str, str]]:
     version = str(response.get("version") or "unknown")
     component = response.get("jsonWorldComponentContentPaths", {}).get("en", {})
     inventory = component.get("DestinyInventoryItemDefinition")
-    stats = component.get("DestinyStatDefinition")
     if inventory:
-        paths = {"inventory": inventory}
-        if stats:
-            paths["stats"] = stats
+        paths = {
+            definition_type: component[definition_type]
+            for definition_type in (
+                "DestinyInventoryItemDefinition",
+                "DestinyStatDefinition",
+                "DestinyEquipableItemSetDefinition",
+                "DestinySandboxPerkDefinition",
+                "DestinyPlugSetDefinition",
+                "DestinySocketCategoryDefinition",
+            )
+            if component.get(definition_type)
+        }
         return version, paths
     aggregate = response.get("jsonWorldContentPaths", {}).get("en")
     if aggregate:
@@ -114,16 +125,467 @@ def manifest_paths(manifest: dict[str, Any]) -> tuple[str, dict[str, str]]:
     raise ImportFailure("No English Bungie manifest path returned")
 
 
-def load_definitions(paths: dict[str, str]) -> tuple[dict[str, Any], dict[str, Any]]:
+def load_definitions(
+    paths: dict[str, str],
+    manifest_version: str,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
     if "aggregate" in paths:
         aggregate = get_json(absolute_url(paths["aggregate"]))
         return (
             aggregate.get("DestinyInventoryItemDefinition", {}),
             aggregate.get("DestinyStatDefinition", {}),
+            aggregate.get("DestinyEquipableItemSetDefinition", {}),
+            aggregate.get("DestinySandboxPerkDefinition", {}),
+            aggregate.get("DestinyPlugSetDefinition", {}),
+            aggregate.get("DestinySocketCategoryDefinition", {}),
         )
-    inventory = get_json(absolute_url(paths["inventory"]))
-    stats = get_json(absolute_url(paths["stats"])) if paths.get("stats") else {}
-    return inventory, stats
+    proxy_origin = os.environ.get("ASTRIX_AUTH_ORIGIN", "").rstrip("/")
+
+    def load_component(definition_type: str) -> dict[str, Any]:
+        path = paths.get(definition_type)
+        if not path:
+            return {}
+        if proxy_origin:
+            from urllib.parse import urlencode
+
+            query = urlencode({"type": definition_type, "version": manifest_version})
+            return get_json(f"{proxy_origin}/bungie/manifest/component?{query}")
+        return get_json(absolute_url(path))
+
+    return (
+        load_component("DestinyInventoryItemDefinition"),
+        load_component("DestinyStatDefinition"),
+        load_component("DestinyEquipableItemSetDefinition"),
+        load_component("DestinySandboxPerkDefinition"),
+        load_component("DestinyPlugSetDefinition"),
+        load_component("DestinySocketCategoryDefinition"),
+    )
+
+
+def compact_display(definition: dict[str, Any]) -> dict[str, Any]:
+    display = definition.get("displayProperties") or {}
+    return {
+        key: display[key]
+        for key in ("name", "description", "icon")
+        if display.get(key) not in (None, "")
+    }
+
+
+def forge_armour_definition(hash_text: str, item: dict[str, Any]) -> dict[str, Any]:
+    inventory = item.get("inventory") or {}
+    equipping = item.get("equippingBlock") or {}
+    definition: dict[str, Any] = {
+        "hash": int(hash_text),
+        "itemType": item.get("itemType", -1),
+        "itemSubType": item.get("itemSubType", -1),
+        "classType": item.get("classType", 3),
+        "itemTypeDisplayName": str(item.get("itemTypeDisplayName") or ""),
+        "displayProperties": compact_display(item),
+        "inventory": {
+            key: inventory[key]
+            for key in ("tierType", "tierTypeName", "bucketTypeHash")
+            if inventory.get(key) is not None
+        },
+        "equippingBlock": {
+            key: equipping[key]
+            for key in ("equipmentSlotTypeHash", "equipableItemSetHash")
+            if equipping.get(key) is not None
+        },
+    }
+    sockets = item.get("sockets") or {}
+    socket_entries = []
+    for entry in sockets.get("socketEntries") or []:
+        if not isinstance(entry, dict):
+            continue
+        compact_entry = {
+            key: entry[key]
+            for key in ("singleInitialItemHash", "reusablePlugSetHash")
+            if entry.get(key) is not None
+        }
+        socket_entries.append(compact_entry)
+    socket_categories = [
+        {
+            "socketCategoryHash": row["socketCategoryHash"],
+            "socketIndexes": row.get("socketIndexes") or [],
+        }
+        for row in sockets.get("socketCategories") or []
+        if isinstance(row, dict) and isinstance(row.get("socketCategoryHash"), int)
+    ]
+    if socket_entries or socket_categories:
+        definition["sockets"] = {"socketEntries": socket_entries, "socketCategories": socket_categories}
+    for key in ("equipableItemSetHash", "collectibleHash", "displaySource", "iconWatermark"):
+        if item.get(key) not in (None, ""):
+            definition[key] = item[key]
+    return definition
+
+
+def compact_set_definition(hash_text: str, definition: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "hash": int(hash_text),
+        "displayProperties": compact_display(definition),
+        "setPerks": [
+            {
+                key: perk[key]
+                for key in ("requiredSetCount", "sandboxPerkHash")
+                if perk.get(key) is not None
+            }
+            for perk in definition.get("setPerks") or []
+            if isinstance(perk, dict)
+        ],
+    }
+
+
+def compact_plug_definition(hash_text: str, definition: dict[str, Any]) -> dict[str, Any]:
+    inventory = definition.get("inventory") or {}
+    plug = definition.get("plug") or {}
+    compact_plug = {
+        key: plug[key]
+        for key in ("plugCategoryIdentifier", "plugCategoryHash", "energyCost")
+        if plug.get(key) is not None
+    }
+    for rules_key in ("insertionRules", "enabledRules"):
+        rules = [
+            {"failureMessage": str(rule.get("failureMessage") or "")}
+            for rule in plug.get(rules_key) or []
+            if isinstance(rule, dict) and str(rule.get("failureMessage") or "").strip()
+        ]
+        if rules:
+            compact_plug[rules_key] = rules
+    compact: dict[str, Any] = {
+        "hash": int(hash_text),
+        "itemType": definition.get("itemType", -1),
+        "itemSubType": definition.get("itemSubType", -1),
+        "classType": definition.get("classType", 3),
+        "itemTypeDisplayName": str(definition.get("itemTypeDisplayName") or ""),
+        "displayProperties": compact_display(definition),
+        "inventory": {
+            key: inventory[key]
+            for key in ("tierType", "tierTypeName", "bucketTypeHash")
+            if inventory.get(key) is not None
+        },
+        "plug": compact_plug,
+        "investmentStats": [
+            {
+                key: stat[key]
+                for key in ("statTypeHash", "value", "isConditionallyActive")
+                if stat.get(key) is not None
+            }
+            for stat in definition.get("investmentStats") or []
+            if isinstance(stat, dict) and isinstance(stat.get("statTypeHash"), int)
+        ],
+    }
+    tooltip_notifications = [
+        {
+            key: notification[key]
+            for key in ("displayString", "displayStyle")
+            if notification.get(key) not in (None, "")
+        }
+        for notification in definition.get("tooltipNotifications") or []
+        if isinstance(notification, dict) and str(notification.get("displayString") or "").strip()
+    ]
+    if tooltip_notifications:
+        compact["tooltipNotifications"] = tooltip_notifications
+    for key in ("traitIds", "itemCategoryHashes", "iconWatermark"):
+        if definition.get(key) not in (None, "", []):
+            compact[key] = definition[key]
+    return compact
+
+
+def artifact_catalog(
+    inventory: dict[str, Any],
+    plug_set_definitions: dict[str, Any],
+    sandbox_perks: dict[str, Any],
+    manifest_version: str,
+) -> list[dict[str, Any]]:
+    """Build the compact legal Artifact 2.0 socket catalogue for Build Forge."""
+
+    def item_type(definition: dict[str, Any]) -> str:
+        return str(
+            definition.get("itemTypeDisplayName")
+            or definition.get("itemTypeAndTierDisplayName")
+            or ""
+        ).strip().lower()
+
+    def entry_plug_hashes(entry: dict[str, Any]) -> list[int]:
+        hashes = {
+            int(row["plugItemHash"])
+            for row in entry.get("reusablePlugItems") or []
+            if isinstance(row, dict) and isinstance(row.get("plugItemHash"), int)
+        }
+        plug_set_hash = entry.get("reusablePlugSetHash")
+        plug_set = plug_set_definitions.get(str(plug_set_hash)) if isinstance(plug_set_hash, int) else None
+        for row in (plug_set or {}).get("reusablePlugItems") or []:
+            plug_hash = row.get("plugItemHash") if isinstance(row, dict) else None
+            if isinstance(plug_hash, int):
+                hashes.add(plug_hash)
+        return sorted(hashes)
+
+    catalog: list[dict[str, Any]] = []
+    for hash_text, definition in inventory.items():
+        if not isinstance(definition, dict) or item_type(definition) != ARTIFACT_TYPE_LABEL:
+            continue
+        entries = (definition.get("sockets") or {}).get("socketEntries") or []
+        grouped: list[dict[str, Any]] = []
+        groups_by_key: dict[str, dict[str, Any]] = {}
+        for socket_index, entry in enumerate(entries):
+            if not isinstance(entry, dict):
+                continue
+            plug_hashes = entry_plug_hashes(entry)
+            if not plug_hashes:
+                continue
+            plug_set_hash = entry.get("reusablePlugSetHash")
+            group_key = f"plugset:{plug_set_hash}" if isinstance(plug_set_hash, int) else f"socket:{socket_index}"
+            group = groups_by_key.get(group_key)
+            if group is None:
+                group = {
+                    "plugSetHash": plug_set_hash if isinstance(plug_set_hash, int) else None,
+                    "socketIndexes": [],
+                    "perkHashes": set(),
+                    "firstSocketIndex": socket_index,
+                }
+                groups_by_key[group_key] = group
+                grouped.append(group)
+            group["socketIndexes"].append(socket_index)
+            group["perkHashes"].update(plug_hashes)
+
+        selection_slots: list[dict[str, Any]] = []
+        for group in sorted(grouped, key=lambda row: row["firstSocketIndex"]):
+            perk_hashes = sorted(
+                perk_hash
+                for perk_hash in group["perkHashes"]
+                if item_type(inventory.get(str(perk_hash)) or {}) == ARTIFACT_PERK_TYPE_LABEL
+            )
+            if not perk_hashes or not group["socketIndexes"]:
+                continue
+            tier_index = len(selection_slots)
+            selection_slots.append({
+                "tierIndex": tier_index,
+                "bucket": tier_index + 1,
+                "capacity": len(group["socketIndexes"]),
+                "socketIndexes": list(group["socketIndexes"]),
+                "plugSetHash": group["plugSetHash"],
+                "perkHashes": perk_hashes,
+            })
+        if not selection_slots:
+            continue
+
+        perks: list[dict[str, Any]] = []
+        seen_perks: set[tuple[int, int]] = set()
+        for slot in selection_slots:
+            for item_index, perk_hash in enumerate(slot["perkHashes"]):
+                identity = (slot["tierIndex"], perk_hash)
+                if identity in seen_perks:
+                    continue
+                seen_perks.add(identity)
+                perk_definition = inventory.get(str(perk_hash)) or {}
+                display = compact_display(perk_definition)
+                sandbox_hashes = [
+                    int(row["perkHash"])
+                    for row in perk_definition.get("perks") or []
+                    if isinstance(row, dict) and isinstance(row.get("perkHash"), int)
+                ]
+                sandbox_displays = [
+                    compact_display(sandbox_perks[str(sandbox_hash)])
+                    for sandbox_hash in sandbox_hashes
+                    if isinstance(sandbox_perks.get(str(sandbox_hash)), dict)
+                ]
+                resolved_name = str(display.get("name") or next(
+                    (row.get("name") for row in sandbox_displays if row.get("name")),
+                    f"Artifact perk {perk_hash}",
+                ))
+                resolved_description = str(display.get("description") or " ".join(dict.fromkeys(
+                    str(row.get("description") or "").strip()
+                    for row in sandbox_displays
+                    if str(row.get("description") or "").strip()
+                )))
+                resolved_icon = str(display.get("icon") or next(
+                    (row.get("icon") for row in sandbox_displays if row.get("icon")),
+                    "",
+                ))
+                perks.append({
+                    "hash": perk_hash,
+                    "bungieHash": perk_hash,
+                    "sandboxPerkHash": sandbox_hashes[0] if sandbox_hashes else None,
+                    "name": resolved_name,
+                    "description": resolved_description,
+                    "icon": absolute_url(resolved_icon) if resolved_icon else "",
+                    "definition": compact_plug_definition(str(perk_hash), perk_definition),
+                    "displayResolved": bool(resolved_name and resolved_description),
+                    "unresolved": not bool(resolved_name and resolved_description),
+                    "isActive": False,
+                    "isVisible": True,
+                    "tierUnlocked": True,
+                    "tierIndex": slot["tierIndex"],
+                    "column": slot["bucket"],
+                    "order": item_index + 1,
+                    "itemIndex": item_index,
+                    "tierTitle": f"BUCKET {slot['bucket']}",
+                    "bucketCapacity": slot["capacity"],
+                    "plugSetHash": slot["plugSetHash"],
+                })
+
+        display = compact_display(definition)
+        artifact_hash = int(hash_text)
+        catalog.append({
+            "hash": artifact_hash,
+            "bungieHash": artifact_hash,
+            "name": str(display.get("name") or f"Artifact {artifact_hash}"),
+            "description": str(display.get("description") or ""),
+            "icon": absolute_url(str(display.get("icon") or "")) if display.get("icon") else "",
+            "definition": compact_plug_definition(hash_text, definition),
+            "displayResolved": bool(display.get("name")),
+            "unresolved": not bool(display.get("name")),
+            "availabilityModel": "artifact-2-socket-buckets",
+            "source": "hourly-compact-manifest",
+            "manifestVersion": manifest_version,
+            "state": "catalogued",
+            "provenance": "bungie-artifact-2-hourly-index",
+            "selectionSlots": selection_slots,
+            "selectionLimit": sum(slot["capacity"] for slot in selection_slots),
+            "perks": perks,
+            "activePerks": [],
+        })
+
+    return sorted(catalog, key=lambda row: (row["name"].lower(), row["hash"]))
+
+
+def forge_index_payload(
+    manifest_version: str,
+    inventory: dict[str, Any],
+    stat_definitions: dict[str, Any],
+    set_definitions: dict[str, Any],
+    sandbox_perks: dict[str, Any],
+    plug_set_definitions: dict[str, Any],
+    socket_category_definitions: dict[str, Any],
+) -> dict[str, Any]:
+    armour = {
+        hash_text: forge_armour_definition(hash_text, item)
+        for hash_text, item in inventory.items()
+        if isinstance(item, dict)
+        and item.get("itemType") == DESTINY_ITEM_TYPE_ARMOR
+        and (item.get("displayProperties") or {}).get("name")
+    }
+    socket_layouts: dict[str, dict[str, Any]] = {}
+    for definition in armour.values():
+        sockets = definition.pop("sockets", None)
+        if not sockets:
+            continue
+        layout_key = hashlib.sha256(canonical_json(sockets).encode("utf-8")).hexdigest()[:16]
+        if layout_key in socket_layouts and socket_layouts[layout_key] != sockets:
+            layout_key = hashlib.sha256(canonical_json(sockets).encode("utf-8")).hexdigest()
+        socket_layouts[layout_key] = sockets
+        definition["socketLayoutKey"] = layout_key
+    set_hashes = {
+        int(value)
+        for definition in armour.values()
+        for value in (
+            definition.get("equipableItemSetHash"),
+            (definition.get("equippingBlock") or {}).get("equipableItemSetHash"),
+        )
+        if isinstance(value, int) and value > 0
+    }
+    compact_sets = {
+        str(hash_value): compact_set_definition(str(hash_value), set_definitions[str(hash_value)])
+        for hash_value in sorted(set_hashes)
+        if isinstance(set_definitions.get(str(hash_value)), dict)
+    }
+    perk_hashes = {
+        int(perk["sandboxPerkHash"])
+        for definition in compact_sets.values()
+        for perk in definition.get("setPerks") or []
+        if isinstance(perk.get("sandboxPerkHash"), int)
+    }
+    compact_perks = {
+        str(hash_value): {
+            "hash": hash_value,
+            "displayProperties": compact_display(sandbox_perks[str(hash_value)]),
+        }
+        for hash_value in sorted(perk_hashes)
+        if isinstance(sandbox_perks.get(str(hash_value)), dict)
+    }
+    compact_stats = {
+        hash_text: {
+            "hash": int(hash_text),
+            "displayProperties": compact_display(definition),
+        }
+        for hash_text, definition in stat_definitions.items()
+        if isinstance(definition, dict) and (definition.get("displayProperties") or {}).get("name")
+    }
+    plug_set_hashes = {
+        int(entry["reusablePlugSetHash"])
+        for layout in socket_layouts.values()
+        for entry in layout.get("socketEntries") or []
+        if isinstance(entry, dict) and isinstance(entry.get("reusablePlugSetHash"), int)
+    }
+    plug_hashes = {
+        int(entry["singleInitialItemHash"])
+        for layout in socket_layouts.values()
+        for entry in layout.get("socketEntries") or []
+        if isinstance(entry, dict) and isinstance(entry.get("singleInitialItemHash"), int) and int(entry["singleInitialItemHash"]) > 0
+    }
+    for item in inventory.values():
+        if not isinstance(item, dict) or item.get("itemType") != DESTINY_ITEM_TYPE_ARMOR:
+            continue
+        for entry in (item.get("sockets") or {}).get("socketEntries") or []:
+            if not isinstance(entry, dict):
+                continue
+            for row in entry.get("reusablePlugItems") or []:
+                plug_hash = row.get("plugItemHash") if isinstance(row, dict) else None
+                if isinstance(plug_hash, int) and plug_hash > 0:
+                    plug_hashes.add(plug_hash)
+    for plug_set_hash in plug_set_hashes:
+        plug_set = plug_set_definitions.get(str(plug_set_hash)) or {}
+        for row in plug_set.get("reusablePlugItems") or []:
+            plug_hash = row.get("plugItemHash") if isinstance(row, dict) else None
+            if isinstance(plug_hash, int) and plug_hash > 0:
+                plug_hashes.add(plug_hash)
+    compact_plugs = {
+        str(hash_value): compact_plug_definition(str(hash_value), inventory[str(hash_value)])
+        for hash_value in sorted(plug_hashes)
+        if isinstance(inventory.get(str(hash_value)), dict)
+    }
+    socket_category_hashes = {
+        int(category["socketCategoryHash"])
+        for layout in socket_layouts.values()
+        for category in layout.get("socketCategories") or []
+        if isinstance(category, dict) and isinstance(category.get("socketCategoryHash"), int)
+    }
+    compact_socket_categories = {
+        str(hash_value): {
+            "hash": hash_value,
+            "displayProperties": compact_display(socket_category_definitions[str(hash_value)]),
+        }
+        for hash_value in sorted(socket_category_hashes)
+        if isinstance(socket_category_definitions.get(str(hash_value)), dict)
+    }
+    compact_artifacts = artifact_catalog(inventory, plug_set_definitions, sandbox_perks, manifest_version)
+    return {
+        "schemaVersion": 4,
+        "manifestVersion": manifest_version,
+        "generatedAt": utc_now(),
+        "definitions": armour,
+        "socketLayouts": socket_layouts,
+        "equipableItemSets": compact_sets,
+        "sandboxPerks": compact_perks,
+        "statDefinitions": compact_stats,
+        "plugDefinitions": compact_plugs,
+        "socketCategoryDefinitions": compact_socket_categories,
+        "artifactCatalog": compact_artifacts,
+    }
+
+
+def write_forge_index(payload: dict[str, Any]) -> bool:
+    previous = None
+    if FORGE_INDEX_PATH.exists():
+        try:
+            previous = json.loads(FORGE_INDEX_PATH.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            previous = None
+    meaningful_keys = ("schemaVersion", "manifestVersion", "definitions", "socketLayouts", "equipableItemSets", "sandboxPerks", "statDefinitions", "plugDefinitions", "socketCategoryDefinitions", "artifactCatalog")
+    changed = previous is None or any(previous.get(key) != payload.get(key) for key in meaningful_keys)
+    if changed:
+        FORGE_INDEX_PATH.write_text(json.dumps(payload, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
+    return changed
 
 
 def stat_name(stat_hash: int, definitions: dict[str, Any]) -> str | None:
@@ -240,14 +702,28 @@ def write_outputs(values: dict[str, Any]) -> None:
 
 def main() -> int:
     api_key = os.environ.get("BUNGIE_API_KEY")
-    if not api_key:
-        raise ImportFailure("BUNGIE_API_KEY is required")
+    proxy_origin = os.environ.get("ASTRIX_AUTH_ORIGIN", "").rstrip("/")
+    if not api_key and not proxy_origin:
+        raise ImportFailure("BUNGIE_API_KEY or ASTRIX_AUTH_ORIGIN is required")
     curated_payload = load_curated()
     curated_rows = curated_payload["armor"]
     curated_digest = digest_json(curated_rows)
-    manifest = get_json(f"{API_ROOT}/Destiny2/Manifest/", api_key)
+    if api_key:
+        manifest = get_json(f"{API_ROOT}/Destiny2/Manifest/", api_key)
+    else:
+        manifest = {"Response": get_json(f"{proxy_origin}/bungie/manifest")}
     manifest_version, paths = manifest_paths(manifest)
-    inventory, stat_definitions = load_definitions(paths)
+    inventory, stat_definitions, set_definitions, sandbox_perks, plug_set_definitions, socket_category_definitions = load_definitions(paths, manifest_version)
+    forge_index = forge_index_payload(
+        manifest_version,
+        inventory,
+        stat_definitions,
+        set_definitions,
+        sandbox_perks,
+        plug_set_definitions,
+        socket_category_definitions,
+    )
+    forge_index_changed = write_forge_index(forge_index)
 
     records: list[dict[str, Any]] = []
     by_hash: dict[int, dict[str, Any]] = {}
@@ -300,12 +776,16 @@ def main() -> int:
             previous = json.loads(OUTPUT_PATH.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             previous = None
-    changed = previous is None or meaningful(previous) != meaningful(payload)
-    if changed:
+    forge_index_only = os.environ.get("FORGE_INDEX_ONLY") == "1"
+    changed = False if forge_index_only else previous is None or meaningful(previous) != meaningful(payload)
+    if changed and not forge_index_only:
         OUTPUT_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     print(f"Manifest version: {manifest_version}")
     print(f"Official armour records: {len(records)}")
+    print(f"Forge armour index records: {len(forge_index['definitions'])}; changed: {forge_index_changed}")
+    print(f"Forge armour plug records: {len(forge_index['plugDefinitions'])}")
+    print(f"Forge Artifact 2.0 records: {len(forge_index['artifactCatalog'])}")
     print(f"Curated rows: {len(curated_rows)}")
     print(f"Matched: {matched}; unresolved: {len(unresolved)}; ambiguous: {len(ambiguous)}")
     write_outputs({
@@ -316,6 +796,8 @@ def main() -> int:
         "matched": matched,
         "unresolved": len(unresolved),
         "ambiguous": len(ambiguous),
+        "forge_index_changed": forge_index_changed,
+        "artifact_catalog": len(forge_index["artifactCatalog"]),
     })
     return 0
 

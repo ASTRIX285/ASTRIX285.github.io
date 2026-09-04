@@ -36,7 +36,7 @@
 .guardian-left-rail .lbl{
   margin:0 0 6px!important;
   color:rgba(var(--guardian-rail-gold),.76)!important;
-  font:700 .50rem/1.2 Inter,sans-serif!important;
+  font:700 .50rem/1.2 bahnschrift,sans-serif!important;
   letter-spacing:.13em!important;
   text-transform:uppercase!important;
 }
@@ -53,7 +53,7 @@
 .guardian-left-rail .guardian-loadouts-head small,
 .guardian-left-rail .manual-label{
   color:rgba(224,220,232,.45)!important;
-  font:700 .42rem/1.2 Orbitron,Inter,sans-serif!important;
+  font:700 .42rem/1.2 bahnschrift-semicondensed,bahnschrift,sans-serif!important;
   letter-spacing:.08em!important;
 }
 .guardian-left-rail .expand-btn{
@@ -67,7 +67,7 @@
   border-radius:6px;
   background:rgba(var(--guardian-rail-crimson),.08);
   color:rgb(var(--guardian-rail-gold));
-  font:800 17px/1 Inter,sans-serif;
+  font:800 17px/1 bahnschrift,sans-serif;
   cursor:pointer;
 }
 .guardian-left-rail .expand-btn[aria-expanded="true"]{
@@ -308,12 +308,12 @@
 .guardian-loadouts-strip .guardian-loadouts-head .lbl{
   margin:0!important;
   color:rgba(var(--guardian-rail-gold),.86)!important;
-  font:800 .52rem Orbitron,Inter,sans-serif!important;
+  font:800 .52rem bahnschrift-semicondensed,bahnschrift,sans-serif!important;
   letter-spacing:.13em!important;
 }
 .guardian-loadouts-strip .guardian-loadouts-head small{
   color:rgba(224,220,232,.58)!important;
-  font:700 .47rem Orbitron,Inter,sans-serif!important;
+  font:700 .47rem bahnschrift-semicondensed,bahnschrift,sans-serif!important;
   letter-spacing:.1em!important;
 }
 .guardian-loadouts-strip .guardian-loadouts-grid{
@@ -373,7 +373,7 @@
   right:2px!important;
   bottom:0!important;
   color:rgba(255,248,226,.84)!important;
-  font:800 .4rem Orbitron,Inter,sans-serif!important;
+  font:800 .4rem bahnschrift-semicondensed,bahnschrift,sans-serif!important;
   line-height:1!important;
   text-shadow:0 1px 2px #000!important;
 }
@@ -461,7 +461,7 @@
 .stage-companion{display:none}
 
 @media (min-width:1500px) and (min-height:900px){
-  body.guardian-main-page{--astrix-desktop-density:.85;--guardian-stage-height:440px}
+  body.guardian-main-page{--guardian-stage-height:440px}
   body.guardian-main-page .workspace{grid-template:minmax(440px,1fr) max-content max-content / clamp(400px,22vw,420px) 340px repeat(2,minmax(0,1fr))!important;min-height:0!important;align-items:stretch!important}
   body.guardian-main-page .workspace>.left{grid-column:1!important;grid-row:1 / 4!important;height:auto!important;min-height:0!important;max-height:none!important;align-self:stretch!important;overflow:visible!important}
   body.guardian-main-page .workspace>.stage-companion{display:block!important;grid-column:3!important;grid-row:1!important;width:auto!important;height:auto!important;margin:0!important;border:1px solid rgba(201,168,76,.18)!important;border-radius:14px!important;background:linear-gradient(180deg,rgba(20,15,25,.42),rgba(9,7,12,.58))!important;box-shadow:inset 0 0 48px rgba(0,0,0,.28),0 18px 44px rgba(0,0,0,.22)!important;backdrop-filter:blur(3px)!important;align-self:stretch!important;overflow:hidden!important}
@@ -503,7 +503,7 @@
   display:block!important;
   margin:0 0 6px!important;
   color:#e56adf!important;
-  font:700 .48rem/1.2 Orbitron,Inter,sans-serif!important;
+  font:700 .48rem/1.2 bahnschrift-semicondensed,bahnschrift,sans-serif!important;
   letter-spacing:.10em!important;
 }
 .guardian-left-rail .prismatic-transcendence__slots,
@@ -527,7 +527,7 @@
 .guardian-left-rail .prismatic-transcendence__slot.is-equipped{box-shadow:0 0 13px rgba(229,106,223,.42)!important}
 .guardian-left-rail .prismatic-transcendence__slot img{width:100%!important;height:100%!important;object-fit:contain!important}
 .guardian-left-rail .transcendence-slot{min-width:0!important}
-.guardian-left-rail .transcendence-slot h4{margin:0 0 5px!important;color:#c9b2ff!important;font:700 .43rem Orbitron,Inter,sans-serif!important}
+.guardian-left-rail .transcendence-slot h4{margin:0 0 5px!important;color:#c9b2ff!important;font:700 .43rem bahnschrift-semicondensed,bahnschrift,sans-serif!important}
 .guardian-left-rail .transcendence-options{display:flex!important;gap:6px!important;overflow-x:auto!important}
 .guardian-left-rail .transcendence-options .selector-card{flex:0 0 var(--guardian-square)!important;width:var(--guardian-square)!important}
 @media(max-width:720px){

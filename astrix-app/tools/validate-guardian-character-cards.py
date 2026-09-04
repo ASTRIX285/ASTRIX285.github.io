@@ -32,8 +32,10 @@ def main() -> int:
     assert "overflow-x:auto" not in styles
     assert "border-color:rgba(var(--stage-accent-rgb" in styles
     assert "background:rgba(7,9,14,.52)" in styles
-    assert "font:800 11px Inter,sans-serif" in styles
-    assert "background:var(--character-emblem) left center/cover no-repeat" in styles
+    assert "font:800 13px bahnschrift,sans-serif" in styles
+    assert "background:var(--character-emblem) 28px center/cover no-repeat" in styles
+    assert "min-height:32px" in styles
+    assert "width:20px;height:20px;flex:0 0 20px" in styles
     assert "gap:5px" in styles
     assert "left:34px;\n  right:50px" in styles
     assert "left:39px;\n  right:4px" in styles
@@ -61,6 +63,7 @@ def main() -> int:
     print("GUARDIAN_RANK_DEFERRED=PASS")
     print("STAT_ICON_BUNGIE_ARTWORK=PASS")
     print("STAT_VALUE_FIXED_RIBBON=PASS")
+    print("STAT_ICON_SCALE=PASS")
     print("LEFT_CLASS_SUPER_ALIGNMENT=PASS")
     print("HERO_STATUS_CENTRED=PASS")
     return 0

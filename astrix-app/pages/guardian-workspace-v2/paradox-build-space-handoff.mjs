@@ -27,7 +27,7 @@ function compactBuild(detail={}){
     characterId:String(detail.characterId||''),membershipId:String(detail.membershipId||detail.bungieMembershipId||detail.membership?.membershipId||''),membershipType:String(detail.membershipType||detail.membership?.membershipType||''),characterClass:detail.characterClass||'',displayName:detail.displayName||'Guardian',
     selectedLoadoutIndex:Number.isInteger(detail.selectedLoadoutIndex)?detail.selectedLoadoutIndex:null,
     subclass:detail.subclass||'',subclassName:detail.subclassName||'',subclassIcon:detail.subclassIcon||'',subclassCatalog:clone(detail.subclassCatalog||[]),
-    subclassBuild:clone({...subclassBuild,super:superItem,abilities,aspects,fragments}),super:clone(superItem),abilities:clone(abilities),aspects:clone(aspects),fragments:clone(fragments),artifact:clone(detail.artifact||null),artifactConfiguration:clone(detail.artifactConfiguration||detail.artifact?.artifactConfiguration||null),weapons:clone(detail.weapons||[]),armour:clone(detail.armour||[]),mods:clone(detail.mods||detail.armourMods||[]),
+    subclassBuild:clone({...subclassBuild,super:superItem,abilities,aspects,fragments}),super:clone(superItem),abilities:clone(abilities),aspects:clone(aspects),fragments:clone(fragments),artifact:clone(detail.artifact||null),artifactConfiguration:clone(detail.artifactConfiguration||detail.artifact?.artifactConfiguration||null),weapons:clone(detail.weapons||[]),ownedWeapons:clone(detail.ownedWeapons||detail.weapons||[]),armour:clone(detail.armour||[]),mods:clone(detail.mods||detail.armourMods||[]),
     loadoutsAvailable:detail.loadoutsAvailable===true,loadouts:clone(detail.loadouts||[]),
     stats:clone(detail.stats||[]),hashCoverage:clone(detail.hashCoverage||null),semanticCoverage:clone(detail.semanticCoverage||null),coverage:clone(detail.coverage||null),paradoxAnalysis:clone(detail.paradoxAnalysis||null),
     locks:{},objective:null,activityContext:null
@@ -78,6 +78,11 @@ function currentProfileBuildSource(){
   const state=safeRead(BUILD_SNAPSHOT_KEY,{expectedCharacterId:selectedId});
   return bindSourceToCharacter(state?.workingBuild||state?.originalBuild||null,selectedId);
 }
+function persistVaultBuildSource(){
+  const source=resolveBuildSource();
+  if(!source?.characterId)return false;
+  return safeStore(BUILD_SNAPSHOT_KEY,createBuildState(source),{durable:true});
+}
 function armBuildSpacePortal(){globalThis.AstrixLoader?.mount?.();globalThis.AstrixLoader?.set?.(0);globalThis.AstrixLoader?.status?.('Opening Build Forge');}
 const afterPortalPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 async function openBuildSpace(event){
@@ -127,5 +132,6 @@ document.addEventListener('astrix:bungie-loadout-loaded',e=>rememberExplicitLoad
 document.addEventListener('astrix:paradox-live-analysis-changed',e=>rememberAnalysis(e.detail||{}));
 document.addEventListener('astrix:weapon-roll-advice-changed',e=>rememberWeaponAdvice(e.detail||{}));
 document.addEventListener('astrix:artifact-selection-changed',e=>rememberArtifactSelection(e.detail||{}));
+document.addEventListener('astrix:vault-open',persistVaultBuildSource);
 document.addEventListener('click',openBuildSpace,true);
-export {compactBuild,rememberGuardian,rememberExplicitLoadout,rememberWeaponAdvice,rememberArtifactSelection,resolveBuildSource,currentProfileBuildSource,BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY,LAST_LOADOUT_KEY};
+export {compactBuild,rememberGuardian,rememberExplicitLoadout,rememberWeaponAdvice,rememberArtifactSelection,resolveBuildSource,currentProfileBuildSource,persistVaultBuildSource,BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY,LAST_LOADOUT_KEY};

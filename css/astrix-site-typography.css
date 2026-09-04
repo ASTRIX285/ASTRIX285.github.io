@@ -1,0 +1,30 @@
+:root {
+  --astrix-font-ui: "bahnschrift", "Segoe UI", Arial, sans-serif;
+  --astrix-font-display: "bahnschrift-semicondensed", "Segoe UI", Arial, sans-serif;
+  --astrix-font-condensed: "bahnschrift-condensed", "Arial Narrow", Arial, sans-serif;
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--astrix-font-ui);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+nav,
+button,
+label,
+legend,
+th,
+[role="tab"],
+[role="button"] {
+  font-family: var(--astrix-font-display);
+}

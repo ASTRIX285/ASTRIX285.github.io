@@ -19,7 +19,21 @@ function toggleIntendedArtifactPerk(artifact,previous,index){
   const configuration=createIntendedArtifactConfiguration(artifact,previous);
   if(hash===null)return configuration;
   const hashes=new Set((Array.isArray(configuration.selectedPerkHashes)?configuration.selectedPerkHashes:[]).map(numberOrNull).filter(value=>value!==null));
-  if(hashes.has(hash))hashes.delete(hash);else hashes.add(hash);
+  if(hashes.has(hash))hashes.delete(hash);
+  else{
+    if(artifact?.availabilityModel==='artifact-2-socket-buckets'){
+      const tierIndex=numberOrNull(target?.tierIndex);
+      const slot=(artifact?.selectionSlots||[]).find(row=>numberOrNull(row?.tierIndex)===tierIndex);
+      const capacity=Math.max(0,numberOrNull(slot?.capacity)??0);
+      const sameBucket=(artifact?.perks||[]).filter(perk=>numberOrNull(perk?.tierIndex)===tierIndex&&hashes.has(numberOrNull(perk?.hash??perk?.itemHash??perk?.bungieHash)));
+      while(capacity>0&&sameBucket.length>=capacity){
+        const removed=sameBucket.shift();
+        hashes.delete(numberOrNull(removed?.hash??removed?.itemHash??removed?.bungieHash));
+      }
+      if(capacity===0)return configuration;
+    }
+    hashes.add(hash);
+  }
   return {...configuration,selectedPerkHashes:[...hashes],source:'paradox-working-build-intended',provenance:{...(configuration.provenance||{}),intent:'working-build-selection'}};
 }
 function needsIntendedArtifactConfiguration(build={}){
@@ -33,10 +47,32 @@ function artifactConfigurationForBuild(build={}){
   return createIntendedArtifactConfiguration(build.artifact,null);
 }
 function normalizeBuild(build={}){
-  return {...clone(build),version:BUILD_STATE_VERSION,characterId:String(build.characterId||''),selectedLoadoutIndex:Number.isInteger(build.selectedLoadoutIndex)?build.selectedLoadoutIndex:null,subclassBuild:clone(build.subclassBuild||{}),artifact:clone(build.artifact||null),artifactConfiguration:artifactConfigurationForBuild(build),weapons:Array.isArray(build.weapons)?clone(build.weapons):[],armour:Array.isArray(build.armour)?clone(build.armour):[],stats:Array.isArray(build.stats)?clone(build.stats):[],paradoxAnalysis:clone(build.paradoxAnalysis||null),weaponRollAdvice:clone(build.weaponRollAdvice||null),locks:clone(build.locks||{}),objective:build.objective||null,activityContext:clone(build.activityContext||null)};
+  const normalized=clone(build||{});
+  normalized.version=BUILD_STATE_VERSION;
+  normalized.characterId=String(normalized.characterId||'');
+  normalized.selectedLoadoutIndex=Number.isInteger(normalized.selectedLoadoutIndex)?normalized.selectedLoadoutIndex:null;
+  normalized.subclassBuild=normalized.subclassBuild&&typeof normalized.subclassBuild==='object'?normalized.subclassBuild:{};
+  normalized.artifact=normalized.artifact&&typeof normalized.artifact==='object'?normalized.artifact:null;
+  normalized.artifactConfiguration=artifactConfigurationForBuild(normalized);
+  normalized.weapons=Array.isArray(normalized.weapons)?normalized.weapons:[];
+  normalized.armour=Array.isArray(normalized.armour)?normalized.armour:[];
+  normalized.stats=Array.isArray(normalized.stats)?normalized.stats:[];
+  normalized.paradoxAnalysis=normalized.paradoxAnalysis&&typeof normalized.paradoxAnalysis==='object'?normalized.paradoxAnalysis:null;
+  normalized.weaponRollAdvice=normalized.weaponRollAdvice&&typeof normalized.weaponRollAdvice==='object'?normalized.weaponRollAdvice:null;
+  normalized.locks=normalized.locks&&typeof normalized.locks==='object'?normalized.locks:{};
+  normalized.objective=normalized.objective||null;
+  normalized.activityContext=normalized.activityContext&&typeof normalized.activityContext==='object'?normalized.activityContext:null;
+  return normalized;
 }
-function createBuildState(sourceBuild){const normalized=normalizeBuild(sourceBuild||{});const original=freezeDeep(clone(normalized));return {version:BUILD_STATE_VERSION,createdAt:new Date().toISOString(),originalBuild:original,workingBuild:clone(normalized),recommendation:null,validationRecords:[]};}
-function protectBuildState(state={}){if(!state?.originalBuild||!state?.workingBuild)return state;const protectedState=clone(state);protectedState.originalBuild=freezeDeep(clone(state.originalBuild));protectedState.workingBuild=clone(state.workingBuild);protectedState.validationRecords=Array.isArray(state.validationRecords)?clone(state.validationRecords):[];return protectedState;}
+function createBuildState(sourceBuild){const normalized=normalizeBuild(sourceBuild||{});const original=freezeDeep(normalized);return {version:BUILD_STATE_VERSION,createdAt:new Date().toISOString(),originalBuild:original,workingBuild:clone(normalized),recommendation:null,validationRecords:[]};}
+function protectBuildState(state={}){
+  if(!state?.originalBuild||!state?.workingBuild)return state;
+  if(Object.isFrozen(state.originalBuild)&&Array.isArray(state.validationRecords))return state;
+  const protectedState=clone(state);
+  protectedState.originalBuild=freezeDeep(protectedState.originalBuild);
+  protectedState.validationRecords=Array.isArray(protectedState.validationRecords)?protectedState.validationRecords:[];
+  return protectedState;
+}
 function restoreWorkingBuild(state={}){if(!state?.originalBuild)return state;return {...state,workingBuild:clone(state.originalBuild),recommendation:null,restoredAt:new Date().toISOString()};}
 function diffSlot(prefix,before,after,index){const a=itemIdentity(before);const b=itemIdentity(after);if(a===b)return null;return {path:`${prefix}.${index}`,before:clone(before),after:clone(after),beforeId:a,afterId:b};}
 function artifactConfigurationSignature(configuration){if(!configuration||typeof configuration!=='object')return null;const selectedPerkHashes=Array.isArray(configuration.selectedPerkHashes)?[...new Set(configuration.selectedPerkHashes.map(numberOrNull).filter(value=>value!==null))].sort((a,b)=>a-b):null;return JSON.stringify({artifactHash:numberOrNull(configuration.artifactHash),seasonNumber:numberOrNull(configuration.seasonNumber),selectedPerkHashes});}

@@ -1,4 +1,4 @@
-import {guardianManifest} from "./guardian-manifest-service.mjs";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260904-artifact-sandbox-effects-1";
 import {PORTAL_TRANSITION_KEY} from "./guardian-session-cache.mjs";
 
 const loader=window.AstrixLoader;
@@ -53,7 +53,10 @@ document.addEventListener('astrix:bungie-profile-loaded',event=>{
 document.addEventListener('astrix:guardian-selection-changed',()=>set(86,'Painting Guardian build'));
 document.addEventListener('astrix:beta-fixture-loaded',()=>set(86,'Painting Guardian preview'));
 document.addEventListener('astrix:guardian-render-complete',()=>{if(!isBuildSpace)finishAfterPaint('Guardian build rendered');},{once:true});
-document.addEventListener('astrix:build-render-complete',event=>{if(event.detail?.status==='ready')finishAfterPaint('Build Forge rendered');});
+document.addEventListener('astrix:build-render-complete',event=>{
+  if(event.detail?.status==='ready')finishAfterPaint('Build Forge rendered');
+  else if(event.detail?.status==='pending')finishAfterPaint('Build Forge recovery available');
+});
 document.addEventListener('astrix:guardian-error',()=>finishAfterPaint(isBuildSpace?'Build Forge state rendered':'Guardian state rendered'),{once:true});
 
 const currentSession=window.ASTRIX_BUNGIE_SESSION;

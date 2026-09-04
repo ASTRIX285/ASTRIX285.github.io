@@ -13,7 +13,7 @@ class MemoryStorage{
 
 const tables={
   DestinyInventoryItemDefinition:{
-    '100':{hash:100,itemType:3,displayProperties:{name:'Freshly Rolled Weapon',icon:'/weapon.png',description:'Weapon definition'},sockets:{socketEntries:[{singleInitialItemHash:201,reusablePlugItems:[{plugItemHash:202}]}],socketCategories:[{socketCategoryHash:500,socketIndexes:[0]}]},perks:[{perkHash:900}]},
+    '100':{hash:100,itemType:3,displayProperties:{name:'Freshly Rolled Weapon',icon:'/weapon.png',description:'Weapon definition'},sockets:{socketEntries:[{singleInitialItemHash:201,reusablePlugItems:[{plugItemHash:202}],reusablePlugSetHash:444}],socketCategories:[{socketCategoryHash:500,socketIndexes:[0]}]},perks:[{perkHash:900}]},
     '201':{hash:201,displayProperties:{name:'Rolled Perk',icon:'/perk.png',description:'Real rolled perk'}},
     '202':{hash:202,displayProperties:{name:'Alternative Perk',icon:'/alternate.png',description:'Real alternative perk'}},
     '203':{hash:203,displayProperties:{},perks:[{perkHash:900}]},
@@ -21,6 +21,7 @@ const tables={
   },
   DestinySandboxPerkDefinition:{'900':{hash:900,displayProperties:{name:'Sandbox Effect',description:'Sandbox effect description'}}},
   DestinyArtifactDefinition:{'700':{hash:700,displayProperties:{name:'Current Artifact',icon:'/artifact.png'},tiers:[{items:[{itemHash:300}]}]}},
+  DestinyPlugSetDefinition:{},
   DestinyStatDefinition:{'600':{hash:600,displayProperties:{name:'Guardian Stat',icon:'/stat.png'}}},
   DestinySocketCategoryDefinition:{'500':{hash:500,displayProperties:{name:'Weapon Perks',description:'Weapon perk sockets'}}},
   DestinyEquipableItemSetDefinition:{'800':{hash:800,displayProperties:{name:'Armour Set Bonus',icon:'/set.png'},setPerks:[{sandboxPerkHash:900}]}}
@@ -50,15 +51,42 @@ const first=new GuardianManifestService({fetchImpl,storage,authOrigin:'https://a
 await first.ready();
 assert.equal(first.status().mode,'indexeddb');
 assert.equal(first.status().versionMatched,false);
-assert.equal(componentCalls.length,6,'first version must download all six');
+assert.equal(componentCalls.length,COMPONENT_TYPES.length,'first version must download every supported manifest component');
 assert.equal(first.identity(201).name,'Rolled Perk');
 assert.equal(first.identity(201).icon,'https://www.bungie.net/perk.png');
 assert.equal(first.identity(203).name,'Sandbox Effect');
+
+const compactArtifact={
+  hash:2001,
+  name:'Compact Artifact 2.0',
+  availabilityModel:'artifact-2-socket-buckets',
+  selectionLimit:1,
+  selectionSlots:[{tierIndex:0,bucket:1,capacity:1,perkHashes:[2101]}],
+  perks:[{hash:2101,name:'Compact Artifact Perk',description:'Void grenade final blows improve grenade recharge.',displayResolved:true}],
+  activePerks:[]
+};
+const compactPayload={};
+assert.equal(first.applyForgeArmourIndex(compactPayload,{
+  schemaVersion:4,
+  manifestVersion:'v1',
+  definitions:{'400':{hash:400,itemType:2,displayProperties:{name:'Compact Armour'}}},
+  socketLayouts:{},
+  equipableItemSets:{},
+  sandboxPerks:{},
+  statDefinitions:{},
+  plugDefinitions:{},
+  socketCategoryDefinitions:{},
+  artifactCatalog:[compactArtifact]
+}),true,'matching compact Forge armour and Artifact evidence must merge');
+assert.deepEqual(compactPayload.artifactCatalog,[compactArtifact]);
+assert.deepEqual(compactPayload.artifactCatalogCoverage,{model:'artifact-2-socket-buckets',artifactCount:1,complete:true,source:'hourly-compact-manifest',version:'v1'});
+assert.equal(compactPayload.forgeArmourIndexCoverage.artifactCatalog,1);
 
 const payload={
   profile:{
     characterEquipment:{data:{c1:{items:[{itemHash:100,itemInstanceId:'weapon-1'}]}}},
     itemComponents:{sockets:{data:{'weapon-1':{sockets:[{plugHash:201}]}}},reusablePlugs:{data:{'weapon-1':{plugs:{'0':[{plugItemHash:202}]}}}}},
+    profilePlugSets:{data:{plugs:{'444':[{plugItemHash:202,canInsert:true,enabled:true}]}}},
     characterProgressions:{data:{c1:{seasonalArtifact:{tiers:[{items:[{itemHash:300,isActive:true,isVisible:true}]}]}}}},
     profileProgression:{data:{seasonalArtifact:{artifactHash:700}}},
     characters:{data:{c1:{stats:{600:25}}}}
@@ -77,13 +105,13 @@ assert.equal(first.get('DestinyInventoryItemDefinition',999999),null,'missing de
 const second=new GuardianManifestService({fetchImpl,storage,authOrigin:'https://auth.test'});
 await second.ready();
 assert.equal(second.status().versionMatched,true);
-assert.equal(componentCalls.length,6,'matching version must skip every component download');
+assert.equal(componentCalls.length,COMPONENT_TYPES.length,'matching version must skip every component download');
 
 version='v2';
 const third=new GuardianManifestService({fetchImpl,storage,authOrigin:'https://auth.test'});
 await third.ready();
 assert.equal(third.status().version,'v2');
-assert.equal(componentCalls.length,12,'new version must download the six component tables once');
+assert.equal(componentCalls.length,COMPONENT_TYPES.length*2,'new version must download each component table once');
 
 const fallback=new GuardianManifestService({fetchImpl,storage:{available:false},authOrigin:'https://auth.test'});
 await fallback.ready();
@@ -92,9 +120,10 @@ assert.equal((await fallback.getAsync('DestinyInventoryItemDefinition',1234)).di
 assert.equal(fallback.get('DestinyInventoryItemDefinition',1234).displayProperties.name,'Live definition 1234');
 assert.deepEqual(definitionCalls,['DestinyInventoryItemDefinition:1234']);
 
-console.log(`MANIFEST_FIRST_DOWNLOAD=${componentCalls.slice(0,6).join(',')}`);
+console.log(`MANIFEST_FIRST_DOWNLOAD=${componentCalls.slice(0,COMPONENT_TYPES.length).join(',')}`);
 console.log('MANIFEST_VERSION_MATCH_SKIP=PASS componentDownloads=0');
-console.log(`MANIFEST_VERSION_CHANGE_DOWNLOAD=${componentCalls.slice(6).join(',')}`);
+console.log(`MANIFEST_VERSION_CHANGE_DOWNLOAD=${componentCalls.slice(COMPONENT_TYPES.length).join(',')}`);
 console.log('MANIFEST_LOCAL_ROLL_RESOLUTION=PASS weapon=Freshly Rolled Weapon perk=Rolled Perk alternative=Alternative Perk');
 console.log('MANIFEST_ARTIFACT_RESOLUTION=PASS artifact=Current Artifact activePerk=Active Artifact Perk');
+console.log('MANIFEST_COMPACT_ARTIFACT_CATALOGUE=PASS artifacts=1');
 console.log('MANIFEST_INDEXEDDB_FALLBACK=PASS source=bungie-single-definition-endpoint');

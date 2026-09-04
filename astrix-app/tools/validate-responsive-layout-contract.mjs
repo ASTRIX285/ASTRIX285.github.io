@@ -16,12 +16,16 @@ const sources={
 const mainHtml=await readFile(new URL('index.html',ROOT),'utf8');
 const buildHtml=await readFile(new URL('paradox-build-space/index.html',ROOT),'utf8');
 const densityCss=await readFile(new URL('../../shared/astrix-desktop-density.css',ROOT),'utf8');
+const journeyCss=await readFile(new URL('../journey/journey-2560-visual.css',ROOT),'utf8');
+const missionCss=await readFile(new URL('../mission-reports/mission-reports.css',ROOT),'utf8');
+const forgeLoaderCss=await readFile(new URL('../forge-loader/forge-loader.css',ROOT),'utf8');
 const appPages=[
   ['Journey',await readFile(new URL('../journey/index.html',ROOT),'utf8')],
   ['Character',mainHtml],
   ['Build Forge',buildHtml],
   ['Mission Reports',await readFile(new URL('../mission-reports/index.html',ROOT),'utf8')],
   ['Vault',await readFile(new URL('../vault/index.html',ROOT),'utf8')],
+  ['Forge Loader',await readFile(new URL('../forge-loader/index.html',ROOT),'utf8')],
   ['Loadout',await readFile(new URL('../loadout/index.html',ROOT),'utf8')]
 ];
 const combined=Object.values(sources).join('\n');
@@ -41,16 +45,24 @@ assert.match(sources.shared,/guardian-loadout-slot\{[\s\S]*?aspect-ratio:1!impor
 assert.doesNotMatch(combined,/(?:^|[;{])\s*zoom\s*:/m,'Page-level CSS zoom is forbidden');
 const pageLayoutCss=[sources.adaptive,sources.gear,sources.layout,sources.leftLock,sources.mobile,sources.shared,sources.super,sources.build].join('\n');
 assert.doesNotMatch(pageLayoutCss,/(?:html|body|\.workspace|\.build-space|\.design-canvas|\.guardian-left-rail)\s*\{[^{}]*transform\s*:\s*scale\(/,'Page containers must not be scaled to simulate responsiveness');
-assert.match(densityCss,/--astrix-desktop-density:\.75/,'The shared desktop density must match the approved 75% showcase target');
-assert.match(densityCss,/@media\s*\(min-width:1500px\)\{[\s\S]*?body\{zoom:var\(--astrix-desktop-density\)\}/,'Desktop density must be shared, layout-aware and desktop-only');
+assert.doesNotMatch(densityCss,/--astrix-desktop-density|(?:^|[;{])\s*zoom\s*:/m,'The shared interface must render at native scale instead of shrinking every tool');
+assert.match(densityCss,/--apx-workspace-left:minmax\(360px,20%\);[\s\S]*?--apx-workspace-centre:minmax\(720px,1fr\);[\s\S]*?--apx-workspace-right:minmax\(420px,24%\);[\s\S]*?--apx-workspace-compact-columns:392px minmax\(0,1fr\);/,'The shared workspace track contract must retain the approved Journey proportions');
+assert.match(densityCss,/--apx-font-copy:"bahnschrift"[\s\S]*?--apx-font-display:"bahnschrift-semicondensed"[\s\S]*?--apx-type-section-title:1rem;[\s\S]*?--apx-type-body:\.875rem;[\s\S]*?--apx-type-label:\.75rem;[\s\S]*?--apx-type-meta:\.75rem;/,'All tools must inherit one readable typography scale');
 assert.match(densityCss,/body\.apx-destination-page \.apx-page-shell\{width:100%;max-width:none\}/,'Scaffold destinations must use the full desktop monitor');
 assert.doesNotMatch(densityCss,/transform\s*:\s*scale\(/,'The shared density layer must not use transform scaling');
 
 assert.match(sources.characters,/html body \.topbar\{[\s\S]*?position:sticky!important/,'The character-card ribbon must remain anchored to the tool header');
 assert.match(sources.characters,/@media\s*\(max-width:860px\)\{[\s\S]*?#guardianCharacterCards\.guardian-character-cards\{[^}]*display:grid!important;[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;[^}]*overflow:hidden!important/,'All three character cards must remain fixed and contained in the phone ribbon');
 assert.doesNotMatch(sources.characters,/scroll-snap-type|overflow-x:auto/,'The fixed character-card ribbon must not become a separate scrolling container');
-assert.match(sources.build,/@media\s*\(max-width:1100px\)\s*and\s*\(min-width:721px\)\{[\s\S]*?\.build-space\{grid-template-columns:minmax\(300px,340px\) minmax\(0,1fr\)\}/,'Build must retain its smaller-laptop/tablet two-column contract');
+assert.match(sources.build,/@media\(max-width:1100px\)\{\.build-space\{grid-template-columns:1fr\}/,'Build must share the single-column compact breakpoint');
 assert.match(sources.build,/@media\s*\(max-width:720px\)\{[\s\S]*?\.build-space\{grid-template-columns:1fr/,'Build must collapse to one document-flow column on phones');
+for(const [label,source] of [['Journey',journeyCss],['Build Forge',sources.build],['Mission Reports',missionCss]]){
+  assert.match(source,/grid-template-columns:var\(--apx-workspace-columns,/u,label+' must consume the shared wide workspace tracks');
+  assert.match(source,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,label+' must consume the shared compact workspace tracks');
+}
+assert.match(forgeLoaderCss,/grid-template-columns:minmax\(360px,20%\) minmax\(640px,44%\) minmax\(560px,1fr\)/u,'Forge Loader alone must reserve a narrower directive track and a wider output track');
+assert.match(forgeLoaderCss,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,'Forge Loader must retain the shared compact workspace tracks');
+assert.match(sources.layout,/grid-template-columns:var\(--apx-workspace-left,[^;]+\) var\(--apx-workspace-centre,[^;]+\)!important/,'Character must consume the shared rail and centre tracks');
 assert.match(sources.super,/@media\s*\(max-width:720px\)\{[\s\S]*?\.super-feature \.super-feature__cluster\{width:min\(300px,100%\)!important\}/,'Super geometry must scale inside its container at narrow widths');
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
@@ -59,11 +71,14 @@ for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
 }
 for(const [label,html] of appPages){
   const styles=[...html.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map(match=>match[1]);
+  assert.match(html,/https:\/\/use\.typekit\.net\/tnp6kbq\.css/,label+' must load the shared Adobe Fonts web project');
+  assert.match(html,/\/css\/astrix-site-typography\.css/,label+' must load the shared ASTRIX typography layer');
+  assert.doesNotMatch(html,/fonts\.(?:googleapis|gstatic)\.com/,label+' must not load a competing interface font service');
   assert.match(styles.at(-1)||'',/astrix-desktop-density\.css$/,label+' must load the shared desktop density layer last');
 }
 
 console.log('RESPONSIVE_SINGLE_OWNER=PASS');
 console.log('RESPONSIVE_NO_TRANSFORM_PAGE_SCALE=PASS');
-console.log('RESPONSIVE_DESKTOP_DENSITY=PASS');
+console.log('RESPONSIVE_NATIVE_SCALE=PASS');
 console.log('RESPONSIVE_LOADOUT_ROW=PASS');
 console.log('RESPONSIVE_TABLET_PHONE_SOURCE=PASS');

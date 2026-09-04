@@ -20,6 +20,8 @@ globalThis.CustomEvent=class{constructor(type,init={}){this.type=type;this.detai
 const semantics=await import('../pages/guardian-workspace-v2/guardian-semantic-resolver.mjs');
 const sets=await import('../pages/guardian-workspace-v2/guardian-armour-set-resolver.mjs');
 const live=await import('../pages/guardian-workspace-v2/guardian-paradox-live-adapter.mjs');
+const weaponAdvisor=await import('../core/weapon-roll-advisor.mjs');
+const transferPlans=await import('../pages/guardian-workspace-v2/guardian-perk-change-plan.mjs');
 
 // G1 — Armour semantic split and Infuse exclusion.
 try{
@@ -109,6 +111,71 @@ try{
   const uiSource=await readFile(new URL('../pages/guardian-workspace-v2/guardian-semantic-ui.mjs',import.meta.url),'utf8');
   if(!/data-bungie-hash/.test(uiSource)||!/hashAttribute\(perk\)/.test(uiSource)||!/hashAttribute\(semantics\.intrinsic\)/.test(uiSource))fail('G3b: weapon perk/intrinsic DOM icons do not expose their Bungie hash');
 }catch(error){fail(`G3b threw: ${error.message}`);}
+
+// G3c — Weapon perks are modeled in stable socket-column order with the exact
+// number of rows allowed by the verified weapon tier. Exotic weapon traits
+// remain subordinate to the intrinsic instead of being flattened as mods.
+try{
+  const perk=(hash,name,socketIndex,category='traits',socketName='Weapon Perks')=>({hash,bungieHash:hash,name,socketIndex,definition:{displayProperties:{name,icon:`/common/${hash}.png`},plug:{plugCategoryIdentifier:category}},socketCategoryDefinition:{displayProperties:{name:socketName}}});
+  const intrinsic=perk(2500,'Command Frame IV',0,'intrinsics','Intrinsic Traits');
+  const selectedBarrel=perk(2501,'Fluted Barrel',1,'barrels');
+  const selectedTrait=perk(2511,'Destabilizing Rounds Retrofit',3,'traits','Weapon Mods');
+  const result=semantics.normaliseWeaponSemantics({
+    item:{itemInstanceId:'tier-five-exotic'},
+    itemDefinition:{resolvedSandboxPerks:[
+      {hash:2600,displayProperties:{name:'Command Frame IV',description:'Verified intrinsic frame.',icon:'/common/2600.png'}},
+      {hash:2601,displayProperties:{name:'Choir of One',description:'Verified Exotic weapon trait.',icon:'/common/2601.png'}}
+    ]},
+    instance:{gearTier:5},
+    isExotic:true,
+    plugs:[intrinsic,selectedBarrel,selectedTrait],
+    alternativeColumns:{
+      1:[selectedBarrel,perk(2502,'Arrowhead Brake',1,'barrels'),perk(2503,'Corkscrew Rifling',1,'barrels')],
+      3:[perk(2510,'Repulsor Brace',3,'traits','Weapon Mods'),selectedTrait,perk(2512,'Onslaught Retrofit',3,'traits','Weapon Mods')]
+    }
+  });
+  if(result.perkRowCount!==3||result.perkRows.length!==3)fail('G3c: Tier 5 weapon did not produce exactly three perk rows');
+  if(result.perkModel.columns.map(column=>column.socketIndex).join(',')!=='1,3')fail('G3c: weapon perk columns did not preserve Bungie socket order');
+  if(result.perkRows[0]?.slots?.[0]?.perk?.name!=='Fluted Barrel'||result.perkRows[1]?.slots?.[1]?.perk?.name!=='Destabilizing Rounds Retrofit')fail('G3c: perk alternatives were not integrated into the tier row model');
+  if(!result.perkRows[0]?.slots?.[0]?.isSelected||!result.perkRows[1]?.slots?.[1]?.isSelected)fail('G3c: selected perks lost their exact modeled row positions');
+  if(result.intrinsic?.name!=='Command Frame IV'||result.exoticTraits.map(row=>row.name).join(',')!=='Choir of One')fail('G3c: verified Exotic weapon trait was not kept beneath the intrinsic hierarchy');
+  if(semantics.classifyWeaponPlug(selectedTrait)!=='perk')fail('G3c: definition-level Exotic trait was misclassified by the broad Weapon Mods socket title');
+  if(semantics.weaponPerkRowCountForTier(5)!==3||semantics.weaponPerkRowCountForTier(4)!==2||semantics.weaponPerkRowCountForTier(3)!==2||[1,2].some(tier=>semantics.weaponPerkRowCountForTier(tier)!==1))fail('G3c: Tier 1–5 weapon row rules drifted');
+  if([1,2,3,4,5].map(column=>semantics.weaponPerkColumnRowCountForTier(5,column)).join(',')!=='2,2,3,3,2')fail('G3c: Tier 5 visual perk columns must follow 2,2,3,3,2 rows');
+  const tierFiveColumns=Array.from({length:5},(_,columnIndex)=>({socketIndex:columnIndex+10,options:Array.from({length:[2,2,3,3,2][columnIndex]},(_,rowIndex)=>perk(2700+(columnIndex*10)+rowIndex,`C${columnIndex+1} R${rowIndex+1}`,columnIndex+10,'traits'))}));
+  const tierFiveModel=semantics.normaliseWeaponPerkModel({gearTier:5,selectedPerks:tierFiveColumns.map(column=>column.options[0]),alternativePerkColumns:tierFiveColumns});
+  if(tierFiveModel.columns.map(column=>column.expectedRowCount).join(',')!=='2,2,3,3,2')fail('G3c: Tier 5 per-column row capacities were not retained in the model');
+  if(tierFiveModel.rows[2].slots.map(slot=>Boolean(slot.perk)).join(',')!=='false,false,true,true,false')fail('G3c: Tier 5 third-row perks must appear only in visual columns 3 and 4');
+  const levelBoost=perk(2800,'Empty Weapon Level Boost Socket',8,'weapon.level_boost','Weapon Mods'),killTracker=perk(2801,'Kill Tracker',9,'trackers','Weapon Perks'),infuse=perk(2802,'Infuse',0,'weapon.infusion','Weapon Mods');
+  const separated=semantics.normaliseWeaponSemantics({instance:{gearTier:3},plugs:[levelBoost,killTracker,infuse],alternativeColumns:{8:[levelBoost],9:[killTracker]}});
+  if(semantics.classifyWeaponPlug(levelBoost)!=='weapon-mod'||!separated.modSockets.some(row=>row.name==='Empty Weapon Level Boost Socket'))fail('G3c: Weapon Level Boost was not retained in the weapon-mod row');
+  if(semantics.classifyWeaponPlug(killTracker)!=='perk'||!separated.perkModel.columns.some(column=>column.options.some(row=>row.name==='Kill Tracker')))fail('G3c: Kill Tracker did not remain in the weapon perk model');
+  if(semantics.classifyWeaponPlug(infuse)!=='infuse'||separated.modSockets.some(row=>row.name==='Infuse')||separated.discarded.length!==1)fail('G3c: Infuse was not excluded from the functional weapon model');
+  const uiSource=await readFile(new URL('../pages/guardian-workspace-v2/guardian-semantic-ui.mjs',import.meta.url),'utf8');
+  if(!/function weaponPerkMatrixMarkup/.test(uiSource)||!/data-perk-row-count/.test(uiSource)||!/EXOTIC WEAPON TRAITS/.test(uiSource)||!/weaponTraitHierarchyMarkup/.test(uiSource))fail('G3c: tier matrix or Exotic trait hierarchy is missing from the semantic UI');
+  if(/PARADOX PERK RECOMMENDATION/.test(uiSource)||/Verified Bungie Exotic weapon trait\./.test(uiSource))fail('G3c: redundant recommendation copy or invented generic Exotic trait text remains in the weapon details');
+}catch(error){fail(`G3c threw: ${error.message}`);}
+
+// G3d — Verified manifest descriptions can rank selectable perks without
+// manufacturing effects, while a completed catalyst remains fixed evidence.
+try{
+  const option=(hash,name,description,socketIndex)=>({hash:String(hash),name,description,socketIndex,definition:{hash,displayProperties:{name,description}}});
+  const grenade=option(2901,'Demolition Loop','Final blows with this weapon grant grenade energy.',3),reload=option(2902,'Fast Hands','Reloading after a final blow improves reload speed.',3),catalyst=option(2903,'Completed Catalyst','Final blows create an Orb of Power.',7);
+  const advice=weaponAdvisor.adviseWeaponRoll({weapon:{itemHash:2900,itemInstanceId:'weapon-instance',selectedPerkHashes:['2902'],selectedPerks:[reload],perkColumns:[{socketIndex:3,options:[reload,grenade]}],fixedTraits:[catalyst],catalyst:{masterworked:true}},intelligence:{perks:{}},context:{desiredTokens:['grenade-energy','orb-of-power']}});
+  if(!advice.hasVerifiedRecommendation||advice.best?.options?.[0]?.hash!=='2901')fail('G3d: verified Bungie perk descriptions did not rank the grenade-energy match');
+  if(advice.fixedEvidence?.traitCount!==1||advice.fixedEvidence?.catalystMasterworked!==true)fail('G3d: completed Exotic catalyst was not retained as fixed recommendation evidence');
+}catch(error){fail(`G3d threw: ${error.message}`);}
+
+// G3e — Live changes are always equip-first and all-or-nothing. Perk mutation
+// cannot run ahead of equipment verification or absent full route support.
+try{
+  const build={characterId:'guardian-1',weapons:Array.from({length:3},(_,index)=>({itemInstanceId:`weapon-${index}`})),armour:Array.from({length:5},(_,index)=>({itemInstanceId:`armour-${index}`})),artifactConfiguration:{artifactHash:3000,selectedPerkHashes:[3001,3002]},armourModRecommendation:{decisions:[]}};
+  const advice={stagedChanges:[{itemInstanceId:'weapon-0',socketIndex:3,currentPlugHash:1,plugHash:2}]};
+  const blocked=transferPlans.createLiveTransferPlan({build,advice});
+  if(blocked.ready||blocked.phases.map(row=>row.key).join(',')!=='snapshot,equip,verify-equipment,weapon-perks,armour-mods,artifact,verify-final')fail('G3e: incomplete route support did not preserve the equip-first blocked transfer sequence');
+  const supported=transferPlans.createLiveTransferPlan({build,advice,capabilities:{captureSnapshot:true,equipItems:true,verifyEquipment:true,insertWeaponPerks:true,insertArmourMods:true,applyArtifact:true,verifyFinalState:true}});
+  if(!supported.ready||supported.executionPolicy!=='equip-then-mutate-sockets-then-verify')fail('G3e: complete route support did not produce a ready equip-first plan');
+}catch(error){fail(`G3e threw: ${error.message}`);}
 
 // G4 — Stat threshold is above 100, not merely at 100.
 try{

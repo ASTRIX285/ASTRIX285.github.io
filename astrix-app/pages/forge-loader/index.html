@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ASTRIX PARADOX Forge Loader for verified Destiny 2 armour combinations">
+  <title>Forge Loader — ASTRIX PARADOX</title>
+  <link rel="stylesheet" href="https://use.typekit.net/tnp6kbq.css">
+  <link rel="stylesheet" href="/css/astrix-site-typography.css?v=20260903-bahnschrift-1">
+  <link rel="stylesheet" href="../../shared/astrix-portal-loader.css?v=20260831-paradox-map-crimson-gold">
+  <script>window.APX_LOGO='../../../img/logo.png';</script>
+  <script src="../../shared/astrix-portal-loader.js?v=20260831-render-ready"></script>
+  <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css?v=20260902-forge-loader-1">
+  <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260903-command-header-2">
+  <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
+  <link rel="stylesheet" href="./forge-loader.css?v=20260904-open-armour-1">
+  <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
+  <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
+</head>
+<body class="apx-destination-page astrix-paradox-map-background forge-loader-page">
+  <header class="apx-destination-header astrix-command-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>FORGE LOADER</strong><small>SELECT AND MAXIMISE VERIFIED ARMOUR</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state" id="forgeHeaderState">BUNGIE ARMOUR</span></header>
+  <div data-astrix-destination-ribbon data-active-destination="forge-loader"></div>
+
+  <main class="apx-page-shell forge-loader-shell">
+    <span class="apx-visually-hidden" id="forgeConnectionState" aria-live="polite">RESOLVING</span>
+
+    <section class="forge-loader-workspace" aria-label="Forge Loader armour builder">
+      <aside class="forge-loader-selector" aria-label="Guardian and Exotic selector">
+        <section class="forge-panel forge-selected-guardian" aria-labelledby="forgeGuardianTitle">
+          <div class="forge-panel-heading"><div><p class="apx-eyebrow">SELECTED GUARDIAN</p><h2 id="forgeGuardianTitle">Guardian</h2></div><span id="forgeGuardianClass">RESOLVING</span></div>
+          <div class="forge-hero-card" id="forgeHeroCard"><span>Resolving verified Guardian…</span></div>
+        </section>
+
+        <section class="forge-panel forge-exotic-selector" aria-labelledby="forgeExoticTitle">
+          <div class="forge-panel-heading"><div><p class="apx-eyebrow">BUILD ANCHOR</p><h2 id="forgeExoticTitle">Select Exotic armour</h2></div><span id="forgeExoticStatus" hidden>WAITING</span></div>
+          <div class="forge-exotic-slots" id="forgeExoticSlots"></div>
+        </section>
+
+      </aside>
+
+      <section class="forge-loader-directives" aria-label="Stat directive and armour-set protocol">
+        <section class="forge-panel forge-stat-selector" aria-labelledby="forgeStatsTitle">
+          <div class="forge-panel-heading"><div><p class="apx-eyebrow">STAT DIRECTIVE</p><h2 id="forgeStatsTitle">Desired stat distribution</h2></div><span id="forgeStatStatus">SELECT EXOTIC</span></div>
+          <div class="forge-stat-targets" id="forgeStatTargets">
+            <label data-target-stat="health"><span>HEALTH</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="health" disabled>MAX</button><select data-stat-priority="health" aria-label="Health priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="melee"><span>MELEE</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="melee" disabled>MAX</button><select data-stat-priority="melee" aria-label="Melee priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="grenade"><span>GRENADE</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="grenade" disabled>MAX</button><select data-stat-priority="grenade" aria-label="Grenade priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="super"><span>SUPER</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="super" disabled>MAX</button><select data-stat-priority="super" aria-label="Super priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="class"><span>CLASS</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="class" disabled>MAX</button><select data-stat-priority="class" aria-label="Class priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+            <label data-target-stat="weapon"><span>WEAPON</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="weapon" disabled>MAX</button><select data-stat-priority="weapon" aria-label="Weapon priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
+          </div>
+          <div class="forge-stat-actions"><button type="button" id="forgeFindBuilds" disabled>REFRESH TOP 50 COMBINATIONS</button><button type="button" id="forgeResetTargets" disabled>RESET TARGETS</button></div>
+          <p class="forge-runtime-status" id="forgeRuntimeStatus" role="status">Select an owned Exotic to initialise the Forge Loader.</p>
+        </section>
+
+        <section class="forge-panel forge-set-selector" aria-labelledby="forgeSetTitle">
+          <div class="forge-panel-heading"><div><p class="apx-eyebrow">SET PROTOCOL</p><h2 id="forgeSetTitle">Armour set bonuses</h2></div><span id="forgeSetStatus">SELECT EXOTIC</span></div>
+          <p class="forge-guidance">Keep Open Armour active for the top 50 owned combinations, choose one four-piece bonus, or choose up to two compatible two-piece bonuses. Unavailable combinations remain locked.</p>
+          <div class="forge-set-list" id="forgeSetList"><div class="forge-empty">Select an Exotic to calculate compatible set bonuses.</div></div>
+        </section>
+      </section>
+
+      <section class="forge-loader-output" aria-label="Working load and matched armour">
+        <section class="forge-panel forge-staged" aria-labelledby="forgeStagedTitle">
+          <div class="forge-panel-heading"><div><p class="apx-eyebrow">WORKING LOAD</p><h2 id="forgeStagedTitle">Staged armour</h2></div><span id="forgeStagedStatus">NO COMBINATION</span></div>
+          <div class="forge-staged-slots" id="forgeStagedSlots"></div>
+          <button class="forge-evaluate" type="button" id="forgeEvaluate" disabled>EVALUATE IN BUILD FORGE</button>
+        </section>
+
+        <section class="forge-panel forge-results" id="forgeResults" hidden aria-labelledby="forgeResultsTitle">
+          <div class="forge-panel-heading"><div><p class="apx-eyebrow">CALCULATED LOADS</p><h2 id="forgeResultsTitle">Forge Matrix</h2></div><span id="forgeResultStatus">0 RESULTS</span></div>
+          <div class="forge-candidate-builds" id="forgeCandidateBuilds" aria-live="polite"></div>
+          <button class="forge-show-more" type="button" id="forgeShowMore" hidden></button>
+        </section>
+      </section>
+    </section>
+
+    <section class="apx-section forge-signed-out" id="forgeSignedOut" hidden aria-labelledby="forgeSignedOutTitle">
+      <div class="apx-section-heading"><h2 id="forgeSignedOutTitle">Bungie connection required</h2><span class="apx-status-chip">SIGNED OUT</span></div>
+      <p>Connect Bungie to calculate from verified owned armour. No inventory, Exotic or set-bonus state is guessed.</p>
+      <a class="forge-connect" id="forgeConnectButton" href="https://auth.astrixparadox.com/bungie/start">CONNECT BUNGIE</a>
+    </section>
+  </main>
+
+  <aside class="forge-item-inspect" id="forgeItemInspect" hidden aria-hidden="true"></aside>
+  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-forge-loader-1"></script>
+  <script type="module" src="./forge-loader.mjs?v=20260904-top-50-scan-1"></script>
+</body>
+</html>
