@@ -36,6 +36,10 @@ assert.match(sources.shared,/--guardian-square:clamp\(40px,3\.2vw,64px\);[\s\S]*
 assert.match(sources.shared,/guardian-left-rail[\s\S]*?width:var\(--guardian-square\)!important;[\s\S]*?height:var\(--guardian-square\)!important/,'Left-rail sockets must consume the shared square token');
 assert.match(sources.gear,/\.gear-mods\{[^}]*repeat\(3,var\(--guardian-square\)\)[^}]*repeat\(2,var\(--guardian-square\)\)[^}]*gap:var\(--guardian-square-gap\)/,'Armour mods must consume the same square and gap tokens');
 assert.match(sources.gear,/\.gear-columns\{[^}]*repeat\(auto-fit,minmax\(min\(220px,100%\),1fr\)\)/,'Shared armour cards must wrap before their mod grids can overlap');
+assert.match(sources.gear,/\.gear-weapons\{[\s\S]*?--gear-weapon-art:clamp\(86px,8cqi,112px\);[\s\S]*?--gear-weapon-socket:clamp\(34px,3\.6cqi,52px\)/,'Weapon art and sockets must have one shared responsive geometry');
+assert.match(sources.gear,/\.gear-weapons \.weap\{[\s\S]*?grid-template-areas:"art cap" "art perks" "art support" "art empty"!important/,'Every weapon card must use the shared art, perks and mod composition');
+assert.match(sources.gear,/\.weapon-perk-matrix\.is-compact \.weapon-perk-row\{grid-template-columns:repeat\(var\(--weapon-perk-columns\),var\(--gear-weapon-socket\)\)/,'Compact weapon models must keep their tier-defined perk columns aligned');
+assert.match(sources.gear,/\.weapon-support-icon\{width:var\(--gear-weapon-socket\)!important;height:var\(--gear-weapon-socket\)!important/,'Weapon mod and masterwork sockets must match perk sizing');
 assert.doesNotMatch(sources.build,/--guardian-square\s*:|--pf-mod-size\s*:|\.gear-slot \.gear-mods\s*\{/,'Build must not create a second socket-size owner');
 
 assert.match(sources.shared,/guardian-loadouts-strip\{[\s\S]*?overflow-x:auto!important/,'The 1–20 loadout strip must contain its own narrow-screen overflow');
@@ -63,6 +67,10 @@ for(const [label,source] of [['Journey',journeyCss],['Build Forge',sources.build
 assert.match(forgeLoaderCss,/grid-template-columns:minmax\(360px,20%\) minmax\(640px,44%\) minmax\(560px,1fr\)/u,'Forge Loader alone must reserve a narrower directive track and a wider output track');
 assert.match(forgeLoaderCss,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,'Forge Loader must retain the shared compact workspace tracks');
 assert.match(sources.layout,/grid-template-columns:var\(--apx-workspace-left,[^;]+\) var\(--apx-workspace-centre,[^;]+\)!important/,'Character must consume the shared rail and centre tracks');
+assert.match(sources.shared,/\.workspace>\.stage-companion,[\s\S]*?\.workspace>\.stage,[\s\S]*?\.workspace>\.right\{display:none!important\}/,'Character must retain but visually remove the two obsolete stage areas');
+assert.match(sources.shared,/grid-template-areas:"rail action" "rail equipment"!important/,'Character must use a balanced rail and equipment workspace');
+assert.match(sources.shared,/grid-template-areas:"loadouts" "armour" "weapons"!important/,'Character equipment must render Loadouts, Armour, then Weapons');
+assert.match(sources.shared,/\.gear-combined \.gear-columns\{[\s\S]*?grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,'Character Armour must retain five equal columns');
 assert.match(sources.super,/@media\s*\(max-width:720px\)\{[\s\S]*?\.super-feature \.super-feature__cluster\{width:min\(300px,100%\)!important\}/,'Super geometry must scale inside its container at narrow widths');
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){

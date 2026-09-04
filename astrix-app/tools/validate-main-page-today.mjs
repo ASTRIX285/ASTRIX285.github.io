@@ -98,10 +98,11 @@ assert.match(gearModule,/is-set-2-active/,'2-piece active state must reach the c
 assert.match(gearModule,/is-set-4-active/,'4-piece active state must reach the card');
 assert.match(gearCss,/\.gear-slot\.is-set-2-active/,'2-piece card highlight is missing');
 assert.match(gearCss,/\.gear-slot\.is-set-4-active/,'4-piece card highlight is missing');
-assert.match(gearCss,/height:108px!important/,'Armour and weapon portrait rows must be taller');
+assert.match(gearCss,/--gear-weapon-art:clamp\(86px,8cqi,112px\)/,'Weapon art must retain the shared readable square scale');
+assert.match(gearCss,/\.gear-arm-anchor \.arm\{width:clamp\(88px,6vw,104px\)!important;height:clamp\(88px,6vw,104px\)!important/,'Armour art must retain the shared readable scale');
 assert.match(gearCss,/\.gear-mod\.is-masterwork-gold\{[^}]*border:1px solid rgba\(142,34,48,\.94\)[^}]*outline:2px solid #f0d55e!important/,'Level-five masterwork must retain the 2px outer crimson/gold stroke');
 assert.match(gearCss,/weapon-perk-strip\{[^}]*border:0[^}]*background:transparent/,'Selected perks must not sit inside a blue container');
-assert.match(gearCss,/weapon-support-icon\{width:var\(--pf-mod-size,36px\);height:var\(--pf-mod-size,36px\)/,'Weapon mod/masterwork icons must match armour mod size');
+assert.match(gearCss,/weapon-support-icon\{width:var\(--gear-weapon-socket\)!important;height:var\(--gear-weapon-socket\)!important/,'Weapon mod/masterwork icons must match the shared weapon socket size');
 
 assert.match(characterModule,/emblemBackground = character\.emblem\?\.background/,'Hero card must use the Bungie emblem background');
 assert.match(characterCss,/var\(--character-emblem\) 28px center\/cover no-repeat/,'The Bungie emblem focal icon must be centred horizontally and vertically in its artwork zone');
@@ -182,7 +183,7 @@ assert.match(buildModule,/let volatileState=null/,'Build must retain a protected
 assert.match(buildModule,/function writeState\(next,\{memoryOnly=volatileStateMemoryOnly\}=\{\}\)\{[\s\S]*?const state=protectBuildState\(next\);[\s\S]*?volatileState=state;/,'Build writes must protect the in-page fallback before attempting persistence');
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260904-weapon-model-2'/,'Build Armour must import the same current renderer as the locked Character section');
-assert.match(buildHtml,/paradox-build-space\.css\?v=20260904-weapon-model-2/,'Build must load the readable verified weapon-model review without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.css\?v=20260904-equipment-geometry-1/,'Build must load the standardized equipment geometry without a stale cache');
 assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260904-weapon-model-2/,'Build must load the complete verified weapon recommendation without stale code');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
@@ -210,8 +211,9 @@ assert.match(sharedRailCss,/artifact-item-selector[\s\S]*?grid-template-columns:
 assert.match(sharedRailCss,/guardian-loadouts-strip \.guardian-loadouts-grid\{[\s\S]*?grid-template-columns:repeat\(20,minmax\(32px,1fr\)\)/,'The shared Main and Build loadout tray must remain one 1–20 row');
 assert.match(sharedRailCss,/guardian-loadouts-strip \.guardian-loadout-slot\.is-saved\{[\s\S]*?background-image:var\(--loadout-color-image/,'The horizontal tray must display Bungie-selected loadout colour artwork');
 assert.match(sharedRailCss,/body\.guardian-main-page\{[\s\S]*?overflow-y:auto!important/,'The Character page must own vertical document scrolling');
-assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.guardian-loadouts-container\{[\s\S]*?grid-row:1!important/,'The Main loadout container must occupy its own row above Armour');
-assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.gear-combined\{[\s\S]*?grid-row:2!important[\s\S]*?height:auto!important/,'Armour & Mods must retain its natural height below loadouts');
+assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.guardian-loadouts-container\{[\s\S]*?grid-area:loadouts!important/,'The Main loadout container must occupy its named row above Armour');
+assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.gear-combined\{[\s\S]*?grid-area:armour!important[\s\S]*?height:auto!important/,'Armour & Mods must retain its natural height below loadouts');
+assert.match(sharedRailCss,/\.equip\.gear-layout-active>\.gear-weapons\{[\s\S]*?grid-area:weapons!important/,'Weapons must occupy the full row below Armour');
 assert.match(buildCss,/\.design-canvas \.loadouts-design-section,[\s\S]*?\.design-canvas \.armour-design-section\{/,'Build loadouts and Armour must be independent visual containers');
 assert.doesNotMatch(buildCss,/\.design-canvas \.armour-design-section \.gear-arm-anchor \.arm\{[^}]*?(?:width|height):82\.8px/,'Build must not shrink the shared 92px armour tile');
 assert.doesNotMatch(buildCss,/\.armour-design-section[^{]*\.arm>img|transform:scale\(\.9\)/,'Build must not shrink or override the locked shared Armour image slot');

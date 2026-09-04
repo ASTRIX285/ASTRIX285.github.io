@@ -164,21 +164,10 @@ assert.match(css,/@media\(max-width:1760px\)\{\.build-space\{grid-template-colum
 assert.match(css,/\.build-forge-page \.astrix-platform-shell\{grid-template-columns:0 minmax\(0,1fr\) 0!important\}/,'Build Forge must reclaim the obsolete external media rails for the working columns.');
 assert.match(css,/\.build-rail\{container-type:inline-size;--build-rail-icon:clamp\(40px,21cqi,128px\)/,'Build left-rail icons must remain proportional to their column without taking ownership of the shared Character token.');
 assert.match(css,/\.armour-design-section \.gear-columns\{grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,'All five armour cards must remain on one row.');
-assert.match(css,/--build-armour-art:clamp\(64px,8cqi,360px\)/,'Armour icons must respond to the Armour section width at the enlarged scale.');
-assert.match(css,/--build-armour-mod:clamp\(32px,4\.2cqi,240px\)/,'Armour mod icons must respond to the Armour section width at the enlarged scale.');
-assert.match(css,/--build-weapon-art:clamp\(64px,7cqi,360px\)/,'Weapon icons must respond to the Weapons section width.');
-const responsiveWidthSamples=[1148,1332];
-const proportionalTokens=[
-  ['armour art',64,.08,360],['armour mod',32,.042,240],['armour rail',12,.012,72],
-  ['armour corner',14,.014,84],['armour bonus',16,.016,96],['armour intrinsic',26,.028,168],
-  ['armour appearance',24,.025,150],['weapon art',64,.07,360],['weapon perk',14,.0145,88],
-  ['weapon corner',12,.0125,76],['weapon power',8,.0085,52]
-];
-for(const [label,min,ratio,max] of proportionalTokens){
-  const sizes=responsiveWidthSamples.map(width=>Math.min(max,Math.max(min,width*ratio)));
-  const ratios=sizes.map((size,index)=>size/responsiveWidthSamples[index]);
-  assert.ok(Math.abs(ratios[0]-ratios[1])<1e-9,`${label} must retain its percentage between the 1640px and 2560px workspace samples.`);
-}
+assert.match(css,/--build-armour-art:clamp\(88px,6vw,104px\)/,'Build Armour art must use the same readable range as Character.');
+assert.match(css,/--build-armour-mod:var\(--guardian-square\)/,'Build Armour mods must consume the shared Character socket size.');
+assert.match(gearCss,/--gear-weapon-art:clamp\(86px,8cqi,112px\);[\s\S]*?--gear-weapon-socket:clamp\(34px,3\.6cqi,52px\)/,'Character and Build Forge must consume one shared weapon geometry.');
+assert.match(css,/\.weapon-design-section \.gear-weapons \.weap-grid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important/,'Build Forge must preserve the shared three-card weapon row.');
 assert.match(css,/Build Forge readability:[\s\S]*?\.build-forge-page[\s\S]*?--dim:#b8b2bd;[\s\S]*?font-family:bahnschrift,system-ui,sans-serif!important/,'Build Forge must retain the readable Bahnschrift text hierarchy and high-contrast working colours.');
 
 const elementButtons=[...html.matchAll(/data-recommendation-element="([^"]+)"/g)].map(match=>match[1]);
@@ -206,7 +195,7 @@ assert.match(artifactSelectionRuntime,/recommendArtifactPerks\(build,effectiveAr
 assert.match(artifactSelectionRuntime,/artifactPlanVersion:3/,'The cross-system Artifact-plan release must invalidate previously cached recommendation fingerprints.');
 assert.match(runtime,/PARADOX FULL TARGET PLAN[\s\S]*?currently unlocked and equipped perks remain unchanged/,'The Artifact recommendation must distinguish the complete target plan from the live unlocked and equipped state.');
 assert.match(css,/\.recommended-build-dialog\{width:calc\(100vw - 20px\);max-width:none;border:0/,'The recommendation review must use the page width without the cramped red outer container.');
-assert.match(css,/\.recommended-armour-summary \.gear-arm-anchor \.arm\{width:clamp\(112px,7vw,148px\)!important;height:clamp\(112px,7vw,148px\)!important\}/,'Recommended armour icons must be large enough to inspect across the full-width review.');
+assert.match(css,/\.recommended-armour-summary \.gear-arm-anchor \.arm\{width:clamp\(88px,6vw,104px\)!important;height:clamp\(88px,6vw,104px\)!important\}/,'Recommended armour must retain the same visual scale as Character and Build Design.');
 assert.match(html,/id="continueToBuildTest">TEST THIS BUILD/,'The recommendation review must lead into the user-run Build Test.');
 assert.match(runtime,/function renderParadoxTestReview\(capture=readCapture\(\)\)[\s\S]*?Causal perk activation, DPS and uptime remain inference/,'Paradox must review confirmed post-test Bungie evidence without inventing causal telemetry.');
 assert.deepEqual([...html.matchAll(/data-build-objective="([^"]+)"/g)].map(match=>match[1]),['balanced','dps','add-clear','survivability','ability-uptime'],'Build Forge must expose the five deterministic tuning objectives used by weapon and mod ranking.');
@@ -240,7 +229,7 @@ assert.match(advisorRuntime,/item\.weaponRollAdvice=advice/,'Weapon recommendati
 assert.match(runtime,/weaponPerkMatrixMarkup\(item,\{recommendedHashes\}\)/,'Recommended weapons must render the integrated tier-driven perk model.');
 assert.match(runtime,/weaponTraitHierarchyMarkup\(item,\{compact:true\}\)/,'Recommended Exotic weapon traits must remain directly beneath the intrinsic hierarchy.');
 assert.match(runtime,/TIER \$\{tier\}[\s\S]*?\$\{rowCount\} PERK ROW/,'Recommended weapons must identify the exact tier and modeled perk-row count.');
-assert.match(css,/\.review-weapon \.weapon-perk-row\{grid-template-columns:repeat\(var\(--weapon-perk-columns\),minmax\(42px,54px\)\)/,'Build review must preserve perk columns across each tier row.');
+assert.match(css,/\.review-weapon \.weapon-perk-row\{grid-template-columns:repeat\(var\(--weapon-perk-columns\),var\(--gear-weapon-socket\)\)/,'Build review must reuse the shared weapon socket size across every tier row.');
 assert.match(css,/body\.build-forge-page \.review-weapon small\{font-size:13px!important/,'Build review weapon copy must remain readable instead of reverting to the former tiny type.');
 assert.match(gearCss,/\.weapon-detail-drawer\{[^}]*width:min\(1120px,96vw\)[^}]*font-size:16px/,'The weapon detail drawer must use the enlarged readable layout.');
 assert.match(gearCss,/\.weapon-exotic-traits\{[^}]*border-left:2px/,'Exotic weapon traits must have a subordinate visual stack beneath the intrinsic.');
