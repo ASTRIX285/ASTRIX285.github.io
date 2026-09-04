@@ -49,7 +49,7 @@
             <label data-target-stat="class"><span>CLASS</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="class" disabled>MAX</button><select data-stat-priority="class" aria-label="Class priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
             <label data-target-stat="weapon"><span>WEAPON</span><input type="range" min="0" max="200" value="0" step="1" disabled><output>0 / 200</output><button type="button" data-max-stat="weapon" disabled>MAX</button><select data-stat-priority="weapon" aria-label="Weapon priority" disabled><option value="">AUTO</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label>
           </div>
-          <div class="forge-stat-actions"><button type="button" id="forgeFindBuilds" disabled>CALCULATE ALL COMBINATIONS</button><button type="button" id="forgeResetTargets" disabled>RESET TARGETS</button></div>
+          <div class="forge-stat-actions"><button type="button" id="forgeFindBuilds" disabled>REFRESH TOP 50 COMBINATIONS</button><button type="button" id="forgeResetTargets" disabled>RESET TARGETS</button></div>
           <p class="forge-runtime-status" id="forgeRuntimeStatus" role="status">Select an owned Exotic to initialise the Forge Loader.</p>
         </section>
 
@@ -84,6 +84,6 @@
 
   <aside class="forge-item-inspect" id="forgeItemInspect" hidden aria-hidden="true"></aside>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-forge-loader-1"></script>
-  <script type="module" src="./forge-loader.mjs?v=20260904-forge-runtime-1"></script>
+  <script type="module" src="./forge-loader.mjs?v=20260904-top-50-scan-1"></script>
 </body>
 </html>

@@ -205,4 +205,108 @@ function matchArmourBuilds(items=[],targets={},options={}){
     .slice(0,limit);
 }
 
-export {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourSetHash,armourStatVector,armourTargetMaximums,compareArmourScores,matchArmourBuilds,normaliseStatPriorities,normaliseTargets,scoreArmourStats,setRequirements,statKey};
+function candidateSignature(items=[]){
+  return `|${items.map(item=>String(item?.itemInstanceId||item?.itemHash||item?.hash||'')).join('|')}`;
+}
+
+function compareArmourCandidates(left={},right={}){
+  return comparePriorityShortfalls(left.score?.priorityShortfalls,right.score?.priorityShortfalls)||finite(left.score?.shortfall)-finite(right.score?.shortfall)||finite(right.secondaryRank)-finite(left.secondaryRank)||compareArmourScores(left.score,right.score)||String(left.signature||'').localeCompare(String(right.signature||''));
+}
+
+function matchTopArmourBuilds(items=[],targets={},options={}){
+  const requested=normaliseTargets(targets);
+  if(!ARMOUR_STAT_KEYS.some(key=>requested[key]>0)&&options.autoMaximum!==true)return [];
+  const limit=Math.max(1,Math.min(250,Math.round(finite(options.limit)||50)));
+  const groups=constrainedGroups(items,options);
+  const requirements=setRequirements(options);
+  const statPriorities=normaliseStatPriorities(options.statPriorities);
+  const secondaryScore=typeof options.secondaryScore==='function'?options.secondaryScore:()=>0;
+  const completionMemo=new Map();
+  if(groups.some(group=>group.length===0)||!canCompleteSetRequirements(groups,0,requirements.map(()=>0),requirements,completionMemo))return [];
+  const activeIndexes=ARMOUR_STAT_KEYS.map((key,index)=>requested[key]>0?index:-1).filter(index=>index>=0);
+  const priorityIndexes=activeIndexes.filter(index=>statPriorities[ARMOUR_STAT_KEYS[index]]>0).sort((left,right)=>statPriorities[ARMOUR_STAT_KEYS[left]]-statPriorities[ARMOUR_STAT_KEYS[right]]);
+  const requestedValues=ARMOUR_STAT_KEYS.map(key=>requested[key]);
+  const numericGroups=groups.map(rows=>rows.map(row=>({item:row.item,values:ARMOUR_STAT_KEYS.map(key=>finite(row.stats[key])),requirementIndex:requirements.findIndex(requirement=>requirement.hash===row.setHash)})));
+  const selected=Array(numericGroups.length);
+  const totals=ARMOUR_STAT_KEYS.map(()=>0);
+  const counts=requirements.map(()=>0);
+  const heap=[];
+  let combinationsEvaluated=0;
+
+  const worse=(left,right)=>compareArmourCandidates(left,right)>0;
+  const siftUp=start=>{
+    let index=start;
+    while(index>0){
+      const parent=Math.floor((index-1)/2);
+      if(!worse(heap[index],heap[parent]))break;
+      [heap[index],heap[parent]]=[heap[parent],heap[index]];index=parent;
+    }
+  };
+  const siftDown=start=>{
+    let index=start;
+    while(true){
+      const left=index*2+1,right=left+1;
+      if(left>=heap.length)break;
+      let worst=left;if(right<heap.length&&worse(heap[right],heap[left]))worst=right;
+      if(!worse(heap[worst],heap[index]))break;
+      [heap[index],heap[worst]]=[heap[worst],heap[index]];index=worst;
+    }
+  };
+  const retain=candidate=>{
+    if(heap.length<limit){heap.push(candidate);siftUp(heap.length-1);return;}
+    if(compareArmourCandidates(candidate,heap[0])>=0)return;
+    heap[0]=candidate;siftDown(0);
+  };
+  const signature=()=>candidateSignature(selected);
+  const compareCurrentTo=(candidate,currentSecondary)=>{
+    for(let rank=0;rank<priorityIndexes.length;rank++){
+      const index=priorityIndexes[rank],effective=Math.min(ARMOUR_STAT_CAP,Math.max(0,totals[index]));
+      const delta=Math.max(0,requestedValues[index]-effective)-finite(candidate.score?.priorityShortfalls?.[rank]);
+      if(delta)return delta;
+    }
+    let shortfall=0,priorityTotal=0,effectiveTotal=0,total=0;
+    for(let index=0;index<ARMOUR_STAT_KEYS.length;index++){
+      const effective=Math.min(ARMOUR_STAT_CAP,Math.max(0,totals[index]));
+      if(requestedValues[index]>0){shortfall+=Math.max(0,requestedValues[index]-effective);priorityTotal+=effective;}
+      effectiveTotal+=effective;total+=totals[index];
+    }
+    let delta=shortfall-finite(candidate.score?.shortfall);if(delta)return delta;
+    delta=finite(candidate.secondaryRank)-currentSecondary;if(delta)return delta;
+    delta=finite(candidate.score?.priorityTotal)-priorityTotal;if(delta)return delta;
+    delta=finite(candidate.score?.effectiveTotal)-effectiveTotal;if(delta)return delta;
+    delta=finite(candidate.score?.total)-total;if(delta)return delta;
+    return signature().localeCompare(String(candidate.signature||''));
+  };
+  const retainCurrent=exoticCount=>{
+    const secondaryRank=finite(secondaryScore(selected));
+    if(heap.length>=limit&&compareCurrentTo(heap[0],secondaryRank)>=0)return;
+    const stats=Object.fromEntries(ARMOUR_STAT_KEYS.map((key,index)=>[key,totals[index]]));
+    retain({items:selected.slice(),stats,exoticCount,setCounts:counts.slice(),secondaryRank,signature:signature(),score:scoreArmourStats(stats,requested,statPriorities)});
+  };
+  const visit=(slot,exoticCount)=>{
+    if(slot>=numericGroups.length){
+      if(!requirements.every((row,index)=>counts[index]>=row.count))return;
+      combinationsEvaluated+=1;retainCurrent(exoticCount);return;
+    }
+    for(const row of numericGroups[slot]){
+      const nextExoticCount=exoticCount+(row.item?.isExotic?1:0);if(nextExoticCount>1)continue;
+      selected[slot]=row.item;
+      for(let index=0;index<totals.length;index++)totals[index]+=row.values[index];
+      if(row.requirementIndex>=0)counts[row.requirementIndex]+=1;
+      if(!requirements.length||canCompleteSetRequirements(groups,slot+1,counts,requirements,completionMemo))visit(slot+1,nextExoticCount);
+      if(row.requirementIndex>=0)counts[row.requirementIndex]-=1;
+      for(let index=0;index<totals.length;index++)totals[index]-=row.values[index];
+    }
+  };
+
+  visit(0,0);
+  const results=heap.sort(compareArmourCandidates);
+  Object.defineProperties(results,{
+    combinationsEvaluated:{value:combinationsEvaluated,enumerable:false},
+    combinationsReturned:{value:results.length,enumerable:false},
+    completeScan:{value:true,enumerable:false}
+  });
+  return results;
+}
+
+export {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourSetHash,armourStatVector,armourTargetMaximums,compareArmourCandidates,compareArmourScores,matchArmourBuilds,matchTopArmourBuilds,normaliseStatPriorities,normaliseTargets,scoreArmourStats,setRequirements,statKey};

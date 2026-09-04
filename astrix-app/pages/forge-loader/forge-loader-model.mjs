@@ -182,6 +182,35 @@ function naturalSetProtocols(candidate={}){
   }).filter(Boolean).sort((left,right)=>right.count-left.count||left.setName.localeCompare(right.setName));
 }
 
+function createOpenProtocolTieBreaker(fixedExotic={}){
+  const anchor=fixedExotic?.representative?.exoticPerk||fixedExotic?.representative?.armourSemantics?.exoticPerk||fixedExotic?.exoticPerk||null;
+  const anchorTokens=explicitTokens(anchor).slice(0,30),tokenBits=new Map(anchorTokens.map((token,index)=>[token,2**index]));
+  const masksBySet=new Map(),hashes=Array(5),counts=Array(5);
+  const traitMask=trait=>explicitTokens(trait).reduce((mask,token)=>mask|(tokenBits.get(token)||0),0);
+  const setMasks=set=>{
+    const hash=Number(set?.hash);if(!Number.isInteger(hash)||hash<=0||set?.unresolved)return null;
+    if(!masksBySet.has(hash))masksBySet.set(hash,{two:traitMask(set?.twoPiece),four:traitMask(set?.fourPiece)});
+    return masksBySet.get(hash);
+  };
+  return items=>{
+    if(!anchorTokens.length)return 0;
+    let distinct=0;
+    for(const item of Array.isArray(items)?items:[]){
+      const set=item?.setBonus||item?.armourSemantics?.set,hash=Number(set?.hash);if(!setMasks(set))continue;
+      let index=0;while(index<distinct&&hashes[index]!==hash)index+=1;
+      if(index===distinct){hashes[distinct]=hash;counts[distinct]=0;distinct+=1;}
+      counts[index]+=1;
+    }
+    let evidenceMask=0;
+    for(let index=0;index<distinct;index++){
+      const masks=masksBySet.get(hashes[index]);
+      evidenceMask|=counts[index]>=4&&masks.four?masks.four:counts[index]>=2?masks.two:0;
+    }
+    let score=0;for(let mask=evidenceMask;mask;mask>>>=1)score+=mask&1;
+    return score;
+  };
+}
+
 function comparePriorityShortfalls(left=[],right=[]){
   for(let index=0;index<Math.max(left.length,right.length);index++){
     const delta=finite(left[index])-finite(right[index]);if(delta)return delta;
@@ -254,4 +283,4 @@ function unownedSetTargets({definitions={},setDefinitions={},sandboxPerks={},own
   return targets.sort((left,right)=>right.score-left.score||right.count-left.count||right.ownedSlots-left.ownedSlots||left.setName.localeCompare(right.setName));
 }
 
-export {compatibleWithClass,exoticCatalogueGroups,exoticIdentityKey,naturalSetProtocols,normaliseSelections,ownedExoticGroups,rankOpenProtocolCandidates,setBonusOptions,setSelectionFeasible,toggleSetSelection,unownedSetTargets};
+export {compatibleWithClass,createOpenProtocolTieBreaker,exoticCatalogueGroups,exoticIdentityKey,naturalSetProtocols,normaliseSelections,ownedExoticGroups,rankOpenProtocolCandidates,setBonusOptions,setSelectionFeasible,toggleSetSelection,unownedSetTargets};

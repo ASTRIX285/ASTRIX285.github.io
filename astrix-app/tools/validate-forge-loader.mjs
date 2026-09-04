@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {ARMOUR_STAT_CAP,armourTargetMaximums,compareArmourScores,matchArmourBuilds,normaliseStatPriorities,normaliseTargets,scoreArmourStats} from '../pages/vault/vault-armour-matcher.mjs';
+import {ARMOUR_STAT_CAP,armourTargetMaximums,compareArmourScores,matchArmourBuilds,matchTopArmourBuilds,normaliseStatPriorities,normaliseTargets,scoreArmourStats} from '../pages/vault/vault-armour-matcher.mjs';
 import {applyVaultArmourSelection,clearVaultArmourSelection,compactArmourSelectionItem,createVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection,writeVaultArmourSelection} from '../pages/vault/vault-selection-state.mjs';
-import {exoticCatalogueGroups,naturalSetProtocols,ownedExoticGroups,rankOpenProtocolCandidates,setBonusOptions,setSelectionFeasible,toggleSetSelection,unownedSetTargets} from '../pages/forge-loader/forge-loader-model.mjs';
+import {createOpenProtocolTieBreaker,exoticCatalogueGroups,naturalSetProtocols,ownedExoticGroups,rankOpenProtocolCandidates,setBonusOptions,setSelectionFeasible,toggleSetSelection,unownedSetTargets} from '../pages/forge-loader/forge-loader-model.mjs';
 import {BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY,LAST_LOADOUT_KEY,compactForgeLoaderProfileBuild,createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from '../pages/forge-loader/forge-loader-build-handoff.mjs';
 import {validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
 import {createBuildState} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
@@ -86,6 +86,17 @@ assert.equal(naturalSetProtocols(synergisticCandidate)[0]?.count,4,'Open Armour 
 const openRanked=rankOpenProtocolCandidates([plainCandidate,synergisticCandidate],{exoticPerk:{name:'Grenade anchor',description:'Improves grenade energy.'}});
 assert.equal(openRanked[0]?.signature,'synergy','Equal-target Open Armour candidates must prefer explicit Exotic-to-set perk evidence.');
 assert.deepEqual(openRanked[0]?.openProtocol?.evidence,['grenade'],'Open Armour may use only explicit verified combat terms as synergy evidence.');
+const openTieBreaker=createOpenProtocolTieBreaker({exoticPerk:{name:'Grenade anchor',description:'Improves grenade energy.'}});
+assert.equal(openTieBreaker(synergisticCandidate.items),1,'The bounded scanner must score verified Exotic-to-set evidence before discarding lower-stat combinations.');
+assert.equal(openTieBreaker(plainCandidate.items),0,'The bounded scanner must not invent Open Armour synergy for a candidate without an active matching set trait.');
+const synergyScanItems=[item(0,9600,'synergy-scan-exotic',8,{exotic:true,name:'Synergy Scan Exotic'})];
+for(let slot=1;slot<5;slot++){
+  synergyScanItems.push({...item(slot,9600+slot,`synergy-low-${slot}`,2),setBonus:grenadeSet});
+  synergyScanItems.push(item(slot,9700+slot,`plain-high-${slot}`,10));
+}
+const synergyScan=matchTopArmourBuilds(synergyScanItems,{}, {fixedExoticHashes:[9600],fixedExoticSlot:0,autoMaximum:true,limit:1,secondaryScore:openTieBreaker});
+assert.equal(synergyScan[0]?.secondaryRank,1,'Verified Open Armour synergy must be ranked across the complete pool before the scanner retains only its top results.');
+assert.ok(synergyScan[0]?.items.filter(row=>row.setBonus?.hash===grenadeSet.hash).length>=2,'The retained synergy result must contain enough matching armour to activate its verified set trait.');
 
 const targetDefinitions={
   ...definitions,
@@ -121,6 +132,17 @@ const matches=matchArmourBuilds(items,{health:35},{...constrained,all:true});
 assert.equal(matches.length,3,'The Forge Loader must return every legal exact-instance combination rather than an arbitrary top-five subset.');
 assert.equal(matches[0].items[0].itemInstanceId,'exotic-reissue','The solver must rank the strongest exact duplicate or reissued Exotic instance first.');
 assert.equal(matches[0].items.filter(row=>row.setBonus?.hash===7001).length,4,'Every returned load must honour the selected four-piece protocol.');
+const topMatches=matchTopArmourBuilds(items,{health:35},{...constrained,limit:2});
+assert.equal(topMatches.length,2,'The bounded Forge scan must retain only the requested number of highest-ranking combinations.');
+assert.equal(topMatches.combinationsEvaluated,3,'The bounded Forge scan must count every legal exact owned combination without retaining the full result array.');
+assert.deepEqual(topMatches.map(row=>row.signature),matches.slice(0,2).map(row=>row.signature),'The memory-safe top-result scan must preserve the exact exhaustive ranking order.');
+const scanItems=[item(0,9500,'scan-exotic-a',11,{exotic:true,name:'Scan Exotic'}),item(0,9500,'scan-exotic-b',7,{exotic:true,name:'Scan Exotic'})];
+for(let slot=1;slot<5;slot++)for(let index=0;index<4;index++)scanItems.push(item(slot,9500+slot*10+index,`scan-${slot}-${index}`,2+slot*3+index));
+const scanOptions={fixedExoticHashes:[9500],fixedExoticSlot:0,autoMaximum:true,statPriorities:{health:1,weapon:2}};
+const exhaustiveScan=matchArmourBuilds(scanItems,{health:40,weapon:25},{...scanOptions,all:true});
+const boundedScan=matchTopArmourBuilds(scanItems,{health:40,weapon:25},{...scanOptions,limit:7});
+assert.equal(boundedScan.combinationsEvaluated,exhaustiveScan.length,'The top-result scan must evaluate the complete unconstrained legal pool.');
+assert.deepEqual(boundedScan.map(row=>row.signature),exhaustiveScan.slice(0,7).map(row=>row.signature),'The top-result scan must match exhaustive priority and stat ordering before discarding lower results.');
 const installedHealthMod={name:'Health Mod',isEnabled:true,definition:{displayProperties:{name:'Health Mod'},plug:{plugCategoryIdentifier:'armor.mods.general'},investmentStats:[{statTypeHash:91001,value:10,isConditionallyActive:false}]}};
 assert.deepEqual(modFreeArmourStatValue({statDefinitions:{91001:{displayProperties:{name:'Health'}}}},91001,72,[installedHealthMod]),{rawValue:72,installedModContribution:10},'Forge Loader raw ranking must preserve Bungie ItemStats while carrying installed plug contributions as separate evidence.');
 const plugSetPayload={definitions:{99001:{hash:99001,itemType:2,classType:1,displayProperties:{name:'Plug Set Helmet',icon:'/helmet.png'},inventory:{tierType:5,tierTypeName:'Legendary',bucketTypeHash:3448274439},sockets:{socketEntries:[{reusablePlugSetHash:99003}],socketCategories:[{socketCategoryHash:99004,socketIndexes:[0]}]}},99002:{hash:99002,itemType:19,displayProperties:{name:'Health Mod',description:'Improves Health.',icon:'/mod.png'},plug:{plugCategoryIdentifier:'armor.mods.general',energyCost:3},investmentStats:[{statTypeHash:91001,value:10,isConditionallyActive:false}]}},statDefinitions:{91001:{displayProperties:{name:'Health',icon:'/health.png'}}},socketCategoryDefinitions:{99004:{displayProperties:{name:'General Armor Mod'}}},profile:{profileInventory:{data:{items:[{itemHash:99001,itemInstanceId:'plug-set-helmet',bucketHash:138197802}]}},characterInventories:{data:{}},characterEquipment:{data:{}},profilePlugSets:{data:{plugs:{99003:[{plugItemHash:99002,canInsert:true,enabled:true}]}}},characterPlugSets:{data:{}},itemComponents:{sockets:{data:{'plug-set-helmet':{sockets:[{plugHash:99002,isEnabled:true,isVisible:true}]}}},instances:{data:{'plug-set-helmet':{gearTier:5,energy:{energyCapacity:10,energyUsed:3}}}},stats:{data:{'plug-set-helmet':{stats:{91001:{value:72}}}}}}}};
@@ -243,7 +265,8 @@ assert.match(runtime,/forge-set-trait-copy[\s\S]*?effect\?\.description/,'Each s
 assert.match(css,/\.forge-set-choice\.is-owned \.forge-set-trait-icon\{[^}]*background:rgba\(77,177,255,\.34\)/,'Owned feasible set traits must use the blue Bungie-style icon background.');
 assert.match(css,/\.forge-set-trait-icon img\{[^}]*filter:grayscale\(1\) brightness\(2\)/,'Unavailable set traits must retain a white trait icon on the dark block.');
 assert.match(runtime,/fixedExoticHashes:exotic\.hashes/,'The selected Exotic identity must pass every owned item hash to the solver.');
-assert.match(runtime,/matchArmourBuilds\(armourItems\(\),targets,\{\.\.\.solverOptions\(\),all:true/,'Forge Loader must calculate every legal combination.');
+assert.match(runtime,/matchTopArmourBuilds\(armourItems\(\),targets,\{\.\.\.solverOptions\(\),limit:CANDIDATE_BATCH_SIZE/,'Forge Loader must scan every legal combination while retaining only its top 50 results.');
+assert.match(runtime,/createOpenProtocolTieBreaker\(exotic\)[\s\S]*?secondaryScore/,'The full bounded scan must apply verified Exotic-to-set evidence before lower-ranked combinations are discarded.');
 assert.match(runtime,/exoticCatalogueGroups\(catalogue\.armour,inventoryDefinitions\(\),activeCharacterClass,ARMOUR_BUCKETS\)/,'Forge Loader must add verified class collection definitions without fabricating inventory instances.');
 assert.match(runtime,/aria-disabled="\$\{group\.owned\?'false':'true'\}"/,'Unowned Exotic identities must remain inspectable but visibly unavailable.');
 assert.match(runtime,/group\.owned&&group\.key===String\(key\|\|''\)/,'The runtime must reject any unowned Exotic selection attempt.');
@@ -252,8 +275,11 @@ assert.match(html,/id="forgeExoticStatus" hidden/,'The Exotic definition count m
 assert.doesNotMatch(html,/Every verified Exotic for the selected class/,'The Exotic selector must present the icon list without an explanatory block.');
 assert.doesNotMatch(runtime,/<span>\$\{group\.owned\?`×\$\{group\.instances\.length\}`:'LOCKED'<\/span>/,'Duplicate and ownership labels must not cover the Exotic artwork.');
 assert.doesNotMatch(css,/\.forge-exotic>span|content:"ANCHOR"/,'Exotic ownership and selection must use artwork state and the PARADOX border rather than text overlays.');
-assert.match(html,/CALCULATE ALL COMBINATIONS/,'The Stat Directive must request the complete legal combination set.');
-assert.match(runtime,/CANDIDATE_BATCH_SIZE=50[\s\S]*?matchedBuilds\.slice\(0,shown\)/,'The complete result set must render in responsive batches without truncating calculation.');
+assert.match(html,/REFRESH TOP 50 COMBINATIONS/,'The Stat Directive must accurately identify the bounded visible result set.');
+assert.match(runtime,/CANDIDATE_BATCH_SIZE=50[\s\S]*?combinationsEvaluated[\s\S]*?matchedBuilds\.slice\(0,shown\)/,'Forge Loader must expose the legal scan count while retaining no more than the top 50 combinations.');
+assert.match(runtime,/renderCandidateLoading\(exotic\)[\s\S]*?Locking \$\{esc\(exotic\.name\)\} into every load/,'Selecting an Exotic must immediately reveal where its calculated combinations will appear.');
+assert.match(runtime,/totalCombinations:Number\(matchedBuilds\.combinationsEvaluated\|\|matchedBuilds\.length\)/,'The protected Build Forge handoff must retain the full legal combination count rather than only the visible top 50.');
+assert.match(runtime,/scanDuration<1000[\s\S]*?exact owned combinations scanned in \$\{durationLabel\}/,'Forge Loader must report the actual local scan duration beside its result count.');
 assert.match(runtime,/OPEN ARMOUR · NO SET BONUS REQUIRED[\s\S]*?Rank the top 50 exact owned combinations/,'Forge Loader must expose an explicit Open Armour mode instead of implying that an empty set selection is accidental.');
 assert.match(runtime,/if\(!setSelections\.length\)matchedBuilds=rankOpenProtocolCandidates\(matchedBuilds,exotic\)/,'Open Armour must rank owned candidates with verified Exotic-to-set evidence after satisfying stat constraints.');
 assert.match(runtime,/naturalSetProtocols\(candidate\)\.map[\s\S]*?verifiedTraitContext\(row\.trait\)/,'A naturally active Open Armour set perk must survive the protected Build Forge decision chain.');
@@ -282,7 +308,7 @@ assert.doesNotMatch(runtime,/if\(!baselineStored\)\{[^}]*?return;/,'A rejected b
 assert.match(runtime,/if\(!baselineStored&&!transferStored\)url\.searchParams\.set\('baseline','bungie-recovery'\)/,'The destination must request authenticated recovery only when the atomic baseline is unavailable.');
 assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.removeItem\(BUILD_SNAPSHOT_KEY\);[\s\S]*?store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Stale Build Forge state must be cleared before writing the newly verified compact Guardian snapshot.');
 assert.doesNotMatch(buildHandoff,/createBuildState/,'Forge Loader must not expand the compact source into duplicate Original and Working builds before navigation.');
-assert.match(html,/forge-loader\.mjs\?v=20260904-forge-runtime-1/,'Forge Loader must load the runtime-fixed compact-index release without a stale browser module.');
+assert.match(html,/forge-loader\.mjs\?v=20260904-top-50-scan-1/,'Forge Loader must load the memory-safe top-50 scanner without a stale browser module.');
 assert.match(html,/forge-loader\.css\?v=20260904-open-armour-1/,'Forge Loader must refresh the stronger selected-Exotic state without stale page CSS.');
 assert.match(runtime,/forge-loader-build-handoff\.mjs\?v=20260904-memory-safe-transfer-1/,'Forge Loader must refresh the protected baseline writer with the memory-safe transfer release.');
 assert.match(runtime,/vault-selection-state\.mjs\?v=20260903-compact-selection-1/,'Forge Loader must refresh the compact five-item selection writer.');

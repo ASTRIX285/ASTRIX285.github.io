@@ -2,9 +2,9 @@ import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260904-forge-index-2';
 import {cacheBungieProfile,cacheForgeLoaderTransfer,markGuardianFastReturn,readCachedBungieProfile,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260903-loadout-intelligence-1';
-import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
+import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchTopArmourBuilds} from '../vault/vault-armour-matcher.mjs?v=20260904-top-50-scan-1';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260903-compact-selection-1';
-import {compatibleWithClass,exoticCatalogueGroups,naturalSetProtocols,rankOpenProtocolCandidates,setBonusOptions,toggleSetSelection,unownedSetTargets} from './forge-loader-model.mjs?v=20260904-open-armour-1';
+import {compatibleWithClass,createOpenProtocolTieBreaker,exoticCatalogueGroups,naturalSetProtocols,rankOpenProtocolCandidates,setBonusOptions,toggleSetSelection,unownedSetTargets} from './forge-loader-model.mjs?v=20260904-top-50-scan-1';
 import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-memory-safe-transfer-1';
 
 const CLASS_NAMES=['titan','hunter','warlock'];
@@ -274,7 +274,7 @@ function forgeLoaderDecision(candidate,index){
       const effect=selection.count===2?row?.two?.effect:row?.four?.effect;
       return {setHash:Number(selection.setHash),count:Number(selection.count),setName:text(row?.name),trait:verifiedTraitContext(effect)};
     }):naturalSetProtocols(candidate).map(row=>({setHash:Number(row.setHash),count:Number(row.count),setName:text(row.setName),trait:verifiedTraitContext(row.trait)}))),
-    ranking:{position:Number(index)+1,totalCombinations:matchedBuilds.length,maximized:Number(index)===0}
+    ranking:{position:Number(index)+1,totalCombinations:Number(matchedBuilds.combinationsEvaluated||matchedBuilds.length),maximized:Number(index)===0}
   };
 }
 
@@ -308,11 +308,19 @@ function candidateMarkup(candidate,index){
 }
 
 function renderCandidates(){
-  const panel=byId('forgeResults');panel.hidden=matchedBuilds.length===0;
+  const panel=byId('forgeResults'),exotic=selectedExotic();panel.hidden=!exotic;
   const shown=Math.min(visibleCandidateCount,matchedBuilds.length),remaining=matchedBuilds.length-shown;
-  byId('forgeResultStatus').textContent=`${shown} OF ${matchedBuilds.length} RESULT${matchedBuilds.length===1?'':'S'}`;
-  byId('forgeCandidateBuilds').innerHTML=matchedBuilds.slice(0,shown).map(candidateMarkup).join('');
+  const evaluated=Number(matchedBuilds.combinationsEvaluated||matchedBuilds.length);
+  byId('forgeResultStatus').textContent=matchedBuilds.length?`${shown} OF ${evaluated.toLocaleString()} COMBINATIONS`:'0 COMBINATIONS';
+  byId('forgeCandidateBuilds').innerHTML=matchedBuilds.length?matchedBuilds.slice(0,shown).map(candidateMarkup).join(''):'<div class="forge-empty">No complete owned-armour combination is available for this Exotic and set protocol.</div>';
   const more=byId('forgeShowMore');more.hidden=remaining<=0;more.textContent=remaining>0?`SHOW NEXT ${Math.min(CANDIDATE_BATCH_SIZE,remaining)} OF ${remaining}`:'';
+}
+
+function renderCandidateLoading(exotic){
+  const panel=byId('forgeResults');panel.hidden=false;
+  byId('forgeResultStatus').textContent='SCANNING OWNED ARMOUR';
+  byId('forgeCandidateBuilds').innerHTML=`<div class="forge-empty">Locking ${esc(exotic.name)} into every load and finding the top ${CANDIDATE_BATCH_SIZE} exact owned combinations…</div>`;
+  byId('forgeShowMore').hidden=true;
 }
 
 function stageCandidate(index){
@@ -330,14 +338,20 @@ function toggleCandidateBreakdown(index){
 async function calculateBuilds(){
   const exotic=selectedExotic(),targets=targetValues();if(!exotic)return;
   const button=byId('forgeFindBuilds');button.disabled=true;button.textContent='CALCULATING VERIFIED LOADS…';
+  renderCandidateLoading(exotic);
   byId('forgeRuntimeStatus').textContent=activeTargetCount()||activePriorityCount()?'Applying the Exotic anchor, set protocol and ranked stat constraints…':'No stat priority selected. Ranking the complete legal pool by maximum unmodded stats…';
   await new Promise(resolve=>requestAnimationFrame(resolve));
-  matchedBuilds=matchArmourBuilds(armourItems(),targets,{...solverOptions(),all:true});
+  const scanStarted=performance.now();
+  const secondaryScore=!setSelections.length?createOpenProtocolTieBreaker(exotic):null;
+  matchedBuilds=matchTopArmourBuilds(armourItems(),targets,{...solverOptions(),limit:CANDIDATE_BATCH_SIZE,secondaryScore});
   if(!setSelections.length)matchedBuilds=rankOpenProtocolCandidates(matchedBuilds,exotic);
+  const scanDuration=performance.now()-scanStarted;
   visibleCandidateCount=Math.min(CANDIDATE_BATCH_SIZE,matchedBuilds.length);
   selectedCandidateIndex=-1;selectedSlots.clear();configureStats();if(matchedBuilds.length)stageCandidate(0);else{renderStaged();renderCandidates();}
-  button.textContent='CALCULATE ALL COMBINATIONS';button.disabled=false;
-  byId('forgeRuntimeStatus').textContent=matchedBuilds.length?`${matchedBuilds.length} highest-ranking unmodded combination${matchedBuilds.length===1?'':'s'} calculated. Load 1 is the best exact owned fit${activeSetUpgradeTarget?`; ${activeSetUpgradeTarget.setName} remains an optional target upgrade`:''}.`:'No complete owned-armour combination satisfies the selected Exotic and set protocol.';
+  button.textContent='REFRESH TOP 50 COMBINATIONS';button.disabled=false;
+  const evaluated=Number(matchedBuilds.combinationsEvaluated||matchedBuilds.length);
+  const durationLabel=scanDuration<1000?`${Math.max(1,Math.round(scanDuration))} ms`:`${(scanDuration/1000).toFixed(2)} s`;
+  byId('forgeRuntimeStatus').textContent=matchedBuilds.length?`${evaluated.toLocaleString()} exact owned combinations scanned in ${durationLabel}. Showing the top ${matchedBuilds.length}; Load 1 is the best fit with ${exotic.name} locked${activeSetUpgradeTarget?`; ${activeSetUpgradeTarget.setName} remains an optional target upgrade`:''}.`:'No complete owned-armour combination satisfies the selected Exotic and set protocol.';
 }
 
 function resetResults(){matchedBuilds=[];selectedCandidateIndex=-1;expandedCandidateIndex=-1;visibleCandidateCount=0;selectedSlots.clear();renderStaged();renderCandidates();}
