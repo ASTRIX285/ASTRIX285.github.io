@@ -244,7 +244,9 @@ function applyVaultArmourSelection(state,selection){
   };
   const verified=validateVaultArmourSelection(selection,{expectedBinding});
   if(!verified||!state?.originalBuild||!state?.workingBuild)return {state,applied:false,selection:null};
-  const next=clone(state);
+  // Original Build is already immutable here. Copy only the editable half so a
+  // large transferred inventory is not duplicated twice for one armour change.
+  const next={...state,workingBuild:clone(state.workingBuild)};
   const armour=Array.isArray(next.workingBuild.armour)?[...next.workingBuild.armour]:[];
   while(armour.length<ARMOUR_SLOT_COUNT)armour.push(null);
   for(const row of verified.slots)armour[row.slot]=clone(row.item);

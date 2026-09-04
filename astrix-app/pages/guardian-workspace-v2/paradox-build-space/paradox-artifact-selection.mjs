@@ -1,5 +1,5 @@
 import {recommendArtifactLoadout,recommendArtifactPerks} from '../guardian-artifact-recommender.mjs';
-import {createIntendedArtifactConfiguration,protectBuildState} from './paradox-build-state.mjs';
+import {createIntendedArtifactConfiguration,protectBuildState} from './paradox-build-state.mjs?v=20260904-memory-safe-transfer-1';
 
 const clone=value=>{
   try{return structuredClone(value);}
@@ -56,7 +56,9 @@ function applyForgeArtifactRecommendation(state,{currentSeasonNumber=null,force=
     ?recommendArtifactLoadout(build,artifactOptions,{currentSeasonNumber:season})
     :recommendArtifactPerks(build,effectiveArtifact,{currentSeasonNumber:season});
   const recommendation={...recommendationBase,fingerprint,userOverride:false,source:'paradox-forge-loader-artifact-fit'};
-  const next=clone(state);
+  // The protected Original Build never changes. Fork only Working Build so
+  // Artifact recommendations do not copy the complete transferred inventory.
+  const next={...state,workingBuild:clone(state.workingBuild)};
   next.workingBuild.currentSeasonNumber=season;
   next.workingBuild.artifactRecommendation=clone(recommendation);
 

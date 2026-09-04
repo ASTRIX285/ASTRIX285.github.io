@@ -1,4 +1,4 @@
-import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,protectBuildState,restoreWorkingBuild} from './paradox-build-state.mjs';
+import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,protectBuildState,restoreWorkingBuild} from './paradox-build-state.mjs?v=20260904-memory-safe-transfer-1';
 import {mountForgeShell} from '../platform-forge-shell.mjs';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs?v=20260902-shared-account-orbit-1';
 import {analyzeLiveGuardian,renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs';
@@ -12,8 +12,8 @@ import {markGuardianFastReturn,readForgeLoaderTransfer} from '../guardian-sessio
 import {guardianManifest} from '../guardian-manifest-service.mjs';
 import {AUTH_ORIGIN} from '../guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope} from '../paradox-build-binding.mjs';
-import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260903-compact-selection-1';
-import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs';
+import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260904-memory-safe-transfer-1';
+import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs?v=20260904-memory-safe-transfer-1';
 import {BUILD_ELEMENTS,validateTierFiveArmour} from './paradox-build-recommendation.mjs';
 import {composeForgeRecommendation,hasVerifiedSubclassSockets,synchroniseSubclassProjection} from './paradox-forge-intelligence.mjs?v=20260903-forge-intelligence-1';
 import {recommendArmourMods,selectOwnedWeapons} from './paradox-loadout-intelligence.mjs?v=20260903-loadout-intelligence-1';
@@ -39,11 +39,12 @@ let activeLoadError='';
 let testDomain='pve';
 let buildRenderSequence=0;
 let volatileState=null;
+let volatileStateMemoryOnly=false;
 let artifactSeasonRequest=null;
 let selectedRecommendationElement='';
 let selectedRecommendationObjective='';
 let recommendationBusy=false;
-function validateBuildState(state,expectedBinding={}){
+function validateBuildState(state,expectedBinding={},{protect=true}={}){
   if(!state||state.version!==1||!state.originalBuild||!state.workingBuild)return null;
   const originalBinding=bindingOf(state.originalBuild),workingBinding=bindingOf(state.workingBuild);
   if(!originalBinding.characterId||!bindingsEqual(originalBinding,workingBinding))return null;
@@ -51,7 +52,7 @@ function validateBuildState(state,expectedBinding={}){
   if(expected.characterId&&expected.characterId!==originalBinding.characterId)return null;
   if(expected.membershipId&&expected.membershipId!==originalBinding.membershipId)return null;
   if(expected.membershipType&&expected.membershipType!==originalBinding.membershipType)return null;
-  return protectBuildState(state);
+  return protect?protectBuildState(state):state;
 }
 function decodeState(raw,{durable=false,expectedBinding={}}={}){
   if(!raw||typeof raw!=='object')return null;
@@ -66,13 +67,22 @@ function readState(){
   activeLoadError='';
   const params=new URLSearchParams(location.search),expectedCharacterId=params.get('characterId')||'',expectedMembershipId=params.get('membershipId')||'',expectedMembershipType=params.get('membershipType')||'';
   const expectedBinding={characterId:expectedCharacterId,membershipId:expectedMembershipId,membershipType:expectedMembershipType};
-  if(volatileState){const state=validateBuildState(volatileState,expectedBinding);if(state)return state;volatileState=null;}
+  if(volatileState){const state=validateBuildState(volatileState,expectedBinding,{protect:false});if(state)return state;volatileState=null;volatileStateMemoryOnly=false;}
   // The explicit Character -> Build handoff contains the post-enrichment armour
   // state (including resolved set bonuses). The generic profile snapshot is a
   // recovery fallback only and must not replace that selected build.
   for(const key of [BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY]){
     for(const [store,durable] of [[sessionStorage,false],[localStorage,true]]){
-      try{const raw=JSON.parse(store.getItem(key)||'null'),state=decodeState(raw,{durable,expectedBinding});if(state){volatileState=state;if(key===BUILD_SNAPSHOT_KEY){writeState(state);for(const target of [sessionStorage,localStorage]){try{target.removeItem(BUILD_SNAPSHOT_KEY);}catch{}}}return state;}if(raw)store.removeItem(key);}
+      try{
+        const raw=JSON.parse(store.getItem(key)||'null'),state=decodeState(raw,{durable,expectedBinding});
+        if(state){
+          volatileState=state;
+          volatileStateMemoryOnly=false;
+          if(key===BUILD_SNAPSHOT_KEY){writeState(state,{memoryOnly:false});for(const target of [sessionStorage,localStorage]){try{target.removeItem(BUILD_SNAPSHOT_KEY);}catch{}}}
+          return state;
+        }
+        if(raw)store.removeItem(key);
+      }
       catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
     }
   }
@@ -109,7 +119,22 @@ function verifiedActivities(build,domain=testDomain){
 function selectedExpectedActivity(){const node=byId('expectedActivity'),row=verifiedActivities(currentBuild()).find(item=>String(item.hash||item.activityHash||item.activityTypeHash||item.mode)===node?.value);return row?{activityHash:Number(row.activityHash||row.hash)||null,activityTypeHash:Number(row.activityTypeHash)||null,mode:Number(row.mode)||null,mapHash:Number(row.mapHash)||null,modifierHashes:Array.isArray(row.modifierHashes)?row.modifierHashes:[],name:String(row.name||row.displayName||'Bungie activity'),source:'bungie-definition'}:null;}
 function renderTestConfiguration(){const build=currentBuild(),node=byId('expectedActivity'),rows=verifiedActivities(build),destination=byId('expectedDestination'),destinationApi=globalThis.AstrixDestinations;if(destination&&destinationApi){destination.innerHTML=destinationApi.options().map(option=>'<option value="'+esc(option.key)+'">'+esc(option.label.toUpperCase())+'</option>').join('');destination.value=destinationApi.current();}if(node){node.innerHTML='<option value="">ANY COMPLETED ACTIVITY</option>'+rows.map(row=>'<option value="'+esc(row.hash||row.activityHash||row.activityTypeHash||row.mode)+'">'+esc(row.name||row.displayName||'Bungie activity '+(row.hash||row.activityHash))+'</option>').join('');}byId('testDomainLabel').textContent=testDomain.toUpperCase()+' BUILD TEST';byId('calibrationOption').hidden=testDomain!=='pve';byId('testContextNote').textContent=testDomain==='pvp'?'Crucible modes appear only when resolved from current Bungie activity definitions. Map and modifier context can attach to the same verified intake contract.':'Select a verified PvE activity, leave Any Activity selected, or use optional Shooting Range calibration.';document.querySelectorAll('[data-test-domain]').forEach(button=>{const active=button.dataset.testDomain===testDomain;button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',String(active));});}
 
-function writeState(next){volatileState=protectBuildState(next);const json=JSON.stringify(createHandoffEnvelope(next));let stored=false;for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,json);stored=true;}catch{}}return stored;}
+function writeState(next,{memoryOnly=volatileStateMemoryOnly}={}){
+  const state=protectBuildState(next);
+  volatileState=state;
+  volatileStateMemoryOnly=Boolean(memoryOnly);
+  // The atomic IndexedDB handoff remains the refresh fallback. Keeping its
+  // expanded Original + Working pair in memory avoids another very large JSON
+  // allocation and duplicate Web Storage copies on the Build Forge page.
+  if(volatileStateMemoryOnly)return true;
+  let json='';
+  try{json=JSON.stringify(createHandoffEnvelope(state));}
+  catch{volatileStateMemoryOnly=true;return false;}
+  let stored=false;
+  for(const store of [sessionStorage,localStorage]){try{store.setItem(BUILD_SPACE_KEY,json);stored=true;}catch{}}
+  if(!stored)volatileStateMemoryOnly=true;
+  return stored;
+}
 function requestedTransferBinding(){const params=new URLSearchParams(location.search);return {characterId:params.get('characterId')||'',membershipId:params.get('membershipId')||'',membershipType:params.get('membershipType')||''};}
 async function restoreAtomicForgeTransfer(){
   if(new URLSearchParams(location.search).get('vault')!=='selection')return null;
@@ -121,9 +146,9 @@ async function restoreAtomicForgeTransfer(){
   const baseline=source?.originalBuild?validateBuildState(source,binding):createBuildState(source);
   const applied=applyVaultArmourSelection(baseline,selection);
   if(!applied.applied)return null;
-  writeState(applied.state);
+  writeState(applied.state,{memoryOnly:true});
   clearVaultArmourSelection();
-  return applied.state;
+  return volatileState;
 }
 function applyPendingVaultSelection(state){
   if(!state?.originalBuild||!state?.workingBuild||new URLSearchParams(location.search).get('vault')!=='selection')return state;
@@ -142,7 +167,7 @@ function applyPendingVaultSelection(state){
   clearVaultArmourSelection();
   return result.state;
 }
-function switchBuildCharacter(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId)return;const current=readState(),currentBinding=bindingOf(current||{}),isProtectedForgeTransfer=new URLSearchParams(location.search).get('vault')==='selection'&&current?.workingBuild?.forgeLoaderDecision&&currentBinding.characterId===String(detail.characterId);if(isProtectedForgeTransfer)return;const requested=requestedTransferBinding(),boundDetail={...detail,membershipId:detail.membershipId||requested.membershipId,membershipType:detail.membershipType??requested.membershipType};const next=applyPendingVaultSelection(createBuildState(boundDetail));writeState(next);render();}
+function switchBuildCharacter(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId)return;const current=readState(),currentBinding=bindingOf(current||{}),isProtectedForgeTransfer=new URLSearchParams(location.search).get('vault')==='selection'&&current?.workingBuild?.forgeLoaderDecision&&currentBinding.characterId===String(detail.characterId);if(isProtectedForgeTransfer)return;const requested=requestedTransferBinding(),boundDetail={...detail,membershipId:detail.membershipId||requested.membershipId,membershipType:detail.membershipType??requested.membershipType};const next=applyPendingVaultSelection(createBuildState(boundDetail));writeState(next,{memoryOnly:false});render();}
 function recoverMissingBuild(detail={}){if(detail?.source!=="bungie-live"||!detail.characterId||readState())return;switchBuildCharacter(detail);}
 function settleBuildImage(image){if(!image?.src||image.hidden||image.closest('[hidden]')||image.complete)return Promise.resolve();return Promise.race([typeof image.decode==='function'?image.decode().catch(()=>{}):new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});}),new Promise(resolve=>setTimeout(resolve,5000))]);}
 function completeBuildRender(build){

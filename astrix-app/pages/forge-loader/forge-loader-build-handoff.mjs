@@ -1,4 +1,3 @@
-import {createBuildState} from '../guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 import {bindingOf,bindingsEqual,createHandoffEnvelope} from '../guardian-workspace-v2/paradox-build-binding.mjs';
 
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
@@ -96,16 +95,16 @@ function createForgeLoaderBuildSnapshot(profileBuild={},binding={}){
   if(!expected.characterId||!expected.membershipId||!expected.membershipType)return null;
   if(text(profileBuild.characterId)!==expected.characterId)return null;
   const source=compactForgeLoaderProfileBuild(profileBuild,expected);
-  const state=createBuildState(source);
-  if(!bindingsEqual(bindingOf(state.originalBuild),expected)||!bindingsEqual(bindingOf(state.workingBuild),expected))return null;
+  if(!bindingsEqual(bindingOf(source),expected))return null;
   return createHandoffEnvelope(source);
 }
 
-function writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores=[]}={}){
+function writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores=[],snapshotEnvelope=null}={}){
   let envelope=null,json='';
   try{
-    envelope=createForgeLoaderBuildSnapshot(profileBuild,binding);
+    envelope=snapshotEnvelope||createForgeLoaderBuildSnapshot(profileBuild,binding);
     if(!envelope)return false;
+    if(!bindingsEqual(bindingOf(envelope.binding||{}),binding))return false;
     json=JSON.stringify(envelope);
   }catch{return false;}
   let stored=false;

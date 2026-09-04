@@ -93,6 +93,7 @@ const allowed=new Set([
   'astrix-app/tools/test-artifact-provenance.mjs',
   'astrix-app/tools/test-artifact-recommender.mjs',
   'astrix-app/tools/test-forge-artifact-selection.mjs',
+  'astrix-app/tools/test-build-design-artifact-intent.mjs',
   'astrix-app/tools/validate-site-typography.mjs',
   'astrix-app/tools/paradox-validator.mjs',
   'admin/index.html',

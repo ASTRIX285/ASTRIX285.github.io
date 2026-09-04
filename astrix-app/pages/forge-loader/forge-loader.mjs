@@ -5,7 +5,7 @@ import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds} from '../vault/vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260903-compact-selection-1';
 import {compatibleWithClass,exoticCatalogueGroups,setBonusOptions,toggleSetSelection} from './forge-loader-model.mjs';
-import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-atomic-forge-transfer-1';
+import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-memory-safe-transfer-1';
 
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -362,14 +362,20 @@ async function evaluateInBuildForge(){
   }
   if(!profileBuild){byId('forgeRuntimeStatus').textContent='Build Forge could not resolve the equipped Guardian baseline. No build was changed.';return;}
   const snapshotEnvelope=createForgeLoaderBuildSnapshot(profileBuild,binding);
-  const baselineStored=writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores:[sessionStorage,localStorage]});
   const selected=prepareArmourSelection(payload,[...selectedSlots.values()]);
   const selection=createVaultArmourSelection({binding,slots:selected.map(item=>({slot:item.slotIndex,item})),sourcePage:'forge-loader',forgeLoaderDecision:forgeLoaderDecision(candidate,selectedCandidateIndex)});
-  let selectionStored=writeVaultArmourSelection(selection);
-  if(!selectionStored){releaseGuardianSessionStorageFallbacks();selectionStored=writeVaultArmourSelection(selection);}
+  if(!snapshotEnvelope||!selection){byId('forgeRuntimeStatus').textContent='The verified Guardian transfer could not be prepared. No build was changed.';return;}
   byId('forgeRuntimeStatus').textContent='Securing the complete protected Build Forge transfer…';
-  const transferStored=snapshotEnvelope?await cacheForgeLoaderTransfer(binding,{snapshotEnvelope,armourSelection:selection}):false;
-  if(!selectionStored&&!transferStored){byId('forgeRuntimeStatus').textContent='The protected staged load could not be stored on this device. No build was changed.';return;}
+  const transferStored=await cacheForgeLoaderTransfer(binding,{snapshotEnvelope,armourSelection:selection});
+  let baselineStored=transferStored,selectionStored=transferStored;
+  // IndexedDB is the atomic primary route. Use quota-limited Web Storage only
+  // when that route is unavailable, rather than retaining three large copies.
+  if(!transferStored){
+    baselineStored=writeForgeLoaderBuildSnapshot(profileBuild,binding,{stores:[sessionStorage,localStorage],snapshotEnvelope});
+    selectionStored=writeVaultArmourSelection(selection);
+    if(!selectionStored){releaseGuardianSessionStorageFallbacks();selectionStored=writeVaultArmourSelection(selection);}
+  }
+  if(!selectionStored){byId('forgeRuntimeStatus').textContent='The protected staged load could not be stored on this device. No build was changed.';return;}
   if(!baselineStored&&!transferStored){
     byId('forgeRuntimeStatus').textContent='Browser storage is full. Build Forge will recover the protected Original Build directly from Bungie.';
     console.warn('[ASTRIX Forge Loader] Browser storage rejected the protected baseline; Build Forge will recover it from the authenticated Bungie profile.');

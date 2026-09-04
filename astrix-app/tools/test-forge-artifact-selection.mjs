@@ -57,6 +57,7 @@ const originalBefore=JSON.stringify(state.originalBuild);
 const liveBefore=JSON.stringify(state.originalBuild.artifactConfiguration);
 const result=applyForgeArtifactRecommendation(state,{currentSeasonNumber:31});
 assert.equal(result.applied,true);
+assert.strictEqual(result.state.originalBuild,state.originalBuild,'Artifact recommendation must retain the immutable Original Build without duplicating its inventory');
 assert.equal(JSON.stringify(result.state.originalBuild),originalBefore,'Artifact recommendation must not mutate Original Build');
 assert.equal(JSON.stringify(result.state.originalBuild.artifactConfiguration),liveBefore,'Artifact recommendation must not rewrite captured live Artifact state');
 assert.equal(Object.isFrozen(result.state.originalBuild),true);
