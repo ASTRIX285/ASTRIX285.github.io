@@ -124,6 +124,16 @@ assert.match(css,/Build Forge readability:[\s\S]*?\.build-forge-page[\s\S]*?--di
 
 const elementButtons=[...html.matchAll(/data-recommendation-element="([^"]+)"/g)].map(match=>match[1]);
 assert.deepEqual(elementButtons,BUILD_ELEMENTS,'Recommendation buttons must be ARC, SOLAR, STRAND, STASIS, VOID and PRISMATIC only.');
+assert.match(runtime,/elementGrid\?\.classList\.toggle\('has-multiple-options',hasDecision&&supported\.size>1\)/,'Elemental recommendation controls must advertise when multiple verified choices are available.');
+assert.match(runtime,/button\.classList\.toggle\('is-available',available\)/,'Each elemental recommendation control must retain its explicit verified-availability state.');
+for(const element of BUILD_ELEMENTS)assert.match(css,new RegExp(`data-recommendation-element="${element}"\\]\\{--element-colour:#`),`${element.toUpperCase()} must retain its own elemental colour token.`);
+assert.match(css,/\.element-recommendation-grid\.has-multiple-options button:not\(:disabled\)::after\{animation:elemental-option-pulse/,'Multiple selectable elemental options must receive the restrained pulsing glow.');
+assert.match(css,/button\.is-selected\{[^}]*border-color:var\(--element-colour\)[^}]*box-shadow:[^}]*var\(--element-colour\)/,'The selected elemental option must have the strongest colour-coded state.');
+assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{\.element-recommendation-grid\.has-multiple-options button:not\(:disabled\)::after\{animation:none/,'Elemental glow animation must respect reduced-motion preferences.');
+assert.match(html,/id="generateMaxLoadout"[^>]*>[^<]+<\/button>[\s\S]*?id="forgeGenerationLoader"[^>]*hidden/,'The in-page Paradox loader must sit below the generation controls and begin hidden.');
+assert.match(css,/\.forge-generation-loader\{[^}]*background:transparent\}/,'Recommendation generation must reuse only the circular loader without a full-screen background.');
+assert.match(runtime,/await showForgeGenerationLoader\(selectedRecommendationElement\)[\s\S]*?composeForgeRecommendation/,'The circular loader must paint before verified build generation begins.');
+assert.match(runtime,/writeState\(next\);render\(\);hideForgeGenerationLoader\(\);openRecommendedBuild\(\)/,'The in-page loader must close before the generated result opens.');
 assert.deepEqual([...html.matchAll(/data-build-objective="([^"]+)"/g)].map(match=>match[1]),['balanced','dps','add-clear','survivability','ability-uptime'],'Build Forge must expose the five deterministic tuning objectives used by weapon and mod ranking.');
 assert.match(html,/id="generateMaxLoadout" disabled>GENERATE MAX LOADOUT/,'Generation must begin locked until verified inputs pass.');
 assert.match(runtime,/function generateMaxLoadout\(\)/,'Build Forge must expose an explicit recommendation generation boundary.');
