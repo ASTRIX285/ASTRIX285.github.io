@@ -75,6 +75,13 @@ assert.match(sources.layout,/grid-template-columns:var\(--apx-workspace-left,[^;
 assert.match(sources.shared,/\.workspace>\.stage-companion,[\s\S]*?\.workspace>\.stage,[\s\S]*?\.workspace>\.right\{display:none!important\}/,'Character must retain but visually remove the two obsolete stage areas');
 assert.match(sources.shared,/grid-template-areas:"rail action" "rail equipment"!important/,'Character must use a balanced rail and equipment workspace');
 assert.match(sources.shared,/grid-template-areas:"loadouts" "armour" "weapons"!important/,'Character equipment must render Loadouts, Armour, then Weapons');
+for(const [label,area] of [['Loadouts','loadouts'],['Armour','armour'],['Weapons','weapons']]){
+  const selector=label==='Loadouts'?'guardian-loadouts-container':label==='Armour'?'gear-combined':'gear-weapons';
+  const block=sources.shared.match(new RegExp(`body\\.guardian-main-page \\.equip\\.gear-layout-active>\\.${selector}\\{([^}]*)\\}`))?.[1]||'';
+  assert.match(block,new RegExp(`grid-area:${area}!important`),`${label} must keep its named Character equipment area`);
+  assert.doesNotMatch(block,/grid-(?:row|column):/u,`${label} must not override its named equipment row`);
+}
+assert.match(sources.shared,/body\.guardian-main-page>\.actionbar\{[^}]*position:static!important;[^}]*width:100%!important;/,'Character actions must remain in document flow instead of covering equipment');
 assert.match(sources.shared,/\.gear-combined \.gear-columns\{[\s\S]*?grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,'Character Armour must retain five equal columns');
 assert.match(sources.super,/@media\s*\(max-width:720px\)\{[\s\S]*?\.super-feature \.super-feature__cluster\{width:min\(300px,100%\)!important\}/,'Super geometry must scale inside its container at narrow widths');
 

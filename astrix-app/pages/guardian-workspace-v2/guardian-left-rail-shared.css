@@ -463,14 +463,10 @@ body.guardian-main-page .workspace>.right{display:none!important}
   }
   body.guardian-main-page .equip.gear-layout-active>.guardian-loadouts-container{
     grid-area:loadouts!important;
-    grid-column:1!important;
-    grid-row:auto!important;
     width:100%!important;
   }
   body.guardian-main-page .equip.gear-layout-active>.gear-combined{
     grid-area:armour!important;
-    grid-column:1!important;
-    grid-row:auto!important;
     width:100%!important;
     height:auto!important;
     min-height:0!important;
@@ -479,8 +475,6 @@ body.guardian-main-page .workspace>.right{display:none!important}
   }
   body.guardian-main-page .equip.gear-layout-active>.gear-weapons{
     grid-area:weapons!important;
-    grid-column:1!important;
-    grid-row:auto!important;
     width:100%!important;
     height:auto!important;
     min-height:0!important;
@@ -520,6 +514,10 @@ body.guardian-main-page .workspace>.right{display:none!important}
   body.guardian-main-page .equip .gear-subhead,
   body.guardian-main-page .equip .gear-subhead span:last-child{font-size:.75rem!important;line-height:1.4!important}
   body.guardian-main-page .equip .gear-slot-label{font-size:.75rem!important;line-height:1.25!important}
+  body.guardian-main-page>.actionbar{
+    position:static!important;
+    width:100%!important;
+  }
 }
 
 @media (max-width:980px){
