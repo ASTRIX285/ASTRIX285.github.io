@@ -405,7 +405,7 @@ body.guardian-main-page .workspace>.right{display:none!important}
     overflow-x:hidden!important;
     overflow-y:auto!important;
   }
-  body.guardian-main-page .workspace{
+  body.guardian-main-page>.workspace{
     display:grid!important;
     width:calc(100vw - 20px)!important;
     max-width:none!important;
