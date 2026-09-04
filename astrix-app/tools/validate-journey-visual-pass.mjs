@@ -145,12 +145,12 @@ assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,7,'Shared Jour
 assert.ok(ribbon.indexOf("key:'forge-loader'")<ribbon.indexOf("key:'build-forge'"),'Forge Loader must appear before Build Forge');
 for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
-  assert.ok(page.includes('astrix-hero-cards.css?v=20260903-command-header-2'),'Every destination page must load the centred shared command-header presentation');
+  assert.ok(page.includes('astrix-hero-cards.css?v=20260904-mobile-crosscheck-1'),'Every destination page must load the current centred, mobile-contained command-header presentation');
   assert.equal((page.match(/astrix-command-header/g)??[]).length,1,'Every destination page must contain exactly one shared command header');
 }
 assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1'))).length,3,'Journey, Vault and Loadout must load the same scoped-profile Guardian renderer');
-assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260904-weapon-model-2'),'Character must load the verified weapon-model module graph');
-assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260904-weapon-model-2'),'Build Forge must load the owned-inventory weapon recommendation sequence without stale page-specific code');
+assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260904-paradox-card-1'),'Character must load the verified Paradox item-card module graph');
+assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260904-paradox-card-1'),'Build Forge must load the owned-inventory weapon recommendation sequence without stale page-specific code');
 assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260902-recent-guardian-emblem-1'),'Mission Reports must load the latest-played Guardian module graph');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');

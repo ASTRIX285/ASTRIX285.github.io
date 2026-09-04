@@ -11,6 +11,7 @@ const sources={
   leftLock:await readFile(new URL('guardian-left-panel-lock.css',ROOT),'utf8'),
   mobile:await readFile(new URL('guardian-mobile.css',ROOT),'utf8'),
   super:await readFile(new URL('guardian-super-formation.css',ROOT),'utf8'),
+  items:await readFile(new URL('paradox-item-cards.css',ROOT),'utf8'),
   build:await readFile(new URL('paradox-build-space/paradox-build-space.css',ROOT),'utf8')
 };
 const mainHtml=await readFile(new URL('index.html',ROOT),'utf8');
@@ -43,6 +44,12 @@ assert.match(sources.gear,/\.gear-weapons \.weap\{[\s\S]*?grid-template-areas:"a
 assert.match(sources.gear,/\.weapon-perk-matrix\.is-compact \.weapon-perk-row\{grid-template-columns:repeat\(var\(--weapon-perk-columns\),var\(--gear-weapon-socket\)\)/,'Compact weapon models must keep their tier-defined perk columns aligned');
 assert.match(sources.gear,/\.weapon-support-icon\{width:var\(--gear-weapon-socket\)!important;height:var\(--gear-weapon-socket\)!important/,'Weapon mod and masterwork sockets must match perk sizing');
 assert.doesNotMatch(sources.build,/--guardian-square\s*:|--pf-mod-size\s*:|\.gear-slot \.gear-mods\s*\{/,'Build must not create a second socket-size owner');
+assert.match(sources.items,/\.paradox-item-card\{[\s\S]*?border:1px solid rgba\(224,185,79,\.42\)/,'Weapon and armour inspectors must share one Paradox card frame');
+assert.match(sources.items,/\.paradox-item-card \.weapon-perk-cell\{[^}]*border:2px solid/,'Detailed weapon perks must retain circular socket emphasis');
+assert.match(sources.items,/\.paradox-socket-icon\{[^}]*border-radius:8px/,'Armour mods and cosmetics must retain square sockets');
+assert.match(sources.items,/@media\(max-width:700px\)\{[\s\S]*?\.weapon-detail-drawer\.paradox-item-shell,\.armour-drawer\.paradox-item-shell\{inset:0;width:100%;height:100dvh/,'Both item-card inspectors must become contained full-screen mobile surfaces');
+assert.match(mainHtml,/paradox-item-cards\.css\?v=20260904-paradox-card-1/,'Character must load the shared Paradox item-card framework');
+assert.match(buildHtml,/paradox-item-cards\.css\?v=20260904-paradox-card-1/,'Build Forge must load the same Paradox item-card framework');
 
 assert.match(sources.shared,/guardian-loadouts-strip\{[\s\S]*?overflow-x:auto!important/,'The 1–20 loadout strip must contain its own narrow-screen overflow');
 assert.match(sources.shared,/guardian-loadouts-grid\{[\s\S]*?grid-template-columns:repeat\(20,minmax\(32px,1fr\)\)!important;[\s\S]*?min-width:720px!important/,'The Bungie 1–20 loadout row must remain fluid and single-row');

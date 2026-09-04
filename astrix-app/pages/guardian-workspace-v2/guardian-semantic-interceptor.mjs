@@ -181,6 +181,17 @@ function enrichArmour(detail,payload,profile,rows){
       instance:instanceData(profile,rawItem),
       stats:statData(profile,rawItem)
     });
+    armourSemantics.stats=Object.fromEntries(Object.entries(armourSemantics.stats||{}).map(([hash,row])=>{
+      const definition=payload?.statDefinitions?.[String(hash)]||livePayload?.statDefinitions?.[String(hash)]||null;
+      const value=Number(row?.value??row);
+      return [String(hash),{
+        ...(row&&typeof row==="object"?row:{}),
+        hash:Number(hash),
+        name:String(definition?.displayProperties?.name||row?.name||""),
+        icon:String(definition?.displayProperties?.icon||row?.icon||""),
+        value:Number.isFinite(value)?value:0
+      }];
+    }));
     const exactSet=resolveArmourSet(payload,item,equippedArmour);
     if(exactSet)armourSemantics.set=exactSet;
     const masterworkSlot=armourSemantics.masterwork?{

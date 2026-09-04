@@ -12,6 +12,94 @@ const VALID_SUBCLASSES = ["void", "solar", "arc", "stasis", "strand", "prismatic
 const byId = (id) => document.getElementById(id);
 const escapeHtml = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
+const bungieAsset = (value) => {
+  const path = String(value ?? "");
+  if (!path) return "";
+  return path.startsWith("http") ? path : `https://www.bungie.net${path.startsWith("/") ? path : `/${path}`}`;
+};
+const itemName = (item, fallback = "Resolved item") => String(item?.name ?? item?.displayName ?? item?.displayProperties?.name ?? item ?? fallback).trim();
+const itemIcon = (item) => bungieAsset(item?.icon ?? item?.iconUrl ?? item?.displayProperties?.icon);
+const itemDescription = (item) => String(item?.description ?? item?.displayProperties?.description ?? "").trim();
+const itemHash = (item) => {
+  const value = Number(item?.bungieHash ?? item?.hash ?? item?.itemHash);
+  return Number.isInteger(value) && value > 0 ? value : null;
+};
+
+function uniqueDetailItems(items = []) {
+  const seen = new Set();
+  return items.filter((item) => {
+    if (!item) return false;
+    const key = itemHash(item) ? `hash:${itemHash(item)}` : `name:${itemName(item).toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function paradoxIdentity(item, label) {
+  if (!item) return "";
+  const icon = itemIcon(item);
+  return `<div class="paradox-identity-card"${itemHash(item) ? ` data-bungie-hash="${itemHash(item)}"` : ""}>
+    <div class="paradox-identity-icon">${icon ? `<img src="${escapeHtml(icon)}" alt="">` : '<span aria-hidden="true">◆</span>'}</div>
+    <div><small>${escapeHtml(label)}</small><b>${escapeHtml(itemName(item))}</b>${itemDescription(item) ? `<p>${escapeHtml(itemDescription(item))}</p>` : ""}</div>
+  </div>`;
+}
+
+function armourDetailTile(item, label) {
+  if (!item) return "";
+  const icon = itemIcon(item);
+  return `<div class="paradox-socket-tile"${itemHash(item) ? ` data-bungie-hash="${itemHash(item)}"` : ""} title="${escapeHtml([itemName(item), itemDescription(item)].filter(Boolean).join(" — "))}">
+    <div class="paradox-socket-icon">${icon ? `<img src="${escapeHtml(icon)}" alt="">` : '<span aria-hidden="true">◆</span>'}</div>
+    <small>${escapeHtml(label)}</small><b>${escapeHtml(itemName(item))}</b>
+  </div>`;
+}
+
+function armourStats(item) {
+  const source = item?.armourSemantics?.stats ?? item?.stats ?? {};
+  const rows = Array.isArray(source)
+    ? source.map((row, index) => Array.isArray(row) ? { name: row[0], value: row[1], icon: row[2], hash: row[3], order: index } : { ...row, order: index })
+    : Object.entries(source).map(([hash, row], index) => ({
+        ...(row && typeof row === "object" ? row : {}),
+        hash: Number(hash),
+        name: row?.name ?? row?.displayProperties?.name ?? "",
+        icon: row?.icon ?? row?.displayProperties?.icon ?? "",
+        value: row?.value ?? row,
+        order: index
+      }));
+  return rows
+    .map((row, index) => ({ ...row, name: String(row.name || `Stat ${index + 1}`), value: Number(row.value) }))
+    .filter((row) => Number.isFinite(row.value));
+}
+
+function armourStatMarkup(item) {
+  const rows = armourStats(item);
+  if (!rows.length) return '<p class="inspector-empty">Item stats are not present in the resolved Bungie instance.</p>';
+  const total = rows.reduce((sum, row) => sum + row.value, 0);
+  return `<div class="paradox-stat-list">${rows.map((row) => `<div class="paradox-stat-row">
+    <span>${itemIcon(row) ? `<img src="${escapeHtml(itemIcon(row))}" alt="">` : ""}${escapeHtml(row.name)}</span>
+    <strong>${escapeHtml(row.value)}</strong><i><b style="width:${Math.max(0, Math.min(100, row.value))}%"></b></i>
+  </div>`).join("")}<div class="paradox-stat-total"><span>TOTAL</span><strong>${total}</strong></div></div>`;
+}
+
+function armourEnergyMarkup(item) {
+  const energy = item?.armourSemantics?.energy ?? item?.energy ?? null;
+  const capacity = Number(energy?.capacity ?? energy?.energyCapacity);
+  const used = Number(energy?.used ?? energy?.energyUsed);
+  if (!Number.isFinite(capacity) || capacity < 1) return '<p class="inspector-empty">Energy capacity is not present in the resolved Bungie instance.</p>';
+  const slots = Array.from({ length: Math.min(12, Math.max(1, Math.floor(capacity))) }, (_, index) => `<i class="${Number.isFinite(used) && index < used ? "is-used" : ""}" aria-hidden="true"></i>`).join("");
+  return `<div class="paradox-energy"><div><b>${escapeHtml(capacity)} ENERGY</b><span>${Number.isFinite(used) ? `${escapeHtml(used)} used · ${escapeHtml(Math.max(0, capacity - used))} available` : "Usage unresolved"}</span></div><div class="paradox-energy-track" style="--energy-capacity:${Math.min(12, Math.floor(capacity))}">${slots}</div></div>`;
+}
+
+function armourModItems(item) {
+  const semantics = item?.armourSemantics ?? {};
+  const resolved = [semantics.masterwork ?? item?.masterwork, ...(semantics.generalMods ?? item?.generalMods ?? []), ...(semantics.slotMods ?? item?.slotMods ?? [])];
+  const fallback = Array.isArray(item?.mods) ? item.mods.filter((plug) => !/infus|exotic[\s._-]*(armou?r[\s._-]*)?(intrinsic|perk)|archetype/i.test([plug?.semanticRole, itemName(plug), plug?.definition?.plug?.plugCategoryIdentifier].filter(Boolean).join(" "))) : [];
+  return uniqueDetailItems([...resolved, ...fallback]);
+}
+
+function armourCosmeticItems(item) {
+  return uniqueDetailItems([item?.shader, item?.ornament, item?.defaultAppearance].filter((entry) => entry && (typeof entry !== "string" || entry.trim())));
+}
 
 const previewStats = [
   ["Mobility", 100],
@@ -116,19 +204,23 @@ function createArmourDrawer() {
   document.body.insertAdjacentHTML(
     "beforeend",
     `<div class="armour-drawer-backdrop" data-close-drawer hidden></div>
-     <aside class="armour-drawer" id="armourDrawer" aria-hidden="true" hidden>
-       <div class="armour-drawer-head">
-         <div><small class="eyebrow">ARMOUR INSPECTOR</small><h2 id="armourDrawerTitle">Armour slot</h2></div>
-         <button class="armour-drawer-close" type="button" data-close-drawer aria-label="Close armour inspector">✕</button>
-       </div>
-       <div class="armour-drawer-tabs" role="tablist">
-         <button class="armour-tab" data-tab="build" aria-selected="true">BUILD</button>
+     <aside class="armour-drawer paradox-item-shell" id="armourDrawer" aria-hidden="true" hidden>
+       <button class="armour-drawer-close" type="button" data-close-drawer aria-label="Close armour inspector">✕</button>
+       <article class="paradox-item-card paradox-item-card--armour" data-item-kind="armour">
+       <header class="paradox-item-header armour-drawer-head">
+         <div class="weapon-detail-icon" id="armourDrawerIcon"></div>
+         <div class="paradox-item-identity"><span class="paradox-kicker">PARADOX ARMOUR MODEL</span><h2 id="armourDrawerTitle">Armour slot</h2><p id="armourDrawerType">Armour</p></div>
+         <div class="weapon-detail-power"><small>POWER</small><b id="armourDrawerPower">—</b></div>
+       </header>
+       <div class="armour-drawer-tabs paradox-card-tabs" role="tablist">
+         <button class="armour-tab" data-tab="build" aria-selected="true">OVERVIEW</button>
          <button class="armour-tab" data-tab="appearance" aria-selected="false">APPEARANCE</button>
          <button class="armour-tab" data-tab="mods" aria-selected="false">MODS</button>
        </div>
        <section class="armour-panel active" data-panel="build"></section>
        <section class="armour-panel" data-panel="appearance"></section>
        <section class="armour-panel" data-panel="mods"></section>
+       </article>
      </aside>`
   );
 
@@ -148,19 +240,41 @@ export function openArmourDrawer(index, item) {
   const names = ["Helmet", "Gauntlets", "Chest Armour", "Leg Armour", "Class Item"];
   const resolved = item || null;
   byId("armourDrawerTitle").textContent = resolved?.name || names[index] || "Armour";
-  const fallback = '<div class="inspector-empty">Awaiting Bungie character and inventory data.</div>';
-  const field = (label, value) => `<div class="inspector-field"><small>${escapeHtml(label)}</small><b>${escapeHtml(value ?? "Awaiting live data")}</b></div>`;
+  byId("armourDrawerType").textContent = resolved?.itemTypeDisplayName || names[index] || "Armour";
+  byId("armourDrawerPower").textContent = resolved?.power ?? "—";
+  const resolvedIcon = itemIcon(resolved);
+  byId("armourDrawerIcon").innerHTML = resolvedIcon ? `<img src="${escapeHtml(resolvedIcon)}" alt="">` : '<span class="ph-glyph" aria-hidden="true">◇</span>';
+  const fallback = '<div class="inspector-empty">Awaiting exact Bungie character and inventory data.</div>';
+  const semantics = resolved?.armourSemantics ?? {};
+  const exoticPerk = semantics.exoticPerk ?? resolved?.exoticPerk ?? resolved?.intrinsicTrait ?? null;
+  const archetype = semantics.archetype ?? resolved?.archetype ?? null;
+  const set = semantics.set ?? resolved?.setBonus ?? null;
+  const identities = [
+    paradoxIdentity(archetype, "ARMOUR ARCHETYPE"),
+    paradoxIdentity(exoticPerk, "EXOTIC ARMOUR TRAIT"),
+    paradoxIdentity(set?.identity, "ARMOUR SET"),
+    paradoxIdentity(set?.twoPiece, "2-PIECE SET PERK"),
+    paradoxIdentity(set?.fourPiece, "4-PIECE SET PERK")
+  ].filter(Boolean).join("");
+  const mods = resolved ? armourModItems(resolved) : [];
+  const cosmetics = resolved ? armourCosmeticItems(resolved) : [];
 
   document.querySelector('[data-panel="build"]').innerHTML = resolved
-    ? `<div class="inspector-grid">${field("Power", resolved.power)}${field("Energy", resolved.energy?.type || resolved.energy)}${field("Tier", resolved.tier)}${field("Manifest hash", resolved.hash)}</div>`
+    ? `<div class="paradox-card-body">
+        <section class="paradox-section paradox-section--stats"><h3>ARMOUR STATS</h3>${armourStatMarkup(resolved)}</section>
+        <section class="paradox-section paradox-section--energy"><h3>ENERGY</h3>${armourEnergyMarkup(resolved)}</section>
+        <section class="paradox-section paradox-section--traits"><h3>ARCHETYPE &amp; TRAITS</h3>${identities || '<p class="inspector-empty">No resolved archetype or trait evidence.</p>'}</section>
+       </div>`
     : fallback;
   document.querySelector('[data-panel="appearance"]').innerHTML = resolved
-    ? `<div class="inspector-grid">${field("Shader", resolved.shader?.name || resolved.shader)}${field("Ornament", resolved.ornament?.name || resolved.ornament)}${field("Default appearance", resolved.defaultAppearance || "Available from manifest")}${field("Cosmetic state", resolved.cosmeticState)}</div>`
+    ? `<div class="paradox-card-body"><section class="paradox-section"><h3>ARMOUR COSMETICS</h3><div class="paradox-socket-grid">${cosmetics.map((entry, cosmeticIndex) => armourDetailTile(entry, cosmeticIndex === 0 ? "Shader" : "Ornament")).join("") || '<p class="inspector-empty">No resolved shader or ornament evidence.</p>'}</div></section></div>`
     : fallback;
-  document.querySelector('[data-panel="mods"]').innerHTML = resolved?.mods?.length
-    ? (resolved.intrinsicTrait ? field("Exotic trait", resolved.intrinsicTrait.name || "Intrinsic trait") : "") +
-      resolved.mods.map((mod) => field("Armour mod", mod.name || mod)).join("")
+  document.querySelector('[data-panel="mods"]').innerHTML = mods.length
+    ? `<div class="paradox-card-body"><section class="paradox-section"><div class="paradox-section-heading"><h3>ARMOUR MODS</h3><span>MASTERWORK · 2 GENERAL · 3 SLOT</span></div><div class="paradox-socket-grid">${mods.map((mod, modIndex) => armourDetailTile(mod, modIndex === 0 && /masterwork/i.test([mod?.semanticRole, itemName(mod)].join(" ")) ? "Masterwork" : "Armour mod")).join("")}</div></section></div>`
     : fallback;
+
+  document.querySelectorAll(".armour-tab").forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.tab === "build")));
+  document.querySelectorAll(".armour-panel").forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === "build"));
 
   document.body.classList.add("armour-drawer-open");
   document.querySelector(".armour-drawer-backdrop")?.removeAttribute("hidden");

@@ -1,4 +1,4 @@
-import "./guardian-semantic-interceptor.mjs?v=20260904-weapon-model-2";
+import "./guardian-semantic-interceptor.mjs?v=20260904-paradox-card-1";
 import {
   normaliseLiveProfile,
   loadSelectedLoadout,

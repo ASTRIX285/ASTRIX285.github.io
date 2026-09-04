@@ -1,0 +1,155 @@
+/* ASTRIX PARADOX — shared item-card framework
+   One readable structure for live Character inspection and Build Forge review.
+   Weapon perks remain circular; armour mods and cosmetics remain square. */
+
+.paradox-item-shell{
+  --paradox-card-gold:#e0b94f;
+  --paradox-card-red:#b51e2a;
+  --paradox-card-violet:#9d69ff;
+  --paradox-card-teal:#62e5b7;
+  --paradox-card-copy:#d8d3dc;
+  --paradox-card-muted:#9c96a4;
+  --paradox-card-line:rgba(224,185,79,.3);
+  color:var(--paradox-card-copy)
+}
+.weapon-detail-drawer.paradox-item-shell{width:min(760px,100vw);padding:24px;background:#08080c}
+.armour-drawer.paradox-item-shell{width:min(620px,100vw);padding:24px;background:#08080c}
+.paradox-item-card{
+  position:relative;isolation:isolate;overflow:hidden;min-width:0;
+  border:1px solid rgba(224,185,79,.42);border-radius:14px;
+  background:
+    linear-gradient(135deg,rgba(157,105,255,.09),transparent 34%),
+    linear-gradient(315deg,rgba(181,30,42,.08),transparent 36%),
+    #0c0b11;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 24px 70px rgba(0,0,0,.5)
+}
+.paradox-item-card::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.34;
+  background:
+    linear-gradient(115deg,transparent 0 72%,rgba(224,185,79,.12) 72% 72.2%,transparent 72.2%),
+    linear-gradient(25deg,transparent 0 84%,rgba(157,105,255,.11) 84% 84.2%,transparent 84.2%)
+}
+.paradox-item-header{
+  display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:18px;align-items:center;
+  margin:0;padding:22px 64px 22px 22px;border:0;border-bottom:1px solid rgba(255,255,255,.15);
+  background:linear-gradient(95deg,rgba(89,47,111,.94),rgba(52,28,66,.78) 58%,rgba(20,16,25,.82))
+}
+.paradox-item-card--weapon .paradox-item-header{background:linear-gradient(95deg,rgba(88,49,111,.95),rgba(60,31,69,.78) 58%,rgba(20,16,25,.82))}
+.paradox-item-card--armour .paradox-item-header{background:linear-gradient(95deg,rgba(94,54,118,.95),rgba(52,29,68,.78) 58%,rgba(20,16,25,.82))}
+.paradox-item-header .weapon-detail-icon{width:96px;height:96px;border:2px solid var(--paradox-card-gold);border-radius:8px;background:#17111e;box-shadow:0 0 18px rgba(224,185,79,.16)}
+.paradox-item-header .weapon-detail-icon img{display:block;width:100%;height:100%;object-fit:cover}
+.paradox-item-header .weapon-detail-icon>.ph-glyph{display:grid;width:100%;height:100%;place-items:center;font-size:2rem}
+.paradox-item-identity{min-width:0}
+.paradox-kicker{display:block;margin-bottom:5px;color:#f0cb61;font:800 12px/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.12em}
+.paradox-item-header h2{margin:0;color:#fff;font:900 clamp(1.65rem,3.2vw,2.55rem)/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.025em;overflow-wrap:anywhere}
+.paradox-item-header p{margin:8px 0 0;color:#d4cdd8;font:650 15px/1.25 bahnschrift,sans-serif}
+.paradox-item-header .weapon-detail-power{align-self:center;text-align:right}
+.paradox-item-header .weapon-detail-power small{display:block;color:#b7b0bb;font:800 12px/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.1em}
+.paradox-item-header .weapon-detail-power b{display:block;margin-top:3px;color:#fff;font:900 2rem/1 bahnschrift-semicondensed,sans-serif}
+.paradox-item-card>.weapon-flavour{min-height:0;margin:0;padding:18px 22px;color:#bbb5c1;font:italic 500 15px/1.55 bahnschrift,sans-serif;border-bottom:1px solid rgba(255,255,255,.09)}
+.paradox-card-body{display:grid;gap:0;padding:0 22px 24px}
+.paradox-section{min-width:0;padding:22px 0;border-bottom:1px solid rgba(255,255,255,.12)}
+.paradox-section:last-child{border-bottom:0}
+.paradox-section h3{margin:0 0 15px;padding:0 0 10px;border:0;border-bottom:1px solid var(--paradox-card-line);color:#f1edf4;font:900 14px/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.105em}
+.paradox-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:10px;border-bottom:1px solid var(--paradox-card-line)}
+.paradox-section-heading h3{flex:1;margin:0;border:0}
+.paradox-section-heading>span{padding-bottom:10px;color:#d7b649;font:800 11px/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em;text-align:right}
+.paradox-rule-note{margin:0 0 16px;color:var(--paradox-card-muted);font:550 13px/1.45 bahnschrift,sans-serif}
+
+/* Weapon stat and perk hierarchy */
+.paradox-item-card .weapon-stats{display:grid;gap:9px}
+.paradox-item-card .weapon-stat{display:grid;grid-template-columns:minmax(116px,160px) minmax(100px,1fr) 42px;gap:12px;align-items:center;margin:0;color:#d4ced8;font:650 14px/1.2 bahnschrift,sans-serif}
+.paradox-item-card .weapon-stat i{height:11px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);overflow:hidden}
+.paradox-item-card .weapon-stat i b{display:block;height:100%;background:linear-gradient(90deg,#f3f0f5 0 76%,var(--paradox-card-gold) 76%)}
+.paradox-item-card .weapon-stat strong{color:#fff;font-size:15px;text-align:right}
+.paradox-item-card .weapon-trait-hierarchy{gap:18px}
+.paradox-item-card .weapon-intrinsic-lead,.paradox-item-card .weapon-exotic-trait{grid-template-columns:82px minmax(0,1fr);gap:16px}
+.paradox-item-card .weapon-detail-tile{width:82px;color:#bdb7c2;font-size:12px}
+.paradox-item-card .weapon-detail-tile img{width:64px;height:64px}
+.paradox-item-card .weapon-detail-tile small{display:block;color:#d6b94f;font:800 12px/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.06em}
+.paradox-item-card .weapon-intrinsic-lead b,.paradox-item-card .weapon-exotic-trait b{font-size:16px}
+.paradox-item-card .weapon-intrinsic-lead p,.paradox-item-card .weapon-exotic-trait p{font-size:14px}
+.paradox-item-card .weapon-exotic-traits{margin-left:34px;padding:18px 0 0 18px;border-left:2px solid var(--paradox-card-gold)}
+.paradox-item-card .weapon-exotic-traits h4{color:#f0cb61;font-size:12px}
+.paradox-item-card .weapon-perk-matrix{width:max-content;max-width:100%;gap:12px;padding:16px 18px;overflow-x:auto;border:1px solid rgba(224,185,79,.22);border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.22))}
+.paradox-item-card .weapon-perk-row{grid-template-columns:repeat(var(--weapon-perk-columns),var(--paradox-perk-size,60px));gap:16px}
+.paradox-item-card .weapon-perk-row-label{display:none}
+.paradox-item-card .weapon-perk-cell{width:var(--paradox-perk-size,60px);height:var(--paradox-perk-size,60px);overflow:visible;border:2px solid rgba(224,185,79,.56);background:#17151c;box-shadow:inset 0 0 0 3px #08080c,0 0 0 1px rgba(0,0,0,.85)}
+.paradox-item-card .weapon-perk-cell img{position:relative;z-index:1;width:100%;height:100%;border-radius:50%;object-fit:contain}
+.paradox-item-card .weapon-perk-row:not(:last-child) .weapon-perk-cell:not(.is-empty)::after{content:"";position:absolute;z-index:0;top:100%;left:50%;height:16px;border-left:1px solid rgba(224,185,79,.35)}
+.paradox-item-card .weapon-perk-cell.is-selected{border-color:#f3d361;box-shadow:inset 0 0 0 3px #08080c,0 0 0 3px rgba(243,211,97,.18),0 0 18px rgba(243,211,97,.3)}
+.paradox-item-card .weapon-perk-cell.is-recommended{border-color:var(--paradox-card-teal);box-shadow:inset 0 0 0 3px #08080c,0 0 0 3px rgba(98,229,183,.2),0 0 18px rgba(98,229,183,.34)}
+.paradox-item-card .weapon-perk-cell.is-empty{visibility:hidden}
+.paradox-item-card .weapon-detail-tiles{gap:16px}
+
+/* Armour item specifics */
+.paradox-card-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:0;padding:0 22px;border-bottom:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22)}
+.paradox-card-tabs .armour-tab{min-height:48px;margin:0;padding:0 10px;border:0;border-bottom:3px solid transparent;color:#aaa4b0;font:850 13px/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em}
+.paradox-card-tabs .armour-tab[aria-selected="true"]{border-bottom-color:var(--paradox-card-gold);color:#fff;background:linear-gradient(180deg,transparent,rgba(224,185,79,.08))}
+.paradox-identity-card{display:grid;grid-template-columns:68px minmax(0,1fr);gap:14px;align-items:center;padding:14px;border:1px solid rgba(255,255,255,.11);border-left:3px solid var(--paradox-card-gold);background:rgba(255,255,255,.025)}
+.paradox-identity-card+.paradox-identity-card{margin-top:10px}
+.paradox-identity-icon{width:60px;height:60px;display:grid;place-items:center;border:1px solid rgba(224,185,79,.5);border-radius:8px;background:#151219;overflow:hidden}
+.paradox-identity-icon img{width:100%;height:100%;object-fit:contain}
+.paradox-identity-card small{display:block;margin-bottom:4px;color:#d5b64f;font:800 12px/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.07em}
+.paradox-identity-card b{display:block;color:#fff;font:850 15px/1.25 bahnschrift-semicondensed,sans-serif}
+.paradox-identity-card p{margin:6px 0 0;color:#aaa4af;font:500 13px/1.45 bahnschrift,sans-serif}
+.paradox-stat-list{display:grid;gap:8px}
+.paradox-stat-row{display:grid;grid-template-columns:minmax(120px,1fr) 42px minmax(120px,1.4fr);gap:10px;align-items:center;color:#d4ced8;font:650 14px/1.2 bahnschrift,sans-serif}
+.paradox-stat-row>span{display:flex;align-items:center;gap:7px;min-width:0}
+.paradox-stat-row>span img{width:18px;height:18px;object-fit:contain;filter:brightness(0) invert(1);opacity:.9}
+.paradox-stat-row>strong{text-align:right;color:#fff;font-size:15px}
+.paradox-stat-row>i{height:11px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);overflow:hidden}
+.paradox-stat-row>i>b{display:block;height:100%;background:linear-gradient(90deg,var(--paradox-card-teal),#56a98e)}
+.paradox-stat-total{display:flex;justify-content:space-between;margin-top:4px;padding-top:10px;border-top:1px solid rgba(255,255,255,.13);color:#fff;font:900 15px/1.2 bahnschrift-semicondensed,sans-serif}
+.paradox-energy{display:grid;gap:10px}
+.paradox-energy>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.paradox-energy b{color:#fff;font:900 15px/1.2 bahnschrift-semicondensed,sans-serif}
+.paradox-energy span{color:#aaa4af;font:600 13px/1.2 bahnschrift,sans-serif}
+.paradox-energy-track{display:grid;grid-template-columns:repeat(var(--energy-capacity),minmax(12px,1fr));gap:4px}
+.paradox-energy-track i{height:15px;border:1px solid rgba(255,255,255,.34);background:rgba(255,255,255,.08)}
+.paradox-energy-track i.is-used{border-color:#f4dd86;background:linear-gradient(180deg,#f5dd82,#cfa32e);box-shadow:0 0 8px rgba(224,185,79,.22)}
+.paradox-socket-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:12px}
+.paradox-socket-tile{min-width:0;display:grid;justify-items:center;gap:5px;padding:12px 8px;border:1px solid rgba(224,185,79,.24);border-radius:8px;background:rgba(255,255,255,.025);text-align:center}
+.paradox-socket-icon{width:62px;height:62px;display:grid;place-items:center;border:1px solid rgba(224,185,79,.54);border-radius:8px;background:#151219;overflow:hidden}
+.paradox-socket-icon img{width:100%;height:100%;object-fit:contain}
+.paradox-socket-tile small{color:#aaa4af;font:750 12px/1.2 bahnschrift-semicondensed,sans-serif;letter-spacing:.05em;text-transform:uppercase}
+.paradox-socket-tile b{max-width:100%;color:#fff;font:750 13px/1.25 bahnschrift,sans-serif;overflow-wrap:anywhere}
+.paradox-item-card .inspector-empty,.paradox-item-card .weapon-detail-empty{grid-column:1/-1;margin:0;padding:14px;border:1px dashed rgba(255,255,255,.16);color:#9d97a3;background:rgba(255,255,255,.02);font:550 13px/1.45 bahnschrift,sans-serif}
+.review-weapon.paradox-model-card{position:relative;isolation:isolate;overflow:hidden;border-color:rgba(224,185,79,.44);background:linear-gradient(135deg,rgba(157,105,255,.06),transparent 34%),linear-gradient(315deg,rgba(181,30,42,.06),transparent 38%),#0c0b11;cursor:pointer}
+.review-weapon.paradox-model-card:focus-visible{outline:2px solid var(--paradox-card-teal,#62e5b7);outline-offset:3px}
+.paradox-item-shell>.weapon-detail-close,.paradox-item-shell>.armour-drawer-close{position:absolute;z-index:3;top:34px;right:34px;width:38px;height:38px;display:grid;place-items:center;padding:0;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(7,7,10,.85);color:#fff;font-size:15px;cursor:pointer}
+
+@media(max-width:700px){
+  .weapon-detail-drawer.paradox-item-shell,.armour-drawer.paradox-item-shell{inset:0;width:100%;height:100dvh;padding:10px;border:0;border-radius:0}
+  .paradox-item-card{border-radius:10px}
+  .paradox-item-header{grid-template-columns:74px minmax(0,1fr);gap:13px;padding:17px 50px 17px 15px}
+  .paradox-item-header .weapon-detail-icon{width:74px;height:74px}
+  .paradox-item-header h2{font-size:clamp(1.35rem,6.3vw,1.75rem)}
+  .paradox-item-header p{font-size:13px}
+  .paradox-kicker{font-size:12px}
+  .paradox-item-header .weapon-detail-power{grid-column:1/-1;display:flex;align-items:baseline;justify-content:flex-end;gap:8px;margin-top:-8px}
+  .paradox-item-header .weapon-detail-power b{font-size:1.45rem}
+  .paradox-card-body{padding:0 15px 18px}
+  .paradox-section{padding:18px 0}
+  .paradox-section-heading{align-items:flex-start;flex-direction:column;gap:2px}
+  .paradox-section-heading>span{padding:0 0 9px;text-align:left}
+  .paradox-item-card .weapon-stat{grid-template-columns:102px minmax(72px,1fr) 34px;gap:8px;font-size:13px}
+  .paradox-item-card .weapon-perk-matrix{--paradox-perk-size:clamp(42px,12vw,56px);gap:9px;padding:13px 10px}
+  .paradox-item-card .weapon-perk-row{gap:8px}
+  .paradox-item-card .weapon-perk-row:not(:last-child) .weapon-perk-cell:not(.is-empty)::after{height:12px}
+  .paradox-item-card .weapon-intrinsic-lead,.paradox-item-card .weapon-exotic-trait{grid-template-columns:68px minmax(0,1fr);gap:12px}
+  .paradox-item-card .weapon-detail-tile{width:68px}
+  .paradox-item-card .weapon-detail-tile img{width:56px;height:56px}
+  .paradox-item-card .weapon-exotic-traits{margin-left:14px;padding-left:12px}
+  .paradox-card-tabs{padding:0 15px}
+  .paradox-card-tabs .armour-tab{min-height:44px;font-size:12px}
+  .paradox-stat-row{grid-template-columns:minmax(100px,1fr) 38px;gap:7px}
+  .paradox-stat-row>i{grid-column:1/-1}
+  .paradox-energy>div:first-child{align-items:flex-start;flex-direction:column;gap:4px}
+  .paradox-socket-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .paradox-item-shell>.weapon-detail-close,.paradox-item-shell>.armour-drawer-close{top:18px;right:18px;width:34px;height:34px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .weapon-detail-drawer,.weapon-detail-backdrop{transition:none!important}
+}
