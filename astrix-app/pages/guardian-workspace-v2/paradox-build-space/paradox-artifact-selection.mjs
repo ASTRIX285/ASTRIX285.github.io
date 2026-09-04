@@ -56,9 +56,9 @@ function applyForgeArtifactRecommendation(state,{currentSeasonNumber=null,force=
     ?recommendArtifactLoadout(build,artifactOptions,{currentSeasonNumber:season})
     :recommendArtifactPerks(build,effectiveArtifact,{currentSeasonNumber:season});
   const recommendation={...recommendationBase,fingerprint,userOverride:false,source:'paradox-forge-loader-artifact-fit'};
-  // The protected Original Build never changes. Fork only Working Build so
-  // Artifact recommendations do not copy the complete transferred inventory.
-  const next={...state,workingBuild:clone(state.workingBuild)};
+  // The protected Original Build never changes. Only Artifact fields are
+  // replaced, so keep the large owned-inventory catalogues structurally shared.
+  const next={...state,workingBuild:{...state.workingBuild}};
   next.workingBuild.currentSeasonNumber=season;
   next.workingBuild.artifactRecommendation=clone(recommendation);
 

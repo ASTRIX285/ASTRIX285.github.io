@@ -142,7 +142,9 @@ function applyRecommendedMods(item,decisions){
 }
 
 function recommendArmourMods({build={},objective='balanced'}={}){
-  const working=clone(build),resolvedObjective=objectiveName(objective||working.objective),items=(working.armour||[]).filter(Boolean),itemPlans=items.map(item=>rankArmourModPlan(item,working,resolvedObjective)),decisions=itemPlans.flatMap(row=>row.decisions),limitations=itemPlans.flatMap(row=>row.limitations);
+  // Keep the large verified catalogues structurally shared. This function only
+  // replaces the five Working Build armour rows and its recommendation record.
+  const working={...(build||{})},resolvedObjective=objectiveName(objective||working.objective),items=(working.armour||[]).filter(Boolean),itemPlans=items.map(item=>rankArmourModPlan(item,working,resolvedObjective)),decisions=itemPlans.flatMap(row=>row.decisions),limitations=itemPlans.flatMap(row=>row.limitations);
   const byItem=new Map(itemPlans.map(row=>[row.itemInstanceId,row]));
   working.armour=(working.armour||[]).map(item=>item?applyRecommendedMods(item,byItem.get(String(item.itemInstanceId||''))?.decisions||[]):item);
   const plan={schemaVersion:1,source:'bungie-item-sockets-and-reusable-plugs',method:'deterministic-energy-bounded-mod-beam-v1',objective:resolvedObjective,status:'review-required',rawStatsModFree:true,projectedStats:projectedStats(working,decisions),items:itemPlans,decisions,summary:{keep:decisions.filter(row=>row.action==='KEEP').length,replace:decisions.filter(row=>row.action==='REPLACE').length,add:decisions.filter(row=>row.action==='ADD').length,remove:decisions.filter(row=>row.action==='REMOVE').length},limitations:[...new Set(limitations)],requiresReview:true,liveTransferAuthorized:false};
@@ -151,8 +153,8 @@ function recommendArmourMods({build={},objective='balanced'}={}){
 }
 
 function weaponEvidence(weapon){return [weapon,weapon?.weaponSemantics?.intrinsic,...(weapon?.weaponSemantics?.selectedPerks||[]),...(weapon?.weaponSemantics?.alternativePerkColumns||[]).flatMap(column=>column.options||[])].filter(Boolean);}
-function scoreWeapon(weapon,build,objective,currentIds){
-  const evidence=weaponEvidence(weapon),tokens=[...new Set(evidence.flatMap(explicitTokens))],text=evidence.map(itemText).join(' · '),sources=buildEvidence({...build,weapons:[]}),reasons=[];
+function scoreWeapon(weapon,objective,currentIds,sources){
+  const evidence=weaponEvidence(weapon),tokens=[...new Set(evidence.flatMap(explicitTokens))],text=evidence.map(itemText).join(' · '),reasons=[];
   let score=currentIds.has(itemIdentity(weapon))?2:0;
   for(const source of sources){for(const token of tokens.filter(value=>source.tokens.includes(value)).slice(0,3)){score+=12;reasons.push({kind:'synergy',label:`${itemName(weapon,'Weapon')} has verified ${token} evidence matching ${source.kind} · ${source.name}.`,score:12,token});}}
   for(const term of OBJECTIVE_TERMS[objectiveName(objective)].filter(term=>text.includes(term)).slice(0,5)){score+=7;reasons.push({kind:'objective',label:`Explicit ${term} wording supports the ${objectiveName(objective)} objective.`,score:7,term});}
@@ -161,9 +163,11 @@ function scoreWeapon(weapon,build,objective,currentIds){
 }
 
 function selectOwnedWeapons({build={},objective='balanced'}={}){
-  const working=clone(build),resolvedObjective=objectiveName(objective||working.objective),ownedSources=[...(working.ownedWeapons||[]),...(working.vaultWeapons||[]),...(working.inventoryWeapons||[]),...(working.weapons||[])],owned=ownedSources.filter(item=>item?.itemInstanceId&&item?.definition&&Object.keys(item.definition).length).filter((item,index,all)=>all.findIndex(other=>itemIdentity(other)===itemIdentity(item))===index),currentIds=new Set((working.weapons||[]).map(itemIdentity)),decisions=[],selected=[];
+  // Weapon selection changes three exact instances only. Deep-cloning the full
+  // Vault here multiplies memory use and can stall Chrome on larger accounts.
+  const working={...(build||{})},resolvedObjective=objectiveName(objective||working.objective),ownedSources=[...(working.ownedWeapons||[]),...(working.vaultWeapons||[]),...(working.inventoryWeapons||[]),...(working.weapons||[])],seenOwned=new Set(),owned=ownedSources.filter(item=>item?.itemInstanceId&&item?.definition&&Object.keys(item.definition).length).filter(item=>{const key=itemIdentity(item);if(!key||seenOwned.has(key))return false;seenOwned.add(key);return true;}),currentIds=new Set((working.weapons||[]).map(itemIdentity)),sources=buildEvidence({...working,weapons:[]}),decisions=[],selected=[];
   for(const bucketHash of WEAPON_BUCKETS){
-    const candidates=owned.filter(item=>Number(item.bucketHash)===bucketHash).map(item=>scoreWeapon(item,working,resolvedObjective,currentIds)).sort((left,right)=>right.score-left.score||itemName(left.weapon).localeCompare(itemName(right.weapon))||itemIdentity(left.weapon).localeCompare(itemIdentity(right.weapon)));
+    const candidates=owned.filter(item=>Number(item.bucketHash)===bucketHash).map(item=>scoreWeapon(item,resolvedObjective,currentIds,sources)).sort((left,right)=>right.score-left.score||itemName(left.weapon).localeCompare(itemName(right.weapon))||itemIdentity(left.weapon).localeCompare(itemIdentity(right.weapon)));
     const best=candidates[0]||null,current=(working.weapons||[]).find(item=>Number(item?.bucketHash)===bucketHash)||null,choice=best?.weapon||current;
     if(choice)selected.push(clone(choice));
     decisions.push({bucketHash,current:clone(current),recommended:clone(choice),action:current&&choice&&itemIdentity(current)===itemIdentity(choice)?'KEEP':current&&choice?'REPLACE':choice?'ADD':'UNRESOLVED',score:best?.score||0,reasons:(best?.reasons||[]).slice(0,4),candidateCount:candidates.length});
