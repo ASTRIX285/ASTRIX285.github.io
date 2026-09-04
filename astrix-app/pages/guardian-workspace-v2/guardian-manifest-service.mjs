@@ -379,6 +379,7 @@ class GuardianManifestService{
     if(options.waitForManifest!==false)await this.ready();
     const indexedDb=this.mode==="indexeddb";
     const allowNetwork=options.allowNetwork!==false;
+    const profile=payload?.profile||{};
     const {inventory,stats}=collectPayloadHashes(payload,options);
     let definitions=indexedDb?await this.getMany("DestinyInventoryItemDefinition",inventory):{...(payload.definitions||{})};
     if(!indexedDb){

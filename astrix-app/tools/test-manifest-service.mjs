@@ -13,7 +13,7 @@ class MemoryStorage{
 
 const tables={
   DestinyInventoryItemDefinition:{
-    '100':{hash:100,itemType:3,displayProperties:{name:'Freshly Rolled Weapon',icon:'/weapon.png',description:'Weapon definition'},sockets:{socketEntries:[{singleInitialItemHash:201,reusablePlugItems:[{plugItemHash:202}]}],socketCategories:[{socketCategoryHash:500,socketIndexes:[0]}]},perks:[{perkHash:900}]},
+    '100':{hash:100,itemType:3,displayProperties:{name:'Freshly Rolled Weapon',icon:'/weapon.png',description:'Weapon definition'},sockets:{socketEntries:[{singleInitialItemHash:201,reusablePlugItems:[{plugItemHash:202}],reusablePlugSetHash:444}],socketCategories:[{socketCategoryHash:500,socketIndexes:[0]}]},perks:[{perkHash:900}]},
     '201':{hash:201,displayProperties:{name:'Rolled Perk',icon:'/perk.png',description:'Real rolled perk'}},
     '202':{hash:202,displayProperties:{name:'Alternative Perk',icon:'/alternate.png',description:'Real alternative perk'}},
     '203':{hash:203,displayProperties:{},perks:[{perkHash:900}]},
@@ -60,6 +60,7 @@ const payload={
   profile:{
     characterEquipment:{data:{c1:{items:[{itemHash:100,itemInstanceId:'weapon-1'}]}}},
     itemComponents:{sockets:{data:{'weapon-1':{sockets:[{plugHash:201}]}}},reusablePlugs:{data:{'weapon-1':{plugs:{'0':[{plugItemHash:202}]}}}}},
+    profilePlugSets:{data:{plugs:{'444':[{plugItemHash:202,canInsert:true,enabled:true}]}}},
     characterProgressions:{data:{c1:{seasonalArtifact:{tiers:[{items:[{itemHash:300,isActive:true,isVisible:true}]}]}}}},
     profileProgression:{data:{seasonalArtifact:{artifactHash:700}}},
     characters:{data:{c1:{stats:{600:25}}}}

@@ -39,6 +39,7 @@ assert.match(service,/requestUrl\.searchParams\.set\("manifest",this\.version\)/
 assert.match(service,/applyForgeArmourIndex[\s\S]*?hourly-compact-manifest/,'The compact Forge index must merge only as an explicit verified payload source');
 assert.match(service,/options\.waitForManifest!==false/,'Selective payload hydration must be able to proceed without waiting for every full manifest table');
 assert.match(service,/allowNetwork=options\.allowNetwork!==false/,'The compact Forge join must be able to forbid live per-hash definition expansion on its critical path.');
+assert.match(service,/const profile=payload\?\.profile\|\|\{\};[\s\S]*?profile\?\.profilePlugSets/,'Reusable plug-set hydration must read from the current private profile without an undeclared runtime binding.');
 if(forgeIndex){
   assert.equal(forgeIndex.schemaVersion,3,'The compact Forge index schema must remain explicit.');
   assert.ok(Object.keys(forgeIndex.definitions).length>5000,'The compact Forge index must contain the complete verified armour definition catalogue.');
