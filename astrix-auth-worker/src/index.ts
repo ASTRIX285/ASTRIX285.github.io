@@ -324,7 +324,7 @@ async function manifestDefinitionRoute(request: Request, env: Env): Promise<Resp
   }
   const manifest = await destinyManifest(env);
   const defaultCache = (caches as unknown as { default: Cache }).default;
-  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/manifest-definition/${encodeURIComponent(manifest.version)}/${encodeURIComponent(type)}/${hash}`, { method: "GET" });
+  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/manifest-definition/${encodeURIComponent(manifest.version || "unknown")}/${encodeURIComponent(type)}/${hash}`, { method: "GET" });
   const cached = await defaultCache.match(cacheKey).catch(() => null);
   if (cached) return withCors(request, env, cached);
 
