@@ -4,6 +4,8 @@
    and stat bars without 2D/3D platform or hero canvas overhead.
    ========================================================================== */
 
+import {resolveItemWatermark} from '../../core/bungie-item-identity.mjs';
+
 const PLAYER_POWER_CAP = 550;
 const STAT_CAP = 200;
 
@@ -243,7 +245,8 @@ export function openArmourDrawer(index, item) {
   byId("armourDrawerType").textContent = resolved?.itemTypeDisplayName || names[index] || "Armour";
   byId("armourDrawerPower").textContent = resolved?.power ?? "—";
   const resolvedIcon = itemIcon(resolved);
-  byId("armourDrawerIcon").innerHTML = resolvedIcon ? `<img src="${escapeHtml(resolvedIcon)}" alt="">` : '<span class="ph-glyph" aria-hidden="true">◇</span>';
+  const release=resolveItemWatermark(resolved||{},resolved?.definition||{});
+  byId("armourDrawerIcon").innerHTML = resolvedIcon ? `<img src="${escapeHtml(resolvedIcon)}" alt="">${release.icon?`<img class="paradox-release-watermark" src="${escapeHtml(release.icon)}" data-watermark-source="${escapeHtml(release.source)}" alt="Release watermark">`:''}` : '<span class="ph-glyph" aria-hidden="true">◇</span>';
   const fallback = '<div class="inspector-empty">Awaiting exact Bungie character and inventory data.</div>';
   const semantics = resolved?.armourSemantics ?? {};
   const exoticPerk = semantics.exoticPerk ?? resolved?.exoticPerk ?? resolved?.intrinsicTrait ?? null;

@@ -39,7 +39,7 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260903-command-header-1"'),'Journey must load the shared command-header cleanup without stale page CSS');
-assert.ok(html.includes('src="./journey.mjs?v=20260903-command-header-1"'),'Journey must load the progressive records runtime without stale header-positioning code');
+assert.ok(html.includes('src="./journey.mjs?v=20260905-weapon-audit-1"'),'Journey must load the progressive records runtime without stale header-positioning code');
 assert.match(journey,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey startup must not download the heavyweight Character and Build equipment manifest');
 assert.doesNotMatch(journey,/const manifestReady=guardianManifest\.ready\(\)/,'Journey must keep the full equipment manifest off its critical loading path');
 assert.match(heroModule,/IS_JOURNEY_PAGE[\s\S]*?ASTRIX_HERO_PROFILE_PROMISE[\s\S]*?scope/,'Journey hero cards must expose and reuse their scoped authenticated profile request');
@@ -149,9 +149,9 @@ for(const page of globalHeroPages){
   assert.equal((page.match(/astrix-command-header/g)??[]).length,1,'Every destination page must contain exactly one shared command header');
 }
 assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1'))).length,3,'Journey, Vault and Loadout must load the same scoped-profile Guardian renderer');
-assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260904-paradox-card-1'),'Character must load the verified Paradox item-card module graph');
-assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260904-paradox-card-1'),'Build Forge must load the owned-inventory weapon recommendation sequence without stale page-specific code');
-assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260902-recent-guardian-emblem-1'),'Mission Reports must load the latest-played Guardian module graph');
+assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260905-weapon-audit-1'),'Character must load the verified Paradox item-card module graph');
+assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260905-weapon-audit-1'),'Build Forge must load the owned-inventory weapon recommendation sequence without stale page-specific code');
+assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260905-weapon-audit-1'),'Mission Reports must load the latest-played Guardian module graph');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
 assert.doesNotMatch(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:relative!important;[\s\S]*?top:auto!important;/,'Mission Reports must not reattach the Guardian ribbon to its report columns');

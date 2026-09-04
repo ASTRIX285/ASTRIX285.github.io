@@ -4,6 +4,17 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'astrix-app/core/bungie-item-identity.mjs',
+  'astrix-app/core/bungie-profile-plugs.mjs',
+  '.github/workflows/validate-weapon-audit.yml',
+  'astrix-app/tools/test-weapon-cards-browser.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-super-feature-sync.mjs',
+  'astrix-app/data/paradox-weapon-audit-report.json',
+  'astrix-app/docs/paradox-weapon-audit.md',
+  'astrix-app/pages/journey/journey-collection-model.mjs',
+  'astrix-app/tools/build-weapon-catalogue.py',
+  'astrix-app/tools/test-weapon-catalogue.mjs',
+  'astrix-app/tools/test-journey-collections.mjs',
   '.github/workflows/deploy-astrix-sandbox.yml',
   '.github/workflows/update-armor-information.yml',
   '.github/workflows/live-artifact-validation.yml',
@@ -153,7 +164,8 @@ const staged=execFileSync('git',['diff','--name-only','--cached'],{cwd:root,enco
   .split(/\r?\n/).filter(Boolean);
 const untracked=execFileSync('git',['ls-files','--others','--exclude-standard'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
-const outside=[...new Set([...changed,...working,...staged,...untracked])].filter(path=>!allowed.has(path));
+const cataloguePath=/^astrix-app\/data\/weapon-catalogue\/(?:index|weapons-[a-z-]+|(?:plugDefinitions|plugSetDefinitions|sandboxPerks|socketTypeDefinitions|socketCategoryDefinitions|socketLayouts|socketEntries|iconDefinitions|equipmentWatermarks)-\d{3})\.json$/;
+const outside=[...new Set([...changed,...working,...staged,...untracked])].filter(path=>!allowed.has(path)&&!cataloguePath.test(path));
 
 assert.deepEqual(outside,[],`Scope violation:\n${outside.join('\n')}`);
 console.log('SCOPE_GUARD=PASS');

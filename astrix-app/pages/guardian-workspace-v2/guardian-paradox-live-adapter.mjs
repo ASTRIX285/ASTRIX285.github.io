@@ -1,5 +1,5 @@
 import { analyzeGuardianBuild } from "./guardian-paradox-engine.mjs";
-import { adviseLiveWeaponRolls } from "./guardian-weapon-roll-advisor.mjs?v=20260904-weapon-model-2";
+import { adviseLiveWeaponRolls } from "./guardian-weapon-roll-advisor.mjs?v=20260905-weapon-audit-1";
 
 const clone=v=>v==null?v:structuredClone(v);
 

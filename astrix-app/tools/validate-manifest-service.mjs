@@ -60,7 +60,7 @@ assert.doesNotMatch(worker,/manifestComponentRoute[\s\S]{0,2600}upstream\.json/,
 assert.match(worker,/manifest_version_changed/,'Component downloads must reject a stale requested version');
 assert.match(worker,/MANIFEST_METADATA_TTL_SECONDS = 60 \* 60/,'The Worker manifest metadata cache must refresh hourly.');
 assert.match(worker,/scheduled\([\s\S]*?refreshDestinyManifestMetadata/,'The Worker must silently warm the current Bungie manifest version on its cron trigger.');
-assert.match(worker,/manifest-definition\/\$\{encodeURIComponent\(manifest\.version \|\| "unknown"\)\}/,'Single-definition cache entries must be isolated by Bungie manifest version.');
+assert.match(worker,/manifest-definition-v2\/\$\{requestedVersion \? "versioned" : "current"\}\/\$\{encodeURIComponent\(manifest\.version \|\| "unknown"\)\}/,'Single-definition cache entries must isolate manifest versions and versioned cache lifetimes.');
 assert.match(worker,/definitions"\) === "client-manifest"/,'Profile and loadout routes must expose raw client-manifest mode');
 assert.match(wrapper,/definitions"\) === "client-manifest"/,'Semantic wrapper must skip per-hash enrichment in client-manifest mode');
 

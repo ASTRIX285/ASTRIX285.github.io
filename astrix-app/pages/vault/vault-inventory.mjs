@@ -1,5 +1,5 @@
 import {resolveArmourSet} from '../guardian-workspace-v2/guardian-armour-set-resolver.mjs';
-import {classifyArmourPlug,normaliseArmourSemantics} from '../guardian-workspace-v2/guardian-semantic-resolver.mjs?v=20260829-weapon-perk-hash-1';
+import {classifyArmourPlug,normaliseArmourSemantics} from '../guardian-workspace-v2/guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1';
 
 const BUNGIE_ORIGIN='https://www.bungie.net';
 const VAULT_BUCKET=138197802;

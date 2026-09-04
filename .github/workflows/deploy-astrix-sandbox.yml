@@ -56,6 +56,8 @@ jobs:
         run: |
           node astrix-app/tools/validate-scope-guard.mjs
           node astrix-app/tools/validate-sandbox-deployment.mjs
+      - name: Validate weapon catalogue, cards and Journey
+        run: node astrix-app/tools/paradox-validator.mjs
       - name: Validate auth Worker
         working-directory: astrix-auth-worker
         run: |

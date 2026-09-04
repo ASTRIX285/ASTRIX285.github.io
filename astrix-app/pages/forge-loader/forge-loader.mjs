@@ -1,7 +1,7 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
-import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260904-forge-artifact-index-1';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260905-weapon-audit-1';
 import {cacheBungieProfile,cacheForgeLoaderTransfer,markGuardianFastReturn,readCachedBungieProfile,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
-import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260903-loadout-intelligence-1';
+import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchTopArmourBuilds} from '../vault/vault-armour-matcher.mjs?v=20260904-top-50-scan-1';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {compatibleWithClass,createOpenProtocolTieBreaker,exoticCatalogueGroups,naturalSetProtocols,rankOpenProtocolCandidates,setBonusOptions,toggleSetSelection,unownedSetTargets} from './forge-loader-model.mjs?v=20260904-top-50-scan-1';
@@ -426,7 +426,7 @@ async function evaluateInBuildForge(){
   byId('forgeRuntimeStatus').textContent='Protecting the verified equipped Guardian before Build Forge opens…';
   let profileBuild=null;
   try{
-    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260903-loadout-intelligence-1');
+    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260905-weapon-audit-1');
     profileBuild=normaliseLiveProfile(payload,session,activeCharacterId);
   }catch(error){
     console.error('[ASTRIX Forge Loader] The protected Guardian baseline could not be prepared.',error);

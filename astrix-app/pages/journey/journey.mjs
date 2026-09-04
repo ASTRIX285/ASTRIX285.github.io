@@ -1,9 +1,10 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
-import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260905-weapon-audit-1';
+import {resolveCollectionBadges} from './journey-collection-model.mjs';
 import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {validateHandoffEnvelope} from '../guardian-workspace-v2/paradox-build-binding.mjs';
 import {readCapture,readCaptureArchive} from '../guardian-workspace-v2/guardian-shooting-range-capture.mjs?v=20260902-journey-data-hooks-1';
-import {buildMissionReportView,normaliseActivityHistory} from '../mission-reports/mission-reports-data.mjs?v=20260902-journey-data-hooks-1';
+import {buildMissionReportView,normaliseActivityHistory} from '../mission-reports/mission-reports-data.mjs?v=20260905-weapon-audit-1';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
 import {initJourneyLocationMaps,publishJourneyDestinationData,publishJourneyRegionChestProgress} from './journey-location-maps.mjs?v=20260901-destination-data-panels';
 
@@ -1249,6 +1250,20 @@ async function bindTitleTriumphPanel(payload,view=recordRootView(activeRecordVie
   const characters=payload?.profile?.characters?.data||{};
   const character=characters[selectedCharacterId]||Object.values(characters).sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0];
   const characterId=String(character?.characterId||'');
+  if(view==='badges'){
+    try{
+      const result=await resolveCollectionBadges(payload,guardianManifest,characterId);
+      if(requestId!==titleTriumphRequest)return;
+      payload.journeyBadgeCoverage=result.coverage;
+      renderJourneyRecordList(badgesList,result.badges,'Collection badges are unavailable in the current Bungie response.',showBadgeDetail);
+      if(recordsStatus)recordsStatus.textContent=result.coverage.complete?`${result.badges.length} VERIFIED COLLECTION BADGES`:'COLLECTION BADGES · SOME BUNGIE DATA IS UNAVAILABLE';
+    }catch(error){
+      if(requestId!==titleTriumphRequest)return;
+      renderJourneyRecordList(badgesList,[],'Collection badges could not be loaded. Reopen Badges to retry.');
+      if(recordsStatus)recordsStatus.textContent='COLLECTION BADGES UNAVAILABLE';
+    }
+    return;
+  }
   if(isTitleCollection){
     let profileTitles=[];
     try{profileTitles=await resolvedProfileTitleCollection(payload,character,view);}

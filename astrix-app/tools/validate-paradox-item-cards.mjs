@@ -12,7 +12,9 @@ const [weaponUi,armourRuntime,interceptor,buildRuntime,cardCss]=await Promise.al
 ]);
 
 assert.match(weaponUi,/data-perk-capacity="\$\{capacity\}"/,'Every weapon perk socket must expose its tier-derived column capacity');
-assert.match(weaponUi,/Tier 5 · columns 3–4 hold three perks; all other columns hold two\./,'The T5 column 3/4 exception must be visible in the weapon model');
+assert.match(weaponUi,/All returned perk choices are shown/,'The inspector must explain complete instance perk choices');
+assert.match(weaponUi,/WEAPON MODS/,'The bottom section must identify weapon mods');
+assert.match(cardCss,/weapon-detail-tile--mod img\{border-radius:4px/,'Weapon mod tiles must be square');
 const stats=weaponUi.indexOf('paradox-section--stats');
 const traits=weaponUi.indexOf('paradox-section--traits',stats);
 const perks=weaponUi.indexOf('paradox-section--perks',traits);

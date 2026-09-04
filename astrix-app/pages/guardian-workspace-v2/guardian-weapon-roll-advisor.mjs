@@ -1,4 +1,5 @@
 import {adviseWeaponRoll} from "../../core/weapon-roll-advisor.mjs?v=20260904-weapon-model-2";
+import {classifyWeaponPlug} from './guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1';
 
 const INTELLIGENCE_URL=new URL("../../data/paradox-forge/intelligence/weapon-perk-intelligence.json",import.meta.url);
 let intelligencePromise=null;
@@ -34,7 +35,7 @@ function weaponInput(item={}){
     catalyst:catalyst?{hash:String(catalyst.hash||""),masterworked:catalystMasterworked,completed:Boolean(catalyst?.progress?.completed),inserted:Boolean(catalyst?.progress?.inserted)}:null,
     perkColumns:(semantics.alternativePerkColumns||[]).map(column=>({
       socketIndex:column.socketIndex,
-      options:(column.options||[]).map(option=>({...option,socketIndex:column.socketIndex}))
+      options:(column.options||[]).filter(option=>classifyWeaponPlug(option)==='perk'&&option.canInsert!==false&&option.isEnabled!==false).map(option=>({...option,socketIndex:column.socketIndex}))
     }))
   };
 }

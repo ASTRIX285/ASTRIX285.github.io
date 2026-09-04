@@ -1,4 +1,4 @@
-import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260904-artifact-sandbox-effects-1";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260905-weapon-audit-1";
 import {PORTAL_TRANSITION_KEY} from "./guardian-session-cache.mjs";
 
 const loader=window.AstrixLoader;

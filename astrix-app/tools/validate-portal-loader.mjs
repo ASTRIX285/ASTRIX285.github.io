@@ -68,7 +68,7 @@ assert.match(buildModule,/markGuardianFastReturn\(\)/,'Build Back must preserve 
 assert.doesNotMatch(mainProgress,/setTimeout|window\.addEventListener\('load'/,'Main progress must not use fake timing or window load');
 assert.match(buildModule,/const ready=Boolean\(build\),status=ready\?'ready':'pending'/,'An empty initial Build render must remain pending while the live profile resolves');
 assert.match(buildModule,/emitLoad\('render',ready\?LOAD_STAGES\.READY:LOAD_STAGES\.SNAPSHOT,label,status\)/,'Only a populated Build render may report the ready milestone');
-assert.match(buildModule,/guardian-portal-progress\.mjs\?v=20260904-atomic-forge-transfer-1/,'Build must load the atomic-transfer portal progress module without a stale cache');
+assert.match(buildModule,/guardian-portal-progress\.mjs\?v=20260905-weapon-audit-1/,'Build must load the atomic-transfer portal progress module without a stale cache');
 assert.match(buildModule,/window\.AstrixLoader\?\.set\(percent\)/,'Build real milestones must update the shared portal');
 
 assert.match(appModule,/astrix:build-catalogue-rendered/,'Build library must publish catalogue render completion');

@@ -1,11 +1,13 @@
 import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1";
 import {createArtifactConfiguration,resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {subclassPlugComponent} from "./guardian-subclass-plug-classifier.mjs";
-import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260904-weapon-model-2";
-import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260904-artifact-sandbox-effects-1";
+import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260905-weapon-audit-1";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
 import {mergeSubclassCatalog} from "./guardian-super-catalog.mjs?v=20260829-subclass-identity-1";
+import {paradoxDefinitionId,resolveItemWatermark,weaponTypeIdentity} from '../../core/bungie-item-identity.mjs';
+import {characterPlugSetsForItem} from '../../core/bungie-profile-plugs.mjs';
 import {
   cacheBungieProfile,
   readCachedBungieProfile,
@@ -190,7 +192,7 @@ const displayItem=(definitions,hash)=>{
   const row=definition(definitions,hash)||{};
   const displays=[row.displayProperties,...(row.resolvedSandboxPerks||[]).map(perk=>perk?.displayProperties)].filter(Boolean);
   const displayValue=key=>displays.find(display=>display?.[key])?.[key]||"";
-  return {hash:Number(hash),bungieHash:Number(hash),name:displayValue("name")||`Unresolved Destiny item ${hash}`,description:displayValue("description"),icon:absoluteIcon(displayValue("icon")),tier:row.inventory?.tierTypeName||"",tierType:Number(row.inventory?.tierType??0),tierTypeHash:row.inventory?.tierTypeHash??null,tierIcon:absoluteIcon(row.iconWatermark||row.quality?.displayVersionWatermarkIcons?.[0]),itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
+  return {hash:Number(hash),bungieHash:Number(hash),paradoxId:paradoxDefinitionId('DestinyInventoryItemDefinition',hash),name:displayValue("name")||`Unresolved Destiny item ${hash}`,description:displayValue("description"),icon:absoluteIcon(displayValue("icon")),tier:row.inventory?.tierTypeName||"",tierType:Number(row.inventory?.tierType??0),tierTypeHash:row.inventory?.tierTypeHash??null,tierIcon:resolveItemWatermark({},row).icon,itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
 };
 
 function classifySubclass(item){
@@ -303,14 +305,15 @@ function socketResolution(profile,definitions,item,payload={}){
   if(!item?.itemInstanceId)return {plugs:[],requested:[],resolved:[],unresolved:[],complete:true};
   const sockets=profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]?.sockets||[];
   const socketCategories=definition(definitions,item.itemHash)?.sockets?.socketCategories||[];
-  const requested=sockets.map(socket=>Number(socket.plugHash)).filter(Number.isFinite);
+  const requested=sockets.map(socket=>Number(socket.plugHash)).filter(hash=>Number.isInteger(hash)&&hash>0);
   const rows=sockets.map((socket,socketIndex)=>{
     const hash=Number(socket?.plugHash);
     const category=socketCategories.find(row=>(row?.socketIndexes||[]).map(Number).includes(socketIndex))||null;
     const socketCategoryHash=Number(category?.socketCategoryHash);
     const socketCategoryDefinition=Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null;
-    const plug=Number.isFinite(hash)?displayItem(definitions,hash):null;
-    return plug?{...plug,socketIndex,socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,statContributions:plugStatContributions(payload,plug.definition)}:null;
+    const entry=definition(definitions,item.itemHash)?.sockets?.socketEntries?.[socketIndex]||{};
+    const plug=Number.isInteger(hash)&&hash>0?displayItem(definitions,hash):null;
+    return plug?{...plug,socketIndex,socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,socketTypeHash:entry.socketTypeHash??null,socketTypeDefinition:payload?.socketTypeDefinitions?.[String(entry.socketTypeHash)]||null,isEnabled:socket.isEnabled,isVisible:socket.isVisible,statContributions:plugStatContributions(payload,plug.definition)}:null;
   }).filter(Boolean);
   const plugs=rows;
   const resolved=plugs.filter(row=>row.definition&&Object.keys(row.definition).length>0).map(row=>Number(row.hash));
@@ -338,10 +341,10 @@ function reusableSocketOptions(profile,definitions,item,payload={}){
   if(!item?.itemInstanceId)return {};
   const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]?.plugs||{};
   const itemDefinition=definition(definitions,item.itemHash)||{};
-  const entries=itemDefinition?.sockets?.socketEntries||[],weapon=WEAPON_ORDER.includes(Number(itemDefinition?.inventory?.bucketTypeHash)),indexes=new Set([...Object.keys(reusable).map(Number),...(weapon?[]:entries.map((_,index)=>index))]),profileSets=profile?.profilePlugSets?.data?.plugs||{},characterSets=Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs||{});
+  const entries=itemDefinition?.sockets?.socketEntries||[],indexes=new Set([...Object.keys(reusable).map(Number),...entries.map((_,index)=>index)]),profileSets=profile?.profilePlugSets?.data?.plugs||{},characterSets=characterPlugSetsForItem(profile,item);
   return Object.fromEntries([...indexes].sort((a,b)=>a-b).map(socketIndex=>{
-    const entry=entries[socketIndex]||{},setHashes=weapon?[]:[entry?.reusablePlugSetHash].map(Number).filter(Number.isInteger),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]),...setRows];
-    return [String(socketIndex),uniqueItems((Array.isArray(rows)?rows:[]).filter(row=>row?.canInsert!==false&&row?.enabled!==false).map(row=>{
+    const entry=entries[socketIndex]||{},setHashes=[entry?.reusablePlugSetHash].map(Number).filter(hash=>Number.isInteger(hash)&&hash>0),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]),...setRows];
+    return [String(socketIndex),uniqueItems((Array.isArray(rows)?rows:[]).map(row=>{
       const hash=Number(row?.plugItemHash??row?.plugHash),plugDefinition=definition(definitions,hash);
       if(!Number.isInteger(hash)||!plugDefinition)return null;
       const category=(itemDefinition?.sockets?.socketCategories||[]).find(value=>(value?.socketIndexes||[]).map(Number).includes(Number(socketIndex)))||null;
@@ -351,7 +354,10 @@ function reusableSocketOptions(profile,definitions,item,payload={}){
         socketIndex:Number(socketIndex),
         socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,
         socketCategoryDefinition:Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null,
-        canInsert:true,
+        canInsert:row.canInsert===true,
+        isEnabled:row.enabled,
+        socketTypeHash:entry.socketTypeHash??null,
+        source:'bungie-profile-reusable-plugs',
         statContributions:plugStatContributions(payload,plugDefinition)
       };
     }).filter(Boolean))];
@@ -428,8 +434,11 @@ function normaliseItem(profile,definitions,item,payload={}){
   const socketOptions=reusableSocketOptions(profile,definitions,item,payload);
   const isExotic=String(base.tier).toLowerCase()==="exotic";
   const weaponSemantics=WEAPON_ORDER.includes(Number(base.bucketHash))?normaliseWeaponSemantics({profile,item,itemDefinition:base.definition,plugs,instance,stats:profile?.itemComponents?.stats?.data?.[item.itemInstanceId]||null,alternativeColumns:socketOptions,isExotic}):null;
+  const releaseWatermark=resolveItemWatermark(item,base.definition,{powerCapDefinitions:payload.powerCapDefinitions,currentPowerCap:payload.currentPowerCap});
   return {
     ...base,
+    releaseWatermark,tierIcon:releaseWatermark.icon,
+    ...(weaponSemantics?{weaponType:weaponTypeIdentity(base.definition).label,weaponTypeId:weaponTypeIdentity(base.definition).id}:{}),
     itemHash:Number(item.itemHash),
     itemInstanceId:String(item.itemInstanceId||''),
     icon:override?.definition&&Object.keys(override.definition).length?override.icon:base.icon,

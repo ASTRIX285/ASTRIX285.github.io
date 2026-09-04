@@ -97,17 +97,17 @@ try{
 // G3b — Every rendered weapon socket icon remains bound to its exact Bungie
 // DestinyInventoryItemDefinition hash. Iconless definitions stay iconless.
 try{
-  const selected={hash:2401,bungieHash:2401,name:'Selected Trait',icon:'/common/wrong.png',definition:{displayProperties:{icon:'/common/selected-2401.png'},plug:{plugCategoryIdentifier:'traits'}}};
+  const selected={hash:2401,bungieHash:2401,name:'Selected Trait',icon:'/common/wrong.png',definition:{displayProperties:{icon:'/common/selected-2401.png',iconHash:9401},plug:{plugCategoryIdentifier:'traits'}}};
   const alternative={hash:2402,bungieHash:2402,name:'Alternative Trait',definition:{displayProperties:{icon:'/common/alternative-2402.png'},plug:{plugCategoryIdentifier:'traits'}}};
   const result=semantics.normaliseWeaponSemantics({plugs:[selected],alternativeColumns:{3:[alternative]}});
   const normalised=result.selectedPerks[0],normalisedAlternative=result.alternativePerkColumns[0]?.options?.[0];
-  if(normalised?.bungieHash!==2401||normalised?.iconHash!==2401||normalised?.icon!=='/common/selected-2401.png')fail('G3b: selected weapon perk icon is not bound to definition hash 2401');
-  if(normalisedAlternative?.bungieHash!==2402||normalisedAlternative?.iconHash!==2402)fail('G3b: alternative weapon perk icon is not bound to definition hash 2402');
+  if(normalised?.bungieHash!==2401||normalised?.iconHash!==9401||normalised?.iconItemHash!==2401||normalised?.icon!=='/common/selected-2401.png')fail('G3b: selected weapon perk lost its distinct item and icon definition hashes');
+  if(normalisedAlternative?.bungieHash!==2402||normalisedAlternative?.iconHash!==null||normalisedAlternative?.iconItemHash!==2402)fail('G3b: alternative weapon perk must retain its item hash without inventing an icon hash');
   if(result.perkIconHashMap?.['2401']!=='/common/selected-2401.png'||result.perkIconHashMap?.['2402']!=='/common/alternative-2402.png')fail('G3b: weapon perk hash→icon model is incomplete');
   const invalid=semantics.normaliseWeaponSemantics({plugs:[{hash:'not-a-hash',icon:'/common/guessed.png',definition:{plug:{plugCategoryIdentifier:'traits'}}}]});
   if(invalid.selectedPerks.length||invalid.perkIconHashMap?.['not-a-hash']||invalid.unknownPlugs.length!==1)fail('G3b: hashless weapon perk received a guessed icon identity');
-  const audit=semantics.WEAPON_PERK_MANIFEST_AUDIT;
-  if(audit.candidateDefinitions!==2423||audit.iconDefinitions!==2136||audit.iconlessDefinitions!==287||audit.hashMismatches!==0)fail('G3b: 2026-08-28 weapon perk manifest audit totals drifted');
+  const audit=JSON.parse(await readFile(new URL('../data/paradox-weapon-audit-report.json',import.meta.url),'utf8'));
+  if(!audit.manifestVersion||!audit.counts.weapons||audit.counts.references!==audit.counts.resolvedReferences||audit.unresolvedReferences.length)fail('G3b: current exhaustive weapon manifest audit contains unresolved references');
   const uiSource=await readFile(new URL('../pages/guardian-workspace-v2/guardian-semantic-ui.mjs',import.meta.url),'utf8');
   if(!/data-bungie-hash/.test(uiSource)||!/hashAttribute\(perk\)/.test(uiSource)||!/hashAttribute\(semantics\.intrinsic\)/.test(uiSource))fail('G3b: weapon perk/intrinsic DOM icons do not expose their Bungie hash');
 }catch(error){fail(`G3b threw: ${error.message}`);}
@@ -138,7 +138,7 @@ try{
   if(result.perkModel.columns.map(column=>column.socketIndex).join(',')!=='1,3')fail('G3c: weapon perk columns did not preserve Bungie socket order');
   if(result.perkRows[0]?.slots?.[0]?.perk?.name!=='Fluted Barrel'||result.perkRows[1]?.slots?.[1]?.perk?.name!=='Destabilizing Rounds Retrofit')fail('G3c: perk alternatives were not integrated into the tier row model');
   if(!result.perkRows[0]?.slots?.[0]?.isSelected||!result.perkRows[1]?.slots?.[1]?.isSelected)fail('G3c: selected perks lost their exact modeled row positions');
-  if(result.intrinsic?.name!=='Command Frame IV'||result.exoticTraits.map(row=>row.name).join(',')!=='Choir of One')fail('G3c: verified Exotic weapon trait was not kept beneath the intrinsic hierarchy');
+  if(result.intrinsic?.hash!==2500||result.exoticTraits.map(row=>row.hash).join(',')!=='2600,2601')fail('G3c: distinct Bungie sandbox effects must remain beneath the intrinsic hierarchy even when names match');
   if(semantics.classifyWeaponPlug(selectedTrait)!=='perk')fail('G3c: definition-level Exotic trait was misclassified by the broad Weapon Mods socket title');
   if(semantics.weaponPerkRowCountForTier(5)!==3||semantics.weaponPerkRowCountForTier(4)!==2||semantics.weaponPerkRowCountForTier(3)!==2||[1,2].some(tier=>semantics.weaponPerkRowCountForTier(tier)!==1))fail('G3c: Tier 1–5 weapon row rules drifted');
   if([1,2,3,4,5].map(column=>semantics.weaponPerkColumnRowCountForTier(5,column)).join(',')!=='2,2,3,3,2')fail('G3c: Tier 5 visual perk columns must follow 2,2,3,3,2 rows');

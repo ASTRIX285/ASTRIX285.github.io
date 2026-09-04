@@ -1646,3 +1646,11 @@ body.armour-drawer-open {
 /* Preserve the existing body-class visibility contract for the weapon overlay. */
 .weapon-detail-backdrop{opacity:0;pointer-events:none}
 body.weapon-detail-open .weapon-detail-backdrop{opacity:1;pointer-events:auto}
+
+/* Bungie places mods, masterworks and catalysts in square support sockets. */
+.paradox-item-card--weapon .weapon-detail-tile--mod img{border-radius:4px;box-shadow:none}
+.weapon-support-icons .weapon-support-icon{border-radius:4px}
+.weapon-support-icons .weapon-support-icon img{border-radius:0}
+.weapon-perk-cell.is-unavailable:not(.is-selected){opacity:.5}
+.paradox-item-header .weapon-detail-icon{position:relative}
+.paradox-item-header .weapon-detail-icon .paradox-release-watermark{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;border:0;background:none;box-shadow:none}

@@ -1,10 +1,10 @@
-import "./guardian-semantic-interceptor.mjs?v=20260904-paradox-card-1";
+import "./guardian-semantic-interceptor.mjs?v=20260905-weapon-audit-1";
 import {
   normaliseLiveProfile,
   loadSelectedLoadout,
   characterRoster,
   selectLiveCharacter
-} from "./guardian-bungie-profile.mjs?v=20260904-weapon-model-2";
+} from "./guardian-bungie-profile.mjs?v=20260905-weapon-audit-1";
 import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
 import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260829-subclass-identity-1";
 

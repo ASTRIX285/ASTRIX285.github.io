@@ -19,7 +19,12 @@ const MANIFEST_COMPONENT_TYPES = new Set([
   "DestinyPlugSetDefinition",
   "DestinyStatDefinition",
   "DestinySocketCategoryDefinition",
-  "DestinyEquipableItemSetDefinition"
+  "DestinyEquipableItemSetDefinition",
+  "DestinyPresentationNodeDefinition", "DestinyRecordDefinition", "DestinyObjectiveDefinition",
+  "DestinyCollectibleDefinition", "DestinyMetricDefinition", "DestinyGuardianRankDefinition",
+  "DestinyGuardianRankConstantsDefinition", "DestinyDestinationDefinition", "DestinyActivityDefinition",
+  "DestinyChecklistDefinition", "DestinyLocationDefinition", "DestinySocketTypeDefinition",
+  "DestinyDamageTypeDefinition", "DestinyBreakerTypeDefinition", "DestinyPowerCapDefinition"
 ]);
 const LIVE_DEFINITION_TYPES = new Set([
   ...MANIFEST_COMPONENT_TYPES,
@@ -140,6 +145,7 @@ const JOURNEY_PROFILE_COMPONENTS = [
   202, // CharacterProgressions
   205, // CharacterEquipment
   700, // PresentationNodes
+  800, // Collectibles: Journey badges and equipment collection state
   900, // Records
   1100, // Metrics
   1300  // Craftables
@@ -324,7 +330,11 @@ async function manifestDefinitionRoute(request: Request, env: Env): Promise<Resp
   }
   const manifest = await destinyManifest(env);
   const defaultCache = (caches as unknown as { default: Cache }).default;
-  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/manifest-definition/${encodeURIComponent(manifest.version || "unknown")}/${encodeURIComponent(type)}/${hash}`, { method: "GET" });
+  const requestedVersion = url.searchParams.get("version");
+  if (requestedVersion && requestedVersion !== manifest.version) {
+    return withCors(request, env, json({ error: "manifest_version_changed", requestedVersion, currentVersion: manifest.version }, 409));
+  }
+  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/manifest-definition-v2/${requestedVersion ? "versioned" : "current"}/${encodeURIComponent(manifest.version || "unknown")}/${encodeURIComponent(type)}/${hash}`, { method: "GET" });
   const cached = await defaultCache.match(cacheKey).catch(() => null);
   if (cached) return withCors(request, env, cached);
 
@@ -333,7 +343,7 @@ async function manifestDefinitionRoute(request: Request, env: Env): Promise<Resp
   if (!response.ok || !payload?.Response) {
     return withCors(request, env, json({ error: "bungie_manifest_definition_failed", status: response.status }, response.status === 404 ? 404 : 502));
   }
-  const resolved = json({ type, hash: Number(hash), definition: payload.Response }, 200, { "Cache-Control": "public, max-age=604800, immutable" });
+  const resolved = json({ type, hash: Number(hash), manifestVersion: manifest.version, definition: payload.Response }, 200, { "Cache-Control": requestedVersion ? "public, max-age=604800, immutable" : "public, max-age=300" });
   await defaultCache.put(cacheKey, resolved.clone()).catch(error => console.warn("manifest_definition_cache_write_failed", { type, hash, error: String(error) }));
   return withCors(request, env, resolved);
 }

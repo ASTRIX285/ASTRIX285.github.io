@@ -1,5 +1,6 @@
 import {openGuardianDatabase,MANIFEST_STORE_NAME} from "./guardian-session-cache.mjs";
 import {resolveArtifactTwoCatalog} from "./guardian-artifact-catalog.mjs?v=20260904-artifact-sandbox-effects-1";
+import {paradoxDefinitionId} from '../../core/bungie-item-identity.mjs';
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
@@ -14,11 +15,20 @@ const COMPONENT_TYPES=Object.freeze([
   "DestinyEquipableItemSetDefinition"
 ]);
 const COMPONENT_SET=new Set(COMPONENT_TYPES);
+// Journey components are fetched on demand and cached by the same manifest
+// version. Opening Journey never triggers the entire equipment download.
+const LAZY_COMPONENT_TYPES=new Set([
+  'DestinyPresentationNodeDefinition','DestinyRecordDefinition','DestinyObjectiveDefinition',
+  'DestinyCollectibleDefinition','DestinyMetricDefinition','DestinyGuardianRankDefinition',
+  'DestinyGuardianRankConstantsDefinition','DestinyDestinationDefinition','DestinyActivityDefinition',
+  'DestinyChecklistDefinition','DestinyLocationDefinition','DestinySocketTypeDefinition',
+  'DestinyDamageTypeDefinition','DestinyBreakerTypeDefinition','DestinyPowerCapDefinition'
+]);
 
 const tableKey=(version,type)=>`manifest:${version}:${type}`;
 const numericHash=value=>{
   const hash=Number(value);
-  return Number.isInteger(hash)&&hash>=0?hash:null;
+  return value!==null&&value!==undefined&&value!==''&&Number.isInteger(hash)&&hash>0&&hash<=0xffffffff?hash:null;
 };
 const definitionHash=(row,key)=>numericHash(row?.hash??row?.bungieHash??key);
 
@@ -141,6 +151,8 @@ class GuardianManifestService{
     this.tables=new Map();
     this.cachedTypes=new Set();
     this.fallbackDefinitions=new Map();
+    this.definitionRequests=new Map();
+    this.componentRequests=new Map();
     this.versionPromise=null;
     this.manifestPaths={};
     this.cachePromise=null;
@@ -155,9 +167,12 @@ class GuardianManifestService{
 
   async fetchJson(url){
     if(!this.fetchImpl)throw new Error("Manifest network access is unavailable.");
-    const response=await this.fetchImpl(url,{credentials:"include",headers:{Accept:"application/json"}});
-    if(!response.ok)throw new Error(`Manifest request failed (${response.status}).`);
-    return response.json();
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30_000);
+    try{
+      const response=await this.fetchImpl(url,{credentials:"include",headers:{Accept:"application/json"},signal:controller.signal});
+      if(!response.ok)throw new Error(`Manifest request failed (${response.status}).`);
+      return await response.json();
+    }finally{clearTimeout(timer);}
   }
 
   async initialise(){
@@ -230,7 +245,7 @@ class GuardianManifestService{
       if(!version)throw new Error("Bungie manifest version is missing.");
       this.version=version;this.manifestPaths=paths;
       return version;
-    })();
+    })().catch(error=>{this.versionPromise=null;throw error;});
     return this.versionPromise;
   }
 
@@ -339,6 +354,7 @@ class GuardianManifestService{
     return {
       hash:numeric,
       bungieHash:numeric,
+      paradoxId:paradoxDefinitionId(type,numeric),
       name:resolved?(first("name")||`Unnamed Destiny definition ${numeric}`):`Unresolved Destiny definition ${numeric}`,
       description:resolved?first("description"):"",
       icon:first("icon")?new URL(first("icon"),BUNGIE_ORIGIN).toString():"",
@@ -352,23 +368,54 @@ class GuardianManifestService{
   async getAsync(type,hash){
     const numeric=numericHash(hash);
     if(numeric===null)return null;
+    if(LAZY_COMPONENT_TYPES.has(type))await this.ensureComponent(type);
     const local=this.get(type,numeric);
-    if(local||this.cachedTypes.has(type)&&this.mode==="indexeddb")return local;
+    if(local||this.cachedTypes.has(type))return local;
     const key=`${type}:${numeric}`;
     if(this.fallbackDefinitions.has(key))return this.fallbackDefinitions.get(key);
     if(!this.fetchImpl)return null;
+    if(this.definitionRequests.has(key))return this.definitionRequests.get(key);
+    const pending=(async()=>{
     const url=new URL(`${this.authOrigin}/bungie/manifest/definition`);
     url.searchParams.set("type",type);
     url.searchParams.set("hash",String(numeric));
+    if(this.version)url.searchParams.set('version',this.version);
     try{
       const payload=await this.fetchJson(url);
       const definition=payload?.definition||null;
-      this.fallbackDefinitions.set(key,definition);
+      if(definition)this.fallbackDefinitions.set(key,definition);
       return definition;
     }catch{
-      this.fallbackDefinitions.set(key,null);
+      // A timeout must not permanently poison the next Journey/card lookup.
       return null;
     }
+    })();
+    this.definitionRequests.set(key,pending);
+    try{return await pending;}finally{this.definitionRequests.delete(key);}
+  }
+
+  async ensureComponent(type){
+    if(this.cachedTypes.has(type))return true;
+    if(this.componentRequests.has(type))return this.componentRequests.get(type);
+    const pending=(async()=>{
+      try{
+        const version=await this.checkVersion();
+        if(!this.manifestPaths[type])return false;
+        const cached=this.storage?.available?await this.storage.readTable(version,type):null;
+        let definitions=cached?.definitions;
+        if(!definitions){
+          const url=new URL(`${this.authOrigin}/bungie/manifest/component`);
+          url.searchParams.set('type',type);url.searchParams.set('version',version);
+          definitions=await this.fetchJson(url);
+          if(!definitions||typeof definitions!=='object'||Array.isArray(definitions))return false;
+          if(this.storage?.available)await this.storage.writeTable(version,type,definitions).catch(()=>false);
+        }
+        this.tables.set(type,definitions);this.cachedTypes.add(type);
+        return true;
+      }catch{return false;}
+    })();
+    this.componentRequests.set(type,pending);
+    try{return await pending;}finally{this.componentRequests.delete(type);}
   }
 
   async getMany(type,hashes){
@@ -398,14 +445,17 @@ class GuardianManifestService{
     const equipableSetHashes=new Set();
     const damageTypeHashes=new Set();
     const breakerTypeHashes=new Set();
+    const socketTypeHashes=new Set();
     const expandedHashes=new Set();
     const reusablePlugSetHashes=new Set();
     const inspectDefinition=definition=>{
       for(const entry of definition?.sockets?.socketEntries||[]){
+        const socketType=numericHash(entry?.socketTypeHash);if(socketType!==null)socketTypeHashes.add(socketType);
         const initial=numericHash(entry?.singleInitialItemHash);if(initial!==null&&initial!==0)expandedHashes.add(initial);
         for(const plug of entry?.reusablePlugItems||[]){const hash=numericHash(plug?.plugItemHash);if(hash!==null)expandedHashes.add(hash);}
         const plugSet=numericHash(entry?.reusablePlugSetHash);if(plugSet!==null)reusablePlugSetHashes.add(plugSet);
       }
+      for(const entry of definition?.sockets?.intrinsicSockets||[]){const hash=numericHash(entry?.plugItemHash);if(hash!==null)expandedHashes.add(hash);}
       for(const category of definition?.sockets?.socketCategories||[]){const hash=numericHash(category?.socketCategoryHash);if(hash!==null)socketCategories.add(hash);}
       for(const perk of definition?.perks||[]){const hash=numericHash(perk?.perkHash);if(hash!==null)sandboxPerkHashes.add(hash);}
       const setHash=numericHash(definition?.equipableItemSetHash??definition?.equippingBlock?.equipableItemSetHash);if(setHash!==null)equipableSetHashes.add(setHash);
@@ -425,8 +475,9 @@ class GuardianManifestService{
       const missingExpanded=[...expandedHashes].filter(hash=>!definitions[String(hash)]);
       const expanded=allowNetwork&&missingExpanded.length?await this.getMany("DestinyInventoryItemDefinition",missingExpanded):{};
       definitions={...definitions,...expanded};
-      Object.values(expanded).forEach(inspectDefinition);
+      [...expandedHashes].map(hash=>definitions[String(hash)]).filter(Boolean).forEach(inspectDefinition);
     }
+    for(const row of Object.values(profile?.itemComponents?.perks?.data||{}))for(const perk of row?.perks||[]){const hash=numericHash(perk?.perkHash);if(hash!==null)sandboxPerkHashes.add(hash);}
     for(const row of Object.values(payload?.profile?.itemComponents?.instances?.data||{})){
       const damageHash=numericHash(row?.damageTypeHash);if(damageHash!==null)damageTypeHashes.add(damageHash);
       const breakerHash=numericHash(row?.breakerTypeHash);if(breakerHash!==null)breakerTypeHashes.add(breakerHash);
@@ -441,7 +492,7 @@ class GuardianManifestService{
     const existingSockets=indexedDb?{}:{...(payload.socketCategoryDefinitions||{})};
     const existingDamage=indexedDb?{}:{...(payload.damageDefinitions||{})};
     const existingBreaker=indexedDb?{}:{...(payload.breakerDefinitions||{})};
-    const localOrFetch=(type,hashes)=>allowNetwork?this.getMany(type,hashes):Promise.resolve({});
+    const localOrFetch=(type,hashes)=>allowNetwork?this.getMany(type,hashes):Promise.resolve(Object.fromEntries([...hashes].map(hash=>[String(hash),this.get(type,hash)]).filter(([,row])=>row)));
     const [fetchedSandbox,fetchedStats,fetchedSockets,fetchedDamage,fetchedBreaker]=await Promise.all([
       localOrFetch("DestinySandboxPerkDefinition",missingDefinitions(existingSandbox,sandboxPerkHashes)),
       localOrFetch("DestinyStatDefinition",missingDefinitions(existingStats,stats)),
@@ -454,6 +505,7 @@ class GuardianManifestService{
     const socketCategoryDefinitions={...existingSockets,...fetchedSockets};
     const damageDefinitions={...existingDamage,...fetchedDamage};
     const breakerDefinitions={...existingBreaker,...fetchedBreaker};
+    const socketTypeDefinitions={...(payload.socketTypeDefinitions||{}),...await localOrFetch('DestinySocketTypeDefinition',missingDefinitions(payload.socketTypeDefinitions,socketTypeHashes))};
     definitions=Object.fromEntries(Object.entries(definitions).map(([hash,definition])=>{
       const resolvedSandboxPerks=(definition?.perks||[]).map(perk=>sandboxPerks[String(perk?.perkHash)]).filter(Boolean);
       return [hash,resolvedSandboxPerks.length?{...definition,resolvedSandboxPerks}:definition];
@@ -474,8 +526,10 @@ class GuardianManifestService{
     payload.sandboxPerks=sandboxPerks;
     payload.statDefinitions=statDefinitions;
     payload.socketCategoryDefinitions=socketCategoryDefinitions;
+    payload.socketTypeDefinitions=socketTypeDefinitions;
     payload.damageDefinitions=damageDefinitions;
     payload.breakerDefinitions=breakerDefinitions;
+    payload.semanticDefinitionCoverage={sandboxPerks:missingDefinitions(sandboxPerks,sandboxPerkHashes),socketCategories:missingDefinitions(socketCategoryDefinitions,socketCategories),socketTypes:missingDefinitions(socketTypeDefinitions,socketTypeHashes),damageTypes:missingDefinitions(damageDefinitions,damageTypeHashes),breakerTypes:missingDefinitions(breakerDefinitions,breakerTypeHashes)};
     payload.equipableItemSets=equipableItemSets;
     payload.artifactDefinition=artifactDefinition;
     payload.artifactCatalog=artifactCatalog;
@@ -489,6 +543,7 @@ class GuardianManifestService{
   }
 }
 
-const guardianManifest=new GuardianManifestService();
+const sharedKey=Symbol.for('ASTRIX.guardianManifest.20260905');
+const guardianManifest=globalThis[sharedKey]||(globalThis[sharedKey]=new GuardianManifestService());
 
 export {COMPONENT_TYPES,GuardianManifestService,createIndexedDbStorage,collectPayloadHashes,guardianManifest};
