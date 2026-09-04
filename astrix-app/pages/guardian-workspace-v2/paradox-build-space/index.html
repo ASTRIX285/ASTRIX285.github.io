@@ -59,7 +59,7 @@
       <div class="panel-head"><div><small>ORIGINAL → WORKING BUILD</small><h1>BUILD DESIGN</h1></div><span class="status-chip">ITERATION 1</span></div>
       <div class="notice"><span id="buildStateNotice"><b>Baseline protected.</b> The build loaded here is stored as the immutable starting point for Build Forge recommendations.</span><button type="button" class="restore-btn" id="restoreOriginal" disabled>RESTORE ORIGINAL</button></div>
       <section class="design-section loadouts-design-section" aria-labelledby="buildLoadoutsTitle"><div class="section-title"><h2 id="buildLoadoutsTitle">IN-GAME LOADOUTS</h2><span>BUNGIE · 1–20</span></div><div class="guardian-loadouts-panel guardian-loadouts-strip"><div class="guardian-loadouts-grid" id="guardianLoadouts" aria-label="Saved in-game loadouts"></div></div></section>
-      <section class="design-section armour-design-section gear-combined" aria-labelledby="buildArmourTitle"><div class="eq-head"><h3 id="buildArmourTitle">ARMOUR & MODS</h3><span class="tools">VERIFIED WORKING BUILD</span></div><div class="gear-subhead"><span>Armour above · 6 functional mod slots below</span><span>Hover any sourced icon for Bungie details</span></div><div id="armourGrid" class="gear-columns"></div></section>
+      <section class="design-section armour-design-section gear-combined" aria-labelledby="buildArmourTitle"><div class="eq-head"><h3 id="buildArmourTitle">ARMOUR & MODS</h3><span class="tools" id="armourBuildState">STAGED ARMOUR · MOD PLAN PENDING</span></div><div class="gear-subhead"><span id="armourBuildInstruction">Blank recommendation canvas · select an elemental build and generate the AI sequence</span><span id="armourBuildEvidence">Installed mods retained as evaluation evidence</span></div><div id="armourGrid" class="gear-columns"></div></section>
       <section class="design-section weapon-design-section" aria-labelledby="buildWeaponsTitle"><div class="section-title"><h2 id="buildWeaponsTitle">WEAPONS & PERKS</h2><span id="weaponRecommendationState">GENERATE TO RECOMMEND</span></div><p class="section-guidance">Verified owned weapons remain unchanged. Generate a max loadout to reveal Paradox-supported perk combinations for this build.</p><div class="gear-weapons"><div id="weaponGrid" class="weap-grid"></div></div></section>
       <section class="design-section recommendation-panel" aria-labelledby="recommendationTitle">
         <div class="panel-head"><div><small>PARADOX RECOMMENDATION</small><h2 id="recommendationTitle">ELEMENTAL BUILD OPTIONS</h2></div><span class="working-only-chip">WORKING BUILD ONLY</span></div>
@@ -133,6 +133,6 @@
       <footer class="recommended-build-actions"><button type="button" class="ghost-btn" id="returnToForge">BACK TO BUILD FORGE</button><div><small id="liveTransferStatus">Live transfer remains locked until every supported change is verified.</small><button type="button" class="primary" id="applyBuild" disabled>BUILD MY GUARDIAN LOADOUT</button></div></footer>
     </div>
   </section>
-  <script type="module" src="./paradox-build-space.mjs?v=20260904-memory-safe-transfer-1"></script>
+  <script type="module" src="./paradox-build-space.mjs?v=20260904-blank-mod-canvas-1"></script>
 </body>
 </html>

@@ -254,6 +254,12 @@ function applyVaultArmourSelection(state,selection){
   next.workingBuild.paradoxEvidence={...(next.workingBuild.paradoxEvidence||{}),armour:armourEvidence(next.workingBuild.armour)};
   next.workingBuild.hashCoverage={...(next.workingBuild.hashCoverage||{}),armour:armourCoverage(next.workingBuild.armour)};
   next.workingBuild.weaponRollAdvice=null;
+  delete next.workingBuild.recommendationGeneratedAt;
+  delete next.workingBuild.recommendationElement;
+  delete next.workingBuild.recommendationStatus;
+  delete next.workingBuild.forgeIntelligence;
+  delete next.workingBuild.weaponSelectionRecommendation;
+  delete next.workingBuild.armourModRecommendation;
   next.workingBuild.vaultArmourSelection={
     source:verified.source,
     sourcePage:verified.sourcePage,

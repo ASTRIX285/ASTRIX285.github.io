@@ -101,9 +101,20 @@ document.addEventListener('astrix:manifest-progress',event=>{
 function tile(item){if(!item)return '<span class="icon-tile empty">◆</span>';const icon=abs(iconOf(item)),name=esc(item.name||'Destiny item');return `<span class="icon-tile" title="${name}">${icon?`<img src="${esc(icon)}" alt="${name}">`:'◆'}</span>`;}
 function weaponCardShell(index){return `<div class="weap"><div class="art ph"><span class="ph-glyph">⌖</span></div><div class="cap"><b>Weapon slot ${index+1}</b><small>Awaiting resolved weapon semantics</small></div></div>`;}
 function gearCard(item,fallback){const index=Math.max(0,(Number(String(fallback).match(/\d+/)?.[0])||1)-1);return String(fallback).startsWith('Weapon')?weaponCardShell(index):armourCard(index,item);}
+function blankArmourModCanvas(){
+  const blankSlots=Array.from({length:6},()=>'<button class="gear-mod is-recommendation-pending" type="button" title="AI recommendation pending" aria-label="AI recommendation pending" disabled><span class="ph-glyph" aria-hidden="true">◇</span></button>').join('');
+  document.querySelectorAll('#armourGrid .gear-mods').forEach(grid=>{grid.classList.add('is-recommendation-pending');grid.dataset.modPresentation='pending';grid.setAttribute('aria-label','Blank AI mod recommendation canvas');grid.innerHTML=blankSlots;});
+}
+function renderArmourRecommendationState(build={}){
+  const generated=Boolean(build.recommendationGeneratedAt),state=byId('armourBuildState'),instruction=byId('armourBuildInstruction'),evidence=byId('armourBuildEvidence');
+  if(state)state.textContent=generated?'PARADOX RECOMMENDATION · REVIEW REQUIRED':'STAGED ARMOUR · MOD PLAN PENDING';
+  if(instruction)instruction.textContent=generated?'AI mod plan generated · review the recommendation before live action':'Blank recommendation canvas · select an elemental build and generate the AI sequence';
+  if(evidence)evidence.textContent=generated?'Original and installed mods remain protected':'Installed mods retained as evaluation evidence';
+  if(!generated)blankArmourModCanvas();
+}
 function findWeaponPerk(item,hash){const key=String(hash??'');return (item?.weaponSemantics?.alternativePerkColumns||[]).flatMap(column=>column?.options||[]).find(option=>String(option?.hash??option?.plugHash??'')===key)||(item?.weaponSemantics?.selectedPerks||[]).find(option=>String(option?.hash??option?.plugHash??'')===key)||null;}
 function decorateRecommendedWeaponPerks(build={}){const generated=Boolean(build.recommendationGeneratedAt);byId('weaponRecommendationState').textContent=generated?'PARADOX VERIFIED SELECTION':'GENERATE TO RECOMMEND';document.querySelectorAll('#weaponGrid .weap').forEach((card,index)=>{card.querySelector('.weapon-recommended-perks')?.remove();if(!generated)return;const item=build.weapons?.[index],advice=item?.weaponRollAdvice,row=document.createElement('div');row.className='weapon-recommended-perks';row.setAttribute('aria-label','Paradox recommended perks');if(advice?.hasVerifiedRecommendation){const options=advice.best?.options||[];row.innerHTML='<b>PARADOX PICK</b><div>'+options.map(option=>{const source=findWeaponPerk(item,option.hash),icon=abs(iconOf(source));return `<span title="${esc(option.name||source?.name||`Perk ${option.hash}`)}">${icon?`<img src="${esc(icon)}" alt="">`:'◆'}</span>`;}).join('')+'</div>';}else row.innerHTML='<small>NO CURATED PERK MATCH CLAIMED</small>';card.append(row);});}
-function renderBuildGear(build={}){byId('weaponGrid').innerHTML=Array.from({length:3},(_,i)=>gearCard(build.weapons?.[i],`Weapon slot ${i+1}`)).join('');byId('armourGrid').innerHTML=Array.from({length:5},(_,i)=>gearCard(build.armour?.[i],`Armour slot ${i+1}`)).join('');renderWeapons(build.weapons||[]);decorateRecommendedWeaponPerks(build);}
+function renderBuildGear(build={}){byId('weaponGrid').innerHTML=Array.from({length:3},(_,i)=>gearCard(build.weapons?.[i],`Weapon slot ${i+1}`)).join('');byId('armourGrid').innerHTML=Array.from({length:5},(_,i)=>gearCard(build.armour?.[i],`Armour slot ${i+1}`)).join('');renderArmourRecommendationState(build);renderWeapons(build.weapons||[]);decorateRecommendedWeaponPerks(build);}
 function currentBuild(){const state=readState();return state?.workingBuild||state?.originalBuild||null;}
 
 function verifiedActivities(build,domain=testDomain){
