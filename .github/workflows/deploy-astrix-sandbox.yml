@@ -25,6 +25,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Generate current compact Forge armour index
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+          FORGE_INDEX_ONLY: '1'
+        run: python3 astrix-app/tools/import-armor-information.py
       - name: Validate sandbox contract
         run: |
           node astrix-app/tools/validate-scope-guard.mjs

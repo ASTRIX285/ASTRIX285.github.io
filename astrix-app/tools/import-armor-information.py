@@ -16,6 +16,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 CURATED_PATH = ROOT / "astrix-app/data/armor-information.curated.json"
 OUTPUT_PATH = ROOT / "astrix-app/data/armor-information.json"
+FORGE_INDEX_PATH = ROOT / "astrix-app/data/forge-armour-index.json"
 API_ROOT = "https://www.bungie.net/Platform"
 BUNGIE_ROOT = "https://www.bungie.net"
 DESTINY_ITEM_TYPE_ARMOR = 2
@@ -102,11 +103,17 @@ def manifest_paths(manifest: dict[str, Any]) -> tuple[str, dict[str, str]]:
     version = str(response.get("version") or "unknown")
     component = response.get("jsonWorldComponentContentPaths", {}).get("en", {})
     inventory = component.get("DestinyInventoryItemDefinition")
-    stats = component.get("DestinyStatDefinition")
     if inventory:
-        paths = {"inventory": inventory}
-        if stats:
-            paths["stats"] = stats
+        paths = {
+            definition_type: component[definition_type]
+            for definition_type in (
+                "DestinyInventoryItemDefinition",
+                "DestinyStatDefinition",
+                "DestinyEquipableItemSetDefinition",
+                "DestinySandboxPerkDefinition",
+            )
+            if component.get(definition_type)
+        }
         return version, paths
     aggregate = response.get("jsonWorldContentPaths", {}).get("en")
     if aggregate:
@@ -114,16 +121,196 @@ def manifest_paths(manifest: dict[str, Any]) -> tuple[str, dict[str, str]]:
     raise ImportFailure("No English Bungie manifest path returned")
 
 
-def load_definitions(paths: dict[str, str]) -> tuple[dict[str, Any], dict[str, Any]]:
+def load_definitions(
+    paths: dict[str, str],
+    manifest_version: str,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
     if "aggregate" in paths:
         aggregate = get_json(absolute_url(paths["aggregate"]))
         return (
             aggregate.get("DestinyInventoryItemDefinition", {}),
             aggregate.get("DestinyStatDefinition", {}),
+            aggregate.get("DestinyEquipableItemSetDefinition", {}),
+            aggregate.get("DestinySandboxPerkDefinition", {}),
         )
-    inventory = get_json(absolute_url(paths["inventory"]))
-    stats = get_json(absolute_url(paths["stats"])) if paths.get("stats") else {}
-    return inventory, stats
+    proxy_origin = os.environ.get("ASTRIX_AUTH_ORIGIN", "").rstrip("/")
+
+    def load_component(definition_type: str) -> dict[str, Any]:
+        path = paths.get(definition_type)
+        if not path:
+            return {}
+        if proxy_origin:
+            from urllib.parse import urlencode
+
+            query = urlencode({"type": definition_type, "version": manifest_version})
+            return get_json(f"{proxy_origin}/bungie/manifest/component?{query}")
+        return get_json(absolute_url(path))
+
+    return (
+        load_component("DestinyInventoryItemDefinition"),
+        load_component("DestinyStatDefinition"),
+        load_component("DestinyEquipableItemSetDefinition"),
+        load_component("DestinySandboxPerkDefinition"),
+    )
+
+
+def compact_display(definition: dict[str, Any]) -> dict[str, Any]:
+    display = definition.get("displayProperties") or {}
+    return {
+        key: display[key]
+        for key in ("name", "description", "icon")
+        if display.get(key) not in (None, "")
+    }
+
+
+def forge_armour_definition(hash_text: str, item: dict[str, Any]) -> dict[str, Any]:
+    inventory = item.get("inventory") or {}
+    equipping = item.get("equippingBlock") or {}
+    definition: dict[str, Any] = {
+        "hash": int(hash_text),
+        "itemType": item.get("itemType", -1),
+        "itemSubType": item.get("itemSubType", -1),
+        "classType": item.get("classType", 3),
+        "itemTypeDisplayName": str(item.get("itemTypeDisplayName") or ""),
+        "displayProperties": compact_display(item),
+        "inventory": {
+            key: inventory[key]
+            for key in ("tierType", "tierTypeName", "bucketTypeHash")
+            if inventory.get(key) is not None
+        },
+        "equippingBlock": {
+            key: equipping[key]
+            for key in ("equipmentSlotTypeHash", "equipableItemSetHash")
+            if equipping.get(key) is not None
+        },
+    }
+    sockets = item.get("sockets") or {}
+    socket_entries = []
+    for entry in sockets.get("socketEntries") or []:
+        if not isinstance(entry, dict):
+            continue
+        compact_entry = {
+            key: entry[key]
+            for key in ("singleInitialItemHash", "reusablePlugSetHash")
+            if entry.get(key) is not None
+        }
+        socket_entries.append(compact_entry)
+    socket_categories = [
+        {
+            "socketCategoryHash": row["socketCategoryHash"],
+            "socketIndexes": row.get("socketIndexes") or [],
+        }
+        for row in sockets.get("socketCategories") or []
+        if isinstance(row, dict) and isinstance(row.get("socketCategoryHash"), int)
+    ]
+    if socket_entries or socket_categories:
+        definition["sockets"] = {"socketEntries": socket_entries, "socketCategories": socket_categories}
+    for key in ("equipableItemSetHash", "collectibleHash", "displaySource", "iconWatermark"):
+        if item.get(key) not in (None, ""):
+            definition[key] = item[key]
+    return definition
+
+
+def compact_set_definition(hash_text: str, definition: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "hash": int(hash_text),
+        "displayProperties": compact_display(definition),
+        "setPerks": [
+            {
+                key: perk[key]
+                for key in ("requiredSetCount", "sandboxPerkHash")
+                if perk.get(key) is not None
+            }
+            for perk in definition.get("setPerks") or []
+            if isinstance(perk, dict)
+        ],
+    }
+
+
+def forge_index_payload(
+    manifest_version: str,
+    inventory: dict[str, Any],
+    stat_definitions: dict[str, Any],
+    set_definitions: dict[str, Any],
+    sandbox_perks: dict[str, Any],
+) -> dict[str, Any]:
+    armour = {
+        hash_text: forge_armour_definition(hash_text, item)
+        for hash_text, item in inventory.items()
+        if isinstance(item, dict)
+        and item.get("itemType") == DESTINY_ITEM_TYPE_ARMOR
+        and (item.get("displayProperties") or {}).get("name")
+    }
+    socket_layouts: dict[str, dict[str, Any]] = {}
+    for definition in armour.values():
+        sockets = definition.pop("sockets", None)
+        if not sockets:
+            continue
+        layout_key = hashlib.sha256(canonical_json(sockets).encode("utf-8")).hexdigest()[:16]
+        if layout_key in socket_layouts and socket_layouts[layout_key] != sockets:
+            layout_key = hashlib.sha256(canonical_json(sockets).encode("utf-8")).hexdigest()
+        socket_layouts[layout_key] = sockets
+        definition["socketLayoutKey"] = layout_key
+    set_hashes = {
+        int(value)
+        for definition in armour.values()
+        for value in (
+            definition.get("equipableItemSetHash"),
+            (definition.get("equippingBlock") or {}).get("equipableItemSetHash"),
+        )
+        if isinstance(value, int) and value > 0
+    }
+    compact_sets = {
+        str(hash_value): compact_set_definition(str(hash_value), set_definitions[str(hash_value)])
+        for hash_value in sorted(set_hashes)
+        if isinstance(set_definitions.get(str(hash_value)), dict)
+    }
+    perk_hashes = {
+        int(perk["sandboxPerkHash"])
+        for definition in compact_sets.values()
+        for perk in definition.get("setPerks") or []
+        if isinstance(perk.get("sandboxPerkHash"), int)
+    }
+    compact_perks = {
+        str(hash_value): {
+            "hash": hash_value,
+            "displayProperties": compact_display(sandbox_perks[str(hash_value)]),
+        }
+        for hash_value in sorted(perk_hashes)
+        if isinstance(sandbox_perks.get(str(hash_value)), dict)
+    }
+    compact_stats = {
+        hash_text: {
+            "hash": int(hash_text),
+            "displayProperties": compact_display(definition),
+        }
+        for hash_text, definition in stat_definitions.items()
+        if isinstance(definition, dict) and (definition.get("displayProperties") or {}).get("name")
+    }
+    return {
+        "schemaVersion": 2,
+        "manifestVersion": manifest_version,
+        "generatedAt": utc_now(),
+        "definitions": armour,
+        "socketLayouts": socket_layouts,
+        "equipableItemSets": compact_sets,
+        "sandboxPerks": compact_perks,
+        "statDefinitions": compact_stats,
+    }
+
+
+def write_forge_index(payload: dict[str, Any]) -> bool:
+    previous = None
+    if FORGE_INDEX_PATH.exists():
+        try:
+            previous = json.loads(FORGE_INDEX_PATH.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            previous = None
+    meaningful_keys = ("schemaVersion", "manifestVersion", "definitions", "socketLayouts", "equipableItemSets", "sandboxPerks", "statDefinitions")
+    changed = previous is None or any(previous.get(key) != payload.get(key) for key in meaningful_keys)
+    if changed:
+        FORGE_INDEX_PATH.write_text(json.dumps(payload, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
+    return changed
 
 
 def stat_name(stat_hash: int, definitions: dict[str, Any]) -> str | None:
@@ -240,14 +427,26 @@ def write_outputs(values: dict[str, Any]) -> None:
 
 def main() -> int:
     api_key = os.environ.get("BUNGIE_API_KEY")
-    if not api_key:
-        raise ImportFailure("BUNGIE_API_KEY is required")
+    proxy_origin = os.environ.get("ASTRIX_AUTH_ORIGIN", "").rstrip("/")
+    if not api_key and not proxy_origin:
+        raise ImportFailure("BUNGIE_API_KEY or ASTRIX_AUTH_ORIGIN is required")
     curated_payload = load_curated()
     curated_rows = curated_payload["armor"]
     curated_digest = digest_json(curated_rows)
-    manifest = get_json(f"{API_ROOT}/Destiny2/Manifest/", api_key)
+    if api_key:
+        manifest = get_json(f"{API_ROOT}/Destiny2/Manifest/", api_key)
+    else:
+        manifest = {"Response": get_json(f"{proxy_origin}/bungie/manifest")}
     manifest_version, paths = manifest_paths(manifest)
-    inventory, stat_definitions = load_definitions(paths)
+    inventory, stat_definitions, set_definitions, sandbox_perks = load_definitions(paths, manifest_version)
+    forge_index = forge_index_payload(
+        manifest_version,
+        inventory,
+        stat_definitions,
+        set_definitions,
+        sandbox_perks,
+    )
+    forge_index_changed = write_forge_index(forge_index)
 
     records: list[dict[str, Any]] = []
     by_hash: dict[int, dict[str, Any]] = {}
@@ -300,12 +499,14 @@ def main() -> int:
             previous = json.loads(OUTPUT_PATH.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             previous = None
-    changed = previous is None or meaningful(previous) != meaningful(payload)
-    if changed:
+    forge_index_only = os.environ.get("FORGE_INDEX_ONLY") == "1"
+    changed = False if forge_index_only else previous is None or meaningful(previous) != meaningful(payload)
+    if changed and not forge_index_only:
         OUTPUT_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     print(f"Manifest version: {manifest_version}")
     print(f"Official armour records: {len(records)}")
+    print(f"Forge armour index records: {len(forge_index['definitions'])}; changed: {forge_index_changed}")
     print(f"Curated rows: {len(curated_rows)}")
     print(f"Matched: {matched}; unresolved: {len(unresolved)}; ambiguous: {len(ambiguous)}")
     write_outputs({
@@ -316,6 +517,7 @@ def main() -> int:
         "matched": matched,
         "unresolved": len(unresolved),
         "ambiguous": len(ambiguous),
+        "forge_index_changed": forge_index_changed,
     })
     return 0
 

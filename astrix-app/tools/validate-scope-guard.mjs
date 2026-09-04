@@ -5,10 +5,12 @@ import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
   '.github/workflows/deploy-astrix-sandbox.yml',
+  '.github/workflows/update-armor-information.yml',
   '.github/workflows/live-artifact-validation.yml',
   '.github/workflows/validate-artifact-provenance.yml',
   '.github/workflows/validate-build-design-selectors.yml',
   'astrix-auth-worker/src/index.ts',
+  'astrix-auth-worker/src/semantic-wrapper.ts',
   'astrix-auth-worker/wrangler.toml',
   'astrix-sandbox/cloudflare-pages.mjs',
   'astrix-sandbox/pages-worker.js',
@@ -70,6 +72,8 @@ const allowed=new Set([
   'astrix-app/pages/forge-loader/forge-loader-model.mjs',
   'astrix-app/pages/forge-loader/forge-loader-build-handoff.mjs',
   'astrix-app/pages/forge-loader/forge-loader.mjs',
+  'astrix-app/data/forge-armour-index.json',
+  'astrix-app/tools/import-armor-information.py',
   'astrix-app/pages/loadout/index.html',
   'astrix-app/shared/astrix-destination-ribbon.js',
   'astrix-app/shared/astrix-destination-ribbon.css',

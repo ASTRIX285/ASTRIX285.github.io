@@ -197,6 +197,9 @@ async function rewriteJsonResponse(response: Response, transform: (payload: any)
 }
 
 export default {
+  scheduled(controller: ScheduledController, env: Env, context: ExecutionContext): void {
+    worker.scheduled(controller, env, context);
+  },
   async fetch(request: Request, env: Env): Promise<Response> {
     const response = await worker.fetch(request, env);
     const url = new URL(request.url);

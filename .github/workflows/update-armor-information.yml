@@ -3,7 +3,7 @@ name: Update ASTRIX Armor Information
 on:
   workflow_dispatch:
   schedule:
-    - cron: '17 5 * * 1'
+    - cron: '17 * * * *'
 
 permissions:
   contents: write
@@ -140,10 +140,36 @@ jobs:
           )
           PYEOF
 
+      - name: Validate compact Forge armour index
+        run: |
+          python3 - << 'PYEOF'
+          import json
+          from pathlib import Path
+
+          path = Path("astrix-app/data/forge-armour-index.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          required = {"schemaVersion", "manifestVersion", "generatedAt", "definitions", "socketLayouts", "equipableItemSets", "sandboxPerks", "statDefinitions"}
+          missing = required - payload.keys()
+          if missing:
+              raise SystemExit(f"Forge armour index fields missing: {sorted(missing)}")
+          if not payload["definitions"]:
+              raise SystemExit("Forge armour index contains no armour definitions")
+          if any(row.get("itemType") != 2 for row in payload["definitions"].values()):
+              raise SystemExit("Forge armour index contains a non-armour definition")
+          print(json.dumps({
+              "manifestVersion": payload["manifestVersion"],
+              "armourDefinitions": len(payload["definitions"]),
+              "socketLayouts": len(payload["socketLayouts"]),
+              "equipableSets": len(payload["equipableItemSets"]),
+              "sandboxPerks": len(payload["sandboxPerks"]),
+              "fileBytes": path.stat().st_size,
+          }, indent=2))
+          PYEOF
+
       - name: Check curated catalogue change
         id: generated
         run: |
-          if [ -n "$(git status --porcelain -- astrix-app/data/armor-information.catalogue.json)" ]
+          if [ -n "$(git status --porcelain -- astrix-app/data/armor-information.catalogue.json astrix-app/data/forge-armour-index.json)" ]
           then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
@@ -160,7 +186,8 @@ jobs:
             "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add \
-            astrix-app/data/armor-information.catalogue.json
+            astrix-app/data/armor-information.catalogue.json \
+            astrix-app/data/forge-armour-index.json
 
           git diff --cached --quiet && exit 0
 

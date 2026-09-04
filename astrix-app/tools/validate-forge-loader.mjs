@@ -197,6 +197,12 @@ const sessionCache=read('astrix-app/pages/guardian-workspace-v2/guardian-session
 const perkPlanRuntime=read('astrix-app/pages/guardian-workspace-v2/guardian-perk-change-plan.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const access=read('astrix-app/pages/guardian-workspace-v2/guardian-vault-access.mjs');
+assert.match(runtime,/FORGE_ARMOUR_INDEX_URL=new URL\('\/astrix-app\/data\/forge-armour-index\.json'/,'Forge Loader must use the compact hourly armour index instead of downloading every full manifest table.');
+assert.match(runtime,/scope','forge'/,'Forge Loader must request its dedicated private-inventory component scope.');
+assert.match(runtime,/fetchProfile\(\{clientManifest:true\}\)/,'The normal Forge path must fetch private inventory without redundant Worker definition expansion.');
+assert.match(runtime,/loadForgeArmourIndex\(FORGE_ARMOUR_INDEX_URL\)/,'Forge Loader must version-check the compact public index before joining it to private inventory.');
+assert.match(runtime,/hydratePayload\(next,\{waitForManifest:false,armourOnly:Boolean\(forgeIndex\),includeReusable:true\}\)/,'Owned combinations and their legal armour-mod options must hydrate without blocking on unrelated full manifest data.');
+assert.doesNotMatch(runtime,/await guardianManifest\.ready\(\)/,'Forge Loader must never return to the 58-percent full-manifest startup gate.');
 assert.match(html,/<header class="apx-destination-header astrix-command-header">[\s\S]*?<strong>FORGE LOADER<\/strong><small>SELECT AND MAXIMISE VERIFIED ARMOUR<\/small>/,'Forge Loader must present its page identity only in the shared compact command header.');
 assert.doesNotMatch(html,/<div class="apx-page-heading">[\s\S]*?<h1>Forge Loader<\/h1>/,'Forge Loader must not retain the oversized duplicate page hero.');
 assert.match(html,/id="forgeHeroCard"/);
@@ -275,7 +281,7 @@ assert.doesNotMatch(runtime,/if\(!baselineStored\)\{[^}]*?return;/,'A rejected b
 assert.match(runtime,/if\(!baselineStored&&!transferStored\)url\.searchParams\.set\('baseline','bungie-recovery'\)/,'The destination must request authenticated recovery only when the atomic baseline is unavailable.');
 assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.removeItem\(BUILD_SNAPSHOT_KEY\);[\s\S]*?store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Stale Build Forge state must be cleared before writing the newly verified compact Guardian snapshot.');
 assert.doesNotMatch(buildHandoff,/createBuildState/,'Forge Loader must not expand the compact source into duplicate Original and Working builds before navigation.');
-assert.match(html,/forge-loader\.mjs\?v=20260904-open-armour-1/,'Forge Loader must load the Open Armour ranking and target-upgrade release without a stale browser module.');
+assert.match(html,/forge-loader\.mjs\?v=20260904-forge-index-1/,'Forge Loader must load the hourly compact-index release without a stale browser module.');
 assert.match(html,/forge-loader\.css\?v=20260904-open-armour-1/,'Forge Loader must refresh the stronger selected-Exotic state without stale page CSS.');
 assert.match(runtime,/forge-loader-build-handoff\.mjs\?v=20260904-memory-safe-transfer-1/,'Forge Loader must refresh the protected baseline writer with the memory-safe transfer release.');
 assert.match(runtime,/vault-selection-state\.mjs\?v=20260903-compact-selection-1/,'Forge Loader must refresh the compact five-item selection writer.');
