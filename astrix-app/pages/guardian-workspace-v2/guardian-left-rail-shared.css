@@ -455,10 +455,12 @@ body.guardian-main-page .workspace>.right{display:none!important}
     min-height:0!important;
     max-height:none!important;
     grid-template-columns:minmax(0,1fr)!important;
-    grid-template-rows:auto!important;
+    grid-template-rows:repeat(3,max-content)!important;
+    grid-auto-rows:max-content!important;
     grid-template-areas:"loadouts" "armour" "weapons"!important;
     gap:12px!important;
     align-items:start!important;
+    align-content:start!important;
     overflow:visible!important;
   }
   body.guardian-main-page .equip.gear-layout-active>.guardian-loadouts-container{
@@ -471,6 +473,8 @@ body.guardian-main-page .workspace>.right{display:none!important}
     height:auto!important;
     min-height:0!important;
     max-height:none!important;
+    contain:none!important;
+    container-type:normal!important;
     overflow:visible!important;
   }
   body.guardian-main-page .equip.gear-layout-active>.gear-weapons{
@@ -508,6 +512,15 @@ body.guardian-main-page .workspace>.right{display:none!important}
   body.guardian-main-page .gear-combined .gear-columns{
     grid-template-columns:repeat(5,minmax(0,1fr))!important;
     gap:10px!important;
+    height:auto!important;
+    min-height:max-content!important;
+    align-items:start!important;
+    overflow:visible!important;
+  }
+  body.guardian-main-page .gear-combined .gear-slot{
+    height:auto!important;
+    min-height:calc(120px + (var(--guardian-square) * 2) + var(--guardian-square-gap))!important;
+    overflow:visible!important;
   }
   body.guardian-main-page .equip .eq-head h3{font-size:1rem!important}
   body.guardian-main-page .equip .eq-head .tools{font-size:.75rem!important}
