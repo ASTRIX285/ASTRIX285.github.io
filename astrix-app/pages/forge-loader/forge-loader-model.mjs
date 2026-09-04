@@ -1,9 +1,11 @@
-import {armourSetHash} from '../vault/vault-armour-matcher.mjs';
+import {armourSetHash,compareArmourScores} from '../vault/vault-armour-matcher.mjs';
+import {explicitTokens} from '../guardian-workspace-v2/paradox-build-space/paradox-forge-intelligence.mjs';
 
 const finite=value=>Number.isFinite(Number(value))?Number(value):0;
 const CLASS_TYPES=Object.freeze({titan:0,hunter:1,warlock:2});
 const BUNGIE_ORIGIN='https://www.bungie.net';
 const identityName=value=>String(value??'').normalize('NFKD').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
+const absoluteIcon=path=>path?new URL(path,BUNGIE_ORIGIN).toString():'';
 
 function exoticIdentityKey(item={},fallbackHash=''){
   const slot=Number(item?.slotIndex);
@@ -164,4 +166,92 @@ function toggleSetSelection(items=[],fixedExotic={},selections=[],choice={},chec
   return setSelectionFeasible(items,fixedExotic,next)?next:normaliseSelections(selections);
 }
 
-export {compatibleWithClass,exoticCatalogueGroups,exoticIdentityKey,normaliseSelections,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection};
+function naturalSetProtocols(candidate={}){
+  const counts=new Map();
+  for(const item of Array.isArray(candidate?.items)?candidate.items:[]){
+    const set=item?.setBonus||item?.armourSemantics?.set;
+    const setHash=Number(set?.hash);
+    if(!Number.isInteger(setHash)||setHash<=0||set?.unresolved)continue;
+    if(!counts.has(setHash))counts.set(setHash,{setHash,ownedCount:0,set});
+    counts.get(setHash).ownedCount+=1;
+  }
+  return [...counts.values()].map(row=>{
+    const count=row.ownedCount>=4&&row.set?.fourPiece?4:row.ownedCount>=2&&row.set?.twoPiece?2:0;
+    const trait=count===4?row.set.fourPiece:count===2?row.set.twoPiece:null;
+    return count?{setHash:row.setHash,count,ownedCount:row.ownedCount,setName:row.set?.identity?.name||`Armour set ${row.setHash}`,trait}:null;
+  }).filter(Boolean).sort((left,right)=>right.count-left.count||left.setName.localeCompare(right.setName));
+}
+
+function comparePriorityShortfalls(left=[],right=[]){
+  for(let index=0;index<Math.max(left.length,right.length);index++){
+    const delta=finite(left[index])-finite(right[index]);if(delta)return delta;
+  }
+  return 0;
+}
+
+function rankOpenProtocolCandidates(candidates=[],fixedExotic={}){
+  const anchor=fixedExotic?.representative?.exoticPerk||fixedExotic?.representative?.armourSemantics?.exoticPerk||fixedExotic?.exoticPerk||null;
+  const anchorTokens=explicitTokens(anchor);
+  const ranked=Array.isArray(candidates)?candidates:[];
+  for(const candidate of ranked){
+    const protocols=naturalSetProtocols(candidate);
+    const evidence=[...new Set(protocols.flatMap(row=>explicitTokens(row.trait)).filter(token=>anchorTokens.includes(token)))];
+    candidate.openProtocol={score:evidence.length,protocols,evidence};
+  }
+  return ranked.sort((left,right)=>comparePriorityShortfalls(left.score?.priorityShortfalls,right.score?.priorityShortfalls)||finite(left.score?.shortfall)-finite(right.score?.shortfall)||finite(right.openProtocol?.score)-finite(left.openProtocol?.score)||compareArmourScores(left.score,right.score)||String(left.signature||'').localeCompare(String(right.signature||'')));
+}
+
+function setTrait(setDefinition={},sandboxPerks={},count=2){
+  const row=(setDefinition?.setPerks||[]).find(perk=>Number(perk?.requiredSetCount)===Number(count));
+  const hash=Number(row?.sandboxPerkHash);
+  const definition=Number.isInteger(hash)&&hash>0?sandboxPerks?.[String(hash)]||null:null;
+  const display=definition?.displayProperties||{};
+  if(!definition||!String(display.name||display.description||'').trim())return null;
+  return {hash,name:String(display.name||`${count}-piece set perk`).trim(),description:String(display.description||'').trim(),icon:absoluteIcon(display.icon),definition};
+}
+
+function unownedSetTargets({definitions={},setDefinitions={},sandboxPerks={},ownedItems=[],fixedExotic={},className='',armourBuckets=[]}={}){
+  const classType=CLASS_TYPES[String(className||'').trim().toLowerCase()];
+  const fixedSlot=Number(fixedExotic?.slotIndex);
+  const slots=new Map((Array.isArray(armourBuckets)?armourBuckets:[]).map((slot,index)=>[Number(slot?.hash),{...slot,index}]));
+  const anchor=fixedExotic?.representative?.exoticPerk||fixedExotic?.representative?.armourSemantics?.exoticPerk||fixedExotic?.exoticPerk||null;
+  const anchorTokens=explicitTokens(anchor);
+  if(!Number.isInteger(classType)||!anchorTokens.length||!slots.size)return [];
+  const ownedSlotsBySet=new Map();
+  for(const item of Array.isArray(ownedItems)?ownedItems:[]){
+    const setHash=armourSetHash(item),slot=Number(item?.slotIndex);
+    if(!setHash||item?.isExotic||slot===fixedSlot)continue;
+    if(!ownedSlotsBySet.has(setHash))ownedSlotsBySet.set(setHash,new Set());
+    ownedSlotsBySet.get(setHash).add(slot);
+  }
+  const catalogue=new Map();
+  for(const [key,definition] of Object.entries(definitions||{})){
+    const hash=Number(definition?.hash??key),slot=slots.get(Number(definition?.inventory?.bucketTypeHash));
+    const setHash=Number(definition?.equipableItemSetHash??definition?.equippingBlock?.equipableItemSetHash);
+    const display=definition?.displayProperties||{};
+    if(!Number.isInteger(hash)||hash<=0||Number(definition?.itemType)!==2||Number(definition?.classType)!==classType||Number(definition?.inventory?.tierType)===6||!slot||slot.index===fixedSlot||!Number.isInteger(setHash)||setHash<=0||definition?.redacted===true||definition?.equippable===false||!String(display.name||'').trim())continue;
+    if(!catalogue.has(setHash))catalogue.set(setHash,new Map());
+    const bySlot=catalogue.get(setHash);
+    if(!bySlot.has(slot.index))bySlot.set(slot.index,[]);
+    bySlot.get(slot.index).push({hash,name:String(display.name).trim(),slotIndex:slot.index,slotLabel:slot.label,collectibleHash:Number(definition?.collectibleHash)||null,displaySource:String(definition?.displaySource||'').trim()});
+  }
+  const targets=[];
+  for(const [setHash,bySlot] of catalogue){
+    const setDefinition=setDefinitions?.[String(setHash)]||null;
+    if(!setDefinition)continue;
+    const setDisplay=setDefinition.displayProperties||{};
+    const ownedSlots=ownedSlotsBySet.get(setHash)||new Set();
+    for(const count of [4,2]){
+      const trait=setTrait(setDefinition,sandboxPerks,count);
+      const evidence=trait?[...new Set(explicitTokens(trait).filter(token=>anchorTokens.includes(token)))]:[];
+      if(!trait||!evidence.length||bySlot.size<count||ownedSlots.size>=count)continue;
+      const missingSlots=[...bySlot.keys()].filter(slot=>!ownedSlots.has(slot));
+      const missingPieces=missingSlots.map(slot=>bySlot.get(slot).slice().sort((left,right)=>Number(Boolean(right.displaySource))-Number(Boolean(left.displaySource))||left.name.localeCompare(right.name)||left.hash-right.hash)[0]);
+      const allVariants=[...bySlot.values()].flat();
+      targets.push({setHash,count,setName:String(setDisplay.name||`Armour set ${setHash}`).trim(),setDescription:String(setDisplay.description||'').trim(),trait,evidence,score:evidence.length,ownedSlots:ownedSlots.size,compatibleSlots:bySlot.size,missingPieces,variantCount:allVariants.length,displaySources:[...new Set(allVariants.map(row=>row.displaySource).filter(Boolean))]});
+    }
+  }
+  return targets.sort((left,right)=>right.score-left.score||right.count-left.count||right.ownedSlots-left.ownedSlots||left.setName.localeCompare(right.setName));
+}
+
+export {compatibleWithClass,exoticCatalogueGroups,exoticIdentityKey,naturalSetProtocols,normaliseSelections,ownedExoticGroups,rankOpenProtocolCandidates,setBonusOptions,setSelectionFeasible,toggleSetSelection,unownedSetTargets};

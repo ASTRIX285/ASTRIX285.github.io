@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {ARMOUR_STAT_CAP,armourTargetMaximums,compareArmourScores,matchArmourBuilds,normaliseStatPriorities,normaliseTargets,scoreArmourStats} from '../pages/vault/vault-armour-matcher.mjs';
 import {applyVaultArmourSelection,clearVaultArmourSelection,compactArmourSelectionItem,createVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection,writeVaultArmourSelection} from '../pages/vault/vault-selection-state.mjs';
-import {exoticCatalogueGroups,ownedExoticGroups,setBonusOptions,setSelectionFeasible,toggleSetSelection} from '../pages/forge-loader/forge-loader-model.mjs';
+import {exoticCatalogueGroups,naturalSetProtocols,ownedExoticGroups,rankOpenProtocolCandidates,setBonusOptions,setSelectionFeasible,toggleSetSelection,unownedSetTargets} from '../pages/forge-loader/forge-loader-model.mjs';
 import {BUILD_SNAPSHOT_KEY,BUILD_SPACE_KEY,LAST_LOADOUT_KEY,compactForgeLoaderProfileBuild,createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from '../pages/forge-loader/forge-loader-build-handoff.mjs';
 import {validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
 import {createBuildState} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
@@ -76,6 +76,31 @@ options=setBonusOptions(items,exotic,selected);
 assert.equal(selected.length,2,'A second compatible two-piece bonus must remain selectable.');
 assert.ok(options.every(row=>row.four.disabled),'Any two-piece selection must disable every four-piece checkbox.');
 assert.equal(options.find(row=>row.hash===7003)?.two.disabled,true,'After two two-piece choices, all remaining two-piece choices must be disabled.');
+
+const grenadeSet=set(7100,'Grenade Protocol');
+grenadeSet.fourPiece={...grenadeSet.fourPiece,description:'Grenade final blows improve grenade energy.'};
+const openScore=scoreArmourStats({health:40,weapon:40},{health:40});
+const synergisticCandidate={items:[item(0,9001,'open-exotic',8,{exotic:true,name:'Verified Exotic'}),...([1,2,3,4].map(slot=>({...item(slot,7100+slot,`grenade-${slot}`,8),setBonus:grenadeSet})))],score:openScore,signature:'synergy'};
+const plainCandidate={items:[item(0,9001,'plain-exotic',8,{exotic:true,name:'Verified Exotic'}),...([1,2,3,4].map(slot=>item(slot,7200+slot,`plain-${slot}`,8)))],score:openScore,signature:'plain'};
+assert.equal(naturalSetProtocols(synergisticCandidate)[0]?.count,4,'Open Armour must recognise the naturally active verified four-piece protocol in each candidate.');
+const openRanked=rankOpenProtocolCandidates([plainCandidate,synergisticCandidate],{exoticPerk:{name:'Grenade anchor',description:'Improves grenade energy.'}});
+assert.equal(openRanked[0]?.signature,'synergy','Equal-target Open Armour candidates must prefer explicit Exotic-to-set perk evidence.');
+assert.deepEqual(openRanked[0]?.openProtocol?.evidence,['grenade'],'Open Armour may use only explicit verified combat terms as synergy evidence.');
+
+const targetDefinitions={
+  ...definitions,
+  8101:{hash:8101,itemType:2,classType:1,equippable:true,equipableItemSetHash:8001,collectibleHash:8201,displaySource:'Earned from the verified test activity.',inventory:{tierType:5,bucketTypeHash:3551918588},displayProperties:{name:'Target Gauntlets',icon:'/target.png'}},
+  8102:{hash:8102,itemType:2,classType:1,equippable:true,equipableItemSetHash:8001,collectibleHash:8202,inventory:{tierType:5,bucketTypeHash:14239492},displayProperties:{name:'Target Chest',icon:'/target.png'}},
+  8103:{hash:8103,itemType:2,classType:1,equippable:true,equipableItemSetHash:8001,collectibleHash:8203,inventory:{tierType:5,bucketTypeHash:20886954},displayProperties:{name:'Target Legs',icon:'/target.png'}},
+  8104:{hash:8104,itemType:2,classType:1,equippable:true,equipableItemSetHash:8001,collectibleHash:8204,inventory:{tierType:5,bucketTypeHash:1585787867},displayProperties:{name:'Target Class Item',icon:'/target.png'}}
+};
+const targetSetDefinitions={8001:{hash:8001,displayProperties:{name:'Target Protocol'},setPerks:[{requiredSetCount:4,sandboxPerkHash:8301}]}};
+const targetSandboxPerks={8301:{hash:8301,displayProperties:{name:'Grenade Circuit',description:'Grenade final blows improve grenade energy.',icon:'/grenade-circuit.png'}}};
+const targetRecommendations=unownedSetTargets({definitions:targetDefinitions,setDefinitions:targetSetDefinitions,sandboxPerks:targetSandboxPerks,ownedItems:items,fixedExotic:{...exotic,exoticPerk:{name:'Grenade anchor',description:'Improves grenade energy.'}},className:'hunter',armourBuckets:buckets});
+assert.equal(targetRecommendations[0]?.setHash,8001,'The optional target upgrade must evaluate unowned verified set definitions for the active class.');
+assert.equal(targetRecommendations[0]?.count,4,'The target upgrade must identify the highest evidence-bound set threshold that can fit around the Exotic.');
+assert.equal(targetRecommendations[0]?.missingPieces.length,4,'The target upgrade must retain the missing compatible armour slots without treating them as owned.');
+assert.deepEqual(targetRecommendations[0]?.displaySources,['Earned from the verified test activity.'],'The target upgrade must carry only Bungie-provided acquisition source text.');
 
 const constrained={fixedExoticHashes:exotic.hashes,fixedExoticSlot:0,setSelections:[{setHash:7001,count:4}]};
 const maximums=armourTargetMaximums(items,constrained);
@@ -222,6 +247,11 @@ assert.doesNotMatch(runtime,/<span>\$\{group\.owned\?`×\$\{group\.instances\.le
 assert.doesNotMatch(css,/\.forge-exotic>span|content:"ANCHOR"/,'Exotic ownership and selection must use artwork state and the PARADOX border rather than text overlays.');
 assert.match(html,/CALCULATE ALL COMBINATIONS/,'The Stat Directive must request the complete legal combination set.');
 assert.match(runtime,/CANDIDATE_BATCH_SIZE=50[\s\S]*?matchedBuilds\.slice\(0,shown\)/,'The complete result set must render in responsive batches without truncating calculation.');
+assert.match(runtime,/OPEN ARMOUR · NO SET BONUS REQUIRED[\s\S]*?Rank the top 50 exact owned combinations/,'Forge Loader must expose an explicit Open Armour mode instead of implying that an empty set selection is accidental.');
+assert.match(runtime,/if\(!setSelections\.length\)matchedBuilds=rankOpenProtocolCandidates\(matchedBuilds,exotic\)/,'Open Armour must rank owned candidates with verified Exotic-to-set evidence after satisfying stat constraints.');
+assert.match(runtime,/naturalSetProtocols\(candidate\)\.map[\s\S]*?verifiedTraitContext\(row\.trait\)/,'A naturally active Open Armour set perk must survive the protected Build Forge decision chain.');
+assert.match(runtime,/DestinyCollectibleDefinition[\s\S]*?sourceString/,'Optional acquisition guidance must resolve Bungie collectible source evidence when the item definition has no source text.');
+assert.match(runtime,/Bungie acquisition source is unresolved; no activity is claimed\./,'Forge Loader must never invent an acquisition activity when Bungie source evidence is unavailable.');
 assert.doesNotMatch(runtime,/CALCULATE 5 COMBINATIONS|refresh the five legal combinations/,'Forge Loader must not retain a five-result limitation.');
 assert.match(runtime,/Five exact Bungie armour instances · no mods[\s\S]*?UNMODDED ARMOUR TOTAL/,'Forge Matrix must identify that its ranking excludes mods.');
 assert.doesNotMatch(runtime,/ARMOUR_STAT_LABELS\[key\]\.slice/,'Calculated loads must show full stat names rather than unreadable abbreviations.');
@@ -245,7 +275,8 @@ assert.doesNotMatch(runtime,/if\(!baselineStored\)\{[^}]*?return;/,'A rejected b
 assert.match(runtime,/if\(!baselineStored&&!transferStored\)url\.searchParams\.set\('baseline','bungie-recovery'\)/,'The destination must request authenticated recovery only when the atomic baseline is unavailable.');
 assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.removeItem\(BUILD_SNAPSHOT_KEY\);[\s\S]*?store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Stale Build Forge state must be cleared before writing the newly verified compact Guardian snapshot.');
 assert.doesNotMatch(buildHandoff,/createBuildState/,'Forge Loader must not expand the compact source into duplicate Original and Working builds before navigation.');
-assert.match(html,/forge-loader\.mjs\?v=20260904-memory-safe-transfer-1/,'Forge Loader must load the memory-safe staged-armour handoff without a stale browser module.');
+assert.match(html,/forge-loader\.mjs\?v=20260904-open-armour-1/,'Forge Loader must load the Open Armour ranking and target-upgrade release without a stale browser module.');
+assert.match(html,/forge-loader\.css\?v=20260904-open-armour-1/,'Forge Loader must refresh the stronger selected-Exotic state without stale page CSS.');
 assert.match(runtime,/forge-loader-build-handoff\.mjs\?v=20260904-memory-safe-transfer-1/,'Forge Loader must refresh the protected baseline writer with the memory-safe transfer release.');
 assert.match(runtime,/vault-selection-state\.mjs\?v=20260903-compact-selection-1/,'Forge Loader must refresh the compact five-item selection writer.');
 assert.match(buildRuntime,/vault-selection-state\.mjs\?v=20260904-memory-safe-transfer-1/,'Build Forge must refresh the memory-safe compact selection reader.');
@@ -280,6 +311,9 @@ assert.match(buildRuntime,/window\.confirm\([\s\S]*?confirmPerkChangePlan\(plan\
 assert.match(perkPlanRuntime,/if\(plan\?\.status!=="confirmed"\|\|!plan\?\.confirmedAt\)throw new Error\("User confirmation is required before applying perk changes\."\);[\s\S]*?method:"POST"/,'The only Build Forge mutation client must reject every unconfirmed plan before its POST request.');
 assert.doesNotMatch(runtime,/\bDIM\b|d2armou?rpicker/i,'Forge Loader must not copy external picker branding or actions.');
 assert.match(css,/\.forge-loader-workspace\{[^}]*grid-template-columns:minmax\(360px,20%\) minmax\(640px,44%\) minmax\(560px,1fr\)/,'Wide Forge Loader must keep its page-specific narrower directive column and wider result column.');
+assert.match(css,/\.forge-exotic\.is-selected\{[^}]*border:4px solid #d62d3a[^}]*animation:forge-exotic-selected-pulse/,'The selected Exotic must have an unmistakable thick red animated perimeter.');
+assert.match(css,/@keyframes forge-exotic-selected-pulse/,'The selected Exotic perimeter must pulse without moving the armour artwork.');
+assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{\.forge-exotic\.is-selected\{animation:none\}\}/,'The selection pulse must respect reduced-motion preferences.');
 assert.match(css,/@media\(max-width:1760px\)\{\.forge-loader-workspace\{grid-template-columns:var\(--apx-workspace-compact-columns,392px minmax\(0,1fr\)\)\}\.forge-loader-output\{grid-column:1\/-1\}\}/,'Forge Loader must share the two-column workspace and move output below before compression.');
 assert.match(css,/\.forge-hero-card\{[^}]*aspect-ratio:474\/96[^}]*overflow:hidden/,'The selected Guardian emblem must fit inside its card boundary.');
 assert.match(css,/\.forge-stat-targets label>span\{[^}]*\.9rem/,'Eligible stat labels must retain the enlarged readable type scale.');
