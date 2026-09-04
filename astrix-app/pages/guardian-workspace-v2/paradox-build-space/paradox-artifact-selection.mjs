@@ -1,4 +1,4 @@
-import {recommendArtifactLoadout,recommendArtifactPerks} from '../guardian-artifact-recommender.mjs';
+import {recommendArtifactLoadout,recommendArtifactPerks} from '../guardian-artifact-recommender.mjs?v=20260904-cross-system-loop-1';
 import {createIntendedArtifactConfiguration,protectBuildState} from './paradox-build-state.mjs?v=20260904-memory-safe-transfer-1';
 
 const clone=value=>{
@@ -12,7 +12,7 @@ const sortedHashes=values=>[...new Set((Array.isArray(values)?values:[]).map(int
 function recommendationFingerprint(build={},currentSeasonNumber=null){
   const artifact=build.artifact||{};
   return JSON.stringify({
-    artifactPlanVersion:2,
+    artifactPlanVersion:3,
     characterId:String(build.characterId||''),
     currentSeasonNumber:integer(currentSeasonNumber),
     artifactHash:hashOf(artifact),
@@ -32,7 +32,9 @@ function recommendationFingerprint(build={},currentSeasonNumber=null){
     abilities:(build.subclassBuild?.abilities||build.abilities||[]).map(hashOf),
     aspects:(build.subclassBuild?.aspects||build.aspects||[]).map(hashOf),
     fragments:(build.subclassBuild?.fragments||build.fragments||[]).map(hashOf),
-    weapons:(build.weapons||[]).map(weapon=>({hash:hashOf(weapon),itemInstanceId:String(weapon?.itemInstanceId||''),element:weapon?.element||weapon?.elementDefinition?.displayProperties?.name||'',type:weapon?.weaponType||weapon?.itemTypeDisplayName||weapon?.definition?.itemTypeDisplayName||'',selectedPerks:(weapon?.weaponSemantics?.selectedPerks||weapon?.selectedPerks||[]).map(hashOf)}))
+    weapons:(build.weapons||[]).map(weapon=>({hash:hashOf(weapon),itemInstanceId:String(weapon?.itemInstanceId||''),element:weapon?.element||weapon?.elementDefinition?.displayProperties?.name||'',type:weapon?.weaponType||weapon?.itemTypeDisplayName||weapon?.definition?.itemTypeDisplayName||'',selectedPerks:(weapon?.weaponSemantics?.selectedPerks||weapon?.selectedPerks||[]).map(hashOf)})),
+    armourMods:(build.armour||[]).map(item=>({itemInstanceId:String(item?.itemInstanceId||''),mods:[...(item?.generalMods||item?.armourSemantics?.generalMods||[]),...(item?.slotMods||item?.armourSemantics?.slotMods||[])].map(hashOf)})),
+    loadoutIntent:build.loadoutIntent||null
   });
 }
 

@@ -1,5 +1,5 @@
 import {openGuardianDatabase,MANIFEST_STORE_NAME} from "./guardian-session-cache.mjs";
-import {resolveArtifactTwoCatalog} from "./guardian-artifact-catalog.mjs";
+import {resolveArtifactTwoCatalog} from "./guardian-artifact-catalog.mjs?v=20260904-artifact-sandbox-effects-1";
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
@@ -464,6 +464,7 @@ class GuardianManifestService{
     const artifactCatalog=resolveArtifact?resolveArtifactTwoCatalog({
       inventoryDefinitions:this.tables.get("DestinyInventoryItemDefinition")||definitions,
       plugSetDefinitions:this.tables.get("DestinyPlugSetDefinition")||{},
+      sandboxPerkDefinitions:this.tables.get("DestinySandboxPerkDefinition")||sandboxPerks,
       manifestVersion:this.version||null
     }):(payload.artifactCatalog||[]);
     const requested=[...inventory,...expandedHashes];

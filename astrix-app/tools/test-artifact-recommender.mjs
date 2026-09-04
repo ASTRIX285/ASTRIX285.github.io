@@ -121,19 +121,21 @@ const artifactTwoInventory={
   '2102':{hash:2102,itemTypeDisplayName:'Artifact Perk',displayProperties:{name:'Charged Arsenal',description:'Armour Charge improves weapon damage.',icon:'/perk/charge.png'}},
   '2201':{hash:2201,itemTypeDisplayName:'Artifact Perk',displayProperties:{name:'Void Guard',description:'Void effects grant an overshield.',icon:'/perk/void.png'}},
   '2202':{hash:2202,itemTypeDisplayName:'Artifact Perk',displayProperties:{name:'Quiet Reserve',description:'Gain handling while crouched.',icon:'/perk/quiet.png'}},
+  '2203':{hash:2203,itemTypeDisplayName:'Artifact Perk',displayProperties:{name:'Sandbox Resolved Loop',description:'',icon:'/perk/resolved.png'},perks:[{perkHash:4203}]},
   '2999':{hash:2999,itemTypeDisplayName:'Intrinsic',displayProperties:{name:'Artifact Frame',description:'Artifact frame.'}}
 };
 const artifactTwoPlugSets={
   '3001':{reusablePlugItems:[{plugItemHash:2101}]},
   '3002':{reusablePlugItems:[{plugItemHash:2102}]},
   '3003':{reusablePlugItems:[{plugItemHash:2201}]},
-  '3004':{reusablePlugItems:[{plugItemHash:2202}]},
+  '3004':{reusablePlugItems:[{plugItemHash:2202},{plugItemHash:2203}]},
   '3999':{reusablePlugItems:[{plugItemHash:2999}]}
 };
-const artifactTwoCatalog=resolveArtifactTwoCatalog({inventoryDefinitions:artifactTwoInventory,plugSetDefinitions:artifactTwoPlugSets,manifestVersion:'artifact-2-test'});
+const artifactTwoCatalog=resolveArtifactTwoCatalog({inventoryDefinitions:artifactTwoInventory,plugSetDefinitions:artifactTwoPlugSets,sandboxPerkDefinitions:{'4203':{displayProperties:{name:'Sandbox Resolved Loop',description:'Grenade final blows create an Orb of Power and grant Super energy.'}}},manifestVersion:'artifact-2-test'});
 assert.equal(artifactTwoCatalog.length,2);
 assert.equal(artifactTwoCatalog[0].selectionLimit,2,'Artifact capacity must come from selectable socket buckets, not a fixed perk count');
 assert.equal(artifactTwoCatalog[0].selectionSlots.length,2,'non-perk sockets must not become Artifact buckets');
+const sandboxResolved=artifactTwoCatalog.flatMap(row=>row.perks).find(perk=>perk.hash===2203);assert.equal(sandboxResolved?.displayResolved,true,'Artifact 2.0 perks must inherit effect text from DestinySandboxPerkDefinition when the inventory item description is blank.');assert.match(sandboxResolved?.description||'',/Orb of Power/);
 const artifactTwoResult=recommendArtifactLoadout(forgeBuild,artifactTwoCatalog,{currentSeasonNumber:99});
 assert.equal(artifactTwoResult.status,'current','Artifact 2.0 catalogue choices are permanent manifest options, not a stale seasonal point tree');
 assert.equal(artifactTwoResult.selectionModel,'artifact-2-socket-buckets');

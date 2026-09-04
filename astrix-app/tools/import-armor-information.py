@@ -294,6 +294,7 @@ def compact_plug_definition(hash_text: str, definition: dict[str, Any]) -> dict[
 def artifact_catalog(
     inventory: dict[str, Any],
     plug_set_definitions: dict[str, Any],
+    sandbox_perks: dict[str, Any],
     manifest_version: str,
 ) -> list[dict[str, Any]]:
     """Build the compact legal Artifact 2.0 socket catalogue for Build Forge."""
@@ -378,15 +379,39 @@ def artifact_catalog(
                 seen_perks.add(identity)
                 perk_definition = inventory.get(str(perk_hash)) or {}
                 display = compact_display(perk_definition)
+                sandbox_hashes = [
+                    int(row["perkHash"])
+                    for row in perk_definition.get("perks") or []
+                    if isinstance(row, dict) and isinstance(row.get("perkHash"), int)
+                ]
+                sandbox_displays = [
+                    compact_display(sandbox_perks[str(sandbox_hash)])
+                    for sandbox_hash in sandbox_hashes
+                    if isinstance(sandbox_perks.get(str(sandbox_hash)), dict)
+                ]
+                resolved_name = str(display.get("name") or next(
+                    (row.get("name") for row in sandbox_displays if row.get("name")),
+                    f"Artifact perk {perk_hash}",
+                ))
+                resolved_description = str(display.get("description") or " ".join(dict.fromkeys(
+                    str(row.get("description") or "").strip()
+                    for row in sandbox_displays
+                    if str(row.get("description") or "").strip()
+                )))
+                resolved_icon = str(display.get("icon") or next(
+                    (row.get("icon") for row in sandbox_displays if row.get("icon")),
+                    "",
+                ))
                 perks.append({
                     "hash": perk_hash,
                     "bungieHash": perk_hash,
-                    "name": str(display.get("name") or f"Artifact perk {perk_hash}"),
-                    "description": str(display.get("description") or ""),
-                    "icon": absolute_url(str(display.get("icon") or "")) if display.get("icon") else "",
+                    "sandboxPerkHash": sandbox_hashes[0] if sandbox_hashes else None,
+                    "name": resolved_name,
+                    "description": resolved_description,
+                    "icon": absolute_url(resolved_icon) if resolved_icon else "",
                     "definition": compact_plug_definition(str(perk_hash), perk_definition),
-                    "displayResolved": bool(display.get("name") and display.get("description")),
-                    "unresolved": not bool(display.get("name") and display.get("description")),
+                    "displayResolved": bool(resolved_name and resolved_description),
+                    "unresolved": not bool(resolved_name and resolved_description),
                     "isActive": False,
                     "isVisible": True,
                     "tierUnlocked": True,
@@ -533,7 +558,7 @@ def forge_index_payload(
         for hash_value in sorted(socket_category_hashes)
         if isinstance(socket_category_definitions.get(str(hash_value)), dict)
     }
-    compact_artifacts = artifact_catalog(inventory, plug_set_definitions, manifest_version)
+    compact_artifacts = artifact_catalog(inventory, plug_set_definitions, sandbox_perks, manifest_version)
     return {
         "schemaVersion": 4,
         "manifestVersion": manifest_version,

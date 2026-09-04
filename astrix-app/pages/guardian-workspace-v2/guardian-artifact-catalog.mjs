@@ -31,6 +31,20 @@ function plugHashes(entry,plugSets){
   return [...new Set([...direct,...fromSet].filter(hash=>hash!==null))];
 }
 
+function artifactPerkDisplay(definition,sandboxPerks){
+  const display=definition?.displayProperties||{};
+  const hashes=(definition?.perks||[]).map(row=>integer(row?.perkHash)).filter(hash=>hash!==null);
+  const resolved=[...(definition?.resolvedSandboxPerks||[]),...hashes.map(hash=>sandboxPerks[String(hash)])].filter(Boolean);
+  const descriptions=[...new Set(resolved.map(row=>String(row?.displayProperties?.description||'').trim()).filter(Boolean))];
+  const fallback=resolved.find(row=>row?.displayProperties?.name||row?.displayProperties?.icon)?.displayProperties||{};
+  return {
+    name:String(display.name||fallback.name||''),
+    description:String(display.description||descriptions.join(' ')),
+    icon:String(display.icon||fallback.icon||''),
+    sandboxPerkHash:hashes[0]??null
+  };
+}
+
 function artifactIdentity(definition,hash,manifestVersion){
   const display=definition?.displayProperties||{};
   return {
@@ -50,9 +64,10 @@ function artifactIdentity(definition,hash,manifestVersion){
   };
 }
 
-function resolveArtifactTwoCatalog({inventoryDefinitions={},plugSetDefinitions={},manifestVersion=null}={}){
+function resolveArtifactTwoCatalog({inventoryDefinitions={},plugSetDefinitions={},sandboxPerkDefinitions={},manifestVersion=null}={}){
   const inventory=record(inventoryDefinitions);
   const plugSets=record(plugSetDefinitions);
+  const sandboxPerks=record(sandboxPerkDefinitions);
   const candidates=Object.entries(inventory)
     .map(([key,definition])=>({hash:definitionHash(definition,key),definition}))
     .filter(row=>row.hash!==null&&isArtifactItemDefinition(row.definition));
@@ -93,13 +108,14 @@ function resolveArtifactTwoCatalog({inventoryDefinitions={},plugSetDefinitions={
     if(!selectionSlots.length)return null;
     const perks=selectionSlots.flatMap(slot=>slot.perkHashes.map((perkHash,itemIndex)=>{
       const perkDefinition=inventory[String(perkHash)]||null;
-      const display=perkDefinition?.displayProperties||{};
+      const display=artifactPerkDisplay(perkDefinition,sandboxPerks);
       return {
         hash:perkHash,
         bungieHash:perkHash,
         name:String(display.name||`Artifact perk ${perkHash}`),
         description:String(display.description||''),
         icon:absoluteIcon(display.icon),
+        sandboxPerkHash:display.sandboxPerkHash,
         definition:perkDefinition,
         displayResolved:Boolean(display.name&&display.description),
         unresolved:!display.name||!display.description,

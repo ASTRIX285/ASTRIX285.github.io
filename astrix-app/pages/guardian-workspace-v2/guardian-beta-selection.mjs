@@ -1,4 +1,4 @@
-import {guardianManifest} from './guardian-manifest-service.mjs';
+import {guardianManifest} from './guardian-manifest-service.mjs?v=20260904-artifact-sandbox-effects-1';
 
 const MANIFEST_URL='../../data/paradox-forge/beta/beta-bungie-manifest-cache.json';
 const BUNGIE_ROOT='https://www.bungie.net';

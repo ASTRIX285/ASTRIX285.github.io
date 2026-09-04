@@ -237,6 +237,10 @@ function effectSources(build, weapons) {
   for (const ability of build?.subclassBuild?.abilities ?? build?.abilities ?? []) add('selected ability', ability, 28);
   for (const aspect of build?.subclassBuild?.aspects ?? build?.aspects ?? []) add('selected Aspect', aspect, 28);
   for (const fragment of build?.subclassBuild?.fragments ?? build?.fragments ?? []) add('selected Fragment', fragment, 24);
+  for (const step of build?.loadoutIntent?.sequence ?? []) add(`build-loop step ${step.order ?? ''}`.trim(), step, Number(step.weight ?? 38));
+  for (const armour of build?.armour ?? []) {
+    for (const mod of [...(armour?.generalMods ?? []), ...(armour?.slotMods ?? [])]) add(`${text(armour?.name) || 'armour'} mod`, mod, 30);
+  }
   for (const weapon of weapons) {
     for (const effect of weapon.selectedEffects) add(`${weapon.name || 'equipped weapon'} perk`, effect, 24);
   }
@@ -376,6 +380,7 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
       artifactHash,
       selectionLimit: 0,
       selectedPerkHashes: [],
+      selectionSequence: [],
       recommendations: [],
       blockers: [state.blocker]
     };
@@ -405,6 +410,12 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
     selectionOrder: selectionOrder.get(row.perk.hash) ?? null
   }));
   const selectedMatchedCount = selected.filter(row => row.score > 0).length;
+  const selectionSequence=selected.map((row,index)=>({
+    order:index+1,
+    artifactPerk:perkCitation(row.perk),
+    score:row.score,
+    reason:row.reasons?.[0]?.label||`Legal pick for Artifact bucket ${row.perk.column}.`
+  }));
   const blockers = [];
   if (selectionLimit === 0) blockers.push(artifactTwo?'Artifact 2.0 exposes no selectable socket buckets.':planFullBuild?'No verified current Artifact perks are available for a target build plan.':'Bungie reports no Artifact unlock points available for this configuration.');
   if (socketSelection?.shortages.length) blockers.push('One or more Artifact 2.0 buckets could not be filled from verified manifest perk choices.');
@@ -425,6 +436,7 @@ export function recommendArtifactPerks(build, artifactData, { currentSeasonNumbe
     selectionSlots:artifactTwo?artifactData.selectionSlots.map(slot=>({tierIndex:finiteInteger(slot?.tierIndex),bucket:finiteInteger(slot?.bucket),capacity:finiteInteger(slot?.capacity),perkHashes:(slot?.perkHashes||[]).map(finiteInteger).filter(hash=>hash!==null)})):null,
     selectionLimit,
     selectedPerkHashes: selected.map(row => row.perk.hash),
+    selectionSequence,
     selectedMatchedCount,
     totalScore: selected.reduce((sum, row) => sum + row.score, 0),
     eligiblePerkCount: eligible.length,
