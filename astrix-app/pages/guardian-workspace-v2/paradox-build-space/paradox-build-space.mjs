@@ -1,4 +1,4 @@
-import {ForgePreparationClient,preparationVariants} from './paradox-forge-preparation.mjs?v=20260905-background-forge-1';
+import {ForgePreparationClient,preparationVariants} from './paradox-forge-preparation.mjs?v=20260905-generation-review-1';
 import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,createWorkingBuildPatch,createBuildPersistenceSnapshot,restoreBuildPersistenceSnapshot,protectBuildState,restoreWorkingBuild} from './paradox-build-state.mjs?v=20260904-memory-safe-transfer-1';
 import {mountForgeShell} from '../platform-forge-shell.mjs';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs?v=20260902-shared-account-orbit-1';
@@ -512,10 +512,16 @@ function mergeComposedRecommendation(build={},composed={}){const next={...build}
 async function updateForgeGenerationPhase(message){const status=byId('forgeGenerationStatus');if(status)status.textContent=message;await new Promise(resolve=>setTimeout(resolve,0));}
 async function generateMaxLoadout(){
   if(recommendationBusy)return;
-  const state=readState(),build=state?.workingBuild,armourValidation=validateTierFiveArmour(build||{}),exoticValidation=validateExoticLoadout(build||{},{requireArmourAnchor:true}),candidate=filterExoticCompatibleSubclasses(build||{},resolvedSubclassOptions(build||{}).filter(hasVerifiedSubclassSockets)).find(item=>elementOf(item)===selectedRecommendationElement);
-  if(!state?.originalBuild||!build?.forgeLoaderDecision||!armourValidation.ready||!exoticValidation.ready||!candidate){const reason=!build?.forgeLoaderDecision?'Forge Loader decision required.':armourValidation.reason||exoticValidation.reason||'The selected elemental build option is not supported by this Guardian’s verified subclass catalogue.';const status=byId('recommendationReadiness');if(status){status.className='recommendation-readiness is-blocked';status.textContent=reason;}return;}
-  recommendationBusy=true;renderRecommendationControls(build);await showForgeGenerationLoader(selectedRecommendationElement);
+  recommendationBusy=true;
+  let failureMessage='';
+  renderRecommendationControls(currentBuild()||{});
   try{
+    // Finish any in-flight Artifact refresh before capturing the generation
+    // snapshot so an unrelated refresh cannot invalidate this review request.
+    await refreshForgeArtifactRecommendation();
+    const state=readState(),build=state?.workingBuild,armourValidation=validateTierFiveArmour(build||{}),exoticValidation=validateExoticLoadout(build||{},{requireArmourAnchor:true}),candidate=filterExoticCompatibleSubclasses(build||{},resolvedSubclassOptions(build||{}).filter(hasVerifiedSubclassSockets)).find(item=>elementOf(item)===selectedRecommendationElement);
+    if(!state?.originalBuild||!build?.forgeLoaderDecision||!armourValidation.ready||!exoticValidation.ready||!candidate){const reason=!build?.forgeLoaderDecision?'Forge Loader decision required.':armourValidation.reason||exoticValidation.reason||'The selected elemental build option is not supported by this Guardian’s verified subclass catalogue.';throw new Error(reason);}
+    await showForgeGenerationLoader(selectedRecommendationElement);
     clearTimeout(preparationTimer);
     await prepareForgeBackground(build);
     if(readState()!==state)throw new Error('The source build changed. Generate again for the current selection.');
@@ -524,13 +530,18 @@ async function generateMaxLoadout(){
     let working={...build,...prepared.patch};
     // Recheck the prepared selection at the point of review; never execute live actions here.
     const coherence=validateLoadoutCoherence(working);if(!coherence.ready)throw new Error(coherence.reason);
-    working.liveTransferPreflight=createLiveTransferPreflight(working);if(!working.liveTransferPreflight.ready)throw new Error(working.liveTransferPreflight.violations[0]||'Live transfer preflight failed.');
+    // Apply readiness is review information, not permission to hide a valid
+    // generated recommendation. The review renders blockers and disables Apply.
+    working.liveTransferPreflight=createLiveTransferPreflight(working);
     let next=protectBuildState({...state,workingBuild:working,recommendation:prepared.recommendation});
     await updateForgeGenerationPhase('PREPARING BUILD REVIEW…');
     if(readState()!==state)throw new Error('The source build changed. Generate again for the current selection.');
     next=protectBuildState({...next,workingBuild:working});writeState(next);render();hideForgeGenerationLoader();openRecommendedBuild();
-  }catch(error){const status=byId('recommendationReadiness');if(status){status.className='recommendation-readiness is-blocked';status.textContent=error?.message||'Unable to generate a verified recommendation.';}console.error('Build Forge recommendation generation failed.',error);}
-  finally{hideForgeGenerationLoader();recommendationBusy=false;renderRecommendationControls(currentBuild()||{});}
+  }catch(error){failureMessage=error?.message||'Unable to generate a verified recommendation.';console.error('Build Forge recommendation generation failed.',error);}
+  finally{
+    hideForgeGenerationLoader();recommendationBusy=false;renderRecommendationControls(currentBuild()||{});
+    if(failureMessage){const status=byId('recommendationReadiness');if(status){status.className='recommendation-readiness is-blocked';status.textContent=failureMessage;}}
+  }
 }
 
 function renderBuildSurface(){

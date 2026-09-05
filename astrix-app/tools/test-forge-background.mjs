@@ -22,6 +22,10 @@ assert.equal(result.patch.liveTransferPreflight.ready,true);
 assert.equal(result.patch.artifactRecommendation.selectionStatus,'ready');
 assert.equal(JSON.stringify(build),before,'Preparation cannot change live or staged inputs.');
 assert.equal('ownedWeapons' in result.patch,false,'Prepared results must not duplicate the owned catalogue.');
+const reviewOnlyResult=await prepareForgeSequence({build:{...build,membershipId:''},candidate:nothingManaclesCandidate,...variant,currentSeasonNumber:31},{advise:async()=>{}});
+assert.ok(reviewOnlyResult.patch.recommendationGeneratedAt,'A coherent generated build must remain reviewable when Apply is unavailable.');
+assert.equal(reviewOnlyResult.patch.liveTransferPreflight.ready,false,'Apply preflight blockers must be retained as review information.');
+assert.match(reviewOnlyResult.patch.liveTransferPreflight.violations.join(' | '),/authenticated Guardian and Destiny membership binding/,'A generated review must explain why Apply remains blocked.');
 await assert.rejects(prepareForgeSequence({build,candidate:nothingManaclesCandidate,...variant,superHash:999999}),/selected Super/);
 await assert.rejects(prepareForgeSequence({build:{},candidate:nothingManaclesCandidate,...variant}),/Forge Loader/);
 

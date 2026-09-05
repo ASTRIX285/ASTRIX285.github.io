@@ -150,7 +150,7 @@ for(const page of globalHeroPages){
 }
 assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1'))).length,3,'Journey, Vault and Loadout must load the same scoped-profile Guardian renderer');
 assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260905-manual-editor-2'),'Character must load the verified manual loadout-action module graph');
-assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260905-manual-editor-2'),'Build Forge must load the manual editor and guarded Apply sequence without stale page-specific code');
+assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260905-generation-review-1'),'Build Forge must load the generated-review correction without stale page-specific code');
 assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260905-weapon-audit-1'),'Mission Reports must load the latest-played Guardian module graph');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
