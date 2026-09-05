@@ -4,8 +4,8 @@ import {
   loadSelectedLoadout,
   characterRoster,
   selectLiveCharacter
-} from "./guardian-bungie-profile.mjs?v=20260905-weapon-audit-1";
-import { renderGuardianLoadouts } from "./guardian-loadouts.mjs";
+} from "./guardian-bungie-profile.mjs?v=20260905-manual-editor-2";
+import { renderGuardianLoadouts } from "./guardian-loadouts.mjs?v=20260905-loadout-actions-1";
 import {renderEquippedSubclass,renderSuperFormation} from "./guardian-super-formation.mjs?v=20260829-subclass-identity-1";
 
 const PLAYER_POWER_CAP = 550;

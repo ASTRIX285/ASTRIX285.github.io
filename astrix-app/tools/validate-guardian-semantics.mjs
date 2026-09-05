@@ -166,15 +166,18 @@ try{
   if(advice.fixedEvidence?.traitCount!==1||advice.fixedEvidence?.catalystMasterworked!==true)fail('G3d: completed Exotic catalyst was not retained as fixed recommendation evidence');
 }catch(error){fail(`G3d threw: ${error.message}`);}
 
-// G3e — Live changes are always equip-first and all-or-nothing. Perk mutation
-// cannot run ahead of equipment verification or absent full route support.
+// G3e — Live changes are exact-item plans whose mutation phases remain blocked
+// until every required authenticated capability is advertised.
 try{
-  const build={characterId:'guardian-1',weapons:Array.from({length:3},(_,index)=>({itemInstanceId:`weapon-${index}`})),armour:Array.from({length:5},(_,index)=>({itemInstanceId:`armour-${index}`})),artifactConfiguration:{artifactHash:3000,selectedPerkHashes:[3001,3002]},armourModRecommendation:{decisions:[]}};
-  const advice={stagedChanges:[{itemInstanceId:'weapon-0',socketIndex:3,currentPlugHash:1,plugHash:2}]};
+  const characterId='71001',weaponBuckets=[1498876634,2465295065,953998645],armourBuckets=[3448274439,3551918588,14239492,20886954,1585787867];
+  const build={characterId,membershipId:'72001',membershipType:'3',characterClass:'hunter',weapons:weaponBuckets.map((bucketHash,index)=>({itemHash:73000+index,itemInstanceId:String(73100+index),bucketHash,source:{kind:'equipped',characterId}})),armour:armourBuckets.map((bucketHash,index)=>({itemHash:74000+index,itemInstanceId:String(74100+index),bucketHash,classType:1,source:{kind:'equipped',characterId}})),artifactConfiguration:{artifactHash:3000,selectedPerkHashes:[3001,3002]},armourModRecommendation:{decisions:[]}};
+  const advice={stagedChanges:[{itemInstanceId:'73100',itemHash:73000,socketIndex:3,currentPlugHash:1,plugHash:2,source:'bungie-item-reusable-plugs',remoteInsertEvidence:'exact-item-reusable-plug',remoteSupported:true}]};
   const blocked=transferPlans.createLiveTransferPlan({build,advice});
-  if(blocked.ready||blocked.phases.map(row=>row.key).join(',')!=='snapshot,equip,verify-equipment,weapon-perks,armour-mods,artifact,verify-final')fail('G3e: incomplete route support did not preserve the equip-first blocked transfer sequence');
-  const supported=transferPlans.createLiveTransferPlan({build,advice,capabilities:{captureSnapshot:true,equipItems:true,verifyEquipment:true,insertWeaponPerks:true,insertArmourMods:true,applyArtifact:true,verifyFinalState:true}});
-  if(!supported.ready||supported.executionPolicy!=='equip-then-mutate-sockets-then-verify')fail('G3e: complete route support did not produce a ready equip-first plan');
+  if(blocked.ready||blocked.phases.map(row=>row.key).join(',')!=='captureSnapshot,transferItems,equipItems,verifyEquipment,insertSocketPlugFree,verifyFinalState')fail('G3e: incomplete route support did not preserve the fresh-read transfer/equip/socket/readback sequence');
+  const supported=transferPlans.createLiveTransferPlan({build,advice,capabilities:{captureSnapshot:true,transferItems:true,equipItems:true,verifyEquipment:true,insertSocketPlugFree:true,verifyFinalState:true}});
+  if(!supported.ready||supported.executionPolicy!=='fresh-read-transfer-equip-free-sockets-final-readback'||supported.socketChanges.length!==1)fail('G3e: complete route support did not produce a ready exact-item plan');
+  const compatibleOnly=transferPlans.createLiveTransferPlan({build,advice:{stagedChanges:[{...advice.stagedChanges[0],source:'bungie-profile-plug-set',remoteInsertEvidence:'compatible-plug-set',remoteSupported:false}]},capabilities:{captureSnapshot:true,transferItems:true,equipItems:true,verifyEquipment:true,insertSocketPlugFree:true,verifyFinalState:true}});
+  if(!compatibleOnly.ready||compatibleOnly.socketChanges.length||!compatibleOnly.inGameSteps.some(row=>row.includes('not verified as a free remote insertion')))fail('G3e: compatible-only plug-set evidence was not preserved as an explicit in-game step');
 }catch(error){fail(`G3e threw: ${error.message}`);}
 
 // G4 — Stat threshold is above 100, not merely at 100.

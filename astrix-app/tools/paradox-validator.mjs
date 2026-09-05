@@ -32,6 +32,8 @@ const validators=[
   'validate-paradox-item-cards.mjs',
   'test-build-space-character-isolation.mjs',
   'validate-paradox-build-space.mjs',
+  'test-manual-build-editor.mjs',
+  'validate-live-actions-worker.mjs',
   'validate-guardian-semantics.mjs',
   'validate-weapon-perk-apply.mjs',
   'validate-weapon-rolls.mjs'

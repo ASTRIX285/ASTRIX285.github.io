@@ -3,7 +3,8 @@ import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIn
 import {mountForgeShell} from '../platform-forge-shell.mjs';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs?v=20260902-shared-account-orbit-1';
 import {analyzeLiveGuardian,renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs?v=20260905-background-forge-1';
-import {createLiveTransferPlan} from '../guardian-perk-change-plan.mjs?v=20260904-weapon-model-2';
+import {createLiveTransferPlan} from '../guardian-perk-change-plan.mjs?v=20260905-manual-editor-1';
+import {liveActionCapabilities,confirmLiveTransferPlan,executeLiveTransferPlan} from '../guardian-live-actions.mjs?v=20260905-manual-editor-2';
 import {armourCard} from '../guardian-gear-layout.mjs?v=20260905-card-space-mods-1';
 import {openArmourDrawer} from '../guardian-beta-runtime.mjs?v=20260905-weapon-audit-1';
 import {renderWeapons,openWeaponDetail,weaponPerkMatrixMarkup,weaponTraitHierarchyMarkup} from '../guardian-semantic-ui.mjs?v=20260905-card-space-mods-1';
@@ -12,16 +13,19 @@ import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from '
 import {mergeSubclassCatalog,mergeSuperOptions} from '../guardian-super-catalog.mjs?v=20260829-subclass-identity-1';
 import {markGuardianFastReturn,readForgeLoaderTransfer} from '../guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
 import {guardianManifest} from '../guardian-manifest-service.mjs?v=20260905-weapon-audit-1';
-import {AUTH_ORIGIN} from '../guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
+import {AUTH_ORIGIN,getBungieSession} from '../guardian-bungie-auth.mjs?v=20260905-manual-editor-1';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope} from '../paradox-build-binding.mjs';
 import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs?v=20260904-cross-system-loop-1';
 import {BUILD_ELEMENTS,validateTierFiveArmour} from './paradox-build-recommendation.mjs';
 import {composeForgeRecommendation,filterExoticCompatibleSubclasses,hasVerifiedSubclassSockets,synchroniseSubclassProjection} from './paradox-forge-intelligence.mjs?v=20260904-exotic-anchor-1';
-import {createLiveTransferPreflight,deriveLoadoutIntent,recommendArmourMods,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateLoadoutCoherence} from './paradox-loadout-intelligence.mjs?v=20260905-weapon-audit-1';
+import {createLiveTransferPreflight,deriveLoadoutIntent,recommendArmourMods,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateLoadoutCoherence} from './paradox-loadout-intelligence.mjs?v=20260905-manual-editor-2';
+import {eligibleEquipment,recordManualEdit,socketGroups,stageEquipmentChoice,stageSocketChoice,stageSubclassSocketChoice} from './paradox-manual-editor.mjs?v=20260905-manual-editor-2';
+import {saveParadoxLoadout} from './paradox-saved-loadouts.mjs?v=20260905-manual-editor-1';
+import {createVaultCatalogue,prepareArmourSelection} from '../../vault/vault-inventory.mjs?v=20260905-manual-editor-1';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3&loader=2';
-import '../guardian-loadouts.mjs';
-import '../guardian-bungie-profile.mjs?v=20260905-weapon-audit-1';
+import '../guardian-loadouts.mjs?v=20260905-loadout-actions-1';
+import {normaliseLiveProfile} from '../guardian-bungie-profile.mjs?v=20260905-manual-editor-1';
 import '../guardian-portal-progress.mjs?v=20260905-weapon-audit-1&loader=2';
 import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
@@ -48,6 +52,11 @@ let selectedRecommendationObjective='';
 let recommendationBusy=false;
 let preparationTimer=null;
 let activePreparationKey='';
+let manualInventory=null;
+let manualInventoryRequest=null;
+let manualEditorState={kind:'weapon',slotIndex:0,search:'',visibleItems:[],socketOptions:new Map()};
+let pendingApplyPlan=null;
+let liveActionBusy=false;
 const forgePreparation=new ForgePreparationClient({onStatus:message=>{
   const status=byId('forgePreparationStatus');
   if(status&&message.key===activePreparationKey)status.textContent=message.type==='ready'?'Build option ready':message.type==='error'?'This option needs additional verified data.':'Preparing build options…';
@@ -134,14 +143,129 @@ function blankArmourModCanvas(){
   document.querySelectorAll('#armourGrid .gear-mods').forEach(grid=>{grid.classList.add('is-recommendation-pending');grid.dataset.modPresentation='pending';grid.setAttribute('aria-label','Blank AI mod recommendation canvas');grid.innerHTML=blankSlots;});
 }
 function renderArmourRecommendationState(build={}){
-  const generated=Boolean(build.recommendationGeneratedAt),state=byId('armourBuildState'),instruction=byId('armourBuildInstruction'),evidence=byId('armourBuildEvidence');
-  if(state)state.textContent=generated?'PARADOX RECOMMENDATION · REVIEW REQUIRED':'STAGED ARMOUR · MOD PLAN PENDING';
-  if(instruction)instruction.textContent=generated?'AI mod plan generated · review the recommendation before live action':'Blank recommendation canvas · select an elemental build and generate the AI sequence';
-  if(evidence)evidence.textContent=generated?'Original and installed mods remain protected':'Installed mods retained as evaluation evidence';
-  if(!generated)blankArmourModCanvas();
+  const generated=Boolean(build.recommendationGeneratedAt),manual=build.editMode==='manual',state=byId('armourBuildState'),instruction=byId('armourBuildInstruction'),evidence=byId('armourBuildEvidence');
+  if(state)state.textContent=generated?'PARADOX RECOMMENDATION · REVIEW REQUIRED':manual?'MANUAL WORKING BUILD':'STAGED ARMOUR · MOD PLAN PENDING';
+  if(instruction)instruction.textContent=generated?'AI mod plan generated · review the recommendation before live action':manual?'Exact owned armour and verified reusable mods staged manually.':'Choose exact owned armour manually, or select an elemental build and generate an AI sequence.';
+  if(evidence)evidence.textContent=generated?'Original and installed mods remain protected':manual?'Every manual socket choice retains Bungie instance and reusable-plug evidence.':'Installed mods retained as evaluation evidence';
+  if(!generated&&!manual)blankArmourModCanvas();
 }
-function renderBuildGear(build={}){byId('weaponGrid').innerHTML=Array.from({length:3},(_,i)=>gearCard(build.weapons?.[i],`Weapon slot ${i+1}`)).join('');byId('armourGrid').innerHTML=Array.from({length:5},(_,i)=>gearCard(build.armour?.[i],`Armour slot ${i+1}`)).join('');renderArmourRecommendationState(build);renderWeapons(build.weapons||[]);byId('weaponRecommendationState').textContent=build.recommendationGeneratedAt?'PARADOX VERIFIED SELECTION':'GENERATE TO RECOMMEND';}
+function renderBuildGear(build={}){byId('weaponGrid').innerHTML=Array.from({length:3},(_,i)=>gearCard(build.weapons?.[i],`Weapon slot ${i+1}`)).join('');byId('armourGrid').innerHTML=Array.from({length:5},(_,i)=>gearCard(build.armour?.[i],`Armour slot ${i+1}`)).join('');renderArmourRecommendationState(build);renderWeapons(build.weapons||[]);byId('weaponRecommendationState').textContent=build.recommendationGeneratedAt?'PARADOX VERIFIED SELECTION':build.editMode==='manual'?'MANUAL WORKING BUILD':'MANUAL OR PARADOX';}
 function currentBuild(){const state=readState();return state?.workingBuild||state?.originalBuild||null;}
+
+const manualItemId=item=>String(item?.itemInstanceId||item?.instanceId||'');
+const manualHash=item=>Number(item?.hash??item?.itemHash??item?.bungieHash);
+function setLiveActionBanner(message,state=''){
+  const node=byId('liveActionBanner');if(!node)return;
+  node.className=`live-action-banner${state?` is-${state}`:''}`;node.textContent=message;
+}
+function manualSlotLabels(kind){return kind==='weapon'?['KINETIC','ENERGY','POWER']:['HELMET','GAUNTLETS','CHEST','LEGS','CLASS ITEM'];}
+function currentManualItem(build,kind,slotIndex){return (kind==='weapon'?build?.weapons:build?.armour)?.[slotIndex]||null;}
+function manualInventoryKey(build={}){return `${build.membershipType}:${build.membershipId||build.bungieMembershipId}:${build.characterId}`;}
+async function loadManualInventory(build={}){
+  const key=manualInventoryKey(build);
+  if(manualInventory?.key===key)return manualInventory;
+  if(manualInventoryRequest?.key===key)return manualInventoryRequest.promise;
+  const promise=(async()=>{
+    await guardianManifest.ready();
+    const url=new URL('/bungie/profile',AUTH_ORIGIN);url.searchParams.set('scope','forge');
+    if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
+    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}}),payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload?.error||`Owned inventory request failed (${response.status}).`);
+    await guardianManifest.hydratePayload(payload);
+    const session=globalThis.ASTRIX_BUNGIE_SESSION||await getBungieSession(),normalized=normaliseLiveProfile(payload,session,build.characterId),vault=createVaultCatalogue(payload);
+    const unique=(rows,current)=>{const map=new Map();for(const item of [...(rows||[]),...(current||[])])if(manualItemId(item))map.set(manualItemId(item),item);return [...map.values()];};
+    manualInventory={key,payload,weapons:unique(normalized.ownedWeapons,build.weapons),armour:prepareArmourSelection(payload,unique(vault.armour,build.armour)),loadedAt:new Date().toISOString()};
+    return manualInventory;
+  })();
+  manualInventoryRequest={key,promise};
+  try{return await promise;}finally{if(manualInventoryRequest?.promise===promise)manualInventoryRequest=null;}
+}
+function manualItemCard(item,index,selected){
+  const icon=abs(iconOf(item)),name=esc(item?.name||'Destiny item'),source=esc(item?.source?.label||item?.source?.kind||'Owned'),power=Number(item?.power),meta=[source,Number.isFinite(power)?`POWER ${power}`:'',item?.weaponType||item?.slotLabel||item?.tier].filter(Boolean).join(' · '),exotic=Boolean(item?.isExotic||String(item?.tier||'').toLowerCase()==='exotic');
+  return `<button type="button" class="manual-item-card${selected?' is-selected':''}${exotic?' is-exotic':''}" data-manual-item-index="${index}" aria-pressed="${selected}" title="${name} · exact instance ${esc(manualItemId(item))}"><span>${icon?`<img src="${esc(icon)}" alt="">`:'◆'}</span><span><b>${name}</b><small>${esc(meta)}</small></span></button>`;
+}
+function renderManualEditor(){
+  const build=currentBuild(),kind=manualEditorState.kind,slotIndex=manualEditorState.slotIndex,labels=manualSlotLabels(kind),catalogue=manualInventory?.key===manualInventoryKey(build)?manualInventory[kind==='weapon'?'weapons':'armour']:[],current=currentManualItem(build,kind,slotIndex),search=manualEditorState.search.trim().toLowerCase();
+  byId('manualEditorTitle').textContent=kind==='weapon'?'EDIT WEAPONS & PERKS':'EDIT ARMOUR & MODS';
+  byId('manualEditorSubtitle').textContent=`${String(build?.characterClass||'Guardian').toUpperCase()} · ${labels[slotIndex]} · changes remain in the Working Build`;
+  byId('manualEditorSlots').innerHTML=labels.map((label,index)=>`<button type="button" data-manual-slot="${index}" class="${index===slotIndex?'is-active':''}" aria-pressed="${index===slotIndex}">${label}</button>`).join('');
+  let rows=eligibleEquipment(catalogue,build||{},kind,slotIndex);
+  if(search)rows=rows.filter(item=>[item?.name,item?.source?.label,item?.source?.kind,item?.weaponType,item?.tier,item?.slotLabel].filter(Boolean).join(' ').toLowerCase().includes(search));
+  manualEditorState.visibleItems=rows;
+  byId('manualEditorItems').innerHTML=rows.length?rows.map((item,index)=>manualItemCard(item,index,manualItemId(item)===manualItemId(current))).join(''):'<div class="manual-editor-status is-bad">No exact owned item matches this slot and search.</div>';
+  const status=byId('manualEditorStatus');if(status){status.className='manual-editor-status';status.textContent=manualInventory?`${rows.length} exact owned option${rows.length===1?'':'s'} · select an item, then choose any verified reusable socket option below.`:'Loading exact owned inventory…';}
+  const groups=socketGroups(current,kind),optionMap=new Map();manualEditorState.socketOptions=optionMap;
+  byId('manualEditorSockets').innerHTML=groups.length?`<div class="manual-socket-groups">${groups.map(group=>`<div class="manual-socket-group"><strong>${esc(group.label)} · SOCKET ${group.socketIndex+1}</strong><div class="manual-socket-options">${group.options.map((option,index)=>{const key=`${group.socketIndex}:${index}`,selected=manualHash(group.current)===manualHash(option),icon=abs(iconOf(option));optionMap.set(key,{socketIndex:group.socketIndex,option});return `<button type="button" class="manual-socket-option${selected?' is-selected':''}" data-manual-socket-option="${key}" aria-pressed="${selected}" title="${esc(option?.description||option?.name||'Verified socket option')}">${icon?`<img src="${esc(icon)}" alt="">`:'<span>◆</span>'}<b>${esc(option?.name||'Verified option')}</b></button>`;}).join('')}</div></div>`).join('')}</div>`:'<div class="manual-editor-status">No free, reversible socket alternatives were verified for this exact item. Other changes remain available as explicit in-game steps.</div>';
+}
+async function openManualEditor(kind='weapon'){
+  const build=currentBuild(),dialog=byId('manualBuildEditor');if(!build||!dialog)return;
+  manualEditorState={kind:kind==='armour'?'armour':'weapon',slotIndex:0,search:'',visibleItems:[],socketOptions:new Map()};
+  byId('manualEditorSearch').value='';dialog.hidden=false;document.body.classList.add('manual-editor-open');renderManualEditor();
+  try{await loadManualInventory(build);if(!dialog.hidden&&manualInventoryKey(currentBuild())===manualInventory?.key)renderManualEditor();}
+  catch(error){const status=byId('manualEditorStatus');if(status){status.className='manual-editor-status is-bad';status.textContent=error?.message||'Exact owned inventory could not be loaded.';}}
+}
+function closeManualEditor(){const dialog=byId('manualBuildEditor');if(dialog)dialog.hidden=true;document.body.classList.remove('manual-editor-open');document.querySelector(`[data-open-manual-editor="${manualEditorState.kind}"]`)?.focus();}
+function stageManualItem(index){
+  const item=manualEditorState.visibleItems[index];if(!item)return;
+  try{stageWorkingBuild(working=>{stageEquipmentChoice(working,manualEditorState.kind,manualEditorState.slotIndex,item);if(manualEditorState.kind==='armour'&&manualInventory?.payload)working.armour=prepareArmourSelection(manualInventory.payload,working.armour);});renderManualEditor();setLiveActionBanner(`${item.name||'Item'} staged in the manual Working Build. Live Guardian unchanged.`,'good');}
+  catch(error){const status=byId('manualEditorStatus');if(status){status.className='manual-editor-status is-bad';status.textContent=error?.message||'This equipment choice is not compatible.';}}
+}
+function stageManualSocket(key){
+  const choice=manualEditorState.socketOptions.get(key);if(!choice)return;
+  try{stageWorkingBuild(working=>{stageSocketChoice(working,manualEditorState.kind,manualEditorState.slotIndex,choice.socketIndex,choice.option);if(manualEditorState.kind==='armour'&&manualInventory?.payload)working.armour=prepareArmourSelection(manualInventory.payload,working.armour);});renderManualEditor();setLiveActionBanner(`${choice.option.name||'Socket option'} staged. Live Guardian unchanged.`,'good');}
+  catch(error){const status=byId('manualEditorStatus');if(status){status.className='manual-editor-status is-bad';status.textContent=error?.message||'This socket option is not compatible.';}}
+}
+
+function openSaveParadoxDialog(suggestedName=''){
+  const build=currentBuild(),dialog=byId('saveParadoxDialog');if(!build||!dialog)return;
+  const updating=Boolean(build.savedParadoxLoadoutId),title=byId('saveParadoxTitle'),submit=byId('saveParadoxForm')?.querySelector('[type="submit"]');
+  if(title)title.textContent=updating?'UPDATE PARADOX LOADOUT':'SAVE PARADOX LOADOUT';if(submit)submit.textContent=updating?'UPDATE PARADOX COPY':'SAVE PARADOX COPY';
+  byId('saveParadoxName').value=suggestedName||build.savedParadoxLoadoutName||`${String(build.characterClass||'Guardian').toUpperCase()} · ${build.subclassName||build.subclass||'BUILD'}`;
+  byId('saveParadoxDescription').value=build.savedParadoxLoadoutDescription||'';byId('saveParadoxStatus').textContent=updating?'This updates the named browser-only PARADOX record. Its Bungie source slot remains untouched.':'This creates a named copy in this browser only. It does not sync across devices or overwrite a Bungie slot.';dialog.hidden=false;document.body.classList.add('working-dialog-open');queueMicrotask(()=>byId('saveParadoxName')?.select());
+}
+function closeSaveParadoxDialog(){const dialog=byId('saveParadoxDialog');if(dialog)dialog.hidden=true;document.body.classList.remove('working-dialog-open');byId('saveParadoxBuild')?.focus();}
+async function submitParadoxSave(event){
+  event.preventDefault();const status=byId('saveParadoxStatus'),button=event.currentTarget.querySelector('[type="submit"]');if(button)button.disabled=true;
+  try{const build=currentBuild(),record=await saveParadoxLoadout({id:build?.savedParadoxLoadoutId||null,name:byId('saveParadoxName').value,description:byId('saveParadoxDescription').value,build});if(!record)throw new Error('The browser could not persist this PARADOX loadout.');const state=readState();if(state?.workingBuild)writeState({...state,workingBuild:{...state.workingBuild,savedParadoxLoadoutId:record.id,savedParadoxLoadoutName:record.name,savedParadoxLoadoutDescription:record.description}});closeSaveParadoxDialog();setLiveActionBanner(`PARADOX loadout “${record.name}” saved separately from Bungie slots.`,'good');}
+  catch(error){if(status){status.className='is-bad';status.textContent=error?.message||'Unable to save this PARADOX loadout.';}}
+  finally{if(button)button.disabled=false;}
+}
+
+function buildLivePlan(){
+  const state=readState(),build=state?.workingBuild||state?.originalBuild||{},advice=build.weaponRollAdvice||build.paradoxAnalysis?.weaponRollAdvice,preflight=createLiveTransferPreflight(build),capabilities=liveActionCapabilities(globalThis.ASTRIX_BUNGIE_SESSION),plan=createLiveTransferPlan({build,originalBuild:state?.originalBuild||{},advice,capabilities});
+  if(!preflight.ready)plan.blockers=[...new Set([...(preflight.violations||[]),...(plan.blockers||[])])];
+  plan.ready=preflight.ready&&plan.blockers.length===0;plan.status=plan.ready?'staged':'blocked';plan.preflight=preflight;return plan;
+}
+function renderApplyControls(build={}, {preserveBanner=false}={}){
+  const plan=buildLivePlan(),reason=plan.blockers?.[0]||'The exact Working Build is not ready for Apply.';
+  for(const id of ['applyBuild','applyWorkingBuild']){const button=byId(id);if(button){button.disabled=!plan.ready||liveActionBusy;button.title=plan.ready?'Review the exact transfer, equip, socket and readback sequence.':reason;}}
+  const save=byId('saveParadoxBuild');if(save){save.disabled=!/^\d+$/.test(String(build.characterId||''));save.title=save.disabled?'Load an authenticated Guardian build first.':'Save a separate named PARADOX copy.';}
+  if(!liveActionBusy&&!preserveBanner&&byId('liveActionBanner'))setLiveActionBanner(plan.ready?`Apply ready · ${plan.equipment.targets.length} exact items · ${plan.socketChanges.length} verified socket change${plan.socketChanges.length===1?'':'s'}${plan.inGameSteps.length?` · ${plan.inGameSteps.length} in-game step${plan.inGameSteps.length===1?'':'s'}`:''}.`:`Apply blocked · ${reason}`,plan.ready?'':'warn');
+  return plan;
+}
+function closeApplyConfirmation(){const dialog=byId('applyConfirmationDialog');if(dialog)dialog.hidden=true;document.body.classList.remove('working-dialog-open');pendingApplyPlan=null;}
+function openApplyConfirmation(){
+  const plan=buildLivePlan(),dialog=byId('applyConfirmationDialog');if(!plan.ready||!dialog){setLiveActionBanner(`Apply blocked · ${plan.blockers?.[0]||'validation failed.'}`,'bad');return;}
+  pendingApplyPlan=plan;byId('applyConfirmationGuardian').textContent=`Guardian ${plan.characterId} · membership ${plan.membershipType}:${plan.membershipId}`;
+  const equipment=plan.equipment.targets.map(row=>`<li>${esc(row.kind.toUpperCase())} · ${esc(row.name)} · ${esc(row.itemInstanceId)}</li>`).join(''),sockets=plan.socketChanges.map(row=>`<li>${esc(row.itemName||row.itemInstanceId)} · socket ${row.socketIndex+1} → ${esc(row.plugName||row.plugHash)}</li>`).join(''),steps=plan.inGameSteps.map(row=>`<li>${esc(row)}</li>`).join('');
+  byId('applyConfirmationSummary').innerHTML=`<div class="apply-confirmation-summary"><section><h3>EXACT EQUIPMENT</h3><ul>${equipment}</ul></section><section><h3>REMOTE SOCKET CHANGES</h3><ul>${sockets||'<li>No remote socket changes staged.</li>'}</ul></section>${steps?`<section class="manual-steps"><h3>AFTER APPLY · IN-GAME STEPS</h3><ul>${steps}</ul></section>`:''}</div>`;
+  dialog.hidden=false;document.body.classList.add('working-dialog-open');byId('confirmApplyBuild')?.focus();
+}
+async function executeConfirmedApply(){
+  const plan=pendingApplyPlan;if(!plan||liveActionBusy)return;
+  liveActionBusy=true;const confirm=byId('confirmApplyBuild');if(confirm)confirm.disabled=true;const dialog=byId('applyConfirmationDialog');if(dialog)dialog.hidden=true;document.body.classList.remove('working-dialog-open');
+  try{
+    let session=globalThis.ASTRIX_BUNGIE_SESSION;if(!session?.csrfToken)session=await getBungieSession({force:true});
+    const result=await executeLiveTransferPlan(confirmLiveTransferPlan(plan),{session,onProgress:row=>setLiveActionBanner(row.label||'Applying Working Build…','running')});
+    const state=readState();if(state?.workingBuild)writeState({...state,workingBuild:{...state.workingBuild,liveTransferResult:result}});
+    showRangeOutput(result);
+    if(result.status==='applied')setLiveActionBanner(`Apply verified · Bungie readback matched all ${plan.equipment.targets.length} exact equipment targets${plan.socketChanges.length?` and ${plan.socketChanges.length} socket change${plan.socketChanges.length===1?'':'s'}`:''}.`,'good');
+    else if(result.status==='blocked')setLiveActionBanner(`No live changes made · ${result.steps.find(row=>row.status==='blocked')?.detail?.[0]||'fresh ownership validation blocked Apply.'}`,'bad');
+    else setLiveActionBanner('Apply partially completed. Review the detailed result before retrying; no automatic rollback was attempted.','bad');
+    document.dispatchEvent(new CustomEvent('astrix:bungie-profile-refresh-requested',{detail:{reason:'post-apply',characterId:plan.characterId}}));
+  }catch(error){setLiveActionBanner(`${error?.message||'Apply failed.'} No further live steps were attempted.`,'bad');showRangeOutput({status:'failed-before-completion',message:error?.message||String(error),plan});}
+  finally{liveActionBusy=false;pendingApplyPlan=null;if(confirm)confirm.disabled=false;renderApplyControls(currentBuild()||{},{preserveBanner:true});}
+}
 
 function verifiedActivities(build,domain=testDomain){
   const sources=[build?.availableActivities,build?.activityCatalog?.activities,build?.catalog?.activities].find(Array.isArray)||[];
@@ -285,11 +409,32 @@ async function refreshForgeArtifactRecommendation({force=false}={}){
   if(result.state!==state)writeState(result.state);
   render();
 }
-function replaceEquipped(collection,candidate){const next=[...(collection||[])],slot=Number.isInteger(candidate?.slotIndex)?candidate.slotIndex:Number.isInteger(candidate?.slot)?candidate.slot:-1,type=String(candidate?.abilityType||candidate?.type||candidate?.category||'').toLowerCase();let index=slot>=0?slot:next.findIndex(item=>type&&String(item?.abilityType||item?.type||item?.category||'').toLowerCase()===type);if(index<0)index=0;if(next.length)next[index]=candidate;else next.push(candidate);return next;}
-function applySubclassCandidate(working,candidate){working.subclassBuild=working.subclassBuild||{};working.subclassName=candidate.name||candidate.displayName||working.subclassName;working.subclass=candidate.key||candidate.element||candidate.name||working.subclass;working.subclassIcon=iconOf(candidate)||working.subclassIcon;if(candidate.subclassBuild||candidate.build)working.subclassBuild=JSON.parse(JSON.stringify(candidate.subclassBuild||candidate.build));return synchroniseSubclassProjection(working);}
+function replaceEquipped(collection,candidate){const next=[...(collection||[])],socketIndex=Number(candidate?.socketIndex),type=String(candidate?.componentType||candidate?.abilityType||candidate?.type||candidate?.category||'').toLowerCase();let index=Number.isInteger(socketIndex)?next.findIndex(item=>Number(item?.socketIndex)===socketIndex):-1;if(index<0)index=next.findIndex(item=>type&&String(item?.componentType||item?.abilityType||item?.type||item?.category||'').toLowerCase()===type);if(index<0)next.push(candidate);else next[index]=candidate;return next;}
+function subclassSocketChoices(build,kind){const sb=build?.subclassBuild||{},map=sb[kind==='aspects'?'aspectOptionsBySocket':'fragmentOptionsBySocket']||{},rows=Object.entries(map).flatMap(([socketIndex,options])=>(Array.isArray(options)?options:[]).map(option=>({...option,socketIndex:Number(socketIndex)})));return rows.length?rows:resolvedOptions(build,kind);}
+function subclassSocketGroups(build,kind){const sb=build?.subclassBuild||{},equipped=kind==='aspects'?(sb.aspects||[]):(sb.fragments||[]),choices=subclassSocketChoices(build,kind),indexes=[...new Set([...equipped,...choices].map(row=>Number(row?.socketIndex)).filter(Number.isInteger))].sort((a,b)=>a-b);if(!indexes.length)return '';return indexes.map((socketIndex,position)=>{const selected=equipped.find(row=>Number(row?.socketIndex)===socketIndex),options=choices.filter(row=>Number(row?.socketIndex)===socketIndex),cards=options.map(option=>selectorCard(option,{kind:kind==='aspects'?'aspectSocket':'fragmentSocket',index:choices.indexOf(option),selected:itemKey(option)===itemKey(selected)}));return `<section class="ability-option-group" data-subclass-socket="${socketIndex}"><h4>${kind==='aspects'?'ASPECT':'FRAGMENT'} SLOT ${position+1}</h4><div class="socket-options">${cards.length?cards.join(''):unavailableCard('Verified socket options unavailable')}</div></section>`;}).join('');}
+function applySubclassCandidate(working,candidate){working.subclassBuild=working.subclassBuild||{};const priorId=String(working.subclassItemInstanceId||working.subclassItem?.itemInstanceId||''),nextId=String(candidate.itemInstanceId||'');if(priorId&&priorId!==nextId)working.manualSocketChanges=(working.manualSocketChanges||[]).filter(change=>!String(change.component||'').startsWith('subclass-')&&String(change.itemInstanceId||'')!==priorId);working.subclassName=candidate.name||candidate.displayName||working.subclassName;working.subclass=candidate.key||candidate.element||candidate.name||working.subclass;working.subclassIcon=iconOf(candidate)||working.subclassIcon;working.subclassItemInstanceId=nextId;working.subclassItem=JSON.parse(JSON.stringify(candidate));if(candidate.subclassBuild||candidate.build)working.subclassBuild=JSON.parse(JSON.stringify(candidate.subclassBuild||candidate.build));return synchroniseSubclassProjection(working);}
+function selectedSubclassSocket(working,kind,candidate){const sb=working.subclassBuild||{},rows=kind==='super'?[sb.super]:kind==='transcendence'?[sb.transcendenceSlots?.[Number(candidate?.transcendenceSlotPosition)]?.equipped]:kind==='abilities'?(sb.abilities||[]):kind==='aspectSocket'?(sb.aspects||[]):kind==='fragmentSocket'?(sb.fragments||[]):[],socketIndex=Number(candidate?.socketIndex),type=String(candidate?.componentType||candidate?.abilityType||candidate?.type||candidate?.category||'').toLowerCase();return rows.find(item=>Number.isInteger(socketIndex)&&Number(item?.socketIndex)===socketIndex)||rows.find(item=>type&&String(item?.componentType||item?.abilityType||item?.type||item?.category||'').toLowerCase()===type)||rows[0]||null;}
 function resolvedTranscendenceSlots(build){const sb=build?.subclassBuild||{},mapped=Array.isArray(sb.transcendenceSlots)?sb.transcendenceSlots.filter(Boolean):[];if(mapped.length)return mapped.slice(0,2);return (Array.isArray(sb.transcendenceOptions)?sb.transcendenceOptions:[]).filter(Boolean).slice(0,2).map((item,socketIndex)=>({socketIndex,equipped:item,options:[item]}));}
 function transcendenceChoices(build){return resolvedTranscendenceSlots(build).flatMap((slot,slotPosition)=>(Array.isArray(slot?.options)?slot.options:[]).map(option=>({...option,transcendenceSlotPosition:slotPosition})));}
-function stageSelection(kind,index){const build=currentBuild(),candidate=kind==='subclass'?resolvedSubclassOptions(build)[index]:kind==='artifactPerks'?build?.artifact?.perks?.[index]:kind==='transcendence'?transcendenceChoices(build)[index]:resolvedOptions(build,kind)[index];if(!candidate)return;stageWorkingBuild(working=>{working.subclassBuild=working.subclassBuild||{};delete working.recommendationGeneratedAt;delete working.recommendationElement;delete working.recommendationStatus;delete working.forgeIntelligence;if(kind==='subclass')applySubclassCandidate(working,candidate);else if(kind==='super'){working.subclassBuild.super=candidate;working.super=candidate;working.forgeRequestedSuperHash=Number(candidate.hash??candidate.bungieHash)||0;}else if(kind==='transcendence'){const slots=[...(working.subclassBuild.transcendenceSlots||[])],slotPosition=Number(candidate.transcendenceSlotPosition);if(slots[slotPosition])slots[slotPosition]={...slots[slotPosition],equipped:candidate};working.subclassBuild.transcendenceSlots=slots;}else if(kind==='abilities')working.subclassBuild.abilities=replaceEquipped(working.subclassBuild.abilities,candidate);else if(kind==='aspects')working.subclassBuild.aspects=replaceEquipped(working.subclassBuild.aspects,candidate);else if(kind==='fragments'){const equipped=[...(working.subclassBuild.fragments||[])],key=itemKey(candidate),at=equipped.findIndex(item=>itemKey(item)===key);if(at>=0)equipped.splice(at,1);else if(equipped.length<5)equipped.push(candidate);else equipped[0]=candidate;working.subclassBuild.fragments=equipped;}else if(kind==='artifactPerks'){working.artifactConfiguration=toggleIntendedArtifactPerk(working.artifact,working.artifactConfiguration||working.artifact?.artifactConfiguration,index);working.artifact.artifactConfiguration=JSON.parse(JSON.stringify(working.artifactConfiguration));if(working.artifactRecommendation)working.artifactRecommendation={...working.artifactRecommendation,userOverride:true};}else if(kind==='artifact'){const configuration=createIntendedArtifactConfiguration(candidate,working.artifactConfiguration||working.artifact?.artifactConfiguration);working.artifact={...JSON.parse(JSON.stringify(candidate)),artifactConfiguration:JSON.parse(JSON.stringify(configuration))};working.artifactConfiguration=configuration;}synchroniseSubclassProjection(working);});}
+function stageSelection(kind,index){
+  const build=currentBuild(),candidate=kind==='subclass'?resolvedSubclassOptions(build)[index]:kind==='artifactPerks'?build?.artifact?.perks?.[index]:kind==='transcendence'?transcendenceChoices(build)[index]:kind==='aspectSocket'?subclassSocketChoices(build,'aspects')[index]:kind==='fragmentSocket'?subclassSocketChoices(build,'fragments')[index]:resolvedOptions(build,kind)[index];if(!candidate)return;
+  stageWorkingBuild(working=>{
+    working.subclassBuild=working.subclassBuild||{};
+    for(const key of ['recommendationGeneratedAt','recommendationElement','recommendationStatus','forgeIntelligence','liveTransferPreflight','liveTransferPlan','liveTransferResult'])delete working[key];
+    const before=selectedSubclassSocket(working,kind,candidate);
+    if(kind==='subclass')applySubclassCandidate(working,candidate);
+    else if(kind==='super'){working.subclassBuild.super=candidate;working.super=candidate;working.forgeRequestedSuperHash=Number(candidate.hash??candidate.bungieHash)||0;stageSubclassSocketChoice(working,before,candidate,'super');}
+    else if(kind==='transcendence'){const slots=[...(working.subclassBuild.transcendenceSlots||[])],slotPosition=Number(candidate.transcendenceSlotPosition);if(slots[slotPosition])slots[slotPosition]={...slots[slotPosition],equipped:candidate};working.subclassBuild.transcendenceSlots=slots;stageSubclassSocketChoice(working,before,candidate,'transcendence');}
+    else if(kind==='abilities'){working.subclassBuild.abilities=replaceEquipped(working.subclassBuild.abilities,candidate);stageSubclassSocketChoice(working,before,candidate,'ability');}
+    else if(kind==='aspectSocket'){working.subclassBuild.aspects=replaceEquipped(working.subclassBuild.aspects,candidate);stageSubclassSocketChoice(working,before,candidate,'aspect');}
+    else if(kind==='fragmentSocket'){working.subclassBuild.fragments=replaceEquipped(working.subclassBuild.fragments,candidate);stageSubclassSocketChoice(working,before,candidate,'fragment');}
+    else if(kind==='artifactPerks'){working.artifactConfiguration=toggleIntendedArtifactPerk(working.artifact,working.artifactConfiguration||working.artifact?.artifactConfiguration,index);working.artifact.artifactConfiguration=JSON.parse(JSON.stringify(working.artifactConfiguration));if(working.artifactRecommendation)working.artifactRecommendation={...working.artifactRecommendation,userOverride:true};}
+    else if(kind==='artifact'){const configuration=createIntendedArtifactConfiguration(candidate,working.artifactConfiguration||working.artifact?.artifactConfiguration);working.artifact={...JSON.parse(JSON.stringify(candidate)),artifactConfiguration:JSON.parse(JSON.stringify(configuration))};working.artifactConfiguration=configuration;}
+    recordManualEdit(working,{component:kind,optionHash:Number(candidate.hash??candidate.itemHash??candidate.bungieHash)||null,optionName:String(candidate.name||candidate.displayName||'Verified option')});
+    synchroniseSubclassProjection(working);
+  });
+  setLiveActionBanner(`${candidate.name||candidate.displayName||'Component'} staged manually. Live Guardian unchanged.`,'good');
+}
 
 function renderRecommendationControls(build={}){
   const verified=resolvedSubclassOptions(build).filter(hasVerifiedSubclassSockets),verifiedElements=new Set(verified.map(elementOf)),compatible=filterExoticCompatibleSubclasses(build,verified),supported=new Map(compatible.map(item=>[elementOf(item),item]).filter(([element])=>BUILD_ELEMENTS.includes(element)));
@@ -349,7 +494,7 @@ function renderRecommendedBuildReview(build={}){
   const artifactSynergyRows=(artifactReady?artifactReasons:artifactBlockers).map(row=>`<li>${esc(row)}</li>`).join('')||'<li>No verified Artifact synergy claim is available from the supplied Bungie evidence.</li>';
   const artifactPlanLabel=recommendation?.planMode==='full-build-target'?'PARADOX FULL TARGET PLAN':'PARADOX BEST VERIFIED FIT';
   const pickOrder=new Map(sequence.map(row=>[String(row.artifactPerk?.hash),Number(row.order)]));byId('recommendedArtifactSummary').innerHTML=artifact?`<div class="review-artifact-identity">${reviewIcon(artifact,'Artifact')}<div><b>${esc(artifact.name||'VERIFIED ARTIFACT')}</b><span>${artifactReady?`${artifactPlanLabel} · ${Number(recommendation.selectionLimit||0)} LEGAL PICKS · ${Number(recommendation.totalScore||0)} SYNERGY SCORE`:'EVIDENCE LIMITED · CURRENT CONFIGURATION SHOWN'}</span><small>${artifactReady?'RECOMMENDED WORKING PLAN · APPLY PICKS IN NUMBERED ORDER':'No complete legal recommendation was resolved from the supplied Bungie evidence.'}</small></div></div><div class="review-artifact-perks">${perks.map((perk,index)=>`<span class="review-artifact-pick"><em>PICK ${pickOrder.get(String(perk?.hash??perk?.itemHash??perk?.bungieHash))||index+1}</em>${reviewIcon(perk,'Artifact perk')}</span>`).join('')||'<small>NO LEGAL VERIFIED PERK CHANGE RESOLVED</small>'}</div><div class="review-artifact-synergy"><b>ARTIFACT SYNERGY</b><ul>${artifactSynergyRows}</ul></div>`:'<small>ARTIFACT STATE UNAVAILABLE</small>';
-  const transfer=byId('liveTransferStatus'),apply=byId('applyBuild'),preflight=build.liveTransferPreflight||null,plan=createLiveTransferPlan({build,advice,capabilities:build.liveTransferCapabilities||{}}),canApply=Boolean(preflight?.ready&&plan.ready);build.liveTransferPlan=plan;if(apply){apply.disabled=!canApply;apply.title=canApply?'Review and confirm the complete equip-first transfer sequence.':preflight?.ready?plan.blockers[0]||'The complete authenticated live-transfer route is not enabled.':'Recommendation transfer preflight is blocked.';}if(transfer)transfer.textContent=canApply?'Complete equip-first transfer is ready: equipment, verification, perks, mods, Artifact and final verification.':preflight?.ready?`Live transfer staged · ${plan.blockers[0]||'complete authenticated mutation support is unavailable.'}`:`Live transfer blocked · ${preflight?.violations?.[0]||'the generated build has not passed exact-loadout preflight.'}`;
+  const transfer=byId('liveTransferStatus'),plan=renderApplyControls(build),canApply=plan.ready;if(transfer)transfer.textContent=canApply?`Apply is ready for ${plan.equipment.targets.length} exact items and ${plan.socketChanges.length} verified free socket change${plan.socketChanges.length===1?'':'s'}.${plan.inGameSteps.length?` ${plan.inGameSteps.length} unsupported change${plan.inGameSteps.length===1?' remains':'s remain'} as explicit in-game steps.`:''}`:`Apply blocked · ${plan.blockers?.[0]||'exact Working Build validation failed.'}`;
 }
 function openRecommendedBuild(){const build=currentBuild(),dialog=byId('recommendedBuildReveal');if(!build?.recommendationGeneratedAt||!dialog)return;renderRecommendedBuildReview(build);dialog.hidden=false;document.body.classList.add('recommended-build-open');byId('closeRecommendedBuild')?.focus();}
 function closeRecommendedBuild(){const dialog=byId('recommendedBuildReveal');if(dialog)dialog.hidden=true;document.body.classList.remove('recommended-build-open');byId('generateMaxLoadout')?.focus();}
@@ -394,7 +539,7 @@ function renderBuildSurface(){
     byId('buildStateLabel').textContent=recovering?'PROTECTING ORIGINAL BUILD':'SNAPSHOT UNAVAILABLE';byId('buildStateDetail').textContent=recovering?'The Working Build will remain separate from the authenticated equipped baseline.':'No verified Original or Working Build has been loaded.';
     byId('artifactStatus').textContent='NOT CHECKED';byId('artifactStatusDetail').textContent='Artifact resolution starts only after a verified build snapshot is loaded.';
     const armButton=byId('armRangeTest');if(armButton)armButton.disabled=true;
-    renderRecommendationControls({});renderForgeDecision({});
+    renderRecommendationControls({});renderForgeDecision({});renderApplyControls({});
     emitLoad('snapshot',LOAD_STAGES.SNAPSHOT,recovering?'Recovering authenticated Guardian…':'Build snapshot required',recovering?'loading':'error',activeLoadError);
     completeBuildRender(null);
     return;
@@ -412,7 +557,7 @@ function renderBuildSurface(){
   const transcendenceSection=byId('transcendenceSection'),transcendenceNode=byId('transcendenceSummary');transcendenceSection.hidden=!prismatic;if(prismatic){const slots=resolvedTranscendenceSlots(build),choices=transcendenceChoices(build);transcendenceNode.innerHTML=Array.from({length:2},(_,slotPosition)=>{const slot=slots[slotPosition],options=Array.isArray(slot?.options)?slot.options:[],equipped=slot?.equipped,cards=options.map(item=>{const index=choices.findIndex(value=>itemKey(value)===itemKey(item)&&Number(value.transcendenceSlotPosition)===slotPosition);return selectorCard(item,{kind:'transcendence',index,selected:itemKey(item)===itemKey(equipped)});});return '<section class="transcendence-slot"><h4>SLOT '+(slotPosition+1)+'</h4><div class="transcendence-options">'+(cards.length?cards.join(''):unavailableCard('Verified slot unavailable'))+'</div></section>';}).join('');}else{transcendenceNode.innerHTML='';}
   const abilities=Array.isArray(build.subclassBuild?.abilities)?build.subclassBuild.abilities:[],aspects=Array.isArray(build.subclassBuild?.aspects)?build.subclassBuild.aspects:[],fragments=Array.isArray(build.subclassBuild?.fragments)?build.subclassBuild.fragments:[];byId('abilityRail').innerHTML=Array.from({length:4},(_,i)=>tile(abilities[i])).join('');byId('aspectRail').innerHTML=Array.from({length:2},(_,i)=>tile(aspects[i])).join('');byId('fragmentRail').innerHTML=Array.from({length:5},(_,i)=>tile(fragments[i])).join('');
   byId('abilityOptions').innerHTML=abilityGroups(build,abilities);
-  for(const [kind,nodeId] of [['aspects','aspectOptions'],['fragments','fragmentOptions']]){const equipped=kind==='aspects'?aspects:fragments,options=resolvedOptions(build,kind).slice(0,kind==='fragments'?14:40);byId(nodeId).innerHTML=options.length?options.map((item,index)=>selectorCard(item,{kind,index,selected:equipped.some(value=>itemKey(value)===itemKey(item))})).join(''):unavailableCard('Compatible '+kind+' unavailable');}
+  for(const [kind,nodeId] of [['aspects','aspectOptions'],['fragments','fragmentOptions']]){const markup=subclassSocketGroups(build,kind);byId(nodeId).innerHTML=markup||unavailableCard('Compatible '+kind+' unavailable');}
   }catch(error){
     activeLoadError=error?.message||'The recovered subclass presentation could not be completed.';
     console.error('Build Forge retained the protected transfer after recovered subclass rendering failed.',error);
@@ -423,7 +568,7 @@ function renderBuildSurface(){
   const automaticArtifact=recommendation?.selectionStatus==='ready'&&!recommendation?.userOverride,fullArtifactTarget=automaticArtifact&&recommendation?.planMode==='full-build-target';byId('artifactStatus').textContent=artifactUnavailable?'ARTIFACT STATE UNAVAILABLE':(automaticArtifact?(fullArtifactTarget?'PARADOX FULL ARTIFACT PLAN STAGED':'PARADOX ARTIFACT 2.0 FIT STAGED'):(activePerks.length?'LIVE ARTIFACT RESOLVED':'NO ARTIFACT FIT STAGED'));byId('artifactStatusDetail').textContent=artifactUnavailable?'Verified Artifact socket data is unavailable.':automaticArtifact?(fullArtifactTarget?`${artifact.name||'Artifact'} · ${recommendation.selectionLimit} legal target picks staged from the verified perk tree. Current unlocks and equipped perks remain unchanged.`:`${artifact.name||'Artifact'} · best of ${recommendation.artifactCandidateCount||1} verified Artifact option(s) · ${recommendation.selectionLimit} socket-bucket picks staged for this Working Build. Current unlocks and equipped perks remain unchanged.`):`${artifact.name||'Artifact'} · ${activePerks.length} active perk(s) captured into this build snapshot.`;
   renderBuildGear(build);renderLiveAnalysis(build.paradoxAnalysis);renderForgeDecision(build);
   document.dispatchEvent(new CustomEvent('astrix:guardian-loadout-context',{detail:build}));
-  const advice=build.weaponRollAdvice||build.paradoxAnalysis?.weaponRollAdvice,apply=byId('applyBuild'),plan=createLiveTransferPlan({build,advice,capabilities:build.liveTransferCapabilities||{}}),canApply=Boolean(build.recommendationGeneratedAt&&plan.ready);if(apply){apply.disabled=!canApply;apply.title=canApply?'Review and confirm the complete equip-first transfer sequence.':'Build My Guardian stays locked until every authenticated equipment, socket, Artifact and verification phase is available.';}renderRecommendationControls(build);renderTestConfiguration();refreshRangeCapture();
+  renderApplyControls(build);renderRecommendationControls(build);renderTestConfiguration();refreshRangeCapture();
   completeBuildRender(build);
 }
 
@@ -443,7 +588,6 @@ function render(){
 }
 
 function restoreOriginal(){const state=readState();if(!state?.originalBuild)return;const restored=restoreWorkingBuild(state);writeState(restored);closeRecommendedBuild();render();}
-async function applyBuild(){const build=currentBuild(),advice=build?.weaponRollAdvice||build?.paradoxAnalysis?.weaponRollAdvice,preflight=createLiveTransferPreflight(build||{}),plan=createLiveTransferPlan({build:build||{},advice,capabilities:build?.liveTransferCapabilities||{}});try{if(!build?.recommendationGeneratedAt)throw new Error('Generate and review a verified Working Build before any live action.');if(!preflight.ready)throw new Error(preflight.violations[0]||'The exact Working Build failed live-transfer preflight.');if(!plan.ready)throw new Error(plan.blockers[0]||'The complete equip-first live-transfer route is not enabled.');throw new Error('The complete authenticated live-transfer executor is not enabled. No live Guardian changes were made.');}catch(error){setRangeStatus(error?.message||'Unable to apply the staged build.','bad');showRangeOutput(plan);}}
 function setRangeStatus(message,state=''){const node=byId('rangeCaptureStatus');if(!node)return;node.className=`range-capture-status${state?` is-${state}`:''}`;node.textContent=message;}
 function showRangeOutput(value){const node=byId('rangeCaptureOutput');if(!node)return;node.hidden=false;node.textContent=JSON.stringify(value,null,2);}
 function renderParadoxTestReview(capture=readCapture()){
@@ -460,8 +604,16 @@ function refreshRangeCapture(){const capture=readCapture();const build=currentBu
 async function armRange(){const build=currentBuild();if(!build?.characterId){setRangeStatus('No Guardian characterId is present in this Build Forge snapshot.','bad');return;}const button=byId('armRangeTest');try{if(button)button.disabled=true;setRangeStatus('Taking the pre-test Activity History baseline…','warn');const capture=await armBuildTest({characterId:build.characterId,buildSnapshot:build,testDomain,calibrationType:testDomain==='pve'&&byId('shootingRangeCalibration')?.checked?'shooting-range':null,expectedActivity:selectedExpectedActivity()});refreshRangeCapture();showRangeOutput(capture);if(capture.baselineError)setRangeStatus(`ARMED, but Activity History baseline failed: ${capture.baselineError.message}`,'warn');}catch(error){setRangeStatus(error?.message||'Unable to arm Build Test.','bad');showRangeOutput({error:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null});}finally{if(button)button.disabled=!String(currentBuild()?.characterId||'').trim();}}
 async function pullRange(){const button=byId('pullRangeResults'),build=currentBuild(),capture=readCapture();if(!captureMatchesCharacter(capture,build?.characterId)){setRangeStatus(`Capture blocked: saved character ${capture?.characterId||'unknown'} does not match current Build Forge Guardian ${build?.characterId||'unknown'}.`,'bad');showRangeOutput({error:'Build Test Guardian mismatch.',code:'capture-character-mismatch',captureCharacterId:capture?.characterId||null,currentCharacterId:build?.characterId||null});return;}try{if(button)button.disabled=true;setRangeStatus('Pulling completed post-arm activities and candidate PGCRs…','warn');const result=await collectBuildTestResults({expectedCharacterId:build.characterId});refreshRangeCapture();showRangeOutput(result);if(!result.candidates?.length)setRangeStatus('No completed post-arm Bungie activity candidate was found.','warn');else if(result.candidateSelection?.requiresUserConfirmation)setRangeStatus(`${result.candidates.length} candidates found. Confirm the correct completed activity; Build Forge will not guess.`,'warn');else if(!result.evidenceSummary?.verifiedActivityPgcrCount)setRangeStatus('Candidates pulled, but none has complete activity-hash + PGCR proof.','warn');else setRangeStatus(`${result.evidenceSummary.verifiedActivityPgcrCount} verified activity + PGCR record(s) pulled. Causal perk and uptime claims remain inference.`,'good');}catch(error){setRangeStatus(error?.message||'Unable to pull Build Test results.','bad');showRangeOutput({error:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null,captureCharacterId:error?.captureCharacterId||null,currentCharacterId:error?.currentCharacterId||null});}finally{if(button)button.disabled=!captureMatchesCharacter(readCapture(),currentBuild()?.characterId);}}
 document.addEventListener('click',event=>{const recommendationElement=event.target.closest('[data-recommendation-element]');if(recommendationElement&&!recommendationElement.disabled){selectedRecommendationElement=recommendationElement.dataset.recommendationElement||'';renderRecommendationControls(currentBuild()||{});return;}const objective=event.target.closest('[data-build-objective]');if(objective&&!objective.disabled){selectedRecommendationObjective=objective.dataset.buildObjective||'balanced';renderRecommendationControls(currentBuild()||{});return;}const artifactRecommend=event.target.closest('[data-artifact-recommend]');if(artifactRecommend){artifactRecommend.disabled=true;void refreshForgeArtifactRecommendation({force:true});return;}const candidate=event.target.closest('[data-confirm-instance]');if(candidate){try{const confirmed=confirmCandidateActivity(candidate.dataset.confirmInstance,{expectedCharacterId:currentBuild()?.characterId});refreshRangeCapture();showRangeOutput(confirmed);setRangeStatus(`COMPLETED ACTIVITY CONFIRMED · ${candidate.dataset.confirmInstance}`,'good');}catch(error){setRangeStatus(error?.message||'Unable to confirm this activity.','bad');}return;}const toggle=event.target.closest('[data-toggle-panel]');if(toggle){const panel=byId(toggle.dataset.togglePanel),expanded=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!expanded));if(panel)panel.hidden=expanded;return;}const option=event.target.closest('[data-select-kind]');if(option){const kind=option.dataset.selectKind;stageSelection(kind,Number(option.dataset.selectIndex));if(kind!=='artifactPerks')queueMicrotask(()=>void refreshForgeArtifactRecommendation());}});
-document.addEventListener('astrix:guardian-selection-changed',event=>switchBuildCharacter(event.detail||{}));
+document.addEventListener('click',event=>{
+  const opener=event.target.closest('[data-open-manual-editor]');if(opener){void openManualEditor(opener.dataset.openManualEditor);return;}
+  const slot=event.target.closest('[data-manual-slot]');if(slot){manualEditorState.slotIndex=Number(slot.dataset.manualSlot);manualEditorState.search='';byId('manualEditorSearch').value='';renderManualEditor();return;}
+  const item=event.target.closest('[data-manual-item-index]');if(item){stageManualItem(Number(item.dataset.manualItemIndex));return;}
+  const socket=event.target.closest('[data-manual-socket-option]');if(socket){stageManualSocket(socket.dataset.manualSocketOption);}
+});
+document.addEventListener('astrix:guardian-selection-changed',event=>{const detail=event.detail||{};if(pendingApplyPlan){closeApplyConfirmation();setLiveActionBanner('Apply confirmation cancelled because the selected Guardian or Bungie build changed. Review the current Working Build again.','warn');}if(manualInventory&&manualInventory.key!==manualInventoryKey(detail))manualInventory=null;switchBuildCharacter(detail);});
 document.addEventListener('astrix:guardian-loadout-context',event=>recoverMissingBuild(event.detail||{}));
+document.addEventListener('astrix:bungie-loadout-loaded',event=>{if(event.detail?.loadoutActionIntent==='save-paradox-copy')openSaveParadoxDialog(`BUNGIE SLOT ${Number(event.detail.selectedLoadoutIndex)+1} · ${String(event.detail.characterClass||'GUARDIAN').toUpperCase()}`);});
+globalThis.addEventListener('astrix:bungie-session',()=>renderApplyControls(currentBuild()||{}));
 document.addEventListener('astrix:loadout-loading',event=>{const slot=Number(event.detail?.index);byId('sourcePill').textContent=Number.isInteger(slot)?`BUILD SOURCE · LOADING BUNGIE SLOT ${slot+1}`:'BUILD SOURCE · LOADING BUNGIE SLOT';});
 document.addEventListener('astrix:loadout-error',()=>{byId('sourcePill').textContent='BUILD SOURCE · LOADOUT ERROR';});
 document.querySelectorAll('[data-test-domain]').forEach(button=>button.addEventListener('click',()=>{testDomain=button.dataset.testDomain==='pvp'?'pvp':'pve';renderTestConfiguration();}));
@@ -470,13 +622,22 @@ byId('backToGuardian')?.addEventListener('click',()=>{markGuardianFastReturn();l
 byId('armRangeTest')?.addEventListener('click',armRange);
 byId('pullRangeResults')?.addEventListener('click',pullRange);
 byId('downloadRangeEvidence')?.addEventListener('click',downloadRangeEvidence);
-byId('applyBuild')?.addEventListener('click',applyBuild);
+byId('applyBuild')?.addEventListener('click',openApplyConfirmation);
+byId('applyWorkingBuild')?.addEventListener('click',openApplyConfirmation);
+byId('confirmApplyBuild')?.addEventListener('click',executeConfirmedApply);
+byId('cancelApplyBuild')?.addEventListener('click',closeApplyConfirmation);
+byId('saveParadoxBuild')?.addEventListener('click',()=>openSaveParadoxDialog());
+byId('saveParadoxForm')?.addEventListener('submit',submitParadoxSave);
+byId('cancelSaveParadox')?.addEventListener('click',closeSaveParadoxDialog);
+byId('closeManualEditor')?.addEventListener('click',closeManualEditor);
+byId('doneManualEditor')?.addEventListener('click',closeManualEditor);
+byId('manualEditorSearch')?.addEventListener('input',event=>{manualEditorState.search=event.target.value||'';renderManualEditor();});
 byId('restoreOriginal')?.addEventListener('click',restoreOriginal);
 byId('generateMaxLoadout')?.addEventListener('click',generateMaxLoadout);
 byId('closeRecommendedBuild')?.addEventListener('click',closeRecommendedBuild);
 byId('returnToForge')?.addEventListener('click',closeRecommendedBuild);
 byId('continueToBuildTest')?.addEventListener('click',continueToBuildTest);
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!byId('recommendedBuildReveal')?.hidden)closeRecommendedBuild();});
+document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;if(!byId('applyConfirmationDialog')?.hidden)closeApplyConfirmation();else if(!byId('saveParadoxDialog')?.hidden)closeSaveParadoxDialog();else if(!byId('manualBuildEditor')?.hidden)closeManualEditor();else if(!byId('recommendedBuildReveal')?.hidden)closeRecommendedBuild();});
 async function initialiseBuildForge(){
   try{
     const atomicTransfer=await restoreAtomicForgeTransfer();
@@ -488,5 +649,7 @@ async function initialiseBuildForge(){
     render();
     queueMicrotask(()=>void refreshForgeArtifactRecommendation());
   }
+  const build=currentBuild(),intent=new URLSearchParams(location.search).get('loadoutIntent')||build?.loadoutActionIntent||'';
+  if(intent==='save-paradox-copy')queueMicrotask(()=>openSaveParadoxDialog(`BUNGIE SLOT ${Number(build?.selectedLoadoutIndex)+1} · ${String(build?.characterClass||'GUARDIAN').toUpperCase()}`));
 }
 void initialiseBuildForge();

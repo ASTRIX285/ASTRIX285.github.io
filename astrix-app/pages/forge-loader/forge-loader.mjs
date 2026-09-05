@@ -426,7 +426,7 @@ async function evaluateInBuildForge(){
   byId('forgeRuntimeStatus').textContent='Protecting the verified equipped Guardian before Build Forge opens…';
   let profileBuild=null;
   try{
-    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260905-weapon-audit-1');
+    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260905-manual-editor-2');
     profileBuild=normaliseLiveProfile(payload,session,activeCharacterId);
   }catch(error){
     console.error('[ASTRIX Forge Loader] The protected Guardian baseline could not be prepared.',error);

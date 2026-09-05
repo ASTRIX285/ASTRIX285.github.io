@@ -153,7 +153,17 @@ const coherentArtifact={selectionStatus:'ready',selectionLimit:2,selectedPerkHas
 const coherence=validateLoadoutCoherence(coherentBuild);assert.equal(coherence.ready,true,coherence.reason);
 assert.equal(coherence.coverage.grenadeOrb,true,'Cross-system validation must prove grenade-to-Orb coverage.');
 assert.equal(coherence.coverage.grenadeSuper,true,'Cross-system validation must prove grenade-to-Super coverage.');
-const preflight=createLiveTransferPreflight(coherentBuild);assert.equal(preflight.ready,true,preflight.violations.join(' | '));
+const applyCharacterId='30001';
+const applyReadyBuild={
+  ...coherentBuild,
+  characterId:applyCharacterId,
+  membershipId:'40001',
+  membershipType:'3',
+  forgeLoaderDecision:{...coherentBuild.forgeLoaderDecision,buildAnchor:{...coherentBuild.forgeLoaderDecision.buildAnchor,selectedItemInstanceId:'60002'}},
+  weapons:coherentBuild.weapons.map((row,index)=>({...row,itemInstanceId:String(50001+index),bucketHash:[1498876634,2465295065,953998645][index],source:{kind:'equipped',characterId:applyCharacterId}})),
+  armour:coherentBuild.armour.map((row,index)=>({...row,itemInstanceId:String(60001+index),bucketHash:[3448274439,3551918588,14239492,20886954,1585787867][index],classType:1,source:{kind:'equipped',characterId:applyCharacterId}}))
+};
+const preflight=createLiveTransferPreflight(applyReadyBuild);assert.equal(preflight.ready,true,preflight.violations.join(' | '));
 
 const loadoutsAt=html.indexOf('loadouts-design-section'),armourAt=html.indexOf('armour-design-section'),weaponsAt=html.indexOf('weapon-design-section'),recommendationAt=html.indexOf('recommendation-panel'),rightRailAt=html.indexOf('build-right-rail'),validationAt=html.indexOf('validation-panel'),intelligenceAt=html.indexOf('data-paradox-analysis');
 assert.ok(loadoutsAt>0&&loadoutsAt<armourAt&&armourAt<weaponsAt&&weaponsAt<recommendationAt&&recommendationAt<rightRailAt,'Centre column order must be In-game Loadouts, Armour & Mods, Weapons & Perks, then Elemental Build Options.');
@@ -205,7 +215,7 @@ assert.deepEqual([...html.matchAll(/data-build-objective="([^"]+)"/g)].map(match
 assert.match(html,/id="generateMaxLoadout" disabled>GENERATE MAX LOADOUT/,'Generation must begin locked until verified inputs pass.');
 assert.match(runtime,/function generateMaxLoadout\(\)/,'Build Forge must expose an explicit recommendation generation boundary.');
 assert.match(runtime,/function blankArmourModCanvas\(\)[\s\S]*?Array\.from\(\{length:6\}[\s\S]*?AI recommendation pending[\s\S]*?grid\.innerHTML=blankSlots/,'Every staged armour item must present six blank AI recommendation slots before generation.');
-assert.match(runtime,/function renderArmourRecommendationState\(build=\{\}\)[\s\S]*?Boolean\(build\.recommendationGeneratedAt\)[\s\S]*?PARADOX RECOMMENDATION · REVIEW REQUIRED[\s\S]*?if\(!generated\)blankArmourModCanvas\(\)/,'The armour canvas must switch from pending to visible recommendations only after generation.');
+assert.match(runtime,/function renderArmourRecommendationState\(build=\{\}\)[\s\S]*?Boolean\(build\.recommendationGeneratedAt\)[\s\S]*?MANUAL WORKING BUILD[\s\S]*?if\(!generated&&!manual\)blankArmourModCanvas\(\)/,'The armour canvas must distinguish pending, manual and generated recommendation states.');
 assert.match(runtime,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderArmourRecommendationState\(build\)[\s\S]*?renderWeapons/,'Build Forge must apply the blank-or-generated mod presentation on every gear render.');
 assert.match(sequenceRuntime,/composeForgeRecommendation\(\{build:forgeComputationProjection\(working\),candidate,element:element,analyzeBuild:analyzeLiveGuardian,bounded:true\}\)/,'Generation must compare verified subclass sockets through a memory-bounded deterministic Forge intelligence projection.');
 const computationFields=runtime.match(/const FORGE_COMPUTATION_FIELDS=Object\.freeze\(\[([^\]]+)\]\)/)?.[1]||'';
@@ -240,13 +250,16 @@ assert.doesNotMatch(runtime,/armour-verification-line|decorateBuildArmour/,'Buil
 assert.doesNotMatch(html,/T5 BASE REQUIRED|T5 VERIFIED|MASTERWORK NOT REPORTED/,'Internal armour validation must not clutter the user-facing armour layout.');
 assert.match(gearRuntime,/return \[masterwork, \.\.\.clean\(generalSource\)\.slice\(0, 2\), \.\.\.clean\(slotSource\)\.slice\(0, 3\)\]/,'Armour mapping must remain masterwork, two general slots and three armour slots.');
 
-assert.match(html,/id="applyBuild" disabled>BUILD MY GUARDIAN LOADOUT<\/button>/,'The only live action must be the explicit Build My Guardian Loadout confirmation control.');
+assert.match(html,/id="applyWorkingBuild" disabled>APPLY<\/button>/,'The Working Build must expose one explicit Apply entry point outside generation.');
+assert.match(html,/id="applyConfirmationDialog"[\s\S]*?LIVE BUNGIE ACTION · FINAL CONFIRMATION[\s\S]*?id="confirmApplyBuild">APPLY TO THIS GUARDIAN<\/button>/,'Apply must open an exact Guardian-scoped final confirmation before any live action.');
 assert.match(html,/LIVE GUARDIAN UNCHANGED/,'The review must state that generation does not alter the live Guardian.');
-assert.match(runtime,/if\(!build\?\.recommendationGeneratedAt\)throw new Error/,'Live apply must reject any build that has not passed generation and review.');
-const applyStart=runtime.indexOf('async function applyBuild()'),applyEnd=runtime.indexOf('function setRangeStatus',applyStart),applySource=runtime.slice(applyStart,applyEnd);
-assert.ok(applySource.indexOf('createLiveTransferPreflight')<applySource.indexOf('createLiveTransferPlan'),'The live route must validate exact loadout coherence before constructing its ordered transfer plan.');
-assert.match(applySource,/if\(!preflight\.ready\)[\s\S]*?if\(!plan\.ready\)[\s\S]*?complete authenticated live-transfer executor is not enabled/,'The live route must stop before mutation unless both exact preflight and every transfer capability pass.');
-assert.doesNotMatch(applySource,/window\.confirm|confirmPerkChangePlan|applyConfirmedPerkChangePlan|fetch\(/,'The UI must not expose the obsolete partial perk-only mutation path.');
+assert.doesNotMatch(runtime,/if\(!build\?\.recommendationGeneratedAt\)throw new Error/,'Manual Apply must not depend on generating an AI recommendation first.');
+const planStart=runtime.indexOf('function buildLivePlan()'),applyEnd=runtime.indexOf('function verifiedActivities',planStart),applySource=runtime.slice(planStart,applyEnd);
+assert.ok(applySource.indexOf('createLiveTransferPreflight(build)')<applySource.indexOf('createLiveTransferPlan'),'The live route must validate exact loadout coherence before constructing its ordered transfer plan.');
+assert.match(applySource,/liveActionCapabilities\(globalThis\.ASTRIX_BUNGIE_SESSION\)[\s\S]*?function openApplyConfirmation\(\)[\s\S]*?pendingApplyPlan=plan[\s\S]*?async function executeConfirmedApply\(\)[\s\S]*?executeLiveTransferPlan\(confirmLiveTransferPlan\(plan\)/,'Build Forge must use advertised capabilities, retain the reviewed plan, and call the executor only from the final confirmation handler.');
+assert.doesNotMatch(applySource,/window\.confirm|confirmPerkChangePlan|applyConfirmedPerkChangePlan|fetch\(/,'The UI must not expose a hidden confirm prompt, direct fetch, or obsolete partial perk-only mutation path.');
+assert.match(runtime,/stageEquipmentChoice[\s\S]*?stageSocketChoice/,'Build Forge must expose manual exact-item and socket staging independently of Generate.');
+assert.match(html,/id="saveParadoxBuild" disabled>SAVE PARADOX<\/button>[\s\S]*?SEPARATE FROM BUNGIE LOADOUT SLOTS/,'Named PARADOX copies must remain explicit and separate from Bungie slots.');
 
 console.log('PARADOX_BUILD_SPACE_STATE=PASS');
 console.log('ORIGINAL_WORKING_ISOLATION=PASS');

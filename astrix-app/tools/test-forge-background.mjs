@@ -9,7 +9,11 @@ const artifact={hash:999,artifactHash:999,name:'Test Artifact',seasonNumber:31,p
   {hash:9102,name:'Grenade Engine',description:'Grenade final blows grant grenade energy.',tierIndex:0,itemIndex:1,column:1,order:2,minimumUnlockPointsUsedRequirement:0}
 ].map(p=>({...p,displayResolved:true,unresolved:false,isActive:true,isVisible:true,tierUnlocked:true})),activePerks:[]};
 artifact.activePerks=artifact.perks;
-const build={...voidLoopSource,artifact,currentSeasonNumber:31,artifactConfiguration:{artifactHash:999,seasonNumber:31,selectedPerkHashes:[9101,9102],source:'bungie-live'}};
+const characterId='81001',weaponBuckets=[1498876634,2465295065,953998645],armourBuckets=[3448274439,3551918588,14239492,20886954,1585787867],weaponIds=new Map(),currentWeaponIds=new Set((voidLoopSource.weapons||[]).map(row=>String(row.itemInstanceId||'')));
+const exactWeapon=(row,index)=>{const prior=String(row.itemInstanceId||row.hash||index);if(!weaponIds.has(prior))weaponIds.set(prior,String(82001+weaponIds.size));return {...row,itemHash:Number(row.itemHash??row.hash),itemInstanceId:weaponIds.get(prior),bucketHash:Number(row.bucketHash??weaponBuckets[index%3]),source:{kind:currentWeaponIds.has(prior)?'equipped':'vault',characterId:currentWeaponIds.has(prior)?characterId:null}};};
+const exactArmour=(voidLoopSource.armour||[]).map((row,index)=>({...row,itemHash:Number(row.itemHash??row.hash),itemInstanceId:String(83001+index),bucketHash:armourBuckets[index],classType:1,source:{kind:'equipped',characterId}}));
+const exoticAnchorId=exactArmour.find(row=>row.isExotic)?.itemInstanceId||exactArmour[1].itemInstanceId;
+const build={...voidLoopSource,characterId,membershipId:'84001',membershipType:'3',characterClass:'hunter',weapons:(voidLoopSource.weapons||[]).map(exactWeapon),ownedWeapons:(voidLoopSource.ownedWeapons||[]).map(exactWeapon),armour:exactArmour,forgeLoaderDecision:{...voidLoopSource.forgeLoaderDecision,buildAnchor:{...voidLoopSource.forgeLoaderDecision.buildAnchor,selectedItemInstanceId:exoticAnchorId}},artifact,currentSeasonNumber:31,artifactConfiguration:{artifactHash:999,seasonNumber:31,selectedPerkHashes:[9101,9102],source:'bungie-live'}};
 const before=JSON.stringify(build),variant={element:'void',objective:'dps',superHash:102},candidates=[{element:'void',candidate:nothingManaclesCandidate}];
 const result=await prepareForgeSequence({build,candidate:nothingManaclesCandidate,...variant,currentSeasonNumber:31},{advise:async()=>{}});
 assert.equal(result.patch.super.hash,102,'An explicitly selected verified Super must survive generation.');

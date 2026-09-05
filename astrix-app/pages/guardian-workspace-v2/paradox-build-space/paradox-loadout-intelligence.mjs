@@ -223,11 +223,13 @@ function validateArmourModLoadout(build={}){
     const seen=new Map(),mods=[...(item.generalMods||item.armourSemantics?.generalMods||[]),...(item.slotMods||item.armourSemantics?.slotMods||[])];
     for(const mod of mods){
       const evidence=singleCopyModEvidence(mod);if(!evidence)continue;
-      const prior=seen.get(evidence.key);if(prior)violations.push({armourItemInstanceId:String(item.itemInstanceId||''),armourName:itemName(item,'Armour'),modHash:itemHash(mod),modName:itemName(mod,'Mod'),socketIndexes:[Number(prior.socketIndex),Number(mod.socketIndex)].filter(Number.isFinite),reason:evidence.message});else seen.set(evidence.key,mod);
+      const prior=seen.get(evidence.key);if(prior)violations.push({kind:'single-copy',armourItemInstanceId:String(item.itemInstanceId||''),armourName:itemName(item,'Armour'),modHash:itemHash(mod),modName:itemName(mod,'Mod'),socketIndexes:[Number(prior.socketIndex),Number(mod.socketIndex)].filter(Number.isFinite),reason:evidence.message});else seen.set(evidence.key,mod);
     }
+    const capacity=Number(item?.energy?.capacity??item?.armourSemantics?.energy?.capacity),used=mods.reduce((sum,mod)=>sum+modCost(mod),0);
+    if(Number.isFinite(capacity)&&capacity>=0&&used>capacity)violations.push({kind:'energy-capacity',armourItemInstanceId:String(item.itemInstanceId||''),armourName:itemName(item,'Armour'),energyUsed:used,energyCapacity:capacity,reason:`${itemName(item,'Armour')} uses ${used}/${capacity} armour energy.`});
   }
   const first=violations[0];
-  return {ready:violations.length===0,reason:first?`Invalid armour-mod plan: ${first.modName} cannot be recommended more than once on ${first.armourName}.`:'',violations};
+  return {ready:violations.length===0,reason:first?`Invalid armour-mod plan: ${first.kind==='energy-capacity'?first.reason:`${first.modName} cannot be recommended more than once on ${first.armourName}.`}`:'',violations};
 }
 
 function recommendArmourMods({build={},objective='balanced'}={}){
@@ -327,12 +329,18 @@ function validateLoadoutCoherence(build={}){
 }
 
 function createLiveTransferPreflight(build={}){
-  const coherence=validateLoadoutCoherence(build),weapons=(build.weapons||[]).filter(Boolean),armour=(build.armour||[]).filter(Boolean),violations=[...coherence.violations];
-  if(!build.recommendationGeneratedAt)violations.push('No generated Working Build timestamp is present.');
-  if(weapons.length!==3||weapons.some(item=>!String(item.itemInstanceId||'')))violations.push('Live transfer requires three exact owned weapon instance IDs.');
-  if(armour.length!==5||armour.some(item=>!String(item.itemInstanceId||'')))violations.push('Live transfer requires five exact armour instance IDs.');
-  if(!build.artifactConfiguration?.selectedPerkHashes?.length)violations.push('Live transfer requires the exact intended Artifact selection.');
-  return {schemaVersion:1,status:violations.length?'blocked':'ready',ready:violations.length===0,checkedAt:new Date().toISOString(),characterId:String(build.characterId||''),violations:[...new Set(violations)],coherence,scope:{weapons:weapons.map(item=>String(item.itemInstanceId||'')),armour:armour.map(item=>String(item.itemInstanceId||'')),artifactHash:Number(build.artifactConfiguration?.artifactHash)||null,artifactPerkHashes:[...(build.artifactConfiguration?.selectedPerkHashes||[])],armourModChanges:Number(build.armourModRecommendation?.summary?.replace||0)+Number(build.armourModRecommendation?.summary?.add||0)+Number(build.armourModRecommendation?.summary?.remove||0)}};
+  const generated=Boolean(build.recommendationGeneratedAt),coherence=generated?validateLoadoutCoherence(build):{ready:true,reason:'',violations:[]},weapons=(build.weapons||[]).filter(Boolean),armour=(build.armour||[]).filter(Boolean),violations=generated?[...coherence.violations]:[],warnings=[];
+  if(!/^\d+$/.test(String(build.characterId||''))||!/^\d+$/.test(String(build.membershipId||build.bungieMembershipId||''))||!/^\d+$/.test(String(build.membershipType??'')))violations.push('Apply requires an authenticated Guardian and Destiny membership binding.');
+  if(weapons.length!==3||weapons.some(item=>!/^\d+$/.test(String(item.itemInstanceId||''))))violations.push('Apply requires three exact owned weapon instance IDs.');
+  if(armour.length!==5||armour.some(item=>!/^\d+$/.test(String(item.itemInstanceId||''))))violations.push('Apply requires five exact owned armour instance IDs.');
+  const exotic=validateExoticLoadout(build,{requireArmourAnchor:false});if(!exotic.ready)violations.push(exotic.reason);
+  const mods=validateArmourModLoadout(build);if(!mods.ready)violations.push(mods.reason);
+  const locationKinds=new Set(['equipped','carried','vault','profile','postmaster']);
+  for(const item of [...weapons,...armour])if(!locationKinds.has(String(item?.source?.kind||'')))violations.push(`${itemName(item,'Selected item')} is missing verified owned-location evidence.`);
+  if(!build.artifactConfiguration?.selectedPerkHashes?.length)warnings.push('No intended Artifact change is staged.');
+  else warnings.push('Artifact choices are preserved as explicit in-game steps unless Bungie exposes a verified free socket mapping.');
+  for(const change of build.manualSocketChanges||[])if(change?.remoteSupported===false)warnings.push(`${change.plugName||'A selected socket change'} must be completed in game.`);
+  return {schemaVersion:2,status:violations.length?'blocked':'ready',ready:violations.length===0,checkedAt:new Date().toISOString(),mode:generated?'generated-recommendation':'manual-working-build',characterId:String(build.characterId||''),membershipId:String(build.membershipId||build.bungieMembershipId||''),membershipType:String(build.membershipType??''),violations:[...new Set(violations)],warnings:[...new Set(warnings)],coherence,scope:{weapons:weapons.map(item=>String(item.itemInstanceId||'')),armour:armour.map(item=>String(item.itemInstanceId||'')),artifactHash:Number(build.artifactConfiguration?.artifactHash)||null,artifactPerkHashes:[...(build.artifactConfiguration?.selectedPerkHashes||[])],manualSocketChanges:Number(build.manualSocketChanges?.length||0),armourModChanges:Number(build.armourModRecommendation?.summary?.replace||0)+Number(build.armourModRecommendation?.summary?.add||0)+Number(build.armourModRecommendation?.summary?.remove||0)}};
 }
 
 export {OBJECTIVE_TERMS,STAT_KEYS,WEAPON_BUCKETS,createLiveTransferPreflight,deriveLoadoutIntent,isExoticItem,isVerifiedMod,itemElement,modCost,modStats,recommendArmourMods,scoreMod,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateWeaponModel,validateLoadoutCoherence};

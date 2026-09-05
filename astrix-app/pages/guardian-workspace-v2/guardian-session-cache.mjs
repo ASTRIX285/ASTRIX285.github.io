@@ -40,7 +40,12 @@ function cacheBungieSession(session){
 
 function readCachedBungieSession(){
   const row=safeSessionRead(SESSION_KEY);
-  return row?.session?.authenticated?{...row.session,sessionCacheRestored:true}:null;
+  const session=row?.session;
+  // Live mutations must never be enabled from an older cached session that
+  // predates the CSRF token and the Worker's explicit capability contract.
+  return session?.authenticated&&session?.csrfToken&&session?.capabilities?.destinyActions
+    ?{...session,sessionCacheRestored:true}
+    :null;
 }
 
 function openDatabase(){
@@ -81,6 +86,18 @@ async function readRecord(key){
     transaction.oncomplete=()=>db.close();
     transaction.onerror=()=>db.close();
     transaction.onabort=()=>db.close();
+  });
+}
+
+async function deleteRecord(key){
+  const db=await openDatabase();
+  if(!db)return false;
+  return new Promise(resolve=>{
+    const transaction=db.transaction(STORE_NAME,"readwrite");
+    transaction.objectStore(STORE_NAME).delete(key);
+    transaction.oncomplete=()=>{db.close();resolve(true);};
+    transaction.onerror=()=>{db.close();resolve(false);};
+    transaction.onabort=()=>{db.close();resolve(false);};
   });
 }
 
@@ -176,6 +193,15 @@ async function readCachedBungieLoadoutDetail(session,characterId,index){
   return fallback?.key===key&&fallback?.identity===identity&&isFresh(fallback)?fallback.detail||null:null;
 }
 
+async function invalidateBungieLoadoutDetail(session,characterId,index){
+  const identity=sessionIdentity(session),slot=Number(index),guardian=String(characterId||"");
+  if(!identity||!guardian||!Number.isInteger(slot))return false;
+  const key=loadoutRecordKey(identity,guardian,slot),fallbackKey=`${LOADOUT_FALLBACK_PREFIX}${guardian}:${slot}`;
+  let fallbackRemoved=false;
+  try{fallbackRemoved=sessionStorage.getItem(fallbackKey)!==null;sessionStorage.removeItem(fallbackKey);}catch{}
+  return (await deleteRecord(key))||fallbackRemoved;
+}
+
 function armGuardianPortalTransition(){
   const fromBuild=String(globalThis.location?.pathname||"").includes("/paradox-build-space/");
   const label=fromBuild?"Opening Guardian workspace":"Opening Build Forge";
@@ -205,6 +231,7 @@ export {
   releaseGuardianSessionStorageFallbacks,
   cacheBungieLoadoutDetail,
   readCachedBungieLoadoutDetail,
+  invalidateBungieLoadoutDetail,
   markGuardianFastReturn,
   armGuardianPortalTransition,
   openDatabase as openGuardianDatabase,

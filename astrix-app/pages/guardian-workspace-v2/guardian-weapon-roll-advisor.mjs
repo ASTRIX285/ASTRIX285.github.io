@@ -1,4 +1,4 @@
-import {adviseWeaponRoll} from "../../core/weapon-roll-advisor.mjs?v=20260904-weapon-model-2";
+import {adviseWeaponRoll} from "../../core/weapon-roll-advisor.mjs?v=20260905-manual-editor-1";
 import {classifyWeaponPlug} from './guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1';
 
 const INTELLIGENCE_URL=new URL("../../data/paradox-forge/intelligence/weapon-perk-intelligence.json",import.meta.url);

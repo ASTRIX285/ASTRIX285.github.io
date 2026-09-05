@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="ASTRIX PARADOX Loadout scaffold">
+  <meta name="description" content="Review and reopen named browser-only ASTRIX PARADOX Guardian loadouts.">
   <title>Loadout — ASTRIX PARADOX</title>
   <link rel="stylesheet" href="https://use.typekit.net/tnp6kbq.css">
   <link rel="stylesheet" href="/css/astrix-site-typography.css?v=20260903-bahnschrift-1">
@@ -13,29 +13,15 @@
   <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css?v=20260904-mobile-crosscheck-1">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260904-mobile-crosscheck-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
+  <link rel="stylesheet" href="./paradox-loadouts.css?v=20260905-manual-editor-1">
   <link rel="stylesheet" href="../../shared/astrix-desktop-density.css">
   <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
 </head>
 <body class="apx-destination-page astrix-paradox-map-background">
-  <!-- Loadout Export Adapter is planned but not built. No DIM API integration is claimed. -->
-  <header class="apx-destination-header astrix-command-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>LOADOUT</strong><small>REVIEW SAVED GUARDIAN BUILDS</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state">SCAFFOLD</span></header>
+  <header class="apx-destination-header astrix-command-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>LOADOUT</strong><small>REVIEW SAVED GUARDIAN BUILDS</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-astrix-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state">SAVED</span></header>
   <div data-astrix-destination-ribbon data-active-destination="loadout"></div>
-  <main class="apx-page-shell">
-    <section class="apx-section" aria-labelledby="savedLoadout"><div class="apx-section-heading"><h2 id="savedLoadout">Saved build record</h2><span class="apx-status-chip">EMPTY</span></div><ul class="apx-field-list">
-      <li><span>Name and description</span><span>Not available</span></li>
-      <li><span>Character class</span><span>Not available</span></li>
-      <li><span>Weapons</span><span>Not available</span></li>
-      <li><span>Armour</span><span>Not available</span></li>
-      <li><span>Mods</span><span>Not available</span></li>
-      <li><span>Subclass configuration</span><span>Not available</span></li>
-      <li><span>Artifact selection</span><span>Not available</span></li>
-      <li><span>Activity purpose</span><span>Not available</span></li>
-      <li><span>Build Forge analysis</span><span>Not available</span></li>
-      <li><span>Version history</span><span>Not available</span></li>
-      <li><span>Share link</span><span>Unavailable — no saved build</span></li>
-    </ul><span class="apx-empty-state">No saved ASTRIX builds exist in this scaffold.</span></section>
-  </main>
+  <main class="apx-page-shell paradox-loadout-shell"><section class="apx-section paradox-loadout-list" aria-labelledby="savedLoadout"><div class="apx-section-heading"><h2 id="savedLoadout">PARADOX LOADOUTS</h2><span class="apx-status-chip" id="paradoxLoadoutCount">0 SAVED</span></div><div class="paradox-loadout-list-grid" id="paradoxLoadoutList"></div></section><section class="apx-section paradox-loadout-detail" id="paradoxLoadoutDetail" aria-live="polite"></section></main>
   <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1"></script>
-  <script>document.addEventListener('astrix:hero-cards-render-complete',()=>{AstrixLoader.set(96);AstrixLoader.status('Loadout rendered');AstrixLoader.ready(document.querySelector('.apx-page-shell'));},{once:true});</script>
+  <script type="module" src="./paradox-loadouts.mjs?v=20260905-manual-editor-1"></script>
 </body>
 </html>
