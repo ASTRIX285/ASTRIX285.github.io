@@ -15,6 +15,21 @@ function bindingsEqual(left={},right={}){
   return a.characterId===b.characterId&&a.membershipId===b.membershipId&&a.membershipType===b.membershipType;
 }
 
+function shouldReplaceBuildState(currentState,detail={},options={}){
+  if(detail?.source!=="bungie-live"||!detail.characterId)return false;
+  if(!currentState?.originalBuild||!currentState?.workingBuild)return true;
+  const incomingCharacterId=String(detail.characterId||'');
+  const explicitlySelectedCharacterId=String(options.explicitlySelectedCharacterId||'');
+  const explicitCharacterChange=Boolean(explicitlySelectedCharacterId)&&explicitlySelectedCharacterId===incomingCharacterId;
+  const explicitLoadoutChange=Number.isInteger(detail.selectedLoadoutIndex);
+  if(explicitCharacterChange||explicitLoadoutChange)return true;
+  // A Forge Loader transfer is already bound to the Guardian chosen by the
+  // user. A background profile default for another Guardian must not replace
+  // it; doing so creates a mixed binding that readState correctly rejects.
+  if(options.vaultSelection===true&&currentState.workingBuild.forgeLoaderDecision)return false;
+  return true;
+}
+
 function createHandoffEnvelope(payload,{savedAt=Date.now()}={}){
   return {schemaVersion:HANDOFF_SCHEMA,savedAt,binding:bindingOf(payload),payload};
 }
@@ -31,4 +46,4 @@ function validateHandoffEnvelope(envelope,{expectedCharacterId='',expectedMember
   return envelope.payload;
 }
 
-export {HANDOFF_SCHEMA,HANDOFF_TTL_MS,bindingOf,bindingsEqual,createHandoffEnvelope,validateHandoffEnvelope};
+export {HANDOFF_SCHEMA,HANDOFF_TTL_MS,bindingOf,bindingsEqual,shouldReplaceBuildState,createHandoffEnvelope,validateHandoffEnvelope};

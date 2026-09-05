@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createHandoffEnvelope,validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
+import {createHandoffEnvelope,shouldReplaceBuildState,validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
 import {createBuildState} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 
 class MemoryStore{
@@ -41,6 +41,11 @@ const intendedWarlockArtifactConfiguration={
   provenance:{provider:'bungie-manifest',manifestHash:8001,component:202}
 };
 const warlockLoadout={characterId:'warlock-1',membershipId:'membership-1',membershipType:'3',characterClass:'Warlock',selectedLoadoutIndex:2,weapons:[{itemInstanceId:'warlock-weapon'}],artifactConfiguration:intendedWarlockArtifactConfiguration};
+const protectedWarlockForge=createBuildState({...warlockLoadout,selectedLoadoutIndex:null,forgeLoaderDecision:{schemaVersion:1}});
+const automaticHunterProfile={source:'bungie-live',characterId:'hunter-1',membershipId:'membership-1',membershipType:'3',selectedLoadoutIndex:null};
+assert.equal(shouldReplaceBuildState(protectedWarlockForge,automaticHunterProfile,{vaultSelection:true}),false,'a background active-character profile cannot replace a different Guardian\'s protected Forge Loader transfer');
+assert.equal(shouldReplaceBuildState(protectedWarlockForge,automaticHunterProfile,{vaultSelection:true,explicitlySelectedCharacterId:'hunter-1'}),true,'an explicit character-card selection can replace the protected transfer');
+assert.equal(shouldReplaceBuildState(protectedWarlockForge,{...automaticHunterProfile,selectedLoadoutIndex:4},{vaultSelection:true}),true,'an explicitly selected Bungie loadout can replace the protected transfer');
 rememberGuardian(warlockLoadout);
 rememberExplicitLoadout(warlockLoadout);
 assert.equal(resolveBuildSource().selectedLoadoutIndex,2,'selected loadout is preferred while its Guardian remains active');
