@@ -55,3 +55,10 @@ Bungie API reference: https://bungie-net.github.io/multi/schema_Destiny-Componen
 - Character's left rail sizes to its contents, ending after Artifact. Weapon and armour portrait frames use equal widths and a 1:1.22 shape; original Bungie art and release watermarks use matching contain geometry. Equipment mod/perk sockets share one size.
 
 Validation uses official public snapshot definitions and synthetic profile progress. Authenticated Guardian visual review and full-device heap/latency measurements remain unverified; source-level layout validation is not a substitute for that review.
+
+
+## Correction: restore the established Artifact rule
+
+The user clarified that the working Artifact behaviour must remain unchanged by styling work. The previous Forge runtime and deterministic composer are restored byte-for-byte from commit 49713c9, including automatic Artifact matching on entry and refresh after selections. This supersedes the follow-up claims above about deferred staging, deferred pickers and cooperative generation: those Forge runtime changes have been withdrawn. The previous behavioural validation gates are restored. Character styling and Journey mapping improvements remain in place.
+
+The Character Artifact renderer, state resolver and Bungie profile mapper were identical before and after the withdrawn update. The supplied Character screenshot reports no active perks; that account-specific state has not been reproduced or verified, and this rollback does not claim to repair it. No new Artifact selection rules have been introduced.
