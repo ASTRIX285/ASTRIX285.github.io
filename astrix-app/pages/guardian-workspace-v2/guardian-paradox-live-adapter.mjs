@@ -1,5 +1,5 @@
-import { analyzeGuardianBuild } from "./guardian-paradox-engine.mjs";
-import { adviseLiveWeaponRolls } from "./guardian-weapon-roll-advisor.mjs?v=20260904-weapon-model-2";
+import { analyzeGuardianBuild } from "./guardian-paradox-engine.mjs?v=20260905-background-forge-1";
+import { adviseLiveWeaponRolls } from "./guardian-weapon-roll-advisor.mjs?v=20260905-weapon-audit-1";
 
 const clone=v=>v==null?v:structuredClone(v);
 
@@ -123,6 +123,7 @@ function renderLiveAnalysis(analysis){
   }
 }
 
+if(typeof document!=='undefined'){
 document.addEventListener("astrix:guardian-selection-changed",event=>{
   if(event.detail?.source!=="bungie-live")return;
   queueMicrotask(()=>{
@@ -138,5 +139,6 @@ document.addEventListener("astrix:guardian-selection-changed",event=>{
     }
   });
 });
+}
 
 export {adaptLiveGuardian,analyzeLiveGuardian,renderLiveAnalysis};

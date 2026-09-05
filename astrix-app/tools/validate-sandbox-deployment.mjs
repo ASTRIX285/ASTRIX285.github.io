@@ -47,7 +47,7 @@ assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidde
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
 assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260903-command-header-1/,'Journey must load the cache-busted command-header cleanup');
-assert.match(journeyHtml,/journey\.mjs\?v=20260903-command-header-1/,'Journey must load the progressive records runtime without stale header-positioning code');
+assert.match(journeyHtml,/journey\.mjs\?v=20260905-forge-responsive-1/,'Journey must load the progressive records runtime without stale header-positioning code');
 assert.match(journeyModule,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey must not block on the full equipment manifest');
 assert.match(journeyModule,/ASTRIX_HERO_PROFILE_PROMISE/,'Journey must reuse the authenticated hero-card profile request');
 assert.doesNotMatch(journeyModule,/guardianManifest\.hydratePayload\(payload\)/,'Journey must not hydrate every equipment definition before binding records');
@@ -93,7 +93,7 @@ assert.match(journeyModule,/titleHash=finiteNumber\(character\?\.titleRecordHash
 assert.match(journeyModule,/journeyEquippedTitleDetailsLink[\s\S]*?showGuardianRecordPanel\('titles'\)[\s\S]*?showTitleDetail\(equippedTitleSummary,'titles'\)/,'The sandbox equipped-title card must link into the full title details');
 assert.doesNotMatch(journeyHtml,/journey-section-nav|journey-time-filter|TIME FILTER/,'The sandbox must replace generic Journey controls with recognisable Guardian data blocks');
 assert.match(journeyModule,/CLASS_USAGE_COLOURS[\s\S]*?item\.percent=item\.minutes\/total\*100[\s\S]*?journey-usage-chart/,'The sandbox must calculate a verified three-class usage chart');
-assert.match(journeyModule,/currentSeasonMetadata[\s\S]*?rewardProgressionHash[\s\S]*?prestigeProgressionHash[\s\S]*?XP TO RANK/,'The sandbox must render Current Season Rank from Bungie progression hashes');
+assert.match(journeyModule,/seasonRankProgress\(payload[\s\S]*?XP TO RANK/,'The sandbox must render Current Season Rank from Bungie progression hashes');
 assert.match(authWorker,/function currentSeasonRoute[\s\S]*?DestinySeasonDefinition[\s\S]*?DestinySeasonPassDefinition[\s\S]*?seasonPassProgressionHash[\s\S]*?rewardProgressionHash[\s\S]*?prestigeProgressionHash/,'The auth Worker must expose current season metadata without inventing rank values');
 assert.match(authWorker,/url\.pathname === "\/bungie\/current-season"[\s\S]*?currentSeasonRoute/,'The current season metadata route must be publicly addressable through the auth Worker');
 assert.match(journeyModule,/function createRankBadge[\s\S]*?journey-rank-badge[\s\S]*?renderDetailHero\(guardianRankHero,\{name:item\.name,badge:item\.rank/,'Both Guardian Rank summary and detail views must use the custom numeric medallion');
@@ -120,10 +120,10 @@ assert.match(journeyModule,/function captureEvidenceRows[\s\S]*?readCaptureArchi
 assert.match(journeyHtml,/id="journeyConfidenceDonutValue"[\s\S]*?id="journeyMostUsed"[\s\S]*?id="journeyBuildSummary"[\s\S]*?id="journeyMissionHighlights"/,'All previously missing Journey evidence mounts must now have data hooks');
 const refreshSource=journeyModule.slice(journeyModule.indexOf('async function refreshJourneyProfile'),journeyModule.indexOf('function showSignedOut'));
 assert.doesNotMatch(refreshSource,/AstrixLoader|location\.(?:reload|replace)|window\.location/,'Background profile refresh must never replay the portal loader or reload Journey');
-assert.match(journeyModule,/profileRecords\?\.data\?\.recordCategoriesRootNodeHash[\s\S]*?recordPresentationTree/,'Triumphs and Records must start from Bungie’s authoritative profile Records root');
+assert.match(journeyModule,/recordPresentationTree\(payload\)[\s\S]*?resolveRecordTree\(payload,guardianManifest/,'Triumphs and Records must use the tested official root resolver');
 assert.doesNotMatch(journeyModule,/parentNodeHashes/,'Journey must not guess the Records root from an incomplete set of returned progress nodes');
 assert.match(journeyModule,/currentRecordBranch\(root,tree\.nodes\)[\s\S]*?sectionKey==='lore'&&categories\.length/,'Medals, Catalysts and verified Lore must resolve from official child definitions while empty Lore stays hidden');
-assert.match(journeyModule,/destinationRecordSections[\s\S]*?recordPresentationTree\(payload\)[\s\S]*?DestinyPresentationNodeDefinition/,'Destination records must use the same verified Records-root hierarchy');
+assert.match(journeyModule,/destinationRecordSections[\s\S]*?recordPresentationTree\(payload\)[\s\S]*?findDestinationNodes/,'Destination records must use the same verified Records-root hierarchy');
 assert.match(journeyModule,/characterCraftables\?\.data[\s\S]*?craftingRootNodeHash[\s\S]*?presentationLeafCategories\(rootHash,nodes,'records'\)/,'Weapon patterns must use Bungie’s Craftables root and current Record leaves');
 assert.match(journeyModule,/DestinyRecordDefinition[\s\S]*?DestinyObjectiveDefinition[\s\S]*?titleRequirementRow\(payload,componentCharacterId/,'Pattern rows must join official Record definitions to verified profile objective progress');
 assert.doesNotMatch(journeyModule,/presentationLeafCategories\(rootHash,nodes,'craftables'\)/,'Journey must not read the empty craftables child list from current presentation definitions');

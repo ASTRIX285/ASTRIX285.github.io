@@ -1,4 +1,4 @@
-import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1";
+import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260905-manual-editor-1";
 
 const SAVED_KEY="astrix-paradox-saved-loadouts";
 

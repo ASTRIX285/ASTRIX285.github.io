@@ -20,6 +20,7 @@ const ROLE_PATTERNS=Object.freeze({
 
 const verifiedText=option=>[option?.name,option?.description,option?.displayProperties?.description,option?.definition?.displayProperties?.description,...(option?.traitIds||[]),...(option?.definition?.traitIds||[])].filter(Boolean).join(" · ");
 const canonicalToken=value=>String(value??"").trim().toLowerCase().replace(/\s+/g,"-");
+const exactRemoteSocketEvidence=option=>option?.remoteInsertEvidence==='exact-item-reusable-plug'||option?.source==='bungie-item-reusable-plugs';
 
 function normalisePerkIntelligence(perkHash, intelligence){
   const row=intelligence?.perks?.[String(perkHash)]||null;
@@ -105,7 +106,7 @@ function adviseWeaponRoll({weapon,intelligence,context={},capabilities={}}={}){
     const curated=options.map(option=>option.intelligence).filter(Boolean);
     const selectableAssessment=scoreCombination(curated,context),assessment=scoreCombination([...fixedTraits,...curated],context);
     return {
-      options:options.map(option=>({hash:option.hash,name:option.name||option.intelligence?.name||"",socketIndex:Number.isInteger(Number(option.socketIndex))?Number(option.socketIndex):null})),
+      options:options.map(option=>({hash:option.hash,name:option.name||option.intelligence?.name||"",socketIndex:Number.isInteger(Number(option.socketIndex))?Number(option.socketIndex):null,canInsert:option.canInsert===true,source:String(option.source||''),remoteInsertEvidence:String(option.remoteInsertEvidence||'')})),
       curatedCoverage:curated.length,
       verifiedCoverage:curated.length,
       selectableEvidenceMatchCount:selectableAssessment.evidenceMatchCount,
@@ -121,8 +122,9 @@ function adviseWeaponRoll({weapon,intelligence,context={},capabilities={}}={}){
   const recommendedHashes=best?best.options.map(option=>option.hash):[];
   const alreadySelected=best&&best.options.every(option=>option.socketIndex!=null?currentBySocket.get(option.socketIndex)===option.hash:currentHashes.includes(option.hash));
   const hasVerifiedRecommendation=Boolean(best&&best.selectableEvidenceMatchCount>0&&best.verifiedCoverage>0);
-  const stagedChanges=hasVerifiedRecommendation&&!alreadySelected?best.options.filter(option=>option.socketIndex!=null&&currentBySocket.get(option.socketIndex)!==option.hash).map(option=>({itemInstanceId:String(weapon?.itemInstanceId||""),socketIndex:option.socketIndex,currentPlugHash:currentBySocket.get(option.socketIndex)||null,plugHash:option.hash,source:"bungie-reusable-plugs",reversible:true,confirmed:false})).filter(change=>change.itemInstanceId):[];
+  const stagedChanges=hasVerifiedRecommendation&&!alreadySelected?best.options.filter(option=>option.socketIndex!=null&&currentBySocket.get(option.socketIndex)!==option.hash).map(option=>({itemInstanceId:String(weapon?.itemInstanceId||""),socketIndex:option.socketIndex,currentPlugHash:currentBySocket.get(option.socketIndex)||null,plugHash:option.hash,source:option.source||"bungie-unverified-plug-source",remoteInsertEvidence:option.remoteInsertEvidence||'',remoteSupported:option.canInsert===true&&exactRemoteSocketEvidence(option),reversible:true,confirmed:false})).filter(change=>change.itemInstanceId):[];
   const remotePerkMutationSupported=Boolean(capabilities?.insertSocketPlugFree===true);
+  const remotelyActionable=stagedChanges.some(change=>change.remoteSupported===true);
 
   return {
     weaponHash:weapon?.itemHash??weapon?.hash??null,
@@ -136,7 +138,7 @@ function adviseWeaponRoll({weapon,intelligence,context={},capabilities={}}={}){
     hasVerifiedRecommendation,
     stagedChanges,
     action:{
-      mode:remotePerkMutationSupported&&stagedChanges.length?"confirm-required":"recommend-only",
+      mode:remotePerkMutationSupported&&remotelyActionable?"confirm-required":"recommend-only",
       remotePerkMutationSupported,
       requiresUserConfirmation:true,
       label:alreadySelected?"Current roll already matches this build":hasVerifiedRecommendation?(remotePerkMutationSupported?"Review and apply perk changes":"Use recommended perk combination"):"No verified perk match"

@@ -4,23 +4,69 @@
 .left{grid-area:left;align-self:stretch;min-height:0}
 .equip{grid-area:equip}
 
-/* Narrower weapon panel, wider armour panel. */
-.equip.gear-layout-active{grid-template-columns:minmax(270px,300px) minmax(0,1fr)!important;gap:14px!important;align-items:start!important}
-.equip.gear-layout-active>.gear-weapons{grid-column:1;height:max-content!important;min-height:0!important;align-self:start!important}
-.equip.gear-layout-active>.gear-combined{grid-column:2}
+/* Shared equipment composition. Character and Build Forge both consume this
+   exact weapon-card geometry and the same five-card armour model. */
+.equip.gear-layout-active{grid-template-columns:1fr!important;gap:14px!important;align-items:start!important}
+.equip.gear-layout-active>.gear-weapons,
+.equip.gear-layout-active>.gear-combined{grid-column:1;height:max-content!important;min-height:0!important;align-self:start!important}
 
-.gear-weapons{min-height:0!important;height:max-content!important;align-self:start!important;overflow:auto}
-.gear-weapons .weap-grid{display:grid!important;grid-template-columns:repeat(3,82px)!important;gap:7px!important;align-items:start;justify-content:start}
-.gear-weapons .weap{min-width:0!important;width:82px!important;max-width:82px!important;min-height:212px!important;padding-bottom:5px!important}
-.gear-weapons .weap .art{width:82px!important;height:108px!important;aspect-ratio:auto!important;min-height:0!important;border-radius:9px!important}
+.gear-weapons{
+  --gear-weapon-art:clamp(86px,8cqi,112px);
+  --gear-weapon-socket:clamp(34px,3.6cqi,52px);
+  --gear-weapon-gap:clamp(5px,.45cqi,8px);
+  min-height:0!important;
+  height:max-content!important;
+  align-self:start!important;
+  overflow:visible!important;
+  container-type:inline-size;
+}
+.gear-weapons .weap-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+  width:100%!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+}
+.gear-weapons .weap{
+  min-width:0!important;
+  width:100%!important;
+  max-width:none!important;
+  min-height:calc(var(--gear-weapon-art) + 24px)!important;
+  padding:12px!important;
+  display:grid!important;
+  grid-template-columns:var(--gear-weapon-art) minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto 1fr!important;
+  grid-template-areas:"art cap" "art perks" "art support" "art empty"!important;
+  column-gap:12px!important;
+  row-gap:8px!important;
+  align-content:start!important;
+  border:1px solid rgba(180,132,45,.34)!important;
+  border-radius:12px!important;
+  background:linear-gradient(180deg,rgba(24,19,17,.82),rgba(8,8,11,.96))!important;
+  overflow:hidden!important;
+}
+.gear-weapons .weap .art{
+  grid-area:art!important;
+  width:var(--gear-weapon-art)!important;
+  height:var(--gear-weapon-art)!important;
+  aspect-ratio:1!important;
+  min-height:0!important;
+  border-radius:9px!important;
+}
 .gear-weapons .weap .art img{width:100%;height:100%;object-fit:cover}
-.gear-weapons .weap .cap{padding:5px 2px 0!important;background:transparent!important;border:0!important}
-.gear-weapons .weap .cap b{display:block;font-size:.54rem!important;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gear-weapons .weap .cap{grid-area:cap!important;min-width:0!important;padding:0 0 7px!important;background:transparent!important;border:0!important;border-bottom:1px solid rgba(147,35,43,.42)!important}
+.gear-weapons .weap .cap b{display:block;font-size:.78rem!important;line-height:1.2!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gear-weapons .weap .cap small{display:none!important}
-.gear-weapons .weapon-perk-strip{display:block;min-height:22px;margin-top:6px;padding:0;border:0;background:transparent}.gear-weapons .weapon-perk-strip[hidden]{display:none}
+.gear-weapons .weapon-perk-strip{grid-area:perks!important;display:block;min-width:0;min-height:var(--gear-weapon-socket);margin:0;padding:0;border:0;background:transparent}.gear-weapons .weapon-perk-strip[hidden]{display:none}
 .weapon-perk-matrix{display:grid;gap:8px;min-width:0}.weapon-perk-row{display:grid;grid-template-columns:52px repeat(var(--weapon-perk-columns),minmax(58px,76px));gap:10px;align-items:center}.weapon-perk-row-label{color:#8f8c96;font:800 12px/1 bahnschrift-semicondensed,sans-serif;letter-spacing:.08em}.weapon-perk-cell{position:relative;width:64px;height:64px;display:grid;place-items:center;border:1px solid rgba(216,180,82,.42);border-radius:50%;background:rgba(255,255,255,.04);overflow:hidden}.weapon-perk-cell img{width:100%;height:100%;object-fit:contain}.weapon-perk-cell.is-selected{border-color:#f0d55e;box-shadow:0 0 0 2px rgba(240,213,94,.18),0 0 14px rgba(240,213,94,.22)}.weapon-perk-cell.is-recommended{border-color:#61e6b6;box-shadow:0 0 0 2px rgba(97,230,182,.2),0 0 15px rgba(97,230,182,.28)}.weapon-perk-cell.is-enhanced img{filter:brightness(1.15) saturate(1.18) drop-shadow(0 0 6px rgba(182,144,255,.9))}.weapon-perk-cell.is-empty{visibility:hidden;border-color:transparent;background:transparent;box-shadow:none}
-.gear-weapons .weapon-perk-matrix.is-compact{gap:3px;width:100%}.gear-weapons .weapon-perk-matrix.is-compact .weapon-perk-row{grid-template-columns:repeat(var(--weapon-perk-columns),minmax(0,1fr));gap:3px}.gear-weapons .weapon-perk-matrix.is-compact .weapon-perk-row-label{display:none}.gear-weapons .weapon-perk-matrix.is-compact .weapon-perk-cell{width:100%;height:auto;aspect-ratio:1;border-radius:50%}.gear-weapons .weapon-perk-matrix.is-compact .weapon-perk-cell.is-empty{opacity:.35}
-.gear-weapons .weapon-support-icons{display:flex;gap:6px;margin-top:6px}.gear-weapons .weapon-support-icon{width:var(--pf-mod-size,36px);height:var(--pf-mod-size,36px);display:grid;place-items:center;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:#08090b;overflow:hidden}.gear-weapons .weapon-support-icon.is-mod{border-color:rgba(118,210,255,.62);background:rgba(62,154,214,.12)}.gear-weapons .weapon-support-icon.is-masterwork{border-color:#d7aa3c;background:rgba(215,170,60,.12)}.gear-weapons .weapon-support-icon img{width:88%!important;height:88%!important;object-fit:contain!important}
+.gear-weapons .weapon-perk-matrix.is-compact{gap:var(--gear-weapon-gap);width:max-content;max-width:100%}.gear-weapons .weapon-perk-matrix.is-compact .weapon-perk-row{grid-template-columns:repeat(var(--weapon-perk-columns),var(--gear-weapon-socket));gap:var(--gear-weapon-gap)}.gear-weapons .weapon-perk-matrix.is-compact .weapon-perk-row-label{display:none}.gear-weapons .weapon-perk-matrix.is-compact .weapon-perk-cell{width:var(--gear-weapon-socket);height:var(--gear-weapon-socket);aspect-ratio:1;border-radius:50%}.gear-weapons .weapon-perk-matrix.is-compact .weapon-perk-cell.is-empty{opacity:.35}
+.gear-weapons .weapon-support-icons{grid-area:support!important;display:flex;gap:var(--gear-weapon-gap);margin:0;padding-top:2px}.gear-weapons .weapon-support-icon{width:var(--gear-weapon-socket)!important;height:var(--gear-weapon-socket)!important;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:#08090b;overflow:hidden}.gear-weapons .weapon-support-icon.is-mod{border-color:rgba(118,210,255,.62);background:rgba(62,154,214,.12)}.gear-weapons .weapon-support-icon.is-masterwork{border-color:#d7aa3c;background:rgba(215,170,60,.12)}.gear-weapons .weapon-support-icon img{width:88%!important;height:88%!important;object-fit:contain!important}
+
+@container (max-width:960px){
+  .gear-weapons .weap-grid{grid-template-columns:1fr!important}
+  .gear-weapons .weap{grid-template-columns:var(--gear-weapon-art) minmax(0,1fr)!important}
+}
 
 .gear-combined{min-width:0;display:flex;flex-direction:column;gap:clamp(5px,.65vh,10px)}
 .gear-combined .eq-head{margin-bottom:2px}
@@ -37,7 +83,7 @@
 /* Armour + Exotic intrinsic sit on the same visual row. */
 .gear-arm-row{display:flex;align-items:center;justify-content:center;gap:clamp(6px,.45vw,10px);min-height:82px}
 .gear-arm-anchor{display:grid;place-items:center;margin:0}
-.gear-arm-anchor .arm{width:92px!important;height:92px!important;aspect-ratio:auto!important;margin:0!important;position:relative;isolation:isolate;border-radius:9px!important;overflow:hidden}
+.gear-arm-anchor .arm{width:clamp(88px,6vw,104px)!important;height:clamp(88px,6vw,104px)!important;aspect-ratio:auto!important;margin:0!important;position:relative;isolation:isolate;border-radius:9px!important;overflow:hidden}
 .gear-arm-anchor .arm>img{position:relative;z-index:1;display:block;width:100%;height:100%;object-fit:contain;background:rgba(4,5,8,.34)}
 .gear-slot.exotic .gear-arm-anchor{transform:translateX(-4px)}
 .gear-arm-anchor .arm::after{content:"";position:absolute;inset:0;z-index:8;border:2px solid rgba(255,255,255,.92);border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);pointer-events:none}.gear-slot.is-level-gold .gear-arm-anchor .arm::after{border:3px solid #d7aa3c;box-shadow:inset 0 0 0 1px rgba(255,234,160,.66),0 0 18px rgba(215,170,60,.28)}

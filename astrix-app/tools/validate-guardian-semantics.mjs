@@ -97,17 +97,17 @@ try{
 // G3b — Every rendered weapon socket icon remains bound to its exact Bungie
 // DestinyInventoryItemDefinition hash. Iconless definitions stay iconless.
 try{
-  const selected={hash:2401,bungieHash:2401,name:'Selected Trait',icon:'/common/wrong.png',definition:{displayProperties:{icon:'/common/selected-2401.png'},plug:{plugCategoryIdentifier:'traits'}}};
+  const selected={hash:2401,bungieHash:2401,name:'Selected Trait',icon:'/common/wrong.png',definition:{displayProperties:{icon:'/common/selected-2401.png',iconHash:9401},plug:{plugCategoryIdentifier:'traits'}}};
   const alternative={hash:2402,bungieHash:2402,name:'Alternative Trait',definition:{displayProperties:{icon:'/common/alternative-2402.png'},plug:{plugCategoryIdentifier:'traits'}}};
   const result=semantics.normaliseWeaponSemantics({plugs:[selected],alternativeColumns:{3:[alternative]}});
   const normalised=result.selectedPerks[0],normalisedAlternative=result.alternativePerkColumns[0]?.options?.[0];
-  if(normalised?.bungieHash!==2401||normalised?.iconHash!==2401||normalised?.icon!=='/common/selected-2401.png')fail('G3b: selected weapon perk icon is not bound to definition hash 2401');
-  if(normalisedAlternative?.bungieHash!==2402||normalisedAlternative?.iconHash!==2402)fail('G3b: alternative weapon perk icon is not bound to definition hash 2402');
+  if(normalised?.bungieHash!==2401||normalised?.iconHash!==9401||normalised?.iconItemHash!==2401||normalised?.icon!=='/common/selected-2401.png')fail('G3b: selected weapon perk lost its distinct item and icon definition hashes');
+  if(normalisedAlternative?.bungieHash!==2402||normalisedAlternative?.iconHash!==null||normalisedAlternative?.iconItemHash!==2402)fail('G3b: alternative weapon perk must retain its item hash without inventing an icon hash');
   if(result.perkIconHashMap?.['2401']!=='/common/selected-2401.png'||result.perkIconHashMap?.['2402']!=='/common/alternative-2402.png')fail('G3b: weapon perk hash→icon model is incomplete');
   const invalid=semantics.normaliseWeaponSemantics({plugs:[{hash:'not-a-hash',icon:'/common/guessed.png',definition:{plug:{plugCategoryIdentifier:'traits'}}}]});
   if(invalid.selectedPerks.length||invalid.perkIconHashMap?.['not-a-hash']||invalid.unknownPlugs.length!==1)fail('G3b: hashless weapon perk received a guessed icon identity');
-  const audit=semantics.WEAPON_PERK_MANIFEST_AUDIT;
-  if(audit.candidateDefinitions!==2423||audit.iconDefinitions!==2136||audit.iconlessDefinitions!==287||audit.hashMismatches!==0)fail('G3b: 2026-08-28 weapon perk manifest audit totals drifted');
+  const audit=JSON.parse(await readFile(new URL('../data/paradox-weapon-audit-report.json',import.meta.url),'utf8'));
+  if(!audit.manifestVersion||!audit.counts.weapons||audit.counts.references!==audit.counts.resolvedReferences||audit.unresolvedReferences.length)fail('G3b: current exhaustive weapon manifest audit contains unresolved references');
   const uiSource=await readFile(new URL('../pages/guardian-workspace-v2/guardian-semantic-ui.mjs',import.meta.url),'utf8');
   if(!/data-bungie-hash/.test(uiSource)||!/hashAttribute\(perk\)/.test(uiSource)||!/hashAttribute\(semantics\.intrinsic\)/.test(uiSource))fail('G3b: weapon perk/intrinsic DOM icons do not expose their Bungie hash');
 }catch(error){fail(`G3b threw: ${error.message}`);}
@@ -138,7 +138,7 @@ try{
   if(result.perkModel.columns.map(column=>column.socketIndex).join(',')!=='1,3')fail('G3c: weapon perk columns did not preserve Bungie socket order');
   if(result.perkRows[0]?.slots?.[0]?.perk?.name!=='Fluted Barrel'||result.perkRows[1]?.slots?.[1]?.perk?.name!=='Destabilizing Rounds Retrofit')fail('G3c: perk alternatives were not integrated into the tier row model');
   if(!result.perkRows[0]?.slots?.[0]?.isSelected||!result.perkRows[1]?.slots?.[1]?.isSelected)fail('G3c: selected perks lost their exact modeled row positions');
-  if(result.intrinsic?.name!=='Command Frame IV'||result.exoticTraits.map(row=>row.name).join(',')!=='Choir of One')fail('G3c: verified Exotic weapon trait was not kept beneath the intrinsic hierarchy');
+  if(result.intrinsic?.hash!==2500||result.exoticTraits.map(row=>row.hash).join(',')!=='2600,2601')fail('G3c: distinct Bungie sandbox effects must remain beneath the intrinsic hierarchy even when names match');
   if(semantics.classifyWeaponPlug(selectedTrait)!=='perk')fail('G3c: definition-level Exotic trait was misclassified by the broad Weapon Mods socket title');
   if(semantics.weaponPerkRowCountForTier(5)!==3||semantics.weaponPerkRowCountForTier(4)!==2||semantics.weaponPerkRowCountForTier(3)!==2||[1,2].some(tier=>semantics.weaponPerkRowCountForTier(tier)!==1))fail('G3c: Tier 1–5 weapon row rules drifted');
   if([1,2,3,4,5].map(column=>semantics.weaponPerkColumnRowCountForTier(5,column)).join(',')!=='2,2,3,3,2')fail('G3c: Tier 5 visual perk columns must follow 2,2,3,3,2 rows');
@@ -166,15 +166,18 @@ try{
   if(advice.fixedEvidence?.traitCount!==1||advice.fixedEvidence?.catalystMasterworked!==true)fail('G3d: completed Exotic catalyst was not retained as fixed recommendation evidence');
 }catch(error){fail(`G3d threw: ${error.message}`);}
 
-// G3e — Live changes are always equip-first and all-or-nothing. Perk mutation
-// cannot run ahead of equipment verification or absent full route support.
+// G3e — Live changes are exact-item plans whose mutation phases remain blocked
+// until every required authenticated capability is advertised.
 try{
-  const build={characterId:'guardian-1',weapons:Array.from({length:3},(_,index)=>({itemInstanceId:`weapon-${index}`})),armour:Array.from({length:5},(_,index)=>({itemInstanceId:`armour-${index}`})),artifactConfiguration:{artifactHash:3000,selectedPerkHashes:[3001,3002]},armourModRecommendation:{decisions:[]}};
-  const advice={stagedChanges:[{itemInstanceId:'weapon-0',socketIndex:3,currentPlugHash:1,plugHash:2}]};
+  const characterId='71001',weaponBuckets=[1498876634,2465295065,953998645],armourBuckets=[3448274439,3551918588,14239492,20886954,1585787867];
+  const build={characterId,membershipId:'72001',membershipType:'3',characterClass:'hunter',weapons:weaponBuckets.map((bucketHash,index)=>({itemHash:73000+index,itemInstanceId:String(73100+index),bucketHash,source:{kind:'equipped',characterId}})),armour:armourBuckets.map((bucketHash,index)=>({itemHash:74000+index,itemInstanceId:String(74100+index),bucketHash,classType:1,source:{kind:'equipped',characterId}})),artifactConfiguration:{artifactHash:3000,selectedPerkHashes:[3001,3002]},armourModRecommendation:{decisions:[]}};
+  const advice={stagedChanges:[{itemInstanceId:'73100',itemHash:73000,socketIndex:3,currentPlugHash:1,plugHash:2,source:'bungie-item-reusable-plugs',remoteInsertEvidence:'exact-item-reusable-plug',remoteSupported:true}]};
   const blocked=transferPlans.createLiveTransferPlan({build,advice});
-  if(blocked.ready||blocked.phases.map(row=>row.key).join(',')!=='snapshot,equip,verify-equipment,weapon-perks,armour-mods,artifact,verify-final')fail('G3e: incomplete route support did not preserve the equip-first blocked transfer sequence');
-  const supported=transferPlans.createLiveTransferPlan({build,advice,capabilities:{captureSnapshot:true,equipItems:true,verifyEquipment:true,insertWeaponPerks:true,insertArmourMods:true,applyArtifact:true,verifyFinalState:true}});
-  if(!supported.ready||supported.executionPolicy!=='equip-then-mutate-sockets-then-verify')fail('G3e: complete route support did not produce a ready equip-first plan');
+  if(blocked.ready||blocked.phases.map(row=>row.key).join(',')!=='captureSnapshot,transferItems,equipItems,verifyEquipment,applyWeaponSockets,applyArmourMods,verifyFinalState')fail('G3e: incomplete route support did not preserve the split weapon/armour execution sequence');
+  const supported=transferPlans.createLiveTransferPlan({build,advice,capabilities:{captureSnapshot:true,transferItems:true,equipItems:true,verifyEquipment:true,insertSocketPlugFree:true,verifyFinalState:true}});
+  if(!supported.ready||supported.executionPolicy!=='fresh-read-activity-check-transfer-equip-verify-weapon-sockets-armour-mods-final-readback'||supported.socketChanges.length!==1)fail('G3e: complete route support did not produce a ready exact-item plan');
+  const compatibleOnly=transferPlans.createLiveTransferPlan({build,advice:{stagedChanges:[{...advice.stagedChanges[0],source:'bungie-profile-plug-set',remoteInsertEvidence:'compatible-plug-set',remoteSupported:false}]},capabilities:{captureSnapshot:true,transferItems:true,equipItems:true,verifyEquipment:true,insertSocketPlugFree:true,verifyFinalState:true}});
+  if(!compatibleOnly.ready||compatibleOnly.socketChanges.length||!compatibleOnly.inGameSteps.some(row=>row.includes('not verified as a free remote insertion')))fail('G3e: compatible-only plug-set evidence was not preserved as an explicit in-game step');
 }catch(error){fail(`G3e threw: ${error.message}`);}
 
 // G4 — Stat threshold is above 100, not merely at 100.

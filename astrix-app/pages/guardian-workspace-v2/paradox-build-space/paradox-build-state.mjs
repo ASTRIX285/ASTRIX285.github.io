@@ -1,5 +1,8 @@
 const BUILD_STATE_VERSION = 1;
+const BUILD_PERSISTENCE_SCHEMA_VERSION = 1;
 const VALIDATION_STATUS = Object.freeze({UNTESTED:'untested',INITIAL:'initial-result',PROVISIONAL:'provisionally-validated',REPEATED:'repeatedly-validated',INVALIDATED:'not-validated'});
+const PERSISTED_SHARED_BUILD_KEYS=Object.freeze(['ownedWeapons','vaultWeapons','inventoryWeapons','ownedArmour','subclassCatalog','availableArtifacts','artifactOptions','availableActivities','activityCatalog','gearAssets','itemRenderData','renderData','loadouts']);
+const PERSISTED_TRANSIENT_BUILD_KEYS=Object.freeze(['liveTransferPreflight','liveTransferPlan','liveTransferResult','sessionCacheRestored','loadoutActionIntent']);
 function clone(value){try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}}
 function freezeDeep(value){if(!value||typeof value!=='object'||Object.isFrozen(value))return value;Object.freeze(value);Object.values(value).forEach(freezeDeep);return value;}
 function itemIdentity(item){if(!item)return null;return String(item.itemInstanceId||item.instanceId||item.hash||item.bungieHash||item.name||'');}
@@ -65,6 +68,32 @@ function normalizeBuild(build={}){
   return normalized;
 }
 function createBuildState(sourceBuild){const normalized=normalizeBuild(sourceBuild||{});const original=freezeDeep(normalized);return {version:BUILD_STATE_VERSION,createdAt:new Date().toISOString(),originalBuild:original,workingBuild:clone(normalized),recommendation:null,validationRecords:[]};}
+function createWorkingBuildPatch(build={}){
+  const working={...build};
+  if(build.subclassBuild&&typeof build.subclassBuild==='object')working.subclassBuild={...build.subclassBuild};
+  if(build.artifact&&typeof build.artifact==='object')working.artifact={...build.artifact};
+  if(build.artifactConfiguration&&typeof build.artifactConfiguration==='object')working.artifactConfiguration={...build.artifactConfiguration,selectedPerkHashes:Array.isArray(build.artifactConfiguration.selectedPerkHashes)?[...build.artifactConfiguration.selectedPerkHashes]:build.artifactConfiguration.selectedPerkHashes};
+  if(Array.isArray(build.manualEdits))working.manualEdits=[...build.manualEdits];
+  if(Array.isArray(build.manualSocketChanges))working.manualSocketChanges=[...build.manualSocketChanges];
+  return working;
+}
+function compactPersistenceBuild(build={}){
+  const compact={...build};
+  for(const key of PERSISTED_TRANSIENT_BUILD_KEYS)delete compact[key];
+  return compact;
+}
+function createBuildPersistenceSnapshot(state={}){
+  if(!state?.originalBuild||!state?.workingBuild)return null;
+  const metadata={...state};delete metadata.originalBuild;delete metadata.workingBuild;
+  const originalBuild=compactPersistenceBuild(state.originalBuild),workingPatch=compactPersistenceBuild(state.workingBuild);
+  for(const key of PERSISTED_SHARED_BUILD_KEYS)if(Object.hasOwn(originalBuild,key))delete workingPatch[key];
+  return {schemaVersion:BUILD_PERSISTENCE_SCHEMA_VERSION,savedAt:new Date().toISOString(),metadata,originalBuild,workingPatch,sharedBuildKeys:PERSISTED_SHARED_BUILD_KEYS.filter(key=>Object.hasOwn(originalBuild,key))};
+}
+function restoreBuildPersistenceSnapshot(snapshot={}){
+  if(snapshot?.schemaVersion!==BUILD_PERSISTENCE_SCHEMA_VERSION||!snapshot.originalBuild||!snapshot.workingPatch)return null;
+  const originalBuild=freezeDeep(snapshot.originalBuild),workingBuild={...originalBuild,...snapshot.workingPatch};
+  return protectBuildState({...snapshot.metadata,version:BUILD_STATE_VERSION,originalBuild,workingBuild,validationRecords:Array.isArray(snapshot.metadata?.validationRecords)?snapshot.metadata.validationRecords:[]});
+}
 function protectBuildState(state={}){
   if(!state?.originalBuild||!state?.workingBuild)return state;
   if(Object.isFrozen(state.originalBuild)&&Array.isArray(state.validationRecords))return state;
@@ -75,8 +104,9 @@ function protectBuildState(state={}){
 }
 function restoreWorkingBuild(state={}){if(!state?.originalBuild)return state;return {...state,workingBuild:clone(state.originalBuild),recommendation:null,restoredAt:new Date().toISOString()};}
 function diffSlot(prefix,before,after,index){const a=itemIdentity(before);const b=itemIdentity(after);if(a===b)return null;return {path:`${prefix}.${index}`,before:clone(before),after:clone(after),beforeId:a,afterId:b};}
+function itemSocketSignature(item){const plugs=Array.isArray(item?.socketCoverage?.plugs)?item.socketCoverage.plugs:[];return JSON.stringify(plugs.map(row=>[Number(row?.socketIndex),numberOrNull(row?.hash??row?.itemHash??row?.bungieHash)]).filter(row=>Number.isInteger(row[0])&&row[1]!==null).sort((left,right)=>left[0]-right[0]));}
 function artifactConfigurationSignature(configuration){if(!configuration||typeof configuration!=='object')return null;const selectedPerkHashes=Array.isArray(configuration.selectedPerkHashes)?[...new Set(configuration.selectedPerkHashes.map(numberOrNull).filter(value=>value!==null))].sort((a,b)=>a-b):null;return JSON.stringify({artifactHash:numberOrNull(configuration.artifactHash),seasonNumber:numberOrNull(configuration.seasonNumber),selectedPerkHashes});}
-function diffBuilds(original={},working={}){const changes=[];['subclass','subclassName'].forEach(path=>{if(String(original?.[path]??'')!==String(working?.[path]??''))changes.push({path,before:original?.[path]??null,after:working?.[path]??null});});const a=original.subclassBuild||{},b=working.subclassBuild||{};if(itemIdentity(a.super)!==itemIdentity(b.super))changes.push({path:'subclassBuild.super',before:clone(a.super),after:clone(b.super),beforeId:itemIdentity(a.super),afterId:itemIdentity(b.super)});['abilities','aspects','fragments'].forEach(key=>{const left=Array.isArray(a[key])?a[key]:[],right=Array.isArray(b[key])?b[key]:[],count=Math.max(left.length,right.length);for(let i=0;i<count;i++){const c=diffSlot(`subclassBuild.${key}`,left[i],right[i],i);if(c)changes.push(c);}});if(itemIdentity(original.artifact)!==itemIdentity(working.artifact))changes.push({path:'artifact',before:clone(original.artifact),after:clone(working.artifact),beforeId:itemIdentity(original.artifact),afterId:itemIdentity(working.artifact)});if(artifactConfigurationSignature(original.artifactConfiguration)!==artifactConfigurationSignature(working.artifactConfiguration))changes.push({path:'artifactConfiguration',before:clone(original.artifactConfiguration),after:clone(working.artifactConfiguration)});for(const key of ['weapons','armour']){const left=Array.isArray(original[key])?original[key]:[],right=Array.isArray(working[key])?working[key]:[],count=Math.max(left.length,right.length);for(let i=0;i<count;i++){const c=diffSlot(key,left[i],right[i],i);if(c)changes.push(c);}}return changes;}
+function diffBuilds(original={},working={}){const changes=[];['subclass','subclassName'].forEach(path=>{if(String(original?.[path]??'')!==String(working?.[path]??''))changes.push({path,before:original?.[path]??null,after:working?.[path]??null});});const a=original.subclassBuild||{},b=working.subclassBuild||{};if(itemIdentity(a.super)!==itemIdentity(b.super))changes.push({path:'subclassBuild.super',before:clone(a.super),after:clone(b.super),beforeId:itemIdentity(a.super),afterId:itemIdentity(b.super)});['abilities','aspects','fragments'].forEach(key=>{const left=Array.isArray(a[key])?a[key]:[],right=Array.isArray(b[key])?b[key]:[],count=Math.max(left.length,right.length);for(let i=0;i<count;i++){const c=diffSlot(`subclassBuild.${key}`,left[i],right[i],i);if(c)changes.push(c);}});if(itemIdentity(original.artifact)!==itemIdentity(working.artifact))changes.push({path:'artifact',before:clone(original.artifact),after:clone(working.artifact),beforeId:itemIdentity(original.artifact),afterId:itemIdentity(working.artifact)});if(artifactConfigurationSignature(original.artifactConfiguration)!==artifactConfigurationSignature(working.artifactConfiguration))changes.push({path:'artifactConfiguration',before:clone(original.artifactConfiguration),after:clone(working.artifactConfiguration)});for(const key of ['weapons','armour']){const left=Array.isArray(original[key])?original[key]:[],right=Array.isArray(working[key])?working[key]:[],count=Math.max(left.length,right.length);for(let i=0;i<count;i++){const c=diffSlot(key,left[i],right[i],i);if(c)changes.push(c);else if(itemSocketSignature(left[i])!==itemSocketSignature(right[i]))changes.push({path:`${key}.${i}.sockets`,before:itemSocketSignature(left[i]),after:itemSocketSignature(right[i]),beforeId:itemIdentity(left[i]),afterId:itemIdentity(right[i])});}}return changes;}
 function createValidationRecord({build,testId=null,targetActivity='Vanguard Master Operation',objective=null}={}){const snapshot=normalizeBuild(build||{});return {schemaVersion:1,testId:testId||`PF-TEST-${Date.now()}`,createdAt:new Date().toISOString(),status:VALIDATION_STATUS.UNTESTED,targetActivity,objective:objective||snapshot.objective||null,characterId:snapshot.characterId,selectedLoadoutIndex:snapshot.selectedLoadoutIndex,buildSnapshot:freezeDeep(clone(snapshot)),activityInstanceId:null,pgcr:null,buildIntegrity:'unverified',baseline:null,outcome:null};}
 const PORTABLE_BUILD_SCHEMA_VERSION=1;
 const PORTABLE_BUILD_KINDS=Object.freeze(['saved-build','shared-build']);
@@ -106,4 +136,4 @@ function deserializePortableBuild(serialized,{expectedKind=null}={}){
     return createBuildState(build);
   }catch{return null;}
 }
-export {BUILD_STATE_VERSION,VALIDATION_STATUS,PORTABLE_BUILD_SCHEMA_VERSION,PORTABLE_BUILD_KINDS,clone,freezeDeep,itemIdentity,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,artifactConfigurationForBuild,normalizeBuild,createBuildState,protectBuildState,restoreWorkingBuild,diffBuilds,createValidationRecord,completePortableArtifactConfiguration,serializePortableBuild,deserializePortableBuild};
+export {BUILD_STATE_VERSION,BUILD_PERSISTENCE_SCHEMA_VERSION,VALIDATION_STATUS,PORTABLE_BUILD_SCHEMA_VERSION,PORTABLE_BUILD_KINDS,PERSISTED_SHARED_BUILD_KEYS,clone,freezeDeep,itemIdentity,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,artifactConfigurationForBuild,normalizeBuild,createBuildState,createWorkingBuildPatch,createBuildPersistenceSnapshot,restoreBuildPersistenceSnapshot,protectBuildState,restoreWorkingBuild,diffBuilds,createValidationRecord,completePortableArtifactConfiguration,serializePortableBuild,deserializePortableBuild};

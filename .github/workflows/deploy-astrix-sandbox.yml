@@ -38,7 +38,7 @@ jobs:
 
           path = Path("astrix-app/data/forge-armour-index.json")
           payload = json.loads(path.read_text(encoding="utf-8"))
-          if payload.get("schemaVersion") != 4:
+          if payload.get("schemaVersion") != 5:
               raise SystemExit(f"Unsupported Forge index schema: {payload.get('schemaVersion')}")
           artifacts = payload.get("artifactCatalog") or []
           if not artifacts:
@@ -52,10 +52,16 @@ jobs:
                   raise SystemExit(f"Incomplete Artifact catalogue record: {artifact.get('hash')}")
           print(f"FORGE_ARTIFACT_CATALOGUE=PASS artifacts={len(artifacts)}")
           PYEOF
+      - name: Refresh compact Journey catalogue
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+        run: python3 astrix-app/tools/build-journey-index.py --download
       - name: Validate sandbox contract
         run: |
           node astrix-app/tools/validate-scope-guard.mjs
           node astrix-app/tools/validate-sandbox-deployment.mjs
+      - name: Validate weapon catalogue, cards and Journey
+        run: node astrix-app/tools/paradox-validator.mjs
       - name: Validate auth Worker
         working-directory: astrix-auth-worker
         run: |

@@ -1,17 +1,20 @@
-import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1";
+import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260905-manual-editor-1";
 import {createArtifactConfiguration,resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {subclassPlugComponent} from "./guardian-subclass-plug-classifier.mjs";
-import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260904-weapon-model-2";
-import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260904-artifact-sandbox-effects-1";
+import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260905-weapon-audit-1";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
 import {mergeSubclassCatalog} from "./guardian-super-catalog.mjs?v=20260829-subclass-identity-1";
+import {paradoxDefinitionId,resolveItemWatermark,weaponTypeIdentity} from '../../core/bungie-item-identity.mjs';
+import {characterPlugSetsForItem} from '../../core/bungie-profile-plugs.mjs';
 import {
   cacheBungieProfile,
   readCachedBungieProfile,
   cacheBungieLoadoutDetail,
-  readCachedBungieLoadoutDetail
-} from "./guardian-session-cache.mjs";
+  readCachedBungieLoadoutDetail,
+  invalidateBungieLoadoutDetail
+} from "./guardian-session-cache.mjs?v=20260905-manual-editor-1";
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
@@ -32,6 +35,7 @@ const SELECTED_LOADOUT_KEY="astrix:selected-bungie-loadout-v1";
 const BUILD_SPACE_KEY="astrix:paradox-build-space:v1";
 const BUILD_SNAPSHOT_KEY="astrix:guardian-build-snapshot:v1";
 const loadoutCache=new Map();
+const invalidatedLoadoutCacheKeys=new Set();
 let liveProfilePayload=null;
 let liveProfileSession=null;
 const manifestReady=guardianManifest.ready();
@@ -67,6 +71,8 @@ function resolvedBuildSnapshot(detail={}){
     subclass:detail.subclass||"",
     subclassName:detail.subclassName||"",
     subclassIcon:detail.subclassIcon||"",
+    subclassItemInstanceId:String(detail.subclassItemInstanceId||detail.subclassItem?.itemInstanceId||""),
+    subclassItem:cloneBuildValue(detail.subclassItem||null),
     subclassCatalog:cloneBuildValue(detail.subclassCatalog||[]),
     subclassBuild,
     super:cloneBuildValue(superItem),
@@ -120,7 +126,7 @@ function setSourceCaption(detail={},source="bungie-live"){
   const subclass=String(detail.subclassName||detail.subclass||"Subclass").toUpperCase();
   const caption=document.createElement("small");
   caption.style.color="#8e7bb0";
-  caption.textContent=source==="bungie-live"?"Live Bungie Guardian":"Telemetry synchronized from Paradox beta fixture";
+  caption.textContent=source==="bungie-live"&&detail.loadoutSource==="currently-equipped"?"Currently equipped items · active Guardian default":source==="bungie-live"?"Live Bungie Guardian":"Telemetry synchronized from Paradox beta fixture";
   message.replaceChildren(document.createTextNode(`${characterClass} · ${subclass}`),document.createElement("br"),caption);
 }
 
@@ -190,7 +196,7 @@ const displayItem=(definitions,hash)=>{
   const row=definition(definitions,hash)||{};
   const displays=[row.displayProperties,...(row.resolvedSandboxPerks||[]).map(perk=>perk?.displayProperties)].filter(Boolean);
   const displayValue=key=>displays.find(display=>display?.[key])?.[key]||"";
-  return {hash:Number(hash),bungieHash:Number(hash),name:displayValue("name")||`Unresolved Destiny item ${hash}`,description:displayValue("description"),icon:absoluteIcon(displayValue("icon")),tier:row.inventory?.tierTypeName||"",tierType:Number(row.inventory?.tierType??0),tierTypeHash:row.inventory?.tierTypeHash??null,tierIcon:absoluteIcon(row.iconWatermark||row.quality?.displayVersionWatermarkIcons?.[0]),itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
+  return {hash:Number(hash),bungieHash:Number(hash),paradoxId:paradoxDefinitionId('DestinyInventoryItemDefinition',hash),name:displayValue("name")||`Unresolved Destiny item ${hash}`,description:displayValue("description"),icon:absoluteIcon(displayValue("icon")),tier:row.inventory?.tierTypeName||"",tierType:Number(row.inventory?.tierType??0),tierTypeHash:row.inventory?.tierTypeHash??null,tierIcon:resolveItemWatermark({},row).icon,itemTypeDisplayName:row.itemTypeDisplayName||"",bucketHash:row.inventory?.bucketTypeHash??null,definition:row};
 };
 
 function classifySubclass(item){
@@ -207,16 +213,6 @@ function activeCharacter(profile){
 function rememberCharacterId(characterId){
   try{sessionStorage.setItem(SELECTED_CHARACTER_KEY,String(characterId||""));}
   catch{}
-}
-
-function rememberedLoadoutSelection(profile){
-  try{
-    const saved=JSON.parse(localStorage.getItem(SELECTED_LOADOUT_KEY)||"null");
-    const characterId=String(saved?.characterId||"");
-    const index=Number(saved?.index);
-    if(!characterId||!Number.isInteger(index)||index<0||index>19||!profile?.characters?.data?.[characterId])return null;
-    return {characterId,index};
-  }catch{return null;}
 }
 
 function rememberLoadoutSelection(characterId,index){
@@ -303,14 +299,15 @@ function socketResolution(profile,definitions,item,payload={}){
   if(!item?.itemInstanceId)return {plugs:[],requested:[],resolved:[],unresolved:[],complete:true};
   const sockets=profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]?.sockets||[];
   const socketCategories=definition(definitions,item.itemHash)?.sockets?.socketCategories||[];
-  const requested=sockets.map(socket=>Number(socket.plugHash)).filter(Number.isFinite);
+  const requested=sockets.map(socket=>Number(socket.plugHash)).filter(hash=>Number.isInteger(hash)&&hash>0);
   const rows=sockets.map((socket,socketIndex)=>{
     const hash=Number(socket?.plugHash);
     const category=socketCategories.find(row=>(row?.socketIndexes||[]).map(Number).includes(socketIndex))||null;
     const socketCategoryHash=Number(category?.socketCategoryHash);
     const socketCategoryDefinition=Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null;
-    const plug=Number.isFinite(hash)?displayItem(definitions,hash):null;
-    return plug?{...plug,socketIndex,socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,statContributions:plugStatContributions(payload,plug.definition)}:null;
+    const entry=definition(definitions,item.itemHash)?.sockets?.socketEntries?.[socketIndex]||{};
+    const plug=Number.isInteger(hash)&&hash>0?displayItem(definitions,hash):null;
+    return plug?{...plug,socketIndex,socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,socketCategoryDefinition,socketTypeHash:entry.socketTypeHash??null,socketTypeDefinition:payload?.socketTypeDefinitions?.[String(entry.socketTypeHash)]||null,isEnabled:socket.isEnabled,isVisible:socket.isVisible,statContributions:plugStatContributions(payload,plug.definition)}:null;
   }).filter(Boolean);
   const plugs=rows;
   const resolved=plugs.filter(row=>row.definition&&Object.keys(row.definition).length>0).map(row=>Number(row.hash));
@@ -338,10 +335,10 @@ function reusableSocketOptions(profile,definitions,item,payload={}){
   if(!item?.itemInstanceId)return {};
   const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]?.plugs||{};
   const itemDefinition=definition(definitions,item.itemHash)||{};
-  const entries=itemDefinition?.sockets?.socketEntries||[],weapon=WEAPON_ORDER.includes(Number(itemDefinition?.inventory?.bucketTypeHash)),indexes=new Set([...Object.keys(reusable).map(Number),...(weapon?[]:entries.map((_,index)=>index))]),profileSets=profile?.profilePlugSets?.data?.plugs||{},characterSets=Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs||{});
+  const entries=itemDefinition?.sockets?.socketEntries||[],indexes=new Set([...Object.keys(reusable).map(Number),...entries.map((_,index)=>index)]),profileSets=profile?.profilePlugSets?.data?.plugs||{},characterSets=characterPlugSetsForItem(profile,item);
   return Object.fromEntries([...indexes].sort((a,b)=>a-b).map(socketIndex=>{
-    const entry=entries[socketIndex]||{},setHashes=weapon?[]:[entry?.reusablePlugSetHash].map(Number).filter(Number.isInteger),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]),...setRows];
-    return [String(socketIndex),uniqueItems((Array.isArray(rows)?rows:[]).filter(row=>row?.canInsert!==false&&row?.enabled!==false).map(row=>{
+    const entry=entries[socketIndex]||{},setHashes=[entry?.reusablePlugSetHash].map(Number).filter(hash=>Number.isInteger(hash)&&hash>0),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]).map(row=>({row,source:'bungie-item-reusable-plugs'})),...setRows.map(row=>({row,source:'bungie-profile-plug-set'}))];
+    return [String(socketIndex),uniqueItems((Array.isArray(rows)?rows:[]).map(({row,source})=>{
       const hash=Number(row?.plugItemHash??row?.plugHash),plugDefinition=definition(definitions,hash);
       if(!Number.isInteger(hash)||!plugDefinition)return null;
       const category=(itemDefinition?.sockets?.socketCategories||[]).find(value=>(value?.socketIndexes||[]).map(Number).includes(Number(socketIndex)))||null;
@@ -351,7 +348,11 @@ function reusableSocketOptions(profile,definitions,item,payload={}){
         socketIndex:Number(socketIndex),
         socketCategoryHash:Number.isFinite(socketCategoryHash)?socketCategoryHash:null,
         socketCategoryDefinition:Number.isFinite(socketCategoryHash)?payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null:null,
-        canInsert:true,
+        canInsert:row.canInsert===true,
+        isEnabled:row.enabled,
+        socketTypeHash:entry.socketTypeHash??null,
+        source,
+        remoteInsertEvidence:source==='bungie-item-reusable-plugs'?'exact-item-reusable-plug':'compatible-plug-set',
         statContributions:plugStatContributions(payload,plugDefinition)
       };
     }).filter(Boolean))];
@@ -390,21 +391,15 @@ const isTranscendencePlug=plug=>{
 const uniqueItems=rows=>rows.filter((row,index,all)=>row&&Number.isFinite(Number(row.hash))&&all.findIndex(other=>Number(other?.hash)===Number(row.hash))===index);
 
 function subclassCandidatePlugs(profile,definitions,item,characterId=""){
-  const reusable=profile?.itemComponents?.reusablePlugs?.data?.[item?.itemInstanceId]?.plugs||{};
-  const reusableHashes=Object.values(reusable).flatMap(rows=>Array.isArray(rows)?rows:[])
-    .map(row=>Number(row?.plugItemHash??row?.plugHash)).filter(Number.isFinite);
+  const payload={characterPlugSets:profile?.characterPlugSets};
+  const options=reusableSocketOptions(profile,definitions,item,payload);
+  const rows=Object.values(options).flatMap(value=>Array.isArray(value)?value:[]);
+  if(rows.length)return rows;
   const itemDef=definition(definitions,item?.itemHash)||{};
-  const socketEntries=itemDef.sockets?.socketEntries||[];
-  const manifestHashes=socketEntries.map(entry=>Number(entry?.singleInitialItemHash)).filter(Number.isFinite);
-  const plugSetHashes=socketEntries.map(entry=>Number(entry?.reusablePlugSetHash)).filter(Number.isInteger);
-  const plugSets=[profile?.profilePlugSets?.data?.plugs,profile?.characterPlugSets?.data?.[characterId]?.plugs];
-  const availablePlugSetHashes=plugSets.flatMap(plugs=>plugSetHashes.flatMap(hash=>plugs?.[String(hash)]||[]))
-    .filter(row=>row?.canInsert!==false&&row?.enabled!==false)
-    .map(row=>Number(row?.plugItemHash??row?.plugHash)).filter(Number.isFinite);
-  const availableHashes=[...reusableHashes,...availablePlugSetHashes];
-  return uniqueItems([...(availableHashes.length?availableHashes:manifestHashes)]
-    .map(hash=>displayItem(definitions,hash))
-    .filter(row=>row.definition&&Object.keys(row.definition).length));
+  return (itemDef.sockets?.socketEntries||[]).map((entry,socketIndex)=>{
+    const hash=Number(entry?.singleInitialItemHash);
+    return Number.isInteger(hash)?{...displayItem(definitions,hash),socketIndex,canInsert:false,source:'bungie-manifest-initial-socket'}:null;
+  }).filter(Boolean);
 }
 
 function normaliseItem(profile,definitions,item,payload={}){
@@ -428,8 +423,11 @@ function normaliseItem(profile,definitions,item,payload={}){
   const socketOptions=reusableSocketOptions(profile,definitions,item,payload);
   const isExotic=String(base.tier).toLowerCase()==="exotic";
   const weaponSemantics=WEAPON_ORDER.includes(Number(base.bucketHash))?normaliseWeaponSemantics({profile,item,itemDefinition:base.definition,plugs,instance,stats:profile?.itemComponents?.stats?.data?.[item.itemInstanceId]||null,alternativeColumns:socketOptions,isExotic}):null;
+  const releaseWatermark=resolveItemWatermark(item,base.definition,{powerCapDefinitions:payload.powerCapDefinitions,currentPowerCap:payload.currentPowerCap});
   return {
     ...base,
+    releaseWatermark,tierIcon:releaseWatermark.icon,
+    ...(weaponSemantics?{weaponType:weaponTypeIdentity(base.definition).label,weaponTypeId:weaponTypeIdentity(base.definition).id}:{}),
     itemHash:Number(item.itemHash),
     itemInstanceId:String(item.itemInstanceId||''),
     icon:override?.definition&&Object.keys(override.definition).length?override.icon:base.icon,
@@ -484,7 +482,10 @@ function subclassConfiguration(profile,definitions,item,payload={},characterId="
   const grenade=typed(plugs.find(isGrenadePlug),"grenade");
 
   const candidates=subclassCandidatePlugs(profile,definitions,item,characterId);
-  const optionsFor=(equipped,predicate,type)=>uniqueItems([equipped,...candidates.filter(predicate)]).map(row=>typed(row,type));
+  const optionsFor=(equipped,predicate,type)=>uniqueItems([...candidates.filter(predicate),equipped]).map(row=>typed(row,type));
+  const optionsBySocket=(predicate,type)=>Object.fromEntries([...new Set([...plugs,...candidates].filter(predicate).map(row=>Number(row?.socketIndex)).filter(Number.isInteger))].sort((a,b)=>a-b).map(socketIndex=>[
+    String(socketIndex),uniqueItems([...candidates,...plugs].filter(row=>predicate(row)&&Number(row?.socketIndex)===socketIndex)).map(row=>typed(row,type))
+  ]));
 
   const superOptions=[
     superItem,
@@ -505,6 +506,8 @@ function subclassConfiguration(profile,definitions,item,payload={},characterId="
   };
   const availableAspects=optionsFor(null,isAspectPlug,"aspect");
   const availableFragments=optionsFor(null,isFragmentPlug,"fragment");
+  const aspectOptionsBySocket=optionsBySocket(isAspectPlug,"aspect");
+  const fragmentOptionsBySocket=optionsBySocket(isFragmentPlug,"fragment");
 
   return {
     super:superItem||null,
@@ -522,8 +525,10 @@ function subclassConfiguration(profile,definitions,item,payload={},characterId="
     fragments:plugs.filter(isFragmentPlug).map(row=>typed(row,"fragment")),
     availableAspects,
     aspectOptions:availableAspects,
+    aspectOptionsBySocket,
     availableFragments,
     fragmentOptions:availableFragments,
+    fragmentOptionsBySocket,
     socketsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.sockets?.data?.[item.itemInstanceId]),
     reusablePlugsAvailable:Boolean(item?.itemInstanceId&&profile?.itemComponents?.reusablePlugs?.data?.[item.itemInstanceId]),
     socketCoverage
@@ -592,14 +597,18 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const weapons=WEAPON_ORDER.map(hash=>byBucket(hash)).filter(Boolean).map(item=>({...normaliseItem(profile,definitions,item,payload),source:{kind:'equipped',characterId:String(character.characterId),label:'Equipped'}}));
   const weaponBuckets=new Set(WEAPON_ORDER);
   const ownedWeapons=ownedItemRows(profile).filter(row=>weaponBuckets.has(Number(definition(definitions,row.item?.itemHash)?.inventory?.bucketTypeHash))).map(row=>({...normaliseItem(profile,definitions,row.item,payload),source:row.source})).sort((left,right)=>WEAPON_ORDER.indexOf(Number(left.bucketHash))-WEAPON_ORDER.indexOf(Number(right.bucketHash))||Number(right.source?.kind==='equipped')-Number(left.source?.kind==='equipped')||String(left.name).localeCompare(String(right.name)));
-  const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?normaliseItem(profile,definitions,item,payload):null);
+  const armour=ARMOUR_ORDER.map(hash=>byBucket(hash)).map(item=>item?{...normaliseItem(profile,definitions,item,payload),source:{kind:'equipped',characterId:String(character.characterId),label:'Equipped'}}:null);
   const subclassItem=byBucket(BUCKETS.subclass);
   const subclass=subclassItem?displayItem(definitions,subclassItem.itemHash):null;
   const characterClass=CLASS_NAMES[Number(character.classType)]||"hunter";
-  const subclassItems=[subclassItem,...(profile?.characterInventories?.data?.[character.characterId]?.items||[])].filter(item=>item&&definition(definitions,item.itemHash)?.inventory?.bucketTypeHash===BUCKETS.subclass);
-  const subclassCatalog=subclassItems.map(item=>{const display=displayItem(definitions,item.itemHash),element=classifySubclass(display);return {...display,itemInstanceId:item.itemInstanceId||null,element,subclass:element,key:element,subclassBuild:subclassConfiguration(profile,definitions,item,payload,character.characterId)}}).filter((item,index,rows)=>rows.findIndex(other=>other.element===item.element)===index);
+  const subclassRows=[
+    subclassItem?{item:subclassItem,source:{kind:'equipped',characterId:String(character.characterId),label:'Equipped'}}:null,
+    ...(profile?.characterInventories?.data?.[character.characterId]?.items||[]).map(item=>({item,source:{kind:'carried',characterId:String(character.characterId),label:'Carried'}}))
+  ].filter(row=>row?.item&&definition(definitions,row.item.itemHash)?.inventory?.bucketTypeHash===BUCKETS.subclass);
+  const subclassCatalog=subclassRows.map(row=>{const item=row.item,display=displayItem(definitions,item.itemHash),element=classifySubclass(display);return {...display,itemInstanceId:item.itemInstanceId||null,source:row.source,element,subclass:element,key:element,subclassBuild:subclassConfiguration(profile,definitions,item,payload,character.characterId)}}).filter((item,index,rows)=>rows.findIndex(other=>other.element===item.element)===index);
   const verifiedSubclassCatalog=mergeSubclassCatalog(subclassCatalog,characterClass);
-  const subclassBuild=verifiedSubclassCatalog.find(item=>Number(item.hash)===Number(subclassItem?.itemHash))?.subclassBuild||{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],fragments:[],availableFragments:[],fragmentOptions:[],socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
+  const normalizedSubclassItem=verifiedSubclassCatalog.find(item=>Number(item.hash)===Number(subclassItem?.itemHash))||null;
+  const subclassBuild=verifiedSubclassCatalog.find(item=>Number(item.hash)===Number(subclassItem?.itemHash))?.subclassBuild||{super:null,superOptions:[],classAbility:null,movement:null,melee:null,grenade:null,abilities:[],abilityOptionsBySocket:{classAbility:[],movement:[],melee:[],grenade:[]},availableAbilities:[],aspects:[],availableAspects:[],aspectOptions:[],aspectOptionsBySocket:{},fragments:[],availableFragments:[],fragmentOptions:[],fragmentOptionsBySocket:{},socketsAvailable:false,reusablePlugsAvailable:false,socketCoverage:{plugs:[],requested:[],resolved:[],unresolved:[],complete:true}};
   const cosmetics=identityCosmetics(profile,definitions,equipment,character,payload);
   const legacyArtifact=currentArtifact(payload,character.characterId);
   const availableArtifacts=availableArtifactItems(payload,legacyArtifact);
@@ -624,6 +633,8 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     subclass:classifySubclass(subclass),
     subclassName:subclass?.name||"Subclass",
     subclassIcon:subclass?.icon||"",
+    subclassItemInstanceId:String(subclassItem?.itemInstanceId||""),
+    subclassItem:normalizedSubclassItem,
     subclassCatalog:verifiedSubclassCatalog,
     subclassBuild,
     super:subclassBuild.super,
@@ -743,24 +754,28 @@ function loadoutCoverage(detail){
 async function loadSelectedLoadout(selection){
   const characterId=String(selection?.characterId||"");
   const index=Number(selection?.index);
+  const actionIntent=String(selection?.intent||"");
+  const forAction=detail=>actionIntent?{...detail,loadoutActionIntent:actionIntent}:detail;
   if(!characterId||!Number.isInteger(index))throw new Error("Invalid Bungie loadout selection.");
   const cacheKey=`${characterId}:${index}`;
-  const cached=loadoutCache.get(cacheKey);
+  const cacheInvalidated=invalidatedLoadoutCacheKeys.has(cacheKey),cached=cacheInvalidated?null:loadoutCache.get(cacheKey);
   if(cached){
     rememberLoadoutSelection(characterId,index);
     document.documentElement.dataset.guardianSource="bungie-live";
-    document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:cached}));
-    document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:cached}));
-    return cached;
+    const published=forAction(cached);
+    document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:published}));
+    document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:published}));
+    return published;
   }
-  const stored=await readCachedBungieLoadoutDetail(liveProfileSession||globalThis.ASTRIX_BUNGIE_SESSION,characterId,index);
+  const stored=cacheInvalidated?null:await readCachedBungieLoadoutDetail(liveProfileSession||globalThis.ASTRIX_BUNGIE_SESSION,characterId,index);
   if(stored&&Array.isArray(stored.subclassCatalog)){
     loadoutCache.set(cacheKey,stored);
     rememberLoadoutSelection(characterId,index);
     document.documentElement.dataset.guardianSource="bungie-live";
-    document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:{...stored,sessionCacheRestored:true}}));
-    document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:{...stored,sessionCacheRestored:true}}));
-    return stored;
+    const published=forAction({...stored,sessionCacheRestored:true});
+    document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:published}));
+    document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:published}));
+    return published;
   }
   setRenderStatus("LOADING SAVED LOADOUT",`Opening Bungie loadout ${index+1}`,"Resolving equipment and subclass configuration");
   document.dispatchEvent(new CustomEvent("astrix:loadout-loading",{detail:{characterId,index}}));
@@ -777,20 +792,21 @@ async function loadSelectedLoadout(selection){
   }
 
   loadoutCache.set(cacheKey,detail);
+  invalidatedLoadoutCacheKeys.delete(cacheKey);
   await cacheBungieLoadoutDetail(liveProfileSession||globalThis.ASTRIX_BUNGIE_SESSION,characterId,index,detail);
   rememberCharacterId(characterId);
   rememberLoadoutSelection(characterId,index);
   document.documentElement.dataset.guardianSource="bungie-live";
   setRenderStatus("BUILD INTELLIGENCE",`Bungie loadout ${index+1} ready`,"Saved build loaded for analysis");
-  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
-  document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail}));
-  return detail;
+  const published=forAction(detail);
+  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:published}));
+  document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:published}));
+  return published;
 }
 
 async function activateLiveProfile(payload,session,{fromCache=false}={}){
   liveProfilePayload=payload;
   liveProfileSession=session;
-  const rememberedLoadout=rememberedLoadoutSelection(payload.profile);
   const explicitCharacter=payload.profile?.characters?.data?.[explicitlySelectedCharacterId]||null;
   const selectedCharacterId=String(explicitCharacter?.characterId||activeCharacter(payload.profile)?.characterId||"");
   if(selectedCharacterId)rememberCharacterId(selectedCharacterId);
@@ -815,14 +831,9 @@ async function activateLiveProfile(payload,session,{fromCache=false}={}){
     return detail;
   }
 
-  if(rememberedLoadout&&rememberedLoadout.characterId===selectedCharacterId){
-    const detail=await loadSelectedLoadout(rememberedLoadout);
-    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{...detail,sessionCacheRestored:fromCache}}));
-    return detail;
-  }
-
-  const detail=normaliseLiveProfile(payload,session,selectedCharacterId);
-  setRenderStatus("BUILD INTELLIGENCE","Live profile data ready","Equipment and loadout analysis active");
+  forgetLoadoutSelection();
+  const detail={...normaliseLiveProfile(payload,session,selectedCharacterId),selectedLoadoutIndex:null,loadoutSource:"currently-equipped"};
+  setRenderStatus("CURRENTLY EQUIPPED LOADOUT","Live equipped items ready","Active Guardian default · saved Bungie slots load only when selected");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:{...detail,sessionCacheRestored:fromCache}}));
   document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{...detail,sessionCacheRestored:fromCache}}));
   return detail;
@@ -971,6 +982,17 @@ document.addEventListener("astrix:beta-fixture-loaded",event=>{
 document.addEventListener("astrix:character-selected",event=>{
   try{selectLiveCharacter(String(event.detail?.characterId||""),String(event.detail?.characterClass||""));}
   catch(error){reportProfileError(error);}
+});
+
+document.addEventListener("astrix:bungie-profile-refresh-requested",event=>{
+  const session=currentAuthenticatedSession();if(!session)return;
+  const detail=event.detail||{},characterId=String(detail.characterId||""),index=Number(detail.index);
+  if(String(detail.reason||"").startsWith("loadout-")&&characterId&&Number.isInteger(index)){
+    const cacheKey=`${characterId}:${index}`;loadoutCache.delete(cacheKey);invalidatedLoadoutCacheKeys.add(cacheKey);
+    void invalidateBungieLoadoutDetail(session,characterId,index);
+  }
+  liveProfileReady=false;liveProfileRequest=null;
+  void ensureLiveProfile(session,{background:true,silent:false});
 });
 
 if(globalThis.ASTRIX_BUNGIE_SESSION?.authenticated)handleAuthenticatedSession(globalThis.ASTRIX_BUNGIE_SESSION);

@@ -181,6 +181,7 @@ function evaluate(build,context,analyzeBuild){
   const prismaticScore=context.element==='prismatic'?coveredElements.length*28:0;
   const retainedComponents=components.filter(item=>context.baselineKeys?.has(itemKey(item))).length,stabilityScore=retainedComponents*2;
   const evaluated={analysis,score:directed.score+componentScore+prismaticScore+stabilityScore,directed,componentScore,stabilityScore,coveredElements};
+  if(context.bounded&&context.cache.size>=512)context.cache.delete(context.cache.keys().next().value);
   context.cache?.set(signature,evaluated);
   return {build:projected,componentRows,signature,...evaluated};
 }
@@ -190,6 +191,7 @@ function rank(states,context,analyzeBuild,width=BEAM_WIDTH){
   for(const state of states){
     const row=evaluate(state,context,analyzeBuild),prior=seen.get(row.signature);
     if(!prior||row.score>prior.score)seen.set(row.signature,row);
+    if(context.bounded&&seen.size>width){const rows=[...seen.values()].sort((left,right)=>right.score-left.score||right.directed.links-left.directed.links||left.signature.localeCompare(right.signature));seen.delete(rows.at(-1).signature);}
   }
   return [...seen.values()].sort((left,right)=>right.score-left.score||right.directed.links-left.directed.links||left.signature.localeCompare(right.signature)).slice(0,width);
 }
@@ -210,8 +212,10 @@ function fragmentCapacity(build={},options=[]){
   return Math.max(0,Math.min(5,equipped.length||options.length));
 }
 
-function setAbility(build,key,item){
-  const next=clone(build);next.subclassBuild[key]=clone(item);return synchroniseSubclassProjection(next);
+function branchBuild(build,bounded=false){return bounded?{...build,subclassBuild:{...build.subclassBuild}}:clone(build);}
+function* expand(rows,options,make){for(const row of rows)for(const item of options(row))yield make(row,item);}
+function setAbility(build,key,item,bounded=false){
+  const next=branchBuild(build,bounded);next.subclassBuild[key]=clone(item);return synchroniseSubclassProjection(next);
 }
 
 function decisionLedger(result,context){
@@ -230,37 +234,37 @@ function decisionLedger(result,context){
   return {rows,limitations};
 }
 
-function composeForgeRecommendation({build={},candidate={},element='',analyzeBuild=null}={}){
+function composeForgeRecommendation({build={},candidate={},element='',analyzeBuild=null,bounded=false}={}){
   const requested=ELEMENTS.includes(lower(element))?lower(element):elementOf(candidate);
   if(!requested)throw new TypeError('A verified elemental build option is required.');
   if(!hasVerifiedSubclassSockets(candidate))throw new TypeError('The selected element does not have a complete verified Bungie subclass socket set.');
   let base=stageVerifiedSubclassCandidate(build,candidate);
-  const context={element:requested,sources:optionSources(base),priorities:base?.forgeLoaderDecision?.statDirective?.priorities||{},baselineKeys:new Set(selectedComponents(base).map(itemKey)),cache:new Map()};
+  const context={bounded,element:requested,sources:optionSources(base),priorities:base?.forgeLoaderDecision?.statDirective?.priorities||{},baselineKeys:new Set(selectedComponents(base).map(itemKey)),cache:new Map()};
   let beam=[evaluate(base,context,analyzeBuild)];
 
   const superOptions=uniqueResolved(base.subclassBuild?.superOptions||[]);
-  if(superOptions.length)beam=rank(superOptions.map(item=>{const next=clone(base);next.subclassBuild.super=clone(item);return next;}),context,analyzeBuild);
+  if(superOptions.length)beam=rank(expand([base],()=>superOptions,(base,item)=>{const next=branchBuild(base,bounded);next.subclassBuild.super=clone(item);return next;}),context,analyzeBuild);
 
   for(const socket of ABILITY_SOCKETS){
     const fallback=beam[0]?.build?.subclassBuild?.[socket];
     const options=uniqueResolved([...(base.subclassBuild?.abilityOptionsBySocket?.[socket]||[]),fallback]);
     if(!options.length)continue;
-    beam=rank(beam.flatMap(row=>options.map(item=>setAbility(row.build,socket,item))),context,analyzeBuild);
+    beam=rank(expand(beam,()=>options,(row,item)=>setAbility(row.build,socket,item,bounded)),context,analyzeBuild);
   }
 
   const aspectOptions=uniqueResolved([...(base.subclassBuild?.availableAspects||base.subclassBuild?.aspectOptions||[]),...(base.subclassBuild?.aspects||[])]).slice(0,12);
   const aspectCount=Math.min(2,Math.max(base.subclassBuild?.aspects?.length||0,Math.min(2,aspectOptions.length)));
   if(aspectOptions.length&&aspectCount){
     const aspectSets=combinations(aspectOptions,aspectCount);
-    beam=rank(beam.flatMap(row=>aspectSets.map(set=>{const next=clone(row.build);next.subclassBuild.aspects=clone(set);return synchroniseSubclassProjection(next);})),context,analyzeBuild);
+    beam=rank(expand(beam,()=>aspectSets,(row,set)=>{const next=branchBuild(row.build,bounded);next.subclassBuild.aspects=clone(set);return synchroniseSubclassProjection(next);}),context,analyzeBuild);
   }
 
   const fragmentOptions=uniqueResolved([...(base.subclassBuild?.availableFragments||base.subclassBuild?.fragmentOptions||[]),...(base.subclassBuild?.fragments||[])]);
   const capacity=Math.min(fragmentOptions.length,fragmentCapacity(beam[0]?.build||base,fragmentOptions));
   if(fragmentOptions.length&&capacity){
-    beam=beam.map(row=>{const next=clone(row.build);next.subclassBuild.fragments=[];return evaluate(synchroniseSubclassProjection(next),context,analyzeBuild);});
+    beam=beam.map(row=>{const next=branchBuild(row.build,bounded);next.subclassBuild.fragments=[];return evaluate(synchroniseSubclassProjection(next),context,analyzeBuild);});
     for(let slot=0;slot<capacity;slot+=1){
-      beam=rank(beam.flatMap(row=>fragmentOptions.filter(item=>!(row.build.subclassBuild.fragments||[]).some(selected=>itemKey(selected)===itemKey(item))).map(item=>{const next=clone(row.build);next.subclassBuild.fragments=[...(next.subclassBuild.fragments||[]),clone(item)];return synchroniseSubclassProjection(next);})),context,analyzeBuild);
+      beam=rank(expand(beam,row=>fragmentOptions.filter(item=>!(row.build.subclassBuild.fragments||[]).some(selected=>itemKey(selected)===itemKey(item))),(row,item)=>{const next=branchBuild(row.build,bounded);next.subclassBuild.fragments=[...(next.subclassBuild.fragments||[]),clone(item)];return synchroniseSubclassProjection(next);}),context,analyzeBuild);
       if(!beam.length)break;
     }
   }

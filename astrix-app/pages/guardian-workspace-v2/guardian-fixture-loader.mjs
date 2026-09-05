@@ -4,7 +4,7 @@
    globalThis.ASTRIXBetaFixtures without DOM hijacking.
    ========================================================================== */
 
-import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260904-artifact-sandbox-effects-1";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260905-weapon-audit-1";
 
 const FIXTURE_URL = "../../data/paradox-forge/beta/ASTRIX_Paradox_Forge_Beta_Fixtures_v1.json";
 const IDENTITY_URL = "../../data/paradox-forge/beta/beta-component-identities.json";

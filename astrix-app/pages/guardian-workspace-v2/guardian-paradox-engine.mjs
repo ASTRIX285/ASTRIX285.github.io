@@ -915,9 +915,11 @@ function acceptArtifact(detail) {
   recompute('artifact-change');
 }
 
+if(typeof document!=='undefined'){
 document.addEventListener('astrix:guardian-selection-changed', e => acceptFixture(e.detail));
 document.addEventListener('astrix:beta-fixture-loaded', e => acceptFixture(e.detail));
 document.addEventListener('astrix:artifact-selection-changed', e => acceptArtifact(e.detail));
+}
 
 globalThis.ASTRIXParadoxEngine = {
   analyze: analyzeGuardianBuild,

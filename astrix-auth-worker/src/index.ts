@@ -1,5 +1,5 @@
 import { AuthRecord, type OAuthTransaction, type SessionRecord, type Membership } from "./auth-record";
-import { approvedReturnUrl, handlePreflight, json, withCors } from "./web";
+import { allowedOrigins, approvedReturnUrl, handlePreflight, json, withCors } from "./web";
 
 export { AuthRecord };
 
@@ -12,6 +12,18 @@ const MANIFEST_METADATA_TTL_SECONDS = 60 * 60;
 const SESSION_COOKIE = "astrix_session";
 const OAUTH_TTL_MS = 10 * 60 * 1000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const DESTINY_ACTION_CAPABILITIES = Object.freeze({
+  captureSnapshot: true,
+  transferItems: true,
+  equipItems: true,
+  verifyEquipment: true,
+  insertSocketPlugFree: true,
+  verifyFinalState: true,
+  equipLoadout: true,
+  snapshotLoadout: true,
+  updateLoadoutIdentifiers: true,
+  clearLoadout: true
+});
 const MANIFEST_COMPONENT_TYPES = new Set([
   "DestinyInventoryItemDefinition",
   "DestinySandboxPerkDefinition",
@@ -19,7 +31,12 @@ const MANIFEST_COMPONENT_TYPES = new Set([
   "DestinyPlugSetDefinition",
   "DestinyStatDefinition",
   "DestinySocketCategoryDefinition",
-  "DestinyEquipableItemSetDefinition"
+  "DestinyEquipableItemSetDefinition",
+  "DestinyPresentationNodeDefinition", "DestinyRecordDefinition", "DestinyObjectiveDefinition",
+  "DestinyCollectibleDefinition", "DestinyMetricDefinition", "DestinyGuardianRankDefinition",
+  "DestinyGuardianRankConstantsDefinition", "DestinyDestinationDefinition", "DestinyActivityDefinition",
+  "DestinyChecklistDefinition", "DestinyLocationDefinition", "DestinySocketTypeDefinition",
+  "DestinyDamageTypeDefinition", "DestinyBreakerTypeDefinition", "DestinyPowerCapDefinition"
 ]);
 const LIVE_DEFINITION_TYPES = new Set([
   ...MANIFEST_COMPONENT_TYPES,
@@ -95,6 +112,7 @@ type DestinyLoadoutComponent = {
   subclassOverrides?: DestinyLoadoutItemComponent[];
 };
 type DestinyProfilePayload = {
+  characters?: { data?: Record<string, { characterId?: string }> };
   characterEquipment?: { data?: Record<string, { items?: DestinyItemComponent[] }> };
   characterInventories?: { data?: Record<string, { items?: DestinyItemComponent[] }> };
   profileInventory?: { data?: { items?: DestinyItemComponent[] } };
@@ -140,6 +158,7 @@ const JOURNEY_PROFILE_COMPONENTS = [
   202, // CharacterProgressions
   205, // CharacterEquipment
   700, // PresentationNodes
+  800, // Collectibles: Journey badges and equipment collection state
   900, // Records
   1100, // Metrics
   1300  // Craftables
@@ -324,7 +343,11 @@ async function manifestDefinitionRoute(request: Request, env: Env): Promise<Resp
   }
   const manifest = await destinyManifest(env);
   const defaultCache = (caches as unknown as { default: Cache }).default;
-  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/manifest-definition/${encodeURIComponent(manifest.version || "unknown")}/${encodeURIComponent(type)}/${hash}`, { method: "GET" });
+  const requestedVersion = url.searchParams.get("version");
+  if (requestedVersion && requestedVersion !== manifest.version) {
+    return withCors(request, env, json({ error: "manifest_version_changed", requestedVersion, currentVersion: manifest.version }, 409));
+  }
+  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/manifest-definition-v2/${requestedVersion ? "versioned" : "current"}/${encodeURIComponent(manifest.version || "unknown")}/${encodeURIComponent(type)}/${hash}`, { method: "GET" });
   const cached = await defaultCache.match(cacheKey).catch(() => null);
   if (cached) return withCors(request, env, cached);
 
@@ -333,7 +356,7 @@ async function manifestDefinitionRoute(request: Request, env: Env): Promise<Resp
   if (!response.ok || !payload?.Response) {
     return withCors(request, env, json({ error: "bungie_manifest_definition_failed", status: response.status }, response.status === 404 ? 404 : 502));
   }
-  const resolved = json({ type, hash: Number(hash), definition: payload.Response }, 200, { "Cache-Control": "public, max-age=604800, immutable" });
+  const resolved = json({ type, hash: Number(hash), manifestVersion: manifest.version, definition: payload.Response }, 200, { "Cache-Control": requestedVersion ? "public, max-age=604800, immutable" : "public, max-age=300" });
   await defaultCache.put(cacheKey, resolved.clone()).catch(error => console.warn("manifest_definition_cache_write_failed", { type, hash, error: String(error) }));
   return withCors(request, env, resolved);
 }
@@ -795,8 +818,9 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
+  const verifiedCharacterIds = Object.keys(payload.Response.characters?.data || {});
   if (requestUrl.searchParams.get("definitions") === "client-manifest") {
-    await putSession(env, sessionId, { ...session, lastUsedAt: Date.now() });
+    await putSession(env, sessionId, { ...session, lastUsedAt: Date.now(), verifiedCharacterIds, verifiedCharactersAt: Date.now() });
     return withCors(request, env, json({
       authenticated: true,
       membership,
@@ -851,7 +875,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   };
 
   const gearAssets: Record<string, Record<string, unknown>> = {};
-  const updatedSession = { ...session, lastUsedAt: Date.now() };
+  const updatedSession = { ...session, lastUsedAt: Date.now(), verifiedCharacterIds, verifiedCharactersAt: Date.now() };
   await putSession(env, sessionId, updatedSession);
   return withCors(request, env, json({
     authenticated: true,
@@ -1065,7 +1089,9 @@ async function sessionRoute(request: Request, env: Env): Promise<Response> {
     destinyMemberships: session.destinyMemberships,
     primaryMembershipId: session.primaryMembershipId,
     activeDestinyMembership: session.activeDestinyMembership,
-    accessExpiresAt: session.accessExpiresAt
+    accessExpiresAt: session.accessExpiresAt,
+    csrfToken: session.csrfToken,
+    capabilities: { destinyActions: DESTINY_ACTION_CAPABILITIES }
   }));
 }
 
@@ -1116,6 +1142,118 @@ function bungieHeaders(session: SessionRecord, env: Env): HeadersInit {
     "X-API-Key": env.BUNGIE_API_KEY,
     "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
   };
+}
+
+type BungieActionKind = "equip-items" | "transfer-item" | "socket-plug-free" | "loadout-equip" | "loadout-snapshot" | "loadout-identifiers" | "loadout-clear";
+type JsonObject = Record<string, unknown>;
+
+const UINT32_MAX = 4_294_967_295;
+const VERIFIED_CHARACTER_TTL_MS = 5 * 60 * 1000;
+
+function decimalId(value: unknown): string | null {
+  const resolved = String(value ?? "");
+  return /^\d{1,30}$/.test(resolved) ? resolved : null;
+}
+
+function uint32(value: unknown): number | null {
+  const resolved = Number(value);
+  return Number.isInteger(resolved) && resolved >= 0 && resolved <= UINT32_MAX ? resolved : null;
+}
+
+async function actionRequestBody(request: Request): Promise<JsonObject | null> {
+  const length = Number(request.headers.get("Content-Length") || 0);
+  if (Number.isFinite(length) && length > 32_768) return null;
+  if (!String(request.headers.get("Content-Type") || "").toLowerCase().startsWith("application/json")) return null;
+  const raw = await request.text().catch(() => "");
+  if (!raw || new TextEncoder().encode(raw).byteLength > 32_768) return null;
+  let payload: unknown = null;
+  try { payload = JSON.parse(raw); } catch { return null; }
+  return payload && typeof payload === "object" && !Array.isArray(payload) ? payload as JsonObject : null;
+}
+
+function mutationOriginAllowed(request: Request, env: Env): boolean {
+  const origin = request.headers.get("Origin");
+  return Boolean(origin && allowedOrigins(env).includes(origin));
+}
+
+async function verifySessionCharacter(auth: { sessionId: string; session: SessionRecord }, characterId: string, env: Env): Promise<SessionRecord | null> {
+  const cached = auth.session.verifiedCharacterIds || [];
+  if (cached.includes(characterId) && Date.now() - Number(auth.session.verifiedCharactersAt || 0) <= VERIFIED_CHARACTER_TTL_MS) return auth.session;
+  const membership = auth.session.activeDestinyMembership;
+  if (!membership) return null;
+  const profileUrl = new URL(`${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Profile/${encodeURIComponent(membership.membershipId)}/`);
+  profileUrl.searchParams.set("components", "200");
+  const response = await fetch(profileUrl, { headers: bungieHeaders(auth.session, env) });
+  const payload = await response.json<BungieApiResponse<DestinyProfilePayload>>().catch(() => null);
+  if (!response.ok || !payload?.Response) return null;
+  const verifiedCharacterIds = Object.keys(payload.Response.characters?.data || {});
+  const updated = { ...auth.session, verifiedCharacterIds, verifiedCharactersAt: Date.now(), lastUsedAt: Date.now() };
+  await putSession(env, auth.sessionId, updated);
+  return verifiedCharacterIds.includes(characterId) ? updated : null;
+}
+
+function actionPayload(kind: BungieActionKind, body: JsonObject): { path: string; body: JsonObject; characterId: string } | null {
+  const characterId = decimalId(body.characterId);
+  const membershipType = Number(body.membershipType);
+  if (!characterId || !Number.isInteger(membershipType)) return null;
+  if (kind === "equip-items") {
+    const itemIds = Array.isArray(body.itemIds) ? [...new Set(body.itemIds.map(decimalId).filter((value): value is string => Boolean(value)))] : [];
+    if (!itemIds.length || itemIds.length > 12 || itemIds.length !== (body.itemIds as unknown[]).length) return null;
+    return { path: "/Destiny2/Actions/Items/EquipItems/", characterId, body: { itemIds, characterId, membershipType } };
+  }
+  if (kind === "transfer-item") {
+    const itemId = decimalId(body.itemId), itemReferenceHash = uint32(body.itemReferenceHash), stackSize = Number(body.stackSize);
+    if (!itemId || itemReferenceHash === null || !Number.isInteger(stackSize) || stackSize !== 1 || typeof body.transferToVault !== "boolean") return null;
+    return { path: "/Destiny2/Actions/Items/TransferItem/", characterId, body: { itemReferenceHash, stackSize, transferToVault: body.transferToVault, itemId, characterId, membershipType } };
+  }
+  if (kind === "socket-plug-free") {
+    const itemId = decimalId(body.itemId), plug = body.plug && typeof body.plug === "object" && !Array.isArray(body.plug) ? body.plug as JsonObject : null;
+    const socketIndex = Number(plug?.socketIndex), socketArrayType = Number(plug?.socketArrayType), plugItemHash = uint32(plug?.plugItemHash);
+    if (!itemId || !Number.isInteger(socketIndex) || socketIndex < 0 || socketIndex > 99 || ![0, 1].includes(socketArrayType) || plugItemHash === null) return null;
+    return { path: "/Destiny2/Actions/Items/InsertSocketPlugFree/", characterId, body: { plug: { socketIndex, socketArrayType, plugItemHash }, itemId, characterId, membershipType } };
+  }
+  const loadoutIndex = Number(body.loadoutIndex);
+  if (!Number.isInteger(loadoutIndex) || loadoutIndex < 0 || loadoutIndex > 19) return null;
+  if (kind === "loadout-equip") return { path: "/Destiny2/Actions/Loadouts/EquipLoadout/", characterId, body: { loadoutIndex, characterId, membershipType } };
+  if (kind === "loadout-clear") return { path: "/Destiny2/Actions/Loadouts/ClearLoadout/", characterId, body: { loadoutIndex, characterId, membershipType } };
+  const identifiers: JsonObject = {};
+  for (const key of ["colorHash", "iconHash", "nameHash"] as const) {
+    if (body[key] === undefined) continue;
+    const value = uint32(body[key]);
+    if (value === null) return null;
+    identifiers[key] = value;
+  }
+  const path = kind === "loadout-snapshot" ? "/Destiny2/Actions/Loadouts/SnapshotLoadout/" : "/Destiny2/Actions/Loadouts/UpdateLoadoutIdentifiers/";
+  return { path, characterId, body: { ...identifiers, loadoutIndex, characterId, membershipType } };
+}
+
+async function bungieActionRoute(request: Request, env: Env, kind: BungieActionKind): Promise<Response> {
+  if (!mutationOriginAllowed(request, env)) return withCors(request, env, json({ error: "origin_not_allowed" }, 403));
+  const auth = await authenticatedSession(request, env);
+  if (auth instanceof Response) return auth;
+  if (!request.headers.get("X-CSRF-Token") || request.headers.get("X-CSRF-Token") !== auth.session.csrfToken) {
+    return withCors(request, env, json({ error: "csrf_validation_failed" }, 403));
+  }
+  const requestBody = await actionRequestBody(request);
+  if (!requestBody) return withCors(request, env, json({ error: "invalid_action_request" }, 400));
+  const membership = auth.session.activeDestinyMembership;
+  if (!membership || Number(requestBody.membershipType) !== membership.membershipType) return withCors(request, env, json({ error: "membership_mismatch" }, 403));
+  const action = actionPayload(kind, requestBody);
+  if (!action) return withCors(request, env, json({ error: "invalid_action_request" }, 400));
+  const verifiedSession = await verifySessionCharacter(auth, action.characterId, env);
+  if (!verifiedSession) return withCors(request, env, json({ error: "character_binding_mismatch" }, 403));
+
+  const headers = new Headers(bungieHeaders(verifiedSession, env));
+  headers.set("Content-Type", "application/json");
+  const upstream = await fetch(`${BUNGIE_PLATFORM}${action.path}`, { method: "POST", headers, body: JSON.stringify(action.body) });
+  const payload = await upstream.json<BungieApiResponse<unknown>>().catch(() => null);
+  if (!upstream.ok || !payload || Number(payload.ErrorCode ?? 1) !== 1) {
+    console.warn("bungie_action_failed", { kind, status: upstream.status, errorCode: payload?.ErrorCode, errorStatus: payload?.ErrorStatus });
+    const status = upstream.status >= 400 && upstream.status < 500 ? upstream.status : Number(payload?.ErrorCode ?? 1) !== 1 ? 409 : 502;
+    return withCors(request, env, json((payload || { error: "bungie_action_failed" }) as JsonObject, status));
+  }
+  await putSession(env, auth.sessionId, { ...verifiedSession, lastUsedAt: Date.now() });
+  return withCors(request, env, json(payload as JsonObject));
 }
 
 async function bungieAccountRoute(request: Request, env: Env): Promise<Response> {
@@ -1313,6 +1451,13 @@ export default {
       if (request.method === "GET" && url.pathname.startsWith("/bungie/pgcr/")) {
         return pgcrRoute(request, env, decodeURIComponent(url.pathname.slice("/bungie/pgcr/".length)));
       }
+      if (request.method === "POST" && url.pathname === "/bungie/actions/equip-items") return bungieActionRoute(request, env, "equip-items");
+      if (request.method === "POST" && url.pathname === "/bungie/actions/transfer-item") return bungieActionRoute(request, env, "transfer-item");
+      if (request.method === "POST" && url.pathname === "/bungie/actions/socket-plug-free") return bungieActionRoute(request, env, "socket-plug-free");
+      if (request.method === "POST" && url.pathname === "/bungie/actions/loadout/equip") return bungieActionRoute(request, env, "loadout-equip");
+      if (request.method === "POST" && url.pathname === "/bungie/actions/loadout/snapshot") return bungieActionRoute(request, env, "loadout-snapshot");
+      if (request.method === "POST" && url.pathname === "/bungie/actions/loadout/identifiers") return bungieActionRoute(request, env, "loadout-identifiers");
+      if (request.method === "POST" && url.pathname === "/bungie/actions/loadout/clear") return bungieActionRoute(request, env, "loadout-clear");
       if (request.method === "POST" && url.pathname === "/logout") return logoutRoute(request, env);
       return withCors(request, env, json({ error: "not_found" }, 404));
     } catch (error) {

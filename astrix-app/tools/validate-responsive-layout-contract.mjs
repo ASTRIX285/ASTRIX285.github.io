@@ -11,11 +11,14 @@ const sources={
   leftLock:await readFile(new URL('guardian-left-panel-lock.css',ROOT),'utf8'),
   mobile:await readFile(new URL('guardian-mobile.css',ROOT),'utf8'),
   super:await readFile(new URL('guardian-super-formation.css',ROOT),'utf8'),
+  items:await readFile(new URL('paradox-item-cards.css',ROOT),'utf8'),
   build:await readFile(new URL('paradox-build-space/paradox-build-space.css',ROOT),'utf8')
 };
 const mainHtml=await readFile(new URL('index.html',ROOT),'utf8');
 const buildHtml=await readFile(new URL('paradox-build-space/index.html',ROOT),'utf8');
 const densityCss=await readFile(new URL('../../shared/astrix-desktop-density.css',ROOT),'utf8');
+const sharedHeroCss=await readFile(new URL('../../shared/astrix-hero-cards.css',ROOT),'utf8');
+const destinationRibbonCss=await readFile(new URL('../../shared/astrix-destination-ribbon.css',ROOT),'utf8');
 const journeyCss=await readFile(new URL('../journey/journey-2560-visual.css',ROOT),'utf8');
 const missionCss=await readFile(new URL('../mission-reports/mission-reports.css',ROOT),'utf8');
 const forgeLoaderCss=await readFile(new URL('../forge-loader/forge-loader.css',ROOT),'utf8');
@@ -36,7 +39,17 @@ assert.match(sources.shared,/--guardian-square:clamp\(40px,3\.2vw,64px\);[\s\S]*
 assert.match(sources.shared,/guardian-left-rail[\s\S]*?width:var\(--guardian-square\)!important;[\s\S]*?height:var\(--guardian-square\)!important/,'Left-rail sockets must consume the shared square token');
 assert.match(sources.gear,/\.gear-mods\{[^}]*repeat\(3,var\(--guardian-square\)\)[^}]*repeat\(2,var\(--guardian-square\)\)[^}]*gap:var\(--guardian-square-gap\)/,'Armour mods must consume the same square and gap tokens');
 assert.match(sources.gear,/\.gear-columns\{[^}]*repeat\(auto-fit,minmax\(min\(220px,100%\),1fr\)\)/,'Shared armour cards must wrap before their mod grids can overlap');
+assert.match(sources.gear,/\.gear-weapons\{[\s\S]*?--gear-weapon-art:clamp\(86px,8cqi,112px\);[\s\S]*?--gear-weapon-socket:clamp\(34px,3\.6cqi,52px\)/,'Weapon art and sockets must have one shared responsive geometry');
+assert.match(sources.gear,/\.gear-weapons \.weap\{[\s\S]*?grid-template-areas:"art cap" "art perks" "art support" "art empty"!important/,'Every weapon card must use the shared art, perks and mod composition');
+assert.match(sources.gear,/\.weapon-perk-matrix\.is-compact \.weapon-perk-row\{grid-template-columns:repeat\(var\(--weapon-perk-columns\),var\(--gear-weapon-socket\)\)/,'Compact weapon models must keep their tier-defined perk columns aligned');
+assert.match(sources.gear,/\.weapon-support-icon\{width:var\(--gear-weapon-socket\)!important;height:var\(--gear-weapon-socket\)!important/,'Weapon mod and masterwork sockets must match perk sizing');
 assert.doesNotMatch(sources.build,/--guardian-square\s*:|--pf-mod-size\s*:|\.gear-slot \.gear-mods\s*\{/,'Build must not create a second socket-size owner');
+assert.match(sources.items,/\.paradox-item-card\{[\s\S]*?border:1px solid rgba\(224,185,79,\.42\)/,'Weapon and armour inspectors must share one Paradox card frame');
+assert.match(sources.items,/\.paradox-item-card \.weapon-perk-cell\{[^}]*border:2px solid/,'Detailed weapon perks must retain circular socket emphasis');
+assert.match(sources.items,/\.paradox-socket-icon\{[^}]*border-radius:8px/,'Armour mods and cosmetics must retain square sockets');
+assert.match(sources.items,/@media\(max-width:700px\)\{[\s\S]*?\.weapon-detail-drawer\.paradox-item-shell,\.armour-drawer\.paradox-item-shell\{inset:0;width:100%;height:100dvh/,'Both item-card inspectors must become contained full-screen mobile surfaces');
+assert.match(mainHtml,/paradox-item-cards\.css\?v=20260905-card-space-mods-1/,'Character must load the shared Paradox item-card framework');
+assert.match(buildHtml,/paradox-item-cards\.css\?v=20260905-card-space-mods-1/,'Build Forge must load the same Paradox item-card framework');
 
 assert.match(sources.shared,/guardian-loadouts-strip\{[\s\S]*?overflow-x:auto!important/,'The 1–20 loadout strip must contain its own narrow-screen overflow');
 assert.match(sources.shared,/guardian-loadouts-grid\{[\s\S]*?grid-template-columns:repeat\(20,minmax\(32px,1fr\)\)!important;[\s\S]*?min-width:720px!important/,'The Bungie 1–20 loadout row must remain fluid and single-row');
@@ -54,8 +67,11 @@ assert.doesNotMatch(densityCss,/transform\s*:\s*scale\(/,'The shared density lay
 assert.match(sources.characters,/html body \.topbar\{[\s\S]*?position:sticky!important/,'The character-card ribbon must remain anchored to the tool header');
 assert.match(sources.characters,/@media\s*\(max-width:860px\)\{[\s\S]*?#guardianCharacterCards\.guardian-character-cards\{[^}]*display:grid!important;[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;[^}]*overflow:hidden!important/,'All three character cards must remain fixed and contained in the phone ribbon');
 assert.doesNotMatch(sources.characters,/scroll-snap-type|overflow-x:auto/,'The fixed character-card ribbon must not become a separate scrolling container');
+assert.match(sharedHeroCss,/@media\(max-width:720px\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;[\s\S]*?\.guardian-character-card__stats\{display:none!important\}/,'Shared phone hero cards must retain all three Guardians without compressing six stat groups into each card');
+assert.match(destinationRibbonCss,/@media\(max-width:720px\)\{[\s\S]*?grid-template-columns:repeat\(4,minmax\(0,1fr\)\);grid-template-rows:repeat\(2,42px\);[\s\S]*?overflow:hidden/,'Phone destination navigation must show every route in a contained two-row grid');
 assert.match(sources.build,/@media\(max-width:1100px\)\{\.build-space\{grid-template-columns:1fr\}/,'Build must share the single-column compact breakpoint');
 assert.match(sources.build,/@media\s*\(max-width:720px\)\{[\s\S]*?\.build-space\{grid-template-columns:1fr/,'Build must collapse to one document-flow column on phones');
+assert.match(sources.build,/@media\(max-width:720px\)\{[\s\S]*?\.design-canvas \.gear-weapons \.weap-grid\{grid-template-columns:1fr!important\}/,'Build weapon models must use their complete single-column composition on phones');
 for(const [label,source] of [['Journey',journeyCss],['Build Forge',sources.build],['Mission Reports',missionCss]]){
   assert.match(source,/grid-template-columns:var\(--apx-workspace-columns,/u,label+' must consume the shared wide workspace tracks');
   assert.match(source,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,label+' must consume the shared compact workspace tracks');
@@ -63,6 +79,19 @@ for(const [label,source] of [['Journey',journeyCss],['Build Forge',sources.build
 assert.match(forgeLoaderCss,/grid-template-columns:minmax\(360px,20%\) minmax\(640px,44%\) minmax\(560px,1fr\)/u,'Forge Loader alone must reserve a narrower directive track and a wider output track');
 assert.match(forgeLoaderCss,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,'Forge Loader must retain the shared compact workspace tracks');
 assert.match(sources.layout,/grid-template-columns:var\(--apx-workspace-left,[^;]+\) var\(--apx-workspace-centre,[^;]+\)!important/,'Character must consume the shared rail and centre tracks');
+assert.match(sources.shared,/\.workspace>\.stage-companion,[\s\S]*?\.workspace>\.stage,[\s\S]*?\.workspace>\.right\{display:none!important\}/,'Character must retain but visually remove the two obsolete stage areas');
+assert.match(sources.shared,/grid-template-areas:"rail equipment"!important/,'Character equipment must align with the rail top, with its action below');
+assert.match(sources.shared,/grid-template-areas:"loadouts" "armour" "weapons" "action"!important/,'Character equipment must render Loadouts, Armour, then Weapons');
+assert.match(sources.shared,/grid-template-rows:repeat\(4,max-content\)!important;[\s\S]*?grid-auto-rows:max-content!important;/,'Character equipment rows must grow to their complete rendered content');
+for(const [label,area] of [['Loadouts','loadouts'],['Armour','armour'],['Weapons','weapons']]){
+  const selector=label==='Loadouts'?'guardian-loadouts-container':label==='Armour'?'gear-combined':'gear-weapons';
+  const block=sources.shared.match(new RegExp(`body\\.guardian-main-page \\.equip\\.gear-layout-active>\\.${selector}\\{([^}]*)\\}`))?.[1]||'';
+  assert.match(block,new RegExp(`grid-area:${area}!important`),`${label} must keep its named Character equipment area`);
+  assert.doesNotMatch(block,/grid-(?:row|column):/u,`${label} must not override its named equipment row`);
+}
+assert.match(sources.shared,/body\.guardian-main-page>\.actionbar\{[^}]*position:static!important;[^}]*width:100%!important;/,'Character actions must remain in document flow instead of covering equipment');
+assert.match(sources.shared,/\.gear-combined \.gear-columns\{[\s\S]*?grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,'Character Armour must retain five equal columns');
+assert.match(sources.shared,/body\.guardian-main-page \.gear-combined \.gear-slot\{[^}]*height:auto!important;[^}]*min-height:calc\(120px \+ \(var\(--guardian-square\) \* 2\) \+ var\(--guardian-square-gap\)\)!important;[^}]*overflow:visible!important;/,'Character Armour cards must reserve both complete mod rows before Weapons');
 assert.match(sources.super,/@media\s*\(max-width:720px\)\{[\s\S]*?\.super-feature \.super-feature__cluster\{width:min\(300px,100%\)!important\}/,'Super geometry must scale inside its container at narrow widths');
 
 for(const [label,html] of [['Main',mainHtml],['Build',buildHtml]]){
@@ -75,6 +104,8 @@ for(const [label,html] of appPages){
   assert.match(html,/\/css\/astrix-site-typography\.css/,label+' must load the shared ASTRIX typography layer');
   assert.doesNotMatch(html,/fonts\.(?:googleapis|gstatic)\.com/,label+' must not load a competing interface font service');
   assert.match(styles.at(-1)||'',/astrix-desktop-density\.css$/,label+' must load the shared desktop density layer last');
+  assert.match(html,/astrix-destination-ribbon\.css\?v=20260904-mobile-crosscheck-1/,label+' must load the current contained mobile destination navigation');
+  assert.match(html,/astrix-hero-cards\.css\?v=20260904-mobile-crosscheck-1/,label+' must load the current shared mobile hero cards');
 }
 
 console.log('RESPONSIVE_SINGLE_OWNER=PASS');

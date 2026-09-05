@@ -39,7 +39,7 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260903-command-header-1"'),'Journey must load the shared command-header cleanup without stale page CSS');
-assert.ok(html.includes('src="./journey.mjs?v=20260903-command-header-1"'),'Journey must load the progressive records runtime without stale header-positioning code');
+assert.ok(html.includes('src="./journey.mjs?v=20260905-forge-responsive-1"'),'Journey must load the progressive records runtime without stale header-positioning code');
 assert.match(journey,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey startup must not download the heavyweight Character and Build equipment manifest');
 assert.doesNotMatch(journey,/const manifestReady=guardianManifest\.ready\(\)/,'Journey must keep the full equipment manifest off its critical loading path');
 assert.match(heroModule,/IS_JOURNEY_PAGE[\s\S]*?ASTRIX_HERO_PROFILE_PROMISE[\s\S]*?scope/,'Journey hero cards must expose and reuse their scoped authenticated profile request');
@@ -98,7 +98,7 @@ assert.match(journey,/renderNextTitleSummary\(next\|\|null\)[\s\S]*?journeyNextT
 assert.match(html,/id="journeyGuardianUsage"[\s\S]*?id="journeySeasonRank"/,'Journey must replace generic navigation with Guardian class usage and Current Season Rank blocks');
 assert.doesNotMatch(html,/journey-section-nav|journey-time-filter|TIME FILTER|MILESTONES &amp; ACHIEVEMENTS/,'Journey must not retain generic navigation or non-functional time filters');
 assert.match(journey,/CLASS_USAGE_COLOURS[\s\S]*?item\.percent=item\.minutes\/total\*100[\s\S]*?journey-usage-chart[\s\S]*?formatPlaytime\(item\.minutes\)/,'Guardian class usage must show all three verified playtime percentages and exact durations');
-assert.match(journey,/currentSeasonMetadata[\s\S]*?profileProgression\?\.data\?\.progressions[\s\S]*?rewardProgressionHash[\s\S]*?prestigeProgressionHash[\s\S]*?XP TO RANK/,'Current Season Rank must join live season progression hashes to verified profile XP');
+assert.match(journey,/seasonRankProgress\(payload[\s\S]*?XP TO RANK/,'Season Rank must use the tested profile/character progression join');
 assert.match(journey,/journey-triumph-total[\s\S]*?journey-triumph-breakdown[\s\S]*?ACTIVE[\s\S]*?LEGACY/,'Triumph statistics must emphasise the total and split Active and Legacy scores');
 assert.match(html,/id="journeyGuardianStats"[\s\S]*?aria-label="Selected Guardian statistics"/,'The identity panel must own the selected Guardian stat strip');
 assert.doesNotMatch(html,/VERIFIED GUARDIAN|id="journeyVerifiedGuardian"/,'Journey must remove the redundant visible verified-Guardian label');
@@ -145,13 +145,13 @@ assert.equal((ribbon.match(/Object\.freeze\(\{key:/g)??[]).length,7,'Shared Jour
 assert.ok(ribbon.indexOf("key:'forge-loader'")<ribbon.indexOf("key:'build-forge'"),'Forge Loader must appear before Build Forge');
 for(const page of globalHeroPages){
   assert.equal((page.match(/data-astrix-hero-cards/g)??[]).length,1,'Every destination page must contain exactly one shared hero-card mount');
-  assert.ok(page.includes('astrix-hero-cards.css?v=20260903-command-header-2'),'Every destination page must load the centred shared command-header presentation');
+  assert.ok(page.includes('astrix-hero-cards.css?v=20260904-mobile-crosscheck-1'),'Every destination page must load the current centred, mobile-contained command-header presentation');
   assert.equal((page.match(/astrix-command-header/g)??[]).length,1,'Every destination page must contain exactly one shared command header');
 }
 assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260902-vault-shared-profile-1'))).length,3,'Journey, Vault and Loadout must load the same scoped-profile Guardian renderer');
-assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260904-weapon-model-2'),'Character must load the verified weapon-model module graph');
-assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260904-weapon-model-2'),'Build Forge must load the owned-inventory weapon recommendation sequence without stale page-specific code');
-assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260902-recent-guardian-emblem-1'),'Mission Reports must load the latest-played Guardian module graph');
+assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260905-manual-editor-2'),'Character must load the verified manual loadout-action module graph');
+assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260905-generation-review-1'),'Build Forge must load the generated-review correction without stale page-specific code');
+assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260905-weapon-audit-1'),'Mission Reports must load the latest-played Guardian module graph');
 assert.ok(missionReportsHtml.includes('href="./mission-reports.css?v=20260831-fixed-topbar"'),'Mission Reports must load the cache-busted fixed topbar correction');
 assert.match(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:fixed!important;[\s\S]*?top:0!important;[\s\S]*?z-index:90!important;/,'Mission Reports must not override the global Guardian ribbon with document-flow positioning');
 assert.doesNotMatch(missionReportsCss,/\.mission-topbar\.topbar\{[\s\S]*?position:relative!important;[\s\S]*?top:auto!important;/,'Mission Reports must not reattach the Guardian ribbon to its report columns');
@@ -209,7 +209,7 @@ assert.ok(journey.includes('initLocationSelector({'),'Journey must retain the lo
 assert.ok(journey.includes("mount:document.getElementById('journeyLocationSelector')"),'Journey selector mount must remain unchanged');
 assert.ok(journey.includes("detail:document.getElementById('journeyLocationDetail')"),'Journey detail mount must remain unchanged');
 assert.ok(journey.includes('const session=await getBungieSession();'),'Journey authentication must remain unchanged');
-assert.ok(journey.includes("from './journey-location-maps.mjs?v=20260901-destination-data-panels'"),'Journey must load its current versioned page-owned destination data registry');
+assert.ok(journey.includes("from './journey-location-maps.mjs?v=20260905-journey-repair-1'"),'Journey must load its current versioned page-owned destination data registry');
 assert.ok(journey.includes('initJourneyLocationMaps('),'Journey must initialise its page-owned interactive map layer');
 assert.ok(mapModule.includes("src:'./assets/maps/astrix-paradox-map-placeholder-4k.webp'"),'Journey must mount the shared 4K ASTRIX PARADOX placeholder');
 assert.ok(mapModule.includes("detailSrc:'./assets/maps/astrix-paradox-map-placeholder-6k.webp'"),'Journey must provide the shared 6K ASTRIX PARADOX placeholder for zoom');

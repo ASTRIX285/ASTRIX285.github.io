@@ -4,9 +4,10 @@
    with 6 functional mod tiles each without tearing down sibling DOM blocks.
    ========================================================================== */
 
-import "./guardian-semantic-ui.mjs?v=20260904-weapon-model-2";
-import { openArmourDrawer } from "./guardian-beta-runtime.mjs";
-import { classifyArmourPlug } from "./guardian-semantic-resolver.mjs?v=20260904-weapon-model-2";
+import "./guardian-semantic-ui.mjs?v=20260905-card-space-mods-1";
+import { openArmourDrawer } from "./guardian-beta-runtime.mjs?v=20260905-weapon-audit-1";
+import { classifyArmourPlug } from "./guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1";
+import {resolveItemWatermark} from '../../core/bungie-item-identity.mjs';
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const bungieIcon = (value) => {
@@ -121,7 +122,7 @@ export function armourCard(index, item) {
   const slotCount = 6;
   const armourTier = Number(item?.armourTier ?? item?.armourSemantics?.tier ?? item?.gearTier);
   const isTierFive = Number.isFinite(armourTier) && armourTier >= 5;
-  const seasonIcon = bungieIcon(item?.tierIcon ?? item?.definition?.iconWatermark ?? item?.definition?.quality?.displayVersionWatermarkIcons?.[0]);
+  const seasonIcon = resolveItemWatermark(item||{},item?.definition||{}).icon;
   const archetype = resolveArmourArchetype(item, armourTier);
   const mods = armourModSequence(item, armourTier, archetype);
   const archetypeIcon = bungieIcon(archetype?.icon ?? archetype?.displayProperties?.icon);

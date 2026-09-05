@@ -1,4 +1,4 @@
-import {cacheBungieSession,readCachedBungieSession} from "./guardian-session-cache.mjs";
+import {cacheBungieSession,readCachedBungieSession} from "./guardian-session-cache.mjs?v=20260905-manual-editor-1";
 
 const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
 const CANONICAL_APP_ORIGIN = "https://astrixparadox.com";

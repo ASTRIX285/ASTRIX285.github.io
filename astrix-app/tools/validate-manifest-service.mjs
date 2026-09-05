@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {expandForgeArmourIndex} from '../core/forge-index-transport.mjs';
 
 const ROOT=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,ROOT),'utf8');
 const forgeIndexSource=await read('data/forge-armour-index.json').catch(()=>null);
-const forgeIndex=forgeIndexSource?JSON.parse(forgeIndexSource):null;
+const forgeIndex=forgeIndexSource?expandForgeArmourIndex(JSON.parse(forgeIndexSource)):null;
 const [service,sessionCache,profile,portal,build,interceptor,resolver,fixture,artifact,beta,recommender,worker,wrapper]=await Promise.all([
   read('pages/guardian-workspace-v2/guardian-manifest-service.mjs'),
   read('pages/guardian-workspace-v2/guardian-session-cache.mjs'),
@@ -60,7 +61,7 @@ assert.doesNotMatch(worker,/manifestComponentRoute[\s\S]{0,2600}upstream\.json/,
 assert.match(worker,/manifest_version_changed/,'Component downloads must reject a stale requested version');
 assert.match(worker,/MANIFEST_METADATA_TTL_SECONDS = 60 \* 60/,'The Worker manifest metadata cache must refresh hourly.');
 assert.match(worker,/scheduled\([\s\S]*?refreshDestinyManifestMetadata/,'The Worker must silently warm the current Bungie manifest version on its cron trigger.');
-assert.match(worker,/manifest-definition\/\$\{encodeURIComponent\(manifest\.version \|\| "unknown"\)\}/,'Single-definition cache entries must be isolated by Bungie manifest version.');
+assert.match(worker,/manifest-definition-v2\/\$\{requestedVersion \? "versioned" : "current"\}\/\$\{encodeURIComponent\(manifest\.version \|\| "unknown"\)\}/,'Single-definition cache entries must isolate manifest versions and versioned cache lifetimes.');
 assert.match(worker,/definitions"\) === "client-manifest"/,'Profile and loadout routes must expose raw client-manifest mode');
 assert.match(wrapper,/definitions"\) === "client-manifest"/,'Semantic wrapper must skip per-hash enrichment in client-manifest mode');
 

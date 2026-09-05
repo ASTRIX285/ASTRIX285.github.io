@@ -48,7 +48,7 @@ function render(nextCharacters = characters, nextSelectedId = selectedCharacterI
   if (!supplied.length) {
     characters = [];
     selectedCharacterId = "";
-    renderStatus("LOADING BUNGIE CHARACTERS", "pending");
+    renderStatus("NO BUNGIE CHARACTERS AVAILABLE", "unavailable");
     return;
   }
 
@@ -111,6 +111,8 @@ document.addEventListener("astrix:guardian-selection-changed", (event) => {
   selectedCharacterId = chosenId;
 });
 
+document.addEventListener('astrix:profile-error',()=>renderStatus('BUNGIE CHARACTERS UNAVAILABLE','unavailable'));
+window.addEventListener('astrix:bungie-session',event=>{if(event.detail?.authenticated===false)renderStatus('CONNECT BUNGIE TO LOAD CHARACTERS','unavailable');});
 renderStatus("LOADING BUNGIE CHARACTERS", "pending");
 
 export { render as renderGuardianCharacterCards, renderStatus as renderGuardianCharacterCardStatus };

@@ -1,18 +1,12 @@
 // Canonical semantic classification for live Bungie Guardian data.
 // Keep this module deterministic and conservative: unknown evidence stays unknown.
+import {paradoxDefinitionId,weaponSocketSection,weaponTypeIdentity} from '../../core/bungie-item-identity.mjs';
 
 const norm=value=>String(value??"").trim().toLowerCase();
-const WEAPON_PERK_MANIFEST_AUDIT=Object.freeze({
-  manifestVersion:'244213.26.06.29.2000-1-bnet.65583',
-  candidateDefinitions:2423,
-  iconDefinitions:2136,
-  iconlessDefinitions:287,
-  hashMismatches:0
-});
+const WEAPON_PERK_MANIFEST_AUDIT=Object.freeze({source:'astrix-app/data/paradox-weapon-audit-report.json',method:'exhaustive-manifest-socket-and-plug-set-references'});
 const uniq=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>Number(other?.hash)===Number(row?.hash))===index);
 const uniqTraits=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>{
-  const rowHash=Number(row?.hash),otherHash=Number(other?.hash),rowName=norm(row?.name),otherName=norm(other?.name);
-  return Boolean((Number.isInteger(rowHash)&&rowHash>0&&Number.isInteger(otherHash)&&otherHash>0&&rowHash===otherHash)||(rowName&&rowName===otherName));
+  return row?.paradoxId&&other?.paradoxId?row.paradoxId===other.paradoxId:Number(row?.hash)===Number(other?.hash)&&row?.identitySource===other?.identitySource;
 })===index);
 const uniqSockets=rows=>rows.filter((row,index,all)=>row&&all.findIndex(other=>{
   if(Number(other?.hash)!==Number(row?.hash))return false;
@@ -31,9 +25,11 @@ function weaponPerkIdentity(plug){
     ...plug,
     hash:verifiedHash,
     bungieHash:verifiedHash,
+    paradoxId:paradoxDefinitionId(plug.identitySource||'DestinyInventoryItemDefinition',verifiedHash),
     icon,
-    iconHash:icon?verifiedHash:null,
-    iconSource:icon?'DestinyInventoryItemDefinition':null
+    iconItemHash:icon?verifiedHash:null,
+    iconHash:icon?(plug?.definition?.displayProperties?.iconHash||plug?.displayProperties?.iconHash||null):null,
+    iconSource:icon?(plug.identitySource||'DestinyInventoryItemDefinition'):null
   };
 }
 
@@ -93,6 +89,18 @@ function normaliseArmourSemantics({plugs=[],instance=null,stats=null}={}){
 
 function classifyWeaponPlug(plug){
   const category=plugCategory(plug),socket=socketCategory(plug),text=semanticText(plug);
+  const section=weaponSocketSection(plug);
+  // The same plug family (notably "frames") occurs in different sections.
+  // Resolve the actual weapon's socket category before interpreting any words.
+  if(section==='perks')return 'perk';
+  if(section==='intrinsic')return 'intrinsic';
+  if(section==='cosmetics')return 'appearance';
+  if(section==='mods'){
+    if(category.includes('infusion')||/^infuse$/i.test(plug.name||''))return 'infuse';
+    if(category.includes('catalyst')||/\bcatalyst\b/i.test(plug.name||'')||/exotic.*masterwork/.test(category))return 'catalyst';
+    if(category.includes('masterwork')&&!category.includes('tracker'))return 'masterwork';
+    return 'weapon-mod';
+  }
   if(/shader|ornament|skin/.test(text))return "appearance";
   if(category.includes("infusion")||/\binfus(e|ion)\b/.test(text))return "infuse";
   if(category.includes("catalyst")||/\bcatalyst\b/.test(text))return "catalyst";
@@ -146,7 +154,7 @@ function weaponPerkColumnRowCountForTier(value,columnNumber){
 
 function normaliseWeaponPerkModel({gearTier=null,selectedPerks=[],alternativePerkColumns=[]}={}){
   const weaponTier=Number.isInteger(Number(gearTier))&&Number(gearTier)>0?Math.min(5,Number(gearTier)):null;
-  const expectedRowCount=weaponPerkRowCountForTier(weaponTier)??1;
+  let expectedRowCount=weaponPerkRowCountForTier(weaponTier)??1;
   const selectedBySocket=new Map((selectedPerks||[]).filter(perk=>Number.isInteger(Number(perk?.socketIndex))).map(perk=>[Number(perk.socketIndex),perk]));
   const alternativesBySocket=new Map((alternativePerkColumns||[]).filter(column=>Number.isInteger(Number(column?.socketIndex))).map(column=>[Number(column.socketIndex),(column.options||[]).filter(option=>classifyWeaponPlug(option)==="perk")]));
   const socketIndexes=[...new Set([...selectedBySocket.keys(),...alternativesBySocket.keys()])].sort((left,right)=>left-right);
@@ -156,21 +164,23 @@ function normaliseWeaponPerkModel({gearTier=null,selectedPerks=[],alternativePer
     const selectedInAvailable=selected&&available.some(option=>Number(option?.hash??option?.itemHash??option?.bungieHash)===selectedHash);
     const options=selected&&!selectedInAvailable?uniq([selected,...available]):available;
     const columnNumber=columnIndex+1,columnRowCount=weaponPerkColumnRowCountForTier(weaponTier,columnNumber)??expectedRowCount;
-    let visibleOptions=options.slice(0,columnRowCount);
-    if(selected&&!visibleOptions.some(option=>Number(option?.hash??option?.itemHash??option?.bungieHash)===selectedHash))visibleOptions=uniq([...visibleOptions.slice(0,Math.max(0,columnRowCount-1)),selected]);
+    // Tier rules provide a baseline, never a cap on real instance evidence.
+    const visibleOptions=options;
     const selectedVisible=!selected||visibleOptions.some(option=>Number(option?.hash??option?.itemHash??option?.bungieHash)===selectedHash);
     return {
       socketIndex,
       columnNumber,
       family:weaponPerkFamily(selected||options[0]),
-      expectedRowCount:columnRowCount,
+      expectedRowCount:Math.max(columnRowCount,visibleOptions.length),
+      tierRowCapacity:columnRowCount,
       selectedPlugHash:Number.isInteger(selectedHash)&&selectedHash>0?selectedHash:null,
       options:visibleOptions,
-      overflowOptionCount:Math.max(0,options.length-columnRowCount),
+      overflowOptionCount:0,
       missingOptionCount:Math.max(0,columnRowCount-visibleOptions.length),
       selectedVisible
     };
   }).filter(column=>column.options.length||column.selectedPlugHash);
+  expectedRowCount=Math.max(expectedRowCount,...columns.map(column=>column.options.length));
   const rows=Array.from({length:expectedRowCount},(_,rowIndex)=>{
     const slots=columns.map(column=>{
       const perk=column.options[rowIndex]||null,hash=Number(perk?.hash??perk?.itemHash??perk?.bungieHash);
@@ -180,7 +190,7 @@ function normaliseWeaponPerkModel({gearTier=null,selectedPerks=[],alternativePer
   });
   const unindexedPerks=(selectedPerks||[]).filter(perk=>!Number.isInteger(Number(perk?.socketIndex)));
   return {
-    schemaVersion:2,
+    schemaVersion:3,
     source:"bungie-instance-gear-tier-and-reusable-plugs",
     weaponTier,
     expectedRowCount,
@@ -189,7 +199,7 @@ function normaliseWeaponPerkModel({gearTier=null,selectedPerks=[],alternativePer
     columns,
     rows,
     unindexedPerks,
-    complete:weaponTier!==null&&columns.every(column=>column.selectedVisible&&column.overflowOptionCount===0&&column.missingOptionCount===0)
+    complete:columns.every(column=>column.selectedVisible)&&unindexedPerks.length===0
   };
 }
 
@@ -218,6 +228,7 @@ function normaliseAlternativeColumns(columns={}){
 function normaliseWeaponSemantics({profile=null,item=null,itemDefinition=null,plugs=[],instance=null,stats=null,alternativeColumns={},isExotic=false}={}){
   const groups={intrinsic:[],perks:[],masterwork:[],mod:[],catalyst:[],discarded:[],unknown:[]};
   for(const sourcePlug of plugs){
+    if(sourcePlug?.isVisible===false)continue;
     const plug=weaponPerkIdentity(sourcePlug);
     if(!plug?.bungieHash){groups.unknown.push(plug);continue;}
     const role=classifyWeaponPlug(plug);
@@ -242,8 +253,9 @@ function normaliseWeaponSemantics({profile=null,item=null,itemDefinition=null,pl
   const modSockets=uniqSockets([...groups.masterwork,...groups.mod,...groups.catalyst]).sort((left,right)=>Number(left?.socketIndex??Number.MAX_SAFE_INTEGER)-Number(right?.socketIndex??Number.MAX_SAFE_INTEGER));
   const socketOrder=uniqSockets(plugs.map(weaponPerkIdentity).filter(plug=>plug?.bungieHash).map(plug=>({...plug,semanticRole:classifyWeaponPlug(plug)}))).filter(plug=>!['appearance','infuse','unknown'].includes(plug.semanticRole)).sort((left,right)=>Number(left?.socketIndex??Number.MAX_SAFE_INTEGER)-Number(right?.socketIndex??Number.MAX_SAFE_INTEGER)).map(plug=>({socketIndex:Number.isInteger(Number(plug.socketIndex))?Number(plug.socketIndex):null,plugHash:plug.bungieHash,role:plug.semanticRole,name:plug.name||''}));
   const iconItems=uniq([...intrinsicTraits,...groups.perks,...groups.masterwork,...groups.mod,...groups.catalyst,...alternativePerkColumns.flatMap(column=>column.options)]);
-  const perkIconHashMap=Object.fromEntries(iconItems.filter(item=>item.icon&&item.iconHash===item.bungieHash).map(item=>[String(item.bungieHash),item.icon]));
+  const perkIconHashMap=Object.fromEntries(iconItems.filter(item=>item.icon&&item.iconItemHash===item.bungieHash).map(item=>[String(item.bungieHash),item.icon]));
   return {
+    paradoxId:paradoxDefinitionId('DestinyInventoryItemDefinition',item?.itemHash??itemDefinition?.hash),weaponType:weaponTypeIdentity(itemDefinition||{}),
     gearTier,intrinsic,intrinsicTraits,selectedPerks,alternativePerkColumns,perkModel,perkRows:perkModel.rows,perkRowCount:perkModel.expectedRowCount,perkIconHashMap,exoticTraits,
     enhancementState:enhancementState(item),masterwork:groups.masterwork[0]||null,mod:groups.mod[0]||null,modSockets,
     catalyst:catalyst?{...catalyst,progress:catalystProgress(profile,item?.itemInstanceId,catalyst)}:null,

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {COMPONENT_TYPES,GuardianManifestService} from '../pages/guardian-workspace-v2/guardian-manifest-service.mjs';
+import {characterPlugSetsForItem} from '../core/bungie-profile-plugs.mjs';
 
 class MemoryStorage{
   available=true;
@@ -127,3 +128,35 @@ console.log('MANIFEST_LOCAL_ROLL_RESOLUTION=PASS weapon=Freshly Rolled Weapon pe
 console.log('MANIFEST_ARTIFACT_RESOLUTION=PASS artifact=Current Artifact activePerk=Active Artifact Perk');
 console.log('MANIFEST_COMPACT_ARTIFACT_CATALOGUE=PASS artifacts=1');
 console.log('MANIFEST_INDEXEDDB_FALLBACK=PASS source=bungie-single-definition-endpoint');
+
+let lazyDownloads=0,attempts=0;
+const lazyFetch=async input=>{
+  const url=new URL(String(input));
+  if(url.pathname==='/bungie/manifest')return Response.json({version:'lazy-v1',paths:{DestinyCollectibleDefinition:'/collectibles.json'}});
+  if(url.pathname.endsWith('/component')){
+    lazyDownloads++;assert.equal(url.searchParams.get('version'),'lazy-v1');
+    return Response.json({'10':{hash:10,displayProperties:{name:'Collection item'}}});
+  }
+  attempts++;assert.equal(url.searchParams.get('version'),'lazy-v1');
+  if(attempts===1)throw new Error('Transient upstream failure');
+  return Response.json({definition:{hash:20}});
+};
+const lazyStorage=new MemoryStorage();
+const lazy=new GuardianManifestService({fetchImpl:lazyFetch,storage:lazyStorage,authOrigin:'https://auth.test'});
+const results=await Promise.all(Array.from({length:12},()=>lazy.getAsync('DestinyCollectibleDefinition',10)));
+assert.ok(results.every(row=>row.hash===10));
+assert.equal(lazyDownloads,1,'Journey must coalesce simultaneous component loads');
+assert.equal(await lazy.getAsync('DestinyCollectibleDefinition',11),null,'Absent known-table definitions remain unresolved without per-hash requests');
+assert.equal(attempts,0);
+const lazyReload=new GuardianManifestService({fetchImpl:lazyFetch,storage:lazyStorage,authOrigin:'https://auth.test'});
+assert.equal((await lazyReload.getAsync('DestinyCollectibleDefinition',10)).hash,10);
+assert.equal(lazyDownloads,1,'Journey must reuse the persisted matching component');
+assert.equal(await lazy.getAsync('DestinyInventoryItemDefinition',20),null);
+const retried=await Promise.all(Array.from({length:8},()=>lazy.getAsync('DestinyInventoryItemDefinition',20)));
+assert.ok(retried.every(row=>row.hash===20));assert.equal(attempts,2,'Failures must be retriable and concurrent retries deduplicated');
+console.log('JOURNEY_LAZY_COMPONENT_CACHE_AND_RETRY=PASS');
+const scoped={characterEquipment:{data:{a:{items:[{itemInstanceId:'owned-a'}]},b:{items:[{itemInstanceId:'owned-b'}]}}},characterPlugSets:{data:{a:{plugs:{1:[{plugItemHash:101}]}},b:{plugs:{1:[{plugItemHash:102}]}}}}};
+assert.equal(characterPlugSetsForItem(scoped,{itemInstanceId:'owned-a'})[0][1][0].plugItemHash,101);
+assert.equal(characterPlugSetsForItem(scoped,{itemInstanceId:'owned-b'})[0][1][0].plugItemHash,102);
+assert.deepEqual(characterPlugSetsForItem(scoped,{itemInstanceId:'vault'}),[]);
+console.log('CHARACTER_PLUG_AVAILABILITY_ISOLATION=PASS');

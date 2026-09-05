@@ -1,5 +1,5 @@
 import {resolveArmourSet} from '../guardian-workspace-v2/guardian-armour-set-resolver.mjs';
-import {classifyArmourPlug,normaliseArmourSemantics} from '../guardian-workspace-v2/guardian-semantic-resolver.mjs?v=20260829-weapon-perk-hash-1';
+import {classifyArmourPlug,normaliseArmourSemantics} from '../guardian-workspace-v2/guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1';
 
 const BUNGIE_ORIGIN='https://www.bungie.net';
 const VAULT_BUCKET=138197802;
@@ -79,13 +79,13 @@ function armourModOptions(payload,rawItem){
   if(!rawItem?.itemInstanceId)return {};
   const profile=payload?.profile||{},reusable=profile?.itemComponents?.reusablePlugs?.data?.[rawItem.itemInstanceId]?.plugs||{},itemDefinition=definitionFor(payload,rawItem.itemHash)||{},entries=itemDefinition?.sockets?.socketEntries||[],indexes=new Set([...Object.keys(reusable).map(Number),...entries.map((_,index)=>index)]),profileSets=profile?.profilePlugSets?.data?.plugs||{},characterSets=Object.values(profile?.characterPlugSets?.data||{}).map(row=>row?.plugs||{});
   return Object.fromEntries([...indexes].sort((a,b)=>a-b).map(socketIndex=>{
-    const entry=entries[socketIndex]||{},setHashes=[entry?.reusablePlugSetHash].map(Number).filter(Number.isInteger),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]),...setRows],seen=new Set();
-    return [String(socketIndex),(Array.isArray(rows)?rows:[]).filter(row=>row?.canInsert!==false&&row?.enabled!==false).map(row=>{
+    const entry=entries[socketIndex]||{},setHashes=[entry?.reusablePlugSetHash].map(Number).filter(Number.isInteger),setRows=setHashes.flatMap(hash=>[...(profileSets?.[String(hash)]||[]),...characterSets.flatMap(sets=>sets?.[String(hash)]||[])]),rows=[...(reusable?.[String(socketIndex)]||[]).map(row=>({row,source:'bungie-item-reusable-plugs'})),...setRows.map(row=>({row,source:'bungie-profile-plug-set'}))],seen=new Set();
+    return [String(socketIndex),(Array.isArray(rows)?rows:[]).filter(({row})=>row?.canInsert!==false&&row?.enabled!==false).map(({row,source})=>{
       const hash=finite(row?.plugItemHash??row?.plugHash),definition=hash===null?null:definitionFor(payload,hash);
       if(hash===null||!definition||seen.has(hash))return null;seen.add(hash);
       const category=(itemDefinition?.sockets?.socketCategories||[]).find(value=>(value?.socketIndexes||[]).map(Number).includes(Number(socketIndex)))||null;
       const socketCategoryHash=finite(category?.socketCategoryHash),identity=displayIdentity(payload,hash);
-      return {...identity,socketIndex:Number(socketIndex),socketCategoryHash,socketCategoryDefinition:socketCategoryHash===null?null:payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null,canInsert:true,statContributions:statContributions(payload,definition)};
+      return {...identity,socketIndex:Number(socketIndex),socketCategoryHash,socketCategoryDefinition:socketCategoryHash===null?null:payload?.socketCategoryDefinitions?.[String(socketCategoryHash)]||null,canInsert:row.canInsert===true,source,remoteInsertEvidence:source==='bungie-item-reusable-plugs'?'exact-item-reusable-plug':'compatible-plug-set',statContributions:statContributions(payload,definition)};
     }).filter(Boolean)];
   }).filter(([,rows])=>rows.length));
 }

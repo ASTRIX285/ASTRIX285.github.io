@@ -9,12 +9,14 @@ const DB_VERSION=2;
 const STORE_NAME="guardian-data";
 const MANIFEST_STORE_NAME="manifest-data";
 const FORGE_TRANSFER_PREFIX="forge-loader-transfer:v1";
+const BUILD_FORGE_STATE_PREFIX="build-forge-state:v1";
 // The profile cache belongs to the current browser session. Keep the last
 // verified Guardian available for a full working session so Main <-> Build
 // navigation never collapses to placeholders while Bungie refreshes.
 const PROFILE_TTL_MS=12*60*60*1000;
 const FORGE_TRANSFER_TTL_MS=30*60*1000;
 const FORGE_TRANSFER_IO_TIMEOUT_MS=4000;
+const BUILD_FORGE_STATE_TTL_MS=12*60*60*1000;
 
 const safeSessionRead=key=>{
   try{return JSON.parse(sessionStorage.getItem(key)||"null");}
@@ -40,7 +42,12 @@ function cacheBungieSession(session){
 
 function readCachedBungieSession(){
   const row=safeSessionRead(SESSION_KEY);
-  return row?.session?.authenticated?{...row.session,sessionCacheRestored:true}:null;
+  const session=row?.session;
+  // Live mutations must never be enabled from an older cached session that
+  // predates the CSRF token and the Worker's explicit capability contract.
+  return session?.authenticated&&session?.csrfToken&&session?.capabilities?.destinyActions
+    ?{...session,sessionCacheRestored:true}
+    :null;
 }
 
 function openDatabase(){
@@ -84,6 +91,18 @@ async function readRecord(key){
   });
 }
 
+async function deleteRecord(key){
+  const db=await openDatabase();
+  if(!db)return false;
+  return new Promise(resolve=>{
+    const transaction=db.transaction(STORE_NAME,"readwrite");
+    transaction.objectStore(STORE_NAME).delete(key);
+    transaction.oncomplete=()=>{db.close();resolve(true);};
+    transaction.onerror=()=>{db.close();resolve(false);};
+    transaction.onabort=()=>{db.close();resolve(false);};
+  });
+}
+
 function forgeTransferBinding(value={}){
   return {
     characterId:String(value.characterId||""),
@@ -96,6 +115,12 @@ function forgeTransferRecordKey(value={}){
   const binding=forgeTransferBinding(value);
   if(!binding.characterId||!binding.membershipId||!binding.membershipType)return "";
   return `${FORGE_TRANSFER_PREFIX}:${binding.membershipType}:${binding.membershipId}:${binding.characterId}`;
+}
+
+function buildForgeStateRecordKey(value={}){
+  const binding=forgeTransferBinding(value);
+  if(!binding.characterId||!binding.membershipId||!binding.membershipType)return "";
+  return `${BUILD_FORGE_STATE_PREFIX}:${binding.membershipType}:${binding.membershipId}:${binding.characterId}`;
 }
 
 function boundedForgeTransferIo(task,fallback){
@@ -118,6 +143,24 @@ async function readForgeLoaderTransfer(binding){
   if(!record||Date.now()-Number(record.savedAt||0)>FORGE_TRANSFER_TTL_MS)return null;
   if(stored.characterId!==normalized.characterId||stored.membershipId!==normalized.membershipId||stored.membershipType!==normalized.membershipType)return null;
   return record.transfer?.snapshotEnvelope&&record.transfer?.armourSelection?record.transfer:null;
+}
+
+async function cacheBuildForgeState(binding,snapshot,{writeRecord:writeBuildRecord=writeRecord,now=Date.now}={}){
+  const normalized=forgeTransferBinding(binding),key=buildForgeStateRecordKey(normalized);
+  if(!key||!snapshot)return false;
+  try{return await boundedForgeTransferIo(writeBuildRecord({key,binding:normalized,savedAt:now(),snapshot}),false);}
+  catch{return false;}
+}
+
+async function readBuildForgeState(binding,{readRecord:readBuildRecord=readRecord,now=Date.now}={}){
+  const normalized=forgeTransferBinding(binding),key=buildForgeStateRecordKey(normalized);
+  if(!key)return null;
+  let record=null;
+  try{record=await boundedForgeTransferIo(readBuildRecord(key),null);}catch{return null;}
+  const stored=forgeTransferBinding(record?.binding||{});
+  if(!record||now()-Number(record.savedAt||0)>BUILD_FORGE_STATE_TTL_MS)return null;
+  if(stored.characterId!==normalized.characterId||stored.membershipId!==normalized.membershipId||stored.membershipType!==normalized.membershipType)return null;
+  return record.snapshot||null;
 }
 
 function profileRecordKey(identity){return `profile:v2:${identity}`;}
@@ -176,6 +219,15 @@ async function readCachedBungieLoadoutDetail(session,characterId,index){
   return fallback?.key===key&&fallback?.identity===identity&&isFresh(fallback)?fallback.detail||null:null;
 }
 
+async function invalidateBungieLoadoutDetail(session,characterId,index){
+  const identity=sessionIdentity(session),slot=Number(index),guardian=String(characterId||"");
+  if(!identity||!guardian||!Number.isInteger(slot))return false;
+  const key=loadoutRecordKey(identity,guardian,slot),fallbackKey=`${LOADOUT_FALLBACK_PREFIX}${guardian}:${slot}`;
+  let fallbackRemoved=false;
+  try{fallbackRemoved=sessionStorage.getItem(fallbackKey)!==null;sessionStorage.removeItem(fallbackKey);}catch{}
+  return (await deleteRecord(key))||fallbackRemoved;
+}
+
 function armGuardianPortalTransition(){
   const fromBuild=String(globalThis.location?.pathname||"").includes("/paradox-build-space/");
   const label=fromBuild?"Opening Guardian workspace":"Opening Build Forge";
@@ -202,9 +254,12 @@ export {
   readCachedBungieProfile,
   cacheForgeLoaderTransfer,
   readForgeLoaderTransfer,
+  cacheBuildForgeState,
+  readBuildForgeState,
   releaseGuardianSessionStorageFallbacks,
   cacheBungieLoadoutDetail,
   readCachedBungieLoadoutDetail,
+  invalidateBungieLoadoutDetail,
   markGuardianFastReturn,
   armGuardianPortalTransition,
   openDatabase as openGuardianDatabase,
