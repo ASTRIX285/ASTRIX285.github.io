@@ -4,6 +4,13 @@ import {PORTAL_TRANSITION_KEY} from "./guardian-session-cache.mjs";
 const loader=window.AstrixLoader;
 const manifestReady=guardianManifest.ready();
 const isBuildSpace=Boolean(document.querySelector('.build-space'));
+let buildRenderStatus='',profileSettled=false,profileFailed=false,finishRevision=0;
+const buildHeaderSettled=()=>!document.querySelector('#guardianCharacterCards .is-pending');
+const maybeFinishBuild=()=>{
+  if(!isBuildSpace||!buildHeaderSettled())return;
+  if(buildRenderStatus==='ready')finishAfterPaint('Build Forge rendered');
+  else if(buildRenderStatus==='pending'&&profileSettled)finishAfterPaint(profileFailed?'Build Forge recovery available':'Guardian selection ready');
+};
 const set=(percent,label)=>{loader?.set(percent);if(label)loader?.status(label);};
 const sceneBackgroundUrls=()=>{
   const urls=new Set();
@@ -27,10 +34,12 @@ const decodeBackground=url=>new Promise(resolve=>{
 });
 const sceneBackgroundReady=Promise.all(sceneBackgroundUrls().map(decodeBackground));
 const finishAfterPaint=async label=>{
+  const revision=++finishRevision;
   await manifestReady;
   await sceneBackgroundReady;
+  if(revision!==finishRevision)return;
   set(96,label);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>loader?.done()));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(revision===finishRevision)loader?.done();}));
 };
 
 try{
@@ -41,12 +50,13 @@ try{
 
 set(8,'Preparing Build Forge');
 document.addEventListener('astrix:manifest-progress',event=>set(Number(event.detail?.percent)||12,event.detail?.label||'Preparing Bungie manifest'));
-document.addEventListener('astrix:guardian-loading',()=>set(18,'Connecting to Bungie'));
+document.addEventListener('astrix:guardian-loading',()=>{finishRevision++;profileSettled=false;profileFailed=false;set(18,'Connecting to Bungie');});
 window.addEventListener('astrix:bungie-session',event=>{
   if(event.detail?.authenticated)set(32,'Bungie session ready');
   else set(8,'Bungie authentication required');
 });
 document.addEventListener('astrix:bungie-profile-loaded',event=>{
+  profileSettled=Boolean(event.detail?.pendingSelection);queueMicrotask(maybeFinishBuild);
   if(event.detail?.pendingSelection&&!isBuildSpace)finishAfterPaint('Guardian selection ready');
   else set(70,'Guardian profile resolved');
 });
@@ -54,10 +64,13 @@ document.addEventListener('astrix:guardian-selection-changed',()=>set(86,'Painti
 document.addEventListener('astrix:beta-fixture-loaded',()=>set(86,'Painting Guardian preview'));
 document.addEventListener('astrix:guardian-render-complete',()=>{if(!isBuildSpace)finishAfterPaint('Guardian build rendered');},{once:true});
 document.addEventListener('astrix:build-render-complete',event=>{
-  if(event.detail?.status==='ready')finishAfterPaint('Build Forge rendered');
-  else if(event.detail?.status==='pending')finishAfterPaint('Build Forge recovery available');
+  finishRevision++;buildRenderStatus=event.detail?.status||'';
+  if(buildRenderStatus==='pending')set(20,'Waiting for authenticated Guardian build');
+  maybeFinishBuild();
 });
-document.addEventListener('astrix:guardian-error',()=>finishAfterPaint(isBuildSpace?'Build Forge state rendered':'Guardian state rendered'),{once:true});
+document.addEventListener('astrix:bungie-character-roster',()=>queueMicrotask(maybeFinishBuild));
+document.addEventListener('astrix:guardian-loadout-context',()=>{finishRevision++;profileSettled=false;});
+document.addEventListener('astrix:guardian-error',()=>{profileSettled=true;profileFailed=true;if(isBuildSpace)queueMicrotask(maybeFinishBuild);else finishAfterPaint('Guardian state rendered');});
 
 const currentSession=window.ASTRIX_BUNGIE_SESSION;
 if(!isBuildSpace&&document.documentElement.dataset.guardianRenderComplete==='true')finishAfterPaint('Guardian build rendered');

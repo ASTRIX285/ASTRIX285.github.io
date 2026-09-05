@@ -20,7 +20,7 @@ assert.match(workspace,/Promise\.all\(images\.map\(settleImage\)\)/,'Main render
 assert.match(loader,/astrix:guardian-render-complete/,'Loader must finish from the render event');
 assert.doesNotMatch(loader,/window\.addEventListener\('load'[\s\S]*?finish/,'Loader must not finish on window load');
 assert.doesNotMatch(loader,/setTimeout\(finish/,'Loader must not finish from an arbitrary timeout');
-assert.match(loader,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>loader\?\.done\(\)\)\)/,'Main portal must clear only after the render-complete paint');
+assert.match(loader,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>\{if\(revision===finishRevision\)loader\?\.done\(\);\}\)\)/,'Main portal must clear only after the render-complete paint');
 assert.match(loader,/else set\(8,'Bungie authentication required'\)/,'An unauthenticated local session must remain behind the Bungie authentication gate');
 assert.match(loader,/currentSession=window\.ASTRIX_BUNGIE_SESSION[\s\S]*?guardianRenderComplete/,'Main portal must reconcile Guardian state if startup completed before listener registration');
 assert.ok(workspaceHtml.indexOf('guardian-portal-progress.mjs')<workspaceHtml.indexOf('guardian-workspace-v2.mjs'),'Main portal progress must start listening before Guardian modules run');

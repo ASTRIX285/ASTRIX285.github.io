@@ -50,6 +50,7 @@ const allowed=new Set([
   'astrix-app/pages/guardian-workspace-v2/guardian-perk-change-plan.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-paradox-engine.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-portal-progress.mjs',
+  'astrix-app/pages/guardian-workspace-v2/guardian-character-cards.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-semantic-interceptor.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-session-cache.mjs',
   'astrix-app/pages/guardian-workspace-v2/guardian-weapon-roll-advisor.mjs',

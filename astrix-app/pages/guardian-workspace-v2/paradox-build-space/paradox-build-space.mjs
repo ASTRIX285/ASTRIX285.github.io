@@ -19,10 +19,10 @@ import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs
 import {BUILD_ELEMENTS,validateTierFiveArmour} from './paradox-build-recommendation.mjs';
 import {composeForgeRecommendation,filterExoticCompatibleSubclasses,hasVerifiedSubclassSockets,synchroniseSubclassProjection} from './paradox-forge-intelligence.mjs?v=20260904-exotic-anchor-1';
 import {createLiveTransferPreflight,deriveLoadoutIntent,recommendArmourMods,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateLoadoutCoherence} from './paradox-loadout-intelligence.mjs?v=20260905-weapon-audit-1';
-import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3';
+import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3&loader=2';
 import '../guardian-loadouts.mjs';
 import '../guardian-bungie-profile.mjs?v=20260905-weapon-audit-1';
-import '../guardian-portal-progress.mjs?v=20260905-weapon-audit-1';
+import '../guardian-portal-progress.mjs?v=20260905-weapon-audit-1&loader=2';
 import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});

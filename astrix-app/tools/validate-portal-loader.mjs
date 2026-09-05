@@ -53,12 +53,9 @@ assert.match(portalJs,/function ready\(root\)[\s\S]*?document\.fonts[\s\S]*?quer
 assert.doesNotMatch(mainHtml,/guardian-loading-gate|guardianLoadingProgress|data-lit-edges/,'Main legacy red-diamond gate must be removed');
 assert.doesNotMatch(buildHtml,/build-loading-gate|buildLoadingProgress|data-lit-edges/,'Build legacy hex gate must be removed');
 assert.match(mainProgress,/astrix:guardian-render-complete',\(\)=>\{if\(!isBuildSpace\)finishAfterPaint/,'Character completion must not reveal Build Forge before its own render completes');
-assert.match(mainProgress,/astrix:build-render-complete',event=>\{[\s\S]*?status==='ready'\)finishAfterPaint\('Build Forge rendered'\)[\s\S]*?status==='pending'\)finishAfterPaint\('Build Forge recovery available'\)/,'Build loader must reveal either the verified build or its controlled recovery surface instead of remaining at the manifest checkpoint');
-assert.match(mainProgress,/astrix:guardian-error',\(\)=>finishAfterPaint\(isBuildSpace\?'Build Forge state rendered':'Guardian state rendered'\)/,'A genuine profile error must reveal the rendered error state');
 assert.match(mainProgress,/document\.querySelectorAll\('\.scene\.immersive'\)/,'Portal completion must inspect the shared scene background');
 assert.match(mainProgress,/image\.addEventListener\('load',async\(\)=>\{try\{await image\.decode\(\);\}/,'Portal completion must wait for CSS background decoding');
 assert.match(mainProgress,/await manifestReady;[\s\S]*?await sceneBackgroundReady;/,'Portal must retain its cover until manifest and scene background are both ready');
-assert.match(mainProgress,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>loader\?\.done\(\)\)\)/,'Main completion must clear after the final painted frame');
 assert.match(mainProgress,/else set\(8,'Bungie authentication required'\)/,'Main portal must remain gated until Bungie authentication completes');
 assert.match(mainProgress,/currentSession=window\.ASTRIX_BUNGIE_SESSION[\s\S]*?guardianRenderComplete/,'Main portal must reconcile a session or render that completed before listener registration');
 assert.ok(mainHtml.indexOf('guardian-portal-progress.mjs')<mainHtml.indexOf('guardian-workspace-v2.mjs'),'Main progress listener must load before Guardian startup');
@@ -88,3 +85,25 @@ console.log('GLOBAL_PORTAL_ALL_DATA_PAGES=PASS');
 console.log('GLOBAL_PORTAL_PUBLIC_HOMEPAGE_BYPASS=PASS');
 console.log('GLOBAL_PORTAL_REAL_RENDER_COMPLETION=PASS');
 console.log('GLOBAL_PORTAL_ACCESSIBILITY_MOTION=PASS');
+
+assert.match(mainProgress,/buildRenderStatus==='pending'&&profileSettled/,'An empty initial render must not release a profile still loading.');
+assert.match(mainProgress,/if\(!isBuildSpace\|\|!buildHeaderSettled\(\)\)return/,'Build readiness must include settled character cards.');
+assert.match(mainProgress,/if\(revision===finishRevision\)loader\?\.done\(\)/,'A superseded render cannot dismiss the loader.');
+assert.match(buildHtml,/window\.APX_SKIP_PORTAL=false/,'Build entry must retain its loader even after a fast-return marker.');
+
+// Exercise the actual progress controller through asynchronous event ordering.
+const {runInNewContext}=await import('node:vm');
+async function loaderHarness(){
+  const documentEvents=new Map(),windowEvents=new Map(),frames=[];let headerPending=true,completed=0;
+  const document={querySelector:selector=>selector==='.build-space'?{}:selector.includes('is-pending')&&headerPending?{}:null,querySelectorAll:()=>[],documentElement:{dataset:{}},addEventListener:(name,fn)=>documentEvents.set(name,fn)};
+  const window={AstrixLoader:{set(){},status(){},done(){completed++;}},addEventListener:(name,fn)=>windowEvents.set(name,fn)};
+  runInNewContext(mainProgress.replace(/^import .*;\n/gm,''),{window,document,guardianManifest:{ready:()=>Promise.resolve()},PORTAL_TRANSITION_KEY:'test',sessionStorage:{getItem:()=>null,removeItem(){}},requestAnimationFrame:fn=>frames.push(fn),queueMicrotask,URL,Image:class{},getComputedStyle:()=>({backgroundImage:'none'})});
+  return {emit:(name,detail={})=>documentEvents.get(name)?.({detail}),settleHeader:()=>{headerPending=false;},done:()=>completed,flush:async()=>{for(let i=0;i<8;i++){await new Promise(resolve=>setImmediate(resolve));frames.splice(0).forEach(fn=>fn());}}};
+}
+const loading=await loaderHarness();loading.emit('astrix:build-render-complete',{status:'pending'});await loading.flush();assert.equal(loading.done(),0,'Empty initial build must stay covered.');
+loading.settleHeader();loading.emit('astrix:bungie-character-roster');loading.emit('astrix:guardian-loadout-context');await loading.flush();assert.equal(loading.done(),0,'Resolved profile still needs its populated build render.');
+loading.emit('astrix:build-render-complete',{status:'ready'});await loading.flush();assert.equal(loading.done(),1,'Ready build plus settled header releases the loader.');
+const delayedHeader=await loaderHarness();delayedHeader.emit('astrix:build-render-complete',{status:'ready'});await delayedHeader.flush();assert.equal(delayedHeader.done(),0);delayedHeader.settleHeader();delayedHeader.emit('astrix:bungie-character-roster');await delayedHeader.flush();assert.equal(delayedHeader.done(),1);
+const failed=await loaderHarness();failed.emit('astrix:build-render-complete',{status:'pending'});failed.settleHeader();failed.emit('astrix:guardian-error');await failed.flush();assert.equal(failed.done(),1,'A terminal profile error must expose recovery.');
+const stale=await loaderHarness();stale.settleHeader();stale.emit('astrix:build-render-complete',{status:'ready'});stale.emit('astrix:guardian-loading');await stale.flush();assert.equal(stale.done(),0,'A new load must cancel old completion.');
+console.log('BUILD_LOADER_EVENT_ORDER=PASS');

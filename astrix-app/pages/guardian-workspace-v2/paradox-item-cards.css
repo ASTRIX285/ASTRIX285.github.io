@@ -1698,3 +1698,11 @@ body .weapon-support-icon.is-icon-unavailable{color:#d9efff;font:700 13px/1 sans
 body .gear-slot,body .gear-weapons .weap{container-type:inline-size}
 body .gear-weapons .weapon-perk-matrix.is-compact{--gear-weapon-socket:clamp(32px,calc((100cqi - var(--gear-weapon-art) - 12px - (var(--weapon-perk-columns) - 1) * 5px) / var(--weapon-perk-columns)),54px);--gear-weapon-gap:5px}
 body .gear-mod:has(img):not(.is-recommendation-pending){background-color:#367fa6}
+
+/* Preserve the taller frame while keeping square Bungie art centred beneath overlays. */
+body .gear-arm-anchor .arm,body .gear-weapons .weap .art,body .review-weapon .review-icon{background:#30283b!important;overflow:hidden}
+body .gear-slot.exotic .gear-arm-anchor .arm{background:#594b28!important}
+body .gear-arm-anchor .arm>img,body .gear-weapons .weap .art .weapon-art-image,body .review-weapon .review-icon>img{
+  position:absolute!important;inset:0!important;margin:0!important;padding:0!important;
+  width:100%!important;height:100%!important;object-fit:contain!important;object-position:50% 50%!important;background:transparent!important;
+}
