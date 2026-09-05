@@ -176,6 +176,7 @@ const allowed=new Set([
   'pages/news.html',
   'pages/rebrand.html',
   'pages/reviews.html',
+  'scripts/build_clips.py',
   'tools/index.html',
   'tools/tools.css',
 ]);
