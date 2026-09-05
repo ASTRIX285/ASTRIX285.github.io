@@ -48,8 +48,8 @@ assert.match(sources.items,/\.paradox-item-card\{[\s\S]*?border:1px solid rgba\(
 assert.match(sources.items,/\.paradox-item-card \.weapon-perk-cell\{[^}]*border:2px solid/,'Detailed weapon perks must retain circular socket emphasis');
 assert.match(sources.items,/\.paradox-socket-icon\{[^}]*border-radius:8px/,'Armour mods and cosmetics must retain square sockets');
 assert.match(sources.items,/@media\(max-width:700px\)\{[\s\S]*?\.weapon-detail-drawer\.paradox-item-shell,\.armour-drawer\.paradox-item-shell\{inset:0;width:100%;height:100dvh/,'Both item-card inspectors must become contained full-screen mobile surfaces');
-assert.match(mainHtml,/paradox-item-cards\.css\?v=20260905-forge-responsive-1/,'Character must load the shared Paradox item-card framework');
-assert.match(buildHtml,/paradox-item-cards\.css\?v=20260905-forge-responsive-1/,'Build Forge must load the same Paradox item-card framework');
+assert.match(mainHtml,/paradox-item-cards\.css\?v=20260905-card-space-mods-1/,'Character must load the shared Paradox item-card framework');
+assert.match(buildHtml,/paradox-item-cards\.css\?v=20260905-card-space-mods-1/,'Build Forge must load the same Paradox item-card framework');
 
 assert.match(sources.shared,/guardian-loadouts-strip\{[\s\S]*?overflow-x:auto!important/,'The 1–20 loadout strip must contain its own narrow-screen overflow');
 assert.match(sources.shared,/guardian-loadouts-grid\{[\s\S]*?grid-template-columns:repeat\(20,minmax\(32px,1fr\)\)!important;[\s\S]*?min-width:720px!important/,'The Bungie 1–20 loadout row must remain fluid and single-row');
@@ -80,9 +80,9 @@ assert.match(forgeLoaderCss,/grid-template-columns:minmax\(360px,20%\) minmax\(6
 assert.match(forgeLoaderCss,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,'Forge Loader must retain the shared compact workspace tracks');
 assert.match(sources.layout,/grid-template-columns:var\(--apx-workspace-left,[^;]+\) var\(--apx-workspace-centre,[^;]+\)!important/,'Character must consume the shared rail and centre tracks');
 assert.match(sources.shared,/\.workspace>\.stage-companion,[\s\S]*?\.workspace>\.stage,[\s\S]*?\.workspace>\.right\{display:none!important\}/,'Character must retain but visually remove the two obsolete stage areas');
-assert.match(sources.shared,/grid-template-areas:"rail equipment" "rail action"!important/,'Character equipment must align with the rail top, with its action below');
-assert.match(sources.shared,/grid-template-areas:"loadouts" "armour" "weapons"!important/,'Character equipment must render Loadouts, Armour, then Weapons');
-assert.match(sources.shared,/grid-template-rows:repeat\(3,max-content\)!important;[\s\S]*?grid-auto-rows:max-content!important;/,'Character equipment rows must grow to their complete rendered content');
+assert.match(sources.shared,/grid-template-areas:"rail equipment"!important/,'Character equipment must align with the rail top, with its action below');
+assert.match(sources.shared,/grid-template-areas:"loadouts" "armour" "weapons" "action"!important/,'Character equipment must render Loadouts, Armour, then Weapons');
+assert.match(sources.shared,/grid-template-rows:repeat\(4,max-content\)!important;[\s\S]*?grid-auto-rows:max-content!important;/,'Character equipment rows must grow to their complete rendered content');
 for(const [label,area] of [['Loadouts','loadouts'],['Armour','armour'],['Weapons','weapons']]){
   const selector=label==='Loadouts'?'guardian-loadouts-container':label==='Armour'?'gear-combined':'gear-weapons';
   const block=sources.shared.match(new RegExp(`body\\.guardian-main-page \\.equip\\.gear-layout-active>\\.${selector}\\{([^}]*)\\}`))?.[1]||'';

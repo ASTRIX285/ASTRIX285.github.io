@@ -4,6 +4,11 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-forge-sequence.mjs',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-forge-worker.mjs',
+  'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-forge-preparation.mjs',
+  'astrix-app/tools/test-forge-background.mjs',
+  'astrix-app/docs/forge-background-preparation.md',
   'astrix-app/pages/journey/journey-manifest.mjs',
   'astrix-app/pages/journey/journey-record-model.mjs',
   'astrix-app/tools/build-journey-index.py',

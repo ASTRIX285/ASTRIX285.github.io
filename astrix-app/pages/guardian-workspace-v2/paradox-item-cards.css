@@ -1680,3 +1680,21 @@ body .paradox-item-header .weapon-detail-icon>img{width:100%;height:100%;object-
 body .paradox-item-header .weapon-detail-icon>.paradox-release-watermark{inset:0;object-fit:contain;object-position:center}
 body .paradox-item-header{grid-template-columns:var(--paradox-equipment-width) minmax(0,1fr) auto}
 @media(max-width:700px){body .paradox-item-header{grid-template-columns:var(--paradox-equipment-width) minmax(0,1fr)}}
+
+/* Fill the existing card width while preserving socket columns and row alignment. */
+:root{--paradox-equipment-socket:clamp(42px,3.2vw,54px)}
+body .gear-weapons .weap .cap{width:100%!important;max-width:none!important;position:static!important}
+body .gear-weapons .weapon-perk-strip{overflow-x:auto;max-width:100%;padding:3px 2px 7px}
+body .gear-weapons .weapon-perk-matrix.is-compact{width:100%;max-width:none}
+body .gear-weapons .weapon-perk-matrix.is-compact .weapon-perk-row{grid-template-columns:repeat(var(--weapon-perk-columns),minmax(var(--gear-weapon-socket),1fr));justify-items:center}
+body .gear-weapons .weapon-support-icons{flex-wrap:wrap;max-width:100%;gap:8px}
+body .weapon-perk-cell.is-selected,
+body .paradox-item-card .weapon-perk-cell.is-selected,
+body .gear-weapons .weapon-support-icon{background:#367fa6;box-shadow:inset 0 0 0 2px rgba(153,220,255,.35),0 0 9px rgba(118,210,255,.3)}
+body .weapon-perk-cell.is-selected>img,
+body .gear-weapons .weapon-support-icon>img{mix-blend-mode:screen}
+body .weapon-support-icon.is-icon-unavailable{color:#d9efff;font:700 13px/1 sans-serif}
+
+body .gear-slot,body .gear-weapons .weap{container-type:inline-size}
+body .gear-weapons .weapon-perk-matrix.is-compact{--gear-weapon-socket:clamp(32px,calc((100cqi - var(--gear-weapon-art) - 12px - (var(--weapon-perk-columns) - 1) * 5px) / var(--weapon-perk-columns)),54px);--gear-weapon-gap:5px}
+body .gear-mod:has(img):not(.is-recommendation-pending){background-color:#367fa6}

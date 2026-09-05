@@ -21,6 +21,7 @@ const [html,runtime,css,gearRuntime,advisorRuntime,intelligenceRuntime,liveAdapt
   readFile(new URL('guardian-paradox-live-adapter.mjs',root),'utf8')
 ]);
 const artifactSelectionRuntime=await readFile(new URL('paradox-build-space/paradox-artifact-selection.mjs',root),'utf8');
+const sequenceRuntime=await readFile(new URL('paradox-build-space/paradox-forge-sequence.mjs',root),'utf8');
 const gearCss=await readFile(new URL('guardian-gear-layout.css',root),'utf8');
 
 const t5Armour=Array.from({length:5},(_,index)=>({itemInstanceId:`armour-${index}`,armourTier:5,masterwork:{semanticRole:'masterwork'}}));
@@ -63,11 +64,13 @@ assert.deepEqual(composed.workingBuild.abilities.map(row=>row.hash),composed.wor
 assert.equal(composed.intelligence.source,'verified-forge-loader-bungie-catalogue');
 assert.ok(composed.intelligence.evidence.directedLinks>=4,'The decision ledger must preserve directed evidence metrics.');
 assert.throws(()=>composeForgeRecommendation({build:intelligenceSource,candidate:{...intelligenceCandidate,subclassBuild:{...intelligenceCandidate.subclassBuild,socketsAvailable:false}},element:'arc',analyzeBuild:analyseCandidate}),/complete verified Bungie subclass socket set/,'A canonical element without a live verified socket set must never be offered as an intelligence result.');
+assert.deepEqual(composeForgeRecommendation({build:intelligenceSource,candidate:intelligenceCandidate,element:'arc',analyzeBuild:analyseCandidate,bounded:true}),composed,'Bounded worker scoring must retain the established choices and evidence.');
 const prismaticFragments=['arc','solar','void','stasis','strand'].map((element,index)=>verifiedComponent(400+index,`${element} fragment`,`${element} damage interaction.`, 'fragment',{element}));
 const prismaticCandidate={...intelligenceCandidate,element:'prismatic',name:'Prismatic',subclassBuild:{...intelligenceCandidate.subclassBuild,aspects:[{...joltAspect,fragmentSlots:5}],availableAspects:[{...joltAspect,fragmentSlots:5}],fragments:prismaticFragments.slice(0,2),availableFragments:prismaticFragments}};
 const prismatic=composeForgeRecommendation({build:intelligenceSource,candidate:prismaticCandidate,element:'prismatic',analyzeBuild:null});
 assert.deepEqual([...prismatic.intelligence.prismaticCoverage.covered].sort(),['arc','solar','stasis','strand','void'],'Prismatic recommendations must score and report verified coverage across all five damage families when that evidence exists.');
 assert.deepEqual(prismatic.intelligence.prismaticCoverage.missing,[],'A fully evidenced Prismatic combination must not claim a missing damage family.');
+assert.deepEqual(composeForgeRecommendation({build:intelligenceSource,candidate:prismaticCandidate,element:'prismatic',analyzeBuild:null,bounded:true}),prismatic,'Bounded Prismatic scoring must retain all five damage families.');
 const scatterGrenade=verifiedComponent(114,'Scatter Grenade','A grenade that splits into many submunitions.','grenade');
 const nothingManaclesSource={...intelligenceSource,forgeLoaderDecision:{...intelligenceSource.forgeLoaderDecision,buildAnchor:{name:'Nothing Manacles',selectedItemInstanceId:'nothing-manacles-instance',perk:verifiedComponent(301,'Scatter Charge','Gain an additional Scatter Grenade charge. Enables tracking for Scatter Grenade projectiles.','armourEffect')}}};
 const nothingManaclesCandidate={...intelligenceCandidate,hash:201,bungieHash:201,element:'void',name:'Voidwalker',subclassBuild:{...intelligenceCandidate.subclassBuild,grenade:quietGrenade,abilities:[classAbility,movement,quietMelee,quietGrenade],abilityOptionsBySocket:{...intelligenceCandidate.subclassBuild.abilityOptionsBySocket,grenade:[quietGrenade,joltGrenade,scatterGrenade]}}};
@@ -180,12 +183,12 @@ assert.match(css,/button\.is-selected\{[^}]*border-color:var\(--element-colour\)
 assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{\.element-recommendation-grid\.has-multiple-options button:not\(:disabled\)::after\{animation:none/,'Elemental glow animation must respect reduced-motion preferences.');
 assert.match(html,/id="generateMaxLoadout"[^>]*>[^<]+<\/button>[\s\S]*?id="forgeGenerationLoader"[^>]*hidden/,'The in-page Paradox loader must sit below the generation controls and begin hidden.');
 assert.match(css,/\.forge-generation-loader\{[^}]*background:transparent\}/,'Recommendation generation must reuse only the circular loader without a full-screen background.');
-assert.match(runtime,/await showForgeGenerationLoader\(selectedRecommendationElement\)[\s\S]*?composeForgeRecommendation/,'The circular loader must paint before verified build generation begins.');
+assert.match(runtime,/await showForgeGenerationLoader\(selectedRecommendationElement\)[\s\S]*?forgePreparation\.get/,'The circular loader must paint before verified build generation begins.');
 assert.match(runtime,/writeState\(next\);render\(\);hideForgeGenerationLoader\(\);openRecommendedBuild\(\)/,'The in-page loader must close before the generated result opens.');
 assert.match(html,/OWNED VAULT \+ CHARACTER INVENTORY/,'The recommendation review must identify its full verified weapon-inventory scope.');
-assert.match(runtime,/initialWeaponResult=selectOwnedWeapons[\s\S]*?applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)[\s\S]*?artifactAwareWeaponResult=selectOwnedWeapons/,'Generation must rank owned weapons, select Artifact synergy, then re-rank weapons against that Artifact fit.');
-assert.match(runtime,/provisionalModResult=recommendArmourMods[\s\S]*?applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)[\s\S]*?artifactAwareWeaponResult=selectOwnedWeapons/,'Generation must expose the grenade-orb-Super mod loop to Artifact ranking before re-ranking owned weapons.');
-assert.match(runtime,/artifactSynergyScore:Number\(working\.artifactRecommendation\?\.totalScore\|\|0\)/,'Forge intelligence must record the verified Artifact synergy contribution.');
+assert.match(sequenceRuntime,/initialWeaponResult=selectOwnedWeapons[\s\S]*?applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)[\s\S]*?artifactAwareWeaponResult=selectOwnedWeapons/,'Generation must rank owned weapons, select Artifact synergy, then re-rank weapons against that Artifact fit.');
+assert.match(sequenceRuntime,/provisionalModResult=recommendArmourMods[\s\S]*?applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)[\s\S]*?artifactAwareWeaponResult=selectOwnedWeapons/,'Generation must expose the grenade-orb-Super mod loop to Artifact ranking before re-ranking owned weapons.');
+assert.match(sequenceRuntime,/artifactSynergyScore:Number\(working\.artifactRecommendation\?\.totalScore\|\|0\)/,'Forge intelligence must record the verified Artifact synergy contribution.');
 assert.match(html,/id="armourExoticRule">DESTINY EQUIP RULE · 1 EXOTIC ARMOUR/,'The review must show the enforced one-Exotic armour rule.');
 assert.match(html,/id="weaponExoticRule">OWNED VAULT \+ CHARACTER INVENTORY · 1 EXOTIC WEAPON MAX/,'The review must show both its full owned inventory scope and one-Exotic weapon limit.');
 assert.match(runtime,/EXOTIC ANCHOR: \$\{String\(anchorName\)\.toUpperCase\(\)\}/,'The recommendation heading must name the selected Exotic armour anchor.');
@@ -204,17 +207,17 @@ assert.match(runtime,/function generateMaxLoadout\(\)/,'Build Forge must expose 
 assert.match(runtime,/function blankArmourModCanvas\(\)[\s\S]*?Array\.from\(\{length:6\}[\s\S]*?AI recommendation pending[\s\S]*?grid\.innerHTML=blankSlots/,'Every staged armour item must present six blank AI recommendation slots before generation.');
 assert.match(runtime,/function renderArmourRecommendationState\(build=\{\}\)[\s\S]*?Boolean\(build\.recommendationGeneratedAt\)[\s\S]*?PARADOX RECOMMENDATION · REVIEW REQUIRED[\s\S]*?if\(!generated\)blankArmourModCanvas\(\)/,'The armour canvas must switch from pending to visible recommendations only after generation.');
 assert.match(runtime,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderArmourRecommendationState\(build\)[\s\S]*?renderWeapons/,'Build Forge must apply the blank-or-generated mod presentation on every gear render.');
-assert.match(runtime,/composeForgeRecommendation\(\{build:forgeComputationProjection\(working\),candidate,element:selectedRecommendationElement,analyzeBuild:analyzeLiveGuardian\}\)/,'Generation must compare verified subclass sockets through a memory-bounded deterministic Forge intelligence projection.');
+assert.match(sequenceRuntime,/composeForgeRecommendation\(\{build:forgeComputationProjection\(working\),candidate,element:element,analyzeBuild:analyzeLiveGuardian,bounded:true\}\)/,'Generation must compare verified subclass sockets through a memory-bounded deterministic Forge intelligence projection.');
 const computationFields=runtime.match(/const FORGE_COMPUTATION_FIELDS=Object\.freeze\(\[([^\]]+)\]\)/)?.[1]||'';
 assert.doesNotMatch(computationFields,/ownedWeapons|vaultWeapons|inventoryWeapons|subclassCatalog|availableArtifacts|loadouts/,'Combination scoring must never deep-copy full inventory and catalogue collections.');
 assert.match(runtime,/async function updateForgeGenerationPhase\(message\)[\s\S]*?setTimeout\(resolve,0\)/,'Recommendation phases must yield to the browser so the loader and page remain responsive.');
 assert.match(runtime,/resolvedSubclassOptions\(build\)\.filter\(hasVerifiedSubclassSockets\)/,'Element buttons must enable only complete live Bungie subclass socket sets, not canonical catalogue placeholders.');
 assert.match(runtime,/filterExoticCompatibleSubclasses\(build,verified\)/,'Element buttons must remove subclass options that conflict with an explicitly named selected-Exotic ability.');
-assert.match(runtime,/working\.paradoxAnalysis=analyzeLiveGuardian\(working\)[\s\S]*?adviseLiveWeaponRolls\(working,working\.paradoxAnalysis\|\|\{\}, \{insertSocketPlugFree:false\}\)/,'Generation must re-run directed analysis after Artifact selection before recommendation-only weapon advice.');
-assert.match(runtime,/working\.objective=selectedRecommendationObjective[\s\S]*?selectOwnedWeapons\(\{build:working,objective:selectedRecommendationObjective\}\)[\s\S]*?recommendArmourMods\(\{build:working,objective:selectedRecommendationObjective\}\)/,'Generation must rank exact owned weapons before producing the verified per-socket armour-mod plan for the selected tuning objective.');
-assert.match(runtime,/recommendArmourMods\(\{build:working,objective:selectedRecommendationObjective\}\)[\s\S]*?validateArmourModLoadout\(working\)[\s\S]*?throw new Error\(generatedModValidation\.reason\)/,'Build Forge must block an invalid single-copy armour-mod plan before opening the review.');
-assert.match(runtime,/applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)/,'Generation must refresh the verified legal Artifact fit.');
-assert.match(runtime,/validateExoticLoadout\(working,\{requireArmourAnchor:true\}\)[\s\S]*?throw new Error\(generatedExoticValidation\.reason\)/,'Generation must stop before review if any recommendation violates the Destiny Exotic equip rule.');
+assert.match(sequenceRuntime,/working\.paradoxAnalysis=analyzeLiveGuardian\(working\)[\s\S]*?advise\(working,working\.paradoxAnalysis\|\|\{\}, \{insertSocketPlugFree:false\}\)/,'Generation must re-run directed analysis after Artifact selection before recommendation-only weapon advice.');
+assert.match(sequenceRuntime,/working\.objective=objective[\s\S]*?selectOwnedWeapons\(\{build:working,objective:objective\}\)[\s\S]*?recommendArmourMods\(\{build:working,objective:objective\}\)/,'Generation must rank exact owned weapons before producing the verified per-socket armour-mod plan for the selected tuning objective.');
+assert.match(sequenceRuntime,/recommendArmourMods\(\{build:working,objective:objective\}\)[\s\S]*?validateArmourModLoadout\(working\)[\s\S]*?throw new Error\(generatedModValidation\.reason\)/,'Build Forge must block an invalid single-copy armour-mod plan before opening the review.');
+assert.match(sequenceRuntime,/applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)/,'Generation must refresh the verified legal Artifact fit.');
+assert.match(sequenceRuntime,/validateExoticLoadout\(working,\{requireArmourAnchor:true\}\)[\s\S]*?throw new Error\(generatedExoticValidation\.reason\)/,'Generation must stop before review if any recommendation violates the Destiny Exotic equip rule.');
 assert.match(runtime,/createLiveTransferPreflight\(working\)[\s\S]*?liveTransferPreflight\.ready/,'The generated result must pass exact live-session transfer preflight before review opens.');
 assert.match(intelligenceRuntime,/liveTransferAuthorized:false/,'The generated intelligence result must never authorize live transfer.');
 assert.match(liveAdapterRuntime,/"bungie-live","bungie-loadout","current-guardian"/,'Directed analysis must accept protected snapshots that retain their exact live Bungie provenance label.');
@@ -256,3 +259,5 @@ console.log('BUILD_FORGE_ARTIFACT_2_0=PASS');
 console.log('BUILD_FORGE_REVIEW_REVEAL=PASS');
 console.log('BUILD_MY_GUARDIAN_CONFIRMATION_GATE=PASS');
 console.log('VANGUARD_VALIDATION_RECORD=PASS');
+
+export {voidLoopSource,nothingManaclesCandidate};

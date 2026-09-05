@@ -4,7 +4,7 @@
    with 6 functional mod tiles each without tearing down sibling DOM blocks.
    ========================================================================== */
 
-import "./guardian-semantic-ui.mjs?v=20260905-weapon-audit-1";
+import "./guardian-semantic-ui.mjs?v=20260905-card-space-mods-1";
 import { openArmourDrawer } from "./guardian-beta-runtime.mjs?v=20260905-weapon-audit-1";
 import { classifyArmourPlug } from "./guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1";
 import {resolveItemWatermark} from '../../core/bungie-item-identity.mjs';

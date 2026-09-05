@@ -132,6 +132,18 @@ function weaponMasterworkRank(item){
   return values.length?Math.max(0,Math.min(10,values[0])):null;
 }
 
+function weaponSupportIconsMarkup(item){
+  const semantics=item?.weaponSemantics||{};
+  const fallback=[semantics.mod||semantics.selectedMod||item?.weaponMod||item?.mod,semantics.masterwork,semantics.catalyst].filter(Boolean);
+  const sockets=semantics.modSockets?.length?semantics.modSockets:fallback;
+  return sockets.filter(plug=>bungieHash(plug)).map(plug=>{
+    const icon=bungieIcon(plug.icon||plug.displayProperties?.icon||plug.definition?.displayProperties?.icon),name=text(plug)||'Resolved support socket';
+    const role=bungieHash(plug)===bungieHash(semantics.masterwork)?'masterwork':bungieHash(plug)===bungieHash(semantics.catalyst)?'catalyst':'mod';
+    const index=Number.isInteger(plug.socketIndex)?` data-socket-index="${plug.socketIndex}"`:'';
+    return `<span class="weapon-support-icon is-${role}${icon?'':' is-icon-unavailable'}" data-slot-shape="square"${index}${hashAttribute(plug)} title="${esc(name+(icon?'':' — icon unavailable'))}">${icon?`<img src="${esc(icon)}"${hashAttribute(plug)} alt="${esc(name)}">`:'<span aria-label="Icon unavailable">?</span>'}</span>`;
+  }).join('');
+}
+
 function renderWeapons(weapons=[]){
   const cards=[...document.querySelectorAll(".gear-weapons .weap-grid .weap")];
   cards.forEach((card,index)=>{
@@ -150,11 +162,6 @@ function renderWeapons(weapons=[]){
     const semantics=item.weaponSemantics||{};
     const intrinsicIcon=bungieHash(semantics.intrinsic)?bungieIcon(semantics.intrinsic?.icon):"";
     const championIcon=bungieIcon(item.breakerDefinition?.displayProperties?.icon);
-    const equippedMod=semantics.mod||semantics.selectedMod||item.weaponMod||item.mod;
-    const equippedModIcon=bungieHash(equippedMod)?bungieIcon(equippedMod?.icon||equippedMod?.displayProperties?.icon):"";
-    const masterwork=semantics.masterwork;
-    const masterworkIcon=bungieHash(masterwork)?bungieIcon(masterwork?.icon||masterwork?.displayProperties?.icon||masterwork?.definition?.displayProperties?.icon):"";
-    const masterworkName=text(masterwork)||masterwork?.definition?.displayProperties?.name||"Resolved masterwork";
     const elementIcon=bungieIcon(item.elementDefinition?.displayProperties?.icon||item.elementDefinition?.transparentIconPath);
     if(art){
       art.classList.toggle("ph",!icon);
@@ -169,9 +176,9 @@ function renderWeapons(weapons=[]){
     perkStrip.innerHTML=perkMatrix;
     perkStrip.hidden=!perkMatrix;
     let supportStrip=card.querySelector(".weapon-support-icons");
-    if(!supportStrip){supportStrip=document.createElement("div");supportStrip.className="weapon-support-icons";supportStrip.setAttribute("aria-label","Equipped weapon mod and masterwork");card.append(supportStrip);}
-    supportStrip.innerHTML=`${equippedModIcon?`<span class="weapon-support-icon is-mod"${hashAttribute(equippedMod)} title="${esc(text(equippedMod)||"Equipped weapon mod")}"><img src="${esc(equippedModIcon)}"${hashAttribute(equippedMod)} alt=""></span>`:""}${masterworkIcon?`<span class="weapon-support-icon is-masterwork"${hashAttribute(masterwork)} title="${esc(masterworkName)}"><img src="${esc(masterworkIcon)}"${hashAttribute(masterwork)} alt=""></span>`:""}`;
-    supportStrip.hidden=!equippedModIcon&&!masterworkIcon;
+    if(!supportStrip){supportStrip=document.createElement("div");supportStrip.className="weapon-support-icons";supportStrip.setAttribute("aria-label","Equipped weapon mods, masterwork and catalyst");card.append(supportStrip);}
+    supportStrip.innerHTML=weaponSupportIconsMarkup(item);
+    supportStrip.hidden=!supportStrip.innerHTML;
   });
 }
 

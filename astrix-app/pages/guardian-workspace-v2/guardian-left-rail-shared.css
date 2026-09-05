@@ -415,8 +415,8 @@ body.guardian-main-page .workspace>.right{display:none!important}
     margin:0 auto!important;
     padding:10px 0 18px!important;
     grid-template-columns:clamp(310px,20vw,390px) minmax(0,1fr)!important;
-    grid-template-rows:auto auto!important;
-    grid-template-areas:"rail equipment" "rail action"!important;
+    grid-template-rows:auto!important;
+    grid-template-areas:"rail equipment"!important;
     gap:12px!important;
     align-items:start!important;
     overflow:visible!important;
@@ -424,7 +424,7 @@ body.guardian-main-page .workspace>.right{display:none!important}
   body.guardian-main-page .workspace>.left{
     grid-area:rail!important;
     grid-column:1!important;
-    grid-row:1 / 3!important;
+    grid-row:1!important;
     width:100%!important;
     height:auto!important;
     min-height:0!important;
@@ -432,10 +432,10 @@ body.guardian-main-page .workspace>.right{display:none!important}
     align-self:start!important;
     overflow:visible!important;
   }
-  body.guardian-main-page .workspace>.improve-cta{
+  body.guardian-main-page .workspace>.equip>.improve-cta{
     grid-area:action!important;
-    grid-column:2!important;
-    grid-row:2!important;
+    grid-column:1!important;
+    grid-row:4!important;
     width:auto!important;
     max-width:100%!important;
     min-height:44px!important;
@@ -445,6 +445,10 @@ body.guardian-main-page .workspace>.right{display:none!important}
     justify-self:end!important;
     align-self:start!important;
     border-radius:8px!important;
+    display:inline-flex!important;
+    position:static!important;
+    visibility:visible!important;
+    opacity:1!important;
   }
   body.guardian-main-page .workspace>.equip,
   body.guardian-main-page .equip.gear-layout-active{
@@ -457,9 +461,9 @@ body.guardian-main-page .workspace>.right{display:none!important}
     min-height:0!important;
     max-height:none!important;
     grid-template-columns:minmax(0,1fr)!important;
-    grid-template-rows:repeat(3,max-content)!important;
+    grid-template-rows:repeat(4,max-content)!important;
     grid-auto-rows:max-content!important;
-    grid-template-areas:"loadouts" "armour" "weapons"!important;
+    grid-template-areas:"loadouts" "armour" "weapons" "action"!important;
     gap:12px!important;
     align-items:start!important;
     align-content:start!important;
@@ -538,7 +542,7 @@ body.guardian-main-page .workspace>.right{display:none!important}
 @media (max-width:980px){
   body.guardian-main-page .workspace{grid-template-areas:none!important}
   body.guardian-main-page .workspace>.left{order:1!important}
-  body.guardian-main-page .workspace>.improve-cta{order:3!important;width:fit-content!important;max-width:100%!important;min-height:44px!important;padding:10px 18px!important;align-self:flex-end!important;font-size:.875rem!important}
+  body.guardian-main-page .workspace>.equip>.improve-cta{order:3!important;width:fit-content!important;max-width:100%!important;min-height:44px!important;padding:10px 18px!important;align-self:flex-end!important;font-size:.875rem!important}
   body.guardian-main-page .workspace>.equip{order:2!important}
   body.guardian-main-page .equip.gear-layout-active{
     display:flex!important;
@@ -602,4 +606,4 @@ body.guardian-main-page .workspace>.right{display:none!important}
 }
 
 /* Equipment mods and weapon sockets share the compact card scale. */
-body .gear-mods{--guardian-square:var(--paradox-equipment-socket)}
+body .gear-mods{--guardian-square:clamp(34px,calc((100cqi - 12px) / 3),54px)}

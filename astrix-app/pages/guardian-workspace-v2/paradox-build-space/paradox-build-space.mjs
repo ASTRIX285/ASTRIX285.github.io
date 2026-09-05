@@ -1,11 +1,12 @@
+import {ForgePreparationClient,preparationVariants} from './paradox-forge-preparation.mjs?v=20260905-background-forge-1';
 import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,protectBuildState,restoreWorkingBuild} from './paradox-build-state.mjs?v=20260904-memory-safe-transfer-1';
 import {mountForgeShell} from '../platform-forge-shell.mjs';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs?v=20260902-shared-account-orbit-1';
-import {analyzeLiveGuardian,renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs?v=20260905-weapon-audit-1';
+import {analyzeLiveGuardian,renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs?v=20260905-background-forge-1';
 import {createLiveTransferPlan} from '../guardian-perk-change-plan.mjs?v=20260904-weapon-model-2';
-import {armourCard} from '../guardian-gear-layout.mjs?v=20260905-weapon-audit-1';
+import {armourCard} from '../guardian-gear-layout.mjs?v=20260905-card-space-mods-1';
 import {openArmourDrawer} from '../guardian-beta-runtime.mjs?v=20260905-weapon-audit-1';
-import {renderWeapons,openWeaponDetail,weaponPerkMatrixMarkup,weaponTraitHierarchyMarkup} from '../guardian-semantic-ui.mjs?v=20260905-weapon-audit-1';
+import {renderWeapons,openWeaponDetail,weaponPerkMatrixMarkup,weaponTraitHierarchyMarkup} from '../guardian-semantic-ui.mjs?v=20260905-card-space-mods-1';
 import {adviseLiveWeaponRolls} from '../guardian-weapon-roll-advisor.mjs?v=20260905-weapon-audit-1';
 import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260829-subclass-identity-1';
 import {mergeSubclassCatalog,mergeSuperOptions} from '../guardian-super-catalog.mjs?v=20260829-subclass-identity-1';
@@ -45,6 +46,32 @@ let artifactSeasonRequest=null;
 let selectedRecommendationElement='';
 let selectedRecommendationObjective='';
 let recommendationBusy=false;
+let preparationTimer=null;
+let activePreparationKey='';
+const forgePreparation=new ForgePreparationClient({onStatus:message=>{
+  const status=byId('forgePreparationStatus');
+  if(status&&message.key===activePreparationKey)status.textContent=message.type==='ready'?'Build option ready':message.type==='error'?'This option needs additional verified data.':'Preparing build options…';
+  if(recommendationBusy&&message.type==='progress'){const node=byId('forgeGenerationStatus');if(node)node.textContent=message.message;}
+}});
+function forgeVariants(build){return filterExoticCompatibleSubclasses(build,resolvedSubclassOptions(build).filter(hasVerifiedSubclassSockets)).map(candidate=>({element:elementOf(candidate),candidate})).filter(row=>BUILD_ELEMENTS.includes(row.element));}
+function requestedForgeVariant(build,candidates=forgeVariants(build)){
+  const candidate=candidates.find(row=>row.element===selectedRecommendationElement)?.candidate,sb=candidate?.subclassBuild||candidate?.build;
+  const requested=Number(build.forgeRequestedSuperHash)||0;
+  const superHash=requested&&[sb?.super,...(sb?.superOptions||[])].some(item=>Number(item?.hash??item?.bungieHash)===requested)?requested:0;
+  return {element:selectedRecommendationElement,objective:selectedRecommendationObjective||'balanced',superHash};
+}
+async function prepareForgeBackground(build){
+  if(!build?.forgeLoaderDecision||!validateTierFiveArmour(build).ready||!validateExoticLoadout(build,{requireArmourAnchor:true}).ready)return;
+  const candidates=forgeVariants(build),variant=requestedForgeVariant(build,candidates);
+  if(!candidates.some(row=>row.element===variant.element))return;
+  const supplied=build.currentSeasonNumber??build.currentSeason?.seasonNumber,season=supplied!==null&&supplied!==undefined&&Number.isInteger(Number(supplied))?Number(supplied):await fetchCurrentArtifactSeason();
+  if(currentBuild()!==build)return;
+  forgePreparation.setInput(build,candidates,season);
+  activePreparationKey=JSON.stringify([variant.element,variant.objective,variant.superHash]);
+  forgePreparation.warm(preparationVariants(candidates,variant));
+}
+function scheduleForgePreparation(build){clearTimeout(preparationTimer);if(!recommendationBusy&&!build?.recommendationGeneratedAt)preparationTimer=setTimeout(()=>void prepareForgeBackground(build).catch(error=>{const node=byId('forgePreparationStatus');if(node)node.textContent='Background preparation unavailable; Generate will retry.';console.info('[Forge preparation]',error.message);}),200);}
+window.addEventListener('pagehide',()=>{clearTimeout(preparationTimer);forgePreparation.dispose();});
 function validateBuildState(state,expectedBinding={},{protect=true}={}){
   if(!state||state.version!==1||!state.originalBuild||!state.workingBuild)return null;
   const originalBinding=bindingOf(state.originalBuild),workingBinding=bindingOf(state.workingBuild);
@@ -131,6 +158,7 @@ function renderTestConfiguration(){const build=currentBuild(),node=byId('expecte
 
 function writeState(next,{memoryOnly=volatileStateMemoryOnly}={}){
   const state=protectBuildState(next);
+  if(volatileState!==state)forgePreparation.invalidate();
   volatileState=state;
   volatileStateMemoryOnly=Boolean(memoryOnly);
   // The atomic IndexedDB handoff remains the refresh fallback. Keeping its
@@ -261,7 +289,7 @@ function replaceEquipped(collection,candidate){const next=[...(collection||[])],
 function applySubclassCandidate(working,candidate){working.subclassBuild=working.subclassBuild||{};working.subclassName=candidate.name||candidate.displayName||working.subclassName;working.subclass=candidate.key||candidate.element||candidate.name||working.subclass;working.subclassIcon=iconOf(candidate)||working.subclassIcon;if(candidate.subclassBuild||candidate.build)working.subclassBuild=JSON.parse(JSON.stringify(candidate.subclassBuild||candidate.build));return synchroniseSubclassProjection(working);}
 function resolvedTranscendenceSlots(build){const sb=build?.subclassBuild||{},mapped=Array.isArray(sb.transcendenceSlots)?sb.transcendenceSlots.filter(Boolean):[];if(mapped.length)return mapped.slice(0,2);return (Array.isArray(sb.transcendenceOptions)?sb.transcendenceOptions:[]).filter(Boolean).slice(0,2).map((item,socketIndex)=>({socketIndex,equipped:item,options:[item]}));}
 function transcendenceChoices(build){return resolvedTranscendenceSlots(build).flatMap((slot,slotPosition)=>(Array.isArray(slot?.options)?slot.options:[]).map(option=>({...option,transcendenceSlotPosition:slotPosition})));}
-function stageSelection(kind,index){const build=currentBuild(),candidate=kind==='subclass'?resolvedSubclassOptions(build)[index]:kind==='artifactPerks'?build?.artifact?.perks?.[index]:kind==='transcendence'?transcendenceChoices(build)[index]:resolvedOptions(build,kind)[index];if(!candidate)return;stageWorkingBuild(working=>{working.subclassBuild=working.subclassBuild||{};delete working.recommendationGeneratedAt;delete working.recommendationElement;delete working.recommendationStatus;delete working.forgeIntelligence;if(kind==='subclass')applySubclassCandidate(working,candidate);else if(kind==='super'){working.subclassBuild.super=candidate;working.super=candidate;}else if(kind==='transcendence'){const slots=[...(working.subclassBuild.transcendenceSlots||[])],slotPosition=Number(candidate.transcendenceSlotPosition);if(slots[slotPosition])slots[slotPosition]={...slots[slotPosition],equipped:candidate};working.subclassBuild.transcendenceSlots=slots;}else if(kind==='abilities')working.subclassBuild.abilities=replaceEquipped(working.subclassBuild.abilities,candidate);else if(kind==='aspects')working.subclassBuild.aspects=replaceEquipped(working.subclassBuild.aspects,candidate);else if(kind==='fragments'){const equipped=[...(working.subclassBuild.fragments||[])],key=itemKey(candidate),at=equipped.findIndex(item=>itemKey(item)===key);if(at>=0)equipped.splice(at,1);else if(equipped.length<5)equipped.push(candidate);else equipped[0]=candidate;working.subclassBuild.fragments=equipped;}else if(kind==='artifactPerks'){working.artifactConfiguration=toggleIntendedArtifactPerk(working.artifact,working.artifactConfiguration||working.artifact?.artifactConfiguration,index);working.artifact.artifactConfiguration=JSON.parse(JSON.stringify(working.artifactConfiguration));if(working.artifactRecommendation)working.artifactRecommendation={...working.artifactRecommendation,userOverride:true};}else if(kind==='artifact'){const configuration=createIntendedArtifactConfiguration(candidate,working.artifactConfiguration||working.artifact?.artifactConfiguration);working.artifact={...JSON.parse(JSON.stringify(candidate)),artifactConfiguration:JSON.parse(JSON.stringify(configuration))};working.artifactConfiguration=configuration;}synchroniseSubclassProjection(working);});}
+function stageSelection(kind,index){const build=currentBuild(),candidate=kind==='subclass'?resolvedSubclassOptions(build)[index]:kind==='artifactPerks'?build?.artifact?.perks?.[index]:kind==='transcendence'?transcendenceChoices(build)[index]:resolvedOptions(build,kind)[index];if(!candidate)return;stageWorkingBuild(working=>{working.subclassBuild=working.subclassBuild||{};delete working.recommendationGeneratedAt;delete working.recommendationElement;delete working.recommendationStatus;delete working.forgeIntelligence;if(kind==='subclass')applySubclassCandidate(working,candidate);else if(kind==='super'){working.subclassBuild.super=candidate;working.super=candidate;working.forgeRequestedSuperHash=Number(candidate.hash??candidate.bungieHash)||0;}else if(kind==='transcendence'){const slots=[...(working.subclassBuild.transcendenceSlots||[])],slotPosition=Number(candidate.transcendenceSlotPosition);if(slots[slotPosition])slots[slotPosition]={...slots[slotPosition],equipped:candidate};working.subclassBuild.transcendenceSlots=slots;}else if(kind==='abilities')working.subclassBuild.abilities=replaceEquipped(working.subclassBuild.abilities,candidate);else if(kind==='aspects')working.subclassBuild.aspects=replaceEquipped(working.subclassBuild.aspects,candidate);else if(kind==='fragments'){const equipped=[...(working.subclassBuild.fragments||[])],key=itemKey(candidate),at=equipped.findIndex(item=>itemKey(item)===key);if(at>=0)equipped.splice(at,1);else if(equipped.length<5)equipped.push(candidate);else equipped[0]=candidate;working.subclassBuild.fragments=equipped;}else if(kind==='artifactPerks'){working.artifactConfiguration=toggleIntendedArtifactPerk(working.artifact,working.artifactConfiguration||working.artifact?.artifactConfiguration,index);working.artifact.artifactConfiguration=JSON.parse(JSON.stringify(working.artifactConfiguration));if(working.artifactRecommendation)working.artifactRecommendation={...working.artifactRecommendation,userOverride:true};}else if(kind==='artifact'){const configuration=createIntendedArtifactConfiguration(candidate,working.artifactConfiguration||working.artifact?.artifactConfiguration);working.artifact={...JSON.parse(JSON.stringify(candidate)),artifactConfiguration:JSON.parse(JSON.stringify(configuration))};working.artifactConfiguration=configuration;}synchroniseSubclassProjection(working);});}
 
 function renderRecommendationControls(build={}){
   const verified=resolvedSubclassOptions(build).filter(hasVerifiedSubclassSockets),verifiedElements=new Set(verified.map(elementOf)),compatible=filterExoticCompatibleSubclasses(build,verified),supported=new Map(compatible.map(item=>[elementOf(item),item]).filter(([element])=>BUILD_ELEMENTS.includes(element)));
@@ -275,6 +303,7 @@ function renderRecommendationControls(build={}){
   const armourValidation=validateTierFiveArmour(build),exoticValidation=validateExoticLoadout(build,{requireArmourAnchor:true}),hasElement=Boolean(selectedRecommendationElement&&supported.has(selectedRecommendationElement)),ready=hasDecision&&armourValidation.ready&&exoticValidation.ready&&hasElement&&!recommendationBusy,button=byId('generateMaxLoadout'),status=byId('recommendationReadiness');
   if(button){button.disabled=!ready;button.textContent=recommendationBusy?'GENERATING VERIFIED BUILD…':build.recommendationGeneratedAt?'REGENERATE MAX LOADOUT':'GENERATE MAX LOADOUT';}
   if(status){status.className='recommendation-readiness'+(ready?' is-ready':' is-blocked');status.textContent=recommendationBusy?'Resolving elemental damage, weapon and Artifact evidence…':!hasDecision?'Stage a verified Forge Loader armour result to unlock compatible build options.':!armourValidation.ready?armourValidation.reason:!exoticValidation.ready?exoticValidation.reason:!hasElement?'Select an available verified elemental build option.':`Ready · ${selectedRecommendationElement.toUpperCase()} damage build · one verified Exotic armour anchor · Maximized Forge Loader result.`;}
+  scheduleForgePreparation(build);
 }
 
 function reviewIcon(item,label='Verified item'){const icon=abs(iconOf(item)),name=esc(item?.name||item?.displayName||label);return `<span class="review-icon" title="${name}">${icon?`<img src="${esc(icon)}" alt="">`:'◆'}<small>${name}</small></span>`;}
@@ -338,29 +367,18 @@ async function generateMaxLoadout(){
   if(!state?.originalBuild||!build?.forgeLoaderDecision||!armourValidation.ready||!exoticValidation.ready||!candidate){const reason=!build?.forgeLoaderDecision?'Forge Loader decision required.':armourValidation.reason||exoticValidation.reason||'The selected elemental build option is not supported by this Guardian’s verified subclass catalogue.';const status=byId('recommendationReadiness');if(status){status.className='recommendation-readiness is-blocked';status.textContent=reason;}return;}
   recommendationBusy=true;renderRecommendationControls(build);await showForgeGenerationLoader(selectedRecommendationElement);
   try{
-    let next=protectBuildState(state),working={...next.workingBuild};
-    await updateForgeGenerationPhase('OPTIMISING VERIFIED SUBCLASS COMPONENTS…');
-    const composed=composeForgeRecommendation({build:forgeComputationProjection(working),candidate,element:selectedRecommendationElement,analyzeBuild:analyzeLiveGuardian});
-    working=mergeComposedRecommendation(working,composed.workingBuild);working.recommendationGeneratedAt=new Date().toISOString();working.recommendationElement=selectedRecommendationElement;working.recommendationStatus='review-required';working.forgeIntelligence={...composed.intelligence,generatedAt:working.recommendationGeneratedAt};working.paradoxAnalysis=composed.analysis||analyzeLiveGuardian(working)||null;next={...next,workingBuild:working,recommendation:{status:'review-required',generatedAt:working.recommendationGeneratedAt,element:selectedRecommendationElement,source:'verified-forge-loader-working-build',intelligenceMethod:working.forgeIntelligence.method}};
-    const supplied=Number(working.currentSeasonNumber??working.currentSeason?.seasonNumber),currentSeasonNumber=Number.isInteger(supplied)?supplied:await fetchCurrentArtifactSeason();
-    working.objective=selectedRecommendationObjective;
-    working.loadoutIntent=deriveLoadoutIntent(working);
-    await updateForgeGenerationPhase('RANKING ALL VERIFIED OWNED WEAPONS…');
-    const initialWeaponResult=selectOwnedWeapons({build:working,objective:selectedRecommendationObjective});working=initialWeaponResult.workingBuild;working.paradoxAnalysis=analyzeLiveGuardian(working)||working.paradoxAnalysis||null;
-    await updateForgeGenerationPhase('BUILDING GRENADE, ORB AND SUPER MOD LOOP…');
-    const provisionalModResult=recommendArmourMods({build:working,objective:selectedRecommendationObjective});working=provisionalModResult.workingBuild;
-    await updateForgeGenerationPhase('MATCHING ARTIFACT SYNERGY…');
-    next=protectBuildState({...next,workingBuild:working});const artifactResult=applyForgeArtifactRecommendation(next,{currentSeasonNumber,force:true});next=artifactResult.state;working={...next.workingBuild};
-    await updateForgeGenerationPhase('RE-RANKING OWNED WEAPONS WITH ARTIFACT FIT…');
-    const artifactAwareWeaponResult=selectOwnedWeapons({build:working,objective:selectedRecommendationObjective});working=artifactAwareWeaponResult.workingBuild;working.paradoxAnalysis=analyzeLiveGuardian(working)||working.paradoxAnalysis||null;
-    const generatedExoticValidation=validateExoticLoadout(working,{requireArmourAnchor:true});if(!generatedExoticValidation.ready)throw new Error(generatedExoticValidation.reason);
-    await updateForgeGenerationPhase('OPTIMISING VERIFIED ARMOUR MOD CHANGES…');
-    const modResult=recommendArmourMods({build:working,objective:selectedRecommendationObjective});working=modResult.workingBuild;const generatedModValidation=validateArmourModLoadout(working);if(!generatedModValidation.ready)throw new Error(generatedModValidation.reason);working.paradoxAnalysis=analyzeLiveGuardian(working)||working.paradoxAnalysis||null;
-    await updateForgeGenerationPhase('FINALISING ORDERED ARTIFACT PICKS…');
-    next=protectBuildState({...next,workingBuild:working});const finalArtifactResult=applyForgeArtifactRecommendation(next,{currentSeasonNumber,force:true});next=finalArtifactResult.state;working={...next.workingBuild};const coherence=validateLoadoutCoherence(working);if(!coherence.ready)throw new Error(coherence.reason);working.loadoutCoherence=coherence;working.liveTransferPreflight=createLiveTransferPreflight(working);if(!working.liveTransferPreflight.ready)throw new Error(working.liveTransferPreflight.violations[0]||'Live transfer preflight failed.');
-    await updateForgeGenerationPhase('VERIFYING RECOMMENDED WEAPON PERK ROLLS…');
-    await adviseLiveWeaponRolls(working,working.paradoxAnalysis||{}, {insertSocketPlugFree:false});if(working.forgeIntelligence&&working.paradoxAnalysis){working.forgeIntelligence.evidence={...working.forgeIntelligence.evidence,directedLinks:working.paradoxAnalysis.buildLoop?.length||0,strengths:working.paradoxAnalysis.strengths?.length||0,weakLinks:working.paradoxAnalysis.weakLinks?.length||0,confidence:working.paradoxAnalysis.confidence?.level||'evidence-limited',ownedWeaponCandidates:working.weaponSelectionRecommendation?.candidateCount||0,artifactSynergyScore:Number(working.artifactRecommendation?.totalScore||0),armourModDecisions:working.armourModRecommendation?.decisions?.length||0};working.forgeIntelligence.limitations=[...new Set([...(working.forgeIntelligence.limitations||[]),...(working.weaponSelectionRecommendation?.limitations||[]),...(working.armourModRecommendation?.limitations||[])])];}
+    clearTimeout(preparationTimer);
+    await prepareForgeBackground(build);
+    if(readState()!==state)throw new Error('The source build changed. Generate again for the current selection.');
+    const prepared=await forgePreparation.get(requestedForgeVariant(build));
+    if(readState()!==state)throw new Error('The source build changed. Generate again for the current selection.');
+    let working={...build,...prepared.patch};
+    // Recheck the prepared selection at the point of review; never execute live actions here.
+    const coherence=validateLoadoutCoherence(working);if(!coherence.ready)throw new Error(coherence.reason);
+    working.liveTransferPreflight=createLiveTransferPreflight(working);if(!working.liveTransferPreflight.ready)throw new Error(working.liveTransferPreflight.violations[0]||'Live transfer preflight failed.');
+    let next=protectBuildState({...state,workingBuild:working,recommendation:prepared.recommendation});
     await updateForgeGenerationPhase('PREPARING BUILD REVIEW…');
+    if(readState()!==state)throw new Error('The source build changed. Generate again for the current selection.');
     next=protectBuildState({...next,workingBuild:working});writeState(next);render();hideForgeGenerationLoader();openRecommendedBuild();
   }catch(error){const status=byId('recommendationReadiness');if(status){status.className='recommendation-readiness is-blocked';status.textContent=error?.message||'Unable to generate a verified recommendation.';}console.error('Build Forge recommendation generation failed.',error);}
   finally{hideForgeGenerationLoader();recommendationBusy=false;renderRecommendationControls(currentBuild()||{});}

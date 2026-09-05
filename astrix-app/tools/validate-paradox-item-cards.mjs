@@ -35,3 +35,17 @@ assert.match(cardCss,/font:550 13px\/1\.45 bahnschrift/,'Item-card supporting co
 console.log('PARADOX_ITEM_CARD_FRAMEWORK=PASS');
 console.log('PARADOX_WEAPON_PERK_HIERARCHY=PASS');
 console.log('PARADOX_ARMOUR_DETAIL_MODEL=PASS');
+
+// Execute the actual support-socket presentation with multiple equipped mods.
+const {runInNewContext}=await import('node:vm');
+const helperStart=weaponUi.indexOf('function weaponSupportIconsMarkup('),helperEnd=weaponUi.indexOf('\nfunction renderWeapons(',helperStart);
+const scope={bungieHash:v=>Number(v?.bungieHash??v?.hash)||null,bungieIcon:v=>v||'',text:v=>v?.name||'',esc:v=>String(v),hashAttribute:v=>` data-bungie-hash="${v.hash}"`};
+runInNewContext(weaponUi.slice(helperStart,helperEnd)+'this.renderSupport=weaponSupportIconsMarkup;',scope);
+const modFixture={weaponSemantics:{modSockets:[{hash:11,socketIndex:4,name:'Mod A',icon:'/a.png'},{hash:11,socketIndex:5,name:'Mod A',icon:'/a.png'},{hash:12,socketIndex:6,name:'Mod B',definition:{displayProperties:{icon:'/b.png'}}},{hash:13,socketIndex:7,name:'Unresolved icon'}]}};
+const modBefore=JSON.stringify(modFixture),modMarkup=scope.renderSupport(modFixture);
+assert.equal((modMarkup.match(/data-slot-shape="square"/g)||[]).length,4,'Every mapped socket must render, including duplicate hashes in separate sockets');
+assert.ok(modMarkup.includes('/b.png'),'Definition-backed icons must not disappear');
+assert.ok(modMarkup.includes('Icon unavailable'),'A missing icon must not silently remove the socket');
+assert.equal(JSON.stringify(modFixture),modBefore,'Presentation must not mutate equipped selections');
+assert.equal(scope.renderSupport({}),'','Absent socket data must not invent mods');
+console.log('WEAPON_SUPPORT_SOCKET_PRESENTATION=PASS');

@@ -22,6 +22,7 @@ const validators=[
   'test-artifact-provenance.mjs',
   'test-artifact-recommender.mjs',
   'test-forge-artifact-selection.mjs',
+  'test-forge-background.mjs',
   'validate-manifest-service.mjs',
   'test-manifest-service.mjs',
   'test-forge-index-transport.mjs',
