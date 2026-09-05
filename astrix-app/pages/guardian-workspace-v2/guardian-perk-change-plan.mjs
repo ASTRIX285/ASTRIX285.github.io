@@ -120,6 +120,8 @@ function generatedSocketChanges(build={},advice=null){
 }
 
 function intendedArtifactStep(build={}){
+  // Permanent ASTRIX Artifact protection rule: intended Artifact changes stay
+  // manual/in-game by design and never enter Apply; this is not a gap or TODO.
   const configuration=build.artifactConfiguration||{},intended=(configuration.selectedPerkHashes||[]).map(Number).filter(Number.isInteger).sort((a,b)=>a-b),current=(build.artifact?.activePerks||[]).filter(row=>row?.isActive!==false).map(hashOf).filter(Number.isInteger).sort((a,b)=>a-b);
   if(!intended.length||JSON.stringify(intended)===JSON.stringify(current))return '';
   return `Configure ${intended.length} intended perk${intended.length===1?'':'s'} on ${build.artifact?.name||'the Seasonal Artifact'} in Destiny. Artifact unlocks are preserved as an explicit in-game step.`;
@@ -176,15 +178,17 @@ function createLiveTransferPlan({build={},originalBuild={},advice=null,capabilit
   }
   const artifactStep=intendedArtifactStep(build);if(artifactStep)inGameSteps.push(artifactStep);
 
+  const weaponSocketChanges=socketChanges.filter(row=>row.component!=='armour-mod'),armourModChanges=socketChanges.filter(row=>row.component==='armour-mod');
   const requirements=[
-    ['captureSnapshot','Capture fresh ownership and equipment state',true],
-    ['transferItems','Transfer target items to the selected Guardian',transfers.length>0],
-    ['equipItems','Equip exact item instances',targets.length>0],
-    ['verifyEquipment','Verify equipped instance IDs',targets.length>0],
-    ['insertSocketPlugFree','Apply verified free socket changes',socketChanges.length>0],
-    ['verifyFinalState','Read back the final Bungie profile',true]
+    {key:'captureSnapshot',capability:'captureSnapshot',label:'Capture fresh ownership, equipment and activity state',changes:targets.length,required:true},
+    {key:'transferItems',capability:'transferItems',label:'Transfer target items to the selected Guardian',changes:transfers.length,required:transfers.length>0},
+    {key:'equipItems',capability:'equipItems',label:'Equip exact item instances',changes:targets.length,required:targets.length>0},
+    {key:'verifyEquipment',capability:'verifyEquipment',label:'Verify equipped instance IDs from a fresh profile',changes:targets.length,required:targets.length>0},
+    {key:'applyWeaponSockets',capability:'insertSocketPlugFree',label:'Apply verified weapon and subclass socket changes',changes:weaponSocketChanges.length,required:weaponSocketChanges.length>0},
+    {key:'applyArmourMods',capability:'insertSocketPlugFree',label:'Apply verified armour mod changes',changes:armourModChanges.length,required:armourModChanges.length>0},
+    {key:'verifyFinalState',capability:'verifyFinalState',label:'Read back the final Bungie profile',changes:targets.length+socketChanges.length,required:true}
   ];
-  const phases=requirements.map(([capability,label,required],index)=>({order:index+1,key:capability,label,capability,changes:capability==='transferItems'?transfers.length:capability==='insertSocketPlugFree'?socketChanges.length:targets.length,required,status:!required?'skipped':supported[capability]?'supported':'blocked'}));
+  const phases=requirements.map((phase,index)=>({...phase,order:index+1,status:!phase.required?'skipped':supported[phase.capability]?'supported':'blocked'}));
   phases.filter(row=>row.required&&row.status==='blocked').forEach(row=>blockers.push(`${row.label} is not available through the authenticated live route.`));
   return {
     schemaVersion:3,
@@ -195,12 +199,13 @@ function createLiveTransferPlan({build={},originalBuild={},advice=null,capabilit
     characterId,membershipId,membershipType,
     requiresUserConfirmation:true,
     confirmedAt:null,
-    executionPolicy:'fresh-read-transfer-equip-free-sockets-final-readback',
+    executionPolicy:'fresh-read-activity-check-transfer-equip-verify-weapon-sockets-armour-mods-final-readback',
     equipment:{weapons:weapons.map(itemIdOf),armour:armour.map(itemIdOf),subclass:subclassItem?itemIdOf(subclassItem):null,targets},
     transfers,
     socketChanges,
+    weaponSocketChanges,
     weaponPerkChanges:socketChanges.filter(row=>row.component==='weapon-perk'),
-    armourModChanges:socketChanges.filter(row=>row.component==='armour-mod'),
+    armourModChanges,
     artifact:{artifactHash:Number(build.artifactConfiguration?.artifactHash)||null,selectedPerkHashes:(build.artifactConfiguration?.selectedPerkHashes||[]).map(Number).filter(Number.isInteger)},
     inGameSteps:[...new Set(inGameSteps)],
     capabilities:supported,

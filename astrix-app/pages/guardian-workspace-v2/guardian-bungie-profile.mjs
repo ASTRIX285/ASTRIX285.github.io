@@ -126,7 +126,7 @@ function setSourceCaption(detail={},source="bungie-live"){
   const subclass=String(detail.subclassName||detail.subclass||"Subclass").toUpperCase();
   const caption=document.createElement("small");
   caption.style.color="#8e7bb0";
-  caption.textContent=source==="bungie-live"?"Live Bungie Guardian":"Telemetry synchronized from Paradox beta fixture";
+  caption.textContent=source==="bungie-live"&&detail.loadoutSource==="currently-equipped"?"Currently equipped items · active Guardian default":source==="bungie-live"?"Live Bungie Guardian":"Telemetry synchronized from Paradox beta fixture";
   message.replaceChildren(document.createTextNode(`${characterClass} · ${subclass}`),document.createElement("br"),caption);
 }
 
@@ -213,16 +213,6 @@ function activeCharacter(profile){
 function rememberCharacterId(characterId){
   try{sessionStorage.setItem(SELECTED_CHARACTER_KEY,String(characterId||""));}
   catch{}
-}
-
-function rememberedLoadoutSelection(profile){
-  try{
-    const saved=JSON.parse(localStorage.getItem(SELECTED_LOADOUT_KEY)||"null");
-    const characterId=String(saved?.characterId||"");
-    const index=Number(saved?.index);
-    if(!characterId||!Number.isInteger(index)||index<0||index>19||!profile?.characters?.data?.[characterId])return null;
-    return {characterId,index};
-  }catch{return null;}
 }
 
 function rememberLoadoutSelection(characterId,index){
@@ -817,7 +807,6 @@ async function loadSelectedLoadout(selection){
 async function activateLiveProfile(payload,session,{fromCache=false}={}){
   liveProfilePayload=payload;
   liveProfileSession=session;
-  const rememberedLoadout=rememberedLoadoutSelection(payload.profile);
   const explicitCharacter=payload.profile?.characters?.data?.[explicitlySelectedCharacterId]||null;
   const selectedCharacterId=String(explicitCharacter?.characterId||activeCharacter(payload.profile)?.characterId||"");
   if(selectedCharacterId)rememberCharacterId(selectedCharacterId);
@@ -842,14 +831,9 @@ async function activateLiveProfile(payload,session,{fromCache=false}={}){
     return detail;
   }
 
-  if(rememberedLoadout&&rememberedLoadout.characterId===selectedCharacterId){
-    const detail=await loadSelectedLoadout(rememberedLoadout);
-    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{...detail,sessionCacheRestored:fromCache}}));
-    return detail;
-  }
-
-  const detail=normaliseLiveProfile(payload,session,selectedCharacterId);
-  setRenderStatus("BUILD INTELLIGENCE","Live profile data ready","Equipment and loadout analysis active");
+  forgetLoadoutSelection();
+  const detail={...normaliseLiveProfile(payload,session,selectedCharacterId),selectedLoadoutIndex:null,loadoutSource:"currently-equipped"};
+  setRenderStatus("CURRENTLY EQUIPPED LOADOUT","Live equipped items ready","Active Guardian default · saved Bungie slots load only when selected");
   document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:{...detail,sessionCacheRestored:fromCache}}));
   document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{...detail,sessionCacheRestored:fromCache}}));
   return detail;

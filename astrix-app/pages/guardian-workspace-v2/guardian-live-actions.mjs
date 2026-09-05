@@ -1,6 +1,7 @@
 const DEFAULT_AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||'https://auth.astrixparadox.com';
 const VAULT_BUCKET=138197802;
 const POSTMASTER_BUCKET=215593132;
+const SOCIAL_ACTIVITY_MODE_TYPE=40;
 
 const EMPTY_LIVE_ACTION_CAPABILITIES=Object.freeze({
   captureSnapshot:false,
@@ -115,11 +116,25 @@ function freshSocketChanges(plan,payload){
   return {changes,alreadyApplied,blockers};
 }
 
-function verifyReadback(plan,payload){
+function characterActivityRestriction(plan,payload){
+  const profile=payload.profile||payload.Response||{},component=profile?.characterActivities;
+  if(!component||!component.data||typeof component.data!=='object')return {allowed:false,state:'unverified',reason:'Apply was blocked because Bungie did not return CharacterActivities (component 204) for this fresh profile.'};
+  const activity=component.data[String(plan.characterId)]||null,currentActivityHash=Number(activity?.currentActivityHash)||0,currentActivityModeType=Number(activity?.currentActivityModeType)||0,currentActivityModeTypes=[currentActivityModeType,...(Array.isArray(activity?.currentActivityModeTypes)?activity.currentActivityModeTypes:[])].map(Number).filter(Number.isInteger);
+  if(!activity||currentActivityHash===0)return {allowed:true,state:activity?'orbit':'offline',currentActivityHash,currentActivityModeType,reason:''};
+  if(currentActivityModeTypes.includes(SOCIAL_ACTIVITY_MODE_TYPE))return {allowed:true,state:'social-space',currentActivityHash,currentActivityModeType,currentActivityModeTypes,reason:''};
+  return {allowed:false,state:'active-activity',currentActivityHash,currentActivityModeType,reason:`Apply is blocked while this Guardian is in activity ${currentActivityHash}. Return to orbit, a social space, or go offline before retrying.`};
+}
+
+function verifyEquippedItems(plan,payload){
   const profile=payload.profile||payload.Response||{},equipment=profile?.characterEquipment?.data?.[String(plan.characterId)]?.items||[],equippedIds=new Set(equipment.map(row=>String(row?.itemInstanceId||'')).filter(Boolean));
   const missingEquipment=(plan?.equipment?.targets||[]).filter(row=>!equippedIds.has(String(row.itemInstanceId))).map(row=>({itemInstanceId:row.itemInstanceId,name:row.name,kind:row.kind}));
+  return {verified:missingEquipment.length===0,missingEquipment,equippedInstanceIds:[...equippedIds]};
+}
+
+function verifyReadback(plan,payload){
+  const equipment=verifyEquippedItems(plan,payload),profile=payload.profile||payload.Response||{};
   const sockets=profile?.itemComponents?.sockets?.data||{},socketMismatches=(plan.socketChanges||[]).filter(change=>Number(sockets?.[change.itemInstanceId]?.sockets?.[change.socketIndex]?.plugHash)!==Number(change.plugHash)).map(change=>({itemInstanceId:change.itemInstanceId,itemName:change.itemName,socketIndex:change.socketIndex,expectedPlugHash:change.plugHash,actualPlugHash:Number(sockets?.[change.itemInstanceId]?.sockets?.[change.socketIndex]?.plugHash)||null}));
-  return {verified:missingEquipment.length===0&&socketMismatches.length===0,missingEquipment,socketMismatches,equippedInstanceIds:[...equippedIds]};
+  return {...equipment,verified:equipment.verified&&socketMismatches.length===0,socketMismatches};
 }
 
 function equipResponseFailures(payload,itemIds=[]){
@@ -147,11 +162,11 @@ async function executeLiveTransferPlan(plan,{session,fetchImpl=fetch,authOrigin=
   try{
     onProgress({phase:'snapshot',status:'running',label:'Reading fresh Bungie ownership and equipment…'});
     fresh=await requestFreshProfile({fetchImpl,authOrigin});
-    const resolved=freshTransferSteps(plan,fresh),resolvedSockets=freshSocketChanges(plan,fresh),freshBlockers=[...resolved.blockers,...resolvedSockets.blockers];
+    const activity=characterActivityRestriction(plan,fresh),resolved=freshTransferSteps(plan,fresh),resolvedSockets=freshSocketChanges(plan,fresh),freshBlockers=[...(activity.allowed?[]:[activity.reason]),...resolved.blockers,...resolvedSockets.blockers];
     if(resolved.steps.length&&advertised.transferItems!==true)freshBlockers.push('Fresh inventory state now requires item transfer, but the authenticated live route does not advertise that capability.');
     if(resolvedSockets.changes.length&&advertised.insertSocketPlugFree!==true)freshBlockers.push('Fresh socket state now requires a socket mutation, but the authenticated live route does not advertise that capability.');
-    if(freshBlockers.length){record('snapshot','blocked','Fresh ownership or socket compatibility validation blocked Apply.',freshBlockers);result.status='blocked';result.finishedAt=new Date().toISOString();return result;}
-    record('snapshot','complete','Fresh Bungie ownership, equipment and socket compatibility captured.',{targetCount:plan.equipment.targets.length,transferCount:resolved.steps.length,socketChangeCount:resolvedSockets.changes.length,socketsAlreadyApplied:resolvedSockets.alreadyApplied.length});
+    if(freshBlockers.length){record('snapshot','blocked','Fresh activity, ownership or socket compatibility validation blocked Apply.',freshBlockers);result.status='blocked';result.finishedAt=new Date().toISOString();return result;}
+    record('snapshot','complete','Fresh Bungie activity, ownership, equipment and socket compatibility captured.',{activityState:activity.state,targetCount:plan.equipment.targets.length,transferCount:resolved.steps.length,socketChangeCount:resolvedSockets.changes.length,socketsAlreadyApplied:resolvedSockets.alreadyApplied.length});
 
     for(const step of resolved.steps){
       try{
@@ -171,15 +186,32 @@ async function executeLiveTransferPlan(plan,{session,fetchImpl=fetch,authOrigin=
     }catch(error){record('equip','failed','Exact Working Build equipment request failed.',{message:error.message,payload:error.payload||null});}
 
     if(equipmentApplied){
-      for(const [index,change] of resolvedSockets.changes.entries()){
-        const label=`Set ${change.plugName||change.plugHash} on ${change.itemName||change.itemInstanceId}`;
-        try{
-          onProgress({phase:'socket',status:'running',label});
-          const payload=await requestAction('/bungie/actions/socket-plug-free',{membershipType:Number(plan.membershipType),characterId:plan.characterId,itemId:change.itemInstanceId,plug:{socketIndex:change.socketIndex,socketArrayType:change.socketArrayType??0,plugItemHash:change.plugHash}},{session,fetchImpl,authOrigin});
-          record('socket','complete',label,{ErrorCode:payload?.ErrorCode??1});
-        }catch(error){record('socket','failed',label,{message:error.message,payload:error.payload||null});}
-        if(index<resolvedSockets.changes.length-1)await waitImpl(SOCKET_THROTTLE_MS);
-      }
+      try{
+        onProgress({phase:'verify-equipment',status:'running',label:'Verifying equipped items from a fresh Bungie profile…'});
+        const equippedProfile=await requestFreshProfile({fetchImpl,authOrigin}),verification=verifyEquippedItems(plan,equippedProfile);
+        if(verification.verified)record('verify-equipment','complete','Fresh profile confirms every expected item is equipped.',verification);
+        else{equipmentApplied=false;record('verify-equipment','mismatch','Fresh profile did not confirm every expected item; all socket changes were skipped.',verification);}
+      }catch(error){equipmentApplied=false;record('verify-equipment','failed','Fresh equipped-item verification failed; all socket changes were skipped.',{message:error.message});}
+    }
+
+    if(equipmentApplied){
+      const weaponSocketChanges=resolvedSockets.changes.filter(change=>change.component!=='armour-mod'),armourModChanges=resolvedSockets.changes.filter(change=>change.component==='armour-mod'),totalSocketChanges=resolvedSockets.changes.length;
+      let completedSocketChanges=0;
+      const applySocketPhase=async(changes,phase,phaseLabel)=>{
+        for(const change of changes){
+          const label=`${phaseLabel}: set ${change.plugName||change.plugHash} on ${change.itemName||change.itemInstanceId}`;
+          try{
+            onProgress({phase,status:'running',label});
+            const payload=await requestAction('/bungie/actions/socket-plug-free',{membershipType:Number(plan.membershipType),characterId:plan.characterId,itemId:change.itemInstanceId,plug:{socketIndex:change.socketIndex,socketArrayType:change.socketArrayType??0,plugItemHash:change.plugHash}},{session,fetchImpl,authOrigin});
+            record(phase,'complete',label,{ErrorCode:payload?.ErrorCode??1});
+          }catch(error){record(phase,'failed',label,{message:error.message,payload:error.payload||null});return false;}
+          completedSocketChanges+=1;
+          if(completedSocketChanges<totalSocketChanges)await waitImpl(SOCKET_THROTTLE_MS);
+        }
+        return true;
+      };
+      const weaponsApplied=await applySocketPhase(weaponSocketChanges,'weapon-sockets','Weapon/socket phase');
+      if(weaponsApplied)await applySocketPhase(armourModChanges,'armour-mods','Armour-mod phase');
     }
   }finally{
     try{
@@ -217,4 +249,4 @@ async function executeBungieLoadoutAction(action,{characterId,index,session,conf
   return requestAction(path,body,{session,fetchImpl,authOrigin});
 }
 
-export {EMPTY_LIVE_ACTION_CAPABILITIES,SOCKET_THROTTLE_MS,liveActionCapabilities,sessionBinding,assertAdvertisedPlanCapabilities,inventoryLocations,freshTransferSteps,freshSocketChanges,verifyReadback,equipResponseFailures,confirmLiveTransferPlan,requestAction,requestFreshProfile,executeLiveTransferPlan,stageBungieLoadoutAction,confirmBungieLoadoutAction,executeBungieLoadoutAction};
+export {EMPTY_LIVE_ACTION_CAPABILITIES,SOCKET_THROTTLE_MS,SOCIAL_ACTIVITY_MODE_TYPE,liveActionCapabilities,sessionBinding,assertAdvertisedPlanCapabilities,inventoryLocations,freshTransferSteps,freshSocketChanges,characterActivityRestriction,verifyEquippedItems,verifyReadback,equipResponseFailures,confirmLiveTransferPlan,requestAction,requestFreshProfile,executeLiveTransferPlan,stageBungieLoadoutAction,confirmBungieLoadoutAction,executeBungieLoadoutAction};

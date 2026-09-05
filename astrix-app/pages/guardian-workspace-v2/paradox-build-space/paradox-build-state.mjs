@@ -1,5 +1,8 @@
 const BUILD_STATE_VERSION = 1;
+const BUILD_PERSISTENCE_SCHEMA_VERSION = 1;
 const VALIDATION_STATUS = Object.freeze({UNTESTED:'untested',INITIAL:'initial-result',PROVISIONAL:'provisionally-validated',REPEATED:'repeatedly-validated',INVALIDATED:'not-validated'});
+const PERSISTED_SHARED_BUILD_KEYS=Object.freeze(['ownedWeapons','vaultWeapons','inventoryWeapons','ownedArmour','subclassCatalog','availableArtifacts','artifactOptions','availableActivities','activityCatalog','gearAssets','itemRenderData','renderData','loadouts']);
+const PERSISTED_TRANSIENT_BUILD_KEYS=Object.freeze(['liveTransferPreflight','liveTransferPlan','liveTransferResult','sessionCacheRestored','loadoutActionIntent']);
 function clone(value){try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}}
 function freezeDeep(value){if(!value||typeof value!=='object'||Object.isFrozen(value))return value;Object.freeze(value);Object.values(value).forEach(freezeDeep);return value;}
 function itemIdentity(item){if(!item)return null;return String(item.itemInstanceId||item.instanceId||item.hash||item.bungieHash||item.name||'');}
@@ -65,6 +68,32 @@ function normalizeBuild(build={}){
   return normalized;
 }
 function createBuildState(sourceBuild){const normalized=normalizeBuild(sourceBuild||{});const original=freezeDeep(normalized);return {version:BUILD_STATE_VERSION,createdAt:new Date().toISOString(),originalBuild:original,workingBuild:clone(normalized),recommendation:null,validationRecords:[]};}
+function createWorkingBuildPatch(build={}){
+  const working={...build};
+  if(build.subclassBuild&&typeof build.subclassBuild==='object')working.subclassBuild={...build.subclassBuild};
+  if(build.artifact&&typeof build.artifact==='object')working.artifact={...build.artifact};
+  if(build.artifactConfiguration&&typeof build.artifactConfiguration==='object')working.artifactConfiguration={...build.artifactConfiguration,selectedPerkHashes:Array.isArray(build.artifactConfiguration.selectedPerkHashes)?[...build.artifactConfiguration.selectedPerkHashes]:build.artifactConfiguration.selectedPerkHashes};
+  if(Array.isArray(build.manualEdits))working.manualEdits=[...build.manualEdits];
+  if(Array.isArray(build.manualSocketChanges))working.manualSocketChanges=[...build.manualSocketChanges];
+  return working;
+}
+function compactPersistenceBuild(build={}){
+  const compact={...build};
+  for(const key of PERSISTED_TRANSIENT_BUILD_KEYS)delete compact[key];
+  return compact;
+}
+function createBuildPersistenceSnapshot(state={}){
+  if(!state?.originalBuild||!state?.workingBuild)return null;
+  const metadata={...state};delete metadata.originalBuild;delete metadata.workingBuild;
+  const originalBuild=compactPersistenceBuild(state.originalBuild),workingPatch=compactPersistenceBuild(state.workingBuild);
+  for(const key of PERSISTED_SHARED_BUILD_KEYS)if(Object.hasOwn(originalBuild,key))delete workingPatch[key];
+  return {schemaVersion:BUILD_PERSISTENCE_SCHEMA_VERSION,savedAt:new Date().toISOString(),metadata,originalBuild,workingPatch,sharedBuildKeys:PERSISTED_SHARED_BUILD_KEYS.filter(key=>Object.hasOwn(originalBuild,key))};
+}
+function restoreBuildPersistenceSnapshot(snapshot={}){
+  if(snapshot?.schemaVersion!==BUILD_PERSISTENCE_SCHEMA_VERSION||!snapshot.originalBuild||!snapshot.workingPatch)return null;
+  const originalBuild=freezeDeep(snapshot.originalBuild),workingBuild={...originalBuild,...snapshot.workingPatch};
+  return protectBuildState({...snapshot.metadata,version:BUILD_STATE_VERSION,originalBuild,workingBuild,validationRecords:Array.isArray(snapshot.metadata?.validationRecords)?snapshot.metadata.validationRecords:[]});
+}
 function protectBuildState(state={}){
   if(!state?.originalBuild||!state?.workingBuild)return state;
   if(Object.isFrozen(state.originalBuild)&&Array.isArray(state.validationRecords))return state;
@@ -107,4 +136,4 @@ function deserializePortableBuild(serialized,{expectedKind=null}={}){
     return createBuildState(build);
   }catch{return null;}
 }
-export {BUILD_STATE_VERSION,VALIDATION_STATUS,PORTABLE_BUILD_SCHEMA_VERSION,PORTABLE_BUILD_KINDS,clone,freezeDeep,itemIdentity,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,artifactConfigurationForBuild,normalizeBuild,createBuildState,protectBuildState,restoreWorkingBuild,diffBuilds,createValidationRecord,completePortableArtifactConfiguration,serializePortableBuild,deserializePortableBuild};
+export {BUILD_STATE_VERSION,BUILD_PERSISTENCE_SCHEMA_VERSION,VALIDATION_STATUS,PORTABLE_BUILD_SCHEMA_VERSION,PORTABLE_BUILD_KINDS,PERSISTED_SHARED_BUILD_KEYS,clone,freezeDeep,itemIdentity,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,artifactConfigurationForBuild,normalizeBuild,createBuildState,createWorkingBuildPatch,createBuildPersistenceSnapshot,restoreBuildPersistenceSnapshot,protectBuildState,restoreWorkingBuild,diffBuilds,createValidationRecord,completePortableArtifactConfiguration,serializePortableBuild,deserializePortableBuild};

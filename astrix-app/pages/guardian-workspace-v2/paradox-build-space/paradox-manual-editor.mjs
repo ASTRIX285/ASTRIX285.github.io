@@ -8,6 +8,15 @@ const itemId=item=>String(item?.itemInstanceId||item?.instanceId||'');
 const isExotic=item=>item?.isExotic===true||String(item?.tier||item?.rarity||'').toLowerCase().includes('exotic');
 const exactRemoteSocketEvidence=option=>option?.remoteInsertEvidence==='exact-item-reusable-plug'||option?.source==='bungie-item-reusable-plugs';
 
+function manualEquipmentSourceAllowed(item,characterId){
+  const source=item?.source||{},kind=String(source.kind||''),owner=String(source.characterId||''),active=String(characterId||'');
+  return kind==='vault'||(['equipped','carried'].includes(kind)&&Boolean(active)&&owner===active);
+}
+
+function filterManualEquipmentSources(items=[],characterId=''){
+  return (Array.isArray(items)?items:[]).filter(item=>manualEquipmentSourceAllowed(item,characterId));
+}
+
 function clearGeneratedClaims(build,component='manual'){
   for(const key of ['recommendationGeneratedAt','recommendationElement','recommendationStatus','forgeIntelligence','liveTransferPreflight','liveTransferPlan','liveTransferResult'])delete build[key];
   if(component==='weapon'){delete build.weaponSelectionRecommendation;delete build.weaponRollAdvice;}
@@ -28,7 +37,7 @@ function validateEquipmentChoice(build,kind,slotIndex,item){
   const expected=(kind==='weapon'?WEAPON_BUCKETS:ARMOUR_BUCKETS)[slotIndex],actual=Number(item?.bucketHash??item?.definition?.inventory?.bucketTypeHash);
   if(actual!==expected)throw new TypeError(`This item does not belong in ${kind} slot ${slotIndex+1}.`);
   if(!/^\d+$/.test(itemId(item)))throw new TypeError('Manual equipment choices require an exact owned Bungie instance.');
-  if(!['equipped','carried','vault','profile','postmaster'].includes(String(item?.source?.kind||'')))throw new TypeError('This item has no verified owned-location evidence.');
+  if(!manualEquipmentSourceAllowed(item,build.characterId))throw new TypeError('Manual equipment choices are limited to this Guardian’s carried or equipped items plus the Vault.');
   if(kind==='armour'){
     const expectedClass=CLASS_TYPES[String(build.characterClass||'').toLowerCase()],classType=Number(item?.classType??item?.definition?.classType);
     if(Number.isInteger(expectedClass)&&Number.isInteger(classType)&&classType!==3&&classType!==expectedClass)throw new TypeError(`This armour is not compatible with the selected ${build.characterClass} Guardian.`);
@@ -143,4 +152,4 @@ function eligibleEquipment(catalogue=[],build={},kind,slotIndex){
   }).sort((left,right)=>Number(right.isExotic)-Number(left.isExotic)||Number(right.power||0)-Number(left.power||0)||String(left.name||'').localeCompare(String(right.name||'')));
 }
 
-export {clearGeneratedClaims,recordManualEdit,validateEquipmentChoice,stageEquipmentChoice,socketGroups,stageSocketChoice,stageSubclassSocketChoice,eligibleEquipment,exactRemoteSocketEvidence};
+export {clearGeneratedClaims,recordManualEdit,manualEquipmentSourceAllowed,filterManualEquipmentSources,validateEquipmentChoice,stageEquipmentChoice,socketGroups,stageSocketChoice,stageSubclassSocketChoice,eligibleEquipment,exactRemoteSocketEvidence};

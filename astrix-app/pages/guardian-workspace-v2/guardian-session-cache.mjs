@@ -9,12 +9,14 @@ const DB_VERSION=2;
 const STORE_NAME="guardian-data";
 const MANIFEST_STORE_NAME="manifest-data";
 const FORGE_TRANSFER_PREFIX="forge-loader-transfer:v1";
+const BUILD_FORGE_STATE_PREFIX="build-forge-state:v1";
 // The profile cache belongs to the current browser session. Keep the last
 // verified Guardian available for a full working session so Main <-> Build
 // navigation never collapses to placeholders while Bungie refreshes.
 const PROFILE_TTL_MS=12*60*60*1000;
 const FORGE_TRANSFER_TTL_MS=30*60*1000;
 const FORGE_TRANSFER_IO_TIMEOUT_MS=4000;
+const BUILD_FORGE_STATE_TTL_MS=12*60*60*1000;
 
 const safeSessionRead=key=>{
   try{return JSON.parse(sessionStorage.getItem(key)||"null");}
@@ -115,6 +117,12 @@ function forgeTransferRecordKey(value={}){
   return `${FORGE_TRANSFER_PREFIX}:${binding.membershipType}:${binding.membershipId}:${binding.characterId}`;
 }
 
+function buildForgeStateRecordKey(value={}){
+  const binding=forgeTransferBinding(value);
+  if(!binding.characterId||!binding.membershipId||!binding.membershipType)return "";
+  return `${BUILD_FORGE_STATE_PREFIX}:${binding.membershipType}:${binding.membershipId}:${binding.characterId}`;
+}
+
 function boundedForgeTransferIo(task,fallback){
   return Promise.race([task,new Promise(resolve=>setTimeout(()=>resolve(fallback),FORGE_TRANSFER_IO_TIMEOUT_MS))]);
 }
@@ -135,6 +143,24 @@ async function readForgeLoaderTransfer(binding){
   if(!record||Date.now()-Number(record.savedAt||0)>FORGE_TRANSFER_TTL_MS)return null;
   if(stored.characterId!==normalized.characterId||stored.membershipId!==normalized.membershipId||stored.membershipType!==normalized.membershipType)return null;
   return record.transfer?.snapshotEnvelope&&record.transfer?.armourSelection?record.transfer:null;
+}
+
+async function cacheBuildForgeState(binding,snapshot,{writeRecord:writeBuildRecord=writeRecord,now=Date.now}={}){
+  const normalized=forgeTransferBinding(binding),key=buildForgeStateRecordKey(normalized);
+  if(!key||!snapshot)return false;
+  try{return await boundedForgeTransferIo(writeBuildRecord({key,binding:normalized,savedAt:now(),snapshot}),false);}
+  catch{return false;}
+}
+
+async function readBuildForgeState(binding,{readRecord:readBuildRecord=readRecord,now=Date.now}={}){
+  const normalized=forgeTransferBinding(binding),key=buildForgeStateRecordKey(normalized);
+  if(!key)return null;
+  let record=null;
+  try{record=await boundedForgeTransferIo(readBuildRecord(key),null);}catch{return null;}
+  const stored=forgeTransferBinding(record?.binding||{});
+  if(!record||now()-Number(record.savedAt||0)>BUILD_FORGE_STATE_TTL_MS)return null;
+  if(stored.characterId!==normalized.characterId||stored.membershipId!==normalized.membershipId||stored.membershipType!==normalized.membershipType)return null;
+  return record.snapshot||null;
 }
 
 function profileRecordKey(identity){return `profile:v2:${identity}`;}
@@ -228,6 +254,8 @@ export {
   readCachedBungieProfile,
   cacheForgeLoaderTransfer,
   readForgeLoaderTransfer,
+  cacheBuildForgeState,
+  readBuildForgeState,
   releaseGuardianSessionStorageFallbacks,
   cacheBungieLoadoutDetail,
   readCachedBungieLoadoutDetail,

@@ -49,8 +49,11 @@ assert.match(profile,/return ensureLiveProfile\(session,\{background:false,silen
 assert.doesNotMatch(profile,/ensureLiveProfile\(globalThis\.ASTRIX_BUNGIE_SESSION\|\|null/,'Profile bootstrap must not make an unauthenticated profile request before session resolution');
 
 assert.match(profile,/resolveArtifactByProvenance/,'Artifact provenance resolver must be wired into the live profile');
-assert.match(profile,/SELECTED_LOADOUT_KEY/,'Selected Bungie loadout must be persisted as the page default');
-assert.match(profile,/rememberLoadoutSelection\(characterId,index\)/,'Loadout selection must update the persisted default');
+assert.match(profile,/SELECTED_LOADOUT_KEY/,'Explicit Bungie loadout selection state must remain separately identifiable.');
+assert.match(profile,/rememberLoadoutSelection\(characterId,index\)/,'An explicit saved-slot selection must remain available during that interaction.');
+assert.doesNotMatch(profile,/rememberedLoadoutSelection/,'A remembered Bungie slot must never override the fresh currently-equipped default.');
+assert.match(profile,/forgetLoadoutSelection\(\);[\s\S]*?loadoutSource:"currently-equipped"[\s\S]*?CURRENTLY EQUIPPED LOADOUT/,'Fresh profile activation must visibly default to the active Guardian’s currently equipped items.');
+assert.match(profile,/Currently equipped items · active Guardian default/,'The currently-equipped default must be visible in the Guardian source caption.');
 assert.match(profile,/Selected \$\{expected\} card resolved \$\{detail\.characterClass\}/,'Character class mismatch must fail loudly');
 assert.match(profile,/character selection cannot fall back to last played/,'Missing roster must not silently fall back');
 assert.doesNotMatch(profile,/function rememberedCharacterId/,'A previous tab selection must not override Bungie’s newest dateLastPlayed Guardian on a fresh profile load');
@@ -142,7 +145,8 @@ assert.match(await read('guardian-workspace-v2-compact.css'),/\.improve-cta\{[^}
 assert.match(workspaceHtml,/paradox-build-space-handoff\.mjs\?v=20260905-loadout-actions-2/,'Main must load the contextual Bungie-to-PARADOX handoff without stale code');
 assert.match(handoff,/latestGuardian&&Number\.isInteger\(latestGuardian\.selectedLoadoutIndex\)/,'Improve My Guardian must prefer the active selected loadout');
 assert.match(handoff,/loadoutsAvailable:detail\.loadoutsAvailable===true/,'Build handoff must carry the exact Bungie in-game loadout catalogue');
-assert.match(loadoutsModule,/VIEW DETAILS[\s\S]*?EDIT A PARADOX COPY[\s\S]*?SAVE AS PARADOX COPY[\s\S]*?EQUIP IN GAME[\s\S]*?OVERWRITE SLOT[\s\S]*?CLEAR SLOT/,'Every saved Bungie slot must expose its contextual review, PARADOX-copy and confirmed in-game actions.');
+assert.match(loadoutsModule,/VIEW DETAILS[\s\S]*?EDIT A PARADOX COPY[\s\S]*?SAVE AS PARADOX COPY[\s\S]*?<b>Apply<\/b>[\s\S]*?OVERWRITE SLOT[\s\S]*?CLEAR SLOT/,'Every saved Bungie slot must expose its contextual review, PARADOX-copy and exactly labelled Apply action.');
+assert.match(loadoutsModule,/APPLY BUNGIE SLOT \$\{slot\} IN GAME\?[\s\S]*?separate from the Build Forge Apply button[\s\S]*?APPLY THIS IN-GAME LOADOUT/,'The saved-slot Apply confirmation must remain visibly distinct from Build Forge Apply.');
 assert.match(loadoutsModule,/stageBungieLoadoutAction[\s\S]*?confirmBungieLoadoutAction\(menuState\.intent\)[\s\S]*?executeBungieLoadoutAction/,'In-game loadout changes must preserve the staged intent through the final confirmation handler.');
 assert.match(handoff,/function openContextualLoadout[\s\S]*?edit-paradox-copy[\s\S]*?save-paradox-copy[\s\S]*?safeStore\(BUILD_SPACE_KEY,createBuildState\(source\)[\s\S]*?location\.href=`\.\/paradox-build-space/,'Edit and Save-as-PARADOX actions must carry the exact selected Bungie slot into Build Forge.');
 assert.match(handoff,/super:detail\.super\|\|null/,'Build handoff must preserve fixture and legacy subclass fields without an empty subclassBuild');
@@ -185,7 +189,12 @@ assert.match(buildModule,/import '\.\.\/guardian-loadouts\.mjs(?:\?[^']+)?'/,'Bu
 assert.match(buildModule,/from '\.\.\/guardian-bungie-profile\.mjs(?:\?[^']+)?'/,'Build Tool must reuse strict Main character selection');
 assert.match(buildModule,/createBuildState\(boundDetail\)/,'Selected Build Tool character must create a new membership-bound protected build snapshot');
 assert.match(buildModule,/let volatileState=null/,'Build must retain a protected in-page snapshot when Web Storage rejects the handoff');
-assert.match(buildModule,/function writeState\(next,\{memoryOnly=volatileStateMemoryOnly\}=\{\}\)\{[\s\S]*?const state=protectBuildState\(next\);[\s\S]*?volatileState=state;/,'Build writes must protect the in-page fallback before attempting persistence');
+assert.match(buildModule,/function writeState\(next\)\{[\s\S]*?const state=protectBuildState\(next\);[\s\S]*?volatileState=state;[\s\S]*?void queueStatePersistence\(state\);/,'Build writes must protect the in-page fallback and queue asynchronous persistence.');
+const writeStateSource=buildModule.slice(buildModule.indexOf('function writeState(next)'),buildModule.indexOf('function requestedTransferBinding'));
+assert.doesNotMatch(writeStateSource,/sessionStorage|localStorage|JSON\.stringify/,'Build edits must not synchronously JSON-encode or duplicate state into Web Storage.');
+assert.match(buildModule,/cacheBuildForgeState\(binding,snapshot\)[\s\S]*?could not be saved for refresh/,'Async persistence failure must be surfaced visibly instead of silently becoming memory-only.');
+assert.match(sessionCache,/async function cacheBuildForgeState\(binding,snapshot,\{writeRecord:writeBuildRecord=writeRecord[\s\S]*?writeBuildRecord\(\{key,binding:normalized,savedAt:now\(\),snapshot\}\)/,'Build Forge state must persist asynchronously through the IndexedDB session cache.');
+assert.match(buildModule,/function stageWorkingBuild\(mutator\)[\s\S]*?createWorkingBuildPatch\(state\.workingBuild\|\|state\.originalBuild\)/,'Representative manual edits must use a small mutable patch instead of cloning the full snapshot.');
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260905-card-space-mods-1'/,'Build Armour must import the same current renderer as the locked Character section');
 assert.match(buildHtml,/paradox-build-space\.css\?v=20260905-manual-editor-1/,'Build must load the standardized equipment geometry plus manual editor layer without a stale cache');
