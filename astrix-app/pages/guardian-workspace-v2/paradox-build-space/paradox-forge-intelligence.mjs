@@ -19,6 +19,10 @@ const COMBAT_TERMS=Object.freeze([
 ]);
 const ABILITY_SOCKETS=Object.freeze(['classAbility','movement','melee','grenade']);
 const BEAM_WIDTH=18;
+const CACHE_LIMIT=512;
+// Search branches share immutable equipment/catalogue evidence; only selections vary.
+const branch=build=>({...build,subclassBuild:{...build.subclassBuild}});
+function* expand(rows,options,project){for(const row of rows)for(const option of options)yield project(row.build,option);}
 
 const clone=value=>{try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}};
 const clean=value=>String(value??'').trim();
@@ -113,7 +117,7 @@ function stageVerifiedSubclassCandidate(build={},candidate={}){
 }
 
 function synchroniseSubclassProjection(build={}){
-  const sb=build.subclassBuild||{};
+  const sb={...build.subclassBuild};
   const abilities=ABILITY_SOCKETS.map(key=>sb[key]).filter(Boolean);
   sb.abilities=abilities.length?abilities:uniqueResolved(sb.abilities||[]);
   const byType=new Map((sb.abilities||[]).map(item=>[lower(item?.componentType||item?.abilityType||item?.type),item]));
@@ -124,14 +128,14 @@ function synchroniseSubclassProjection(build={}){
   sb.abilities=ABILITY_SOCKETS.map(key=>sb[key]).filter(Boolean);
   build.subclassBuild=sb;
   build.super=sb.super||null;
-  build.superOptions=clone(sb.superOptions||[]);
+  build.superOptions=[...(sb.superOptions||[])];
   build.classAbility=sb.classAbility||null;
   build.movement=sb.movement||null;
   build.melee=sb.melee||null;
   build.grenade=sb.grenade||null;
-  build.abilities=clone(sb.abilities||[]);
-  build.aspects=clone(sb.aspects||[]);
-  build.fragments=clone(sb.fragments||[]);
+  build.abilities=[...(sb.abilities||[])];
+  build.aspects=[...(sb.aspects||[])];
+  build.fragments=[...(sb.fragments||[])];
   return build;
 }
 
@@ -181,17 +185,20 @@ function evaluate(build,context,analyzeBuild){
   const prismaticScore=context.element==='prismatic'?coveredElements.length*28:0;
   const retainedComponents=components.filter(item=>context.baselineKeys?.has(itemKey(item))).length,stabilityScore=retainedComponents*2;
   const evaluated={analysis,score:directed.score+componentScore+prismaticScore+stabilityScore,directed,componentScore,stabilityScore,coveredElements};
+  if(context.cache?.size>=CACHE_LIMIT)context.cache.delete(context.cache.keys().next().value);
   context.cache?.set(signature,evaluated);
   return {build:projected,componentRows,signature,...evaluated};
 }
 
-function rank(states,context,analyzeBuild,width=BEAM_WIDTH){
-  const seen=new Map();
+function* rank(states,context,analyzeBuild,width=BEAM_WIDTH){
+  const seen=new Set(),best=[];
+  const compare=(left,right)=>right.score-left.score||right.directed.links-left.directed.links||left.signature.localeCompare(right.signature);
   for(const state of states){
-    const row=evaluate(state,context,analyzeBuild),prior=seen.get(row.signature);
-    if(!prior||row.score>prior.score)seen.set(row.signature,row);
+    const row=evaluate(state,context,analyzeBuild);
+    if(!seen.has(row.signature)){seen.add(row.signature);best.push(row);best.sort(compare);if(best.length>width)best.pop();}
+    yield;
   }
-  return [...seen.values()].sort((left,right)=>right.score-left.score||right.directed.links-left.directed.links||left.signature.localeCompare(right.signature)).slice(0,width);
+  return best;
 }
 
 function combinations(rows,count){
@@ -211,7 +218,7 @@ function fragmentCapacity(build={},options=[]){
 }
 
 function setAbility(build,key,item){
-  const next=clone(build);next.subclassBuild[key]=clone(item);return synchroniseSubclassProjection(next);
+  const next=branch(build);next.subclassBuild[key]=item;return synchroniseSubclassProjection(next);
 }
 
 function decisionLedger(result,context){
@@ -230,7 +237,7 @@ function decisionLedger(result,context){
   return {rows,limitations};
 }
 
-function composeForgeRecommendation({build={},candidate={},element='',analyzeBuild=null}={}){
+function* composeSteps({build={},candidate={},element='',analyzeBuild=null}={}){
   const requested=ELEMENTS.includes(lower(element))?lower(element):elementOf(candidate);
   if(!requested)throw new TypeError('A verified elemental build option is required.');
   if(!hasVerifiedSubclassSockets(candidate))throw new TypeError('The selected element does not have a complete verified Bungie subclass socket set.');
@@ -239,28 +246,29 @@ function composeForgeRecommendation({build={},candidate={},element='',analyzeBui
   let beam=[evaluate(base,context,analyzeBuild)];
 
   const superOptions=uniqueResolved(base.subclassBuild?.superOptions||[]);
-  if(superOptions.length)beam=rank(superOptions.map(item=>{const next=clone(base);next.subclassBuild.super=clone(item);return next;}),context,analyzeBuild);
+  if(superOptions.length)beam=yield* rank(expand([{build:base}],superOptions,(build,item)=>{const next=branch(build);next.subclassBuild.super=item;return next;}),context,analyzeBuild);
 
   for(const socket of ABILITY_SOCKETS){
     const fallback=beam[0]?.build?.subclassBuild?.[socket];
     const options=uniqueResolved([...(base.subclassBuild?.abilityOptionsBySocket?.[socket]||[]),fallback]);
     if(!options.length)continue;
-    beam=rank(beam.flatMap(row=>options.map(item=>setAbility(row.build,socket,item))),context,analyzeBuild);
+    beam=yield* rank(expand(beam,options,(build,item)=>setAbility(build,socket,item)),context,analyzeBuild);
   }
 
   const aspectOptions=uniqueResolved([...(base.subclassBuild?.availableAspects||base.subclassBuild?.aspectOptions||[]),...(base.subclassBuild?.aspects||[])]).slice(0,12);
   const aspectCount=Math.min(2,Math.max(base.subclassBuild?.aspects?.length||0,Math.min(2,aspectOptions.length)));
   if(aspectOptions.length&&aspectCount){
     const aspectSets=combinations(aspectOptions,aspectCount);
-    beam=rank(beam.flatMap(row=>aspectSets.map(set=>{const next=clone(row.build);next.subclassBuild.aspects=clone(set);return synchroniseSubclassProjection(next);})),context,analyzeBuild);
+    beam=yield* rank(expand(beam,aspectSets,(build,set)=>{const next=branch(build);next.subclassBuild.aspects=set;return next;}),context,analyzeBuild);
   }
 
   const fragmentOptions=uniqueResolved([...(base.subclassBuild?.availableFragments||base.subclassBuild?.fragmentOptions||[]),...(base.subclassBuild?.fragments||[])]);
   const capacity=Math.min(fragmentOptions.length,fragmentCapacity(beam[0]?.build||base,fragmentOptions));
   if(fragmentOptions.length&&capacity){
-    beam=beam.map(row=>{const next=clone(row.build);next.subclassBuild.fragments=[];return evaluate(synchroniseSubclassProjection(next),context,analyzeBuild);});
+    beam=beam.map(row=>{const next=branch(row.build);next.subclassBuild.fragments=[];return evaluate(synchroniseSubclassProjection(next),context,analyzeBuild);});
     for(let slot=0;slot<capacity;slot+=1){
-      beam=rank(beam.flatMap(row=>fragmentOptions.filter(item=>!(row.build.subclassBuild.fragments||[]).some(selected=>itemKey(selected)===itemKey(item))).map(item=>{const next=clone(row.build);next.subclassBuild.fragments=[...(next.subclassBuild.fragments||[]),clone(item)];return synchroniseSubclassProjection(next);})),context,analyzeBuild);
+      const candidates=(function*(){for(const row of beam)for(const item of fragmentOptions){if(row.build.subclassBuild.fragments.some(selected=>itemKey(selected)===itemKey(item)))continue;const next=branch(row.build);next.subclassBuild.fragments=[...next.subclassBuild.fragments,item];yield next;}})();
+      beam=yield* rank(candidates,context,analyzeBuild);
       if(!beam.length)break;
     }
   }
@@ -278,4 +286,11 @@ function composeForgeRecommendation({build={},candidate={},element='',analyzeBui
   };
 }
 
+// Same deterministic search for tooling and the responsive browser path.
+function composeForgeRecommendation(options){const steps=composeSteps(options);let step;do{step=steps.next();}while(!step.done);return step.value;}
+async function composeForgeRecommendationAsync(options,{yieldControl=()=>new Promise(resolve=>setTimeout(resolve,0)),budgetMs=8}={}){
+  const steps=composeSteps(options);let started=performance.now();
+  for(;;){const step=steps.next();if(step.done)return step.value;if(performance.now()-started>=budgetMs){await yieldControl();started=performance.now();}}
+}
+export {composeForgeRecommendationAsync};
 export {ABILITY_SOCKETS,COMBAT_TERMS,ELEMENTS,composeForgeRecommendation,explicitTokens,filterExoticCompatibleSubclasses,hasVerifiedSubclassSockets,resolvedItem,stageVerifiedSubclassCandidate,synchroniseSubclassProjection};

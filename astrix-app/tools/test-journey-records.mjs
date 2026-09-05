@@ -63,3 +63,16 @@ for(const type of patternsJoined){assert.ok(type.categories.length,`${type.key} 
 const medals=await context.joins.presentationRecordCategories([{presentationNodeHash:4227847809}],{},'test','medals');
 assert.ok(medals.length>=3);assert.ok(medals.every(c=>c.recordEntries.length));
 console.log('JOURNEY_PRODUCTION_JOINS=PASS patterns='+patternsJoined.reduce((sum,t)=>sum+t.total,0)+' medalCategories='+medals.length);
+
+const noCrafting=structuredClone(profile);delete noCrafting.profile.characterCraftables;
+const publicPatterns=await context.joins.verifiedCraftablePatternTypes(noCrafting,'test');
+assert.equal(publicPatterns.reduce((sum,t)=>sum+t.total,0),patternsJoined.reduce((sum,t)=>sum+t.total,0),'Missing craftable instances must not hide public pattern definitions');
+assert.ok(publicPatterns.every(t=>t.completed===null),'Unknown personal pattern progress must not become zero');
+const {resolveCollectionBadges}=await import('../pages/journey/journey-collection-model.mjs');
+
+const fullBadges=await resolveCollectionBadges({profile:{profileCollectibles:{data:{collectionBadgesRootNodeHash:498211331,collectibles:{}}}}},service,'test');
+assert.equal(fullBadges.badges.length,39,'Every official badge in this snapshot must resolve');
+assert.deepEqual(fullBadges.coverage.unresolved,[],'All badge collectible identities must resolve from compact shards');
+assert.ok(fullBadges.badges.every(b=>b.requirements.length&&b.completed===null),'Unknown badge progress must remain unknown');
+assert.ok(service.status().retainedBytes<=service.status().maxBytes);
+console.log('JOURNEY_BADGE_CATALOGUE=PASS badges='+fullBadges.badges.length+' requirements='+fullBadges.badges.reduce((sum,b)=>sum+b.requirements.length,0));

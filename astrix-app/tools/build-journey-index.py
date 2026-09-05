@@ -8,11 +8,20 @@ FIELDS={
  'DestinyObjectiveDefinition':('displayProperties','progressDescription','completionValue','destinationHash','activityHash'),
  'DestinyActivityDefinition':('displayProperties','destinationHash','activityModeTypes','activityTypeHash'),
  'DestinyDestinationDefinition':('displayProperties','bubbles','placeHash'),
+ 'DestinyCollectibleDefinition':('displayProperties','itemHash','sourceString','presentationInfo'),
  'DestinyMetricDefinition':('displayProperties','trackingObjectiveHash'),
 }
 def build(database,metadata,out):
  version=metadata.get('Response',metadata)['version']; out.mkdir(parents=True,exist_ok=True)
  nodes={str(row['hash']):row for (raw,) in database.execute('SELECT json FROM DestinyPresentationNodeDefinition') for row in [json.loads(raw)]}
+ # Journey badges need only descendants of Bungie's badge root, not the full collection inventory.
+ badge_collectibles=set();pending=[498211331];seen=set()
+ while pending:
+  h=pending.pop()
+  if h in seen:continue
+  seen.add(h);children=nodes.get(str(h),{}).get('children',{})
+  badge_collectibles.update(e['collectibleHash'] for e in children.get('collectibles',[]))
+  pending.extend(e['presentationNodeHash'] for e in children.get('presentationNodes',[]))
  anchors={e['presentationNodeHash'] for root in [1866538467,4227847809,2744330515,3442838224] for e in nodes.get(str(root),{}).get('children',{}).get('presentationNodes',[])}
  def branch_shard(row):
   pending=list(row.get('parentNodeHashes',[]));seen=set()
@@ -32,6 +41,7 @@ def build(database,metadata,out):
   shards=[{} for _ in range(count)]; raw_bytes=0; lookup={}
   for (raw,) in database.execute('SELECT json FROM '+table+' ORDER BY id'):
    row=json.loads(raw);raw_bytes+=len(raw.encode());h=row['hash']
+   if table=='DestinyCollectibleDefinition' and h not in badge_collectibles:continue
    compact={'hash':h,**{k:row[k] for k in fields if k in row}}
    if table=='DestinyActivityDefinition' and not row.get('redacted') and {4,82}.intersection(row.get('activityModeTypes',[])):
     index['endgameByDestination'].setdefault(str(row.get('destinationHash')),[]).append(h)
@@ -54,7 +64,7 @@ if __name__=='__main__':
    with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=90) as response:return json.load(response)
   metadata=fetch('https://www.bungie.net/Platform/Destiny2/Manifest/')
   old=Path(a.output)/'index.json'
-  if old.exists() and json.loads(old.read_text()).get('manifestVersion')==metadata['Response']['version']:print('JOURNEY_INDEX_CURRENT');raise SystemExit(0)
+  if old.exists() and json.loads(old.read_text()).get('manifestVersion')==metadata['Response']['version'] and set(FIELDS)<=set(json.loads(old.read_text()).get('tables',{})):print('JOURNEY_INDEX_CURRENT');raise SystemExit(0)
   db=sqlite3.connect(':memory:')
   for table in FIELDS:
    rows=fetch('https://www.bungie.net'+metadata['Response']['jsonWorldComponentContentPaths']['en'][table])

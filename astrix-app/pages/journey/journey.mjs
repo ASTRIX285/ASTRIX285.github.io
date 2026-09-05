@@ -1,7 +1,7 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
-import {guardianManifest} from './journey-manifest.mjs?v=20260905-journey-repair-1';
+import {guardianManifest} from './journey-manifest.mjs?v=20260905-pattern-badges-1';
 import {resolveRecordTree,patternTypeKey,seasonRankProgress,findDestinationNodes} from './journey-record-model.mjs?v=20260905-journey-repair-1';
-import {resolveCollectionBadges} from './journey-collection-model.mjs';
+import {resolveCollectionBadges} from './journey-collection-model.mjs?v=20260905-pattern-badges-1';
 import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {validateHandoffEnvelope} from '../guardian-workspace-v2/paradox-build-binding.mjs';
 import {readCapture,readCaptureArchive} from '../guardian-workspace-v2/guardian-shooting-range-capture.mjs?v=20260902-journey-data-hooks-1';
@@ -1454,9 +1454,9 @@ async function verifiedCraftablePatternTypes(payload,characterId){
     componentCharacterId=String(fallback?.[0]||'');
     component=fallback?.[1];
   }
-  const rootHash=finiteNumber(component?.craftingRootNodeHash);
-  const craftables=component?.craftables;
-  if(rootHash===null||!craftables||typeof craftables!=='object')return null;
+  // Public pattern identity does not depend on private craftable instance state.
+  const rootHash=finiteNumber(component?.craftingRootNodeHash)||3442838224;
+  componentCharacterId=componentCharacterId||characterId;
   const nodes={
     ...(payload?.profile?.profilePresentationNodes?.data?.nodes||{}),
     ...(payload?.profile?.characterPresentationNodes?.data?.[componentCharacterId]?.nodes||{})
@@ -1486,10 +1486,11 @@ async function verifiedCraftablePatternTypes(payload,characterId){
       });
       if(!type.icon)type.icon=section.icon;
       type.total+=1;
+      if(row.complete===null)type.unknown=true;
       if(row.complete)type.completed+=1;
     });
   });
-  return [...types.values()].map(type=>({...type,total:type.total||null,completed:type.total?type.completed:null,categories:[...type.categories.values()]}));
+  return [...types.values()].map(type=>({...type,total:type.total||null,completed:type.total&&!type.unknown?type.completed:null,categories:[...type.categories.values()]}));
 }
 
 function mergeVerifiedPatternTypes(section,verifiedTypes){
@@ -1617,7 +1618,7 @@ function showRecordsDetail(section){
   if(patternsCatalysts){
     renderRecordTypes(recordsTypes,section.types||[],type=>{
       if(recordsDetailHeading)recordsDetailHeading.textContent=type.name;
-      renderSubmenu(recordsSubcategories,type.categories||[],category=>renderCategory(category,type.key==='catalysts'?'No verified catalyst records were returned for this weapon group.':'Verified pattern progress for this weapon type is not yet connected.'));
+      renderSubmenu(recordsSubcategories,type.categories||[],category=>renderCategory(category,type.key==='catalysts'?'No verified catalyst records were returned for this weapon group.':'No patterns for this weapon type were returned in the Bungie catalogue.'));
     });
     return;
   }

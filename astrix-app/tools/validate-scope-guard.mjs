@@ -172,7 +172,7 @@ const staged=execFileSync('git',['diff','--name-only','--cached'],{cwd:root,enco
 const untracked=execFileSync('git',['ls-files','--others','--exclude-standard'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
 const cataloguePath=/^astrix-app\/data\/weapon-catalogue\/(?:index|weapons-[a-z-]+|(?:plugDefinitions|plugSetDefinitions|sandboxPerks|socketTypeDefinitions|socketCategoryDefinitions|socketLayouts|socketEntries|iconDefinitions|equipmentWatermarks)-\d{3})\.json$/;
-const journeyIndexPath=/^astrix-app\/data\/journey-index\/(?:index|Destiny(?:PresentationNode|Record|Objective|Activity|Destination|Metric)Definition-(?:[0-9]|1[0-5]))\.json$/;
+const journeyIndexPath=/^astrix-app\/data\/journey-index\/(?:index|Destiny(?:PresentationNode|Record|Objective|Activity|Destination|Metric|Collectible)Definition-(?:[0-9]|1[0-5]))\.json$/;
 const outside=[...new Set([...changed,...working,...staged,...untracked])].filter(path=>!allowed.has(path)&&!cataloguePath.test(path)&&!journeyIndexPath.test(path));
 
 assert.deepEqual(outside,[],`Scope violation:\n${outside.join('\n')}`);

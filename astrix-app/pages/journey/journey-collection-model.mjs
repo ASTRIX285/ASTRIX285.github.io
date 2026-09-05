@@ -10,13 +10,13 @@ export function collectibleState(profile,characterId,hash){
 }
 
 export async function resolveCollectionBadges(payload,manifest,characterId){
-  const profile=payload?.profile||{},rootHash=positive(profile?.profileCollectibles?.data?.collectionBadgesRootNodeHash);
+  const profile=payload?.profile||{},rootHash=positive(profile?.profileCollectibles?.data?.collectionBadgesRootNodeHash)||positive(profile?.characterCollectibles?.data?.[characterId]?.collectionBadgesRootNodeHash);
   if(!rootHash)return {badges:[],coverage:{complete:false,reason:'collectibles-component-unavailable',unresolved:[]}};
   const root=await manifest.getAsync('DestinyPresentationNodeDefinition',rootHash);
   if(!root)return {badges:[],coverage:{complete:false,reason:'badge-root-unresolved',unresolved:[rootHash]}};
   const entries=(root.children?.presentationNodes||[]).slice().sort((a,b)=>(a.nodeDisplayPriority||0)-(b.nodeDisplayPriority||0));
   const definitions=await manifest.getMany('DestinyPresentationNodeDefinition',entries.map(e=>e.presentationNodeHash));
-  const unresolved=new Set(),unresolvedStates=new Set(),badges=[];
+  const unresolved=new Set(),unresolvedStates=new Set(),badges=[],badgeRows=[];
   for(const entry of entries){
     const hash=positive(entry.presentationNodeHash),definition=definitions[String(hash)];
     if(!definition){unresolved.add(hash);continue;}
@@ -38,7 +38,10 @@ export async function resolveCollectionBadges(payload,manifest,characterId){
         pending.push({hash:childHash,definition:child,path:child.displayProperties?.name||''});
       }
     }
-    const collectDefs=await manifest.getMany('DestinyCollectibleDefinition',collectibles.keys());
+    badgeRows.push({hash,definition,node,collectibles});
+  }
+  const collectDefs=await manifest.getMany('DestinyCollectibleDefinition',new Set(badgeRows.flatMap(row=>[...row.collectibles.keys()])));
+  for(const {hash,definition,node,collectibles} of badgeRows){
     const requirements=[];
     for(const [collectibleHash,child] of collectibles){
       const def=collectDefs[String(collectibleHash)],state=collectibleState(profile,characterId,collectibleHash);
@@ -48,7 +51,7 @@ export async function resolveCollectionBadges(payload,manifest,characterId){
       const name=state.obscured?'Hidden collectible':def.displayProperties?.name||`Collectible ${collectibleHash}`;
       requirements.push({hash:collectibleHash,paradoxId:paradoxDefinitionId('DestinyCollectibleDefinition',collectibleHash),itemHash:def.itemHash??null,name:child.path?`${child.path} · ${name}`:name,icon:state.obscured?'':icon(def.displayProperties?.icon),description:state.obscured?'':def.sourceString||def.displayProperties?.description||'',complete:state.complete,objectives:[],state:state.state});
     }
-    const known=requirements.every(row=>row.complete!==null),completed=number(node?.progressValue)??(known?requirements.filter(row=>row.complete).length:null),total=number(node?.completionValue)??(requirements.length||null);
+    const known=unresolved.size===0&&requirements.length>0&&requirements.every(row=>row.complete!==null),completed=number(node?.progressValue)??(known?requirements.filter(row=>row.complete).length:null),total=number(node?.completionValue)??(requirements.length||null);
     badges.push({hash,paradoxId:paradoxDefinitionId('DestinyPresentationNodeDefinition',hash),name:definition.displayProperties?.name||`Badge ${hash}`,icon:icon(definition.displayProperties?.icon||definition.originalIcon),description:definition.displayProperties?.description||'',completed,total,unit:'COLLECTIBLES',complete:completed!==null&&total>0&&completed>=total,requirements,characterId,source:'Bungie Collectibles / collectionBadgesRootNodeHash'});
   }
   return {badges,coverage:{rootHash,complete:unresolved.size===0&&unresolvedStates.size===0,unresolved:[...unresolved],unresolvedStates:[...unresolvedStates],badgeCount:badges.length,source:'Destiny2.GetProfile components 700 and 800'}};

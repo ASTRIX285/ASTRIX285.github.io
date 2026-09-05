@@ -11,7 +11,7 @@ export class JourneyManifestService{
   }
   async index(){
     if(!this.indexPromise)this.indexPromise=(async()=>{
-      const response=await this.fetchImpl(new URL('index.json?v=20260905-journey-repair-1',BASE));
+      const response=await this.fetchImpl(new URL('index.json?v=20260905-pattern-badges-1',BASE));
       if(!response.ok)throw new Error('Journey catalogue unavailable');
       const index=await response.json();
       const version=await this.fallback.checkVersion();

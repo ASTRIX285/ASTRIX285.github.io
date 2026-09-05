@@ -43,3 +43,15 @@ Run `node astrix-app/tools/test-journey-records.mjs` for real-manifest mapping, 
 The previous completion claim did not establish that the owner's authenticated Journey panels displayed correctly. This repair's automated tests do not substitute for that authenticated visual check. The available review browser is not signed into the owner's Bungie session; live account-specific completion values and the final desktop/mobile appearance still require that review.
 
 Bungie API reference: https://bungie-net.github.io/multi/schema_Destiny-Components-Records-DestinyProfileRecordsComponent.html
+
+
+## Follow-up: Patterns, Badges and responsive Forge generation (5 September)
+
+- Patterns resolves the official 3442838224 presentation root if character crafting metadata is omitted. All 183 pattern records in this snapshot remain browsable. Unreported personal completion remains unknown, including category totals.
+- Badges batches collectible resolution once across the 39 badge trees. The compact catalogue includes the 1,229 unique referenced collectibles (1,257 badge requirements including shared entries), totaling 349,043 serialized bytes across 16 shards. It excludes unrelated collection inventory; all badge references resolve in regression tests. Journey retains its existing eight-shard / 6 MiB serialized-cache ceiling.
+- Build Forge retains the transferred Artifact and Super on entry. Automatic Artifact ranking on bootstrap or unrelated manual selections was removed; generation and the explicit Artifact recommendation control still rank verified choices.
+- Closed Artifact, ability, aspect and fragment pickers defer their markup until opened. Fragment options are no longer silently truncated to 14.
+- The deterministic subclass search now streams candidates, retains 18 ranked branches, caps analysis memoization at 512 entries, and structurally shares unchanged equipment evidence. The browser runner yields between candidates on an 8 ms scheduling budget. This is a cooperative budget, not a hard maximum for one analyser invocation. Synchronous regression and cooperative results match; an event-loop heartbeat executes during search. Changes of source build during generation discard the stale result.
+- Character's left rail sizes to its contents, ending after Artifact. Weapon and armour portrait frames use equal widths and a 1:1.22 shape; original Bungie art and release watermarks use matching contain geometry. Equipment mod/perk sockets share one size.
+
+Validation uses official public snapshot definitions and synthetic profile progress. Authenticated Guardian visual review and full-device heap/latency measurements remain unverified; source-level layout validation is not a substitute for that review.
