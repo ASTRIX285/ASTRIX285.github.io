@@ -80,7 +80,7 @@ assert.match(forgeLoaderCss,/grid-template-columns:minmax\(360px,20%\) minmax\(6
 assert.match(forgeLoaderCss,/grid-template-columns:var\(--apx-workspace-compact-columns,/u,'Forge Loader must retain the shared compact workspace tracks');
 assert.match(sources.layout,/grid-template-columns:var\(--apx-workspace-left,[^;]+\) var\(--apx-workspace-centre,[^;]+\)!important/,'Character must consume the shared rail and centre tracks');
 assert.match(sources.shared,/\.workspace>\.stage-companion,[\s\S]*?\.workspace>\.stage,[\s\S]*?\.workspace>\.right\{display:none!important\}/,'Character must retain but visually remove the two obsolete stage areas');
-assert.match(sources.shared,/grid-template-areas:"rail action" "rail equipment"!important/,'Character must use a balanced rail and equipment workspace');
+assert.match(sources.shared,/grid-template-areas:"rail equipment" "rail action"!important/,'Character equipment must align with the rail top, with its action below');
 assert.match(sources.shared,/grid-template-areas:"loadouts" "armour" "weapons"!important/,'Character equipment must render Loadouts, Armour, then Weapons');
 assert.match(sources.shared,/grid-template-rows:repeat\(3,max-content\)!important;[\s\S]*?grid-auto-rows:max-content!important;/,'Character equipment rows must grow to their complete rendered content');
 for(const [label,area] of [['Loadouts','loadouts'],['Armour','armour'],['Weapons','weapons']]){

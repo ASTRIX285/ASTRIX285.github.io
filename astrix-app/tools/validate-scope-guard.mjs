@@ -4,6 +4,11 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'astrix-app/pages/journey/journey-manifest.mjs',
+  'astrix-app/pages/journey/journey-record-model.mjs',
+  'astrix-app/tools/build-journey-index.py',
+  'astrix-app/tools/test-journey-records.mjs',
+  'astrix-app/docs/journey-repair-evidence.md',
   'astrix-app/core/bungie-item-identity.mjs',
   'astrix-app/core/bungie-profile-plugs.mjs',
   'astrix-app/core/forge-index-transport.mjs',
@@ -167,7 +172,8 @@ const staged=execFileSync('git',['diff','--name-only','--cached'],{cwd:root,enco
 const untracked=execFileSync('git',['ls-files','--others','--exclude-standard'],{cwd:root,encoding:'utf8'})
   .split(/\r?\n/).filter(Boolean);
 const cataloguePath=/^astrix-app\/data\/weapon-catalogue\/(?:index|weapons-[a-z-]+|(?:plugDefinitions|plugSetDefinitions|sandboxPerks|socketTypeDefinitions|socketCategoryDefinitions|socketLayouts|socketEntries|iconDefinitions|equipmentWatermarks)-\d{3})\.json$/;
-const outside=[...new Set([...changed,...working,...staged,...untracked])].filter(path=>!allowed.has(path)&&!cataloguePath.test(path));
+const journeyIndexPath=/^astrix-app\/data\/journey-index\/(?:index|Destiny(?:PresentationNode|Record|Objective|Activity|Destination|Metric)Definition-(?:[0-9]|1[0-5]))\.json$/;
+const outside=[...new Set([...changed,...working,...staged,...untracked])].filter(path=>!allowed.has(path)&&!cataloguePath.test(path)&&!journeyIndexPath.test(path));
 
 assert.deepEqual(outside,[],`Scope violation:\n${outside.join('\n')}`);
 console.log('SCOPE_GUARD=PASS');

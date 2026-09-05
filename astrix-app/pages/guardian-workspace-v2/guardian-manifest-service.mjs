@@ -145,7 +145,9 @@ function collectPayloadHashes(payload={},options={}){
 }
 
 class GuardianManifestService{
-  constructor({fetchImpl=globalThis.fetch?.bind(globalThis),storage=createIndexedDbStorage(),authOrigin=AUTH_ORIGIN}={}){
+  constructor({fetchImpl=globalThis.fetch?.bind(globalThis),storage=createIndexedDbStorage(),authOrigin=AUTH_ORIGIN,selective=false,maxFallbackDefinitions=Infinity}={}){
+    this.selective=selective;
+    this.maxFallbackDefinitions=maxFallbackDefinitions;
     this.fetchImpl=fetchImpl;
     this.storage=storage;
     this.authOrigin=authOrigin;
@@ -370,7 +372,7 @@ class GuardianManifestService{
   async getAsync(type,hash){
     const numeric=numericHash(hash);
     if(numeric===null)return null;
-    if(LAZY_COMPONENT_TYPES.has(type))await this.ensureComponent(type);
+    if(!this.selective&&LAZY_COMPONENT_TYPES.has(type))await this.ensureComponent(type);
     const local=this.get(type,numeric);
     if(local||this.cachedTypes.has(type))return local;
     const key=`${type}:${numeric}`;
@@ -385,7 +387,10 @@ class GuardianManifestService{
     try{
       const payload=await this.fetchJson(url);
       const definition=payload?.definition||null;
-      if(definition)this.fallbackDefinitions.set(key,definition);
+      if(definition){
+        while(this.fallbackDefinitions.size>=this.maxFallbackDefinitions)this.fallbackDefinitions.delete(this.fallbackDefinitions.keys().next().value);
+        this.fallbackDefinitions.set(key,definition);
+      }
       return definition;
     }catch{
       // A timeout must not permanently poison the next Journey/card lookup.

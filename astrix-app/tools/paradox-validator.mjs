@@ -27,6 +27,7 @@ const validators=[
   'test-forge-index-transport.mjs',
   'test-weapon-catalogue.mjs',
   'test-journey-collections.mjs',
+  'test-journey-records.mjs',
   'validate-paradox-item-cards.mjs',
   'test-build-space-character-isolation.mjs',
   'validate-paradox-build-space.mjs',

@@ -52,6 +52,10 @@ jobs:
                   raise SystemExit(f"Incomplete Artifact catalogue record: {artifact.get('hash')}")
           print(f"FORGE_ARTIFACT_CATALOGUE=PASS artifacts={len(artifacts)}")
           PYEOF
+      - name: Refresh compact Journey catalogue
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+        run: python3 astrix-app/tools/build-journey-index.py --download
       - name: Validate sandbox contract
         run: |
           node astrix-app/tools/validate-scope-guard.mjs

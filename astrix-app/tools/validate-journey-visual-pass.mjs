@@ -39,7 +39,7 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260903-command-header-1"'),'Journey must load the shared command-header cleanup without stale page CSS');
-assert.ok(html.includes('src="./journey.mjs?v=20260905-weapon-audit-1"'),'Journey must load the progressive records runtime without stale header-positioning code');
+assert.ok(html.includes('src="./journey.mjs?v=20260905-journey-repair-1"'),'Journey must load the progressive records runtime without stale header-positioning code');
 assert.match(journey,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey startup must not download the heavyweight Character and Build equipment manifest');
 assert.doesNotMatch(journey,/const manifestReady=guardianManifest\.ready\(\)/,'Journey must keep the full equipment manifest off its critical loading path');
 assert.match(heroModule,/IS_JOURNEY_PAGE[\s\S]*?ASTRIX_HERO_PROFILE_PROMISE[\s\S]*?scope/,'Journey hero cards must expose and reuse their scoped authenticated profile request');
@@ -98,7 +98,7 @@ assert.match(journey,/renderNextTitleSummary\(next\|\|null\)[\s\S]*?journeyNextT
 assert.match(html,/id="journeyGuardianUsage"[\s\S]*?id="journeySeasonRank"/,'Journey must replace generic navigation with Guardian class usage and Current Season Rank blocks');
 assert.doesNotMatch(html,/journey-section-nav|journey-time-filter|TIME FILTER|MILESTONES &amp; ACHIEVEMENTS/,'Journey must not retain generic navigation or non-functional time filters');
 assert.match(journey,/CLASS_USAGE_COLOURS[\s\S]*?item\.percent=item\.minutes\/total\*100[\s\S]*?journey-usage-chart[\s\S]*?formatPlaytime\(item\.minutes\)/,'Guardian class usage must show all three verified playtime percentages and exact durations');
-assert.match(journey,/currentSeasonMetadata[\s\S]*?profileProgression\?\.data\?\.progressions[\s\S]*?rewardProgressionHash[\s\S]*?prestigeProgressionHash[\s\S]*?XP TO RANK/,'Current Season Rank must join live season progression hashes to verified profile XP');
+assert.match(journey,/seasonRankProgress\(payload[\s\S]*?XP TO RANK/,'Season Rank must use the tested profile/character progression join');
 assert.match(journey,/journey-triumph-total[\s\S]*?journey-triumph-breakdown[\s\S]*?ACTIVE[\s\S]*?LEGACY/,'Triumph statistics must emphasise the total and split Active and Legacy scores');
 assert.match(html,/id="journeyGuardianStats"[\s\S]*?aria-label="Selected Guardian statistics"/,'The identity panel must own the selected Guardian stat strip');
 assert.doesNotMatch(html,/VERIFIED GUARDIAN|id="journeyVerifiedGuardian"/,'Journey must remove the redundant visible verified-Guardian label');
@@ -209,7 +209,7 @@ assert.ok(journey.includes('initLocationSelector({'),'Journey must retain the lo
 assert.ok(journey.includes("mount:document.getElementById('journeyLocationSelector')"),'Journey selector mount must remain unchanged');
 assert.ok(journey.includes("detail:document.getElementById('journeyLocationDetail')"),'Journey detail mount must remain unchanged');
 assert.ok(journey.includes('const session=await getBungieSession();'),'Journey authentication must remain unchanged');
-assert.ok(journey.includes("from './journey-location-maps.mjs?v=20260901-destination-data-panels'"),'Journey must load its current versioned page-owned destination data registry');
+assert.ok(journey.includes("from './journey-location-maps.mjs?v=20260905-journey-repair-1'"),'Journey must load its current versioned page-owned destination data registry');
 assert.ok(journey.includes('initJourneyLocationMaps('),'Journey must initialise its page-owned interactive map layer');
 assert.ok(mapModule.includes("src:'./assets/maps/astrix-paradox-map-placeholder-4k.webp'"),'Journey must mount the shared 4K ASTRIX PARADOX placeholder');
 assert.ok(mapModule.includes("detailSrc:'./assets/maps/astrix-paradox-map-placeholder-6k.webp'"),'Journey must provide the shared 6K ASTRIX PARADOX placeholder for zoom');

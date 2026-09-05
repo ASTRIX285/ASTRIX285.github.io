@@ -149,15 +149,16 @@ function normaliseDestinationDataItem(value){
   const total=Number(value?.total);
   const hasProgress=value?.current!==null&&value?.current!==undefined&&value?.total!==null&&value?.total!==undefined&&Number.isInteger(current)&&current>=0&&Number.isInteger(total)&&total>0&&current<=total;
   const hasCompletion=typeof value?.completed==='boolean';
-  if(!hasProgress&&!hasCompletion)return null;
+  if(!hasProgress&&!hasCompletion&&!Number.isInteger(value.hash))return null;
   return {
+    hash:value.hash??null,
     name,
     description:String(value?.description||'').trim(),
     location:String(value?.location||'').trim(),
     icon:bungieIconUrl(value?.icon),
     current:hasProgress?current:null,
     total:hasProgress?total:null,
-    completed:hasCompletion?value.completed:current===total,
+    completed:hasCompletion?value.completed:hasProgress?current===total:null,
     objectives:(value?.objectives||[]).map(objective=>{
       const objectiveName=String(objective?.name||'').trim();
       const objectiveCurrent=Number(objective?.current);
@@ -177,13 +178,14 @@ function normaliseDestinationData(key,value){
       ?source[section.key].map(normaliseDestinationDataItem).filter(Boolean)
       :[];
   }
-  return {key,sections};
+  return {key,sections,error:String(value.error||''),loading:value.loading===true};
 }
 
 export function publishJourneyDestinationData(value){
   const key=String(value?.key||'');
   const verified=normaliseDestinationData(key,value);
   if(!key||!verified)return false;
+  verifiedDestinationData.clear();
   verifiedDestinationData.set(key,verified);
   document.dispatchEvent(new CustomEvent(DESTINATION_DATA_EVENT,{detail:verified}));
   return true;
@@ -196,7 +198,7 @@ function createDestinationProgressRow(item){
     const icon=document.createElement('img');
     icon.className='journey-record-icon';
     icon.src=item.icon;
-    icon.alt='';
+    icon.alt='';icon.loading='lazy';
     row.append(icon);
   }
 
@@ -298,12 +300,21 @@ function createDestinationDataView(key,label,mapFigure){
     heading.textContent=`${label.toLocaleUpperCase('en-GB')} ${section.label}`;
     const items=verifiedDestinationData.get(key)?.sections?.[section.key]||[];
     if(items.length){
-      list.replaceChildren(...items.map(createDestinationProgressRow));
+      let offset=0;const pageSize=60;
+      const paint=()=>{
+        list.replaceChildren(...items.slice(offset,offset+pageSize).map(createDestinationProgressRow));
+        if(items.length>pageSize){
+          const nav=document.createElement('nav');nav.setAttribute('aria-label','Destination record pages');
+          for(const [text,next] of [['Previous',offset-pageSize],['Next',offset+pageSize]]){const button=document.createElement('button');button.type='button';button.textContent=text;button.disabled=next<0||next>=items.length;button.addEventListener('click',()=>{offset=next;paint();});nav.append(button);}
+          const count=document.createElement('span');count.textContent=` ${offset+1}–${Math.min(items.length,offset+pageSize)} of ${items.length}`;nav.append(count);list.append(nav);
+        }
+      };paint();
       return;
     }
     const empty=document.createElement('span');
     empty.className='apx-empty-state journey-records-empty';
-    empty.textContent=`No verified ${label} ${section.label.toLocaleLowerCase('en-GB')} are available.`;
+    const data=verifiedDestinationData.get(key);
+    empty.textContent=data?.loading?'Loading destination records…':data?.error||`No verified ${label} ${section.label.toLocaleLowerCase('en-GB')} are available.`;
     list.replaceChildren(empty);
   }
 
@@ -351,6 +362,7 @@ document.addEventListener(DESTINATION_DATA_EVENT,event=>{
   const key=String(event.detail?.key||'');
   const verified=normaliseDestinationData(key,event.detail);
   if(!verified)return;
+  verifiedDestinationData.clear();
   verifiedDestinationData.set(key,verified);
   for(const view of [...destinationDataViews]){
     if(!view.panel.isConnected){destinationDataViews.delete(view);continue;}
