@@ -1,4 +1,4 @@
-import {bindingOf,bindingsEqual,createHandoffEnvelope} from '../guardian-workspace-v2/paradox-build-binding.mjs';
+import {bindingOf,bindingsEqual,compactBungieLoadouts,createHandoffEnvelope} from '../guardian-workspace-v2/paradox-build-binding.mjs';
 
 const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';
 const BUILD_SNAPSHOT_KEY='astrix:guardian-build-snapshot:v1';
@@ -8,19 +8,7 @@ const text=value=>String(value??'').trim();
 const compactDisplayProperties=value=>({name:text(value?.name),description:text(value?.description),icon:text(value?.icon),highResIcon:text(value?.highResIcon)});
 const compactPlugRules=value=>Array.isArray(value)?value.map(row=>({failureMessage:text(row?.failureMessage)})).filter(row=>row.failureMessage):[];
 const compactTooltipNotifications=value=>Array.isArray(value)?value.map(row=>({displayString:text(row?.displayString??row?.displayText),displayStyle:text(row?.displayStyle)})).filter(row=>row.displayString):[];
-const integer=value=>Number.isInteger(Number(value))?Number(value):null;
-const compactLoadoutItems=value=>Array.isArray(value)?value.map(row=>{
-  const itemInstanceId=text(row?.itemInstanceId),plugItemHashes=Array.isArray(row?.plugItemHashes)?row.plugItemHashes.map(integer).filter(hash=>hash!==null):[];
-  if(!itemInstanceId)return null;
-  return plugItemHashes.length?{itemInstanceId,plugItemHashes}:{itemInstanceId};
-}).filter(Boolean):[];
-function compactLoadouts(value){
-  return Array.isArray(value)?value.slice(0,20).map(row=>{
-    if(!row)return null;
-    const compact={colorHash:integer(row.colorHash),iconHash:integer(row.iconHash),nameHash:integer(row.nameHash),items:compactLoadoutItems(row.items),subclassOverrides:compactLoadoutItems(row.subclassOverrides)};
-    return compact;
-  }):[];
-}
+const compactLoadouts=compactBungieLoadouts;
 function compactDefinition(value={}){
   const insertionRules=compactPlugRules(value?.plug?.insertionRules),enabledRules=compactPlugRules(value?.plug?.enabledRules),tooltipNotifications=compactTooltipNotifications(value?.tooltipNotifications),plug=value?.plug?{plugCategoryIdentifier:text(value.plug.plugCategoryIdentifier),energyCost:value.plug.energyCost??null}:null;
   if(plug&&insertionRules.length)plug.insertionRules=insertionRules;if(plug&&enabledRules.length)plug.enabledRules=enabledRules;

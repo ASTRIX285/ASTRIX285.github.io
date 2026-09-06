@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createHandoffEnvelope,repairMissingBuildBinding,shouldReplaceBuildState,validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
+import {createHandoffEnvelope,repairMissingBuildBinding,mergePreparedLoadoutContext,shouldReplaceBuildState,validateHandoffEnvelope} from '../pages/guardian-workspace-v2/paradox-build-binding.mjs';
 import {createBuildState} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 
 class MemoryStore{
@@ -52,6 +52,13 @@ const unboundWarlockForge=createBuildState({characterId:'warlock-1',characterCla
 assert.equal(repairedWarlockForge.originalBuild.membershipId,'membership-1','authenticated hydration repairs a missing protected Original Build membership without replacing it');
 assert.equal(repairedWarlockForge.workingBuild.membershipType,'3','authenticated hydration repairs a missing Working Build membership type without discarding edits');
 assert.equal(repairMissingBuildBinding(unboundWarlockForge,automaticHunterProfile),unboundWarlockForge,'a different Guardian cannot repair or alter the protected build binding');
+const preparedLoadouts=[{colorHash:7101,iconHash:7102,nameHash:7103,items:[{itemInstanceId:'warlock-weapon'}],subclassOverrides:[{itemInstanceId:'warlock-subclass',plugItemHashes:[7201]}]}];
+const loadoutRepaired=mergePreparedLoadoutContext(protectedWarlockForge,{...automaticHunterProfile,characterId:'warlock-1',loadoutsAvailable:true,loadouts:preparedLoadouts});
+assert.deepEqual(loadoutRepaired.originalBuild.loadouts,preparedLoadouts,'same Guardian hydration must repair missing in-game loadout slots on the protected Original Build');
+assert.deepEqual(loadoutRepaired.workingBuild.loadouts,preparedLoadouts,'same Guardian hydration must repair missing in-game loadout slots without discarding the Working Build');
+assert.deepEqual(loadoutRepaired.workingBuild.forgeLoaderDecision,protectedWarlockForge.workingBuild.forgeLoaderDecision,'loadout repair must preserve the staged Forge Loader decision');
+assert.equal(mergePreparedLoadoutContext(loadoutRepaired,{...automaticHunterProfile,characterId:'warlock-1',loadoutsAvailable:true,loadouts:preparedLoadouts}),loadoutRepaired,'unchanged prepared loadouts must not rewrite Build Forge state');
+assert.equal(mergePreparedLoadoutContext(protectedWarlockForge,{...automaticHunterProfile,loadoutsAvailable:true,loadouts:preparedLoadouts}),protectedWarlockForge,'a different Guardian cannot repair protected loadout context');
 rememberGuardian(warlockLoadout);
 rememberExplicitLoadout(warlockLoadout);
 assert.equal(resolveBuildSource().selectedLoadoutIndex,2,'selected loadout is preferred while its Guardian remains active');

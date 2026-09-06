@@ -15,7 +15,7 @@ import {markGuardianFastReturn,readForgeLoaderTransfer,cacheBuildForgeState,read
 import {guardianManifest} from '../guardian-manifest-service.mjs?v=20260906-all-page-data-1';
 import {getBungieSession} from '../guardian-bungie-auth.mjs?v=20260905-manual-editor-1';
 import {assertRenderablePagePayload} from '../../../core/page-ready-contract.mjs?v=20260906-page-data-recovery-1';
-import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,shouldReplaceBuildState,repairMissingBuildBinding,validateHandoffEnvelope} from '../paradox-build-binding.mjs?v=20260905-worker-preflight-1';
+import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,shouldReplaceBuildState,repairMissingBuildBinding,mergePreparedLoadoutContext,validateHandoffEnvelope} from '../paradox-build-binding.mjs?v=20260906-complete-build-transfer-2';
 import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {applyForgeArtifactRecommendation,artifactPerkCatalogue} from './paradox-artifact-selection.mjs?v=20260906-complete-build-transfer-1';
 import {BUILD_ELEMENTS,validateTierFiveArmour} from './paradox-build-recommendation.mjs';
@@ -348,7 +348,7 @@ function switchBuildCharacter(detail={}){
   if(detail?.source!=="bungie-live"||!detail.characterId)return;
   const current=readState(),params=new URLSearchParams(location.search),incomingCharacterId=String(detail.characterId);
   const replace=shouldReplaceBuildState(current,detail,{vaultSelection:params.get('vault')==='selection',explicitlySelectedCharacterId});
-  if(!replace){const repaired=repairMissingBuildBinding(current,detail);if(repaired!==current){writeState(repaired);render();}return;}
+  if(!replace){const repaired=repairMissingBuildBinding(current,detail),hydrated=mergePreparedLoadoutContext(repaired,detail);if(hydrated!==current){writeState(hydrated);render();}return;}
   if(explicitlySelectedCharacterId===incomingCharacterId)explicitlySelectedCharacterId='';
   const requested=requestedTransferBinding(),boundDetail={...detail,membershipId:detail.membershipId||requested.membershipId,membershipType:detail.membershipType??requested.membershipType};
   const next=applyPendingVaultSelection(createBuildState(boundDetail));writeState(next);render();

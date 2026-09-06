@@ -1,5 +1,21 @@
 const HANDOFF_SCHEMA=2;
 const HANDOFF_TTL_MS=30*60*1000;
+const text=value=>String(value??'').trim();
+const integer=value=>Number.isInteger(Number(value))?Number(value):null;
+const clone=value=>{try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}};
+
+const compactLoadoutItems=value=>Array.isArray(value)?value.map(row=>{
+  const itemInstanceId=text(row?.itemInstanceId),plugItemHashes=Array.isArray(row?.plugItemHashes)?row.plugItemHashes.map(integer).filter(hash=>hash!==null):[];
+  if(!itemInstanceId)return null;
+  return plugItemHashes.length?{itemInstanceId,plugItemHashes}:{itemInstanceId};
+}).filter(Boolean):[];
+
+function compactBungieLoadouts(value){
+  return Array.isArray(value)?value.slice(0,20).map(row=>{
+    if(!row)return null;
+    return {colorHash:integer(row.colorHash),iconHash:integer(row.iconHash),nameHash:integer(row.nameHash),items:compactLoadoutItems(row.items),subclassOverrides:compactLoadoutItems(row.subclassOverrides)};
+  }):[];
+}
 
 function bindingOf(value={}){
   const source=value?.originalBuild||value;
@@ -41,6 +57,18 @@ function repairMissingBuildBinding(currentState,detail={}){
   return {...currentState,originalBuild:bind(currentState.originalBuild),workingBuild:bind(currentState.workingBuild)};
 }
 
+function mergePreparedLoadoutContext(currentState,detail={}){
+  if(detail?.source!=='bungie-live'||detail?.loadoutsAvailable!==true||!Array.isArray(detail.loadouts)||!currentState?.originalBuild||!currentState?.workingBuild)return currentState;
+  const current=bindingOf(currentState),incoming=bindingOf(detail);
+  if(!current.characterId||current.characterId!==incoming.characterId)return currentState;
+  if(current.membershipId&&incoming.membershipId&&current.membershipId!==incoming.membershipId)return currentState;
+  if(current.membershipType&&incoming.membershipType&&current.membershipType!==incoming.membershipType)return currentState;
+  const loadouts=compactBungieLoadouts(detail.loadouts),signature=JSON.stringify(loadouts);
+  if(currentState.originalBuild.loadoutsAvailable===true&&currentState.workingBuild.loadoutsAvailable===true&&JSON.stringify(currentState.originalBuild.loadouts||[])===signature&&JSON.stringify(currentState.workingBuild.loadouts||[])===signature)return currentState;
+  const merge=build=>({...build,loadoutsAvailable:true,loadouts:clone(loadouts)});
+  return {...currentState,originalBuild:merge(currentState.originalBuild),workingBuild:merge(currentState.workingBuild)};
+}
+
 function createHandoffEnvelope(payload,{savedAt=Date.now()}={}){
   return {schemaVersion:HANDOFF_SCHEMA,savedAt,binding:bindingOf(payload),payload};
 }
@@ -57,4 +85,4 @@ function validateHandoffEnvelope(envelope,{expectedCharacterId='',expectedMember
   return envelope.payload;
 }
 
-export {HANDOFF_SCHEMA,HANDOFF_TTL_MS,bindingOf,bindingsEqual,shouldReplaceBuildState,repairMissingBuildBinding,createHandoffEnvelope,validateHandoffEnvelope};
+export {HANDOFF_SCHEMA,HANDOFF_TTL_MS,bindingOf,bindingsEqual,compactBungieLoadouts,shouldReplaceBuildState,repairMissingBuildBinding,mergePreparedLoadoutContext,createHandoffEnvelope,validateHandoffEnvelope};
