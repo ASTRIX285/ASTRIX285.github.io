@@ -1,11 +1,12 @@
-import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
+import {authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260906-tool-intro-1';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-page-payload-1';
-import {cacheBungieProfile,cacheForgeLoaderTransfer,markGuardianFastReturn,readCachedBungieProfile,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
+import {cacheForgeLoaderTransfer,markGuardianFastReturn,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchTopArmourBuilds} from '../vault/vault-armour-matcher.mjs?v=20260904-top-50-scan-1';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {compatibleWithClass,createOpenProtocolTieBreaker,exoticCatalogueGroups,naturalSetProtocols,rankOpenProtocolCandidates,setBonusOptions,toggleSetSelection,unownedSetTargets} from './forge-loader-model.mjs?v=20260904-top-50-scan-1';
 import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-memory-safe-transfer-1';
+import {preloadForgeLoaderPayload} from './forge-loader-preload.mjs?v=20260906-tool-intro-1';
 
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -55,25 +56,11 @@ function membershipBinding(){
   return {characterId:activeCharacterId,membershipId:text(membership.membershipId||session?.primaryMembershipId||session?.bungieMembershipId),membershipType:text(membership.membershipType)};
 }
 
-async function fetchProfile(){
-  const url=new URL('/bungie/page/loadout',AUTH_ORIGIN);
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000);
-  try{
-    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
-    const result=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(result?.error||`Bungie inventory request failed (${response.status}).`);
-    return result;
-  }catch(error){if(error?.name==='AbortError')throw new Error('Bungie inventory request timed out. Refresh or reconnect Bungie.');throw error;}
-  finally{clearTimeout(timer);}
-}
-
 async function loadVerifiedPayload(){
   loaderProgress(18,'Checking verified Guardian armour…');
-  const cached=await readCachedBungieProfile(session);
-  const shared=globalThis.ASTRIX_HERO_PROFILE_PAYLOAD||(!cached?.profile?await globalThis.ASTRIX_HERO_PROFILE_PROMISE:null);
-  const next=shared?.pageReady?.page==='loadout'?shared:cached?.pageReady?.page==='loadout'?cached:await fetchProfile();
+  const shared=globalThis.ASTRIX_FORGE_LOADER_PRELOAD_PAYLOAD||globalThis.ASTRIX_HERO_PROFILE_PAYLOAD||await globalThis.ASTRIX_HERO_PROFILE_PROMISE;
+  const next=await preloadForgeLoaderPayload(session,{sharedPayload:shared});
   if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
-  await cacheBungieProfile(session,next);
   if(next.forgeArmourIndex)guardianManifest.applyForgeArmourIndex(next,next.forgeArmourIndex);
   loaderProgress(46,'Joining private inventory to the prepared armour catalogue…');
   await guardianManifest.hydratePayload(next,{waitForManifest:false,armourOnly:Boolean(next.forgeArmourIndex),includeReusable:true,allowNetwork:false});

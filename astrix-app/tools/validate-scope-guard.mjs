@@ -4,6 +4,8 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'ARTWORK_PROVENANCE.md',
+  'img/brands/bungie-logo.svg',
   'astrix-auth-worker/src/env.d.ts',
   '.github/workflows/refresh-backend-manifest.yml',
   'astrix-app/pages/guardian-workspace-v2/guardian-display-profile.mjs',
@@ -126,6 +128,11 @@ const allowed=new Set([
   'astrix-app/pages/forge-loader/forge-loader-model.mjs',
   'astrix-app/pages/forge-loader/forge-loader-build-handoff.mjs',
   'astrix-app/pages/forge-loader/forge-loader.mjs',
+  'astrix-app/pages/forge-loader/forge-loader-preload.mjs',
+  'astrix-app/pages/tool-intro/index.html',
+  'astrix-app/pages/tool-intro/tool-intro.css',
+  'astrix-app/pages/tool-intro/tool-intro-config.mjs',
+  'astrix-app/pages/tool-intro/tool-intro.mjs',
   'astrix-app/data/forge-armour-index.json',
   'astrix-app/tools/import-armor-information.py',
   'astrix-app/pages/loadout/index.html',
@@ -148,6 +155,7 @@ const allowed=new Set([
   'astrix-app/tools/validate-scope-guard.mjs',
   'astrix-app/tools/validate-super-formation.mjs',
   'astrix-app/tools/validate-tools-hub.mjs',
+  'astrix-app/tools/validate-tool-intro.mjs',
   'astrix-app/tools/validate-vault-foundation.mjs',
   'astrix-app/tools/validate-weapon-rolls.mjs',
   'astrix-app/tools/validate-weapon-perk-apply.mjs',

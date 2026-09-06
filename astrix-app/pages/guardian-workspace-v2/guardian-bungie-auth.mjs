@@ -12,8 +12,16 @@ function authReturnUrl(){
   return new URL(JOURNEY_PATH,origin);
 }
 
-function authStartUrl(){
-  const returnUrl=authReturnUrl().toString();
+function authStartUrl(returnTarget=null){
+  const fallback=authReturnUrl();
+  let destination=fallback;
+  if(returnTarget){
+    try{
+      const requested=new URL(String(returnTarget),location.origin);
+      if(requested.origin===fallback.origin&&requested.pathname.startsWith('/astrix-app/'))destination=requested;
+    }catch{}
+  }
+  const returnUrl=destination.toString();
   if(location.hostname===SANDBOX_HOST){
     const start=new URL("/__astrix/bungie/start",location.origin);
     start.searchParams.set("return",returnUrl);

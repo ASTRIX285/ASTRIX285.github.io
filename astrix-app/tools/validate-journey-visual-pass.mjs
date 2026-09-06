@@ -148,7 +148,8 @@ for(const page of globalHeroPages){
   assert.ok(page.includes('astrix-hero-cards.css?v=20260904-mobile-crosscheck-1'),'Every destination page must load the current centred, mobile-contained command-header presentation');
   assert.equal((page.match(/astrix-command-header/g)??[]).length,1,'Every destination page must contain exactly one shared command header');
 }
-assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260906-page-payload-1'))).length,4,'Journey, Mission Reports, Vault and Loadout must load the same prepared profile Guardian renderer');
+assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260906-page-payload-1'))).length,3,'Journey, Vault and Loadout must load the same prepared profile Guardian renderer');
+assert.ok(forgeLoaderHtml.includes('astrix-hero-cards.mjs?v=20260906-tool-intro-1'),'Forge Loader must load the shared tool intro preload renderer');
 assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260906-page-payload-1'),'Character must load the prepared page payload module graph');
 assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260906-page-payload-1'),'Build Forge must load the prepared page payload module graph');
 assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260906-page-payload-1'),'Mission Reports must load the prepared page payload module graph');

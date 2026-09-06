@@ -14,6 +14,7 @@ const validators=[
   'validate-destination-theming.mjs',
   'validate-portal-loader.mjs',
   'validate-tools-hub.mjs',
+  'validate-tool-intro.mjs',
   'validate-vault-foundation.mjs',
   'validate-forge-loader.mjs',
   'validate-journey-visual-pass.mjs',

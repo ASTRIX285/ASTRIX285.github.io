@@ -1,4 +1,5 @@
-import {getBungieSession} from '../pages/guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
+import {getBungieSession} from '../pages/guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260906-tool-intro-1';
+import {preloadForgeLoaderPayload} from '../pages/forge-loader/forge-loader-preload.mjs?v=20260906-tool-intro-1';
 
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||'https://auth.astrixparadox.com';
 const BUNGIE_ORIGIN='https://www.bungie.net';
@@ -146,7 +147,9 @@ async function initAstrixHeroCards(){
       renderStatus('CONNECT BUNGIE TO LOAD CHARACTERS');
       return;
     }
-    const payload=await fetchJson(heroProfileUrl());
+    const payload=IS_FORGE_LOADER_PAGE
+      ?await preloadForgeLoaderPayload(session,{sharedPayload:globalThis.ASTRIX_FORGE_LOADER_PRELOAD_PAYLOAD})
+      :await fetchJson(heroProfileUrl());
     const definitions=payload.statDefinitions||{};
     publishJourneyProfile(payload);
     const characters=characterRoster(payload,definitions);

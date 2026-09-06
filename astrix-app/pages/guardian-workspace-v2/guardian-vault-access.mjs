@@ -28,7 +28,7 @@ function mergeContext(detail={}){
   updateRibbonLink();
 }
 
-function forgeLoaderUrl(slot=null){
+function forgeLoaderTargetUrl(slot=null){
   const url=new URL('/astrix-app/pages/forge-loader/',location.origin);
   url.searchParams.set('from',SOURCE);
   const binding={...context,characterId:context.characterId||storedCharacterId()};
@@ -40,8 +40,15 @@ function forgeLoaderUrl(slot=null){
   return url;
 }
 
+function forgeLoaderUrl(slot=null){
+  const intro=new URL('/astrix-app/pages/tool-intro/',location.origin);
+  intro.searchParams.set('game','destiny-2');
+  intro.searchParams.set('return',forgeLoaderTargetUrl(slot).toString());
+  return intro;
+}
+
 function updateRibbonLink(){
-  const link=[...document.querySelectorAll('.apx-destination-ribbon a')].find(anchor=>new URL(anchor.href,location.href).pathname==='/astrix-app/pages/forge-loader/');
+  const link=[...document.querySelectorAll('.apx-destination-ribbon a')].find(anchor=>new URL(anchor.href,location.href).pathname==='/astrix-app/pages/tool-intro/');
   if(link)link.href=forgeLoaderUrl();
 }
 
@@ -94,7 +101,7 @@ function preserveCharacterBuild(event){
   if(SOURCE!=='character')return;
   const link=event.target.closest('a');
   if(!link)return;
-  if(new URL(link.href,location.href).pathname!=='/astrix-app/pages/forge-loader/')return;
+  if(new URL(link.href,location.href).pathname!=='/astrix-app/pages/tool-intro/')return;
   document.dispatchEvent(new CustomEvent('astrix:vault-open'));
 }
 
@@ -116,4 +123,4 @@ function install(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
 else install();
 
-export {buildBinding,forgeLoaderUrl};
+export {buildBinding,forgeLoaderTargetUrl,forgeLoaderUrl};

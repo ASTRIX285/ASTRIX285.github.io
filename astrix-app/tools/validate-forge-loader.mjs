@@ -217,6 +217,7 @@ assert.ok(validateHandoffEnvelope(JSON.parse(handoffStore.getItem(BUILD_SNAPSHOT
 const html=read('astrix-app/pages/forge-loader/index.html');
 const css=read('astrix-app/pages/forge-loader/forge-loader.css');
 const runtime=read('astrix-app/pages/forge-loader/forge-loader.mjs');
+const preload=read('astrix-app/pages/forge-loader/forge-loader-preload.mjs');
 const selectionState=read('astrix-app/pages/vault/vault-selection-state.mjs');
 const buildRuntime=read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-space.mjs');
 const buildStateRuntime=read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs');
@@ -227,7 +228,9 @@ const perkPlanRuntime=read('astrix-app/pages/guardian-workspace-v2/guardian-perk
 const liveActionsRuntime=read('astrix-app/pages/guardian-workspace-v2/guardian-live-actions.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const access=read('astrix-app/pages/guardian-workspace-v2/guardian-vault-access.mjs');
-assert.match(runtime,/\/bungie\/page\/loadout/,'Forge Loader must request its dedicated merged page payload.');
+assert.match(preload,/\/bungie\/page\/loadout/,'The shared Forge Loader preload must request its dedicated merged page payload.');
+assert.match(runtime,/preloadForgeLoaderPayload/,'Forge Loader must consume the shared intro preload path.');
+assert.doesNotMatch(runtime,/new URL\('\/bungie\/page\/loadout'/,'Forge Loader must not fork its own prepared page request.');
 assert.match(runtime,/if\(next\.forgeArmourIndex\)guardianManifest\.applyForgeArmourIndex/,'Forge Loader must consume the versioned compact armour index from its merged page payload.');
 assert.match(runtime,/hydratePayload\(next,\{waitForManifest:false,armourOnly:Boolean\(next\.forgeArmourIndex\),includeReusable:true,allowNetwork:false\}\)/,'Owned combinations and their legal armour mod options must hydrate without live definition requests.');
 assert.match(runtime,/Joining private inventory to the prepared armour catalogue/,'The 46 percent join must describe the prepared backend catalogue.');
@@ -314,7 +317,7 @@ assert.doesNotMatch(runtime,/if\(!baselineStored\)\{[^}]*?return;/,'A rejected b
 assert.match(runtime,/if\(!baselineStored&&!transferStored\)url\.searchParams\.set\('baseline','bungie-recovery'\)/,'The destination must request authenticated recovery only when the atomic baseline is unavailable.');
 assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.removeItem\(BUILD_SNAPSHOT_KEY\);[\s\S]*?store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Stale Build Forge state must be cleared before writing the newly verified compact Guardian snapshot.');
 assert.doesNotMatch(buildHandoff,/createBuildState/,'Forge Loader must not expand the compact source into duplicate Original and Working builds before navigation.');
-assert.match(html,/forge-loader\.mjs\?v=20260906-page-payload-1/,'Forge Loader must load the prepared page payload without a stale browser module.');
+assert.match(html,/forge-loader\.mjs\?v=20260906-tool-intro-1/,'Forge Loader must load the shared tool intro preload without a stale browser module.');
 assert.match(html,/forge-loader\.css\?v=20260904-open-armour-1/,'Forge Loader must refresh the stronger selected-Exotic state without stale page CSS.');
 assert.match(runtime,/forge-loader-build-handoff\.mjs\?v=20260904-memory-safe-transfer-1/,'Forge Loader must refresh the protected baseline writer with the memory-safe transfer release.');
 assert.match(runtime,/vault-selection-state\.mjs\?v=20260904-exotic-equip-rule-1/,'Forge Loader must refresh the legal one-Exotic armour selection writer.');
