@@ -1,5 +1,5 @@
-import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260906-page-payload-1";
-import {PORTAL_TRANSITION_KEY} from "./guardian-session-cache.mjs";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260906-all-page-data-1";
+import {PORTAL_TRANSITION_KEY} from "./guardian-session-cache.mjs?v=20260906-all-page-data-1";
 
 const loader=window.ForgeLoader;
 const manifestReady=guardianManifest.ready();

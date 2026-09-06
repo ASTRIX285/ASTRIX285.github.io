@@ -1,5 +1,6 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260906-tool-intro-1';
-import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
+import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-all-page-data-1';
+import {assertPreparedPagePayload} from '../../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
 
 const PAGE_PATH='/astrix-app/pages/forge-loader/';
 let pageRequest=null;
@@ -25,7 +26,7 @@ async function requestPreparedPayload(){
     });
     const payload=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(payload?.error||`Bungie inventory request failed (${response.status}).`);
-    if(payload?.pageReady?.page!=='loadout'||!payload?.profile)throw new Error('Bungie returned no prepared Forge Loader payload.');
+    assertPreparedPagePayload(payload,'loadout');
     return payload;
   }catch(error){
     if(error?.name==='AbortError')throw new Error('Bungie inventory request timed out. Refresh or reconnect Bungie.');
@@ -38,14 +39,14 @@ async function requestPreparedPayload(){
 async function preloadForgeLoaderPayload(session,{force=false,sharedPayload=null}={}){
   if(session?.authenticated!==true)return null;
   if(!force){
-    if(sharedPayload?.pageReady?.page==='loadout'&&sharedPayload?.profile)return sharedPayload;
-    const cached=await readCachedBungieProfile(session);
-    if(cached?.pageReady?.page==='loadout'&&cached?.profile)return cached;
+    if(sharedPayload?.pageReady?.page==='loadout'&&sharedPayload?.profile)return assertPreparedPagePayload(sharedPayload,'loadout');
+    const cached=await readCachedBungieProfile(session,'loadout');
+    if(cached?.pageReady?.page==='loadout'&&cached?.profile)return assertPreparedPagePayload(cached,'loadout');
     if(pageRequest)return pageRequest;
   }
   pageRequest=(async()=>{
     const payload=await requestPreparedPayload();
-    await cacheBungieProfile(session,payload);
+    await cacheBungieProfile(session,payload,'loadout');
     globalThis.FORGE_LOADER_PRELOAD_PAYLOAD=payload;
     return payload;
   })();

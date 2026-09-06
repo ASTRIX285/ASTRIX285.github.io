@@ -1,12 +1,12 @@
 import {authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260906-tool-intro-1';
-import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-page-payload-1';
-import {cacheForgeLoaderTransfer,markGuardianFastReturn,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-all-page-data-1';
+import {cacheForgeLoaderTransfer,markGuardianFastReturn,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-all-page-data-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchTopArmourBuilds} from '../vault/vault-armour-matcher.mjs?v=20260904-top-50-scan-1';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {compatibleWithClass,createOpenProtocolTieBreaker,exoticCatalogueGroups,naturalSetProtocols,rankOpenProtocolCandidates,setBonusOptions,toggleSetSelection,unownedSetTargets} from './forge-loader-model.mjs?v=20260904-top-50-scan-1';
 import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-memory-safe-transfer-1';
-import {preloadForgeLoaderPayload} from './forge-loader-preload.mjs?v=20260906-tool-intro-1';
+import {preloadForgeLoaderPayload} from './forge-loader-preload.mjs?v=20260906-all-page-data-1';
 
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -136,7 +136,7 @@ async function resolveSetUpgradeTarget(exotic){
     const sources=new Set(target.displaySources||[]);
     if(!sources.size){
       const hashes=target.missingPieces.map(piece=>piece?.collectibleHash).filter(Boolean).slice(0,6);
-      const collectibles=await guardianManifest.getMany('DestinyCollectibleDefinition',hashes);
+      const collectibles=Object.fromEntries(hashes.map(hash=>[String(hash),payload?.collectibleDefinitions?.[String(hash)]]).filter(([,row])=>row));
       for(const definition of Object.values(collectibles))if(text(definition?.sourceString))sources.add(text(definition.sourceString));
     }
     return {...target,sources:[...sources]};
@@ -403,7 +403,7 @@ async function evaluateInBuildForge(){
   byId('forgeRuntimeStatus').textContent='Protecting the verified equipped Guardian before Build Forge opens…';
   let profileBuild=null;
   try{
-    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260906-page-payload-1');
+    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260906-all-page-data-1');
     profileBuild=normaliseLiveProfile(payload,session,activeCharacterId);
   }catch(error){
     console.error('[Forge Loader] The protected Guardian baseline could not be prepared.',error);

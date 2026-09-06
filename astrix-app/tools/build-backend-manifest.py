@@ -13,6 +13,16 @@ TYPES = (
     'Destination Activity Checklist Location SocketType DamageType BreakerType PowerCap Season SeasonPass'
 ).split()
 
+JOURNEY_PUBLIC_ROOTS = (
+    1163735237,  # Current Triumphs and Records catalogue
+    498211331,   # Collection badges
+    616318467,   # Current Titles
+    1881970629,  # Legacy Titles
+    2642502414,  # Patterns and Catalysts
+    3741753466,  # Guardian Ranks
+    1074663644,  # Metrics and Stat Trackers
+)
+
 def fetch(url):
     headers = {'User-Agent': 'ASTRIX-PARADOX/Shared-Manifest'}
     if os.environ.get('BUNGIE_API_KEY'):
@@ -49,6 +59,90 @@ def shard_table(rows, directory):
         (directory / f'{n}.json').write_bytes(b'{' + b','.join(entries) + b'}')
     return {'shards': count, 'definitions': len(rows), 'maxShardBytes': max(sizes)}
 
+def journey_compact_tables(directory):
+    tables = {}
+    for path in directory.glob('Destiny*Definition-*.json'):
+        table = path.name.rsplit('-', 1)[0]
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        tables.setdefault(table, {}).update(payload.get('definitions') or {})
+    return tables
+
+def journey_item_projection(definition):
+    fields = (
+        'hash', 'displayProperties', 'itemType', 'itemSubType', 'itemTypeDisplayName',
+        'classType', 'inventory', 'equippable', 'collectibleHash', 'iconWatermark',
+        'secondaryIcon', 'screenshot', 'sourceData', 'loreHash'
+    )
+    return {field: definition[field] for field in fields if field in definition}
+
+def journey_public_tables(tables):
+    nodes = tables.get('DestinyPresentationNodeDefinition') or {}
+    wanted = {
+        'DestinyPresentationNodeDefinition': set(),
+        'DestinyRecordDefinition': set(),
+        'DestinyObjectiveDefinition': set(),
+        'DestinyCollectibleDefinition': set(),
+        'DestinyMetricDefinition': set(),
+        'DestinyInventoryItemDefinition': set(),
+        'DestinyGuardianRankDefinition': set(),
+        'DestinyGuardianRankConstantsDefinition': set(),
+    }
+    pending = list(JOURNEY_PUBLIC_ROOTS)
+    while pending:
+        hash_value = str(pending.pop())
+        if hash_value in wanted['DestinyPresentationNodeDefinition']:
+            continue
+        definition = nodes.get(hash_value)
+        if not definition:
+            continue
+        wanted['DestinyPresentationNodeDefinition'].add(hash_value)
+        children = definition.get('children') or {}
+        pending.extend(row.get('presentationNodeHash') for row in children.get('presentationNodes', []) if row.get('presentationNodeHash'))
+        wanted['DestinyRecordDefinition'].update(str(row['recordHash']) for row in children.get('records', []) if row.get('recordHash'))
+        wanted['DestinyCollectibleDefinition'].update(str(row['collectibleHash']) for row in children.get('collectibles', []) if row.get('collectibleHash'))
+        wanted['DestinyMetricDefinition'].update(str(row['metricHash']) for row in children.get('metrics', []) if row.get('metricHash'))
+        if definition.get('completionRecordHash'):
+            wanted['DestinyRecordDefinition'].add(str(definition['completionRecordHash']))
+        if definition.get('objectiveHash'):
+            wanted['DestinyObjectiveDefinition'].add(str(definition['objectiveHash']))
+
+    # Metrics are a bounded public table. Keeping the complete table ensures a
+    # player's returned metricsRootNodeHash can always be rendered locally.
+    wanted['DestinyMetricDefinition'].update((tables.get('DestinyMetricDefinition') or {}).keys())
+    for hash_value in wanted['DestinyRecordDefinition']:
+        definition = (tables.get('DestinyRecordDefinition') or {}).get(hash_value) or {}
+        wanted['DestinyObjectiveDefinition'].update(str(value) for value in definition.get('objectiveHashes', []) if value)
+    for hash_value in wanted['DestinyMetricDefinition']:
+        definition = (tables.get('DestinyMetricDefinition') or {}).get(hash_value) or {}
+        if definition.get('trackingObjectiveHash'):
+            wanted['DestinyObjectiveDefinition'].add(str(definition['trackingObjectiveHash']))
+    for hash_value in wanted['DestinyCollectibleDefinition']:
+        definition = (tables.get('DestinyCollectibleDefinition') or {}).get(hash_value) or {}
+        if definition.get('itemHash'):
+            wanted['DestinyInventoryItemDefinition'].add(str(definition['itemHash']))
+    wanted['DestinyGuardianRankDefinition'].update((tables.get('DestinyGuardianRankDefinition') or {}).keys())
+    wanted['DestinyGuardianRankConstantsDefinition'].update((tables.get('DestinyGuardianRankConstantsDefinition') or {}).keys())
+
+    result = {}
+    unresolved = {}
+    for table, hashes in wanted.items():
+        source = tables.get(table) or {}
+        result[table] = {
+            hash_value: journey_item_projection(source[hash_value]) if table == 'DestinyInventoryItemDefinition' else source[hash_value]
+            for hash_value in hashes if hash_value in source
+        }
+        missing = sorted(hash_value for hash_value in hashes if hash_value not in source)
+        if missing:
+            unresolved[table] = missing
+    missing_roots = [value for value in JOURNEY_PUBLIC_ROOTS if str(value) not in result['DestinyPresentationNodeDefinition']]
+    return result, {
+        'roots': list(JOURNEY_PUBLIC_ROOTS),
+        'definitionCounts': {table: len(rows) for table, rows in result.items()},
+        'unresolved': unresolved,
+        'missingRoots': missing_roots,
+        'complete': not unresolved and not missing_roots,
+    }
+
 def main():
     manifest = metadata()
     version = manifest['version']
@@ -56,7 +150,15 @@ def main():
     current = OUT / 'index.json'
     if current.exists():
         index = json.loads(current.read_text())
-        if index.get('schemaVersion') == 1 and index.get('manifestVersion') == version and set(index.get('tables', {})) == set(required) and all((OUT / f'pages/{page}.json').exists() for page in ('common', 'journey', 'loadout')):
+        page_paths = [OUT / f'pages/{page}.json' for page in ('common', 'journey', 'loadout')]
+        journey_page = json.loads((OUT / 'pages/journey.json').read_text()) if (OUT / 'pages/journey.json').exists() else {}
+        loadout_page = json.loads((OUT / 'pages/loadout.json').read_text()) if (OUT / 'pages/loadout.json').exists() else {}
+        page_bundles_current = (
+            all(path.exists() for path in page_paths)
+            and journey_page.get('journeyCoverage', {}).get('complete') is True
+            and loadout_page.get('loadoutCoverage', {}).get('complete') is True
+        )
+        if index.get('schemaVersion') == 1 and index.get('manifestVersion') == version and set(index.get('tables', {})) == set(required) and page_bundles_current:
             print('BACKEND_MANIFEST_CURRENT=' + version)
             return
     OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -71,7 +173,7 @@ def main():
                 raise ValueError('Unexpected Bungie manifest path')
             rows = fetch('https://www.bungie.net' + path)
             index['tables'][table] = shard_table(rows, staging / table)
-            if table in ('DestinyActivityDefinition', 'DestinyDestinationDefinition', 'DestinySeasonDefinition', 'DestinySeasonPassDefinition'):
+            if table in ('DestinyActivityDefinition', 'DestinyDestinationDefinition', 'DestinyCollectibleDefinition', 'DestinySeasonDefinition', 'DestinySeasonPassDefinition'):
                 page_rows[table] = rows
             print(table, index['tables'][table], flush=True)
             if table not in page_rows:
@@ -127,26 +229,61 @@ def main():
             'page': 'common',
             'artifactCatalog': forge_payload.get('artifactCatalog') or [],
         }))
+        forge_definitions = forge_payload.get('definitions') or {}
+        loadout_collectible_hashes = {
+            str(row.get('collectibleHash'))
+            for row in forge_definitions.values()
+            if row.get('collectibleHash')
+        }
+        collectible_source = page_rows['DestinyCollectibleDefinition']
+        loadout_collectibles = {
+            hash_value: {
+                key: collectible_source[hash_value][key]
+                for key in ('hash', 'displayProperties', 'sourceString')
+                if key in collectible_source[hash_value]
+            }
+            for hash_value in loadout_collectible_hashes
+            if hash_value in collectible_source
+        }
+        unresolved_loadout_collectibles = sorted(loadout_collectible_hashes - set(loadout_collectibles))
+        loadout_coverage = {
+            'collectibleHashes': len(loadout_collectible_hashes),
+            'collectibleDefinitions': len(loadout_collectibles),
+            'unresolvedCollectibleHashes': unresolved_loadout_collectibles,
+            'complete': not unresolved_loadout_collectibles,
+        }
+        if not loadout_coverage['complete']:
+            raise ValueError('Loadout acquisition source catalogue is incomplete')
         (pages / 'loadout.json').write_bytes(encode({
             'manifestVersion': version,
             'page': 'loadout',
             'forgeArmourIndex': forge_payload,
+            'collectibleDefinitions': loadout_collectibles,
+            'loadoutCoverage': loadout_coverage,
         }))
         journey_index_path = ROOT / 'astrix-app/data/journey-index/index.json'
         journey_index = json.loads(journey_index_path.read_text(encoding='utf-8'))
         if journey_index.get('manifestVersion') != version:
             raise ValueError('Journey page bundle does not match the prepared manifest')
+        compact_journey_tables = journey_compact_tables(journey_index_path.parent)
+        journey_sources = {
+            table: {**page_rows.get(table, {}), **compact_journey_tables.get(table, {})}
+            for table in set(page_rows) | set(compact_journey_tables)
+        }
+        journey_tables, journey_coverage = journey_public_tables(journey_sources)
+        if not journey_coverage['complete']:
+            raise ValueError('Journey public catalogue closure is incomplete')
         endgame = journey_index.get('endgameByDestination') or {}
         destination_hashes = set(endgame)
         activity_hashes = {str(value) for values in endgame.values() for value in values}
+        journey_tables['DestinyDestinationDefinition'] = {key: page_rows['DestinyDestinationDefinition'][key] for key in destination_hashes if key in page_rows['DestinyDestinationDefinition']}
+        journey_tables['DestinyActivityDefinition'] = {key: page_rows['DestinyActivityDefinition'][key] for key in activity_hashes if key in page_rows['DestinyActivityDefinition']}
         (pages / 'journey.json').write_bytes(encode({
             'manifestVersion': version,
             'page': 'journey',
             'journeyIndex': {'endgameByDestination': endgame},
-            'manifestTables': {
-                'DestinyDestinationDefinition': {key: page_rows['DestinyDestinationDefinition'][key] for key in destination_hashes if key in page_rows['DestinyDestinationDefinition']},
-                'DestinyActivityDefinition': {key: page_rows['DestinyActivityDefinition'][key] for key in activity_hashes if key in page_rows['DestinyActivityDefinition']},
-            },
+            'manifestTables': journey_tables,
+            'journeyCoverage': journey_coverage,
         }))
         if OUT.exists():
             shutil.rmtree(OUT)

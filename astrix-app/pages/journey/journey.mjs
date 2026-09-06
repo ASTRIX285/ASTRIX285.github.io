@@ -1,13 +1,14 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
-import {guardianManifest} from './journey-manifest.mjs?v=20260906-page-payload-1';
+import {guardianManifest} from './journey-manifest.mjs?v=20260906-all-page-data-1';
 import {resolveRecordTree,patternTypeKey,seasonRankProgress,findDestinationNodes} from './journey-record-model.mjs?v=20260905-journey-repair-1';
 import {resolveCollectionBadges} from './journey-collection-model.mjs?v=20260905-pattern-badges-1';
-import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
+import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-all-page-data-1';
 import {validateHandoffEnvelope} from '../guardian-workspace-v2/paradox-build-binding.mjs';
 import {readCapture,readCaptureArchive} from '../guardian-workspace-v2/guardian-shooting-range-capture.mjs?v=20260902-journey-data-hooks-1';
-import {buildMissionReportView,normaliseActivityHistory} from '../mission-reports/mission-reports-data.mjs?v=20260905-weapon-audit-1';
+import {buildMissionReportView,normaliseActivityHistory} from '../mission-reports/mission-reports-data.mjs?v=20260906-all-page-data-1';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
 import {initJourneyLocationMaps,publishJourneyDestinationData,publishJourneyRegionChestProgress} from './journey-location-maps.mjs?v=20260905-journey-repair-1';
+import {assertPreparedPagePayload} from '../../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
 
 const resolving=document.getElementById('journeyResolving');
 const signedOut=document.getElementById('journeySignedOut');
@@ -102,7 +103,6 @@ let verifiedProfile=null;
 let journeySession=null;
 let journeyActivityRequest=0;
 let profileIdentityRequest=0;
-let historicalStatsRequest=0;
 let titleTriumphRequest=0;
 let triumphSectionRequest=0;
 let recordsCategoryRequest=0;
@@ -117,8 +117,6 @@ let selectedTitle=null;
 let selectedTitleKind='titles';
 let equippedTitleSummary=null;
 let nextTitleSummary=null;
-let currentSeasonPromise=null;
-let currentSeasonFetchedAt=0;
 let titleCatalogueRootHash='';
 let titleCataloguePromise=null;
 let selectedTriumphCategory=null;
@@ -185,20 +183,16 @@ function createRankBadge(rank,label=`Rank ${rank}`){
   return badge;
 }
 
-async function currentSeasonMetadata(){
-  if(!currentSeasonPromise||Date.now()-currentSeasonFetchedAt>=JOURNEY_BACKGROUND_REFRESH_MS){
-    currentSeasonPromise=fetch(`${AUTH_ORIGIN}/bungie/current-season`,{credentials:'include',headers:{Accept:'application/json'}})
-      .then(response=>{if(!response.ok)throw new Error(`Current season request failed (${response.status}).`);currentSeasonFetchedAt=Date.now();return response.json();})
-      .catch(error=>{currentSeasonPromise=null;throw error;});
-  }
-  return currentSeasonPromise;
+async function currentSeasonMetadata(payload){
+  if(payload?.currentSeason)return {season:payload.currentSeason};
+  throw new Error('Prepared Journey data contains no current season.');
 }
 
 async function bindSeasonRank(payload){
   if(!seasonRankCard)return;
   renderDetailHero(seasonRankCard,{name:'Season Rank unavailable',description:'Current seasonal progression is awaiting verified Bungie data.'});
   try{
-    const metadata=await currentSeasonMetadata();
+    const metadata=await currentSeasonMetadata(payload);
     const {active,rank}=seasonRankProgress(payload,String(journeyCharacterFor(payload)?.characterId||''),metadata);
     if(rank===null||rank===undefined)return;
     const completed=finiteNumber(active?.progressToNextLevel);
@@ -1763,22 +1757,18 @@ function setMetric(element,value,label){
   if(tick)tick.hidden=false;
 }
 
-async function bindHistoricalStats(session){
+async function bindHistoricalStats(session,payload=verifiedProfile){
   resetMetric(metricActivities,'Awaiting live history');
   resetMetric(metricCompletion,'Awaiting completion evidence');
   resetMetric(metricPve,'Awaiting PVE evidence');
   resetMetric(metricPvp,'Awaiting PVP evidence');
   if(session?.authenticated!==true)return;
-  const requestId=++historicalStatsRequest;
   try{
-    const response=await fetch(new URL('/bungie/historical-stats',AUTH_ORIGIN),{credentials:'include',headers:{Accept:'application/json'}});
-    if(!response.ok)return;
-    const payload=await response.json();
-    if(requestId!==historicalStatsRequest)return;
-    const results=payload?.Response?.mergedAllCharacters?.results
-      ??payload?.response?.mergedAllCharacters?.results
-      ??payload?.mergedAllCharacters?.results
-      ??payload?.results;
+    const historical=payload?.preparedAccountData?.historicalStats;
+    const results=historical?.Response?.mergedAllCharacters?.results
+      ??historical?.response?.mergedAllCharacters?.results
+      ??historical?.mergedAllCharacters?.results
+      ??historical?.results;
     const pve=results?.allPvE;
     const pvp=results?.allPvP;
     const pveEntered=historicalValue(pve,'activitiesEntered');
@@ -2024,18 +2014,9 @@ async function fetchJourneyActivityEvidence(session,characterId,{force=false}={}
   if(!force&&cached?.status==='ok'&&Date.now()-cached.fetchedAt<JOURNEY_BACKGROUND_REFRESH_MS)return cached;
   const promise=(async()=>{
     try{
-      await manifestReady;
-      const url=new URL('/bungie/activity-history',AUTH_ORIGIN);
-      url.searchParams.set('membershipType',String(membership.membershipType));
-      url.searchParams.set('membershipId',String(membership.membershipId));
-      url.searchParams.set('characterId',characterId);
-      url.searchParams.set('count','25');
-      url.searchParams.set('page','0');
-      if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
-      const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'}});
-      if(!response.ok)throw new Error(`Journey activity history failed (${response.status}).`);
-      const payload=await response.json();
-      const activities=await normaliseActivityHistory(payload);
+      const prepared=verifiedProfile?.preparedAccountData?.activityHistoryByCharacter?.[characterId];
+      if(!prepared)throw new Error('Prepared Journey data contains no activity history for this Guardian.');
+      const activities=await normaliseActivityHistory(prepared);
       const evidence={status:'ok',characterId,activities,view:buildMissionReportView(activities),fetchedAt:Date.now()};
       journeyActivityCache.set(key,evidence);
       return evidence;
@@ -2130,7 +2111,7 @@ async function bindTitleAndProgression(payload){
 }
 
 function bindProfileCards(payload){
-  bindGuardianUsage(payload);bindVault(payload);bindActiveGuardian(payload);void bindGuardianRankSummary(payload);void bindSeasonRank(payload);void bindTitleAndProgression(payload);
+  bindGuardianUsage(payload);bindVault(payload);bindActiveGuardian(payload);void bindGuardianRankSummary(payload);void bindSeasonRank(payload);void bindTitleAndProgression(payload);void bindHistoricalStats(journeySession,payload);
   if(recordsPanel&&!recordsPanel.hidden){
     const root=recordRootView(activeRecordView);
     if(root==='titles'||root==='badges'||root==='triumphs')void bindTitleTriumphPanel(payload,root);
@@ -2243,15 +2224,17 @@ function hasJourneyRecordComponents(payload){
 }
 
 async function readVerifiedProfile(session){
-  const cached=await readCachedBungieProfile(session);
+  const cached=await readCachedBungieProfile(session,'journey');
   if(cached?.profile?.characters?.data&&hasJourneyRecordComponents(cached)&&cached?.pageReady?.page==='journey'){
+    assertPreparedPagePayload(cached,'journey');
     guardianManifest.prime(cached);
     return cached;
   }
   const sharedProfile=await waitWithin(globalThis.FORGE_HERO_PROFILE_PROMISE,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
   if(sharedProfile?.profile?.characters?.data){
+    assertPreparedPagePayload(sharedProfile,'journey');
     guardianManifest.prime(sharedProfile);
-    await cacheBungieProfile(session,sharedProfile);
+    await cacheBungieProfile(session,sharedProfile,'journey');
     return sharedProfile;
   }
   try{
@@ -2272,12 +2255,9 @@ async function fetchJourneyProfileRefresh(){
     const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
     const payload=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(payload?.error||`Journey refresh failed (${response.status}).`);
+    assertPreparedPagePayload(payload,'journey');
     guardianManifest.prime(payload);
-    const availableStats=payload?.statDefinitions||verifiedProfile?.statDefinitions||globalThis.FORGE_HERO_PROFILE_PAYLOAD?.statDefinitions;
-    payload.statDefinitions=availableStats&&Object.keys(availableStats).length
-      ?availableStats
-      :await guardianManifest.getMany('DestinyStatDefinition',STAT_ORDER);
-    await cacheBungieProfile(journeySession,payload);
+    await cacheBungieProfile(journeySession,payload,'journey');
     return payload;
   }finally{
     clearTimeout(timeout);
@@ -2369,7 +2349,6 @@ try{
   const authenticated=session?.authenticated===true&&globalThis.FORGE_BUNGIE_SESSION?.authenticated===true;
   if(authenticated){
     journeySession=session;
-    void bindHistoricalStats(session);
     const heroCardsReady=waitForHeroCards();
     const mapReady=showJourney();
     globalThis.ForgeLoader.set(42);globalThis.ForgeLoader.status('Loading verified Guardian data');

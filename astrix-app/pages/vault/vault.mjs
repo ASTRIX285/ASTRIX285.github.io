@@ -1,10 +1,11 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
 import {fetchDisplayProfile} from '../guardian-workspace-v2/guardian-display-profile.mjs?v=20260906-page-payload-1';
-import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-page-payload-1';
-import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-all-page-data-1';
+import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-all-page-data-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,filterVaultArmour,itemKey,prepareArmourSelection} from './vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds,statKey} from './vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from './vault-selection-state.mjs';
+import {assertPreparedPagePayload} from '../../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
 
 const PAGE_SIZE=48;
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -85,11 +86,12 @@ async function fetchProfile(){
 
 async function loadVerifiedPayload(){
   loaderProgress(18,'Checking verified Guardian inventory…');
-  const cached=await readCachedBungieProfile(session);
+  const cached=await readCachedBungieProfile(session,'vault');
   const shared=globalThis.FORGE_HERO_PROFILE_PAYLOAD||(!cached?.profile?await globalThis.FORGE_HERO_PROFILE_PROMISE:null);
   const next=shared?.pageReady?.page==='vault'?shared:cached?.pageReady?.page==='vault'?cached:await fetchProfile();
   if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
-  await cacheBungieProfile(session,next);
+  assertPreparedPagePayload(next,'vault');
+  await cacheBungieProfile(session,next,'vault');
   loaderProgress(46,'Joining private inventory to prepared definitions…');
   await guardianManifest.hydratePayload(next,{waitForManifest:false,includeReusable:true,allowNetwork:false});
   return next;

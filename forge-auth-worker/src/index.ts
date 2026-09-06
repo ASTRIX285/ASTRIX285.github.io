@@ -169,6 +169,7 @@ const JOURNEY_PROFILE_COMPONENTS = [
   200, // Characters
   201, // CharacterInventories
   202, // CharacterProgressions
+  204, // CharacterActivities
   205, // CharacterEquipment
   700, // PresentationNodes
   800, // Collectibles: Journey badges and equipment collection state
@@ -1184,6 +1185,24 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
 
 type PagePayloadKind = "character" | "build-forge" | "journey" | "vault" | "loadout";
 const PAGE_PAYLOAD_KINDS = new Set<PagePayloadKind>(["character", "build-forge", "journey", "vault", "loadout"]);
+const PAGE_READ_VIEWS: Record<PagePayloadKind, readonly string[]> = {
+  character: ["characters", "equipped", "inventory", "saved-loadouts", "subclasses", "artifact"],
+  "build-forge": ["characters", "equipped", "inventory", "saved-loadouts", "subclasses", "artifact", "manual-editor"],
+  journey: ["destinations", "titles", "badges", "triumphs", "records", "quests", "dungeons-raids", "guardian-rank", "patterns-catalysts", "stat-trackers"],
+  vault: ["characters", "inventory", "postmaster", "armour", "weapons", "optimiser"],
+  loadout: ["characters", "inventory", "postmaster", "armour", "exotics", "set-bonuses", "saved-loadouts"]
+};
+const PAGE_REQUIRED_PROFILE_DATA: Record<PagePayloadKind, readonly string[]> = {
+  character: ["characters.data", "profileInventory.data", "profileProgression.data", "characterInventories.data", "characterProgressions.data", "characterEquipment.data", "characterLoadouts.data", "itemComponents.instances.data", "itemComponents.stats.data", "itemComponents.sockets.data", "itemComponents.reusablePlugs.data"],
+  "build-forge": ["characters.data", "profileInventory.data", "profileProgression.data", "characterInventories.data", "characterProgressions.data", "characterEquipment.data", "characterLoadouts.data", "itemComponents.instances.data", "itemComponents.perks.data", "itemComponents.stats.data", "itemComponents.sockets.data", "itemComponents.plugObjectives.data", "itemComponents.reusablePlugs.data"],
+  journey: ["characters.data", "profileInventory.data", "profileProgression.data", "characterInventories.data", "characterProgressions.data", "characterActivities.data", "characterEquipment.data", "profilePresentationNodes.data", "characterPresentationNodes.data", "profileCollectibles.data", "characterCollectibles.data", "profileRecords.data", "characterRecords.data", "metrics.data", "characterCraftables.data"],
+  vault: ["characters.data", "profileInventory.data", "characterInventories.data", "characterEquipment.data", "itemComponents.instances.data", "itemComponents.stats.data", "itemComponents.sockets.data", "itemComponents.reusablePlugs.data"],
+  loadout: ["characters.data", "profileInventory.data", "characterInventories.data", "characterEquipment.data", "characterLoadouts.data", "itemComponents.instances.data", "itemComponents.stats.data", "itemComponents.sockets.data", "itemComponents.reusablePlugs.data"]
+};
+
+function hasPreparedProfileData(profile: Record<string, any>, path: string): boolean {
+  return path.split(".").reduce<any>((value, key) => value?.[key], profile) !== undefined;
+}
 const JOURNEY_HASH_FIELDS: Record<string, string> = {
   presentationNodeHash: "DestinyPresentationNodeDefinition",
   presentationNodeHashes: "DestinyPresentationNodeDefinition",
@@ -1205,7 +1224,19 @@ const JOURNEY_HASH_FIELDS: Record<string, string> = {
   checklistHash: "DestinyChecklistDefinition",
   checklistHashes: "DestinyChecklistDefinition",
   locationHash: "DestinyLocationDefinition",
-  locationHashes: "DestinyLocationDefinition"
+  locationHashes: "DestinyLocationDefinition",
+  questHash: "DestinyInventoryItemDefinition",
+  questHashes: "DestinyInventoryItemDefinition",
+  stepHash: "DestinyInventoryItemDefinition",
+  stepHashes: "DestinyInventoryItemDefinition",
+  itemHash: "DestinyInventoryItemDefinition",
+  itemHashes: "DestinyInventoryItemDefinition",
+  trackingObjectiveHash: "DestinyObjectiveDefinition",
+  recordCategoriesRootNodeHash: "DestinyPresentationNodeDefinition",
+  recordSealsRootNodeHash: "DestinyPresentationNodeDefinition",
+  collectionBadgesRootNodeHash: "DestinyPresentationNodeDefinition",
+  craftingRootNodeHash: "DestinyPresentationNodeDefinition",
+  metricsRootNodeHash: "DestinyPresentationNodeDefinition"
 };
 
 function addJourneyHash(target: Map<string, Set<number>>, type: string, value: unknown): void {
@@ -1238,21 +1269,46 @@ function addComponentKeys(target: Map<string, Set<number>>, type: string, compon
 
 async function journeyManifestTables(
   profile: DestinyProfilePayload,
-  env: Env
-): Promise<{ manifestVersion: string; tables: Record<string, Record<string, Record<string, unknown>>>; currentSeason?: Record<string, any> }> {
+  env: Env,
+  seedTables: Record<string, Record<string, Record<string, unknown>>> = {}
+): Promise<{
+  manifestVersion: string;
+  tables: Record<string, Record<string, Record<string, unknown>>>;
+  currentSeason?: Record<string, any>;
+  coverage: { complete: boolean; unresolved: Record<string, number[]> };
+}> {
   const wanted = new Map<string, Set<number>>();
   const raw = profile as any;
   addComponentKeys(wanted, "DestinyPresentationNodeDefinition", raw.profilePresentationNodes?.data?.nodes);
   addComponentKeys(wanted, "DestinyRecordDefinition", raw.profileRecords?.data?.records);
   addComponentKeys(wanted, "DestinyCollectibleDefinition", raw.profileCollectibles?.data?.collectibles);
   addComponentKeys(wanted, "DestinyMetricDefinition", raw.metrics?.data?.metrics || raw.profileMetrics?.data?.metrics);
+  addComponentKeys(wanted, "DestinyChecklistDefinition", raw.profileProgression?.data?.checklists);
+  for (const component of Object.values(raw.characterPresentationNodes?.data || {}) as any[]) {
+    addComponentKeys(wanted, "DestinyPresentationNodeDefinition", component?.nodes);
+  }
+  for (const component of Object.values(raw.characterRecords?.data || {}) as any[]) {
+    addComponentKeys(wanted, "DestinyRecordDefinition", component?.records);
+  }
+  for (const component of Object.values(raw.characterCollectibles?.data || {}) as any[]) {
+    addComponentKeys(wanted, "DestinyCollectibleDefinition", component?.collectibles);
+  }
+  for (const component of Object.values(raw.characterCraftables?.data || {}) as any[]) {
+    addComponentKeys(wanted, "DestinyInventoryItemDefinition", component?.craftables);
+  }
+  for (const component of Object.values(raw.characterProgressions?.data || {}) as any[]) {
+    addComponentKeys(wanted, "DestinyChecklistDefinition", component?.checklists);
+  }
   addJourneyHash(wanted, "DestinyGuardianRankConstantsDefinition", 1);
   collectJourneyHashes(profile, wanted);
 
-  const tables: Record<string, Record<string, Record<string, unknown>>> = {};
+  const tables: Record<string, Record<string, Record<string, unknown>>> = Object.fromEntries(
+    Object.entries(seedTables).map(([type, rows]) => [type, { ...rows }])
+  );
+  collectJourneyHashes(tables, wanted);
   let manifestVersion = "";
   let currentSeason: Record<string, any> | undefined;
-  for (let round = 0; round < 4; round += 1) {
+  for (let round = 0; round < 16; round += 1) {
     const missing = Object.fromEntries([...wanted].map(([type, hashes]) => [
       type,
       [...hashes].filter(hash => !tables[type]?.[String(hash)])
@@ -1269,7 +1325,47 @@ async function journeyManifestTables(
     }
     if (!added) break;
   }
-  return { manifestVersion, tables, currentSeason };
+  const unresolved = Object.fromEntries([...wanted].map(([type, hashes]) => [
+    type,
+    [...hashes].filter(hash => !tables[type]?.[String(hash)])
+  ]).filter(([, hashes]) => (hashes as number[]).length));
+  return { manifestVersion, tables, currentSeason, coverage: { complete: !Object.keys(unresolved).length, unresolved } };
+}
+
+async function preparedJourneyAccountData(
+  sessionId: string,
+  profile: DestinyProfilePayload,
+  env: Env
+): Promise<{
+  historicalStats: Record<string, unknown> | null;
+  activityHistoryByCharacter: Record<string, Record<string, unknown>>;
+  coverage: { complete: boolean; missing: string[] };
+}> {
+  const characterIds = Object.keys(profile.characters?.data || {});
+  const stub = recordStub(env, `session:${sessionId}`);
+  const requests = [
+    ["historical-stats", { kind: "historical-stats" }],
+    ...characterIds.map(characterId => [`activity-history:${characterId}`, { kind: "activity-history", characterId, count: 25, page: 0 }])
+  ] as const;
+  const resolved = await Promise.all(requests.map(async ([key, body]) => {
+    const response = await stub.fetch(new Request("https://internal/prepared-read", {
+      method: "POST",
+      body: JSON.stringify(body)
+    })).catch(() => null);
+    const payload = response?.ok ? await response.json<Record<string, unknown>>().catch(() => null) : null;
+    return [key, payload] as const;
+  }));
+  const byKey = new Map(resolved);
+  const historicalStats = byKey.get("historical-stats") || null;
+  const activityHistoryByCharacter = Object.fromEntries(characterIds.map(characterId => [
+    characterId,
+    byKey.get(`activity-history:${characterId}`) || null
+  ]).filter(([, payload]) => payload));
+  const missing = [
+    ...(historicalStats ? [] : ["historical-stats"]),
+    ...characterIds.filter(characterId => !activityHistoryByCharacter[characterId]).map(characterId => `activity-history:${characterId}`)
+  ];
+  return { historicalStats, activityHistoryByCharacter, coverage: { complete: !missing.length, missing } };
 }
 
 async function pagePayloadRoute(request: Request, env: Env, page: PagePayloadKind): Promise<Response> {
@@ -1278,56 +1374,93 @@ async function pagePayloadRoute(request: Request, env: Env, page: PagePayloadKin
   profileUrl.search = "";
   profileUrl.searchParams.set("freshness", "display");
   profileUrl.searchParams.set("scope", page === "journey" ? "journey" : "forge");
+  const preparedStatusPromise = preparedManifestTables({}, env);
   const profileResponse = await profileRoute(new Request(profileUrl, { headers: request.headers }), env);
   if (!profileResponse.ok) return profileResponse;
   const payload = await profileResponse.json<Record<string, any>>();
 
-  let preparedVersion = "";
-  let currentSeason: Record<string, any> | undefined;
-  if (page === "journey") {
-    const prepared = await journeyManifestTables(payload.profile || {}, env);
-    preparedVersion = prepared.manifestVersion;
-    currentSeason = prepared.currentSeason;
-    payload.manifestTables = prepared.tables;
-  } else {
-    const prepared = await preparedManifestTables({}, env);
-    preparedVersion = prepared.manifestVersion;
-    currentSeason = prepared.currentSeason;
-  }
-  if (currentSeason?.season) {
-    payload.currentSeason = currentSeason.season;
-    payload.currentSeasonNumber = currentSeason.season.seasonNumber;
-  }
-
+  const preparedStatus = await preparedStatusPromise;
+  let preparedVersion = preparedStatus.manifestVersion;
+  let currentSeason: Record<string, any> | undefined = preparedStatus.currentSeason;
+  let pageBundle: Record<string, any> | null = null;
   if (env.MANIFEST_DATA && preparedVersion) {
     const bundleUrl = new URL("https://manifest/page-bundle");
     bundleUrl.searchParams.set("page", page === "journey" ? "journey" : page === "loadout" ? "loadout" : "common");
     bundleUrl.searchParams.set("version", preparedVersion);
     const bundleResponse = await env.MANIFEST_DATA.fetch(new Request(bundleUrl)).catch(() => null);
-    const bundle = bundleResponse?.ok ? await bundleResponse.json<Record<string, unknown>>().catch(() => null) : null;
-    if (bundle?.manifestVersion === preparedVersion) {
+    pageBundle = bundleResponse?.ok ? await bundleResponse.json<Record<string, any>>().catch(() => null) : null;
+    if (pageBundle?.manifestVersion === preparedVersion) {
       if (page !== "journey") {
-        const forgeArmourIndex = bundle.forgeArmourIndex as Record<string, any> | undefined;
+        const forgeArmourIndex = pageBundle.forgeArmourIndex as Record<string, any> | undefined;
         payload.artifactCatalog = page === "loadout"
           ? (Array.isArray(forgeArmourIndex?.artifactCatalog) ? forgeArmourIndex.artifactCatalog : [])
-          : (Array.isArray(bundle.artifactCatalog) ? bundle.artifactCatalog : []);
-        if (page === "loadout") payload.forgeArmourIndex = forgeArmourIndex || null;
+          : (Array.isArray(pageBundle.artifactCatalog) ? pageBundle.artifactCatalog : []);
+        if (page === "loadout") {
+          payload.forgeArmourIndex = forgeArmourIndex || null;
+          payload.collectibleDefinitions = pageBundle.collectibleDefinitions || null;
+          payload.loadoutCoverage = pageBundle.loadoutCoverage || null;
+        }
       }
       if (page === "journey") {
-        payload.journeyIndex = bundle.journeyIndex || null;
-        for (const [type, rows] of Object.entries((bundle.manifestTables || {}) as Record<string, Record<string, unknown>>)) {
-          payload.manifestTables[type] = { ...(payload.manifestTables[type] || {}), ...rows };
-        }
+        payload.journeyIndex = pageBundle.journeyIndex || null;
+        payload.journeyCoverage = pageBundle.journeyCoverage || null;
       }
     }
   }
 
+  if (page === "journey") {
+    const prepared = await journeyManifestTables(payload.profile || {}, env, pageBundle?.manifestTables || {});
+    preparedVersion = prepared.manifestVersion || preparedVersion;
+    currentSeason = prepared.currentSeason || currentSeason;
+    payload.manifestTables = prepared.tables;
+    payload.journeyAccountDefinitionCoverage = prepared.coverage;
+    const sessionId = cookieValue(request, SESSION_COOKIE);
+    payload.preparedAccountData = sessionId
+      ? await preparedJourneyAccountData(sessionId, payload.profile || {}, env)
+      : { historicalStats: null, activityHistoryByCharacter: {}, coverage: { complete: false, missing: ["session"] } };
+  }
+
+  if (currentSeason?.season) {
+    payload.currentSeason = currentSeason.season;
+    payload.currentSeasonNumber = currentSeason.season.seasonNumber;
+  }
+
+  const missing: string[] = [];
+  if (!preparedVersion) missing.push("manifest-version");
+  for (const path of PAGE_REQUIRED_PROFILE_DATA[page]) {
+    if (!hasPreparedProfileData(payload.profile || {}, path)) missing.push(`profile:${path}`);
+  }
+  if (payload.definitionCoverage?.complete !== true) missing.push("owned-item-definitions");
+  if (PROFILE_STAT_HASHES.some(hash => !payload.statDefinitions?.[String(hash)])) missing.push("guardian-stat-definitions");
+  if (page === "journey") {
+    if (payload.journeyCoverage?.complete !== true) missing.push("journey-public-catalogue");
+    if (payload.journeyAccountDefinitionCoverage?.complete !== true) missing.push("journey-account-definitions");
+    if (payload.preparedAccountData?.coverage?.complete !== true) missing.push("journey-account-history");
+    if (!payload.profile?.profileRecords?.data) missing.push("records");
+    if (!payload.profile?.profilePresentationNodes?.data) missing.push("presentation-nodes");
+    if (!payload.profile?.profileCollectibles?.data) missing.push("collectibles");
+    if (!payload.profile?.metrics?.data && !payload.profile?.profileMetrics?.data) missing.push("metrics");
+  }
+  if ((page === "character" || page === "build-forge") && (!Array.isArray(payload.artifactCatalog) || !payload.artifactCatalog.length)) missing.push("artifact-catalogue");
+  if (page === "build-forge" && !Number.isInteger(Number(payload.currentSeasonNumber))) missing.push("current-season");
+  if (page === "loadout") {
+    if (!payload.forgeArmourIndex) missing.push("forge-armour-index");
+    if (payload.loadoutCoverage?.complete !== true) missing.push("loadout-acquisition-sources");
+  }
   payload.pageReady = {
     page,
     manifestVersion: preparedVersion,
     definitionSource: "prepared-bulk-manifest",
     accountSource: payload.displaySnapshot?.source || "snapshot",
-    generatedAt: Date.now()
+    generatedAt: Date.now(),
+    views: PAGE_READ_VIEWS[page],
+    datasets: {
+      characters: Object.keys(payload.profile?.characters?.data || {}).length,
+      ownedItems: allProfileItems(payload.profile || {}).length,
+      inventoryDefinitions: Object.keys(payload.definitions || {}).length,
+      manifestTables: Object.fromEntries(Object.entries(payload.manifestTables || {}).map(([type, rows]) => [type, Object.keys(rows as object).length]))
+    },
+    coverage: { complete: missing.length === 0, missing }
   };
   return withCors(request, env, json(payload, 200, { "Cache-Control": "private, no-store" }));
 }

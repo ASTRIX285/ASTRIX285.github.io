@@ -1,6 +1,6 @@
 const SESSION_KEY="astrix:bungie-session-cache:v1";
-const PROFILE_MARKER_KEY="astrix:bungie-profile-cache:v2";
-const PROFILE_FALLBACK_KEY="astrix:bungie-profile-cache-fallback:v2";
+const PROFILE_MARKER_PREFIX="astrix:bungie-page-cache:v3:";
+const PROFILE_FALLBACK_PREFIX="astrix:bungie-page-cache-fallback:v3:";
 const LOADOUT_FALLBACK_PREFIX="astrix:bungie-loadout-cache-fallback:v2:";
 const FAST_RETURN_KEY="astrix:guardian-fast-return:v1";
 const PORTAL_TRANSITION_KEY="astrix:guardian-portal-transition:v1";
@@ -163,37 +163,42 @@ async function readBuildForgeState(binding,{readRecord:readBuildRecord=readRecor
   return record.snapshot||null;
 }
 
-function profileRecordKey(identity){return `profile:v2:${identity}`;}
+function pageKind(value){return String(value||"shared").trim().toLowerCase()||"shared";}
+function profileRecordKey(identity,page){return `profile:v3:${identity}:${pageKind(page)}`;}
+function profileMarkerKey(page){return `${PROFILE_MARKER_PREFIX}${pageKind(page)}`;}
+function profileFallbackKey(page){return `${PROFILE_FALLBACK_PREFIX}${pageKind(page)}`;}
 function loadoutRecordKey(identity,characterId,index){return `loadout:v2:${identity}:${characterId}:${index}`;}
 function isFresh(record){return Boolean(record&&Date.now()-Number(record.savedAt||0)<=PROFILE_TTL_MS);}
 
-async function cacheBungieProfile(session,payload){
+async function cacheBungieProfile(session,payload,page=payload?.pageReady?.page){
   const identity=sessionIdentity(session);
   if(!identity||!payload)return false;
+  const scope=pageKind(page);
   const savedAt=Date.now();
-  const key=profileRecordKey(identity);
+  const key=profileRecordKey(identity,scope);
   cacheBungieSession(session);
-  safeSessionWrite(PROFILE_MARKER_KEY,{key,identity,savedAt});
-  const written=await writeRecord({key,identity,savedAt,payload});
-  if(!written)safeSessionWrite(PROFILE_FALLBACK_KEY,{key,identity,savedAt,payload});
+  safeSessionWrite(profileMarkerKey(scope),{key,identity,scope,savedAt});
+  const written=await writeRecord({key,identity,scope,savedAt,payload});
+  if(!written)safeSessionWrite(profileFallbackKey(scope),{key,identity,scope,savedAt,payload});
   return written;
 }
 
-async function readCachedBungieProfile(session){
+async function readCachedBungieProfile(session,page="shared"){
   const identity=sessionIdentity(session);
-  const marker=safeSessionRead(PROFILE_MARKER_KEY);
-  if(!identity||marker?.identity!==identity||!isFresh(marker))return null;
+  const scope=pageKind(page);
+  const marker=safeSessionRead(profileMarkerKey(scope));
+  if(!identity||marker?.identity!==identity||marker?.scope!==scope||!isFresh(marker))return null;
   const stored=await readRecord(marker.key);
-  if(stored?.identity===identity&&isFresh(stored)&&stored.payload)return stored.payload;
-  const fallback=safeSessionRead(PROFILE_FALLBACK_KEY);
-  return fallback?.identity===identity&&fallback?.key===marker.key&&isFresh(fallback)?fallback.payload:null;
+  if(stored?.identity===identity&&stored?.scope===scope&&isFresh(stored)&&stored.payload)return stored.payload;
+  const fallback=safeSessionRead(profileFallbackKey(scope));
+  return fallback?.identity===identity&&fallback?.scope===scope&&fallback?.key===marker.key&&isFresh(fallback)?fallback.payload:null;
 }
 
 function releaseGuardianSessionStorageFallbacks(storage=globalThis.sessionStorage){
   if(!storage)return 0;
   try{
     const keys=[];
-    for(let index=0;index<storage.length;index+=1){const key=String(storage.key(index)||'');if(key===PROFILE_FALLBACK_KEY||key.startsWith(LOADOUT_FALLBACK_PREFIX))keys.push(key);}
+    for(let index=0;index<storage.length;index+=1){const key=String(storage.key(index)||'');if(key.startsWith(PROFILE_FALLBACK_PREFIX)||key.startsWith(LOADOUT_FALLBACK_PREFIX))keys.push(key);}
     for(const key of keys)storage.removeItem(key);
     return keys.length;
   }catch{return 0;}

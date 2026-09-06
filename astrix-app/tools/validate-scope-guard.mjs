@@ -31,6 +31,7 @@ const allowed=new Set([
   'astrix-app/core/bungie-item-identity.mjs',
   'astrix-app/core/bungie-profile-plugs.mjs',
   'astrix-app/core/forge-index-transport.mjs',
+  'astrix-app/core/page-ready-contract.mjs',
   'astrix-app/tools/test-forge-index-transport.mjs',
   '.github/workflows/validate-weapon-audit.yml',
   'astrix-app/tools/test-weapon-cards-browser.mjs',
