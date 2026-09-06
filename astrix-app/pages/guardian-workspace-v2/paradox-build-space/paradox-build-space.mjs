@@ -1,20 +1,20 @@
-import {ForgePreparationClient,preparationVariants} from './paradox-forge-preparation.mjs?v=20260905-generation-review-1';
+import {ForgePreparationClient,preparationVariants} from './paradox-forge-preparation.mjs?v=20260905-worker-preflight-1';
 import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,createWorkingBuildPatch,createBuildPersistenceSnapshot,restoreBuildPersistenceSnapshot,protectBuildState,restoreWorkingBuild} from './paradox-build-state.mjs?v=20260904-memory-safe-transfer-1';
 import {mountForgeShell} from '../platform-forge-shell.mjs';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs?v=20260902-shared-account-orbit-1';
 import {analyzeLiveGuardian,renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs?v=20260905-background-forge-1';
 import {createLiveTransferPlan} from '../guardian-perk-change-plan.mjs?v=20260905-manual-editor-1';
-import {liveActionCapabilities,confirmLiveTransferPlan,executeLiveTransferPlan} from '../guardian-live-actions.mjs?v=20260905-manual-editor-2';
+import {liveActionCapabilities,stageLiveTransferPreflight,confirmLiveTransferPlan,executeLiveTransferPlan} from '../guardian-live-actions.mjs?v=20260905-worker-preflight-1';
 import {armourCard} from '../guardian-gear-layout.mjs?v=20260905-card-space-mods-1';
 import {openArmourDrawer} from '../guardian-beta-runtime.mjs?v=20260905-weapon-audit-1';
 import {renderWeapons,openWeaponDetail,weaponPerkMatrixMarkup,weaponTraitHierarchyMarkup} from '../guardian-semantic-ui.mjs?v=20260905-card-space-mods-1';
-import {adviseLiveWeaponRolls} from '../guardian-weapon-roll-advisor.mjs?v=20260905-weapon-audit-1';
+import {adviseLiveWeaponRolls} from '../guardian-weapon-roll-advisor.mjs?v=20260905-worker-preflight-1';
 import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260829-subclass-identity-1';
 import {mergeSubclassCatalog,mergeSuperOptions} from '../guardian-super-catalog.mjs?v=20260829-subclass-identity-1';
 import {markGuardianFastReturn,readForgeLoaderTransfer,cacheBuildForgeState,readBuildForgeState} from '../guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
 import {guardianManifest} from '../guardian-manifest-service.mjs?v=20260905-weapon-audit-1';
 import {AUTH_ORIGIN,getBungieSession} from '../guardian-bungie-auth.mjs?v=20260905-manual-editor-1';
-import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,shouldReplaceBuildState,validateHandoffEnvelope} from '../paradox-build-binding.mjs?v=20260905-generate-state-2';
+import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,shouldReplaceBuildState,repairMissingBuildBinding,validateHandoffEnvelope} from '../paradox-build-binding.mjs?v=20260905-worker-preflight-1';
 import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs?v=20260904-cross-system-loop-1';
 import {BUILD_ELEMENTS,validateTierFiveArmour} from './paradox-build-recommendation.mjs';
@@ -25,7 +25,7 @@ import {saveParadoxLoadout} from './paradox-saved-loadouts.mjs?v=20260905-manual
 import {createVaultCatalogue,prepareArmourSelection} from '../../vault/vault-inventory.mjs?v=20260905-manual-editor-1';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3&loader=2';
 import '../guardian-loadouts.mjs?v=20260905-loadout-actions-1';
-import {normaliseLiveProfile} from '../guardian-bungie-profile.mjs?v=20260905-manual-editor-1';
+import {normaliseLiveProfile} from '../guardian-bungie-profile.mjs?v=20260905-worker-preflight-1';
 import '../guardian-portal-progress.mjs?v=20260905-weapon-audit-1&loader=2';
 import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
@@ -51,6 +51,7 @@ let artifactSeasonRequest=null;
 let selectedRecommendationElement='';
 let selectedRecommendationObjective='';
 let recommendationBusy=false;
+let recommendationFailure='';
 let preparationTimer=null;
 let activePreparationKey='';
 let explicitlySelectedCharacterId='';
@@ -59,6 +60,8 @@ let manualInventoryRequest=null;
 let manualEditorState={kind:'weapon',slotIndex:0,search:'',visibleItems:[],socketOptions:new Map()};
 let pendingApplyPlan=null;
 let liveActionBusy=false;
+let livePreflightBusy=false;
+let livePreflightRequest=0;
 const forgePreparation=new ForgePreparationClient({onStatus:message=>{
   const status=byId('forgePreparationStatus');
   if(status&&message.key===activePreparationKey)status.textContent=message.type==='ready'?'Build option ready':message.type==='error'?'This option needs additional verified data.':'Preparing build options…';
@@ -240,18 +243,27 @@ function buildLivePlan(){
 }
 function renderApplyControls(build={}, {preserveBanner=false}={}){
   const plan=buildLivePlan(),reason=plan.blockers?.[0]||'The exact Working Build is not ready for Apply.';
-  for(const id of ['applyBuild','applyWorkingBuild']){const button=byId(id);if(button){button.disabled=!plan.ready||liveActionBusy;button.title=plan.ready?'Review the exact transfer, equip, socket and readback sequence.':reason;}}
+  for(const id of ['applyBuild','applyWorkingBuild']){const button=byId(id);if(button){button.disabled=!plan.ready||liveActionBusy||livePreflightBusy;button.title=plan.ready?'Run a non-mutating live preflight, then review the exact transfer, equip, socket and readback sequence.':reason;}}
   const save=byId('saveParadoxBuild');if(save){save.disabled=!/^\d+$/.test(String(build.characterId||''));save.title=save.disabled?'Load an authenticated Guardian build first.':'Save a separate named PARADOX copy.';}
   if(!liveActionBusy&&!preserveBanner&&byId('liveActionBanner'))setLiveActionBanner(plan.ready?`Apply ready · ${plan.equipment.targets.length} exact items · ${plan.socketChanges.length} verified socket change${plan.socketChanges.length===1?'':'s'}${plan.inGameSteps.length?` · ${plan.inGameSteps.length} in-game step${plan.inGameSteps.length===1?'':'s'}`:''}.`:`Apply blocked · ${reason}`,plan.ready?'':'warn');
   return plan;
 }
-function closeApplyConfirmation(){const dialog=byId('applyConfirmationDialog');if(dialog)dialog.hidden=true;document.body.classList.remove('working-dialog-open');pendingApplyPlan=null;}
-function openApplyConfirmation(){
-  const plan=buildLivePlan(),dialog=byId('applyConfirmationDialog');if(!plan.ready||!dialog){setLiveActionBanner(`Apply blocked · ${plan.blockers?.[0]||'validation failed.'}`,'bad');return;}
-  pendingApplyPlan=plan;byId('applyConfirmationGuardian').textContent=`Guardian ${plan.characterId} · membership ${plan.membershipType}:${plan.membershipId}`;
-  const equipment=plan.equipment.targets.map(row=>`<li>${esc(row.kind.toUpperCase())} · ${esc(row.name)} · ${esc(row.itemInstanceId)}</li>`).join(''),sockets=plan.socketChanges.map(row=>`<li>${esc(row.itemName||row.itemInstanceId)} · socket ${row.socketIndex+1} → ${esc(row.plugName||row.plugHash)}</li>`).join(''),steps=plan.inGameSteps.map(row=>`<li>${esc(row)}</li>`).join('');
-  byId('applyConfirmationSummary').innerHTML=`<div class="apply-confirmation-summary"><section><h3>EXACT EQUIPMENT</h3><ul>${equipment}</ul></section><section><h3>REMOTE SOCKET CHANGES</h3><ul>${sockets||'<li>No remote socket changes staged.</li>'}</ul></section>${steps?`<section class="manual-steps"><h3>AFTER APPLY · IN-GAME STEPS</h3><ul>${steps}</ul></section>`:''}</div>`;
-  dialog.hidden=false;document.body.classList.add('working-dialog-open');byId('confirmApplyBuild')?.focus();
+function closeApplyConfirmation(){livePreflightRequest+=1;livePreflightBusy=false;const dialog=byId('applyConfirmationDialog');if(dialog)dialog.hidden=true;document.body.classList.remove('working-dialog-open');pendingApplyPlan=null;}
+async function openApplyConfirmation(){
+  if(liveActionBusy||livePreflightBusy)return;
+  const sourceState=readState(),plan=buildLivePlan(),dialog=byId('applyConfirmationDialog');if(!plan.ready||!dialog){setLiveActionBanner(`Apply blocked · ${plan.blockers?.[0]||'validation failed.'}`,'bad');return;}
+  const request=++livePreflightRequest;livePreflightBusy=true;renderApplyControls(currentBuild()||{},{preserveBanner:true});setLiveActionBanner('Apply preflight · checking fresh Guardian, ownership, location, compatibility, Exotic, socket and activity evidence. No live changes are being made.','running');
+  try{
+    let session=globalThis.ASTRIX_BUNGIE_SESSION;if(!session?.csrfToken)session=await getBungieSession({force:true});
+    const staged=await stageLiveTransferPreflight(plan,{session});
+    if(request!==livePreflightRequest||readState()!==sourceState){setLiveActionBanner('Apply preflight cancelled because the Working Build changed. Review it and try again.','warn');return;}
+    if(!staged.ready){setLiveActionBanner(`Apply blocked · ${staged.blockers?.[0]||'live preflight failed.'}`,'bad');return;}
+    pendingApplyPlan=staged;byId('applyConfirmationGuardian').textContent=`Guardian ${staged.characterId} · membership ${staged.membershipType}:${staged.membershipId} · live preflight passed`;
+    const equipment=staged.equipment.targets.map(row=>`<li>${esc(row.kind.toUpperCase())} · ${esc(row.name)} · ${esc(row.itemInstanceId)}</li>`).join(''),sockets=staged.socketChanges.map(row=>`<li>${esc(row.itemName||row.itemInstanceId)} · socket ${row.socketIndex+1} → ${esc(row.plugName||row.plugHash)}</li>`).join(''),steps=staged.inGameSteps.map(row=>`<li>${esc(row)}</li>`).join('');
+    byId('applyConfirmationSummary').innerHTML=`<div class="apply-confirmation-summary"><section><h3>EXACT EQUIPMENT</h3><ul>${equipment}</ul></section><section><h3>REMOTE SOCKET CHANGES</h3><ul>${sockets||'<li>No remote socket changes staged.</li>'}</ul></section>${steps?`<section class="manual-steps"><h3>AFTER APPLY · IN-GAME STEPS</h3><ul>${steps}</ul></section>`:''}</div>`;
+    dialog.hidden=false;document.body.classList.add('working-dialog-open');byId('confirmApplyBuild')?.focus();
+  }catch(error){if(request===livePreflightRequest)setLiveActionBanner(`Apply blocked · ${error?.message||'live preflight failed.'}`,'bad');}
+  finally{if(request===livePreflightRequest){livePreflightBusy=false;renderApplyControls(currentBuild()||{},{preserveBanner:true});}}
 }
 async function executeConfirmedApply(){
   const plan=pendingApplyPlan;if(!plan||liveActionBusy)return;
@@ -338,7 +350,7 @@ function switchBuildCharacter(detail={}){
   if(detail?.source!=="bungie-live"||!detail.characterId)return;
   const current=readState(),params=new URLSearchParams(location.search),incomingCharacterId=String(detail.characterId);
   const replace=shouldReplaceBuildState(current,detail,{vaultSelection:params.get('vault')==='selection',explicitlySelectedCharacterId});
-  if(!replace)return;
+  if(!replace){const repaired=repairMissingBuildBinding(current,detail);if(repaired!==current){writeState(repaired);render();}return;}
   if(explicitlySelectedCharacterId===incomingCharacterId)explicitlySelectedCharacterId='';
   const requested=requestedTransferBinding(),boundDetail={...detail,membershipId:detail.membershipId||requested.membershipId,membershipType:detail.membershipType??requested.membershipType};
   const next=applyPendingVaultSelection(createBuildState(boundDetail));writeState(next);render();
@@ -460,7 +472,7 @@ function renderRecommendationControls(build={}){
   if(!['balanced','dps','add-clear','survivability','ability-uptime'].includes(selectedRecommendationObjective))selectedRecommendationObjective=build.objective||'balanced';document.querySelectorAll('[data-build-objective]').forEach(button=>{const selected=button.dataset.buildObjective===selectedRecommendationObjective;button.disabled=!hasDecision||recommendationBusy;button.classList.toggle('is-selected',selected);button.setAttribute('aria-pressed',String(selected));});
   const armourValidation=validateTierFiveArmour(build),exoticValidation=validateExoticLoadout(build,{requireArmourAnchor:true}),hasElement=Boolean(selectedRecommendationElement&&supported.has(selectedRecommendationElement)),ready=hasDecision&&armourValidation.ready&&exoticValidation.ready&&hasElement&&!recommendationBusy,button=byId('generateMaxLoadout'),status=byId('recommendationReadiness');
   if(button){button.disabled=!ready;button.textContent=recommendationBusy?'GENERATING VERIFIED BUILD…':build.recommendationGeneratedAt?'REGENERATE MAX LOADOUT':'GENERATE MAX LOADOUT';}
-  if(status){status.className='recommendation-readiness'+(ready?' is-ready':' is-blocked');status.textContent=recommendationBusy?'Resolving elemental damage, weapon and Artifact evidence…':!hasDecision?'Stage a verified Forge Loader armour result to unlock compatible build options.':!armourValidation.ready?armourValidation.reason:!exoticValidation.ready?exoticValidation.reason:!hasElement?'Select an available verified elemental build option.':`Ready · ${selectedRecommendationElement.toUpperCase()} damage build · one verified Exotic armour anchor · Maximized Forge Loader result.`;}
+  if(status){status.className='recommendation-readiness'+(ready?' is-ready':' is-blocked');status.textContent=recommendationBusy?'Resolving elemental damage, weapon and Artifact evidence…':recommendationFailure||(!hasDecision?'Stage a verified Forge Loader armour result to unlock compatible build options.':!armourValidation.ready?armourValidation.reason:!exoticValidation.ready?exoticValidation.reason:!hasElement?'Select an available verified elemental build option.':`Ready · ${selectedRecommendationElement.toUpperCase()} damage build · one verified Exotic armour anchor · Maximized Forge Loader result.`);}
   scheduleForgePreparation(build);
 }
 
@@ -522,6 +534,7 @@ async function updateForgeGenerationPhase(message){const status=byId('forgeGener
 async function generateMaxLoadout(){
   if(recommendationBusy)return;
   recommendationBusy=true;
+  recommendationFailure='';
   let failureMessage='';
   renderRecommendationControls(currentBuild()||{});
   try{
@@ -549,7 +562,7 @@ async function generateMaxLoadout(){
     await updateForgeGenerationPhase('PREPARING BUILD REVIEW…');
     if(readState()!==state)throw new Error('The source build changed. Generate again for the current selection.');
     next=protectBuildState({...next,workingBuild:working});writeState(next);render();hideForgeGenerationLoader();if(!openRecommendedBuild())throw new Error('The recommendation was generated, but its protected review could not be opened. Reload this Build Forge page and try again.');
-  }catch(error){failureMessage=error?.message||'Unable to generate a verified recommendation.';console.error('Build Forge recommendation generation failed.',error);}
+  }catch(error){failureMessage=error?.message||'Unable to generate a verified recommendation.';recommendationFailure=failureMessage;console.error('Build Forge recommendation generation failed.',error);}
   finally{
     hideForgeGenerationLoader();recommendationBusy=false;renderRecommendationControls(currentBuild()||{});
     if(failureMessage){const status=byId('recommendationReadiness');if(status){status.className='recommendation-readiness is-blocked';status.textContent=failureMessage;}setLiveActionBanner(`Generate blocked · ${failureMessage}`,'warn');}
@@ -632,7 +645,7 @@ function downloadRangeEvidence(){const capture=readCapture();if(!capture)return;
 function refreshRangeCapture(){const capture=readCapture();const build=currentBuild(),characterId=String(build?.characterId||'').trim(),matches=captureMatchesCharacter(capture,characterId);const pull=byId('pullRangeResults');const arm=byId('armRangeTest');const download=byId('downloadRangeEvidence');renderCandidateConfirmation(capture);renderParadoxTestReview(capture);if(arm)arm.disabled=!characterId;if(download)download.disabled=capture?.status!=='collected';if(capture?.status==='armed'){arm?.classList.toggle('is-armed',matches);if(pull)pull.disabled=!matches;if(!matches)setRangeStatus(`CAPTURE GUARDIAN MISMATCH · saved character ${capture.characterId||'unknown'} · current character ${characterId||'unknown'}. Return to the captured Guardian before pulling results.`,'bad');else setRangeStatus(`ARMED ${String(capture.testDomain||'pve').toUpperCase()} BUILD TEST · ${capture.testId} · character ${capture.characterId}`,'warn');}else if(capture?.status==='collected'){arm?.classList.remove('is-armed');if(pull)pull.disabled=!matches;if(!matches)setRangeStatus(`RESULTS PRESERVED FOR DIFFERENT GUARDIAN · ${capture.testId} · saved character ${capture.characterId||'unknown'}. Raw evidence remains available to download.`,'bad');else setRangeStatus(`RESULTS COLLECTED · ${capture.testId} · ${capture.candidates?.length||0} completed candidate activity instance(s)`,'good');}else{arm?.classList.remove('is-armed');if(pull)pull.disabled=true;setRangeStatus('Choose PvE or PvP, then arm the exact Working Build before playing.');}}
 async function armRange(){const build=currentBuild();if(!build?.characterId){setRangeStatus('No Guardian characterId is present in this Build Forge snapshot.','bad');return;}const button=byId('armRangeTest');try{if(button)button.disabled=true;setRangeStatus('Taking the pre-test Activity History baseline…','warn');const capture=await armBuildTest({characterId:build.characterId,buildSnapshot:build,testDomain,calibrationType:testDomain==='pve'&&byId('shootingRangeCalibration')?.checked?'shooting-range':null,expectedActivity:selectedExpectedActivity()});refreshRangeCapture();showRangeOutput(capture);if(capture.baselineError)setRangeStatus(`ARMED, but Activity History baseline failed: ${capture.baselineError.message}`,'warn');}catch(error){setRangeStatus(error?.message||'Unable to arm Build Test.','bad');showRangeOutput({error:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null});}finally{if(button)button.disabled=!String(currentBuild()?.characterId||'').trim();}}
 async function pullRange(){const button=byId('pullRangeResults'),build=currentBuild(),capture=readCapture();if(!captureMatchesCharacter(capture,build?.characterId)){setRangeStatus(`Capture blocked: saved character ${capture?.characterId||'unknown'} does not match current Build Forge Guardian ${build?.characterId||'unknown'}.`,'bad');showRangeOutput({error:'Build Test Guardian mismatch.',code:'capture-character-mismatch',captureCharacterId:capture?.characterId||null,currentCharacterId:build?.characterId||null});return;}try{if(button)button.disabled=true;setRangeStatus('Pulling completed post-arm activities and candidate PGCRs…','warn');const result=await collectBuildTestResults({expectedCharacterId:build.characterId});refreshRangeCapture();showRangeOutput(result);if(!result.candidates?.length)setRangeStatus('No completed post-arm Bungie activity candidate was found.','warn');else if(result.candidateSelection?.requiresUserConfirmation)setRangeStatus(`${result.candidates.length} candidates found. Confirm the correct completed activity; Build Forge will not guess.`,'warn');else if(!result.evidenceSummary?.verifiedActivityPgcrCount)setRangeStatus('Candidates pulled, but none has complete activity-hash + PGCR proof.','warn');else setRangeStatus(`${result.evidenceSummary.verifiedActivityPgcrCount} verified activity + PGCR record(s) pulled. Causal perk and uptime claims remain inference.`,'good');}catch(error){setRangeStatus(error?.message||'Unable to pull Build Test results.','bad');showRangeOutput({error:error?.message||String(error),code:error?.code||null,status:error?.status||null,url:error?.url||null,captureCharacterId:error?.captureCharacterId||null,currentCharacterId:error?.currentCharacterId||null});}finally{if(button)button.disabled=!captureMatchesCharacter(readCapture(),currentBuild()?.characterId);}}
-document.addEventListener('click',event=>{const recommendationElement=event.target.closest('[data-recommendation-element]');if(recommendationElement&&!recommendationElement.disabled){selectedRecommendationElement=recommendationElement.dataset.recommendationElement||'';renderRecommendationControls(currentBuild()||{});return;}const objective=event.target.closest('[data-build-objective]');if(objective&&!objective.disabled){selectedRecommendationObjective=objective.dataset.buildObjective||'balanced';renderRecommendationControls(currentBuild()||{});return;}const artifactRecommend=event.target.closest('[data-artifact-recommend]');if(artifactRecommend){artifactRecommend.disabled=true;void refreshForgeArtifactRecommendation({force:true});return;}const candidate=event.target.closest('[data-confirm-instance]');if(candidate){try{const confirmed=confirmCandidateActivity(candidate.dataset.confirmInstance,{expectedCharacterId:currentBuild()?.characterId});refreshRangeCapture();showRangeOutput(confirmed);setRangeStatus(`COMPLETED ACTIVITY CONFIRMED · ${candidate.dataset.confirmInstance}`,'good');}catch(error){setRangeStatus(error?.message||'Unable to confirm this activity.','bad');}return;}const toggle=event.target.closest('[data-toggle-panel]');if(toggle){const panel=byId(toggle.dataset.togglePanel),expanded=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!expanded));if(panel)panel.hidden=expanded;return;}const option=event.target.closest('[data-select-kind]');if(option){const kind=option.dataset.selectKind;stageSelection(kind,Number(option.dataset.selectIndex));if(kind!=='artifactPerks')queueMicrotask(()=>void refreshForgeArtifactRecommendation());}});
+document.addEventListener('click',event=>{const recommendationElement=event.target.closest('[data-recommendation-element]');if(recommendationElement&&!recommendationElement.disabled){recommendationFailure='';selectedRecommendationElement=recommendationElement.dataset.recommendationElement||'';renderRecommendationControls(currentBuild()||{});return;}const objective=event.target.closest('[data-build-objective]');if(objective&&!objective.disabled){recommendationFailure='';selectedRecommendationObjective=objective.dataset.buildObjective||'balanced';renderRecommendationControls(currentBuild()||{});return;}const artifactRecommend=event.target.closest('[data-artifact-recommend]');if(artifactRecommend){artifactRecommend.disabled=true;void refreshForgeArtifactRecommendation({force:true});return;}const candidate=event.target.closest('[data-confirm-instance]');if(candidate){try{const confirmed=confirmCandidateActivity(candidate.dataset.confirmInstance,{expectedCharacterId:currentBuild()?.characterId});refreshRangeCapture();showRangeOutput(confirmed);setRangeStatus(`COMPLETED ACTIVITY CONFIRMED · ${candidate.dataset.confirmInstance}`,'good');}catch(error){setRangeStatus(error?.message||'Unable to confirm this activity.','bad');}return;}const toggle=event.target.closest('[data-toggle-panel]');if(toggle){const panel=byId(toggle.dataset.togglePanel),expanded=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!expanded));if(panel)panel.hidden=expanded;return;}const option=event.target.closest('[data-select-kind]');if(option){const kind=option.dataset.selectKind;stageSelection(kind,Number(option.dataset.selectIndex));if(kind!=='artifactPerks')queueMicrotask(()=>void refreshForgeArtifactRecommendation());}});
 document.addEventListener('click',event=>{
   const opener=event.target.closest('[data-open-manual-editor]');if(opener){void openManualEditor(opener.dataset.openManualEditor);return;}
   const slot=event.target.closest('[data-manual-slot]');if(slot){manualEditorState.slotIndex=Number(slot.dataset.manualSlot);manualEditorState.search='';byId('manualEditorSearch').value='';renderManualEditor();return;}
@@ -640,7 +653,7 @@ document.addEventListener('click',event=>{
   const socket=event.target.closest('[data-manual-socket-option]');if(socket){stageManualSocket(socket.dataset.manualSocketOption);}
 });
 document.addEventListener('astrix:character-selected',event=>{explicitlySelectedCharacterId=String(event.detail?.characterId||'');},true);
-document.addEventListener('astrix:guardian-selection-changed',event=>{const detail=event.detail||{};if(pendingApplyPlan){closeApplyConfirmation();setLiveActionBanner('Apply confirmation cancelled because the selected Guardian or Bungie build changed. Review the current Working Build again.','warn');}if(manualInventory&&manualInventory.key!==manualInventoryKey(detail))manualInventory=null;switchBuildCharacter(detail);});
+document.addEventListener('astrix:guardian-selection-changed',event=>{const detail=event.detail||{};if(pendingApplyPlan||livePreflightBusy){closeApplyConfirmation();setLiveActionBanner('Apply confirmation cancelled because the selected Guardian or Bungie build changed. Review the current Working Build again.','warn');}if(manualInventory&&manualInventory.key!==manualInventoryKey(detail))manualInventory=null;switchBuildCharacter(detail);});
 document.addEventListener('astrix:guardian-loadout-context',event=>recoverMissingBuild(event.detail||{}));
 document.addEventListener('astrix:bungie-loadout-loaded',event=>{if(event.detail?.loadoutActionIntent==='save-paradox-copy')openSaveParadoxDialog(`BUNGIE SLOT ${Number(event.detail.selectedLoadoutIndex)+1} · ${String(event.detail.characterClass||'GUARDIAN').toUpperCase()}`);});
 globalThis.addEventListener('astrix:bungie-session',()=>renderApplyControls(currentBuild()||{}));

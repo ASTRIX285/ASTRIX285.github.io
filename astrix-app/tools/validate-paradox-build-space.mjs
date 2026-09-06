@@ -238,6 +238,7 @@ assert.match(runtime,/setLiveActionBanner\(`Generate blocked · \$\{failureMessa
 assert.match(intelligenceRuntime,/liveTransferAuthorized:false/,'The generated intelligence result must never authorize live transfer.');
 assert.match(liveAdapterRuntime,/"bungie-live","bungie-loadout","current-guardian"/,'Directed analysis must accept protected snapshots that retain their exact live Bungie provenance label.');
 assert.match(advisorRuntime,/new URL\("\.\.\/\.\.\/data\/paradox-forge\/intelligence\/weapon-perk-intelligence\.json",import\.meta\.url\)/,'Weapon intelligence must resolve from the module rather than the current page URL.');
+assert.match(advisorRuntime,/if\(typeof document!=="undefined"\)document\.dispatchEvent/,'Weapon advice must remain safe inside the real background Web Worker where document is unavailable.');
 
 assert.match(html,/id="recommendedBuildReveal"[\s\S]*?aria-modal="true"[\s\S]*?hidden/,'The complete recommended build must open in a hidden review layer.');
 assert.match(html,/id="recommendedArmourSummary"[\s\S]*?id="recommendedWeaponsSummary"[\s\S]*?id="recommendedArtifactSummary"/,'The review must expose armour, weapon and Artifact sections.');
@@ -262,7 +263,7 @@ assert.match(html,/LIVE GUARDIAN UNCHANGED/,'The review must state that generati
 assert.doesNotMatch(runtime,/if\(!build\?\.recommendationGeneratedAt\)throw new Error/,'Manual Apply must not depend on generating an AI recommendation first.');
 const planStart=runtime.indexOf('function buildLivePlan()'),applyEnd=runtime.indexOf('function verifiedActivities',planStart),applySource=runtime.slice(planStart,applyEnd);
 assert.ok(applySource.indexOf('createLiveTransferPreflight(build)')<applySource.indexOf('createLiveTransferPlan'),'The live route must validate exact loadout coherence before constructing its ordered transfer plan.');
-assert.match(applySource,/liveActionCapabilities\(globalThis\.ASTRIX_BUNGIE_SESSION\)[\s\S]*?function openApplyConfirmation\(\)[\s\S]*?pendingApplyPlan=plan[\s\S]*?async function executeConfirmedApply\(\)[\s\S]*?executeLiveTransferPlan\(confirmLiveTransferPlan\(plan\)/,'Build Forge must use advertised capabilities, retain the reviewed plan, and call the executor only from the final confirmation handler.');
+assert.match(applySource,/liveActionCapabilities\(globalThis\.ASTRIX_BUNGIE_SESSION\)[\s\S]*?async function openApplyConfirmation\(\)[\s\S]*?stageLiveTransferPreflight\(plan,\{session\}\)[\s\S]*?pendingApplyPlan=staged[\s\S]*?async function executeConfirmedApply\(\)[\s\S]*?executeLiveTransferPlan\(confirmLiveTransferPlan\(plan\)/,'Build Forge must run a GET-only live preflight, retain the reviewed plan, and call the executor only from the final confirmation handler.');
 assert.doesNotMatch(applySource,/window\.confirm|confirmPerkChangePlan|applyConfirmedPerkChangePlan|fetch\(/,'The UI must not expose a hidden confirm prompt, direct fetch, or obsolete partial perk-only mutation path.');
 assert.match(runtime,/stageEquipmentChoice[\s\S]*?stageSocketChoice/,'Build Forge must expose manual exact-item and socket staging independently of Generate.');
 assert.match(html,/id="saveParadoxBuild" disabled>SAVE PARADOX<\/button>[\s\S]*?SEPARATE FROM BUNGIE LOADOUT SLOTS/,'Named PARADOX copies must remain explicit and separate from Bungie slots.');

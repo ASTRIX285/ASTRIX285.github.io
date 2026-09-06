@@ -23,11 +23,22 @@ function shouldReplaceBuildState(currentState,detail={},options={}){
   const explicitCharacterChange=Boolean(explicitlySelectedCharacterId)&&explicitlySelectedCharacterId===incomingCharacterId;
   const explicitLoadoutChange=Number.isInteger(detail.selectedLoadoutIndex);
   if(explicitCharacterChange||explicitLoadoutChange)return true;
-  // A Forge Loader transfer is already bound to the Guardian chosen by the
-  // user. A background profile default for another Guardian must not replace
-  // it; doing so creates a mixed binding that readState correctly rejects.
-  if(options.vaultSelection===true&&currentState.workingBuild.forgeLoaderDecision)return false;
-  return true;
+  // Automatic profile hydration must never replace an existing protected
+  // Working Build. Only an explicit character or Bungie-slot selection may do
+  // that; relying on a transient route query loses the build after hydration.
+  return false;
+}
+
+function repairMissingBuildBinding(currentState,detail={}){
+  if(!currentState?.originalBuild||!currentState?.workingBuild)return currentState;
+  const current=bindingOf(currentState),incoming=bindingOf(detail);
+  if(!current.characterId||current.characterId!==incoming.characterId)return currentState;
+  if(current.membershipId&&current.membershipId!==incoming.membershipId)return currentState;
+  if(current.membershipType&&current.membershipType!==incoming.membershipType)return currentState;
+  const membershipId=current.membershipId||incoming.membershipId,membershipType=current.membershipType||incoming.membershipType;
+  if(!membershipId||!membershipType||(membershipId===current.membershipId&&membershipType===current.membershipType))return currentState;
+  const bind=build=>({...build,membershipId,membershipType});
+  return {...currentState,originalBuild:bind(currentState.originalBuild),workingBuild:bind(currentState.workingBuild)};
 }
 
 function createHandoffEnvelope(payload,{savedAt=Date.now()}={}){
@@ -46,4 +57,4 @@ function validateHandoffEnvelope(envelope,{expectedCharacterId='',expectedMember
   return envelope.payload;
 }
 
-export {HANDOFF_SCHEMA,HANDOFF_TTL_MS,bindingOf,bindingsEqual,shouldReplaceBuildState,createHandoffEnvelope,validateHandoffEnvelope};
+export {HANDOFF_SCHEMA,HANDOFF_TTL_MS,bindingOf,bindingsEqual,shouldReplaceBuildState,repairMissingBuildBinding,createHandoffEnvelope,validateHandoffEnvelope};

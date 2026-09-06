@@ -48,8 +48,7 @@ const variants=preparationVariants(candidates,variant);assert.deepEqual(variants
 
 // Execute the actual worker handler and sequence on another thread without a DOM.
 const workerURL=new URL('../pages/guardian-workspace-v2/paradox-build-space/paradox-forge-worker.mjs',import.meta.url).href;
-const sequenceURL=new URL('../pages/guardian-workspace-v2/paradox-build-space/paradox-forge-sequence.mjs',import.meta.url).href;
-const thread=new Worker(`const {parentPort}=require('node:worker_threads');(async()=>{const {createForgeWorkerHandler}=await import(${JSON.stringify(workerURL)});const {prepareForgeSequence}=await import(${JSON.stringify(sequenceURL)});const receive=createForgeWorkerHandler(m=>parentPort.postMessage(m),{compute:(input,options)=>prepareForgeSequence(input,{...options,advise:async()=>{}})});parentPort.on('message',receive);parentPort.postMessage({type:'boot'});})().catch(e=>{throw e;});`,{eval:true});
+const thread=new Worker(`const {parentPort}=require('node:worker_threads');(async()=>{globalThis.fetch=async input=>{const {readFile}=await import('node:fs/promises');const body=await readFile(new URL(String(input)),'utf8');return {ok:true,json:async()=>JSON.parse(body)};};const {createForgeWorkerHandler}=await import(${JSON.stringify(workerURL)});const receive=createForgeWorkerHandler(m=>parentPort.postMessage(m));parentPort.on('message',receive);parentPort.postMessage({type:'boot'});})().catch(e=>{throw e;});`,{eval:true});
 try{
   await new Promise((resolve,reject)=>{thread.once('message',resolve);thread.once('error',reject);});
   const ready=new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('worker test timeout')),10000);thread.on('message',m=>{if(m.type==='ready'){clearTimeout(timer);resolve(m);}if(m.type==='error'){clearTimeout(timer);reject(new Error(m.message));}});});

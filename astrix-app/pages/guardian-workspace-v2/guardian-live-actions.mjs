@@ -74,7 +74,7 @@ async function requestFreshProfile({fetchImpl=fetch,authOrigin=DEFAULT_AUTH_ORIG
 function inventoryLocations(payload={}){
   const profile=payload.profile||payload.Response||{},locations=new Map(),put=(item,source)=>{
     const id=String(item?.itemInstanceId||'');if(!id)return;
-    locations.set(id,{itemInstanceId:id,itemHash:Number(item.itemHash),source});
+    locations.set(id,{itemInstanceId:id,itemHash:Number(item.itemHash),bucketHash:Number(item.bucketHash),source});
   };
   for(const item of profile?.profileInventory?.data?.items||[])put(item,{kind:Number(item?.bucketHash)===VAULT_BUCKET?'vault':'profile',characterId:null});
   for(const [characterId,row] of Object.entries(profile?.characterInventories?.data||{}))for(const item of row?.items||[])put(item,{kind:Number(item?.bucketHash)===POSTMASTER_BUCKET?'postmaster':'carried',characterId:String(characterId)});
@@ -125,6 +125,56 @@ function characterActivityRestriction(plan,payload){
   return {allowed:false,state:'active-activity',currentActivityHash,currentActivityModeType,reason:`Apply is blocked while this Guardian is in activity ${currentActivityHash}. Return to orbit, a social space, or go offline before retrying.`};
 }
 
+const LIVE_PREFLIGHT_ORDER=Object.freeze(['guardian','ownership','instance-location','compatibility','exotic','socket-legality','activity-state']);
+function freshLivePlanInspection(plan,payload,advertised={}){
+  const {profile,locations}=inventoryLocations(payload),targets=plan?.equipment?.targets||[],checks=[];
+  const add=(key,label,blockers=[],detail={})=>checks.push({key,label,status:blockers.length?'blocked':'passed',blockers:[...new Set(blockers)],detail});
+
+  const characters=profile?.characters?.data||{},characterId=String(plan.characterId||''),guardianBlockers=Object.hasOwn(characters,characterId)?[]:[`Guardian ${characterId} is not present in the fresh authenticated profile.`];
+  add('guardian','Guardian binding',guardianBlockers,{characterId});
+
+  const ownershipBlockers=[];
+  for(const target of targets){
+    const location=locations.get(String(target.itemInstanceId||''));
+    if(!location)ownershipBlockers.push(`${target.name} is no longer present in the authenticated account inventory.`);
+    else if(Number.isInteger(Number(target.itemHash))&&Number(location.itemHash)!==Number(target.itemHash))ownershipBlockers.push(`${target.name} no longer matches its saved Bungie item identity.`);
+  }
+  add('ownership','Exact item ownership',ownershipBlockers,{targetCount:targets.length,ownedTargetCount:targets.length-ownershipBlockers.length});
+
+  const resolved=freshTransferSteps(plan,payload),locationBlockers=[...resolved.blockers];
+  if(resolved.steps.length&&advertised.transferItems!==true)locationBlockers.push('Fresh inventory state requires item transfer, but the authenticated live route does not advertise that capability.');
+  add('instance-location','Exact item locations',locationBlockers,{transferCount:resolved.steps.length});
+
+  const compatibilityBlockers=[];
+  for(const target of targets){
+    const location=locations.get(String(target.itemInstanceId||'')),expectedBucket=Number(target.bucketHash),liveBucket=Number(location?.bucketHash);
+    if(location&&['carried','equipped'].includes(location.source.kind)&&Number.isInteger(expectedBucket)&&Number.isInteger(liveBucket)&&liveBucket!==expectedBucket)compatibilityBlockers.push(`${target.name} no longer matches its staged Destiny equipment bucket.`);
+  }
+  add('compatibility','Guardian and equipment compatibility',compatibilityBlockers,{targetCount:targets.length});
+
+  const weaponExotics=targets.filter(row=>row.kind==='weapon'&&row.isExotic).length,armourExotics=targets.filter(row=>row.kind==='armour'&&row.isExotic).length,exoticBlockers=[];
+  if(weaponExotics>1)exoticBlockers.push('Destiny permits only one Exotic weapon.');
+  if(armourExotics>1)exoticBlockers.push('Destiny permits only one Exotic armour piece.');
+  add('exotic','Destiny Exotic limits',exoticBlockers,{weaponExotics,armourExotics});
+
+  const resolvedSockets=freshSocketChanges(plan,payload),socketBlockers=[...resolvedSockets.blockers];
+  if(resolvedSockets.changes.length&&advertised.insertSocketPlugFree!==true)socketBlockers.push('Fresh socket state requires a socket mutation, but the authenticated live route does not advertise that capability.');
+  add('socket-legality','Exact socket legality',socketBlockers,{changeCount:resolvedSockets.changes.length,alreadyAppliedCount:resolvedSockets.alreadyApplied.length});
+
+  const activity=characterActivityRestriction(plan,payload),activityBlockers=activity.allowed?[]:[activity.reason];
+  add('activity-state','Guardian activity state',activityBlockers,{state:activity.state,currentActivityHash:activity.currentActivityHash||0});
+
+  const blockers=checks.flatMap(row=>row.blockers);
+  return {checks,blockers,resolved,resolvedSockets,activity};
+}
+
+async function stageLiveTransferPreflight(plan,{session,fetchImpl=fetch,authOrigin=DEFAULT_AUTH_ORIGIN}={}){
+  if(!plan?.ready||plan?.status!=='staged')throw new Error(plan?.blockers?.[0]||'A ready staged Working Build is required for live preflight.');
+  assertSessionBinding(plan,session);
+  const advertised=assertAdvertisedPlanCapabilities(plan,session),fresh=await requestFreshProfile({fetchImpl,authOrigin}),inspection=freshLivePlanInspection(plan,fresh,advertised),ready=inspection.blockers.length===0;
+  return {...clone(plan),status:ready?'staged':'blocked',ready,blockers:[...new Set([...(plan.blockers||[]),...inspection.blockers])],livePreflight:{schemaVersion:1,source:'authenticated-fresh-profile',checkedAt:new Date().toISOString(),status:ready?'passed':'blocked',validationOrder:[...LIVE_PREFLIGHT_ORDER],checks:inspection.checks}};
+}
+
 function verifyEquippedItems(plan,payload){
   const profile=payload.profile||payload.Response||{},equipment=profile?.characterEquipment?.data?.[String(plan.characterId)]?.items||[],equippedIds=new Set(equipment.map(row=>String(row?.itemInstanceId||'')).filter(Boolean));
   const missingEquipment=(plan?.equipment?.targets||[]).filter(row=>!equippedIds.has(String(row.itemInstanceId))).map(row=>({itemInstanceId:row.itemInstanceId,name:row.name,kind:row.kind}));
@@ -162,11 +212,9 @@ async function executeLiveTransferPlan(plan,{session,fetchImpl=fetch,authOrigin=
   try{
     onProgress({phase:'snapshot',status:'running',label:'Reading fresh Bungie ownership and equipment…'});
     fresh=await requestFreshProfile({fetchImpl,authOrigin});
-    const activity=characterActivityRestriction(plan,fresh),resolved=freshTransferSteps(plan,fresh),resolvedSockets=freshSocketChanges(plan,fresh),freshBlockers=[...(activity.allowed?[]:[activity.reason]),...resolved.blockers,...resolvedSockets.blockers];
-    if(resolved.steps.length&&advertised.transferItems!==true)freshBlockers.push('Fresh inventory state now requires item transfer, but the authenticated live route does not advertise that capability.');
-    if(resolvedSockets.changes.length&&advertised.insertSocketPlugFree!==true)freshBlockers.push('Fresh socket state now requires a socket mutation, but the authenticated live route does not advertise that capability.');
+    const inspection=freshLivePlanInspection(plan,fresh,advertised),{activity,resolved,resolvedSockets}=inspection,freshBlockers=inspection.blockers;
     if(freshBlockers.length){record('snapshot','blocked','Fresh activity, ownership or socket compatibility validation blocked Apply.',freshBlockers);result.status='blocked';result.finishedAt=new Date().toISOString();return result;}
-    record('snapshot','complete','Fresh Bungie activity, ownership, equipment and socket compatibility captured.',{activityState:activity.state,targetCount:plan.equipment.targets.length,transferCount:resolved.steps.length,socketChangeCount:resolvedSockets.changes.length,socketsAlreadyApplied:resolvedSockets.alreadyApplied.length});
+    record('snapshot','complete','Fresh Bungie activity, ownership, equipment and socket compatibility captured.',{validationOrder:inspection.checks.map(row=>row.key),activityState:activity.state,targetCount:plan.equipment.targets.length,transferCount:resolved.steps.length,socketChangeCount:resolvedSockets.changes.length,socketsAlreadyApplied:resolvedSockets.alreadyApplied.length});
 
     for(const step of resolved.steps){
       try{
@@ -249,4 +297,4 @@ async function executeBungieLoadoutAction(action,{characterId,index,session,conf
   return requestAction(path,body,{session,fetchImpl,authOrigin});
 }
 
-export {EMPTY_LIVE_ACTION_CAPABILITIES,SOCKET_THROTTLE_MS,SOCIAL_ACTIVITY_MODE_TYPE,liveActionCapabilities,sessionBinding,assertAdvertisedPlanCapabilities,inventoryLocations,freshTransferSteps,freshSocketChanges,characterActivityRestriction,verifyEquippedItems,verifyReadback,equipResponseFailures,confirmLiveTransferPlan,requestAction,requestFreshProfile,executeLiveTransferPlan,stageBungieLoadoutAction,confirmBungieLoadoutAction,executeBungieLoadoutAction};
+export {EMPTY_LIVE_ACTION_CAPABILITIES,SOCKET_THROTTLE_MS,SOCIAL_ACTIVITY_MODE_TYPE,LIVE_PREFLIGHT_ORDER,liveActionCapabilities,sessionBinding,assertAdvertisedPlanCapabilities,inventoryLocations,freshTransferSteps,freshSocketChanges,characterActivityRestriction,verifyEquippedItems,verifyReadback,equipResponseFailures,stageLiveTransferPreflight,confirmLiveTransferPlan,requestAction,requestFreshProfile,executeLiveTransferPlan,stageBungieLoadoutAction,confirmBungieLoadoutAction,executeBungieLoadoutAction};

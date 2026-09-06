@@ -618,6 +618,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   const loadoutsAvailable=Array.isArray(characterLoadouts?.loadouts);
   const rank=guardianRank(profile);
   const title=equippedTitle(payload,character);
+  const membership=session?.activeDestinyMembership||payload.membership||{};
   const hashCoverage={
     definitions:payload?.definitionCoverage||null,
     subclass:subclassBuild.socketCoverage,
@@ -629,6 +630,8 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
   return {
     source:"bungie-live",
     characterId:character.characterId,
+    membershipId:String(membership.membershipId||session?.primaryMembershipId||session?.bungieMembershipId||""),
+    membershipType:String(membership.membershipType??""),
     characterClass,
     subclass:classifySubclass(subclass),
     subclassName:subclass?.name||"Subclass",

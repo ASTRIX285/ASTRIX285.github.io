@@ -6,7 +6,7 @@ import {filterManualEquipmentSources,eligibleEquipment,stageEquipmentChoice,stag
 import {createBuildState,createWorkingBuildPatch,createBuildPersistenceSnapshot,restoreBuildPersistenceSnapshot} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 import {cacheBuildForgeState,readBuildForgeState} from '../pages/guardian-workspace-v2/guardian-session-cache.mjs';
 import {compactBuild,createParadoxLoadoutRecord,validateParadoxLoadoutRecord} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-saved-loadouts.mjs';
-import {characterActivityRestriction,confirmBungieLoadoutAction,confirmLiveTransferPlan,executeBungieLoadoutAction,executeLiveTransferPlan,stageBungieLoadoutAction} from '../pages/guardian-workspace-v2/guardian-live-actions.mjs';
+import {characterActivityRestriction,confirmBungieLoadoutAction,confirmLiveTransferPlan,executeBungieLoadoutAction,executeLiveTransferPlan,stageBungieLoadoutAction,stageLiveTransferPreflight} from '../pages/guardian-workspace-v2/guardian-live-actions.mjs';
 
 const CHARACTER_ID='9100001';
 const MEMBERSHIP_ID='9200001';
@@ -123,13 +123,14 @@ let prematureCalls=0;
 await assert.rejects(()=>executeLiveTransferPlan(plan,{session,fetchImpl:async()=>{prematureCalls+=1;return response({ErrorCode:1});},authOrigin:'https://auth.test'}),/Final user confirmation/);
 assert.equal(prematureCalls,0,'An unconfirmed Apply plan must make zero requests.');
 
-const targetItems=plan.equipment.targets.map(target=>({itemInstanceId:target.itemInstanceId,itemHash:target.itemHash}));
+const targetItems=plan.equipment.targets.map(target=>({itemInstanceId:target.itemInstanceId,itemHash:target.itemHash,bucketHash:target.bucketHash}));
 const initialEquipment=targetItems.filter(item=>item.itemInstanceId!==replacement.itemInstanceId);
 const socketsFor=applied=>({
   [weapons[0].itemInstanceId]:{sockets:Array.from({length:4},(_,index)=>index===3?{plugHash:applied?exactPerk.hash:currentPerk.hash}:{})},
   [armour[0].itemInstanceId]:{sockets:Array.from({length:3},(_,index)=>index===2?{plugHash:applied?exactArmourMod.hash:currentArmourMod.hash}:{})}
 });
 const profilePayload=({equipmentApplied=false,socketsApplied=false,compatible=true,activity='orbit'}={})=>({ErrorCode:1,profile:{
+  characters:{data:{[CHARACTER_ID]:{characterId:CHARACTER_ID}}},
   profileInventory:{data:{items:equipmentApplied?[]:[{itemInstanceId:replacement.itemInstanceId,itemHash:replacement.itemHash,bucketHash:VAULT_BUCKET}]}},
   characterInventories:{data:{[CHARACTER_ID]:{items:[]}}},
   characterEquipment:{data:{[CHARACTER_ID]:{items:equipmentApplied?targetItems:initialEquipment}}},
@@ -143,6 +144,21 @@ const profilePayload=({equipmentApplied=false,socketsApplied=false,compatible=tr
   }
 }});
 assert.equal(characterActivityRestriction(plan,profilePayload({activity:'social'})).allowed,true,'Bungie Social mode 40 must remain an allowed Apply state even when exposed through currentActivityModeTypes.');
+
+const preflightRequests=[];
+const liveStaged=await stageLiveTransferPreflight(plan,{session,authOrigin:'https://auth.test',fetchImpl:async(url,init={})=>{preflightRequests.push({url:String(url),method:String(init.method||'GET').toUpperCase()});return response(profilePayload());}});
+assert.equal(liveStaged.status,'staged');
+assert.equal(liveStaged.ready,true,liveStaged.blockers.join(' | '));
+assert.deepEqual(liveStaged.livePreflight.validationOrder,['guardian','ownership','instance-location','compatibility','exotic','socket-legality','activity-state'],'Authenticated live preflight must expose the required validation order.');
+assert.deepEqual(liveStaged.livePreflight.checks.map(row=>row.status),Array(7).fill('passed'));
+assert.deepEqual(preflightRequests.map(row=>[new URL(row.url).pathname,row.method]),[['/bungie/profile','GET']],'Staging a ready live preflight must use one fresh GET and no Bungie mutation route.');
+
+let stagedActivityPosts=0;
+const stagedActivityBlocked=await stageLiveTransferPreflight(plan,{session,authOrigin:'https://auth.test',fetchImpl:async(_url,init={})=>{if(String(init.method||'GET').toUpperCase()==='POST')stagedActivityPosts+=1;return response(profilePayload({activity:'active'}));}});
+assert.equal(stagedActivityBlocked.status,'blocked');
+assert.equal(stagedActivityPosts,0,'An activity-blocked live preflight must make zero mutation requests.');
+assert.equal(stagedActivityBlocked.livePreflight.checks.at(-1).key,'activity-state');
+assert.equal(stagedActivityBlocked.livePreflight.checks.at(-1).status,'blocked');
 
 let profileReads=0;
 const postPaths=[];
