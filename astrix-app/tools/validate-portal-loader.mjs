@@ -66,9 +66,9 @@ assert.match(buildModule,/markGuardianFastReturn\(\)/,'Build Back must preserve 
 assert.doesNotMatch(mainProgress,/window\.addEventListener\('load'/,'Main progress must not use the generic window load event');
 assert.match(buildModule,/const ready=Boolean\(build\),status=ready\?'ready':'pending'/,'An empty initial Build render must remain pending while the live profile resolves');
 assert.match(buildModule,/emitLoad\('render',ready\?LOAD_STAGES\.READY:LOAD_STAGES\.SNAPSHOT,label,status\)/,'Only a populated Build render may report the ready milestone');
-assert.match(mainHtml,/guardian-portal-progress\.mjs\?v=20260906-loader-58-fix-1/,'Character must load the bounded portal progress module without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260906-loader-58-fix-1/,'Build Forge must refresh its parent module after the shared loader repair');
-assert.match(buildModule,/guardian-portal-progress\.mjs\?v=20260906-loader-58-fix-1/,'Build must load the bounded portal progress module without a stale cache');
+assert.match(mainHtml,/guardian-portal-progress\.mjs\?v=20260906-page-payload-1/,'Character must load the prepared page payload progress module without a stale cache');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260906-page-payload-1/,'Build Forge must refresh its parent module for prepared page payloads');
+assert.match(buildModule,/guardian-portal-progress\.mjs\?v=20260906-page-payload-1/,'Build must load the prepared page payload progress module without a stale cache');
 assert.match(buildModule,/window\.AstrixLoader\?\.set\(percent\)/,'Build real milestones must update the shared portal');
 
 assert.match(appModule,/astrix:build-catalogue-rendered/,'Build library must publish catalogue render completion');

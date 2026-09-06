@@ -1,7 +1,7 @@
 import {ForgePreparationClient,preparationVariants} from './paradox-forge-preparation.mjs?v=20260905-worker-preflight-1';
 import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIntendedArtifactPerk,createWorkingBuildPatch,createBuildPersistenceSnapshot,restoreBuildPersistenceSnapshot,protectBuildState,restoreWorkingBuild} from './paradox-build-state.mjs?v=20260904-memory-safe-transfer-1';
 import {mountForgeShell} from '../platform-forge-shell.mjs';
-import {fetchDisplayProfile} from '../guardian-display-profile.mjs';
+import {fetchDisplayProfile} from '../guardian-display-profile.mjs?v=20260906-page-payload-1';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs?v=20260902-shared-account-orbit-1';
 import {analyzeLiveGuardian,renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs?v=20260905-background-forge-1';
 import {createLiveTransferPlan} from '../guardian-perk-change-plan.mjs?v=20260905-manual-editor-1';
@@ -13,7 +13,7 @@ import {adviseLiveWeaponRolls} from '../guardian-weapon-roll-advisor.mjs?v=20260
 import {renderEquippedSubclass,renderSubclassPicker,renderSuperFormation} from '../guardian-super-formation.mjs?v=20260829-subclass-identity-1';
 import {mergeSubclassCatalog,mergeSuperOptions} from '../guardian-super-catalog.mjs?v=20260829-subclass-identity-1';
 import {markGuardianFastReturn,readForgeLoaderTransfer,cacheBuildForgeState,readBuildForgeState} from '../guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
-import {guardianManifest} from '../guardian-manifest-service.mjs?v=20260906-backend-1';
+import {guardianManifest} from '../guardian-manifest-service.mjs?v=20260906-page-payload-1';
 import {AUTH_ORIGIN,getBungieSession} from '../guardian-bungie-auth.mjs?v=20260905-manual-editor-1';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,shouldReplaceBuildState,repairMissingBuildBinding,validateHandoffEnvelope} from '../paradox-build-binding.mjs?v=20260905-worker-preflight-1';
 import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
@@ -26,8 +26,8 @@ import {saveParadoxLoadout} from './paradox-saved-loadouts.mjs?v=20260905-manual
 import {createVaultCatalogue,prepareArmourSelection} from '../../vault/vault-inventory.mjs?v=20260905-manual-editor-1';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3&loader=2';
 import '../guardian-loadouts.mjs?v=20260905-loadout-actions-1';
-import {normaliseLiveProfile} from '../guardian-bungie-profile.mjs?v=20260905-worker-preflight-1';
-import '../guardian-portal-progress.mjs?v=20260906-loader-58-fix-1&loader=2';
+import {normaliseLiveProfile} from '../guardian-bungie-profile.mjs?v=20260906-page-payload-1';
+import '../guardian-portal-progress.mjs?v=20260906-page-payload-1&loader=2';
 import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
@@ -172,11 +172,9 @@ async function loadManualInventory(build={}){
   if(manualInventoryRequest?.key===key)return manualInventoryRequest.promise;
   const promise=(async()=>{
     await guardianManifest.ready();
-    const url=new URL('/bungie/profile',AUTH_ORIGIN);url.searchParams.set('scope','forge');
-    url.searchParams.set('freshness','display');
-    if(['indexeddb','backend'].includes(guardianManifest.status().mode))url.searchParams.set('definitions','client-manifest');
+    const url=new URL('/bungie/page/build-forge',AUTH_ORIGIN);
     const payload=await fetchDisplayProfile(url);
-    await guardianManifest.hydratePayload(payload);
+    await guardianManifest.hydratePayload(payload,{allowNetwork:false});
     const session=globalThis.ASTRIX_BUNGIE_SESSION||await getBungieSession(),normalized=normaliseLiveProfile(payload,session,build.characterId),vault=createVaultCatalogue(payload);
     const unique=(rows,current)=>{const map=new Map();for(const item of [...(rows||[]),...(current||[])])if(manualItemId(item))map.set(manualItemId(item),item);return [...map.values()];};
     const activeCharacterId=String(build.characterId||'');

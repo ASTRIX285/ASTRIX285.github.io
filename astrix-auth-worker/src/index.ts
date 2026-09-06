@@ -49,6 +49,7 @@ const MANIFEST_COMPONENT_TYPES = new Set([
   "DestinyGuardianRankConstantsDefinition", "DestinyDestinationDefinition", "DestinyActivityDefinition",
   "DestinyChecklistDefinition", "DestinyLocationDefinition", "DestinySocketTypeDefinition",
   "DestinyDamageTypeDefinition", "DestinyBreakerTypeDefinition", "DestinyPowerCapDefinition"
+  , "DestinySeasonDefinition", "DestinySeasonPassDefinition"
 ]);
 const LIVE_DEFINITION_TYPES = new Set([
   ...MANIFEST_COMPONENT_TYPES,
@@ -184,6 +185,7 @@ const PROFILE_COMPONENTS = [
   1100, // Metrics
   1300  // Craftables
 ] as const;
+const PROFILE_STAT_HASHES = [2996146975, 392767087, 1943323491, 1735777505, 144602215, 4244567218] as const;
 
 function randomToken(): string {
   return crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
@@ -299,6 +301,13 @@ async function manifestDefinitionTable(env: Env, manifest: DestinyManifestRespon
 }
 
 async function currentSeasonRoute(request: Request, env: Env): Promise<Response> {
+  const preparedResponse = await env.MANIFEST_DATA?.fetch(new Request("https://manifest/status")).catch(() => null);
+  const prepared = preparedResponse?.ok
+    ? await preparedResponse.json<{ currentSeason?: Record<string, unknown> }>().catch(() => null)
+    : null;
+  if (prepared?.currentSeason) {
+    return withCors(request, env, json(prepared.currentSeason, 200, { "Cache-Control": "public, max-age=300, stale-while-revalidate=3600" }));
+  }
   const manifest = await destinyManifest(env);
   const seasons = Object.values(await manifestDefinitionTable(env, manifest, "DestinySeasonDefinition"));
   const now = Date.now();
@@ -720,19 +729,81 @@ function ownedDefinitionHashes(profile: DestinyProfilePayload): number[] {
       if (Number.isInteger(socket.plugHash)) hashes.add(Number(socket.plugHash));
     }
   }
+  for (const row of Object.values(profile.characterLoadouts?.data || {})) {
+    for (const loadout of row.loadouts || []) {
+      for (const item of [...(loadout.items || []), ...(loadout.subclassOverrides || [])]) {
+        for (const hash of item.plugItemHashes || []) if (Number.isInteger(hash)) hashes.add(Number(hash));
+      }
+    }
+  }
+  for (const reusable of Object.values(profile.itemComponents?.reusablePlugs?.data || {})) {
+    for (const rows of Object.values(reusable.plugs || {})) {
+      for (const plug of rows || []) {
+        const hash = plug.plugItemHash ?? plug.plugHash;
+        if (Number.isInteger(hash)) hashes.add(Number(hash));
+      }
+    }
+  }
   return [...hashes];
 }
 
+async function preparedManifestTables(
+  requests: Record<string, Iterable<number>>,
+  env: Env
+): Promise<{ manifestVersion: string; tables: Record<string, Record<string, Record<string, unknown>>>; currentSeason?: Record<string, any> }> {
+  if (!env.MANIFEST_DATA) return { manifestVersion: "", tables: {} };
+  const statusResponse = await env.MANIFEST_DATA.fetch(new Request("https://manifest/status")).catch(() => null);
+  const status = statusResponse?.ok
+    ? await statusResponse.json<{ manifestVersion?: string; currentSeason?: Record<string, unknown> }>().catch(() => null)
+    : null;
+  const manifestVersion = String(status?.manifestVersion || "");
+  if (!manifestVersion) return { manifestVersion, tables: {} };
+  const normalized = Object.fromEntries(Object.entries(requests).map(([type, hashes]) => [
+    type,
+    [...new Set([...hashes].map(Number).filter(hash => Number.isInteger(hash) && hash > 0 && hash <= UINT32_MAX))]
+  ]).filter(([, hashes]) => (hashes as number[]).length));
+  if (!Object.keys(normalized).length) return { manifestVersion, tables: {}, currentSeason: status?.currentSeason };
+  const response = await env.MANIFEST_DATA.fetch(new Request("https://manifest/resolve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version: manifestVersion, requests: normalized })
+  })).catch(() => null);
+  const payload = response?.ok
+    ? await response.json<{ manifestVersion?: string; tables?: Record<string, Record<string, Record<string, unknown>>> }>().catch(() => null)
+    : null;
+  return payload?.manifestVersion === manifestVersion
+    ? { manifestVersion, tables: payload.tables || {}, currentSeason: status?.currentSeason }
+    : { manifestVersion, tables: {}, currentSeason: status?.currentSeason };
+}
+
+async function fetchPreparedManifestDefinitions(
+  type: string,
+  hashes: number[],
+  env: Env
+): Promise<Record<string, Record<string, unknown>>> {
+  const uniqueHashes = [...new Set(hashes.filter(Number.isInteger))];
+  if (!env.MANIFEST_DATA || !uniqueHashes.length || !LIVE_DEFINITION_TYPES.has(type)) return {};
+  const statusResponse = await env.MANIFEST_DATA.fetch(new Request("https://manifest/status")).catch(() => null);
+  const status = statusResponse?.ok
+    ? await statusResponse.json<{ manifestVersion?: string }>().catch(() => null)
+    : null;
+  const manifestVersion = String(status?.manifestVersion || "");
+  if (!manifestVersion) return {};
+  const response = await env.MANIFEST_DATA.fetch(new Request("https://manifest/resolve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version: manifestVersion, requests: { [type]: uniqueHashes } })
+  })).catch(() => null);
+  const payload = response?.ok
+    ? await response.json<{ manifestVersion?: string; tables?: Record<string, Record<string, Record<string, unknown>>> }>().catch(() => null)
+    : null;
+  return payload?.manifestVersion === manifestVersion ? (payload.tables?.[type] || {}) : {};
+}
+
 async function fetchManifestDefinitions(type: string, hashes: number[], accessToken: string, env: Env): Promise<Record<string, Record<string, unknown>>> {
-  const entries = await Promise.all([...new Set(hashes.filter(Number.isInteger))].map(async hash => {
-    const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/${type}/${hash}/`, { headers: { Authorization: `Bearer ${accessToken}`, "X-API-Key": env.BUNGIE_API_KEY, "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)" } });
-    if (!response.ok) return null;
-    const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
-    return payload?.Response ? [String(hash), payload.Response] as const : null;
-  }));
-  const definitions: Record<string, Record<string, unknown>> = {};
-  for (const entry of entries) if (entry) definitions[entry[0]] = entry[1];
-  return definitions;
+  const uniqueHashes = [...new Set(hashes.filter(Number.isInteger))];
+  void accessToken;
+  return fetchPreparedManifestDefinitions(type, uniqueHashes, env);
 }
 
 function artifactPerkHashes(profile: DestinyProfilePayload): number[] {
@@ -795,63 +866,8 @@ async function fetchInventoryDefinitions(
   env: Env
 ): Promise<Record<string, Record<string, unknown>>> {
   const uniqueHashes = [...new Set(hashes.filter(hash => Number.isInteger(hash)))];
-  const definitions: Record<string, Record<string, unknown>> = {};
-  let cache: Cache | null = null;
-
-  try {
-    cache = await caches.open("astrix-bungie-definitions");
-  } catch (error) {
-    console.warn("definition_cache_open_failed", { error: String(error) });
-  }
-
-  // Keep outbound Bungie work at six concurrent requests, matching Cloudflare's
-  // simultaneous outgoing-connection limit, while resolving every required hash.
-  const batchSize = 6;
-  for (let offset = 0; offset < uniqueHashes.length; offset += batchSize) {
-    const batch = uniqueHashes.slice(offset, offset + batchSize);
-    const entries = await Promise.all(batch.map(async (hash) => {
-      const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/inventory/${hash}`, { method: "GET" });
-      if (cache) {
-        try {
-          const cached = await cache.match(cacheKey);
-          if (cached) {
-            const definition = await cached.json<Record<string, unknown>>().catch(() => null);
-            if (definition) return [String(hash), definition] as const;
-          }
-        } catch (error) {
-          console.warn("definition_cache_read_failed", { hash, error: String(error) });
-        }
-      }
-
-      const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "X-API-Key": env.BUNGIE_API_KEY,
-          "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
-        }
-      });
-      if (!response.ok) return null;
-      const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
-      if (!payload?.Response) return null;
-
-      if (cache) {
-        try {
-          await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
-            headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
-          }));
-        } catch (error) {
-          console.warn("definition_cache_write_failed", { hash, error: String(error) });
-        }
-      }
-      return [String(hash), payload.Response] as const;
-    }));
-
-    for (const entry of entries) {
-      if (entry) definitions[entry[0]] = entry[1];
-    }
-  }
-
-  return definitions;
+  void accessToken;
+  return fetchPreparedManifestDefinitions("DestinyInventoryItemDefinition", uniqueHashes, env);
 }
 
 async function fetchArtifactDefinition(
@@ -860,72 +876,8 @@ async function fetchArtifactDefinition(
   env: Env
 ): Promise<Record<string, unknown> | null> {
   if (!Number.isInteger(hash)) return null;
-  let cache: Cache | null = null;
-  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/artifact/${hash}`, { method: "GET" });
-  try {
-    cache = await caches.open("astrix-bungie-definitions");
-    const cached = await cache.match(cacheKey);
-    if (cached) {
-      const definition = await cached.json<Record<string, unknown>>().catch(() => null);
-      if (definition) return definition;
-    }
-  } catch (error) {
-    console.warn("artifact_definition_cache_read_failed", { hash, error: String(error) });
-  }
-
-  const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyArtifactDefinition/${hash}/`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "X-API-Key": env.BUNGIE_API_KEY,
-      "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
-    }
-  });
-  if (!response.ok) return null;
-  const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
-  if (!payload?.Response) return null;
-
-  if (cache) {
-    try {
-      await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
-        headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
-      }));
-    } catch (error) {
-      console.warn("artifact_definition_cache_write_failed", { hash, error: String(error) });
-    }
-  }
-  return payload.Response;
-}
-
-async function fetchGearAssetDefinitions(
-  hashes: number[],
-  accessToken: string,
-  env: Env
-): Promise<Record<string, Record<string, unknown>>> {
-  // Character assembly needs Bungie's geometry, textures and dye metadata.
-  const entries = await Promise.all(hashes.slice(0, 12).map(async (hash) => {
-    const cache = await caches.open("astrix-bungie-definitions");
-    const cacheKey = new Request(`https://astrix-definition-cache.invalid/gear/${hash}`, { method: "GET" });
-    const cached = await cache.match(cacheKey);
-    if (cached) {
-      const definition = await cached.json<Record<string, unknown>>().catch(() => null);
-      if (definition) return [String(hash), definition] as const;
-    }
-    const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/DestinyGearAssetsDefinition/${hash}/`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "X-API-Key": env.BUNGIE_API_KEY,
-        "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
-      }
-    });
-    if (!response.ok) return null;
-    const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
-    if (!payload?.Response) return null;
-    await cache.put(cacheKey, new Response(JSON.stringify(payload.Response), {
-      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
-    }));
-    return [String(hash), payload.Response] as const;
-  }));
-  return Object.fromEntries(entries.filter((entry): entry is readonly [string, Record<string, unknown>] => entry !== null));
+  void accessToken;
+  return (await fetchPreparedManifestDefinitions("DestinyArtifactDefinition", [Number(hash)], env))[String(hash)] || null;
 }
 
 async function profileRoute(request: Request, env: Env): Promise<Response> {
@@ -1031,7 +983,7 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   }
 
   const baseDefinitionHashes = [...new Set([
-    ...(profileScope === "forge" ? ownedDefinitionHashes(payload.Response) : equippedDefinitionHashes(payload.Response)),
+    ...(profileScope === "forge" || profileScope === "journey" ? ownedDefinitionHashes(payload.Response) : equippedDefinitionHashes(payload.Response)),
     ...artifactPerkHashes(payload.Response)
   ])];
   const definitions = await fetchInventoryDefinitions(baseDefinitionHashes, session.accessToken, env);
@@ -1044,9 +996,12 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   const requestedDefinitionHashes = [...new Set([...baseDefinitionHashes, ...reusableSubclassDefinitionHashes])];
   const damageTypeHashes = [...new Set(Object.values(payload.Response.itemComponents?.instances?.data || {}).map(row => Number(row.damageTypeHash)).filter(Number.isInteger))];
   const breakerTypeHashes = [...new Set([...Object.values(definitions).map(row => Number(row.breakerTypeHash)),...Object.values(payload.Response.itemComponents?.instances?.data || {}).map(row => Number(row.breakerTypeHash))].filter(Number.isInteger))];
-  const [damageDefinitions, breakerDefinitions] = await Promise.all([
+  const collectibleHashes = [...new Set(Object.values(definitions).map(row => Number(row.collectibleHash)).filter(Number.isInteger))];
+  const [damageDefinitions, breakerDefinitions, statDefinitions, collectibleDefinitions] = await Promise.all([
     fetchManifestDefinitions("DestinyDamageTypeDefinition", damageTypeHashes, session.accessToken, env),
-    fetchManifestDefinitions("DestinyBreakerTypeDefinition", breakerTypeHashes, session.accessToken, env)
+    fetchManifestDefinitions("DestinyBreakerTypeDefinition", breakerTypeHashes, session.accessToken, env),
+    fetchManifestDefinitions("DestinyStatDefinition", [...PROFILE_STAT_HASHES], session.accessToken, env),
+    fetchManifestDefinitions("DestinyCollectibleDefinition", collectibleHashes, session.accessToken, env)
   ]);
   const unresolvedDefinitionHashes = requestedDefinitionHashes.filter(hash => !definitions[String(hash)]);
   const definitionCoverage = {
@@ -1081,10 +1036,17 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
     definitions,
     damageDefinitions,
     breakerDefinitions,
+    statDefinitions,
+    collectibleDefinitions,
     definitionCoverage,
     artifactDefinition,
     artifactCoverage,
-    gearAssets
+    gearAssets,
+    displaySnapshot: displaySnapshot ? {
+      source: response.headers.get("X-Astrix-Profile-Source"),
+      fetchedAt: Number(response.headers.get("X-Astrix-Profile-Fetched-At")),
+      maxAgeMs: 5 * 60_000
+    } : null
   }));
 }
 
@@ -1128,13 +1090,11 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
 
   const membership = session.activeDestinyMembership;
   if (!membership) return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
-  const profileUrl = new URL(`${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Profile/${encodeURIComponent(membership.membershipId)}/`);
-  profileUrl.searchParams.set("components", CHARACTER_PROFILE_COMPONENTS.join(","));
-  const response = await fetch(profileUrl, { headers: {
-    Authorization: `Bearer ${session.accessToken}`,
-    "X-API-Key": env.BUNGIE_API_KEY,
-    "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
-  }});
+  await putSession(env, sessionId, session);
+  const response = await recordStub(env, `session:${sessionId}`).fetch(new Request("https://internal/profile-snapshot", {
+    method: "POST",
+    body: JSON.stringify({ components: CHARACTER_PROFILE_COMPONENTS })
+  }));
   const payload = await response.json<BungieApiResponse<DestinyProfilePayload>>().catch(() => null);
   if (!response.ok || !payload?.Response) {
     return withCors(request, env, json({ error: "bungie_loadout_profile_failed", status: response.status }, 502));
@@ -1188,9 +1148,12 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
   const selectedInstances = selectedItems.map(item => item.itemInstanceId ? profile.itemComponents?.instances?.data?.[item.itemInstanceId] : null).filter(Boolean);
   const damageTypeHashes = [...new Set(selectedInstances.map(row => Number(row?.damageTypeHash)).filter(Number.isInteger))];
   const breakerTypeHashes = [...new Set([...Object.values(definitions).map(row => Number(row.breakerTypeHash)),...selectedInstances.map(row => Number(row?.breakerTypeHash))].filter(Number.isInteger))];
-  const [damageDefinitions, breakerDefinitions] = await Promise.all([
+  const collectibleHashes = [...new Set(Object.values(definitions).map(row => Number(row.collectibleHash)).filter(Number.isInteger))];
+  const [damageDefinitions, breakerDefinitions, statDefinitions, collectibleDefinitions] = await Promise.all([
     fetchManifestDefinitions("DestinyDamageTypeDefinition", damageTypeHashes, session.accessToken, env),
-    fetchManifestDefinitions("DestinyBreakerTypeDefinition", breakerTypeHashes, session.accessToken, env)
+    fetchManifestDefinitions("DestinyBreakerTypeDefinition", breakerTypeHashes, session.accessToken, env),
+    fetchManifestDefinitions("DestinyStatDefinition", [...PROFILE_STAT_HASHES], session.accessToken, env),
+    fetchManifestDefinitions("DestinyCollectibleDefinition", collectibleHashes, session.accessToken, env)
   ]);
   const unresolvedDefinitionHashes = hashes.filter(hash => !definitions[String(hash)]);
   const definitionCoverage = {
@@ -1212,9 +1175,161 @@ async function loadoutRoute(request: Request, env: Env): Promise<Response> {
     definitions,
     damageDefinitions,
     breakerDefinitions,
+    statDefinitions,
+    collectibleDefinitions,
     definitionCoverage,
     gearAssets
   }));
+}
+
+type PagePayloadKind = "character" | "build-forge" | "journey" | "vault" | "loadout";
+const PAGE_PAYLOAD_KINDS = new Set<PagePayloadKind>(["character", "build-forge", "journey", "vault", "loadout"]);
+const JOURNEY_HASH_FIELDS: Record<string, string> = {
+  presentationNodeHash: "DestinyPresentationNodeDefinition",
+  presentationNodeHashes: "DestinyPresentationNodeDefinition",
+  recordHash: "DestinyRecordDefinition",
+  recordHashes: "DestinyRecordDefinition",
+  completionRecordHash: "DestinyRecordDefinition",
+  objectiveHash: "DestinyObjectiveDefinition",
+  objectiveHashes: "DestinyObjectiveDefinition",
+  collectibleHash: "DestinyCollectibleDefinition",
+  collectibleHashes: "DestinyCollectibleDefinition",
+  metricHash: "DestinyMetricDefinition",
+  metricHashes: "DestinyMetricDefinition",
+  guardianRankHash: "DestinyGuardianRankDefinition",
+  guardianRankHashes: "DestinyGuardianRankDefinition",
+  destinationHash: "DestinyDestinationDefinition",
+  destinationHashes: "DestinyDestinationDefinition",
+  activityHash: "DestinyActivityDefinition",
+  activityHashes: "DestinyActivityDefinition",
+  checklistHash: "DestinyChecklistDefinition",
+  checklistHashes: "DestinyChecklistDefinition",
+  locationHash: "DestinyLocationDefinition",
+  locationHashes: "DestinyLocationDefinition"
+};
+
+function addJourneyHash(target: Map<string, Set<number>>, type: string, value: unknown): void {
+  const values = Array.isArray(value) ? value : [value];
+  for (const raw of values) {
+    const hash = Number(raw);
+    if (!Number.isInteger(hash) || hash <= 0 || hash > UINT32_MAX) continue;
+    if (!target.has(type)) target.set(type, new Set());
+    target.get(type)!.add(hash);
+  }
+}
+
+function collectJourneyHashes(value: unknown, target: Map<string, Set<number>>): void {
+  if (!value || typeof value !== "object") return;
+  if (Array.isArray(value)) {
+    for (const row of value) collectJourneyHashes(row, target);
+    return;
+  }
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    const type = JOURNEY_HASH_FIELDS[key];
+    if (type) addJourneyHash(target, type, child);
+    collectJourneyHashes(child, target);
+  }
+}
+
+function addComponentKeys(target: Map<string, Set<number>>, type: string, component: unknown): void {
+  if (!component || typeof component !== "object" || Array.isArray(component)) return;
+  for (const hash of Object.keys(component as Record<string, unknown>)) addJourneyHash(target, type, hash);
+}
+
+async function journeyManifestTables(
+  profile: DestinyProfilePayload,
+  env: Env
+): Promise<{ manifestVersion: string; tables: Record<string, Record<string, Record<string, unknown>>>; currentSeason?: Record<string, any> }> {
+  const wanted = new Map<string, Set<number>>();
+  const raw = profile as any;
+  addComponentKeys(wanted, "DestinyPresentationNodeDefinition", raw.profilePresentationNodes?.data?.nodes);
+  addComponentKeys(wanted, "DestinyRecordDefinition", raw.profileRecords?.data?.records);
+  addComponentKeys(wanted, "DestinyCollectibleDefinition", raw.profileCollectibles?.data?.collectibles);
+  addComponentKeys(wanted, "DestinyMetricDefinition", raw.metrics?.data?.metrics || raw.profileMetrics?.data?.metrics);
+  addJourneyHash(wanted, "DestinyGuardianRankConstantsDefinition", 1);
+  collectJourneyHashes(profile, wanted);
+
+  const tables: Record<string, Record<string, Record<string, unknown>>> = {};
+  let manifestVersion = "";
+  let currentSeason: Record<string, any> | undefined;
+  for (let round = 0; round < 4; round += 1) {
+    const missing = Object.fromEntries([...wanted].map(([type, hashes]) => [
+      type,
+      [...hashes].filter(hash => !tables[type]?.[String(hash)])
+    ]).filter(([, hashes]) => (hashes as number[]).length));
+    if (!Object.keys(missing).length) break;
+    const resolved = await preparedManifestTables(missing, env);
+    manifestVersion = resolved.manifestVersion || manifestVersion;
+    currentSeason = resolved.currentSeason || currentSeason;
+    let added = 0;
+    for (const [type, rows] of Object.entries(resolved.tables)) {
+      tables[type] = { ...(tables[type] || {}), ...rows };
+      added += Object.keys(rows).length;
+      collectJourneyHashes(rows, wanted);
+    }
+    if (!added) break;
+  }
+  return { manifestVersion, tables, currentSeason };
+}
+
+async function pagePayloadRoute(request: Request, env: Env, page: PagePayloadKind): Promise<Response> {
+  const profileUrl = new URL(request.url);
+  profileUrl.pathname = "/bungie/profile";
+  profileUrl.search = "";
+  profileUrl.searchParams.set("freshness", "display");
+  profileUrl.searchParams.set("scope", page === "journey" ? "journey" : "forge");
+  const profileResponse = await profileRoute(new Request(profileUrl, { headers: request.headers }), env);
+  if (!profileResponse.ok) return profileResponse;
+  const payload = await profileResponse.json<Record<string, any>>();
+
+  let preparedVersion = "";
+  let currentSeason: Record<string, any> | undefined;
+  if (page === "journey") {
+    const prepared = await journeyManifestTables(payload.profile || {}, env);
+    preparedVersion = prepared.manifestVersion;
+    currentSeason = prepared.currentSeason;
+    payload.manifestTables = prepared.tables;
+  } else {
+    const prepared = await preparedManifestTables({}, env);
+    preparedVersion = prepared.manifestVersion;
+    currentSeason = prepared.currentSeason;
+  }
+  if (currentSeason?.season) {
+    payload.currentSeason = currentSeason.season;
+    payload.currentSeasonNumber = currentSeason.season.seasonNumber;
+  }
+
+  if (env.MANIFEST_DATA && preparedVersion) {
+    const bundleUrl = new URL("https://manifest/page-bundle");
+    bundleUrl.searchParams.set("page", page === "journey" ? "journey" : page === "loadout" ? "loadout" : "common");
+    bundleUrl.searchParams.set("version", preparedVersion);
+    const bundleResponse = await env.MANIFEST_DATA.fetch(new Request(bundleUrl)).catch(() => null);
+    const bundle = bundleResponse?.ok ? await bundleResponse.json<Record<string, unknown>>().catch(() => null) : null;
+    if (bundle?.manifestVersion === preparedVersion) {
+      if (page !== "journey") {
+        const forgeArmourIndex = bundle.forgeArmourIndex as Record<string, any> | undefined;
+        payload.artifactCatalog = page === "loadout"
+          ? (Array.isArray(forgeArmourIndex?.artifactCatalog) ? forgeArmourIndex.artifactCatalog : [])
+          : (Array.isArray(bundle.artifactCatalog) ? bundle.artifactCatalog : []);
+        if (page === "loadout") payload.forgeArmourIndex = forgeArmourIndex || null;
+      }
+      if (page === "journey") {
+        payload.journeyIndex = bundle.journeyIndex || null;
+        for (const [type, rows] of Object.entries((bundle.manifestTables || {}) as Record<string, Record<string, unknown>>)) {
+          payload.manifestTables[type] = { ...(payload.manifestTables[type] || {}), ...rows };
+        }
+      }
+    }
+  }
+
+  payload.pageReady = {
+    page,
+    manifestVersion: preparedVersion,
+    definitionSource: "prepared-bulk-manifest",
+    accountSource: payload.displaySnapshot?.source || "snapshot",
+    generatedAt: Date.now()
+  };
+  return withCors(request, env, json(payload, 200, { "Cache-Control": "private, no-store" }));
 }
 
 async function oauthCallback(request: Request, env: Env): Promise<Response> {
@@ -1262,6 +1377,29 @@ async function oauthCallback(request: Request, env: Env): Promise<Response> {
   if (tx.accessIdentityKey) {
     await putAccessBinding(env, tx.accessIdentityKey, sessionId, session.absoluteExpiresAt);
   }
+
+  // Finish the one-time Bungie approval by preparing the private account data
+  // before ASTRIX opens. Later pages reuse this superset snapshot silently.
+  const preparedProfiles = await Promise.all([CHARACTER_PROFILE_COMPONENTS, JOURNEY_PROFILE_COMPONENTS].map(components =>
+    recordStub(env, `session:${sessionId}`).fetch(new Request("https://internal/profile-snapshot", {
+      method: "POST",
+      body: JSON.stringify({ components })
+    }))
+  )).catch(error => console.warn("initial_profile_snapshot_warm_failed", { error: String(error) }));
+  const characterPayload = Array.isArray(preparedProfiles)
+    ? await preparedProfiles[0]?.clone().json<BungieApiResponse<DestinyProfilePayload>>().catch(() => null)
+    : null;
+  const characterIds = Object.keys(characterPayload?.Response?.characters?.data || {});
+  await Promise.all([
+    recordStub(env, `session:${sessionId}`).fetch(new Request("https://internal/prepared-read", {
+      method: "POST",
+      body: JSON.stringify({ kind: "historical-stats" })
+    })),
+    ...characterIds.map(characterId => recordStub(env, `session:${sessionId}`).fetch(new Request("https://internal/prepared-read", {
+      method: "POST",
+      body: JSON.stringify({ kind: "activity-history", characterId, count: 25, page: 0 })
+    })))
+  ]).catch(error => console.warn("initial_account_data_warm_failed", { error: String(error) }));
 
   const returnUrl = new URL(tx.returnUrl);
   returnUrl.searchParams.set("bungie", "connected");
@@ -1529,13 +1667,10 @@ async function activityHistoryRoute(request: Request, env: Env): Promise<Respons
     return withCors(request, env, json({ error: "membership_mismatch" }, 403));
   }
 
-  const bungieUrl = new URL(
-    `${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Account/${encodeURIComponent(membership.membershipId)}/Character/${encodeURIComponent(characterId)}/Stats/Activities/`
-  );
-  bungieUrl.searchParams.set("count", String(count));
-  bungieUrl.searchParams.set("page", String(page));
-
-  const response = await fetch(bungieUrl, { headers: bungieHeaders(auth.session, env) });
+  const response = await recordStub(env, `session:${auth.sessionId}`).fetch(new Request("https://internal/prepared-read", {
+    method: "POST",
+    body: JSON.stringify({ kind: "activity-history", characterId, count, page })
+  }));
   const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
   if (!response.ok || !payload?.Response) {
     console.error("bungie_activity_history_failed", {
@@ -1552,8 +1687,9 @@ async function activityHistoryRoute(request: Request, env: Env): Promise<Respons
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  await putSession(env, auth.sessionId, { ...auth.session, lastUsedAt: Date.now() });
-  return withCors(request, env, json(payload as Record<string, unknown>));
+  return withCors(request, env, json(payload as Record<string, unknown>, 200, {
+    "X-Forge-Account-Source": response.headers.get("X-Forge-Account-Source") || "snapshot"
+  }));
 }
 
 async function historicalStatsRoute(request: Request, env: Env): Promise<Response> {
@@ -1565,12 +1701,10 @@ async function historicalStatsRoute(request: Request, env: Env): Promise<Respons
     return withCors(request, env, json({ error: "destiny_membership_not_found" }, 404));
   }
 
-  const bungieUrl = new URL(
-    `${BUNGIE_PLATFORM}/Destiny2/${membership.membershipType}/Account/${encodeURIComponent(membership.membershipId)}/Stats/`
-  );
-  bungieUrl.searchParams.set("groups", "1");
-
-  const response = await fetch(bungieUrl, { headers: bungieHeaders(auth.session, env) });
+  const response = await recordStub(env, `session:${auth.sessionId}`).fetch(new Request("https://internal/prepared-read", {
+    method: "POST",
+    body: JSON.stringify({ kind: "historical-stats" })
+  }));
   const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
   if (!response.ok || !payload?.Response) {
     console.error("bungie_historical_stats_failed", {
@@ -1586,8 +1720,9 @@ async function historicalStatsRoute(request: Request, env: Env): Promise<Respons
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  await putSession(env, auth.sessionId, { ...auth.session, lastUsedAt: Date.now() });
-  return withCors(request, env, json(payload as Record<string, unknown>));
+  return withCors(request, env, json(payload as Record<string, unknown>, 200, {
+    "X-Forge-Account-Source": response.headers.get("X-Forge-Account-Source") || "snapshot"
+  }));
 }
 
 async function pgcrRoute(request: Request, env: Env, instanceId: string): Promise<Response> {
@@ -1598,8 +1733,10 @@ async function pgcrRoute(request: Request, env: Env, instanceId: string): Promis
     return withCors(request, env, json({ error: "invalid_activity_instance_id" }, 400));
   }
 
-  const bungieUrl = `${BUNGIE_PLATFORM}/Destiny2/Stats/PostGameCarnageReport/${encodeURIComponent(instanceId)}/`;
-  const response = await fetch(bungieUrl, { headers: bungieHeaders(auth.session, env) });
+  const response = await recordStub(env, `session:${auth.sessionId}`).fetch(new Request("https://internal/prepared-read", {
+    method: "POST",
+    body: JSON.stringify({ kind: "pgcr", instanceId })
+  }));
   const payload = await response.json<BungieApiResponse<Record<string, unknown>>>().catch(() => null);
   if (!response.ok || !payload?.Response) {
     console.error("bungie_pgcr_failed", {
@@ -1616,8 +1753,9 @@ async function pgcrRoute(request: Request, env: Env, instanceId: string): Promis
     }, response.status >= 400 && response.status < 500 ? response.status : 502));
   }
 
-  await putSession(env, auth.sessionId, { ...auth.session, lastUsedAt: Date.now() });
-  return withCors(request, env, json(payload as Record<string, unknown>));
+  return withCors(request, env, json(payload as Record<string, unknown>, 200, {
+    "X-Forge-Account-Source": response.headers.get("X-Forge-Account-Source") || "snapshot"
+  }));
 }
 
 export default {
@@ -1672,6 +1810,12 @@ export default {
       if (request.method === "GET" && url.pathname === "/bungie/manifest/definition") return manifestDefinitionRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/definitions") return manifestDefinitionsRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/current-season") return currentSeasonRoute(request, env);
+      if (request.method === "GET" && url.pathname.startsWith("/bungie/page/")) {
+        const page = decodeURIComponent(url.pathname.slice("/bungie/page/".length)) as PagePayloadKind;
+        return PAGE_PAYLOAD_KINDS.has(page)
+          ? pagePayloadRoute(request, env, page)
+          : withCors(request, env, json({ error: "page_payload_not_found" }, 404));
+      }
       if (request.method === "GET" && (url.pathname === "/bungie/profile" || url.pathname === "/v1/destiny/profile")) {
         return profileRoute(request, env);
       }

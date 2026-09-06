@@ -10,6 +10,9 @@ const MAX_CHARACTERS=3;
 const IS_JOURNEY_PAGE=location.pathname.includes('/pages/journey/');
 const IS_VAULT_PAGE=location.pathname.includes('/pages/vault/');
 const IS_FORGE_LOADER_PAGE=location.pathname.includes('/pages/forge-loader/');
+const IS_LOADOUT_PAGE=location.pathname.includes('/pages/loadout/');
+const IS_MISSION_REPORTS_PAGE=location.pathname.includes('/pages/mission-reports/');
+const IS_BUILD_FORGE_PAGE=location.pathname.includes('/paradox-build-space/');
 const SHARES_PROFILE=IS_JOURNEY_PAGE||IS_VAULT_PAGE||IS_FORGE_LOADER_PAGE;
 let journeyProfileSettled=false;
 let settleJourneyProfile=()=>{};
@@ -41,21 +44,6 @@ async function fetchJson(url){
   }
 }
 
-async function statDefinitions(){
-  const rows=await Promise.all(STAT_ORDER.map(async hash=>{
-    const url=new URL('/bungie/manifest/definition',AUTH_ORIGIN);
-    url.searchParams.set('type','DestinyStatDefinition');
-    url.searchParams.set('hash',String(hash));
-    try{
-      const payload=await fetchJson(url);
-      return [String(hash),payload?.definition||null];
-    }catch{
-      return [String(hash),null];
-    }
-  }));
-  return Object.fromEntries(rows);
-}
-
 function mostRecentCharacterId(characters){
   return String([...characters].sort((left,right)=>String(right?.dateLastPlayed||'').localeCompare(String(left?.dateLastPlayed||'')))[0]?.characterId||'');
 }
@@ -81,10 +69,8 @@ function publishJourneyProfile(payload){
 }
 
 function heroProfileUrl(){
-  const url=new URL('/bungie/profile',AUTH_ORIGIN);
-  if(IS_JOURNEY_PAGE)url.searchParams.set('scope','journey');
-  else if(IS_VAULT_PAGE||IS_FORGE_LOADER_PAGE)url.searchParams.set('scope','character');
-  return url;
+  const page=IS_JOURNEY_PAGE||IS_MISSION_REPORTS_PAGE?'journey':IS_VAULT_PAGE?'vault':IS_FORGE_LOADER_PAGE||IS_LOADOUT_PAGE?'loadout':IS_BUILD_FORGE_PAGE?'build-forge':'character';
+  return new URL(`/bungie/page/${page}`,AUTH_ORIGIN);
 }
 
 function characterRoster(payload,definitions){
@@ -160,11 +146,8 @@ async function initAstrixHeroCards(){
       renderStatus('CONNECT BUNGIE TO LOAD CHARACTERS');
       return;
     }
-    const [payload,definitions]=await Promise.all([
-      fetchJson(heroProfileUrl()),
-      statDefinitions()
-    ]);
-    if(SHARES_PROFILE)payload.statDefinitions={...(payload.statDefinitions||{}),...definitions};
+    const payload=await fetchJson(heroProfileUrl());
+    const definitions=payload.statDefinitions||{};
     publishJourneyProfile(payload);
     const characters=characterRoster(payload,definitions);
     const selectedId=mostRecentCharacterId(characters);

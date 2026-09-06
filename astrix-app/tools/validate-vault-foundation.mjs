@@ -105,7 +105,7 @@ assert.match(vaultHtml,/id="vaultEvaluate"/);
 assert.match(vaultHtml,/id="vaultStatTargets"/);
 assert.match(vaultHtml,/id="vaultCandidateBuilds"/);
 assert.match(vaultHtml,/id="vaultItemInspect"/);
-assert.match(vaultRuntime,/scope','character/);
+assert.match(vaultRuntime,/\/bungie\/page\/vault/);
 assert.match(vaultRuntime,/guardianManifest\.hydratePayload/);
 assert.match(vaultRuntime,/matchArmourBuilds\(optimiserItems\(\),targets,\{limit:5\}\)/);
 assert.match(vaultCss,/--vault-item-icon:8rem/,'Vault inventory art must remain anchored instead of filling the grid column.');

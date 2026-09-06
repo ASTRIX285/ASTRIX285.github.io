@@ -40,7 +40,7 @@ const retry=new JourneyManifestService({fetchImpl:async()=>{if(attempts++===0)re
 await assert.rejects(retry.index());assert.equal((await retry.index()).manifestVersion,index.manifestVersion);
 let legacyCalls=[];
 const selective=new GuardianManifestService({selective:true,maxFallbackDefinitions:4,storage:{available:false},fetchImpl:async input=>{const u=new URL(input);legacyCalls.push(u.pathname);return Response.json({definition:{hash:Number(u.searchParams.get('hash'))}});}});
-await selective.getMany('DestinyRecordDefinition',[1,2,3,4,5,6]);assert.equal(selective.fallbackDefinitions.size,4);assert.ok(legacyCalls.every(p=>p.endsWith('/definition')));
+await selective.getMany('DestinyRecordDefinition',[1,2,3,4,5,6]);assert.equal(selective.fallbackDefinitions.size,0);assert.deepEqual(legacyCalls,[],'Unprepared Journey definitions must not issue per item requests');
 const before=calls.length;
 const concurrent=new JourneyManifestService({fetchImpl:service.fetchImpl,fallback:service.fallback});
 await Promise.all([concurrent.getAsync('DestinyPresentationNodeDefinition',1163735237),concurrent.getAsync('DestinyPresentationNodeDefinition',1866538467)]);

@@ -32,15 +32,16 @@ assert.match(service,/manifest:\$\{version\}:\$\{type\}/,'Manifest tables must b
 assert.match(service,/current\?\.version===version[\s\S]*?readTable\(version,type\)/,'Matching versions must load all component tables from IndexedDB');
 assert.match(service,/versionMatched=true[\s\S]*?loaded from IndexedDB/,'Version-match skips must be observable');
 assert.match(service,/commitVersion\(version\)[\s\S]*?removeOtherVersions\(version\)/,'The current marker must commit only after all component writes');
-assert.match(service,/mode="live-fallback"[\s\S]*?IndexedDB unavailable · resolving definitions live/,'IndexedDB failure must select the live endpoint fallback');
-assert.match(service,/bungie\/manifest\/definition/,'Fallback definitions must use the Worker single-definition route');
+assert.doesNotMatch(service,/bungie\/manifest\/definition/,'Browser definition service must not retain a single definition route');
+assert.match(service,/const allowNetwork=!this\.backend&&options\.allowNetwork!==false/,'Prepared page payloads must disable browser definition network expansion by construction');
+assert.match(service,/this\.backend\?"prepared-page-payload"[\s\S]*?"prepared-bulk-manifest"/,'Prepared page payload resolution must be observable');
 assert.match(service,/initialiseCached\(\)[\s\S]*?Backend manifest current · resolving owned armour only/,'Forge pages must be able to inspect an existing manifest cache without starting a full component download');
 assert.match(service,/loadForgeArmourIndex[\s\S]*?manifestVersion[\s\S]*?version!==this\.version/,'The compact Forge index must be rejected unless it matches the current Bungie manifest version');
 assert.match(service,/requestUrl\.searchParams\.set\("manifest",this\.version\)/,'The compact Forge index request must bypass stale static-asset caches when Bungie changes manifest version.');
 assert.match(service,/applyForgeArmourIndex[\s\S]*?hourly-compact-manifest/,'The compact Forge index must merge only as an explicit verified payload source');
 assert.match(service,/payload\.artifactCatalog=index\.artifactCatalog[\s\S]*?artifactCatalogCoverage=\{model:"artifact-2-socket-buckets"/,'The compact Forge join must carry the complete verified Artifact 2.0 catalogue into the private Guardian payload.');
 assert.match(service,/options\.waitForManifest!==false/,'Selective payload hydration must be able to proceed without waiting for every full manifest table');
-assert.match(service,/allowNetwork=options\.allowNetwork!==false/,'The compact Forge join must be able to forbid live per-hash definition expansion on its critical path.');
+assert.match(service,/allowNetwork=!this\.backend&&options\.allowNetwork!==false/,'The compact Forge join must forbid live definition expansion for prepared page payloads.');
 assert.match(service,/const profile=payload\?\.profile\|\|\{\};[\s\S]*?profile\?\.profilePlugSets/,'Reusable plug-set hydration must read from the current private profile without an undeclared runtime binding.');
 if(forgeIndex){
   assert.equal(forgeIndex.schemaVersion,4,'The compact Forge armour and Artifact index schema must remain explicit.');
@@ -62,6 +63,8 @@ assert.match(worker,/manifest_version_changed/,'Component downloads must reject 
 assert.match(worker,/MANIFEST_METADATA_TTL_SECONDS = 60 \* 60/,'The Worker manifest metadata cache must refresh hourly.');
 assert.match(worker,/scheduled\([\s\S]*?refreshDestinyManifestMetadata/,'The Worker must silently warm the current Bungie manifest version on its cron trigger.');
 assert.match(worker,/manifest-definition-v2\/\$\{requestedVersion \? "versioned" : "current"\}\/\$\{encodeURIComponent\(manifest\.version \|\| "unknown"\)\}/,'Single-definition cache entries must isolate manifest versions and versioned cache lifetimes.');
+assert.match(worker,/https:\/\/manifest\/resolve/,'Worker page payloads must resolve definitions through the prepared bulk manifest service');
+assert.match(worker,/url\.pathname\.startsWith\("\/bungie\/page\/"\)/,'Worker must expose dedicated prepared page routes');
 assert.match(worker,/definitions"\) === "client-manifest"/,'Profile and loadout routes must expose raw client-manifest mode');
 assert.match(wrapper,/definitions"\) === "client-manifest"/,'Semantic wrapper must skip per-hash enrichment in client-manifest mode');
 
@@ -90,4 +93,4 @@ console.log('MANIFEST_VERSION_CACHE_CONTRACT=PASS');
 console.log('MANIFEST_WORKER_STREAM_CONTRACT=PASS');
 console.log('MANIFEST_PROFILE_ARTIFACT_RESOLUTION=PASS');
 console.log('MANIFEST_CURATED_TAGS_ONLY=PASS');
-console.log('MANIFEST_LOADER_AND_FALLBACK=PASS');
+console.log('MANIFEST_LOADER_AND_PREPARED_PAYLOAD=PASS');

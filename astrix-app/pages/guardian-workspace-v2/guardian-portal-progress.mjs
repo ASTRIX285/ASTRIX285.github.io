@@ -1,4 +1,4 @@
-import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260906-backend-1";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260906-page-payload-1";
 import {PORTAL_TRANSITION_KEY} from "./guardian-session-cache.mjs";
 
 const loader=window.AstrixLoader;
@@ -58,6 +58,7 @@ try{
 
 set(8,'Preparing Build Forge');
 document.addEventListener('astrix:manifest-progress',event=>set(Number(event.detail?.percent)||12,event.detail?.label||'Preparing Bungie manifest'));
+document.addEventListener('astrix:guardian-profile-progress',event=>set(Number(event.detail?.percent)||58,event.detail?.label||'Resolving Guardian profile'));
 document.addEventListener('astrix:guardian-loading',()=>{finishRevision++;profileSettled=false;profileFailed=false;set(18,'Connecting to Bungie');});
 window.addEventListener('astrix:bungie-session',event=>{
   if(event.detail?.authenticated)set(32,'Bungie session ready');

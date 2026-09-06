@@ -1,4 +1,19 @@
-const BUNGIE_PLATFORM = "https://www.bungie.net/Platform";
+async function preparedDefinitions(definitionType: string, hashes: Iterable<number>, env: Env): Promise<Record<string, Record<string, any>>> {
+  const unique = [...new Set([...hashes].map(Number).filter(Number.isInteger))];
+  if (!env.MANIFEST_DATA || !unique.length) return {};
+  const statusResponse = await env.MANIFEST_DATA.fetch(new Request("https://manifest/status")).catch(() => null);
+  const status = statusResponse?.ok ? await statusResponse.json<{ manifestVersion?: string }>().catch(() => null) : null;
+  if (!status?.manifestVersion) return {};
+  const response = await env.MANIFEST_DATA.fetch(new Request("https://manifest/resolve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version: status.manifestVersion, requests: { [definitionType]: unique } })
+  })).catch(() => null);
+  const payload = response?.ok
+    ? await response.json<{ manifestVersion?: string; tables?: Record<string, Record<string, Record<string, any>>> }>().catch(() => null)
+    : null;
+  return payload?.manifestVersion === status.manifestVersion ? (payload.tables?.[definitionType] || {}) : {};
+}
 
 async function manifestDefinition(
   definitionType: string,
@@ -6,31 +21,8 @@ async function manifestDefinition(
   env: Env
 ): Promise<Record<string, any> | null> {
   if (!Number.isInteger(hash)) return null;
-  let cache: Cache | null = null;
-  const cacheKey = new Request(`https://auth.astrixparadox.com/.cache/${definitionType}/${hash}`, { method: "GET" });
-  try {
-    cache = await caches.open("astrix-bungie-definitions");
-    const cached = await cache.match(cacheKey);
-    if (cached) return cached.json<Record<string, any>>().catch(() => null);
-  } catch {}
-
-  const response = await fetch(`${BUNGIE_PLATFORM}/Destiny2/Manifest/${definitionType}/${hash}/`, {
-    headers: {
-      "X-API-Key": env.BUNGIE_API_KEY,
-      "User-Agent": "ASTRIX-PARADOX/alpha (+https://astrixparadox.com)"
-    }
-  });
-  if (!response.ok) return null;
-  const payload = await response.json<{ Response?: Record<string, any> }>().catch(() => null);
-  const definition = payload?.Response || null;
-  if (definition && cache) {
-    try {
-      await cache.put(cacheKey, new Response(JSON.stringify(definition), {
-        headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=604800" }
-      }));
-    } catch {}
-  }
-  return definition;
+  const prepared = await preparedDefinitions(definitionType, [hash], env);
+  return prepared[String(hash)] || null;
 }
 
 function equipableSetHash(itemDefinition: Record<string, any>): number | null {
@@ -53,11 +45,7 @@ async function enrichEquipableSets(payload: any, env: Env): Promise<any> {
   }
 
   const sets: Record<string, Record<string, any>> = { ...(payload.equipableItemSets || {}) };
-  const setRows = await Promise.all(setHashes.map(async hash => [
-    hash,
-    sets[String(hash)] || await manifestDefinition("DestinyEquipableItemSetDefinition", hash, env)
-  ] as const));
-  for (const [hash, definition] of setRows) if (definition) sets[String(hash)] = definition;
+  Object.assign(sets, await preparedDefinitions("DestinyEquipableItemSetDefinition", setHashes.filter(hash => !sets[String(hash)]), env));
 
   const perkHashes = [...new Set(
     Object.values(sets).flatMap((set: any) => (set?.setPerks || [])
@@ -65,11 +53,7 @@ async function enrichEquipableSets(payload: any, env: Env): Promise<any> {
       .filter(Number.isInteger))
   )];
   const sandboxPerks: Record<string, Record<string, any>> = { ...(payload.sandboxPerks || {}) };
-  const perkRows = await Promise.all(perkHashes.map(async hash => [
-    hash,
-    sandboxPerks[String(hash)] || await manifestDefinition("DestinySandboxPerkDefinition", hash, env)
-  ] as const));
-  for (const [hash, definition] of perkRows) if (definition) sandboxPerks[String(hash)] = definition;
+  Object.assign(sandboxPerks, await preparedDefinitions("DestinySandboxPerkDefinition", perkHashes.filter(hash => !sandboxPerks[String(hash)]), env));
 
   payload.equipableItemSets = sets;
   payload.sandboxPerks = sandboxPerks;
@@ -85,4 +69,4 @@ async function enrichEquipableSets(payload: any, env: Env): Promise<any> {
   return payload;
 }
 
-export { manifestDefinition, equipableSetHash, enrichEquipableSets };
+export { manifestDefinition, preparedDefinitions, equipableSetHash, enrichEquipableSets };

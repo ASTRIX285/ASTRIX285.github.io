@@ -13,7 +13,7 @@ export async function fetchDisplayProfile(input,{fetchImpl=globalThis.fetch.bind
   const started=generation;
   const task=(async()=>{
     const previous=snapshots.get(key);
-    url.searchParams.set('freshness','display');url.searchParams.set('definitions','client-manifest');url.searchParams.set('delivery','sections');
+    url.searchParams.set('freshness','display');url.searchParams.set('delivery','sections');
     if(previous)url.searchParams.set('since',JSON.stringify(previous.revisions));
     const response=await fetchImpl(url,{credentials:'include',headers:{Accept:'application/json'},signal});
     const payload=await response.json();

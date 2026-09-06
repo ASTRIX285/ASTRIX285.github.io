@@ -227,12 +227,10 @@ const perkPlanRuntime=read('astrix-app/pages/guardian-workspace-v2/guardian-perk
 const liveActionsRuntime=read('astrix-app/pages/guardian-workspace-v2/guardian-live-actions.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const access=read('astrix-app/pages/guardian-workspace-v2/guardian-vault-access.mjs');
-assert.match(runtime,/FORGE_ARMOUR_INDEX_URL=new URL\('\/astrix-app\/data\/forge-armour-index\.json'/,'Forge Loader must use the compact hourly armour index instead of downloading every full manifest table.');
-assert.match(runtime,/scope','forge'/,'Forge Loader must request its dedicated private-inventory component scope.');
-assert.match(runtime,/fetchProfile\(\{clientManifest:true\}\)/,'The normal Forge path must fetch private inventory without redundant Worker definition expansion.');
-assert.match(runtime,/loadForgeArmourIndex\(FORGE_ARMOUR_INDEX_URL\)/,'Forge Loader must version-check the compact public index before joining it to private inventory.');
-assert.match(runtime,/hydratePayload\(next,\{waitForManifest:false,armourOnly:Boolean\(forgeIndex\),includeReusable:true,allowNetwork:!forgeIndex\}\)/,'Owned combinations and their legal armour-mod options must hydrate without blocking on unrelated full manifest data or live per-hash requests.');
-assert.match(runtime,/pre-resolved armour, mod and Artifact index/,'The 46-percent join must use the pre-resolved backend index instead of expanding armour, mods or Artifact perks through live per-hash requests.');
+assert.match(runtime,/\/bungie\/page\/loadout/,'Forge Loader must request its dedicated merged page payload.');
+assert.match(runtime,/if\(next\.forgeArmourIndex\)guardianManifest\.applyForgeArmourIndex/,'Forge Loader must consume the versioned compact armour index from its merged page payload.');
+assert.match(runtime,/hydratePayload\(next,\{waitForManifest:false,armourOnly:Boolean\(next\.forgeArmourIndex\),includeReusable:true,allowNetwork:false\}\)/,'Owned combinations and their legal armour mod options must hydrate without live definition requests.');
+assert.match(runtime,/Joining private inventory to the prepared armour catalogue/,'The 46 percent join must describe the prepared backend catalogue.');
 assert.doesNotMatch(runtime,/await guardianManifest\.ready\(\)/,'Forge Loader must never return to the 58-percent full-manifest startup gate.');
 assert.match(html,/<header class="apx-destination-header astrix-command-header">[\s\S]*?<strong>FORGE LOADER<\/strong><small>SELECT AND MAXIMISE VERIFIED ARMOUR<\/small>/,'Forge Loader must present its page identity only in the shared compact command header.');
 assert.doesNotMatch(html,/<div class="apx-page-heading">[\s\S]*?<h1>Forge Loader<\/h1>/,'Forge Loader must not retain the oversized duplicate page hero.');
@@ -316,7 +314,7 @@ assert.doesNotMatch(runtime,/if\(!baselineStored\)\{[^}]*?return;/,'A rejected b
 assert.match(runtime,/if\(!baselineStored&&!transferStored\)url\.searchParams\.set\('baseline','bungie-recovery'\)/,'The destination must request authenticated recovery only when the atomic baseline is unavailable.');
 assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.removeItem\(BUILD_SNAPSHOT_KEY\);[\s\S]*?store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Stale Build Forge state must be cleared before writing the newly verified compact Guardian snapshot.');
 assert.doesNotMatch(buildHandoff,/createBuildState/,'Forge Loader must not expand the compact source into duplicate Original and Working builds before navigation.');
-assert.match(html,/forge-loader\.mjs\?v=20260905-worker-preflight-1/,'Forge Loader must load the authenticated build-binding handoff without a stale browser module.');
+assert.match(html,/forge-loader\.mjs\?v=20260906-page-payload-1/,'Forge Loader must load the prepared page payload without a stale browser module.');
 assert.match(html,/forge-loader\.css\?v=20260904-open-armour-1/,'Forge Loader must refresh the stronger selected-Exotic state without stale page CSS.');
 assert.match(runtime,/forge-loader-build-handoff\.mjs\?v=20260904-memory-safe-transfer-1/,'Forge Loader must refresh the protected baseline writer with the memory-safe transfer release.');
 assert.match(runtime,/vault-selection-state\.mjs\?v=20260904-exotic-equip-rule-1/,'Forge Loader must refresh the legal one-Exotic armour selection writer.');
@@ -343,7 +341,7 @@ assert.match(artifactSelectionRuntime,/const next=\{\.\.\.state,workingBuild:\{\
 assert.match(artifactSelectionRuntime,/weapons:\(build\.weapons\|\|\[\]\)\.map\(weapon=>\(\{hash:hashOf\(weapon\),itemInstanceId:[\s\S]*?selectedPerks:/,'Artifact recommendation fingerprints must distinguish exact owned weapon rolls and their selected perks.');
 assert.match(buildRuntime,/shouldReplaceBuildState\(current,detail,\{vaultSelection:params\.get\('vault'\)==='selection',explicitlySelectedCharacterId\}\);[\s\S]*?if\(!replace\)\{const repaired=repairMissingBuildBinding\(current,detail\);[\s\S]*?return;\}/,'A background live-profile event may repair missing membership binding but must not overwrite the validated Forge Loader Working Build.');
 assert.match(buildRuntime,/boundDetail=\{\.\.\.detail,membershipId:detail\.membershipId\|\|requested\.membershipId,membershipType:detail\.membershipType\?\?requested\.membershipType\}/,'Authenticated baseline recovery must retain the character-bound membership carried in the transfer URL.');
-assert.match(read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html'),/paradox-build-space\.mjs\?v=20260906-loader-58-fix-1/,'Build Forge must load the worker-safe generation, live-preflight correction and bounded portal dependency without stale browser code.');
+assert.match(read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html'),/paradox-build-space\.mjs\?v=20260906-page-payload-1/,'Build Forge must load the prepared page payload generation without stale browser code.');
 assert.match(buildRuntime,/emitLoad\('profile',LOAD_STAGES\.PROFILE[\s\S]*?try\{[\s\S]*?Build Forge retained the protected transfer after recovered subclass rendering failed[\s\S]*?emitLoad\('sockets',LOAD_STAGES\.SOCKETS/,'A recovered subclass presentation failure must not prevent verified armour, sockets and the remaining Build Forge surface from rendering.');
 assert.match(buildRuntime,/function render\(\)\{[\s\S]*?try\{return renderBuildSurface\(\);\}[\s\S]*?catch\(error\)[\s\S]*?completeBuildRender\(build\)/,'A synchronous recovered-profile presentation failure must release the loader with the protected Build Forge state.');
 assert.match(buildRuntime,/params\.get\('baseline'\)==='bungie-recovery'[\s\S]*?Recovering the protected Original Build from the authenticated Bungie profile/,'Build Forge must present authenticated recovery as an active protected load rather than a missing-snapshot failure.');

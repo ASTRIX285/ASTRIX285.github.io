@@ -30,20 +30,18 @@ let response=await dataWorker.fetch(new Request(route+'1,2,3'),env);
 assert.deepEqual(Object.keys((await response.json()).definitions),['1','2','3']);assert.equal(assets,3);
 assert.equal((await dataWorker.fetch(new Request(route+'0'),env)).status,400);
 assert.equal((await dataWorker.fetch(new Request(route.replace('verified-test-version','old')+'1'),env)).status,409);
+response=await dataWorker.fetch(new Request('https://data/resolve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:index.manifestVersion,requests:{DestinyInventoryItemDefinition:[1,2,3]}})}),env);
+assert.deepEqual(Object.keys((await response.json()).tables.DestinyInventoryItemDefinition),['1','2','3']);
 
 const requests=[];
 const service=new GuardianManifestService({backend:true,maxFallbackDefinitions:3,maxDefinitionBytes:1024,storage:{available:true,readCurrent(){throw Error('must not load full tables');}},fetchImpl:async input=>{
-  const url=new URL(input);requests.push(url.pathname);
-  if(url.pathname==='/bungie/manifest')return Response.json({version:index.manifestVersion,paths:{}});
-  assert.equal(url.pathname,'/bungie/manifest/definitions');
-  return Response.json({manifestVersion:index.manifestVersion,definitions:Object.fromEntries(url.searchParams.get('hashes').split(',').map(h=>[h,{hash:Number(h)}]))});
+  const url=new URL(input);requests.push(url.pathname);throw Error(`unexpected client definition request ${url.pathname}`);
 }});
-await service.ready();assert.equal(service.tables.size,0);
 const hashes=Array.from({length:100},(_,i)=>i+1);
+service.seedPayload({pageReady:{page:'character',manifestVersion:index.manifestVersion},definitions:Object.fromEntries(hashes.map(hash=>[hash,{hash}]))});
 const [a,b]=await Promise.all([service.getMany('DestinyInventoryItemDefinition',hashes),service.getMany('DestinyInventoryItemDefinition',hashes)]);
 assert.equal(Object.keys(a).length,100);assert.deepEqual(a,b);
-assert.equal(requests.filter(p=>p.endsWith('/definitions')).length,3);
-assert.ok(service.fallbackDefinitions.size<=3);assert.ok(service.status().retainedDefinitionBytes<=1024);
+assert.equal(requests.length,0);
 const live=await readFile(new URL('../pages/guardian-workspace-v2/guardian-live-actions.mjs',import.meta.url),'utf8');
 assert.doesNotMatch(live,/freshness.*display|profile-snapshot/,'Apply must never use display snapshots');
 const original={characters:{data:{test:{classType:1}}},profileInventory:{data:{items:[{itemInstanceId:'test-owned-instance'}]}}};

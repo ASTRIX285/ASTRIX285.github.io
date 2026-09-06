@@ -1,5 +1,5 @@
 import worker, { AuthRecord } from "./index";
-import { manifestDefinition, enrichEquipableSets } from "./manifest-semantics";
+import { preparedDefinitions, enrichEquipableSets } from "./manifest-semantics";
 export { AuthRecord };
 
 const SUBCLASS_BUCKET_HASH = 3284755031;
@@ -18,11 +18,7 @@ async function resolveMissingInventoryDefinitions(payload: any, hashes: Iterable
   const definitions: Record<string, Record<string, any>> = payload.definitions || (payload.definitions = {});
   const unique = [...new Set([...hashes].map(Number).filter(Number.isInteger))];
   const missing = unique.filter(hash => !definitions[String(hash)]);
-  const rows = await Promise.all(missing.map(async hash => [
-    hash,
-    await manifestDefinition("DestinyInventoryItemDefinition", hash, env)
-  ] as const));
-  for (const [hash, definition] of rows) if (definition) definitions[String(hash)] = definition;
+  Object.assign(definitions, await preparedDefinitions("DestinyInventoryItemDefinition", missing, env));
   return missing.filter(hash => !definitions[String(hash)]);
 }
 
@@ -204,6 +200,7 @@ export default {
     const response = await worker.fetch(request, env);
     const url = new URL(request.url);
     const path = url.pathname;
+    const pagePayload = path.startsWith("/bungie/page/") ? path.slice("/bungie/page/".length) : "";
     if (url.searchParams.get("definitions") === "client-manifest" && (path === "/bungie/profile" || path === "/v1/destiny/profile" || path === "/bungie/loadout" || path === "/v1/destiny/loadout")) return response;
     try {
       if (request.method === "GET" && (path === "/bungie/profile" || path === "/v1/destiny/profile")) {
@@ -217,6 +214,14 @@ export default {
       if (request.method === "GET" && (path === "/bungie/loadout" || path === "/v1/destiny/loadout")) {
         return await rewriteJsonResponse(response, async payload => {
           await enrichLoadoutSupers(payload, env);
+          await enrichEquipableSets(payload, env);
+          await enrichWeaponReusablePlugs(payload, env);
+          return payload;
+        });
+      }
+      if (request.method === "GET" && ["character", "build-forge", "journey", "vault", "loadout"].includes(pagePayload)) {
+        return await rewriteJsonResponse(response, async payload => {
+          await enrichSubclassInventory(payload, env);
           await enrichEquipableSets(payload, env);
           await enrichWeaponReusablePlugs(payload, env);
           return payload;

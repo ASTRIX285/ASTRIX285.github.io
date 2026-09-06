@@ -1,5 +1,5 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
-import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-backend-1';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-page-payload-1';
 import {cacheBungieProfile,cacheForgeLoaderTransfer,markGuardianFastReturn,readCachedBungieProfile,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260904-atomic-forge-transfer-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchTopArmourBuilds} from '../vault/vault-armour-matcher.mjs?v=20260904-top-50-scan-1';
@@ -10,7 +10,6 @@ import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './fo
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
 const CANDIDATE_BATCH_SIZE=50;
-const FORGE_ARMOUR_INDEX_URL=new URL('/astrix-app/data/forge-armour-index.json',location.origin).toString();
 const byId=id=>document.getElementById(id);
 const text=value=>String(value??'').trim();
 const esc=value=>String(value??'').replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
@@ -56,9 +55,8 @@ function membershipBinding(){
   return {characterId:activeCharacterId,membershipId:text(membership.membershipId||session?.primaryMembershipId||session?.bungieMembershipId),membershipType:text(membership.membershipType)};
 }
 
-async function fetchProfile({clientManifest=false}={}){
-  const url=new URL('/bungie/profile',AUTH_ORIGIN);url.searchParams.set('scope','forge');
-  if(clientManifest)url.searchParams.set('definitions','client-manifest');
+async function fetchProfile(){
+  const url=new URL('/bungie/page/loadout',AUTH_ORIGIN);
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000);
   try{
     const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
@@ -71,22 +69,14 @@ async function fetchProfile({clientManifest=false}={}){
 
 async function loadVerifiedPayload(){
   loaderProgress(18,'Checking verified Guardian armour…');
-  const indexPromise=guardianManifest.loadForgeArmourIndex(FORGE_ARMOUR_INDEX_URL).catch(error=>{console.warn('[ASTRIX Forge Loader] Compact manifest unavailable',error);return null;});
   const cached=await readCachedBungieProfile(session);
-  const shared=globalThis.ASTRIX_HERO_PROFILE_PAYLOAD||await globalThis.ASTRIX_HERO_PROFILE_PROMISE;
-  let next=shared?.profile?shared:cached?.profile?cached:null;
-  let forgeIndex=null;
-  if(next){forgeIndex=await indexPromise;if(!forgeIndex)next=await fetchProfile();}
-  else{
-    const [raw,index]=await Promise.all([fetchProfile({clientManifest:true}),indexPromise]);
-    forgeIndex=index;
-    next=forgeIndex?raw:await fetchProfile();
-  }
+  const shared=globalThis.ASTRIX_HERO_PROFILE_PAYLOAD||(!cached?.profile?await globalThis.ASTRIX_HERO_PROFILE_PROMISE:null);
+  const next=shared?.pageReady?.page==='loadout'?shared:cached?.pageReady?.page==='loadout'?cached:await fetchProfile();
   if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
   await cacheBungieProfile(session,next);
-  if(forgeIndex)guardianManifest.applyForgeArmourIndex(next,forgeIndex);
-  loaderProgress(46,forgeIndex?'Joining private inventory to the pre-resolved armour, mod and Artifact index…':'Resolving owned Bungie armour and Artifact definitions…');
-  await guardianManifest.hydratePayload(next,{waitForManifest:false,armourOnly:Boolean(forgeIndex),includeReusable:true,allowNetwork:!forgeIndex});
+  if(next.forgeArmourIndex)guardianManifest.applyForgeArmourIndex(next,next.forgeArmourIndex);
+  loaderProgress(46,'Joining private inventory to the prepared armour catalogue…');
+  await guardianManifest.hydratePayload(next,{waitForManifest:false,armourOnly:Boolean(next.forgeArmourIndex),includeReusable:true,allowNetwork:false});
   return next;
 }
 
@@ -426,7 +416,7 @@ async function evaluateInBuildForge(){
   byId('forgeRuntimeStatus').textContent='Protecting the verified equipped Guardian before Build Forge opens…';
   let profileBuild=null;
   try{
-    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260905-worker-preflight-1');
+    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260906-page-payload-1');
     profileBuild=normaliseLiveProfile(payload,session,activeCharacterId);
   }catch(error){
     console.error('[ASTRIX Forge Loader] The protected Guardian baseline could not be prepared.',error);

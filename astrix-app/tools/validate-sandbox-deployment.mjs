@@ -47,14 +47,14 @@ assert.match(authConfig,/APP_ORIGINS = "[^"]*https:\/\/sandbox\.astrixparadox\.c
 assert.match(authConfig,/DEFAULT_RETURN_URL = "https:\/\/astrixparadox\.com\/astrix-app\/pages\/journey\/"/,'The default Bungie callback must land on Journey');
 assert.match(authWorker,/const CHARACTER_PROFILE_COMPONENTS = \[[\s\S]*?310\s+\/\/ ItemReusablePlugs[\s\S]*?const JOURNEY_PROFILE_COMPONENTS = \[[\s\S]*?1300\s+\/\/ Craftables[\s\S]*?const PROFILE_COMPONENTS = \[[\s\S]*?\.\.\.CHARACTER_PROFILE_COMPONENTS/,'Character and Journey profile components must remain independently scoped');
 assert.match(authWorker,/profileScope === "character"[\s\S]*?CHARACTER_PROFILE_COMPONENTS[\s\S]*?profileScope === "journey"[\s\S]*?JOURNEY_PROFILE_COMPONENTS[\s\S]*?: PROFILE_COMPONENTS/,'The auth Worker must select each lightweight page profile scope explicitly');
-assert.match(guardianProfile,/location\.pathname\.includes\("\/pages\/journey\/"\)[\s\S]*?set\("scope","journey"\)[\s\S]*?location\.pathname\.includes\("\/guardian-workspace-v2\/"\)[\s\S]*?set\("scope","character"\)/,'Journey, Character and Build Forge must request their dedicated Bungie profile scopes');
+assert.match(guardianProfile,/location\.pathname\.includes\('\/pages\/journey\/'\)\?'journey':[\s\S]*?location\.pathname\.includes\('\/paradox-build-space\/'\)\?'build-forge':'character'[\s\S]*?url\.pathname=`\/bungie\/page\/\$\{page\}`/,'Journey, Character and Build Forge must request their dedicated prepared page routes');
 assert.match(guardianAuth,/const JOURNEY_PATH = "\/astrix-app\/pages\/journey\/"[\s\S]*?return new URL\(JOURNEY_PATH,origin\)/,'Bungie connections must return to Journey on the active approved origin');
 assert.match(journeyHtml,/id="journeyConnectButton"[\s\S]*?return=https%3A%2F%2Fastrixparadox\.com%2Fastrix-app%2Fpages%2Fjourney%2F/,'Journey must provide a no-script Bungie connection fallback that returns to Journey');
 assert.match(journeyModule,/function showSignedOut\(\)\{[\s\S]*?signedOut\.hidden=false;[\s\S]*?connectButton\.href=authStartUrl\(\)/,'Signed-out visitors must stay on Journey and connect through the active-origin Bungie return URL');
 assert.doesNotMatch(journeyModule,/location\.replace\([^\n]*guardian-workspace-v2/,'Journey must not redirect signed-out visitors to Character');
 assert.doesNotMatch(journeyHtml,/>ACTIVE GUARDIAN</,'Journey identity must let the verified emblem lead without a redundant active label');
 assert.match(journeyHtml,/journey-2560-visual\.css\?v=20260903-command-header-1/,'Journey must load the cache-busted command-header cleanup');
-assert.match(journeyHtml,/journey\.mjs\?v=20260905-forge-responsive-1/,'Journey must load the progressive records runtime without stale header-positioning code');
+assert.match(journeyHtml,/journey\.mjs\?v=20260906-page-payload-1/,'Journey must load the prepared page payload runtime');
 assert.match(journeyModule,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey must not block on the full equipment manifest');
 assert.match(journeyModule,/ASTRIX_HERO_PROFILE_PROMISE/,'Journey must reuse the authenticated hero-card profile request');
 assert.doesNotMatch(journeyModule,/guardianManifest\.hydratePayload\(payload\)/,'Journey must not hydrate every equipment definition before binding records');
@@ -125,7 +125,7 @@ assert.match(journeyCss,/\.journey-page \.mission-crest\{[\s\S]*?position:absolu
 assert.match(journeyCss,/\.journey-page \.mission-crest img\{[\s\S]*?width:100%;[\s\S]*?height:100%;[\s\S]*?object-fit:cover;[\s\S]*?transform:none/,'Verified Bungie emblem artwork must fill the whole identity card');
 assert.match(journeyCss,/\.journey-page \.mission-identity-copy\{[\s\S]*?width:66\.667%;[\s\S]*?margin-left:33\.333%/,'Guardian class and subclass must overlay the emblem beginning one third into the card');
 assert.match(journeyModule,/const JOURNEY_BACKGROUND_REFRESH_MS=5\*60\*1000;/,'Journey must refresh its lightweight Bungie profile every five minutes');
-assert.match(journeyModule,/url\.searchParams\.set\('scope','journey'\)/,'Background refreshes must request the lightweight Journey component scope');
+assert.match(journeyModule,/new URL\('\/bungie\/page\/journey',AUTH_ORIGIN\)/,'Background refreshes must request the merged Journey page payload');
 assert.match(journeyModule,/setInterval\(\(\)=>void refreshJourneyProfile\(\),JOURNEY_BACKGROUND_REFRESH_MS\)/,'Journey must schedule the silent profile refresh without reloading the page');
 assert.match(journeyModule,/journeyBackgroundRefreshPending\|\|Date\.now\(\)-journeyLastRefreshAt>=JOURNEY_BACKGROUND_REFRESH_MS[\s\S]*?visibilitychange/,'A hidden Journey tab must defer its background request until visible');
 assert.equal((journeyModule.match(/new URL\('\/bungie\/activity-history',AUTH_ORIGIN\)/g)??[]).length,1,'Journey must use one cached activity-history request for all activity-backed cards');

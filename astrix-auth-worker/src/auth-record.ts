@@ -21,6 +21,13 @@ type TokenResponse = {
   expires_in: number;
   refresh_expires_in?: number;
 };
+type PreparedReadRequest = {
+  kind: "activity-history" | "historical-stats" | "pgcr";
+  characterId?: string;
+  count?: number;
+  page?: number;
+  instanceId?: string;
+};
 
 function nextRenewalAt(session: SessionRecord, now = Date.now()): number | null {
   if (!session.refreshToken || session.absoluteExpiresAt <= now) return null;
@@ -36,6 +43,51 @@ function nextRenewalAt(session: SessionRecord, now = Date.now()): number | null 
 
 export class AuthRecord extends DurableObject<Env> {
   private snapshots = new ProfileSnapshotCache(this.ctx.storage);
+  private deferSnapshotWrite(task: Promise<void>): void {
+    this.ctx.waitUntil(task.catch(error => console.warn("prepared_account_cache_write_failed", { error: String(error) })));
+  }
+
+  private async preparedRead(record: SessionRecord, input: PreparedReadRequest): Promise<Response> {
+    const membership = record.activeDestinyMembership;
+    if (!membership) return new Response(null, { status: 401 });
+    let url: URL;
+    let key: string;
+    if (input.kind === "activity-history") {
+      const characterId = String(input.characterId || "");
+      const count = Number(input.count ?? 25);
+      const page = Number(input.page ?? 0);
+      if (!/^\d+$/.test(characterId) || !Number.isInteger(count) || count < 1 || count > 25 || !Number.isInteger(page) || page < 0) return new Response(null, { status: 400 });
+      url = new URL(`https://www.bungie.net/Platform/Destiny2/${membership.membershipType}/Account/${encodeURIComponent(membership.membershipId)}/Character/${encodeURIComponent(characterId)}/Stats/Activities/`);
+      url.searchParams.set("count", String(count));
+      url.searchParams.set("page", String(page));
+      key = `activity:${characterId}:${count}:${page}`;
+    } else if (input.kind === "historical-stats") {
+      url = new URL(`https://www.bungie.net/Platform/Destiny2/${membership.membershipType}/Account/${encodeURIComponent(membership.membershipId)}/Stats/`);
+      url.searchParams.set("groups", "1");
+      key = "historical:1";
+    } else {
+      const instanceId = String(input.instanceId || "");
+      if (!/^\d+$/.test(instanceId)) return new Response(null, { status: 400 });
+      url = new URL(`https://www.bungie.net/Platform/Destiny2/Stats/PostGameCarnageReport/${encodeURIComponent(instanceId)}/`);
+      key = `pgcr:${instanceId}`;
+    }
+    try {
+      const snapshot = await this.snapshots.read(key, async () => {
+        const response = await fetch(url, {
+          headers: { Authorization: `Bearer ${record.accessToken}`, "X-API-Key": this.env.BUNGIE_API_KEY },
+          signal: AbortSignal.timeout(30_000)
+        });
+        const body = await response.text();
+        const payload = JSON.parse(body);
+        if (!response.ok || !payload?.Response || payload.ErrorCode !== 1) throw new Error("prepared_read_upstream_failed");
+        return body;
+      }, Date.now(), task => this.deferSnapshotWrite(task));
+      return new Response(snapshot.body, { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Forge-Account-Source": snapshot.source, "X-Forge-Account-Fetched-At": String(snapshot.fetchedAt) } });
+    } catch {
+      return Response.json({ error: "prepared_account_data_unavailable" }, { status: 502 });
+    }
+  }
+
   async fetch(request: Request): Promise<Response> {
     const path = new URL(request.url).pathname;
     // Internal Durable Object route, never exposed by the public Worker router.
@@ -55,9 +107,14 @@ export class AuthRecord extends DurableObject<Env> {
           const payload = JSON.parse(body);
           if (!response.ok || !payload?.Response || payload.ErrorCode !== 1) throw new Error("snapshot_upstream_failed");
           return body;
-        });
+        }, Date.now(), task => this.deferSnapshotWrite(task));
         return new Response(snapshot.body, { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Astrix-Profile-Source": snapshot.source, "X-Astrix-Profile-Fetched-At": String(snapshot.fetchedAt) } });
       } catch { return Response.json({ error: "profile_snapshot_unavailable" }, { status: 502 }); }
+    }
+    if (request.method === "POST" && path === "/prepared-read") {
+      const record = await this.ctx.storage.get<AuthRecordValue>("record");
+      if (!record || record.kind !== "session" || record.absoluteExpiresAt <= Date.now() || record.accessExpiresAt <= Date.now()) return new Response(null, { status: 401 });
+      return this.preparedRead(record, await request.json<PreparedReadRequest>());
     }
     if (request.method === "PUT" && path === "/record") {
       const record = await request.json<AuthRecordValue>();

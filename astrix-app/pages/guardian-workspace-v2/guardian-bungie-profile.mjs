@@ -2,8 +2,7 @@ import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260905-manual-edi
 import {createArtifactConfiguration,resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {subclassPlugComponent} from "./guardian-subclass-plug-classifier.mjs";
 import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1";
-import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260906-backend-1";
-import {fetchDisplayProfile} from "./guardian-display-profile.mjs";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260906-page-payload-1";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
 import {mergeSubclassCatalog} from "./guardian-super-catalog.mjs?v=20260829-subclass-identity-1";
@@ -146,12 +145,15 @@ function blockAuthenticatedFixture(event){
 }
 
 const PROFILE_REQUEST_TIMEOUT_MS=60_000;
+// The profile route returns the definitions required for the initial display.
+// The browser only joins that prepared payload; it must not fan out definition
+// requests while the portal is waiting at the authenticated profile gate.
+const INITIAL_PROFILE_HYDRATION=Object.freeze({equippedOnly:true,allowNetwork:false});
 
 async function fetchJsonWithTimeout(url,timeoutMs=PROFILE_REQUEST_TIMEOUT_MS){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
-    if(new URL(url).pathname==='/bungie/profile')return await fetchDisplayProfile(url,{signal:controller.signal});
     const response=await fetch(url,{credentials:"include",headers:{Accept:"application/json"},signal:controller.signal});
     const payload=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(payload.error||`Bungie request failed (${response.status}).`);
@@ -164,31 +166,19 @@ async function fetchJsonWithTimeout(url,timeoutMs=PROFILE_REQUEST_TIMEOUT_MS){
   }
 }
 
-async function fetchCurrentSeasonMetadata(){
-  try{
-    const metadata=await fetchJsonWithTimeout(new URL('/bungie/current-season',AUTH_ORIGIN),15_000);
-    const seasonNumber=Number(metadata?.season?.seasonNumber);
-    return Number.isInteger(seasonNumber)?{...metadata,season:{...(metadata.season||{}),seasonNumber}}:null;
-  }catch(error){
-    console.info('[ASTRIX Artifact] Current season metadata is temporarily unavailable.',error);
-    return null;
-  }
-}
-
 async function manifestRequestUrl(path){
   await manifestReady;
   const url=new URL(path,AUTH_ORIGIN);
   if(path==="/bungie/profile"){
-    url.searchParams.set("freshness","display");
-    if(location.pathname.includes("/pages/journey/"))url.searchParams.set("scope","journey");
-    else if(location.pathname.includes("/guardian-workspace-v2/"))url.searchParams.set("scope","character");
+    const page=location.pathname.includes('/pages/journey/')?'journey':location.pathname.includes('/paradox-build-space/')?'build-forge':'character';
+    url.pathname=`/bungie/page/${page}`;
   }
-  if(["indexeddb","backend"].includes(guardianManifest.status().mode))url.searchParams.set("definitions","client-manifest");
+  if(guardianManifest.status().mode==="indexeddb")url.searchParams.set("definitions","client-manifest");
   return url;
 }
 
-async function hydrateManifestPayload(payload){
-  await guardianManifest.hydratePayload(payload);
+async function hydrateManifestPayload(payload,options={}){
+  await guardianManifest.hydratePayload(payload,options);
   document.dispatchEvent(new CustomEvent("astrix:manifest-payload-hydrated",{detail:payload}));
   return payload;
 }
@@ -741,6 +731,26 @@ function mergeLoadoutContext(payload){
   return payload;
 }
 
+function preparedLoadoutPayload(characterId,index){
+  if(!liveProfilePayload?.profile)return null;
+  const profile=liveProfilePayload.profile;
+  const loadout=profile.characterLoadouts?.data?.[characterId]?.loadouts?.[index];
+  if(!loadout)return null;
+  const allItems=[
+    ...(profile.profileInventory?.data?.items||[]),
+    ...Object.values(profile.characterInventories?.data||{}).flatMap(row=>row?.items||[]),
+    ...Object.values(profile.characterEquipment?.data||{}).flatMap(row=>row?.items||[])
+  ];
+  const byInstance=new Map(allItems.filter(item=>item?.itemInstanceId).map(item=>[String(item.itemInstanceId),item]));
+  const selected=new Map();
+  for(const row of [...(loadout.items||[]),...(loadout.subclassOverrides||[])]){
+    const id=String(row?.itemInstanceId||''),item=byInstance.get(id);
+    if(!item)continue;
+    selected.set(id,{...item,plugItemHashes:Array.isArray(row?.plugItemHashes)?row.plugItemHashes:[]});
+  }
+  return mergeLoadoutContext({...liveProfilePayload,characterId,index,loadout,selectedItems:[...selected.values()]});
+}
+
 function loadoutCoverage(detail){
   const missing=[];
   if(!detail.super)missing.push("super");
@@ -785,10 +795,9 @@ async function loadSelectedLoadout(selection){
   }
   setRenderStatus("LOADING SAVED LOADOUT",`Opening Bungie loadout ${index+1}`,"Resolving equipment and subclass configuration");
   document.dispatchEvent(new CustomEvent("astrix:loadout-loading",{detail:{characterId,index}}));
-  const url=await manifestRequestUrl("/bungie/loadout");
-  url.searchParams.set("characterId",characterId);
-  url.searchParams.set("index",String(index));
-  const payload=await hydrateManifestPayload(mergeLoadoutContext(await fetchJsonWithTimeout(url)));
+  const prepared=preparedLoadoutPayload(characterId,index);
+  if(!prepared)throw new Error(`Bungie loadout ${index+1} is not available in the prepared account payload.`);
+  const payload=await hydrateManifestPayload(prepared,{allowNetwork:false});
   payload.profile=profileWithSelectedLoadout(payload);
   const detail={...normaliseLiveProfile(payload,null,characterId),selectedLoadoutIndex:index,loadoutSource:"bungie-live"};
   detail.coverage=loadoutCoverage(detail);
@@ -851,11 +860,14 @@ async function loadLiveProfile(session,{background=false}={}){
     document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
   }
   const profileUrl=await manifestRequestUrl('/bungie/profile');
-  const [profilePayload,currentSeason]=await Promise.all([fetchJsonWithTimeout(profileUrl),fetchCurrentSeasonMetadata()]);
-  if(currentSeason){profilePayload.currentSeason=currentSeason.season;profilePayload.currentSeasonNumber=currentSeason.season.seasonNumber;}
-  const payload=await hydrateManifestPayload(profilePayload);
-  await cacheBungieProfile(session,payload);
-  return activateLiveProfile(payload,session);
+  const profilePayload=await fetchJsonWithTimeout(profileUrl);
+  document.dispatchEvent(new CustomEvent("astrix:guardian-profile-progress",{detail:{percent:64,label:"Bungie profile received"}}));
+  document.dispatchEvent(new CustomEvent("astrix:guardian-profile-progress",{detail:{percent:68,label:"Resolving equipped Guardian definitions"}}));
+  const payload=await hydrateManifestPayload(profilePayload,INITIAL_PROFILE_HYDRATION);
+  document.dispatchEvent(new CustomEvent("astrix:guardian-profile-progress",{detail:{percent:78,label:"Equipped Guardian resolved"}}));
+  const detail=await activateLiveProfile(payload,session);
+  void cacheBungieProfile(session,payload).catch(error=>console.warn("[ASTRIX Bungie profile] profile cache write failed",error));
+  return detail;
 }
 
 function selectLiveCharacter(characterId,expectedClass=""){
@@ -914,7 +926,7 @@ function ensureLiveProfile(session,{background=false,silent=false}={}){
   liveProfileRequest=(async()=>{
     const cachedPayload=await readCachedBungieProfile(session);
     if(cachedPayload?.profile){
-      try{await activateLiveProfile(await hydrateManifestPayload(cachedPayload),session,{fromCache:true});}
+      try{await activateLiveProfile(await hydrateManifestPayload(cachedPayload,INITIAL_PROFILE_HYDRATION),session,{fromCache:true});}
       catch(error){console.warn("[ASTRIX Bungie profile] cached live profile could not render; requesting a fresh profile",error);}
     }
     return loadLiveProfile(session,{background});

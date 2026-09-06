@@ -1,5 +1,5 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
-import {guardianManifest} from './journey-manifest.mjs?v=20260905-pattern-badges-1';
+import {guardianManifest} from './journey-manifest.mjs?v=20260906-page-payload-1';
 import {resolveRecordTree,patternTypeKey,seasonRankProgress,findDestinationNodes} from './journey-record-model.mjs?v=20260905-journey-repair-1';
 import {resolveCollectionBadges} from './journey-collection-model.mjs?v=20260905-pattern-badges-1';
 import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
@@ -2244,9 +2244,13 @@ function hasJourneyRecordComponents(payload){
 
 async function readVerifiedProfile(session){
   const cached=await readCachedBungieProfile(session);
-  if(cached?.profile?.characters?.data&&hasJourneyRecordComponents(cached))return cached;
+  if(cached?.profile?.characters?.data&&hasJourneyRecordComponents(cached)&&cached?.pageReady?.page==='journey'){
+    guardianManifest.prime(cached);
+    return cached;
+  }
   const sharedProfile=await waitWithin(globalThis.ASTRIX_HERO_PROFILE_PROMISE,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
   if(sharedProfile?.profile?.characters?.data){
+    guardianManifest.prime(sharedProfile);
     await cacheBungieProfile(session,sharedProfile);
     return sharedProfile;
   }
@@ -2264,11 +2268,11 @@ async function fetchJourneyProfileRefresh(){
   const timeout=setTimeout(()=>controller.abort(),JOURNEY_REFRESH_TIMEOUT_MS);
   try{
     await manifestReady;
-    const url=new URL('/bungie/profile',AUTH_ORIGIN);
-    url.searchParams.set('scope','journey');
+    const url=new URL('/bungie/page/journey',AUTH_ORIGIN);
     const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
     const payload=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(payload?.error||`Journey refresh failed (${response.status}).`);
+    guardianManifest.prime(payload);
     const availableStats=payload?.statDefinitions||verifiedProfile?.statDefinitions||globalThis.ASTRIX_HERO_PROFILE_PAYLOAD?.statDefinitions;
     payload.statDefinitions=availableStats&&Object.keys(availableStats).length
       ?availableStats

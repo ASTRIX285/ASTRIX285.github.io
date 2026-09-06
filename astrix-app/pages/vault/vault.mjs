@@ -1,6 +1,6 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
-import {fetchDisplayProfile} from '../guardian-workspace-v2/guardian-display-profile.mjs';
-import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-backend-1';
+import {fetchDisplayProfile} from '../guardian-workspace-v2/guardian-display-profile.mjs?v=20260906-page-payload-1';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-page-payload-1';
 import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {ARMOUR_BUCKETS,createVaultCatalogue,filterVaultArmour,itemKey,prepareArmourSelection} from './vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds,statKey} from './vault-armour-matcher.mjs';
@@ -72,11 +72,7 @@ function resolveActiveCharacter(requestedId=''){
 }
 
 async function fetchProfile(){
-  const url=new URL('/bungie/profile',AUTH_ORIGIN);
-  url.searchParams.set('scope','character');
-  url.searchParams.set('freshness','display');
-  await guardianManifest.ready();
-  if(['indexeddb','backend'].includes(guardianManifest.status().mode))url.searchParams.set('definitions','client-manifest');
+  const url=new URL('/bungie/page/vault',AUTH_ORIGIN);
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),60000);
   try{
@@ -90,12 +86,12 @@ async function fetchProfile(){
 async function loadVerifiedPayload(){
   loaderProgress(18,'Checking verified Guardian inventory…');
   const cached=await readCachedBungieProfile(session);
-  const shared=globalThis.ASTRIX_HERO_PROFILE_PAYLOAD||await globalThis.ASTRIX_HERO_PROFILE_PROMISE;
-  const next=shared?.profile?shared:cached?.profile?cached:await fetchProfile();
+  const shared=globalThis.ASTRIX_HERO_PROFILE_PAYLOAD||(!cached?.profile?await globalThis.ASTRIX_HERO_PROFILE_PROMISE:null);
+  const next=shared?.pageReady?.page==='vault'?shared:cached?.pageReady?.page==='vault'?cached:await fetchProfile();
   if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
-  loaderProgress(46,'Resolving Bungie manifest definitions…');
-  await guardianManifest.hydratePayload(next);
   await cacheBungieProfile(session,next);
+  loaderProgress(46,'Joining private inventory to prepared definitions…');
+  await guardianManifest.hydratePayload(next,{waitForManifest:false,includeReusable:true,allowNetwork:false});
   return next;
 }
 
