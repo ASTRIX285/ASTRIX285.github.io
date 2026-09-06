@@ -2,9 +2,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const worker=await readFile(new URL('../../astrix-auth-worker/src/index.ts',import.meta.url),'utf8');
-const web=await readFile(new URL('../../astrix-auth-worker/src/web.ts',import.meta.url),'utf8');
-const sessionRecord=await readFile(new URL('../../astrix-auth-worker/src/auth-record.ts',import.meta.url),'utf8');
+const worker=await readFile(new URL('../../forge-auth-worker/src/index.ts',import.meta.url),'utf8');
+const web=await readFile(new URL('../../forge-auth-worker/src/web.ts',import.meta.url),'utf8');
+const sessionRecord=await readFile(new URL('../../forge-auth-worker/src/auth-record.ts',import.meta.url),'utf8');
 
 assert.match(worker,/const DESTINY_ACTION_CAPABILITIES = Object\.freeze\(\{[\s\S]*?captureSnapshot: true[\s\S]*?transferItems: true[\s\S]*?equipItems: true[\s\S]*?insertSocketPlugFree: true[\s\S]*?verifyFinalState: true[\s\S]*?clearLoadout: true/,'The Worker must advertise the exact live-action capability contract.');
 assert.match(worker,/async function sessionRoute[\s\S]*?csrfToken: session\.csrfToken[\s\S]*?capabilities: \{ destinyActions: DESTINY_ACTION_CAPABILITIES \}/,'Authenticated sessions must return a CSRF token and explicit route capabilities.');

@@ -18,8 +18,8 @@ const [service,sessionCache,profile,portal,build,interceptor,resolver,fixture,ar
   read('pages/guardian-workspace-v2/guardian-artifact.mjs'),
   read('pages/guardian-workspace-v2/guardian-beta-selection.mjs'),
   read('pages/guardian-workspace-v2/guardian-artifact-recommender.mjs'),
-  read('../astrix-auth-worker/src/index.ts'),
-  read('../astrix-auth-worker/src/semantic-wrapper.ts')
+  read('../forge-auth-worker/src/index.ts'),
+  read('../forge-auth-worker/src/semantic-wrapper.ts')
 ]);
 
 for(const type of ['DestinyInventoryItemDefinition','DestinySandboxPerkDefinition','DestinyArtifactDefinition','DestinyPlugSetDefinition','DestinyStatDefinition','DestinySocketCategoryDefinition','DestinyEquipableItemSetDefinition']){
@@ -75,7 +75,7 @@ assert.match(profile,/payload\?\.statDefinitions/,'Stat names and icons must res
 assert.match(profile,/socketCategoryDefinitions/,'Socket-category evidence must reach equipped plug resolution');
 assert.match(interceptor,/socketCategoryHash[\s\S]*?socketCategoryDefinition/,'Alternative weapon columns must retain socket-category evidence');
 assert.match(resolver,/socketCategory\(plug\)[\s\S]*?weapon-mod[\s\S]*?perk/,'Weapon perk-versus-mod classification must consult the socket category first');
-assert.match(portal,/astrix:manifest-progress/,'Main portal loader must show manifest progress');
+assert.match(portal,/forge:manifest-progress/,'Main portal loader must show manifest progress');
 assert.match(portal,/await manifestReady/,'Main portal must not clear before the manifest is ready');
 assert.match(build,/guardianManifest\.ready\(\)\.finally/,'Build portal must not clear before the manifest is ready');
 

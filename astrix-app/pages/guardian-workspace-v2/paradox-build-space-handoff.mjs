@@ -83,7 +83,7 @@ function persistVaultBuildSource(){
   if(!source?.characterId)return false;
   return safeStore(BUILD_SNAPSHOT_KEY,createBuildState(source),{durable:true});
 }
-function armBuildSpacePortal(){globalThis.AstrixLoader?.mount?.();globalThis.AstrixLoader?.set?.(0);globalThis.AstrixLoader?.status?.('Opening Build Forge');}
+function armBuildSpacePortal(){globalThis.ForgeLoader?.mount?.();globalThis.ForgeLoader?.set?.(0);globalThis.ForgeLoader?.status?.('Opening Build Forge');}
 const afterPortalPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 async function openBuildSpace(event){
   const button=event.target?.closest?.('.improve-cta');
@@ -106,15 +106,15 @@ async function openBuildSpace(event){
       // Clear only the stale explicit copy so Build Forge consumes the fresh key.
       if(profileSource)clearStored(BUILD_SPACE_KEY);
       else if(!safeStore(BUILD_SPACE_KEY,state,{durable:true})){
-        console.warn('[ASTRIX Build Forge] Build snapshot storage was rejected; recovering from the authenticated Bungie session.');
-        globalThis.AstrixLoader?.status?.('Recovering current Guardian');
+        console.warn('[Forge Build] Build snapshot storage was rejected; recovering from the authenticated Bungie session.');
+        globalThis.ForgeLoader?.status?.('Recovering current Guardian');
       }
     }else{
-      console.warn('[ASTRIX Build Forge] Build binding will be recovered from the authenticated Bungie session.');
+      console.warn('[Forge Build] Build binding will be recovered from the authenticated Bungie session.');
     }
   }else{
-    console.warn('[ASTRIX Build Forge] Direct navigation will recover the current Guardian from the authenticated Bungie session.');
-    globalThis.AstrixLoader?.status?.('Recovering current Guardian');
+    console.warn('[Forge Build] Direct navigation will recover the current Guardian from the authenticated Bungie session.');
+    globalThis.ForgeLoader?.status?.('Recovering current Guardian');
   }
   const params=new URLSearchParams();
   if(characterId)params.set('characterId',characterId);
@@ -131,20 +131,20 @@ async function openContextualLoadout(detail={}){
   if(!['edit-paradox-copy','save-paradox-copy'].includes(intent)||location.pathname.includes('/paradox-build-space/'))return;
   const source=compactBuild(detail),binding=bindingOf(source);
   if(!binding.characterId||!safeStore(BUILD_SPACE_KEY,createBuildState(source),{durable:true})){
-    document.dispatchEvent(new CustomEvent('astrix:loadout-error',{detail:{characterId:binding.characterId,index:detail.selectedLoadoutIndex,message:'The selected Bungie loadout could not be staged safely for Build Forge.'}}));
+    document.dispatchEvent(new CustomEvent('forge:loadout-error',{detail:{characterId:binding.characterId,index:detail.selectedLoadoutIndex,message:'The selected Bungie loadout could not be staged safely for Build Forge.'}}));
     return;
   }
-  armBuildSpacePortal();globalThis.AstrixLoader?.status?.(intent==='save-paradox-copy'?'Opening named PARADOX save':'Opening PARADOX editor');
+  armBuildSpacePortal();globalThis.ForgeLoader?.status?.(intent==='save-paradox-copy'?'Opening named PARADOX save':'Opening PARADOX editor');
   const params=new URLSearchParams({characterId:binding.characterId,membershipId:binding.membershipId,membershipType:binding.membershipType,loadoutIntent:intent});
   await afterPortalPaint();markGuardianFastReturn();location.href=`./paradox-build-space/?${params}`;
 }
 
-document.addEventListener('astrix:guardian-selection-changed',e=>rememberGuardian(e.detail||{}));
-document.addEventListener('astrix:character-selected',e=>rememberActiveCharacter(e.detail||{}));
-document.addEventListener('astrix:bungie-loadout-loaded',e=>{const detail=e.detail||{};rememberExplicitLoadout(detail);void openContextualLoadout(detail);});
-document.addEventListener('astrix:paradox-live-analysis-changed',e=>rememberAnalysis(e.detail||{}));
-document.addEventListener('astrix:weapon-roll-advice-changed',e=>rememberWeaponAdvice(e.detail||{}));
-document.addEventListener('astrix:artifact-selection-changed',e=>rememberArtifactSelection(e.detail||{}));
-document.addEventListener('astrix:vault-open',persistVaultBuildSource);
+document.addEventListener('forge:guardian-selection-changed',e=>rememberGuardian(e.detail||{}));
+document.addEventListener('forge:character-selected',e=>rememberActiveCharacter(e.detail||{}));
+document.addEventListener('forge:bungie-loadout-loaded',e=>{const detail=e.detail||{};rememberExplicitLoadout(detail);void openContextualLoadout(detail);});
+document.addEventListener('forge:paradox-live-analysis-changed',e=>rememberAnalysis(e.detail||{}));
+document.addEventListener('forge:weapon-roll-advice-changed',e=>rememberWeaponAdvice(e.detail||{}));
+document.addEventListener('forge:artifact-selection-changed',e=>rememberArtifactSelection(e.detail||{}));
+document.addEventListener('forge:vault-open',persistVaultBuildSource);
 document.addEventListener('click',openBuildSpace,true);
 export {compactBuild,rememberGuardian,rememberExplicitLoadout,rememberWeaponAdvice,rememberArtifactSelection,resolveBuildSource,currentProfileBuildSource,persistVaultBuildSource,openContextualLoadout,BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY,LAST_LOADOUT_KEY};

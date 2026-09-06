@@ -268,7 +268,7 @@ async function resolveCharacterId(session,{fetchImpl}={}){
   return characterId?{status:'ok',characterId,payload:profileRequest.payload}:{status:'unavailable',characterId:'',payload:profileRequest.payload};
 }
 
-async function loadActivityHistory({session=globalThis.ASTRIX_BUNGIE_SESSION,characterId='',mode=null,page=0,fetchImpl}={}){
+async function loadActivityHistory({session=globalThis.FORGE_BUNGIE_SESSION,characterId='',mode=null,page=0,fetchImpl}={}){
   if(session?.authenticated!==true)return {status:'unauthenticated',activities:[]};
   let resolvedCharacterId=String(characterId||'');
   if(!resolvedCharacterId){
@@ -287,7 +287,7 @@ async function loadActivityHistory({session=globalThis.ASTRIX_BUNGIE_SESSION,cha
   return {status:'ok',activities:await normaliseActivityHistory(request.payload),characterId:resolvedCharacterId};
 }
 
-async function loadMissionReports({session=globalThis.ASTRIX_BUNGIE_SESSION,characterId='',fetchImpl}={}){
+async function loadMissionReports({session=globalThis.FORGE_BUNGIE_SESSION,characterId='',fetchImpl}={}){
   if(session?.authenticated!==true)return {status:'unauthenticated',activities:[],context:null,characterId:'',lastSynced:null};
   const profileRequest=await fetchJsonWithTimeout(await manifestRequestUrl('/bungie/profile'),{fetchImpl});
   if(profileRequest.status==='unauthenticated')return {status:'unauthenticated',activities:[],context:null,characterId:'',lastSynced:null};

@@ -304,15 +304,15 @@ function applyGuardianSelection(detail) {
   setStageState("GUARDIAN PROFILE ACTIVE", `${next.className ? next.className.toUpperCase() : "GUARDIAN"} · ${next.subclassName ? next.subclassName.toUpperCase() : "SUBCLASS"}<br><small style="color:#8e7bb0">Telemetry synchronized from Paradox beta fixture</small>`);
 }
 
-document.addEventListener("astrix:guardian-selection-changed", (event) => {
+document.addEventListener("forge:guardian-selection-changed", (event) => {
   try {
     applyGuardianSelection(event.detail);
   } catch (error) {
-    console.error("[ASTRIX Guardian render]", error);
+    console.error("[Forge Guardian render]", error);
   }
 });
 
 createArmourDrawer();
 renderStats(previewStats);
 
-document.dispatchEvent(new CustomEvent("astrix:guardian-workspace-ready", { detail: { version: "0.2.0-beta" } }));
+document.dispatchEvent(new CustomEvent("forge:guardian-workspace-ready", { detail: { version: "0.2.0-beta" } }));

@@ -120,7 +120,7 @@ function generatedSocketChanges(build={},advice=null){
 }
 
 function intendedArtifactStep(build={}){
-  // Permanent ASTRIX Artifact protection rule: intended Artifact changes stay
+  // Permanent Forge Artifact protection rule: intended Artifact changes stay
   // manual/in-game by design and never enter Apply; this is not a gap or TODO.
   const configuration=build.artifactConfiguration||{},intended=(configuration.selectedPerkHashes||[]).map(Number).filter(Number.isInteger).sort((a,b)=>a-b),current=(build.artifact?.activePerks||[]).filter(row=>row?.isActive!==false).map(hashOf).filter(Number.isInteger).sort((a,b)=>a-b);
   if(!intended.length||JSON.stringify(intended)===JSON.stringify(current))return '';

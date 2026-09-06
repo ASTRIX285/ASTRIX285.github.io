@@ -95,7 +95,7 @@ function setStageState(state, message = "") {
       if (stage) stage.dataset.state = "error";
       if (titleNode) titleNode.textContent = "REQUEST TIMEOUT";
       if (msgNode) msgNode.textContent = "Guardian data took too long. Refresh or reconnect Bungie.";
-      document.dispatchEvent(new CustomEvent("astrix:guardian-load-timeout"));
+      document.dispatchEvent(new CustomEvent("forge:guardian-load-timeout"));
     }, 15000);
   }
 }
@@ -209,7 +209,7 @@ function publishRenderComplete(detail = {}) {
     await Promise.all(images.map(settleImage));
     if (sequence !== renderSequence) return;
     document.documentElement.dataset.guardianRenderComplete = "true";
-    document.dispatchEvent(new CustomEvent("astrix:guardian-render-complete", { detail: {
+    document.dispatchEvent(new CustomEvent("forge:guardian-render-complete", { detail: {
       characterId: String(detail.characterId || ""),
       selectedLoadoutIndex: Number.isInteger(detail.selectedLoadoutIndex) ? detail.selectedLoadoutIndex : null,
       superCount: Number(byId("superFeatureCluster")?.dataset.superCount || 0),
@@ -313,17 +313,17 @@ function applyGuardianSelection(detail) {
   publishRenderComplete(next);
 }
 
-document.addEventListener("astrix:guardian-selection-changed", event => {
+document.addEventListener("forge:guardian-selection-changed", event => {
   try {
     applyGuardianSelection(event.detail);
   } catch (error) {
-    console.error("[ASTRIX Guardian render]", error);
+    console.error("[Forge Guardian render]", error);
     setStageState("error", "Guardian data arrived, but the workspace could not render it.");
   }
 });
 
-document.addEventListener("astrix:guardian-loading", () => setStageState("loading", "Loading Guardian data…"));
-document.addEventListener("astrix:guardian-error", event =>
+document.addEventListener("forge:guardian-loading", () => setStageState("loading", "Loading Guardian data…"));
+document.addEventListener("forge:guardian-error", event =>
   setStageState("error", event.detail?.message || "Guardian data could not be loaded.")
 );
 

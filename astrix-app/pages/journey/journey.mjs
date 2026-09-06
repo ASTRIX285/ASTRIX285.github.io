@@ -133,29 +133,29 @@ let currentActivityEvidence=null;
 function waitWithin(promise,timeoutMs){
   let timer=0;
   return Promise.race([
-    Promise.resolve(promise).catch(error=>{console.info('[ASTRIX Journey] noncritical bootstrap task unavailable',error);return null;}),
+    Promise.resolve(promise).catch(error=>{console.info('[Forge Journey] noncritical bootstrap task unavailable',error);return null;}),
     new Promise(resolve=>{timer=globalThis.setTimeout(()=>resolve(null),timeoutMs);})
   ]).finally(()=>globalThis.clearTimeout(timer));
 }
 
 async function finishJourneyLoader(root=document){
-  globalThis.AstrixLoader.set(96);
-  globalThis.AstrixLoader.status('Journey rendered');
+  globalThis.ForgeLoader.set(96);
+  globalThis.ForgeLoader.status('Journey rendered');
   let timer=0;
   await Promise.race([
-    Promise.resolve(globalThis.AstrixLoader.ready(root)).catch(()=>globalThis.AstrixLoader.done()),
-    new Promise(resolve=>{timer=globalThis.setTimeout(()=>{globalThis.AstrixLoader.done();resolve();},JOURNEY_LOADER_READY_WAIT_MS);})
+    Promise.resolve(globalThis.ForgeLoader.ready(root)).catch(()=>globalThis.ForgeLoader.done()),
+    new Promise(resolve=>{timer=globalThis.setTimeout(()=>{globalThis.ForgeLoader.done();resolve();},JOURNEY_LOADER_READY_WAIT_MS);})
   ]).finally(()=>globalThis.clearTimeout(timer));
 }
 
 function waitForHeroCards(){
   if(!heroCards||!heroCards.querySelector('.guardian-character-cards__status.is-pending'))return Promise.resolve();
-  return new Promise(resolve=>document.addEventListener('astrix:hero-cards-render-complete',resolve,{once:true}));
+  return new Promise(resolve=>document.addEventListener('forge:hero-cards-render-complete',resolve,{once:true}));
 }
 
 function waitForJourneyAtmosphere(){
-  const key=globalThis.AstrixDestinations?.current();
-  const src=globalThis.ASTRIX_LOCATION_VISUALS?.[key]?.image;
+  const key=globalThis.ForgeDestinations?.current();
+  const src=globalThis.FORGE_LOCATION_VISUALS?.[key]?.image;
   if(!src)return Promise.resolve();
   return new Promise(resolve=>{
     const image=new Image();
@@ -207,7 +207,7 @@ async function bindSeasonRank(payload){
     const seasonName=String(metadata?.season?.name||'CURRENT SEASON').trim();
     const description=[seasonNumber===null?'':`SEASON ${seasonNumber}`,seasonName].filter(Boolean).join(' · ');
     renderDetailHero(seasonRankCard,{name:`RANK ${rank}`,badge:rank,description,completed,total,unit:`XP TO RANK ${rank+1}`});
-  }catch(error){console.info('[ASTRIX Journey] current Season Rank unavailable',error);}
+  }catch(error){console.info('[Forge Journey] current Season Rank unavailable',error);}
 }
 
 function bindGuardianUsage(payload){
@@ -361,7 +361,7 @@ async function bindGuardianRankSummary(payload){
       const definition=Object.values(definitions).find(item=>finiteNumber(item?.rankNumber)===rank)||definitions[String(rankHash)]||null;
       name=name||String(definition?.displayProperties?.name||'').trim();
       icon=icon||bungiePresentationIcon(definition);
-    }catch(error){console.info('[ASTRIX Journey] Guardian Rank summary definition unavailable',error);}
+    }catch(error){console.info('[Forge Journey] Guardian Rank summary definition unavailable',error);}
   }
   if(requestId!==guardianRankSummaryRequest)return;
   renderGuardianRankSummary({rank,name:name||`Guardian Rank ${rank}`});
@@ -511,7 +511,7 @@ async function titlePresentationCandidates(payload){
   try{
     const catalog=await titlePresentationCatalog(payload);
     if(catalog.length)return catalog;
-  }catch(error){console.info('[ASTRIX Journey] complete title catalogue unavailable',error);}
+  }catch(error){console.info('[Forge Journey] complete title catalogue unavailable',error);}
   return profileTitlePresentationCandidates(payload);
 }
 
@@ -666,7 +666,7 @@ const DESTINATION_NAME_ALIASES=Object.freeze({
 });
 const destinationNameKey=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 function destinationNameMatches(key,value){
-  const names=DESTINATION_NAME_ALIASES[key]||[globalThis.AstrixDestinations?.labelOf(key)||key];
+  const names=DESTINATION_NAME_ALIASES[key]||[globalThis.ForgeDestinations?.labelOf(key)||key];
   return names.some(name=>destinationNameKey(name)===destinationNameKey(value));
 }
 
@@ -842,7 +842,7 @@ async function bindRegionChestProgress(payload,key,characterId,requestId){
   publishJourneyRegionChestProgress({key,total:chests.length,discovered:chests.filter(chest=>chest.collected).length,chests});
 }
 
-async function bindDestinationProgress(payload,key=globalThis.AstrixDestinations?.current()){
+async function bindDestinationProgress(payload,key=globalThis.ForgeDestinations?.current()){
   if(!payload||!key)return;
   const requestId=++destinationProgressRequest;
   publishJourneyDestinationData({key,loading:true,sections:{}});
@@ -859,7 +859,7 @@ async function bindDestinationProgress(payload,key=globalThis.AstrixDestinations
       await regionChests;
     }catch(error){
       if(requestId===destinationProgressRequest)publishJourneyDestinationData({key,error:'Destination records could not be loaded. Select this destination to retry.',sections:{}});
-      console.info('[ASTRIX Journey] destination records unavailable',error);
+      console.info('[Forge Journey] destination records unavailable',error);
     }
   };
   destinationProgressQueue=destinationProgressQueue.catch(()=>null).then(task);
@@ -1279,7 +1279,7 @@ async function bindTitleTriumphPanel(payload,view=recordRootView(activeRecordVie
   if(isTitleCollection){
     let profileTitles=[];
     try{profileTitles=await resolvedProfileTitleCollection(payload,character,view);}
-    catch(error){console.info('[ASTRIX Journey] profile title nodes unavailable',error);}
+    catch(error){console.info('[Forge Journey] profile title nodes unavailable',error);}
     if(requestId!==titleTriumphRequest)return;
     if(profileTitles.length){
       renderJourneyRecordList(titleCollectionList,profileTitles,`No verified Destiny ${titleCollectionLabel.toLowerCase()} were returned in the profile nodes.`,titleCollectionSelect);
@@ -1290,7 +1290,7 @@ async function bindTitleTriumphPanel(payload,view=recordRootView(activeRecordVie
     }
     let titles=[];
     try{titles=await resolvedTitleCollection(payload,character,view);}
-    catch(error){console.info('[ASTRIX Journey] title collection unavailable',error);}
+    catch(error){console.info('[Forge Journey] title collection unavailable',error);}
     if(requestId!==titleTriumphRequest)return;
     renderJourneyRecordList(titleCollectionList,titles,`No Destiny ${titleCollectionLabel.toLowerCase()} definitions were returned from the verified Bungie seal catalogue.`,titleCollectionSelect);
     if(recordsStatus){
@@ -1721,7 +1721,7 @@ function showDestinationPanel(returnFocus=true){
   if(focusStatus)focusStatus.textContent='PERMANENT CENTRE';
   activeRecordView='';
   setRecordSelectorState('');
-  const currentLocation=globalThis.AstrixDestinations?.current();
+  const currentLocation=globalThis.ForgeDestinations?.current();
   locationSelector?.querySelector(`.apx-loc[data-loc="${currentLocation}"]`)?.setAttribute('aria-current','true');
   if(returnFocus)({titles:titlesOpen,badges:badgesOpen,triumphs:triumphsOpen,'guardian-rank':guardianRankOpen,records:recordsOpen}[previousRoot])?.focus();
 }
@@ -2040,7 +2040,7 @@ async function fetchJourneyActivityEvidence(session,characterId,{force=false}={}
       journeyActivityCache.set(key,evidence);
       return evidence;
     }catch(error){
-      console.info('[ASTRIX Journey] activity evidence unavailable',error);
+      console.info('[Forge Journey] activity evidence unavailable',error);
       if(cached?.status==='ok'){journeyActivityCache.set(key,cached);return cached;}
       journeyActivityCache.delete(key);
       return {status:'unavailable',characterId,activities:[],view:null,fetchedAt:Date.now()};
@@ -2101,7 +2101,7 @@ async function bindTitleAndProgression(payload){
 
   let profileTitles=[];
   try{profileTitles=await resolvedProfileTitleCollection(payload,character,'titles');}
-  catch(error){console.info('[ASTRIX Journey] title summary profile nodes unavailable',error);}
+  catch(error){console.info('[Forge Journey] title summary profile nodes unavailable',error);}
   if(requestId!==profileIdentityRequest)return;
   const profileEquipped=titleHash===null?null:profileTitles.find(title=>title.completionRecordHash===titleHash);
   if(profileEquipped)renderEquippedTitleSummary(profileEquipped);
@@ -2111,7 +2111,7 @@ async function bindTitleAndProgression(payload){
 
   let titles=[];
   try{titles=await resolvedTitleCollection(payload,character,'titles');}
-  catch(error){console.info('[ASTRIX Journey] title summary catalogue unavailable',error);}
+  catch(error){console.info('[Forge Journey] title summary catalogue unavailable',error);}
   if(requestId!==profileIdentityRequest)return;
   let equipped=titleHash===null?null:titles.find(title=>title.completionRecordHash===titleHash);
   if(!equipped&&titleHash!==null){
@@ -2229,10 +2229,10 @@ recordsOpen?.addEventListener('click',()=>showGuardianRecordPanel('records'));
 recordsBack?.addEventListener('click',handleRecordBack);
 locationSelector?.addEventListener('click',event=>{if(event.target.closest('.apx-loc[data-loc]'))showDestinationPanel(false);});
 
-document.addEventListener('astrix:character-selected',event=>{
+document.addEventListener('forge:character-selected',event=>{
   selectJourneyCharacter(event.detail?.characterId,event.detail?.className||event.detail?.characterClass);
 });
-document.addEventListener('astrix:destination-changed',event=>{if(verifiedProfile)void bindDestinationProgress(verifiedProfile,event.detail?.key);});
+document.addEventListener('forge:destination-changed',event=>{if(verifiedProfile)void bindDestinationProgress(verifiedProfile,event.detail?.key);});
 
 if(heroCards){
   new MutationObserver(syncSelectedCharacterFromCards).observe(heroCards,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
@@ -2248,7 +2248,7 @@ async function readVerifiedProfile(session){
     guardianManifest.prime(cached);
     return cached;
   }
-  const sharedProfile=await waitWithin(globalThis.ASTRIX_HERO_PROFILE_PROMISE,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
+  const sharedProfile=await waitWithin(globalThis.FORGE_HERO_PROFILE_PROMISE,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
   if(sharedProfile?.profile?.characters?.data){
     guardianManifest.prime(sharedProfile);
     await cacheBungieProfile(session,sharedProfile);
@@ -2258,7 +2258,7 @@ async function readVerifiedProfile(session){
     const refreshed=await fetchJourneyProfileRefresh();
     return refreshed?.profile?.characters?.data?refreshed:(cached?.profile?.characters?.data?cached:null);
   }catch(error){
-    console.info('[ASTRIX Journey] verified Bungie profile unavailable',error);
+    console.info('[Forge Journey] verified Bungie profile unavailable',error);
     return cached?.profile?.characters?.data?cached:null;
   }
 }
@@ -2273,7 +2273,7 @@ async function fetchJourneyProfileRefresh(){
     const payload=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(payload?.error||`Journey refresh failed (${response.status}).`);
     guardianManifest.prime(payload);
-    const availableStats=payload?.statDefinitions||verifiedProfile?.statDefinitions||globalThis.ASTRIX_HERO_PROFILE_PAYLOAD?.statDefinitions;
+    const availableStats=payload?.statDefinitions||verifiedProfile?.statDefinitions||globalThis.FORGE_HERO_PROFILE_PAYLOAD?.statDefinitions;
     payload.statDefinitions=availableStats&&Object.keys(availableStats).length
       ?availableStats
       :await guardianManifest.getMany('DestinyStatDefinition',STAT_ORDER);
@@ -2301,10 +2301,10 @@ async function refreshJourneyProfile(){
       await bindDestinationProgress(profile);
       await bindJourneyActivityEvidence(journeySession,{force:true});
       bindJourneyCrossPageEvidence();
-      document.dispatchEvent(new CustomEvent('astrix:journey-profile-refreshed',{detail:{refreshedAt:Date.now()}}));
+      document.dispatchEvent(new CustomEvent('forge:journey-profile-refreshed',{detail:{refreshedAt:Date.now()}}));
       return profile;
     }catch(error){
-      console.info('[ASTRIX Journey] background profile refresh unavailable',error);
+      console.info('[Forge Journey] background profile refresh unavailable',error);
       return null;
     }finally{
       journeyLastRefreshAt=Date.now();
@@ -2336,7 +2336,7 @@ function showSignedOut(){
   signedOut.hidden=false;
   status.textContent='BUNGIE CONNECTION REQUIRED';
   if(connectButton)connectButton.href=authStartUrl();
-  globalThis.AstrixLoader.authResolved();
+  globalThis.ForgeLoader.authResolved();
   void finishJourneyLoader(signedOut);
 }
 
@@ -2363,16 +2363,16 @@ function showJourney(){
 }
 
 try{
-  globalThis.AstrixLoader.set(12);globalThis.AstrixLoader.status('Connecting Journey');
+  globalThis.ForgeLoader.set(12);globalThis.ForgeLoader.status('Connecting Journey');
   const session=await getBungieSession();
-  globalThis.AstrixLoader.set(28);globalThis.AstrixLoader.status('Opening Journey');
-  const authenticated=session?.authenticated===true&&globalThis.ASTRIX_BUNGIE_SESSION?.authenticated===true;
+  globalThis.ForgeLoader.set(28);globalThis.ForgeLoader.status('Opening Journey');
+  const authenticated=session?.authenticated===true&&globalThis.FORGE_BUNGIE_SESSION?.authenticated===true;
   if(authenticated){
     journeySession=session;
     void bindHistoricalStats(session);
     const heroCardsReady=waitForHeroCards();
     const mapReady=showJourney();
-    globalThis.AstrixLoader.set(42);globalThis.AstrixLoader.status('Loading verified Guardian data');
+    globalThis.ForgeLoader.set(42);globalThis.ForgeLoader.status('Loading verified Guardian data');
     const profilePromise=readVerifiedProfile(session);
     const profile=await waitWithin(profilePromise,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
     if(profile){
@@ -2385,10 +2385,10 @@ try{
         verifiedProfile=lateProfile;
         bindProfileCards(lateProfile);
         void bindDestinationProgress(lateProfile);
-      }).catch(error=>console.info('[ASTRIX Journey] deferred verified profile unavailable',error));
+      }).catch(error=>console.info('[Forge Journey] deferred verified profile unavailable',error));
     }
     startJourneyBackgroundRefresh();
-    globalThis.AstrixLoader.set(78);globalThis.AstrixLoader.status('Finalising Journey');
+    globalThis.ForgeLoader.set(78);globalThis.ForgeLoader.status('Finalising Journey');
     await Promise.all([
       waitWithin(heroCardsReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS),
       waitWithin(mapReady,JOURNEY_BOOTSTRAP_UI_WAIT_MS),
@@ -2398,7 +2398,7 @@ try{
   }
   else showSignedOut();
 }catch(error){
-  console.info('[ASTRIX Journey] existing Bungie session unavailable',error);
+  console.info('[Forge Journey] existing Bungie session unavailable',error);
   if(journeySession?.authenticated===true){
     resolving.hidden=true;
     signedOut.hidden=true;

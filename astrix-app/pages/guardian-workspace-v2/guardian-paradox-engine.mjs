@@ -9,7 +9,7 @@
  */
 
 const ALPHA_SOURCE = 'paradox-beta-fixture';
-const EVENT_ANALYSIS = 'astrix:paradox-analysis-changed';
+const EVENT_ANALYSIS = 'forge:paradox-analysis-changed';
 
 const EFFECT_TERMS = [
   'amplified','blind','cure','devour','freeze','frozen','ignite','ignition',
@@ -916,12 +916,12 @@ function acceptArtifact(detail) {
 }
 
 if(typeof document!=='undefined'){
-document.addEventListener('astrix:guardian-selection-changed', e => acceptFixture(e.detail));
-document.addEventListener('astrix:beta-fixture-loaded', e => acceptFixture(e.detail));
-document.addEventListener('astrix:artifact-selection-changed', e => acceptArtifact(e.detail));
+document.addEventListener('forge:guardian-selection-changed', e => acceptFixture(e.detail));
+document.addEventListener('forge:beta-fixture-loaded', e => acceptFixture(e.detail));
+document.addEventListener('forge:artifact-selection-changed', e => acceptArtifact(e.detail));
 }
 
-globalThis.ASTRIXParadoxEngine = {
+globalThis.ForgeParadoxEngine = {
   analyze: analyzeGuardianBuild,
   compareMutation: compareAnalysisMutation,
   recommendForExotic: recommendBuildForExotic,

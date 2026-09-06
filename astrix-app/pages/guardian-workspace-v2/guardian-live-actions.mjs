@@ -1,4 +1,4 @@
-const DEFAULT_AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||'https://auth.astrixparadox.com';
+const DEFAULT_AUTH_ORIGIN=globalThis.FORGE_AUTH_ORIGIN||'https://auth.astrixparadox.com';
 const VAULT_BUCKET=138197802;
 const POSTMASTER_BUCKET=215593132;
 const SOCIAL_ACTIVITY_MODE_TYPE=40;

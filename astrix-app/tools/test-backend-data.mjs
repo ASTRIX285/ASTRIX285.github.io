@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {ProfileSnapshotCache,DISPLAY_TTL_MS} from '../../astrix-auth-worker/src/profile-snapshot-cache.ts';
-import {profileSections} from '../../astrix-auth-worker/src/profile-sections.ts';
+import {ProfileSnapshotCache,DISPLAY_TTL_MS} from '../../forge-auth-worker/src/profile-snapshot-cache.ts';
+import {profileSections} from '../../forge-auth-worker/src/profile-sections.ts';
 import {fetchDisplayProfile} from '../pages/guardian-workspace-v2/guardian-display-profile.mjs';
-import dataWorker from '../../astrix-manifest-worker/worker.mjs';
+import dataWorker from '../../forge-manifest-worker/worker.mjs';
 import {GuardianManifestService} from '../pages/guardian-workspace-v2/guardian-manifest-service.mjs';
 
 function storage(){

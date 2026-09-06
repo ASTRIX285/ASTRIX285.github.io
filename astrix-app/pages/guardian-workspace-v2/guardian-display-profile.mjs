@@ -2,7 +2,7 @@
 const snapshots=new Map();
 const pending=new Map();
 let generation=0,activeBinding='';
-globalThis.addEventListener?.('astrix:bungie-session',event=>{
+globalThis.addEventListener?.('forge:bungie-session',event=>{
   const session=event.detail,membership=session?.activeDestinyMembership;
   const next=session?.authenticated?`${membership?.membershipType}:${membership?.membershipId}`:'';
   if(next!==activeBinding){generation++;activeBinding=next;snapshots.clear();pending.clear();}

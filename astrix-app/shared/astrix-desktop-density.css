@@ -28,7 +28,7 @@
 html,body{max-width:100%;overflow-x:hidden}
 html{font-size:16px}
 
-body:has(header>[data-astrix-hero-cards]){
+body:has(header>[data-forge-hero-cards]){
   font-family:var(--apx-font-copy);
   font-size:var(--apx-type-body);
   text-rendering:optimizeLegibility;
@@ -38,17 +38,17 @@ body:has(header>[data-astrix-hero-cards]){
 
 /* Shared heading hierarchy. The approved command-header title and subtitle
    remain compact; section titles below it use the same scale on every tool. */
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .apx-destination-header-copy strong,
   .ws-label .title
 ){font-family:var(--apx-font-display)!important;font-size:var(--apx-type-page-title)!important;line-height:1.1!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .apx-destination-header-copy small,
   .ws-label .subtitle
 ){font-family:var(--apx-font-display)!important;font-size:var(--apx-type-page-subtitle)!important;line-height:1.3!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .apx-section-heading h2,
   .forge-panel-heading h2,
   .mission-panel-heading h2,
@@ -59,7 +59,7 @@ body:has(header>[data-astrix-hero-cards]) :is(
   .review-section-heading h3
 ){font-family:var(--apx-font-display)!important;font-size:var(--apx-type-section-title)!important;line-height:1.25!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .forge-exotic-slot>h3,
   .forge-set-head>span strong,
   .mission-timeline article h3,
@@ -70,7 +70,7 @@ body:has(header>[data-astrix-hero-cards]) :is(
 ){font-size:var(--apx-type-subsection-title)!important;line-height:1.3!important}
 
 /* Copy stays in bahnschrift at a stable reading size; display text stays in bahnschrift-semicondensed. */
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .apx-section p,
   .forge-guidance,
   .section-guidance,
@@ -87,7 +87,7 @@ body:has(header>[data-astrix-hero-cards]) :is(
   .working-selection-note
 ){color:var(--apx-text-readable)!important;font-family:var(--apx-font-copy)!important;font-size:var(--apx-type-body)!important;line-height:1.5!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .apx-empty-state,
   .forge-empty,
   .forge-runtime-status,
@@ -95,7 +95,7 @@ body:has(header>[data-astrix-hero-cards]) :is(
   .vault-runtime-status
 ){font-family:var(--apx-font-copy)!important;font-size:var(--apx-type-body)!important;line-height:1.5!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .apx-eyebrow,
   .apx-status-chip,
   .forge-panel-heading>span,
@@ -142,7 +142,7 @@ body:has(header>[data-astrix-hero-cards]) :is(
   .review-intelligence-evidence>b
 ){font-family:var(--apx-font-display)!important;font-size:var(--apx-type-label)!important;line-height:1.25!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .mission-timeline article p,
   .mission-timeline article time,
   .mission-metric-card small,
@@ -179,7 +179,7 @@ body:has(header>[data-astrix-hero-cards]) :is(
   .recommended-build-actions small
 ){font-family:var(--apx-font-copy)!important;font-size:var(--apx-type-meta)!important;line-height:1.35!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .mission-mastery-head,
   .mission-timeline article p,
   .mission-timeline article time,
@@ -212,7 +212,7 @@ body:has(header>[data-astrix-hero-cards]) :is(
   .recommended-build-actions small
 ){color:var(--apx-text-muted)!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .mission-mastery-summary strong,
   .mission-evidence-name strong,
   .vault-candidate-item b,
@@ -220,13 +220,13 @@ body:has(header>[data-astrix-hero-cards]) :is(
   .vault-item-statline strong
 ){color:var(--apx-text-primary)!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .vault-item-power,
   .vault-item-total,
   .vault-item-source
 ){font-size:var(--apx-type-label)!important;line-height:1!important}
 
-body:has(header>[data-astrix-hero-cards]) :is(
+body:has(header>[data-forge-hero-cards]) :is(
   .forge-stat-targets button,
   .forge-stat-targets select,
   .forge-stat-actions button,

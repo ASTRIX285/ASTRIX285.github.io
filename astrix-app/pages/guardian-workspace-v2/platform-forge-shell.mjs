@@ -1,6 +1,6 @@
-const SHELL_CLASS = 'astrix-platform-shell';
-const VIEWPORT_CLASS = 'astrix-forge-viewport';
-const STYLE_MARKER = 'astrix-platform-forge-shell';
+const SHELL_CLASS = 'forge-platform-shell';
+const VIEWPORT_CLASS = 'forge-viewport';
+const STYLE_MARKER = 'forge-platform-shell-style';
 
 function ensureShellStyles(){
   if(document.querySelector(`link[data-${STYLE_MARKER}]`)) return;
@@ -57,7 +57,7 @@ function mountForgeShell({
   viewport.appendChild(root);
 
   document.documentElement.dataset.astrixGame=gameId;
-  document.dispatchEvent(new CustomEvent('astrix:forge-shell-mounted',{
+  document.dispatchEvent(new CustomEvent('forge:forge-shell-mounted',{
     detail:{gameId,gameName,developerName,shell,viewport,leftRail:left,rightRail:right}
   }));
   return shell;

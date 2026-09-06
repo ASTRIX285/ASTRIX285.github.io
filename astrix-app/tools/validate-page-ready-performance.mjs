@@ -56,7 +56,7 @@ const sources=await Promise.all([
   'shared/astrix-hero-cards.mjs'
 ].map(async path=>[path,await readFile(new URL(path,root),'utf8')]));
 for(const [path,source] of sources)assert.doesNotMatch(source,/bungie\/manifest\/definitions?/,`${path} contains a client definition route`);
-const backend=await readFile(new URL('../astrix-auth-worker/src/index.ts',root),'utf8');
+const backend=await readFile(new URL('../forge-auth-worker/src/index.ts',root),'utf8');
 for(const page of ['character','build-forge','journey','vault','loadout'])assert.match(backend,new RegExp(`\\b${page.replace('-','\\-')}\\b`));
 console.log('PAGE_READY_DEDICATED_ROUTES=PASS');
 console.log('PAGE_READY_ZERO_CLIENT_DEFINITION_FETCHES=PASS');

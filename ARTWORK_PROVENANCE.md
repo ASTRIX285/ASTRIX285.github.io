@@ -1,6 +1,6 @@
 # Artwork provenance
 
-Visual assets supplied for ASTRIX remain developer-provided artwork. Code and
+Visual assets supplied for Forge remain developer-provided artwork. Code and
 review notes must describe changes to those assets as integration, placement,
 presentation, optimisation, or responsive treatment. They must not claim
 authorship of the underlying artwork.

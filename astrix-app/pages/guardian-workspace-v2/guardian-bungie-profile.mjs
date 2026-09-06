@@ -16,7 +16,7 @@ import {
   invalidateBungieLoadoutDetail
 } from "./guardian-session-cache.mjs?v=20260905-manual-editor-1";
 
-const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
+const AUTH_ORIGIN=globalThis.FORGE_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
 const CLASS_NAMES=["titan","hunter","warlock"];
 const BUCKETS={kinetic:1498876634,energy:2465295065,power:953998645,helmet:3448274439,gauntlets:3551918588,chest:14239492,legs:20886954,classItem:1585787867,ghost:4023194814,subclass:3284755031};
@@ -41,10 +41,10 @@ let liveProfileSession=null;
 const manifestReady=guardianManifest.ready();
 let fixtureProfileDetail=null;
 let latestResolvedBuild=null;
-let authenticatedSession=globalThis.ASTRIX_BUNGIE_SESSION?.authenticated?globalThis.ASTRIX_BUNGIE_SESSION:null;
+let authenticatedSession=globalThis.FORGE_BUNGIE_SESSION?.authenticated?globalThis.FORGE_BUNGIE_SESSION:null;
 let explicitlySelectedCharacterId="";
 
-const currentAuthenticatedSession=()=>authenticatedSession?.authenticated?authenticatedSession:(globalThis.ASTRIX_BUNGIE_SESSION?.authenticated?globalThis.ASTRIX_BUNGIE_SESSION:null);
+const currentAuthenticatedSession=()=>authenticatedSession?.authenticated?authenticatedSession:(globalThis.FORGE_BUNGIE_SESSION?.authenticated?globalThis.FORGE_BUNGIE_SESSION:null);
 const isFixtureDetail=detail=>detail?.source==="paradox-beta-fixture";
 
 const cloneBuildValue=value=>{try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}};
@@ -179,7 +179,7 @@ async function manifestRequestUrl(path){
 
 async function hydrateManifestPayload(payload,options={}){
   await guardianManifest.hydratePayload(payload,options);
-  document.dispatchEvent(new CustomEvent("astrix:manifest-payload-hydrated",{detail:payload}));
+  document.dispatchEvent(new CustomEvent("forge:manifest-payload-hydrated",{detail:payload}));
   return payload;
 }
 
@@ -280,7 +280,7 @@ function fixtureCharacterRoster(detail={}){
 
 function publishCharacterRoster(payload,selectedCharacterId,{source="bungie-live"}={}){
   const characters=Array.isArray(payload?.characters)?payload.characters:characterRoster(payload,selectedCharacterId);
-  document.dispatchEvent(new CustomEvent("astrix:bungie-character-roster",{detail:{source,selectedCharacterId:String(selectedCharacterId||""),characters}}));
+  document.dispatchEvent(new CustomEvent("forge:bungie-character-roster",{detail:{source,selectedCharacterId:String(selectedCharacterId||""),characters}}));
 }
 
 function publishFixtureRoster(detail={}){
@@ -618,7 +618,7 @@ function normaliseLiveProfile(payload,session,preferredCharacterId=null){
     artifact:payload?.artifactCoverage||null
   };
   if(hashCoverage.subclass?.unresolved?.length){
-    console.warn("[ASTRIX hash coverage] unresolved subclass plug hashes",hashCoverage.subclass.unresolved);
+    console.warn("[Forge hash coverage] unresolved subclass plug hashes",hashCoverage.subclass.unresolved);
   }
   return {
     source:"bungie-live",
@@ -779,22 +779,22 @@ async function loadSelectedLoadout(selection){
     rememberLoadoutSelection(characterId,index);
     document.documentElement.dataset.guardianSource="bungie-live";
     const published=forAction(cached);
-    document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:published}));
-    document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:published}));
+    document.dispatchEvent(new CustomEvent("forge:guardian-selection-changed",{detail:published}));
+    document.dispatchEvent(new CustomEvent("forge:bungie-loadout-loaded",{detail:published}));
     return published;
   }
-  const stored=cacheInvalidated?null:await readCachedBungieLoadoutDetail(liveProfileSession||globalThis.ASTRIX_BUNGIE_SESSION,characterId,index);
+  const stored=cacheInvalidated?null:await readCachedBungieLoadoutDetail(liveProfileSession||globalThis.FORGE_BUNGIE_SESSION,characterId,index);
   if(stored&&Array.isArray(stored.subclassCatalog)){
     loadoutCache.set(cacheKey,stored);
     rememberLoadoutSelection(characterId,index);
     document.documentElement.dataset.guardianSource="bungie-live";
     const published=forAction({...stored,sessionCacheRestored:true});
-    document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:published}));
-    document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:published}));
+    document.dispatchEvent(new CustomEvent("forge:guardian-selection-changed",{detail:published}));
+    document.dispatchEvent(new CustomEvent("forge:bungie-loadout-loaded",{detail:published}));
     return published;
   }
   setRenderStatus("LOADING SAVED LOADOUT",`Opening Bungie loadout ${index+1}`,"Resolving equipment and subclass configuration");
-  document.dispatchEvent(new CustomEvent("astrix:loadout-loading",{detail:{characterId,index}}));
+  document.dispatchEvent(new CustomEvent("forge:loadout-loading",{detail:{characterId,index}}));
   const prepared=preparedLoadoutPayload(characterId,index);
   if(!prepared)throw new Error(`Bungie loadout ${index+1} is not available in the prepared account payload.`);
   const payload=await hydrateManifestPayload(prepared,{allowNetwork:false});
@@ -803,19 +803,19 @@ async function loadSelectedLoadout(selection){
   detail.coverage=loadoutCoverage(detail);
 
   if(!detail.coverage.complete){
-    console.warn(`[ASTRIX] Bungie loadout ${index+1} partial: ${detail.coverage.missing.join(", ")}`);
+    console.warn(`[Forge] Bungie loadout ${index+1} partial: ${detail.coverage.missing.join(", ")}`);
   }
 
   loadoutCache.set(cacheKey,detail);
   invalidatedLoadoutCacheKeys.delete(cacheKey);
-  await cacheBungieLoadoutDetail(liveProfileSession||globalThis.ASTRIX_BUNGIE_SESSION,characterId,index,detail);
+  await cacheBungieLoadoutDetail(liveProfileSession||globalThis.FORGE_BUNGIE_SESSION,characterId,index,detail);
   rememberCharacterId(characterId);
   rememberLoadoutSelection(characterId,index);
   document.documentElement.dataset.guardianSource="bungie-live";
   setRenderStatus("BUILD INTELLIGENCE",`Bungie loadout ${index+1} ready`,"Saved build loaded for analysis");
   const published=forAction(detail);
-  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:published}));
-  document.dispatchEvent(new CustomEvent("astrix:bungie-loadout-loaded",{detail:published}));
+  document.dispatchEvent(new CustomEvent("forge:guardian-selection-changed",{detail:published}));
+  document.dispatchEvent(new CustomEvent("forge:bungie-loadout-loaded",{detail:published}));
   return published;
 }
 
@@ -831,42 +831,42 @@ async function activateLiveProfile(payload,session,{fromCache=false}={}){
   document.documentElement.dataset.equippedActive="true";
   if(fromCache){
     document.documentElement.dataset.guardianSessionRestored="true";
-    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-cache-restored",{detail:{source:"bungie-session-cache",characterId:selectedCharacterId}}));
+    document.dispatchEvent(new CustomEvent("forge:bungie-profile-cache-restored",{detail:{source:"bungie-session-cache",characterId:selectedCharacterId}}));
   }
 
   if(!selectedCharacterId){
     setRenderStatus("SELECT GUARDIAN","Choose Hunter, Warlock or Titan","Waiting for an explicit Bungie character selection");
-    document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{source:"bungie-live",pendingSelection:true,characterId:"",sessionCacheRestored:fromCache,definitionCoverage:payload.definitionCoverage||null,artifactCoverage:payload.artifactCoverage||null}}));
+    document.dispatchEvent(new CustomEvent("forge:bungie-profile-loaded",{detail:{source:"bungie-live",pendingSelection:true,characterId:"",sessionCacheRestored:fromCache,definitionCoverage:payload.definitionCoverage||null,artifactCoverage:payload.artifactCoverage||null}}));
     return null;
   }
 
   if(document.documentElement.dataset.guardianProfileMode==="roster-only"){
     const detail=normaliseLiveProfile(payload,session,selectedCharacterId);
-    document.dispatchEvent(new CustomEvent("astrix:guardian-loadout-context",{detail:{...detail,sessionCacheRestored:fromCache}}));
+    document.dispatchEvent(new CustomEvent("forge:guardian-loadout-context",{detail:{...detail,sessionCacheRestored:fromCache}}));
     return detail;
   }
 
   forgetLoadoutSelection();
   const detail={...normaliseLiveProfile(payload,session,selectedCharacterId),selectedLoadoutIndex:null,loadoutSource:"currently-equipped"};
   setRenderStatus("CURRENTLY EQUIPPED LOADOUT","Live equipped items ready","Active Guardian default · saved Bungie slots load only when selected");
-  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail:{...detail,sessionCacheRestored:fromCache}}));
-  document.dispatchEvent(new CustomEvent("astrix:bungie-profile-loaded",{detail:{...detail,sessionCacheRestored:fromCache}}));
+  document.dispatchEvent(new CustomEvent("forge:guardian-selection-changed",{detail:{...detail,sessionCacheRestored:fromCache}}));
+  document.dispatchEvent(new CustomEvent("forge:bungie-profile-loaded",{detail:{...detail,sessionCacheRestored:fromCache}}));
   return detail;
 }
 
 async function loadLiveProfile(session,{background=false}={}){
   if(!background){
     setRenderStatus("LOADING CHARACTER PROFILE","Retrieving live Bungie appearance","Equipment, ornaments and shaders");
-    document.dispatchEvent(new CustomEvent("astrix:guardian-loading"));
+    document.dispatchEvent(new CustomEvent("forge:guardian-loading"));
   }
   const profileUrl=await manifestRequestUrl('/bungie/profile');
   const profilePayload=await fetchJsonWithTimeout(profileUrl);
-  document.dispatchEvent(new CustomEvent("astrix:guardian-profile-progress",{detail:{percent:64,label:"Bungie profile received"}}));
-  document.dispatchEvent(new CustomEvent("astrix:guardian-profile-progress",{detail:{percent:68,label:"Resolving equipped Guardian definitions"}}));
+  document.dispatchEvent(new CustomEvent("forge:guardian-profile-progress",{detail:{percent:64,label:"Bungie profile received"}}));
+  document.dispatchEvent(new CustomEvent("forge:guardian-profile-progress",{detail:{percent:68,label:"Resolving equipped Guardian definitions"}}));
   const payload=await hydrateManifestPayload(profilePayload,INITIAL_PROFILE_HYDRATION);
-  document.dispatchEvent(new CustomEvent("astrix:guardian-profile-progress",{detail:{percent:78,label:"Equipped Guardian resolved"}}));
+  document.dispatchEvent(new CustomEvent("forge:guardian-profile-progress",{detail:{percent:78,label:"Equipped Guardian resolved"}}));
   const detail=await activateLiveProfile(payload,session);
-  void cacheBungieProfile(session,payload).catch(error=>console.warn("[ASTRIX Bungie profile] profile cache write failed",error));
+  void cacheBungieProfile(session,payload).catch(error=>console.warn("[Forge Bungie profile] profile cache write failed",error));
   return detail;
 }
 
@@ -887,7 +887,7 @@ function selectLiveCharacter(characterId,expectedClass=""){
       if(expected&&String(detail.characterClass||detail.className||"").toLowerCase()!==expected)throw new Error(`Selected ${expected} fixture card resolved different fixture data for character ${characterId}.`);
       document.documentElement.dataset.guardianSource="fixture";
       publishFixtureRoster(detail);
-      document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
+      document.dispatchEvent(new CustomEvent("forge:guardian-selection-changed",{detail}));
       return detail;
     }
     throw new Error("Bungie character roster is not loaded; character selection cannot fall back to last played.");
@@ -901,9 +901,9 @@ function selectLiveCharacter(characterId,expectedClass=""){
   document.documentElement.dataset.guardianSource="bungie-live";
   document.documentElement.dataset.equippedActive="true";
   setRenderStatus("BUILD INTELLIGENCE",`${detail.characterClass} profile ready`,"Live equipment and saved loadouts selected");
-  document.dispatchEvent(new CustomEvent("astrix:guardian-selection-changed",{detail}));
+  document.dispatchEvent(new CustomEvent("forge:guardian-selection-changed",{detail}));
   publishCharacterRoster(liveProfilePayload,detail.characterId);
-  document.dispatchEvent(new CustomEvent("astrix:bungie-character-selected",{detail}));
+  document.dispatchEvent(new CustomEvent("forge:bungie-character-selected",{detail}));
   return detail;
 }
 
@@ -912,11 +912,11 @@ let liveProfileReady=false;
 
 function reportProfileError(error){
   const message=error?.message||"Guardian data could not be loaded.";
-  console.error("[ASTRIX Bungie profile]",error);
+  console.error("[Forge Bungie profile]",error);
   document.documentElement.dataset.guardianSource="bungie-live-error";
   setRenderStatus("LIVE PROFILE UNAVAILABLE",message,"Retry or reconnect Bungie");
-  document.dispatchEvent(new CustomEvent("astrix:profile-error",{detail:{message}}));
-  document.dispatchEvent(new CustomEvent("astrix:guardian-error",{detail:{message}}));
+  document.dispatchEvent(new CustomEvent("forge:profile-error",{detail:{message}}));
+  document.dispatchEvent(new CustomEvent("forge:guardian-error",{detail:{message}}));
   queueMicrotask(()=>setLiveProfileUnavailable(message));
 }
 
@@ -927,7 +927,7 @@ function ensureLiveProfile(session,{background=false,silent=false}={}){
     const cachedPayload=await readCachedBungieProfile(session);
     if(cachedPayload?.profile){
       try{await activateLiveProfile(await hydrateManifestPayload(cachedPayload,INITIAL_PROFILE_HYDRATION),session,{fromCache:true});}
-      catch(error){console.warn("[ASTRIX Bungie profile] cached live profile could not render; requesting a fresh profile",error);}
+      catch(error){console.warn("[Forge Bungie profile] cached live profile could not render; requesting a fresh profile",error);}
     }
     return loadLiveProfile(session,{background});
   })()
@@ -959,12 +959,12 @@ async function handleAuthenticatedSession(session){
   return ensureLiveProfile(session,{background:false,silent:false});
 }
 
-globalThis.addEventListener("astrix:bungie-session",event=>{handleAuthenticatedSession(event.detail);});
+globalThis.addEventListener("forge:bungie-session",event=>{handleAuthenticatedSession(event.detail);});
 
-document.addEventListener("astrix:guardian-selection-changed",blockAuthenticatedFixture,true);
-document.addEventListener("astrix:beta-fixture-loaded",blockAuthenticatedFixture,true);
+document.addEventListener("forge:guardian-selection-changed",blockAuthenticatedFixture,true);
+document.addEventListener("forge:beta-fixture-loaded",blockAuthenticatedFixture,true);
 
-document.addEventListener("astrix:guardian-selection-changed",event=>{
+document.addEventListener("forge:guardian-selection-changed",event=>{
   rememberResolvedBuild(event.detail||{});
   if(event.detail?.source==="bungie-live"||event.detail?.loadoutSource==="bungie-live"){
     document.documentElement.dataset.guardianSource="bungie-live";
@@ -977,16 +977,16 @@ document.addEventListener("click",event=>{
   persistResolvedBuildSnapshot();
 },true);
 
-document.addEventListener("astrix:loadout-selected",event=>{
+document.addEventListener("forge:loadout-selected",event=>{
   loadSelectedLoadout(event.detail).catch(error=>{
     const message=error.message||"Saved loadout could not be loaded.";
-    console.error("[ASTRIX Bungie loadout]",error);
+    console.error("[Forge Bungie loadout]",error);
     setRenderStatus("SAVED LOADOUT UNAVAILABLE",message,"Your current Guardian profile is still active");
-    document.dispatchEvent(new CustomEvent("astrix:loadout-error",{detail:{...event.detail,message}}));
+    document.dispatchEvent(new CustomEvent("forge:loadout-error",{detail:{...event.detail,message}}));
   });
 });
 
-document.addEventListener("astrix:beta-fixture-loaded",event=>{
+document.addEventListener("forge:beta-fixture-loaded",event=>{
   if(currentAuthenticatedSession()||liveProfilePayload)return;
   const detail=event.detail||{};
   if(detail.source!=="paradox-beta-fixture")return;
@@ -997,12 +997,12 @@ document.addEventListener("astrix:beta-fixture-loaded",event=>{
   queueMicrotask(()=>setSourceCaption(detail,"fixture"));
 });
 
-document.addEventListener("astrix:character-selected",event=>{
+document.addEventListener("forge:character-selected",event=>{
   try{selectLiveCharacter(String(event.detail?.characterId||""),String(event.detail?.characterClass||""));}
   catch(error){reportProfileError(error);}
 });
 
-document.addEventListener("astrix:bungie-profile-refresh-requested",event=>{
+document.addEventListener("forge:bungie-profile-refresh-requested",event=>{
   const session=currentAuthenticatedSession();if(!session)return;
   const detail=event.detail||{},characterId=String(detail.characterId||""),index=Number(detail.index);
   if(String(detail.reason||"").startsWith("loadout-")&&characterId&&Number.isInteger(index)){
@@ -1013,7 +1013,7 @@ document.addEventListener("astrix:bungie-profile-refresh-requested",event=>{
   void ensureLiveProfile(session,{background:true,silent:false});
 });
 
-if(globalThis.ASTRIX_BUNGIE_SESSION?.authenticated)handleAuthenticatedSession(globalThis.ASTRIX_BUNGIE_SESSION);
+if(globalThis.FORGE_BUNGIE_SESSION?.authenticated)handleAuthenticatedSession(globalThis.FORGE_BUNGIE_SESSION);
 getBungieSession().then(handleAuthenticatedSession);
 
 export {normaliseLiveProfile,loadSelectedLoadout,characterRoster,selectLiveCharacter,profileWithSelectedLoadout,subclassConfiguration,loadoutCoverage,socketResolution,currentArtifact};

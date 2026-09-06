@@ -139,16 +139,16 @@ export async function mountGuardianWorkspace(options = {}) {
   const root = options.root ?? document.querySelector('[data-guardian-workspace]');
   if (!root) throw new Error('Guardian Build Forge root not found.');
   const url = options.previewUrl ?? './guardian-workspace.preview.json';
-  window.AstrixLoader?.set(20);
-  window.AstrixLoader?.status('Loading Guardian Journey data');
+  window.ForgeLoader?.set(20);
+  window.ForgeLoader?.status('Loading Guardian Journey data');
   const response = await fetch(url, {cache:'no-store'});
   if (!response.ok) throw new Error(`Unable to load Guardian Build Forge state: ${response.status}`);
-  window.AstrixLoader?.set(52);
-  window.AstrixLoader?.status('Resolving Guardian Journey state');
+  window.ForgeLoader?.set(52);
+  window.ForgeLoader?.status('Resolving Guardian Journey state');
   const state = await response.json();
-  window.AstrixLoader?.set(72);
-  window.AstrixLoader?.status('Painting Guardian Journey');
+  window.ForgeLoader?.set(72);
+  window.ForgeLoader?.status('Painting Guardian Journey');
   renderGuardian(root, state);
-  window.AstrixLoader?.set(88);
+  window.ForgeLoader?.set(88);
   return {root, state, render(nextState){renderGuardian(root, nextState);}};
 }

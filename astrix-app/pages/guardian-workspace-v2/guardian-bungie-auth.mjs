@@ -1,6 +1,6 @@
 import {cacheBungieSession,readCachedBungieSession} from "./guardian-session-cache.mjs?v=20260905-manual-editor-1";
 
-const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox.com";
+const AUTH_ORIGIN = globalThis.FORGE_AUTH_ORIGIN || "https://auth.astrixparadox.com";
 const CANONICAL_APP_ORIGIN = "https://astrixparadox.com";
 const JOURNEY_PATH = "/astrix-app/pages/journey/";
 const BUNGIE_ORIGIN = "https://www.bungie.net";
@@ -169,7 +169,7 @@ async function hydrateAccountVisual(control,session){
     if(!response.ok)throw new Error(account?.error||`account:${response.status}`);
     setAccountVisual(control,account,session);
   }catch(error){
-    console.info("[ASTRIX Bungie auth] account avatar unavailable",error);
+    console.info("[Forge Bungie auth] account avatar unavailable",error);
   }finally{
     clearTimeout(timer);
   }
@@ -204,17 +204,17 @@ async function requestSession(){
 
 function publishSession(session){
   if(session?.recovering){
-    globalThis.ASTRIX_BUNGIE_SESSION=session;
+    globalThis.FORGE_BUNGIE_SESSION=session;
     return;
   }
   if(session?.authenticated){
     cacheBungieSession(session);
-    globalThis.AstrixLoader?.authResolved?.();
+    globalThis.ForgeLoader?.authResolved?.();
   }else{
-    globalThis.AstrixLoader?.authRequired?.(authStartUrl());
+    globalThis.ForgeLoader?.authRequired?.(authStartUrl());
   }
-  globalThis.ASTRIX_BUNGIE_SESSION=session;
-  globalThis.dispatchEvent(new CustomEvent("astrix:bungie-session",{detail:session}));
+  globalThis.FORGE_BUNGIE_SESSION=session;
+  globalThis.dispatchEvent(new CustomEvent("forge:bungie-session",{detail:session}));
 }
 
 function getBungieSession({force=false}={}){
@@ -224,7 +224,7 @@ function getBungieSession({force=false}={}){
     if(cached){
       publishSession(cached);
       sessionRequest=Promise.resolve(cached);
-      globalThis.ASTRIX_BUNGIE_SESSION_PROMISE=sessionRequest;
+      globalThis.FORGE_BUNGIE_SESSION_PROMISE=sessionRequest;
       return sessionRequest;
     }
   }
@@ -234,12 +234,12 @@ function getBungieSession({force=false}={}){
       return session;
     })
     .catch(error=>{
-      console.info("[ASTRIX Bungie auth] no active session",error);
+      console.info("[Forge Bungie auth] no active session",error);
       const session={authenticated:false,error:error?.message||"session_unavailable"};
       publishSession(session);
       return session;
     });
-  globalThis.ASTRIX_BUNGIE_SESSION_PROMISE=sessionRequest;
+  globalThis.FORGE_BUNGIE_SESSION_PROMISE=sessionRequest;
   return sessionRequest;
 }
 

@@ -43,9 +43,9 @@ const MARKER_TYPE_LABELS=Object.freeze({
   vendor:'Vendor'
 });
 
-const REGION_CHEST_EVENT='astrix:journey-region-chests';
-const DESTINATION_DATA_EVENT='astrix:journey-destination-data';
-const MAP_RENDER_EVENT='astrix:journey-location-map-render-complete';
+const REGION_CHEST_EVENT='forge:journey-region-chests';
+const DESTINATION_DATA_EVENT='forge:journey-destination-data';
+const MAP_RENDER_EVENT='forge:journey-location-map-render-complete';
 const verifiedRegionChestProgress=new Map();
 const verifiedDestinationData=new Map();
 const destinationDataViews=new Set();
@@ -418,7 +418,7 @@ function createStaticMarkers(markers,label){
 }
 
 function createLocationMap(key,spec){
-  const label=globalThis.AstrixDestinations?.labelOf(key)||key;
+  const label=globalThis.ForgeDestinations?.labelOf(key)||key;
   const figure=document.createElement('figure');
   figure.className='journey-location-map';
   figure.dataset.mapKey=key;
@@ -575,7 +575,7 @@ function createLocationMap(key,spec){
 
 export function initJourneyLocationMaps(detail){
   const render=(event)=>{
-    const key=event?.detail?.key||globalThis.AstrixDestinations?.current();
+    const key=event?.detail?.key||globalThis.ForgeDestinations?.current();
     const spec=JOURNEY_LOCATION_MAPS[key];
     if(!spec)return Promise.resolve({key,status:'unavailable',src:''});
     const existing=detail.querySelector(`[data-map-key="${key}"]`);
@@ -589,7 +589,7 @@ export function initJourneyLocationMaps(detail){
       document.addEventListener(MAP_RENDER_EVENT,onReady);
     });
     const map=createLocationMap(key,spec);
-    const label=globalThis.AstrixDestinations?.labelOf(key)||key;
+    const label=globalThis.ForgeDestinations?.labelOf(key)||key;
     const dataView=createDestinationDataView(key,label,map.figure);
     for(const child of [...detail.children]){
       if(!child.matches('.apx-loc-band,.apx-loc-desc'))child.remove();
@@ -597,6 +597,6 @@ export function initJourneyLocationMaps(detail){
     detail.append(dataView.actions,map.figure,dataView.panel);
     return map.ready;
   };
-  document.addEventListener('astrix:destination-changed',render);
+  document.addEventListener('forge:destination-changed',render);
   return render();
 }

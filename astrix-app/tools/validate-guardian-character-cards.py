@@ -22,8 +22,8 @@ def main() -> int:
     assert "const MAX_CHARACTERS = 3" in module
     assert 'class="guardian-stat-icon"' in module
     assert "guardian-character-card__rank" not in module
-    assert 'new CustomEvent("astrix:character-selected"' in module
-    assert '"astrix:bungie-character-roster"' in module
+    assert 'new CustomEvent("forge:character-selected"' in module
+    assert '"forge:bungie-character-roster"' in module
     assert "function characterRoster(" in profile
     assert "function selectLiveCharacter(" in profile
     assert 'publishCharacterRoster(liveProfilePayload,detail.characterId)' in profile

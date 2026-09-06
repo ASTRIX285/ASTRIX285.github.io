@@ -2,12 +2,12 @@
 
 /* Build Forge keeps page-owned Guardian emphasis inside the shared command header. */
 .build-forge-page .build-source-state{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-html body.build-forge-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__stats{display:none!important}
-html body.build-forge-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__identity{top:50%!important;bottom:auto!important;left:50%!important;right:auto!important;width:auto!important;max-width:calc(100% - 7.5rem)!important;padding:.1875rem .4375rem!important;border-left:0!important;background:rgba(8,5,6,.66)!important;text-align:center!important;transform:translate(-50%,-50%)}
-html body.build-forge-page header:has(>[data-astrix-hero-cards]) .guardian-character-card__power{top:50%!important;right:.625rem!important;bottom:auto!important;transform:translateY(-50%)}
-html body.build-forge-page header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-selected{border-color:rgba(201,168,76,.92)!important;background:#0b0809!important;box-shadow:0 0 0 1px rgba(211,32,47,.62),0 0 2rem rgba(201,168,76,.5),0 0 3.25rem rgba(211,32,47,.22),0 14px 30px rgba(0,0,0,.42)!important;filter:none!important;opacity:1!important}
-html body.build-forge-page header:has(>[data-astrix-hero-cards]) .guardian-character-card.is-selected::before{opacity:1!important;filter:none!important}
-html body.build-forge-page header.astrix-command-header:has(>[data-astrix-hero-cards]) .build-forge-header-copy{width:clamp(14rem,14vw,20rem)!important;max-width:clamp(14rem,14vw,20rem)!important}
+html body.build-forge-page header:has(>[data-forge-hero-cards]) .guardian-character-card__stats{display:none!important}
+html body.build-forge-page header:has(>[data-forge-hero-cards]) .guardian-character-card__identity{top:50%!important;bottom:auto!important;left:50%!important;right:auto!important;width:auto!important;max-width:calc(100% - 7.5rem)!important;padding:.1875rem .4375rem!important;border-left:0!important;background:rgba(8,5,6,.66)!important;text-align:center!important;transform:translate(-50%,-50%)}
+html body.build-forge-page header:has(>[data-forge-hero-cards]) .guardian-character-card__power{top:50%!important;right:.625rem!important;bottom:auto!important;transform:translateY(-50%)}
+html body.build-forge-page header:has(>[data-forge-hero-cards]) .guardian-character-card.is-selected{border-color:rgba(201,168,76,.92)!important;background:#0b0809!important;box-shadow:0 0 0 1px rgba(211,32,47,.62),0 0 2rem rgba(201,168,76,.5),0 0 3.25rem rgba(211,32,47,.22),0 14px 30px rgba(0,0,0,.42)!important;filter:none!important;opacity:1!important}
+html body.build-forge-page header:has(>[data-forge-hero-cards]) .guardian-character-card.is-selected::before{opacity:1!important;filter:none!important}
+html body.build-forge-page header.forge-command-header:has(>[data-forge-hero-cards]) .build-forge-header-copy{width:clamp(14rem,14vw,20rem)!important;max-width:clamp(14rem,14vw,20rem)!important}
 .forge-analysis{margin-top:16px;padding-top:16px;border-top:1px solid rgba(190,25,35,.35)}
 .forge-analysis .ra-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.forge-analysis .ra-head h2{font:800 14px bahnschrift-semicondensed;margin:0}.forge-analysis .upd{font-size:9px;color:#999}
 .forge-analysis .health-card{display:flex;gap:12px;align-items:center;margin-top:12px;padding:12px;border:1px solid rgba(190,25,35,.35);border-radius:10px}.forge-analysis .ring{width:70px;height:70px;flex:0 0 70px;border-radius:50%;border:7px solid #55e5ad;display:grid;place-items:center}.forge-analysis .heart{color:#ffc451;font-size:22px}.forge-analysis .eyebrow,.forge-analysis .t,.forge-analysis .label{font:700 9px bahnschrift-semicondensed;letter-spacing:.1em;color:#999}.forge-analysis .verdict{color:#55e5ad;font-weight:800}.forge-analysis .verdict small{display:block;margin-top:6px;color:#aaa;font-size:10px;line-height:1.4;font-weight:500}
@@ -226,8 +226,8 @@ html,body{
 .build-back-btn:hover,.build-back-btn:focus-visible{border-color:rgba(100,226,182,.62);color:#6fe3b6;outline:none}
 
 /* Complete Build Forge composition: use the locked Journey left / centre / right proportions. */
-.build-forge-page{--astrix-media-rail-width:0px!important}
-.build-forge-page .astrix-platform-shell{grid-template-columns:0 minmax(0,1fr) 0!important}
+.build-forge-page{--forge-media-rail-width:0px!important}
+.build-forge-page .forge-platform-shell{grid-template-columns:0 minmax(0,1fr) 0!important}
 .build-forge-page .developer-media-rail{display:none!important}
 .build-forge-page>.actionbar{left:0!important;right:0!important;width:auto!important}
 .build-space{grid-template-columns:var(--apx-workspace-columns,minmax(360px,20%) minmax(720px,1fr) minmax(420px,24%));gap:var(--apx-workspace-gap,.625rem);align-items:stretch}

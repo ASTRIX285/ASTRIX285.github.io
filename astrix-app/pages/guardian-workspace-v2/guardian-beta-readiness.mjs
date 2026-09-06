@@ -51,11 +51,11 @@ function equaliseBottomPanels(){
 }
 
 function currentFixture(){
-  return globalThis.ASTRIXBetaFixtures?.current?.()||'PF-BETA-03';
+  return globalThis.ForgeBetaFixtures?.current?.()||'PF-BETA-03';
 }
 
 async function openLoadouts(){
-  const api=globalThis.ASTRIXBetaFixtures;
+  const api=globalThis.ForgeBetaFixtures;
   if(!api?.list)return toast('Loadout data is still initialising.');
   const fixtures=await api.list();
   const body=`<div class="beta-loadout-list">${fixtures.map(f=>`<button type="button" data-fixture="${f.fixtureId}" class="beta-loadout-row ${f.fixtureId===currentFixture()?'active':''}"><b>${f.displayName}</b><span>${f.className} · ${f.subclassName} · ${f.element}</span><small>${f.fixtureId}</small></button>`).join('')}</div>`;
@@ -68,7 +68,7 @@ async function openLoadouts(){
 }
 
 async function openCompare(){
-  const api=globalThis.ASTRIXBetaFixtures;
+  const api=globalThis.ForgeBetaFixtures;
   if(!api?.list)return toast('Loadout data is still initialising.');
   const fixtures=await api.list();
   const options=fixtures.map(f=>`<option value="${f.fixtureId}">${f.displayName} · ${f.className} · ${f.subclassName}</option>`).join('');
@@ -94,7 +94,7 @@ function improveGuardian(){
 }
 
 function destinationOptionsMarkup(){
-  const api=globalThis.AstrixDestinations;
+  const api=globalThis.ForgeDestinations;
   const selected=api?.current?.()||'';
   return (api?.options?.()||[{key:'',label:'Default atmosphere'}]).map(option=>
     `<option value="${option.key}"${option.key===selected?' selected':''}>${option.label}</option>`
@@ -124,7 +124,7 @@ function changeActivity(){
   const choices=['Grandmaster Nightfall','Raid / Dungeon','General PvE','Onslaught / Horde','PvP'];
   const m=modal('Activity Profile',`<p class="beta-note">Choose the destination atmosphere independently from the activity profile. This changes only the controlled background tint.</p><label class="destination-control"><span>DESTINATION</span><select id="betaDestination" aria-label="Destination">${destinationOptionsMarkup()}</select></label><div class="beta-activity-list">${choices.map((x,i)=>`<button type="button" data-activity="${x}" class="${i===0?'active':''}">${x}</button>`).join('')}</div>`);
   qs('#betaDestination',m)?.addEventListener('change',event=>{
-    const api=globalThis.AstrixDestinations;
+    const api=globalThis.ForgeDestinations;
     const key=api?.set?.(event.target.value)||'';
     const label=api?.labelOf?.(key)||'Default atmosphere';
     const location=qs('.activity .act-hero small');
@@ -168,7 +168,7 @@ function wireControls(){
 
   qs('.gtag')?.addEventListener('click',()=>betaUnavailable('Guardian Account'));
 
-  document.addEventListener('astrix:guardian-selection-changed',()=>{
+  document.addEventListener('forge:guardian-selection-changed',()=>{
     setTimeout(equaliseBottomPanels,50);
   });
   window.addEventListener('resize',equaliseBottomPanels);
@@ -191,7 +191,7 @@ async function waitForBungieAuthentication(){
   const session=await getBungieSession();
   if(session?.authenticated)return session;
   return new Promise(resolve=>{
-    globalThis.addEventListener("astrix:bungie-session",event=>resolve(event.detail),{once:true});
+    globalThis.addEventListener("forge:bungie-session",event=>resolve(event.detail),{once:true});
   });
 }
 

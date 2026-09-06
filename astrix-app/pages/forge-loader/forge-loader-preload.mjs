@@ -46,10 +46,10 @@ async function preloadForgeLoaderPayload(session,{force=false,sharedPayload=null
   pageRequest=(async()=>{
     const payload=await requestPreparedPayload();
     await cacheBungieProfile(session,payload);
-    globalThis.ASTRIX_FORGE_LOADER_PRELOAD_PAYLOAD=payload;
+    globalThis.FORGE_LOADER_PRELOAD_PAYLOAD=payload;
     return payload;
   })();
-  globalThis.ASTRIX_FORGE_LOADER_PRELOAD_PROMISE=pageRequest;
+  globalThis.FORGE_LOADER_PRELOAD_PROMISE=pageRequest;
   try{return await pageRequest;}
   finally{pageRequest=null;}
 }

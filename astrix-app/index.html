@@ -132,12 +132,12 @@
       let catalogueRendered=false,subclassRendered=false;
       const finish=()=>{
         if(!catalogueRendered||!subclassRendered)return;
-        AstrixLoader.set(96);AstrixLoader.status('Build library rendered');
-        requestAnimationFrame(()=>requestAnimationFrame(()=>AstrixLoader.done()));
+        ForgeLoader.set(96);ForgeLoader.status('Build library rendered');
+        requestAnimationFrame(()=>requestAnimationFrame(()=>ForgeLoader.done()));
       };
-      AstrixLoader.set(10);AstrixLoader.status('Loading committed build data');
-      document.addEventListener('astrix:build-catalogue-rendered',()=>{catalogueRendered=true;finish();},{once:true});
-      document.addEventListener('astrix:subclass-filter-rendered',()=>{subclassRendered=true;finish();},{once:true});
+      ForgeLoader.set(10);ForgeLoader.status('Loading committed build data');
+      document.addEventListener('forge:build-catalogue-rendered',()=>{catalogueRendered=true;finish();},{once:true});
+      document.addEventListener('forge:subclass-filter-rendered',()=>{subclassRendered=true;finish();},{once:true});
     })();
   </script>
   <script type="module" src="app.js?v=20260824-portal-1"></script>

@@ -1,7 +1,7 @@
 /* =====================================================================
    ASTRIX PARADOX — GLOBAL PORTAL LOADER (shared component)
    Link on every page. Markup is injected by astrix-portal-loader.js.
-   Control from your load code:  AstrixLoader.set(pct)  /  AstrixLoader.done()
+   Control from your load code:  ForgeLoader.set(pct)  /  ForgeLoader.done()
    ===================================================================== */
 :root{--apx-loader-gold:#ffd36a;--apx-loader-gold-deep:#c88a26;--apx-loader-crimson:#d3202f;--apx-loader-red:#790810;
   --apx-loader-deep-red:#260205;--apx-loader-text:#fff7e4;

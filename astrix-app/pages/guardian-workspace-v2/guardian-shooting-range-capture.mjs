@@ -137,8 +137,8 @@ function membershipFromSession(session){
 }
 
 function historyUrl({membershipType,membershipId,characterId,count=25,page=0}){
-  if(typeof globalThis.ASTRIX_ACTIVITY_HISTORY_ENDPOINT==='function'){
-    return globalThis.ASTRIX_ACTIVITY_HISTORY_ENDPOINT({membershipType,membershipId,characterId,count,page});
+  if(typeof globalThis.FORGE_ACTIVITY_HISTORY_ENDPOINT==='function'){
+    return globalThis.FORGE_ACTIVITY_HISTORY_ENDPOINT({membershipType,membershipId,characterId,count,page});
   }
   const url=new URL(`${AUTH_ORIGIN}/bungie/activity-history`);
   url.searchParams.set('membershipType',String(membershipType));
@@ -150,7 +150,7 @@ function historyUrl({membershipType,membershipId,characterId,count=25,page=0}){
 }
 
 function pgcrUrl(instanceId){
-  if(typeof globalThis.ASTRIX_PGCR_ENDPOINT==='function')return globalThis.ASTRIX_PGCR_ENDPOINT(instanceId);
+  if(typeof globalThis.FORGE_PGCR_ENDPOINT==='function')return globalThis.FORGE_PGCR_ENDPOINT(instanceId);
   return `${AUTH_ORIGIN}/bungie/pgcr/${encodeURIComponent(instanceId)}`;
 }
 

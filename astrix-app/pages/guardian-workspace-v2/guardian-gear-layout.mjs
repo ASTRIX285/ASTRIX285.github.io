@@ -180,7 +180,7 @@ function initialise() {
   buildGear([]);
 }
 
-document.addEventListener("astrix:guardian-selection-changed", (e) => {
+document.addEventListener("forge:guardian-selection-changed", (e) => {
   if (Array.isArray(e.detail?.armour)) buildGear(e.detail.armour);
 });
 

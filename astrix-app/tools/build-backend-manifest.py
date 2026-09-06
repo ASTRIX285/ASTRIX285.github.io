@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'astrix-manifest-worker/data'
+OUT = ROOT / 'forge-manifest-worker/data'
 LIMIT = 2 * 1024 * 1024
 TYPES = (
     'InventoryItem SandboxPerk Artifact PlugSet Stat SocketCategory EquipableItemSet '

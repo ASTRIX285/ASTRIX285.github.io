@@ -39,8 +39,8 @@ function setStatus(message,state=''){
 }
 
 function loaderProgress(percent,label){
-  globalThis.AstrixLoader?.set?.(percent);
-  globalThis.AstrixLoader?.status?.(label);
+  globalThis.ForgeLoader?.set?.(percent);
+  globalThis.ForgeLoader?.status?.(label);
 }
 
 function characters(){return Object.values(payload?.profile?.characters?.data||{});}
@@ -86,7 +86,7 @@ async function fetchProfile(){
 async function loadVerifiedPayload(){
   loaderProgress(18,'Checking verified Guardian inventory…');
   const cached=await readCachedBungieProfile(session);
-  const shared=globalThis.ASTRIX_HERO_PROFILE_PAYLOAD||(!cached?.profile?await globalThis.ASTRIX_HERO_PROFILE_PROMISE:null);
+  const shared=globalThis.FORGE_HERO_PROFILE_PAYLOAD||(!cached?.profile?await globalThis.FORGE_HERO_PROFILE_PROMISE:null);
   const next=shared?.pageReady?.page==='vault'?shared:cached?.pageReady?.page==='vault'?cached:await fetchProfile();
   if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
   await cacheBungieProfile(session,next);
@@ -351,7 +351,7 @@ function installEvents(){
   document.addEventListener('focusout',event=>{const target=event.target.closest('[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideItemInspect();});
   addEventListener('resize',hideItemInspect,{passive:true});
   addEventListener('scroll',hideItemInspect,{passive:true,capture:true});
-  document.addEventListener('astrix:character-selected',event=>{
+  document.addEventListener('forge:character-selected',event=>{
     resolveActiveCharacter(event.detail?.characterId);
     clearIncompatibleSelection();
     visibleLimit=PAGE_SIZE;
@@ -359,7 +359,7 @@ function installEvents(){
     renderAll();
     setStatus(`${activeCharacterClass.toUpperCase()} inventory active${postmasterStatus()}.`,'good');
   });
-  document.addEventListener('astrix:manifest-progress',event=>loaderProgress(Math.max(24,Number(event.detail?.percent)||24),event.detail?.label||'Preparing Bungie manifest…'));
+  document.addEventListener('forge:manifest-progress',event=>loaderProgress(Math.max(24,Number(event.detail?.percent)||24),event.detail?.label||'Preparing Bungie manifest…'));
 }
 
 async function settleVisibleImages(){
@@ -381,7 +381,7 @@ async function init(){
       byId('vaultConnectionState').textContent='SIGNED OUT';
       byId('vaultHeaderState').textContent='CONNECT BUNGIE';
       setStatus('Connect Bungie to load verified item instances. No inventory totals are estimated.');
-      globalThis.AstrixLoader?.authRequired?.(authStartUrl());
+      globalThis.ForgeLoader?.authRequired?.(authStartUrl());
       return;
     }
     byId('vaultConnectionState').textContent='BUNGIE CONNECTED';
@@ -398,13 +398,13 @@ async function init(){
     const unresolved=catalogue.totals.unresolvedDefinitions;
     setStatus(`${catalogue.totals.ownedArmour} verified armour item${catalogue.totals.ownedArmour===1?'':'s'} loaded${unresolved?` · ${unresolved} item definition${unresolved===1?'':'s'} unresolved`:''}${postmasterStatus()}.`,'good');
     await settleVisibleImages();
-    globalThis.AstrixLoader?.done?.();
+    globalThis.ForgeLoader?.done?.();
   }catch(error){
-    console.error('[ASTRIX Vault]',error);
+    console.error('[Forge Vault]',error);
     byId('vaultConnectionState').textContent='INVENTORY UNAVAILABLE';
     setStatus(error?.message||'Verified Bungie inventory is unavailable.','error');
-    globalThis.AstrixLoader?.status?.(error?.message||'Verified Bungie inventory is unavailable.');
-    globalThis.AstrixLoader?.done?.();
+    globalThis.ForgeLoader?.status?.(error?.message||'Verified Bungie inventory is unavailable.');
+    globalThis.ForgeLoader?.done?.();
   }
 }
 

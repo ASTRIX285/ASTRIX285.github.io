@@ -76,16 +76,16 @@
       image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});
     });
     mountGuardianWorkspace().then(async({root})=>{
-      AstrixLoader.set(94);AstrixLoader.status('Guardian Journey rendered');
+      ForgeLoader.set(94);ForgeLoader.status('Guardian Journey rendered');
       const images=[...root.querySelectorAll('img')];images.forEach(image=>{image.loading='eager';});
       await Promise.all(images.map(settleImage));
-      requestAnimationFrame(()=>requestAnimationFrame(()=>AstrixLoader.done()));
+      requestAnimationFrame(()=>requestAnimationFrame(()=>ForgeLoader.done()));
     }).catch(error => {
       console.error(error);
       const notice = document.querySelector('[data-gw-notice]');
       if (notice) notice.textContent = `Unable to load preview: ${error.message}`;
-      AstrixLoader.status('Guardian Journey state rendered');
-      requestAnimationFrame(()=>requestAnimationFrame(()=>AstrixLoader.done()));
+      ForgeLoader.status('Guardian Journey state rendered');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>ForgeLoader.done()));
     });
   </script>
 </body>

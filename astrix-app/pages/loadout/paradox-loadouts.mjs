@@ -21,7 +21,7 @@ function renderDetail(){
 function render(){
   const list=byId('paradoxLoadoutList'),count=byId('paradoxLoadoutCount');if(count)count.textContent=`${records.length} SAVED`;
   if(list)list.innerHTML=records.length?records.map(record=>`<button type="button" class="paradox-loadout-card${record.id===selectedId?' is-active':''}" data-saved-id="${esc(record.id)}"><span><b>${esc(record.name)}</b><span>${esc(record.summary?.subclass||record.binding.characterClass||'Guardian')} · ${Number(record.summary?.weaponCount||0)} weapons · ${Number(record.summary?.armourCount||0)} armour</span></span><em>R${Number(record.revision||1)}</em></button>`).join(''):'<div class="paradox-loadout-empty"><span><b>NO SAVED PARADOX BUILDS</b>Open Build Forge, edit or generate a Working Build, then choose Save PARADOX.</span></div>';
-  renderDetail();window.AstrixLoader?.set?.(96);window.AstrixLoader?.status?.('Saved loadouts rendered');window.AstrixLoader?.ready?.(document.querySelector('.apx-page-shell'));
+  renderDetail();window.ForgeLoader?.set?.(96);window.ForgeLoader?.status?.('Saved loadouts rendered');window.ForgeLoader?.ready?.(document.querySelector('.apx-page-shell'));
 }
 function selectedRecord(){return records.find(row=>row.id===selectedId)||null;}
 function openRecord(record){

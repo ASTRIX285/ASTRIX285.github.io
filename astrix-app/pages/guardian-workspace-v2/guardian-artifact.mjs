@@ -113,7 +113,7 @@ function emitArtifactSelection(id,stateUnavailable,perks){
   const artifactConfiguration=currentMode==='live'
     ?liveArtifact?.artifactConfiguration||currentArtifactConfiguration||null
     :fixtureConfiguration(id);
-  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{...currentSelectionContext,artifact:id,perks:stateUnavailable?null:perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
+  document.dispatchEvent(new CustomEvent('forge:artifact-selection-changed',{detail:{...currentSelectionContext,artifact:id,perks:stateUnavailable?null:perks,currentFixtureId,artifactConfiguration,state:currentArtifactState,source:currentMode==='live'?'bungie-live-artifact':'paradox-artifact'}}));
 }
 
 function renderArtifactDisplay(){
@@ -235,8 +235,8 @@ async function onSelection(detail={}){
   selected=Array.isArray(view.selectedHashes)?view.selectedHashes:[];currentArtifactConfiguration=view.artifactConfiguration||null;renderArtifactDisplay();wireRow();
 }
 
-document.addEventListener('astrix:guardian-selection-changed',e=>onSelection(e.detail||{}));
-document.addEventListener('astrix:bungie-loadout-loaded',e=>onSelection({...e.detail,source:'bungie-loadout'}));
-document.addEventListener('astrix:beta-fixture-loaded',e=>onSelection(e.detail||{}));
+document.addEventListener('forge:guardian-selection-changed',e=>onSelection(e.detail||{}));
+document.addEventListener('forge:bungie-loadout-loaded',e=>onSelection({...e.detail,source:'bungie-loadout'}));
+document.addEventListener('forge:beta-fixture-loaded',e=>onSelection(e.detail||{}));
 
 (async()=>{installStyles();wireRow();try{await ensureManifest();if(currentMode!=='live')renderArtifactDisplay();}catch(err){console.error('[Paradox artifact]',err);}})();

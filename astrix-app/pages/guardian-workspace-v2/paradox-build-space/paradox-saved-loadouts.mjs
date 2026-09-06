@@ -37,7 +37,7 @@ function compactBuild(source={}){
   delete build.sessionCacheRestored;
   build.source='paradox-saved-loadout';
   build.savedBuildProvenance={
-    provider:'astrix-paradox',
+    provider:'forge-paradox',
     state:'user-saved-working-build',
     selectedEquipment:'exact-instance-ids',
     selectedSockets:'verified-options-or-explicit-in-game-steps'

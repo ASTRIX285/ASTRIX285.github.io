@@ -236,9 +236,9 @@ function armGuardianPortalTransition(){
     sessionStorage.setItem(PORTAL_TRANSITION_KEY,JSON.stringify({armedAt:Date.now(),label}));
   }catch{}
   globalThis.APX_SKIP_PORTAL=false;
-  globalThis.AstrixLoader?.mount?.();
-  globalThis.AstrixLoader?.set?.(0);
-  globalThis.AstrixLoader?.status?.(label);
+  globalThis.ForgeLoader?.mount?.();
+  globalThis.ForgeLoader?.set?.(0);
+  globalThis.ForgeLoader?.status?.(label);
 }
 
 function markGuardianFastReturn(){

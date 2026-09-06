@@ -3,7 +3,7 @@ import {resolveArtifactTwoCatalog} from "./guardian-artifact-catalog.mjs?v=20260
 import {expandForgeArmourIndex} from '../../core/forge-index-transport.mjs';
 import {paradoxDefinitionId} from '../../core/bungie-item-identity.mjs';
 
-const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||"https://auth.astrixparadox.com";
+const AUTH_ORIGIN=globalThis.FORGE_AUTH_ORIGIN||"https://auth.astrixparadox.com";
 const BUNGIE_ORIGIN="https://www.bungie.net";
 const CURRENT_KEY="manifest:current";
 const COMPONENT_TYPES=Object.freeze([
@@ -35,7 +35,7 @@ const definitionHash=(row,key)=>numericHash(row?.hash??row?.bungieHash??key);
 
 function emitProgress(detail){
   if(typeof document==="undefined"||typeof CustomEvent==="undefined")return;
-  document.dispatchEvent(new CustomEvent("astrix:manifest-progress",{detail}));
+  document.dispatchEvent(new CustomEvent("forge:manifest-progress",{detail}));
 }
 
 function requestValue(request){
@@ -592,7 +592,7 @@ class GuardianManifestService{
   }
 }
 
-const sharedKey=Symbol.for('ASTRIX.guardianManifest.20260906-page-payload-1');
+const sharedKey=Symbol.for('FORGE.guardianManifest.20260906-page-payload-1');
 const guardianManifest=globalThis[sharedKey]||(globalThis[sharedKey]=new GuardianManifestService({backend:true,maxFallbackDefinitions:4096}));
 
 export {COMPONENT_TYPES,GuardianManifestService,createIndexedDbStorage,collectPayloadHashes,guardianManifest};

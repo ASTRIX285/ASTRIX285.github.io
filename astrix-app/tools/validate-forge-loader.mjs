@@ -235,7 +235,7 @@ assert.match(runtime,/if\(next\.forgeArmourIndex\)guardianManifest\.applyForgeAr
 assert.match(runtime,/hydratePayload\(next,\{waitForManifest:false,armourOnly:Boolean\(next\.forgeArmourIndex\),includeReusable:true,allowNetwork:false\}\)/,'Owned combinations and their legal armour mod options must hydrate without live definition requests.');
 assert.match(runtime,/Joining private inventory to the prepared armour catalogue/,'The 46 percent join must describe the prepared backend catalogue.');
 assert.doesNotMatch(runtime,/await guardianManifest\.ready\(\)/,'Forge Loader must never return to the 58-percent full-manifest startup gate.');
-assert.match(html,/<header class="apx-destination-header astrix-command-header">[\s\S]*?<strong>FORGE LOADER<\/strong><small>SELECT AND MAXIMISE VERIFIED ARMOUR<\/small>/,'Forge Loader must present its page identity only in the shared compact command header.');
+assert.match(html,/<header class="apx-destination-header forge-command-header">[\s\S]*?<strong>FORGE LOADER<\/strong><small>SELECT AND MAXIMISE VERIFIED ARMOUR<\/small>/,'Forge Loader must present its page identity only in the shared compact command header.');
 assert.doesNotMatch(html,/<div class="apx-page-heading">[\s\S]*?<h1>Forge Loader<\/h1>/,'Forge Loader must not retain the oversized duplicate page hero.');
 assert.match(html,/id="forgeHeroCard"/);
 assert.match(html,/id="forgeExoticSlots"/);

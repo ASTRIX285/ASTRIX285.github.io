@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: astrix-shared-manifest
+  group: forge-shared-manifest
   cancel-in-progress: false
 jobs:
   prepare:
@@ -19,7 +19,7 @@ jobs:
       - name: Restore prepared public definitions
         uses: actions/cache/restore@v4
         with:
-          path: astrix-manifest-worker/data
+          path: forge-manifest-worker/data
           key: backend-manifest-v1-${{ github.run_id }}
           restore-keys: backend-manifest-v1-
       - name: Check Bungie version and prepare changed data
@@ -29,13 +29,13 @@ jobs:
       - name: Retain verified public definitions
         uses: actions/cache/save@v4
         with:
-          path: astrix-manifest-worker/data
+          path: forge-manifest-worker/data
           key: backend-manifest-v1-${{ github.run_id }}
       - name: Deploy prepared definitions
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: astrix-manifest-worker
+          workingDirectory: forge-manifest-worker
           wranglerVersion: 4.114.0
           command: deploy

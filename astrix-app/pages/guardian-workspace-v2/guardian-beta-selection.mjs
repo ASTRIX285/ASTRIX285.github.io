@@ -47,7 +47,7 @@ async function ensureData(){
     artifactHash=Number(curated?.bungieHash??curated?.hash);
     artifactDef=Number.isFinite(artifactHash)?await guardianManifest.getAsync('DestinyArtifactDefinition',artifactHash):null;
   }
-  const api=globalThis.ASTRIXBetaFixtures;
+  const api=globalThis.ForgeBetaFixtures;
   if(api?.list)fixtures=await api.list();
 }
 
@@ -93,7 +93,7 @@ function renderArtifactSelection(){
       return `<span class="artifact-perk" tabindex="0" title="${esc(title)}"><img src="${esc(p.icon)}" alt="${esc(p.name)}"><span class="ph-glyph" style="display:none">◆</span></span>`;
     }).join('');
   }
-  document.dispatchEvent(new CustomEvent('astrix:artifact-selection-changed',{detail:{artifact,perks,source:'beta-tester-selection'}}));
+  document.dispatchEvent(new CustomEvent('forge:artifact-selection-changed',{detail:{artifact,perks,source:'beta-tester-selection'}}));
 }
 
 function openArtifactPicker(){
@@ -142,7 +142,7 @@ function openGuardianPicker(){
   const renderList=cls=>{
     const host=qs('#betaClassLoadouts',wrap);if(!host)return;
     host.innerHTML=grouped[cls].length?grouped[cls].map(f=>`<button type="button" class="beta-loadout-row ${f.fixtureId===currentFixture?'active':''}" data-class-fixture="${f.fixtureId}"><b>${esc(f.displayName)}</b><span>${esc(f.subclassName)} · ${esc(f.element)}</span><small>${esc(f.fixtureId)}</small></button>`).join(''):'<p class="beta-note">No beta fixtures are available for this class yet.</p>';
-    qsa('[data-class-fixture]',host).forEach(btn=>btn.addEventListener('click',async()=>{await globalThis.ASTRIXBetaFixtures.load(btn.dataset.classFixture);wrap.remove()}));
+    qsa('[data-class-fixture]',host).forEach(btn=>btn.addEventListener('click',async()=>{await globalThis.ForgeBetaFixtures.load(btn.dataset.classFixture);wrap.remove()}));
   };
   qsa('[data-guardian-class]',wrap).forEach(btn=>btn.addEventListener('click',()=>{
     const cls=btn.dataset.guardianClass;qsa('[data-guardian-class]',wrap).forEach(x=>x.classList.toggle('active',x===btn));renderList(cls);
@@ -172,7 +172,7 @@ function installInteractions(){
   const char=qs('.char-switch');if(char){char.style.cursor='pointer';char.addEventListener('click',e=>{if(e.target.closest('select'))return;openGuardianPicker()})}
   const art=qs('.artifact-row');if(art){art.tabIndex=0;art.setAttribute('role','button');art.setAttribute('aria-label','Configure Artifact beta loadout');art.addEventListener('click',openArtifactPicker);art.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openArtifactPicker()}})}
   window.addEventListener('resize',syncBottomHeight);
-  document.addEventListener('astrix:guardian-selection-changed',e=>{
+  document.addEventListener('forge:guardian-selection-changed',e=>{
     currentFixture=e.detail?.fixtureId??currentFixture;
     const cls=String(e.detail?.className??e.detail?.characterClass??currentClass).toLowerCase();
     updateClassRender(cls);setTimeout(()=>{const s=qs('#astrixBetaFixtureSelect');if(s)s.style.pointerEvents='none';syncBottomHeight()},40);

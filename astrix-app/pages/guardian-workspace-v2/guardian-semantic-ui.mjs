@@ -150,8 +150,8 @@ function renderWeapons(weapons=[]){
     const item=weapons[index];
     if(!item)return;
     card.classList.add("semantic-live");
-    if(!card.dataset.weaponDetailBound){card.dataset.weaponDetailBound="true";card.tabIndex=0;card.setAttribute("role","button");card.addEventListener("click",()=>{const current=card._astrixWeapon;if(current)openWeaponDetail(current);});card.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&card._astrixWeapon){event.preventDefault();openWeaponDetail(card._astrixWeapon);}});}
-    card._astrixWeapon=item;
+    if(!card.dataset.weaponDetailBound){card.dataset.weaponDetailBound="true";card.tabIndex=0;card.setAttribute("role","button");card.addEventListener("click",()=>{const current=card._forgeWeapon;if(current)openWeaponDetail(current);});card.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&card._forgeWeapon){event.preventDefault();openWeaponDetail(card._forgeWeapon);}});}
+    card._forgeWeapon=item;
     const art=card.querySelector(".art");
     const icon=bungieIcon(item.icon);
     const rank=weaponMasterworkRank(item);
@@ -229,7 +229,7 @@ function render(detail){
   });
 }
 
-document.addEventListener("astrix:guardian-selection-changed",event=>render(event.detail));
+document.addEventListener("forge:guardian-selection-changed",event=>render(event.detail));
 ensureStyle();
 
 export {render,renderWeapons,openWeaponDetail,weaponPerkMatrixMarkup,weaponTraitHierarchyMarkup};

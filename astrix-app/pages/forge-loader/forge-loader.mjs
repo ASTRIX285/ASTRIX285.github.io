@@ -33,7 +33,7 @@ let upgradeRenderSequence=0;
 const selectedSlots=new Map();
 const setUpgradeTargetCache=new Map();
 
-function loaderProgress(percent,label){globalThis.AstrixLoader?.set?.(percent);globalThis.AstrixLoader?.status?.(label);}
+function loaderProgress(percent,label){globalThis.ForgeLoader?.set?.(percent);globalThis.ForgeLoader?.status?.(label);}
 function characters(){return Object.values(payload?.profile?.characters?.data||{});}
 function selectedCharacter(){return characters().find(character=>text(character.characterId)===activeCharacterId)||null;}
 function mostRecentCharacter(){return characters().sort((left,right)=>text(right?.dateLastPlayed).localeCompare(text(left?.dateLastPlayed)))[0]||null;}
@@ -58,7 +58,7 @@ function membershipBinding(){
 
 async function loadVerifiedPayload(){
   loaderProgress(18,'Checking verified Guardian armour…');
-  const shared=globalThis.ASTRIX_FORGE_LOADER_PRELOAD_PAYLOAD||globalThis.ASTRIX_HERO_PROFILE_PAYLOAD||await globalThis.ASTRIX_HERO_PROFILE_PROMISE;
+  const shared=globalThis.FORGE_LOADER_PRELOAD_PAYLOAD||globalThis.FORGE_HERO_PROFILE_PAYLOAD||await globalThis.FORGE_HERO_PROFILE_PROMISE;
   const next=await preloadForgeLoaderPayload(session,{sharedPayload:shared});
   if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
   if(next.forgeArmourIndex)guardianManifest.applyForgeArmourIndex(next,next.forgeArmourIndex);
@@ -406,7 +406,7 @@ async function evaluateInBuildForge(){
     const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260906-page-payload-1');
     profileBuild=normaliseLiveProfile(payload,session,activeCharacterId);
   }catch(error){
-    console.error('[ASTRIX Forge Loader] The protected Guardian baseline could not be prepared.',error);
+    console.error('[Forge Loader] The protected Guardian baseline could not be prepared.',error);
   }
   if(!profileBuild){byId('forgeRuntimeStatus').textContent='Build Forge could not resolve the equipped Guardian baseline. No build was changed.';return;}
   const snapshotEnvelope=createForgeLoaderBuildSnapshot(profileBuild,binding);
@@ -426,7 +426,7 @@ async function evaluateInBuildForge(){
   if(!selectionStored){byId('forgeRuntimeStatus').textContent='The protected staged load could not be stored on this device. No build was changed.';return;}
   if(!baselineStored&&!transferStored){
     byId('forgeRuntimeStatus').textContent='Browser storage is full. Build Forge will recover the protected Original Build directly from Bungie.';
-    console.warn('[ASTRIX Forge Loader] Browser storage rejected the protected baseline; Build Forge will recover it from the authenticated Bungie profile.');
+    console.warn('[Forge Loader] Browser storage rejected the protected baseline; Build Forge will recover it from the authenticated Bungie profile.');
   }
   const url=new URL('../guardian-workspace-v2/paradox-build-space/',location.href);url.searchParams.set('vault','selection');
   if(!baselineStored&&!transferStored)url.searchParams.set('baseline','bungie-recovery');
@@ -455,8 +455,8 @@ function installEvents(){
   document.addEventListener('focusin',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target)showInspect(target);});
   document.addEventListener('focusout',event=>{const target=event.target.closest('[data-inspect-exotic-key],[data-inspect-item]');if(target&&!target.contains(event.relatedTarget))hideInspect();});
   addEventListener('resize',hideInspect,{passive:true});addEventListener('scroll',hideInspect,{passive:true,capture:true});
-  document.addEventListener('astrix:character-selected',event=>{resolveActiveCharacter(event.detail?.characterId);selectedExoticKey='';setSelections=[];resetResults();renderHero();renderExotics();renderSetBonuses();configureStats({reset:true});byId('forgeRuntimeStatus').textContent=`${classLabel()} active. Select an owned Exotic.`;});
-  document.addEventListener('astrix:manifest-progress',event=>loaderProgress(Math.max(24,Number(event.detail?.percent)||24),event.detail?.label||'Preparing Bungie manifest…'));
+  document.addEventListener('forge:character-selected',event=>{resolveActiveCharacter(event.detail?.characterId);selectedExoticKey='';setSelections=[];resetResults();renderHero();renderExotics();renderSetBonuses();configureStats({reset:true});byId('forgeRuntimeStatus').textContent=`${classLabel()} active. Select an owned Exotic.`;});
+  document.addEventListener('forge:manifest-progress',event=>loaderProgress(Math.max(24,Number(event.detail?.percent)||24),event.detail?.label||'Preparing Bungie manifest…'));
 }
 
 async function settleVisibleImages(){
@@ -469,13 +469,13 @@ async function init(){
   installEvents();byId('forgeConnectButton').href=authStartUrl();renderStaged();
   try{
     session=await getBungieSession();
-    if(session?.authenticated!==true){byId('forgeSignedOut').hidden=false;byId('forgeConnectionState').textContent='SIGNED OUT';byId('forgeHeaderState').textContent='CONNECT BUNGIE';globalThis.AstrixLoader?.authRequired?.(authStartUrl());return;}
+    if(session?.authenticated!==true){byId('forgeSignedOut').hidden=false;byId('forgeConnectionState').textContent='SIGNED OUT';byId('forgeHeaderState').textContent='CONNECT BUNGIE';globalThis.ForgeLoader?.authRequired?.(authStartUrl());return;}
     byId('forgeConnectionState').textContent='BUNGIE CONNECTED';payload=await loadVerifiedPayload();
     loaderProgress(78,'Building verified Forge Loader inventory…');catalogue=createVaultCatalogue(payload);resolveActiveCharacter(activeCharacterId);
     renderHero();renderExotics();renderSetBonuses();configureStats({reset:true});
     const groups=exoticGroups(),ownedCount=groups.filter(group=>group.owned).length;byId('forgeRuntimeStatus').textContent=ownedCount?`${ownedCount} owned of ${groups.length} verified ${classLabel()} Exotic definition${groups.length===1?'':'s'}. Select an owned piece to begin.`:`${groups.length} verified ${classLabel()} Exotic definition${groups.length===1?'':'s'} shown; no owned instance can be selected.`;
-    loaderProgress(92,'Rendering Forge Loader selector…');await settleVisibleImages();globalThis.AstrixLoader?.done?.();
-  }catch(error){console.error('[ASTRIX Forge Loader]',error);byId('forgeConnectionState').textContent='ARMOUR UNAVAILABLE';byId('forgeRuntimeStatus').textContent=error?.message||'Verified Bungie armour is unavailable.';globalThis.AstrixLoader?.done?.();}
+    loaderProgress(92,'Rendering Forge Loader selector…');await settleVisibleImages();globalThis.ForgeLoader?.done?.();
+  }catch(error){console.error('[Forge Loader]',error);byId('forgeConnectionState').textContent='ARMOUR UNAVAILABLE';byId('forgeRuntimeStatus').textContent=error?.message||'Verified Bungie armour is unavailable.';globalThis.ForgeLoader?.done?.();}
 }
 
 init();
