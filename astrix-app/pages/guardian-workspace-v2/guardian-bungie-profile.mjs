@@ -8,7 +8,7 @@ import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
 import {mergeSubclassCatalog} from "./guardian-super-catalog.mjs?v=20260829-subclass-identity-1";
 import {paradoxDefinitionId,resolveItemWatermark,weaponTypeIdentity} from '../../core/bungie-item-identity.mjs';
 import {characterPlugSetsForItem} from '../../core/bungie-profile-plugs.mjs';
-import {assertPreparedPagePayload} from '../../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
+import {assertRenderablePagePayload} from '../../core/page-ready-contract.mjs?v=20260906-page-data-recovery-1';
 import {
   cacheBungieProfile,
   readCachedBungieProfile,
@@ -826,7 +826,7 @@ async function loadSelectedLoadout(selection){
 }
 
 async function activateLiveProfile(payload,session,{fromCache=false}={}){
-  assertPreparedPagePayload(payload,currentPagePayloadKind());
+  assertRenderablePagePayload(payload,currentPagePayloadKind());
   globalThis.FORGE_PAGE_PAYLOAD=payload;
   if(!preparedPagePayloadResolved){preparedPagePayloadResolved=true;resolvePreparedPagePayload(payload);}
   liveProfilePayload=payload;
@@ -870,7 +870,7 @@ async function loadLiveProfile(session,{background=false}={}){
   }
   const profileUrl=await preparedPageRequestUrl();
   const profilePayload=await fetchJsonWithTimeout(profileUrl);
-  assertPreparedPagePayload(profilePayload,currentPagePayloadKind());
+  assertRenderablePagePayload(profilePayload,currentPagePayloadKind());
   document.dispatchEvent(new CustomEvent("forge:guardian-profile-progress",{detail:{percent:64,label:"Bungie profile received"}}));
   document.dispatchEvent(new CustomEvent("forge:guardian-profile-progress",{detail:{percent:68,label:"Resolving equipped Guardian definitions"}}));
   const payload=await hydrateManifestPayload(profilePayload,INITIAL_PROFILE_HYDRATION);
@@ -936,7 +936,7 @@ function ensureLiveProfile(session,{background=false,silent=false}={}){
   liveProfileRequest=(async()=>{
     const cachedPayload=await readCachedBungieProfile(session,currentPagePayloadKind());
     if(cachedPayload?.profile){
-      try{assertPreparedPagePayload(cachedPayload,currentPagePayloadKind());await activateLiveProfile(await hydrateManifestPayload(cachedPayload,INITIAL_PROFILE_HYDRATION),session,{fromCache:true});}
+      try{assertRenderablePagePayload(cachedPayload,currentPagePayloadKind());await activateLiveProfile(await hydrateManifestPayload(cachedPayload,INITIAL_PROFILE_HYDRATION),session,{fromCache:true});}
       catch(error){console.warn("[Forge Bungie profile] cached live profile could not render; requesting a fresh profile",error);}
     }
     return loadLiveProfile(session,{background});

@@ -47,4 +47,20 @@ function assertPreparedPagePayload(payload,page){
   return payload;
 }
 
-export {GUARDIAN_STAT_HASHES,PAGE_PROFILE_DATA,PAGE_VIEWS,assertPreparedPagePayload,pagePayloadCoverage};
+function renderablePagePayloadCoverage(payload,page){
+  const missing=[];
+  if(payload?.pageReady?.page!==page)missing.push(`page:${page}`);
+  if(!payload?.pageReady?.manifestVersion)missing.push('manifest-version');
+  if(payload?.pageReady?.definitionSource!=='prepared-bulk-manifest')missing.push('prepared-definition-source');
+  if(!payload?.profile||typeof payload.profile!=='object')missing.push('profile');
+  if(!payload?.profile?.characters?.data||typeof payload.profile.characters.data!=='object')missing.push('profile:characters.data');
+  return {page,missing,complete:missing.length===0};
+}
+
+function assertRenderablePagePayload(payload,page){
+  const coverage=renderablePagePayloadCoverage(payload,page);
+  if(!coverage.complete)throw new Error(`Prepared ${page} data cannot render: ${coverage.missing.join(', ')}`);
+  return payload;
+}
+
+export {GUARDIAN_STAT_HASHES,PAGE_PROFILE_DATA,PAGE_VIEWS,assertPreparedPagePayload,assertRenderablePagePayload,pagePayloadCoverage,renderablePagePayloadCoverage};

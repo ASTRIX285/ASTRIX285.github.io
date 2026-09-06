@@ -8,7 +8,7 @@ import {readCapture,readCaptureArchive} from '../guardian-workspace-v2/guardian-
 import {buildMissionReportView,normaliseActivityHistory} from '../mission-reports/mission-reports-data.mjs?v=20260906-all-page-data-1';
 import {initLocationSelector} from '../../shared/astrix-location-selector.mjs';
 import {initJourneyLocationMaps,publishJourneyDestinationData,publishJourneyRegionChestProgress} from './journey-location-maps.mjs?v=20260905-journey-repair-1';
-import {assertPreparedPagePayload} from '../../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
+import {assertRenderablePagePayload} from '../../core/page-ready-contract.mjs?v=20260906-page-data-recovery-1';
 
 const resolving=document.getElementById('journeyResolving');
 const signedOut=document.getElementById('journeySignedOut');
@@ -2224,13 +2224,13 @@ function hasJourneyRecordComponents(payload){
 async function readVerifiedProfile(session){
   const cached=await readCachedBungieProfile(session,'journey');
   if(cached?.profile?.characters?.data&&hasJourneyRecordComponents(cached)&&cached?.pageReady?.page==='journey'){
-    assertPreparedPagePayload(cached,'journey');
+    assertRenderablePagePayload(cached,'journey');
     guardianManifest.prime(cached);
     return cached;
   }
   const sharedProfile=await waitWithin(globalThis.FORGE_HERO_PROFILE_PROMISE,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS);
   if(sharedProfile?.profile?.characters?.data){
-    assertPreparedPagePayload(sharedProfile,'journey');
+    assertRenderablePagePayload(sharedProfile,'journey');
     guardianManifest.prime(sharedProfile);
     await cacheBungieProfile(session,sharedProfile,'journey');
     return sharedProfile;
@@ -2253,7 +2253,7 @@ async function fetchJourneyProfileRefresh(){
     const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
     const payload=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(payload?.error||`Journey refresh failed (${response.status}).`);
-    assertPreparedPagePayload(payload,'journey');
+    assertRenderablePagePayload(payload,'journey');
     guardianManifest.prime(payload);
     await cacheBungieProfile(journeySession,payload,'journey');
     markPreparedPageCheckSuccess(journeySession,'journey');

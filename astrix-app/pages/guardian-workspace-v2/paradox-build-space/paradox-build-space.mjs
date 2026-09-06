@@ -14,7 +14,7 @@ import {mergeSubclassCatalog,mergeSuperOptions} from '../guardian-super-catalog.
 import {markGuardianFastReturn,readForgeLoaderTransfer,cacheBuildForgeState,readBuildForgeState} from '../guardian-session-cache.mjs?v=20260906-all-page-data-1';
 import {guardianManifest} from '../guardian-manifest-service.mjs?v=20260906-all-page-data-1';
 import {getBungieSession} from '../guardian-bungie-auth.mjs?v=20260905-manual-editor-1';
-import {assertPreparedPagePayload} from '../../../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
+import {assertRenderablePagePayload} from '../../../core/page-ready-contract.mjs?v=20260906-page-data-recovery-1';
 import {HANDOFF_SCHEMA,bindingOf,bindingsEqual,shouldReplaceBuildState,repairMissingBuildBinding,validateHandoffEnvelope} from '../paradox-build-binding.mjs?v=20260905-worker-preflight-1';
 import {applyVaultArmourSelection,clearVaultArmourSelection,readVaultArmourSelection,validateVaultArmourSelection} from '../../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs?v=20260904-cross-system-loop-1';
@@ -26,7 +26,7 @@ import {saveParadoxLoadout} from './paradox-saved-loadouts.mjs?v=20260905-manual
 import {createVaultCatalogue,prepareArmourSelection} from '../../vault/vault-inventory.mjs?v=20260905-manual-editor-1';
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3&loader=2';
 import '../guardian-loadouts.mjs?v=20260905-loadout-actions-1';
-import {normaliseLiveProfile} from '../guardian-bungie-profile.mjs?v=20260906-all-page-data-1';
+import {normaliseLiveProfile} from '../guardian-bungie-profile.mjs?v=20260906-page-data-recovery-1';
 import '../guardian-portal-progress.mjs?v=20260906-all-page-data-1&loader=2';
 import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
@@ -171,7 +171,7 @@ async function loadManualInventory(build={}){
   if(manualInventoryRequest?.key===key)return manualInventoryRequest.promise;
   const promise=(async()=>{
     await guardianManifest.ready();
-    const payload=assertPreparedPagePayload(globalThis.FORGE_PAGE_PAYLOAD||await globalThis.FORGE_PAGE_PAYLOAD_PROMISE,'build-forge');
+    const payload=assertRenderablePagePayload(globalThis.FORGE_PAGE_PAYLOAD||await globalThis.FORGE_PAGE_PAYLOAD_PROMISE,'build-forge');
     await guardianManifest.hydratePayload(payload,{allowNetwork:false});
     const session=globalThis.FORGE_BUNGIE_SESSION||await getBungieSession(),normalized=normaliseLiveProfile(payload,session,build.characterId),vault=createVaultCatalogue(payload);
     const unique=(rows,current)=>{const map=new Map();for(const item of [...(rows||[]),...(current||[])])if(manualItemId(item))map.set(manualItemId(item),item);return [...map.values()];};

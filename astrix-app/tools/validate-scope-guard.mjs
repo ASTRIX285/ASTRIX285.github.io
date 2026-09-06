@@ -13,6 +13,7 @@ const allowed=new Set([
   'astrix-app/tools/test-backend-data.mjs',
   'astrix-app/tools/validate-prepared-page-refresh.mjs',
   'astrix-app/tools/validate-page-ready-performance.mjs',
+  'astrix-app/tools/validate-renderable-page-data.mjs',
   'forge-auth-worker/src/profile-sections.ts',
   'forge-auth-worker/src/profile-snapshot-cache.ts',
   'forge-manifest-worker/.gitignore',

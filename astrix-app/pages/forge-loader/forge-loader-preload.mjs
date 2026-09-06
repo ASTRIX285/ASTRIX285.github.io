@@ -1,6 +1,6 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260906-tool-intro-1';
 import {cacheBungieProfile,markPreparedPageCheckSuccess,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-page-refresh-1';
-import {assertPreparedPagePayload} from '../../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
+import {assertRenderablePagePayload} from '../../core/page-ready-contract.mjs?v=20260906-page-data-recovery-1';
 
 const PAGE_PATH='/astrix-app/pages/forge-loader/';
 let pageRequest=null;
@@ -26,7 +26,7 @@ async function requestPreparedPayload(){
     });
     const payload=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(payload?.error||`Bungie inventory request failed (${response.status}).`);
-    assertPreparedPagePayload(payload,'loadout');
+    assertRenderablePagePayload(payload,'loadout');
     return payload;
   }catch(error){
     if(error?.name==='AbortError')throw new Error('Bungie inventory request timed out. Refresh or reconnect Bungie.');
@@ -39,9 +39,9 @@ async function requestPreparedPayload(){
 async function preloadForgeLoaderPayload(session,{force=false,sharedPayload=null}={}){
   if(session?.authenticated!==true)return null;
   if(!force){
-    if(sharedPayload?.pageReady?.page==='loadout'&&sharedPayload?.profile)return assertPreparedPagePayload(sharedPayload,'loadout');
+    if(sharedPayload?.pageReady?.page==='loadout'&&sharedPayload?.profile)return assertRenderablePagePayload(sharedPayload,'loadout');
     const cached=await readCachedBungieProfile(session,'loadout');
-    if(cached?.pageReady?.page==='loadout'&&cached?.profile)return assertPreparedPagePayload(cached,'loadout');
+    if(cached?.pageReady?.page==='loadout'&&cached?.profile)return assertRenderablePagePayload(cached,'loadout');
     if(pageRequest)return pageRequest;
   }
   pageRequest=(async()=>{

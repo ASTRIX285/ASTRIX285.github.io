@@ -6,7 +6,7 @@ import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,arm
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {compatibleWithClass,createOpenProtocolTieBreaker,exoticCatalogueGroups,naturalSetProtocols,rankOpenProtocolCandidates,setBonusOptions,toggleSetSelection,unownedSetTargets} from './forge-loader-model.mjs?v=20260904-top-50-scan-1';
 import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-memory-safe-transfer-1';
-import {preloadForgeLoaderPayload} from './forge-loader-preload.mjs?v=20260906-page-refresh-1';
+import {preloadForgeLoaderPayload} from './forge-loader-preload.mjs?v=20260906-page-data-recovery-1';
 
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -404,7 +404,7 @@ async function evaluateInBuildForge(){
   byId('forgeRuntimeStatus').textContent='Protecting the verified equipped Guardian before Build Forge opens…';
   let profileBuild=null;
   try{
-    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260906-all-page-data-1');
+    const {normaliseLiveProfile}=await import('../guardian-workspace-v2/guardian-bungie-profile.mjs?v=20260906-page-data-recovery-1');
     profileBuild=normaliseLiveProfile(payload,session,activeCharacterId);
   }catch(error){
     console.error('[Forge Loader] The protected Guardian baseline could not be prepared.',error);

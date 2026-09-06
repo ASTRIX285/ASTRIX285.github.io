@@ -5,7 +5,7 @@ import {bindPreparedPageRefreshControl,cacheBungieProfile,createPreparedPageRefr
 import {ARMOUR_BUCKETS,createVaultCatalogue,filterVaultArmour,itemKey,prepareArmourSelection} from './vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds,statKey} from './vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from './vault-selection-state.mjs';
-import {assertPreparedPagePayload} from '../../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
+import {assertRenderablePagePayload} from '../../core/page-ready-contract.mjs?v=20260906-page-data-recovery-1';
 
 const PAGE_SIZE=48;
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -79,7 +79,7 @@ async function fetchProfile(){
   const timer=setTimeout(()=>controller.abort(),60000);
   try{
     const payload=await fetchDisplayProfile(url,{signal:controller.signal});
-    assertPreparedPagePayload(payload,'vault');
+    assertRenderablePagePayload(payload,'vault');
     await cacheBungieProfile(session,payload,'vault');
     markPreparedPageCheckSuccess(session,'vault');
     return payload;
@@ -95,7 +95,7 @@ async function loadVerifiedPayload(){
   const shared=globalThis.FORGE_HERO_PROFILE_PAYLOAD||(!cached?.profile?await globalThis.FORGE_HERO_PROFILE_PROMISE:null);
   const next=shared?.pageReady?.page==='vault'?shared:cached?.pageReady?.page==='vault'?cached:await fetchProfile();
   if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
-  assertPreparedPagePayload(next,'vault');
+  assertRenderablePagePayload(next,'vault');
   await cacheBungieProfile(session,next,'vault');
   loaderProgress(46,'Joining private inventory to prepared definitions…');
   await guardianManifest.hydratePayload(next,{waitForManifest:false,includeReusable:true,allowNetwork:false});
@@ -315,7 +315,7 @@ function reconcileSelectedVaultItems(){
 }
 
 async function applyVaultRefresh(next,{reason='poll'}={}){
-  assertPreparedPagePayload(next,'vault');
+  assertRenderablePagePayload(next,'vault');
   await guardianManifest.hydratePayload(next,{waitForManifest:false,includeReusable:true,allowNetwork:false});
   const classFilter=byId('vaultClassFilter')?.value||'all';
   payload=next;
