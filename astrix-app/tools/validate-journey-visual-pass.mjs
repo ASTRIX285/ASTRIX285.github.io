@@ -39,10 +39,11 @@ const placeholderDetailMap=readFileSync(`${root}astrix-app/pages/journey/assets/
 
 assert.ok(html.includes('class="apx-destination-page journey-page"'),'Journey must own its large-screen visual scope');
 assert.ok(html.includes('href="./journey-2560-visual.css?v=20260903-command-header-1"'),'Journey must load the shared command-header cleanup without stale page CSS');
-assert.ok(html.includes('src="./journey.mjs?v=20260906-all-page-data-1"'),'Journey must load the prepared page payload runtime');
+assert.ok(html.includes('src="./journey.mjs?v=20260906-page-refresh-1"'),'Journey must load the prepared page payload runtime');
 assert.match(journey,/const manifestReady=Promise\.resolve\(guardianManifest\)/,'Journey startup must not download the heavyweight Character and Build equipment manifest');
 assert.doesNotMatch(journey,/const manifestReady=guardianManifest\.ready\(\)/,'Journey must keep the full equipment manifest off its critical loading path');
-assert.match(heroModule,/IS_JOURNEY_PAGE[\s\S]*?FORGE_HERO_PROFILE_PROMISE[\s\S]*?function heroProfileUrl\(\)[\s\S]*?'journey'[\s\S]*?\/bungie\/page\/\$\{page\}/,'Journey hero cards must expose and reuse their prepared authenticated page request');
+assert.match(heroModule,/IS_JOURNEY_PAGE[\s\S]*?FORGE_HERO_PROFILE_PROMISE/,'Journey hero cards must expose their prepared authenticated page request');
+assert.match(heroModule,/function heroProfileUrl\(\)[\s\S]*?\/bungie\/page\/\$\{heroProfilePage\(\)\}[\s\S]*?function heroProfilePage\(\)[\s\S]*?'journey'/,'Journey hero cards must resolve the prepared Journey route from the shared page selector');
 assert.match(journey,/waitWithin\(globalThis\.FORGE_HERO_PROFILE_PROMISE,JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS\)/,'Journey must reuse the hero-card profile instead of issuing a second blocking profile request');
 assert.doesNotMatch(journey,/import\('\.\.\/guardian-workspace-v2\/guardian-bungie-profile\.mjs/,'Journey must not import the heavyweight Character profile resolver');
 assert.doesNotMatch(journey,/guardianManifest\.hydratePayload\(payload\)/,'Journey refresh must not hydrate every vault and equipment definition before showing Triumph data');
@@ -110,8 +111,8 @@ assert.match(journey,/if\(postmasterMax>=18\)[\s\S]*?POSTMASTER NEAR CAPACITY/,'
 assert.match(css,/\.journey-page \.journey-vault-summary\{[\s\S]*?linear-gradient[\s\S]*?\.journey-page \.journey-vault-breakdown\{[\s\S]*?grid-template-columns/,'Vault inventory must use a distinctive crimson-and-gold split-card treatment');
 assert.match(journey,/function createRankBadge[\s\S]*?journey-rank-badge[\s\S]*?renderGuardianRankSummary[\s\S]*?createRankBadge\(rank/,'Guardian Rank summaries must use the custom crimson-and-gold number medallion');
 assert.match(css,/\.journey-page \.journey-rank-badge\{[\s\S]*?background:radial-gradient[\s\S]*?\.journey-page \.journey-rank-badge strong\{[\s\S]*?color:#b51222/,'Rank medallions must use the requested gold/crimson background and crimson number');
-assert.match(journey,/if\(!lateProfile\?\.profile\?\.characters\?\.data\)\{void refreshJourneyProfile\(\);return;\}/,'Journey must retry its lightweight profile feed when the deferred initial profile returns empty');
-assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260906-all-page-data-1"'),'Journey must load the shared prepared-profile hero-card renderer');
+assert.match(journey,/if\(!lateProfile\?\.profile\?\.characters\?\.data\)\{void refreshJourneyProfile\(\)\.catch/,'Journey must retry its lightweight profile feed when the deferred initial profile returns empty');
+assert.ok(html.includes('src="../../shared/astrix-hero-cards.mjs?v=20260906-page-refresh-1"'),'Journey must load the shared prepared-profile hero-card renderer');
 assert.ok(html.indexOf('journey-2560-visual.css')<html.indexOf('astrix-desktop-density.css'),'Shared desktop density must remain the final stylesheet');
 assert.ok(html.includes('data-forge-destination-ribbon data-active-destination="journey"'),'Journey must retain the shared six-page ribbon mount');
 assert.doesNotMatch(html,/journeyDestinations|apx-destination-links|apx-destination-link/,'Journey must not duplicate the shared ribbon at the bottom of the page');
@@ -130,9 +131,9 @@ for(const id of [
 assert.equal((html.match(/class="apx-scaffold-card(?:\s[^"]*)?"/g)??[]).length,10,'Journey must retain all ten Guardian data regions');
 assert.doesNotMatch(html,/id="journeyOverview"|MILESTONE RECORD|id="journeyMilestoneTimeline"/,'Journey must not duplicate the Mission Reports milestone record');
 assert.doesNotMatch(journey,/new URL\('\/bungie\/activity-history',AUTH_ORIGIN\)/,'Journey must not issue a follow up activity history request');
-assert.match(journey,/function fetchJourneyActivityEvidence[\s\S]*?cached\?\.promise[\s\S]*?Date\.now\(\)-cached\.fetchedAt<JOURNEY_BACKGROUND_REFRESH_MS[\s\S]*?preparedAccountData\?\.activityHistoryByCharacter[\s\S]*?normaliseActivityHistory\(prepared\)[\s\S]*?buildMissionReportView\(activities\)/,'Journey must normalize the prepared activity evidence once and cache its shared view model');
+assert.match(journey,/function fetchJourneyActivityEvidence[\s\S]*?cached\?\.status==='ok'[\s\S]*?Date\.now\(\)-cached\.fetchedAt<PREPARED_PAGE_REFRESH_MS[\s\S]*?preparedAccountData\?\.activityHistoryByCharacter[\s\S]*?normaliseActivityHistory\(prepared\)[\s\S]*?buildMissionReportView\(activities\)/,'Journey must normalize the prepared activity evidence once and cache its shared view model');
 assert.match(journey,/function renderJourneyActivityEvidence[\s\S]*?renderRecentActivity\(activities\)[\s\S]*?renderCurrentForm\(view\)[\s\S]*?renderEvidenceConfidence\(view\?\.confidence\|\|null\)[\s\S]*?renderMissionHighlights\(activities,view\)[\s\S]*?renderMostUsed\(activities\)/,'Recent Activity, Current Form, confidence, Mission highlights and build usage must share one evidence model');
-assert.match(journey,/await bindJourneyActivityEvidence\(journeySession,\{force:true\}\)/,'The silent five-minute refresh must also update activity-backed Journey summaries');
+assert.match(journey,/await bindJourneyActivityEvidence\(journeySession,\{force:true\}\)/,'The silent ten-minute refresh must also update activity-backed Journey summaries');
 assert.match(html,/id="journeyConfidenceDonutValue"[\s\S]*?id="journeyConfidenceHighPercent"[\s\S]*?id="journeyConfidenceHigh"[\s\S]*?id="journeyConfidenceMedium"[\s\S]*?id="journeyConfidenceLow"/,'Evidence Confidence must expose live activity-backed display mounts');
 assert.match(journey,/function renderEvidenceConfidence[\s\S]*?confidence\.highPercent[\s\S]*?confidence\.mediumPercent[\s\S]*?confidence\.lowPercent/,'Evidence Confidence must render only calculated live-source coverage');
 assert.match(journey,/const BUILD_SPACE_KEY='astrix:paradox-build-space:v1';[\s\S]*?const BUILD_SNAPSHOT_KEY='astrix:guardian-build-snapshot:v1';[\s\S]*?const LAST_LOADOUT_KEY='astrix:paradox-last-bungie-loadout:v1';/,'Journey must recognize every existing Build Forge handoff source');
@@ -148,8 +149,9 @@ for(const page of globalHeroPages){
   assert.ok(page.includes('astrix-hero-cards.css?v=20260904-mobile-crosscheck-1'),'Every destination page must load the current centred, mobile-contained command-header presentation');
   assert.equal((page.match(/forge-command-header/g)??[]).length,1,'Every destination page must contain exactly one shared command header');
 }
-assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260906-all-page-data-1'))).length,4,'Journey, Vault, Forge Loader and Loadout must load the same prepared profile Guardian renderer');
-assert.ok(forgeLoaderHtml.includes('astrix-hero-cards.mjs?v=20260906-all-page-data-1'),'Forge Loader must load the complete prepared profile renderer');
+assert.equal((globalHeroPages.filter(page=>page.includes('astrix-hero-cards.mjs?v=20260906-page-refresh-1'))).length,3,'Journey, Vault and Forge Loader must load the persistent refresh Guardian renderer');
+assert.ok(loadoutHtml.includes('astrix-hero-cards.mjs?v=20260906-all-page-data-1'),'Loadout must retain its current prepared profile renderer');
+assert.ok(forgeLoaderHtml.includes('astrix-hero-cards.mjs?v=20260906-page-refresh-1'),'Forge Loader must load the persistent refresh Guardian renderer');
 assert.ok(characterHtml.includes('guardian-workspace-v2.mjs?v=20260906-all-page-data-1'),'Character must load the prepared page payload module graph');
 assert.ok(buildForgeHtml.includes('paradox-build-space.mjs?v=20260906-all-page-data-1'),'Build Forge must load the prepared page payload module graph');
 assert.ok(missionReportsHtml.includes('mission-reports.mjs?v=20260906-page-payload-1'),'Mission Reports must load the prepared page payload module graph');
@@ -188,7 +190,7 @@ assert.match(vaultHtml,/<span class="apx-visually-hidden" id="vaultConnectionSta
 assert.doesNotMatch(loadoutHtml,/<div class="apx-page-heading">[\s\S]*?<h1>Loadout<\/h1>/,'Loadout must not repeat its page identity below the shared command header');
 assert.doesNotMatch(characterHtml,/class="top-icons"/,'Character must leave only the Bungie account control in the header action position');
 assert.doesNotMatch(missionReportsHtml,/mission-utility-actions/,'Mission Reports must leave only the Bungie account control in the header action position');
-assert.match(heroModule,/function heroProfileUrl\(\)[\s\S]*?new URL\(`\/bungie\/page\/\$\{page\}`,AUTH_ORIGIN\)[\s\S]*?fetchJson\(heroProfileUrl\(\)\)/,'Shared hero cards must use the dedicated confidential prepared page endpoint');
+assert.match(heroModule,/function heroProfileUrl\(\)[\s\S]*?new URL\(`\/bungie\/page\/\$\{heroProfilePage\(\)\}`,AUTH_ORIGIN\)[\s\S]*?fetchJson\(heroProfileUrl\(\)\)/,'Shared hero cards must use the dedicated confidential prepared page endpoint');
 assert.match(heroModule,/function mostRecentCharacterId\(characters\)[\s\S]*?dateLastPlayed[\s\S]*?const selectedId=mostRecentCharacterId\(characters\)/,'Shared hero cards must automatically select Bungie’s newest dateLastPlayed Guardian');
 assert.doesNotMatch(heroModule,/sessionStorage\.getItem\(SELECTED_CHARACTER_KEY\)/,'A prior tab choice must not replace the newest Bungie Guardian during fresh hero-card startup');
 assert.match(missionReportsData,/preferredCharacterId\|\|mostRecentCharacterId\(rawCharacters\)/,'Mission Reports must use latest-played by default while preserving explicit in-page selection');

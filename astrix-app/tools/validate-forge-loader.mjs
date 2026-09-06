@@ -318,7 +318,7 @@ assert.doesNotMatch(runtime,/if\(!baselineStored\)\{[^}]*?return;/,'A rejected b
 assert.match(runtime,/if\(!baselineStored&&!transferStored\)url\.searchParams\.set\('baseline','bungie-recovery'\)/,'The destination must request authenticated recovery only when the atomic baseline is unavailable.');
 assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.removeItem\(BUILD_SNAPSHOT_KEY\);[\s\S]*?store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Stale Build Forge state must be cleared before writing the newly verified compact Guardian snapshot.');
 assert.doesNotMatch(buildHandoff,/createBuildState/,'Forge Loader must not expand the compact source into duplicate Original and Working builds before navigation.');
-assert.match(html,/forge-loader\.mjs\?v=20260906-all-page-data-1/,'Forge Loader must load the complete prepared payload without a stale browser module.');
+assert.match(html,/forge-loader\.mjs\?v=20260906-page-refresh-1/,'Forge Loader must load the complete prepared payload and persistent refresh controls without a stale browser module.');
 assert.match(html,/forge-loader\.css\?v=20260904-open-armour-1/,'Forge Loader must refresh the stronger selected-Exotic state without stale page CSS.');
 assert.match(runtime,/forge-loader-build-handoff\.mjs\?v=20260904-memory-safe-transfer-1/,'Forge Loader must refresh the protected baseline writer with the memory-safe transfer release.');
 assert.match(runtime,/vault-selection-state\.mjs\?v=20260904-exotic-equip-rule-1/,'Forge Loader must refresh the legal one-Exotic armour selection writer.');

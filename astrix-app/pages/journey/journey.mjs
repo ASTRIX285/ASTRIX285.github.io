@@ -2,7 +2,7 @@ import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v
 import {guardianManifest} from './journey-manifest.mjs?v=20260906-all-page-data-1';
 import {resolveRecordTree,patternTypeKey,seasonRankProgress,findDestinationNodes} from './journey-record-model.mjs?v=20260905-journey-repair-1';
 import {resolveCollectionBadges} from './journey-collection-model.mjs?v=20260905-pattern-badges-1';
-import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-all-page-data-1';
+import {PREPARED_PAGE_REFRESH_MS,bindPreparedPageRefreshControl,cacheBungieProfile,createPreparedPageRefreshController,markPreparedPageCheckSuccess,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-page-refresh-1';
 import {validateHandoffEnvelope} from '../guardian-workspace-v2/paradox-build-binding.mjs';
 import {readCapture,readCaptureArchive} from '../guardian-workspace-v2/guardian-shooting-range-capture.mjs?v=20260902-journey-data-hooks-1';
 import {buildMissionReportView,normaliseActivityHistory} from '../mission-reports/mission-reports-data.mjs?v=20260906-all-page-data-1';
@@ -15,6 +15,7 @@ const signedOut=document.getElementById('journeySignedOut');
 const dashboard=document.getElementById('journeyDashboard');
 const status=document.getElementById('journeyAuthStatus');
 const connectButton=document.getElementById('journeyConnectButton');
+const refreshButton=document.getElementById('journeyRefreshButton');
 const guardianUsage=document.getElementById('journeyGuardianUsage');
 const vaultCard=document.getElementById('journeyVault');
 const seasonRankCard=document.getElementById('journeySeasonRank');
@@ -82,7 +83,6 @@ const CLASS_USAGE_COLOURS=['#d3202f','#c9a84c','#4169e1'];
 const STAT_ORDER=[2996146975,392767087,1943323491,1735777505,144602215,4244567218];
 const RECENT_ACTIVITY_PENDING='Recent activity data is not connected.';
 const BUNGIE_ORIGIN='https://www.bungie.net';
-const JOURNEY_BACKGROUND_REFRESH_MS=5*60*1000;
 const JOURNEY_REFRESH_TIMEOUT_MS=60*1000;
 const JOURNEY_BOOTSTRAP_PROFILE_WAIT_MS=12*1000;
 const JOURNEY_BOOTSTRAP_UI_WAIT_MS=6*1000;
@@ -121,10 +121,8 @@ let titleCatalogueRootHash='';
 let titleCataloguePromise=null;
 let selectedTriumphCategory=null;
 let selectedRecordSection=null;
-let journeyBackgroundRefreshTimer=0;
 let journeyBackgroundRefreshRequest=null;
-let journeyBackgroundRefreshPending=false;
-let journeyLastRefreshAt=0;
+let journeyRefreshController=null;
 const journeyActivityCache=new Map();
 let currentActivityEvidence=null;
 
@@ -2011,7 +2009,7 @@ async function fetchJourneyActivityEvidence(session,characterId,{force=false}={}
   const key=journeyActivityCacheKey(session,characterId);
   const cached=journeyActivityCache.get(key);
   if(cached?.promise)return cached.promise;
-  if(!force&&cached?.status==='ok'&&Date.now()-cached.fetchedAt<JOURNEY_BACKGROUND_REFRESH_MS)return cached;
+  if(!force&&cached?.status==='ok'&&Date.now()-cached.fetchedAt<PREPARED_PAGE_REFRESH_MS)return cached;
   const promise=(async()=>{
     try{
       const prepared=verifiedProfile?.preparedAccountData?.activityHistoryByCharacter?.[characterId];
@@ -2258,50 +2256,52 @@ async function fetchJourneyProfileRefresh(){
     assertPreparedPagePayload(payload,'journey');
     guardianManifest.prime(payload);
     await cacheBungieProfile(journeySession,payload,'journey');
+    markPreparedPageCheckSuccess(journeySession,'journey');
     return payload;
   }finally{
     clearTimeout(timeout);
   }
 }
 
-async function refreshJourneyProfile(){
+async function refreshJourneyProfile({reason='poll'}={}){
   if(journeySession?.authenticated!==true)return null;
-  if(document.visibilityState==='hidden'){
-    journeyBackgroundRefreshPending=true;
-    return null;
-  }
   if(journeyBackgroundRefreshRequest)return journeyBackgroundRefreshRequest;
-  journeyBackgroundRefreshPending=false;
   journeyBackgroundRefreshRequest=(async()=>{
-    try{
-      const profile=await fetchJourneyProfileRefresh();
-      if(!profile?.profile?.characters?.data)return null;
-      verifiedProfile=profile;
-      bindProfileCards(profile);
-      await bindDestinationProgress(profile);
-      await bindJourneyActivityEvidence(journeySession,{force:true});
-      bindJourneyCrossPageEvidence();
-      document.dispatchEvent(new CustomEvent('forge:journey-profile-refreshed',{detail:{refreshedAt:Date.now()}}));
-      return profile;
-    }catch(error){
-      console.info('[Forge Journey] background profile refresh unavailable',error);
-      return null;
-    }finally{
-      journeyLastRefreshAt=Date.now();
-      journeyBackgroundRefreshRequest=null;
-    }
+    const profile=await fetchJourneyProfileRefresh();
+    if(!profile?.profile?.characters?.data)throw new Error('Journey refresh returned no Guardian data.');
+    verifiedProfile=profile;
+    bindProfileCards(profile);
+    await bindDestinationProgress(profile);
+    await bindJourneyActivityEvidence(journeySession,{force:true});
+    bindJourneyCrossPageEvidence();
+    document.dispatchEvent(new CustomEvent('forge:journey-profile-refreshed',{detail:{reason,refreshedAt:Date.now(),payload:profile}}));
+    document.dispatchEvent(new CustomEvent('forge:prepared-page-refreshed',{detail:{page:'journey',payload:profile}}));
+    return profile;
   })();
-  return journeyBackgroundRefreshRequest;
+  try{return await journeyBackgroundRefreshRequest;}
+  finally{journeyBackgroundRefreshRequest=null;}
 }
 
 function startJourneyBackgroundRefresh(){
-  if(journeyBackgroundRefreshTimer)return;
-  journeyLastRefreshAt=Date.now();
-  journeyBackgroundRefreshTimer=globalThis.setInterval(()=>void refreshJourneyProfile(),JOURNEY_BACKGROUND_REFRESH_MS);
+  if(journeyRefreshController)return;
+  journeyRefreshController=createPreparedPageRefreshController({
+    session:journeySession,
+    page:'journey',
+    refresh:options=>refreshJourneyProfile(options),
+    onError:error=>console.info('[Forge Journey] background profile refresh unavailable',error)
+  });
+  bindPreparedPageRefreshControl(refreshButton,journeyRefreshController,{
+    onError:error=>console.info('[Forge Journey] manual profile refresh unavailable',error)
+  });
+  if(refreshButton){
+    document.getElementById('bungieAuthControl')?.prepend(refreshButton);
+    refreshButton.hidden=false;
+  }
+  journeyRefreshController.start();
   const refreshWhenVisible=()=>{
     if(document.visibilityState==='hidden')return;
     bindJourneyCrossPageEvidence();
-    if(journeyBackgroundRefreshPending||Date.now()-journeyLastRefreshAt>=JOURNEY_BACKGROUND_REFRESH_MS)void refreshJourneyProfile();
+    void journeyRefreshController.check();
   };
   document.addEventListener('visibilitychange',refreshWhenVisible);
   globalThis.addEventListener('focus',refreshWhenVisible);
@@ -2315,6 +2315,7 @@ function showSignedOut(){
   dashboard.hidden=true;
   signedOut.hidden=false;
   status.textContent='BUNGIE CONNECTION REQUIRED';
+  if(refreshButton)refreshButton.hidden=true;
   if(connectButton)connectButton.href=authStartUrl();
   globalThis.ForgeLoader.authResolved();
   void finishJourneyLoader(signedOut);
@@ -2360,7 +2361,7 @@ try{
       void bindDestinationProgress(profile);
     }else{
       void profilePromise.then(lateProfile=>{
-        if(!lateProfile?.profile?.characters?.data){void refreshJourneyProfile();return;}
+        if(!lateProfile?.profile?.characters?.data){void refreshJourneyProfile().catch(error=>console.info('[Forge Journey] deferred profile refresh unavailable',error));return;}
         verifiedProfile=lateProfile;
         bindProfileCards(lateProfile);
         void bindDestinationProgress(lateProfile);

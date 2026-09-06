@@ -1,12 +1,12 @@
 import {authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260906-tool-intro-1';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-all-page-data-1';
-import {cacheForgeLoaderTransfer,markGuardianFastReturn,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-all-page-data-1';
+import {bindPreparedPageRefreshControl,cacheForgeLoaderTransfer,createPreparedPageRefreshController,markGuardianFastReturn,releaseGuardianSessionStorageFallbacks} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-page-refresh-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from '../vault/vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchTopArmourBuilds} from '../vault/vault-armour-matcher.mjs?v=20260904-top-50-scan-1';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {compatibleWithClass,createOpenProtocolTieBreaker,exoticCatalogueGroups,naturalSetProtocols,rankOpenProtocolCandidates,setBonusOptions,toggleSetSelection,unownedSetTargets} from './forge-loader-model.mjs?v=20260904-top-50-scan-1';
 import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-memory-safe-transfer-1';
-import {preloadForgeLoaderPayload} from './forge-loader-preload.mjs?v=20260906-all-page-data-1';
+import {preloadForgeLoaderPayload} from './forge-loader-preload.mjs?v=20260906-page-refresh-1';
 
 const CLASS_NAMES=['titan','hunter','warlock'];
 const SELECTED_CHARACTER_KEY='astrix:selected-character-id';
@@ -30,6 +30,7 @@ let visibleCandidateCount=0;
 let targetMaximums=Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,0]));
 let activeSetUpgradeTarget=null;
 let upgradeRenderSequence=0;
+let forgeRefreshController=null;
 const selectedSlots=new Map();
 const setUpgradeTargetCache=new Map();
 
@@ -56,13 +57,13 @@ function membershipBinding(){
   return {characterId:activeCharacterId,membershipId:text(membership.membershipId||session?.primaryMembershipId||session?.bungieMembershipId),membershipType:text(membership.membershipType)};
 }
 
-async function loadVerifiedPayload(){
-  loaderProgress(18,'Checking verified Guardian armour…');
-  const shared=globalThis.FORGE_LOADER_PRELOAD_PAYLOAD||globalThis.FORGE_HERO_PROFILE_PAYLOAD||await globalThis.FORGE_HERO_PROFILE_PROMISE;
-  const next=await preloadForgeLoaderPayload(session,{sharedPayload:shared});
+async function loadVerifiedPayload({force=false,showProgress=true}={}){
+  if(showProgress)loaderProgress(18,'Checking verified Guardian armour…');
+  const shared=force?null:globalThis.FORGE_LOADER_PRELOAD_PAYLOAD||globalThis.FORGE_HERO_PROFILE_PAYLOAD||await globalThis.FORGE_HERO_PROFILE_PROMISE;
+  const next=await preloadForgeLoaderPayload(session,{force,sharedPayload:shared});
   if(!next?.profile)throw new Error('Bungie returned no verified profile inventory.');
   if(next.forgeArmourIndex)guardianManifest.applyForgeArmourIndex(next,next.forgeArmourIndex);
-  loaderProgress(46,'Joining private inventory to the prepared armour catalogue…');
+  if(showProgress)loaderProgress(46,'Joining private inventory to the prepared armour catalogue…');
   await guardianManifest.hydratePayload(next,{waitForManifest:false,armourOnly:Boolean(next.forgeArmourIndex),includeReusable:true,allowNetwork:false});
   return next;
 }
@@ -459,6 +460,65 @@ function installEvents(){
   document.addEventListener('forge:manifest-progress',event=>loaderProgress(Math.max(24,Number(event.detail?.percent)||24),event.detail?.label||'Preparing Bungie manifest…'));
 }
 
+function reconcileForgeRefresh(){
+  const refreshedByKey=new Map(catalogue.armour.map(item=>[itemKey(item),item]));
+  for(const [slot,item] of [...selectedSlots]){
+    const refreshed=refreshedByKey.get(itemKey(item));
+    if(refreshed)selectedSlots.set(slot,refreshed);
+    else selectedSlots.delete(slot);
+  }
+  const exotic=selectedExotic();
+  if(!exotic){
+    selectedExoticKey='';
+    setSelections=[];
+    selectedSlots.clear();
+  }else{
+    const availableSets=new Set(setBonusOptions(armourItems(),exotic,setSelections).map(row=>String(row.hash)));
+    setSelections=setSelections.filter(row=>availableSets.has(String(row.setHash))&&(row.count===2||row.count===4));
+  }
+  matchedBuilds=[];
+  selectedCandidateIndex=-1;
+  expandedCandidateIndex=-1;
+  visibleCandidateCount=0;
+}
+
+async function applyForgeRefresh(next,{reason='poll'}={}){
+  payload=next;
+  catalogue=createVaultCatalogue(payload);
+  resolveActiveCharacter(activeCharacterId);
+  reconcileForgeRefresh();
+  renderHero();
+  renderExotics();
+  renderSetBonuses();
+  configureStats();
+  renderStaged();
+  renderCandidates();
+  byId('forgeRuntimeStatus').textContent=selectedExotic()
+    ?`${reason==='manual'?'Guardian data refreshed.':'Guardian data updated.'} Calculate to update ranked combinations.`
+    :`${reason==='manual'?'Guardian data refreshed.':'Guardian data updated.'} Select an owned Exotic.`;
+  document.dispatchEvent(new CustomEvent('forge:prepared-page-refreshed',{detail:{page:'loadout',payload:next}}));
+  return next;
+}
+
+function startForgeRefresh(){
+  if(forgeRefreshController)return;
+  forgeRefreshController=createPreparedPageRefreshController({
+    session,
+    page:'loadout',
+    refresh:async options=>applyForgeRefresh(await loadVerifiedPayload({force:true,showProgress:false}),options),
+    onError:error=>console.info('[Forge Loader] background inventory refresh unavailable',error)
+  });
+  const button=byId('forgeRefreshButton');
+  bindPreparedPageRefreshControl(button,forgeRefreshController,{
+    onError:error=>{byId('forgeRuntimeStatus').textContent=error?.message||'Guardian data refresh unavailable.';}
+  });
+  if(button){
+    document.getElementById('bungieAuthControl')?.prepend(button);
+    button.hidden=false;
+  }
+  forgeRefreshController.start();
+}
+
 async function settleVisibleImages(){
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const images=[...document.querySelectorAll('#forgeExoticSlots img,#forgeHeroCard img')].slice(0,30).filter(image=>!image.complete);
@@ -473,6 +533,7 @@ async function init(){
     byId('forgeConnectionState').textContent='ARMOUR READY';payload=await loadVerifiedPayload();
     loaderProgress(78,'Building verified Forge Loader inventory…');catalogue=createVaultCatalogue(payload);resolveActiveCharacter(activeCharacterId);
     renderHero();renderExotics();renderSetBonuses();configureStats({reset:true});
+    startForgeRefresh();
     const groups=exoticGroups(),ownedCount=groups.filter(group=>group.owned).length;byId('forgeRuntimeStatus').textContent=ownedCount?`${ownedCount} owned of ${groups.length} verified ${classLabel()} Exotic definition${groups.length===1?'':'s'}. Select an owned piece to begin.`:`${groups.length} verified ${classLabel()} Exotic definition${groups.length===1?'':'s'} shown; no owned instance can be selected.`;
     loaderProgress(92,'Rendering Forge Loader selector…');await settleVisibleImages();globalThis.ForgeLoader?.done?.();
   }catch(error){console.error('[Forge Loader]',error);byId('forgeConnectionState').textContent='ARMOUR UNAVAILABLE';byId('forgeRuntimeStatus').textContent=error?.message||'Verified Bungie armour is unavailable.';globalThis.ForgeLoader?.done?.();}

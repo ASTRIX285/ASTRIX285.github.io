@@ -1,7 +1,7 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
 import {fetchDisplayProfile} from '../guardian-workspace-v2/guardian-display-profile.mjs?v=20260906-page-payload-1';
 import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-all-page-data-1';
-import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-all-page-data-1';
+import {bindPreparedPageRefreshControl,cacheBungieProfile,createPreparedPageRefreshController,markGuardianFastReturn,markPreparedPageCheckSuccess,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-page-refresh-1';
 import {ARMOUR_BUCKETS,createVaultCatalogue,filterVaultArmour,itemKey,prepareArmourSelection} from './vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds,statKey} from './vault-armour-matcher.mjs';
 import {createVaultArmourSelection,writeVaultArmourSelection} from './vault-selection-state.mjs';
@@ -23,6 +23,7 @@ let activeCharacterClass='';
 let visibleLimit=PAGE_SIZE;
 let matchedBuilds=[];
 let targetMaximums=Object.fromEntries(ARMOUR_STAT_KEYS.map(key=>[key,0]));
+let vaultRefreshController=null;
 const selectedSlots=new Map();
 
 function membershipBinding(){
@@ -77,7 +78,11 @@ async function fetchProfile(){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),60000);
   try{
-    return await fetchDisplayProfile(url,{signal:controller.signal});
+    const payload=await fetchDisplayProfile(url,{signal:controller.signal});
+    assertPreparedPagePayload(payload,'vault');
+    await cacheBungieProfile(session,payload,'vault');
+    markPreparedPageCheckSuccess(session,'vault');
+    return payload;
   }catch(error){
     if(error?.name==='AbortError')throw new Error('Bungie inventory request timed out. Refresh or reconnect Bungie.');
     throw error;
@@ -299,6 +304,54 @@ function renderContext(){
 
 function renderAll(){renderContext();renderSelection();renderInventory();}
 
+function reconcileSelectedVaultItems(){
+  const refreshedByKey=new Map(catalogue.armour.map(item=>[itemKey(item),item]));
+  for(const [slot,item] of [...selectedSlots]){
+    const refreshed=refreshedByKey.get(itemKey(item));
+    if(refreshed)selectedSlots.set(slot,refreshed);
+    else selectedSlots.delete(slot);
+  }
+  clearIncompatibleSelection();
+}
+
+async function applyVaultRefresh(next,{reason='poll'}={}){
+  assertPreparedPagePayload(next,'vault');
+  await guardianManifest.hydratePayload(next,{waitForManifest:false,includeReusable:true,allowNetwork:false});
+  const classFilter=byId('vaultClassFilter')?.value||'all';
+  payload=next;
+  catalogue=createVaultCatalogue(payload);
+  resolveActiveCharacter(activeCharacterId);
+  if(byId('vaultClassFilter'))byId('vaultClassFilter').value=classFilter;
+  reconcileSelectedVaultItems();
+  matchedBuilds=[];
+  renderCandidateBuilds();
+  configureOptimiser();
+  updateTotals();
+  renderAll();
+  setStatus(reason==='manual'?'Vault refreshed.':'Vault updated from Bungie.','good');
+  document.dispatchEvent(new CustomEvent('forge:prepared-page-refreshed',{detail:{page:'vault',payload:next}}));
+  return next;
+}
+
+function startVaultRefresh(){
+  if(vaultRefreshController)return;
+  vaultRefreshController=createPreparedPageRefreshController({
+    session,
+    page:'vault',
+    refresh:async options=>applyVaultRefresh(await fetchProfile(),options),
+    onError:error=>console.info('[Forge Vault] background inventory refresh unavailable',error)
+  });
+  const button=byId('vaultRefreshButton');
+  bindPreparedPageRefreshControl(button,vaultRefreshController,{
+    onError:error=>setStatus(error?.message||'Vault refresh unavailable.','error')
+  });
+  if(button){
+    document.getElementById('bungieAuthControl')?.prepend(button);
+    button.hidden=false;
+  }
+  vaultRefreshController.start();
+}
+
 function selectItem(key){
   const item=catalogue.armour.find(row=>itemKey(row)===key);
   if(!item||!itemCompatible(item))return;
@@ -396,6 +449,7 @@ async function init(){
     if(ARMOUR_BUCKETS.some(slot=>slot.key===requestedSlot))byId('vaultSlotFilter').value=requestedSlot;
     updateTotals();
     renderAll();
+    startVaultRefresh();
     loaderProgress(92,'Rendering verified armour catalogue…');
     const unresolved=catalogue.totals.unresolvedDefinitions;
     setStatus(`${catalogue.totals.ownedArmour} verified armour item${catalogue.totals.ownedArmour===1?'':'s'} loaded${unresolved?` · ${unresolved} item definition${unresolved===1?'':'s'} unresolved`:''}${postmasterStatus()}.`,'good');

@@ -1,5 +1,6 @@
 import {getBungieSession} from '../pages/guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260906-tool-intro-1';
-import {preloadForgeLoaderPayload} from '../pages/forge-loader/forge-loader-preload.mjs?v=20260906-all-page-data-1';
+import {preloadForgeLoaderPayload} from '../pages/forge-loader/forge-loader-preload.mjs?v=20260906-page-refresh-1';
+import {cacheBungieProfile,markPreparedPageCheckSuccess,readCachedBungieProfile} from '../pages/guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-page-refresh-1';
 import {assertPreparedPagePayload} from '../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
 
 const AUTH_ORIGIN=globalThis.FORGE_AUTH_ORIGIN||'https://auth.astrixparadox.com';
@@ -71,9 +72,10 @@ function publishJourneyProfile(payload){
 }
 
 function heroProfileUrl(){
-  const page=IS_JOURNEY_PAGE||IS_MISSION_REPORTS_PAGE?'journey':IS_VAULT_PAGE?'vault':IS_FORGE_LOADER_PAGE||IS_LOADOUT_PAGE?'loadout':IS_BUILD_FORGE_PAGE?'build-forge':'character';
-  return new URL(`/bungie/page/${page}`,AUTH_ORIGIN);
+  return new URL(`/bungie/page/${heroProfilePage()}`,AUTH_ORIGIN);
 }
+
+function heroProfilePage(){return IS_JOURNEY_PAGE||IS_MISSION_REPORTS_PAGE?'journey':IS_VAULT_PAGE?'vault':IS_FORGE_LOADER_PAGE||IS_LOADOUT_PAGE?'loadout':IS_BUILD_FORGE_PAGE?'build-forge':'character';}
 
 function characterRoster(payload,definitions){
   return Object.values(payload?.profile?.characters?.data||{}).map(character=>{
@@ -148,10 +150,16 @@ async function initForgeHeroCards(){
       renderStatus('CONNECT BUNGIE TO LOAD CHARACTERS');
       return;
     }
+    const page=heroProfilePage();
+    const cached=SHARES_PROFILE?await readCachedBungieProfile(session,page):null;
     const payload=IS_FORGE_LOADER_PAGE
       ?await preloadForgeLoaderPayload(session,{sharedPayload:globalThis.FORGE_LOADER_PRELOAD_PAYLOAD})
-      :await fetchJson(heroProfileUrl());
-    assertPreparedPagePayload(payload,heroProfileUrl().pathname.split('/').pop());
+      :cached||await fetchJson(heroProfileUrl());
+    assertPreparedPagePayload(payload,page);
+    if(!cached&&!IS_FORGE_LOADER_PAGE&&SHARES_PROFILE){
+      await cacheBungieProfile(session,payload,page);
+      markPreparedPageCheckSuccess(session,page);
+    }
     const definitions=payload.statDefinitions||{};
     publishJourneyProfile(payload);
     const characters=characterRoster(payload,definitions);
@@ -167,5 +175,14 @@ async function initForgeHeroCards(){
     document.dispatchEvent(new CustomEvent('forge:hero-cards-render-complete'));
   }
 }
+
+document.addEventListener('forge:prepared-page-refreshed',event=>{
+  const next=event.detail?.payload;
+  if(!SHARES_PROFILE||event.detail?.page!==heroProfilePage()||!next?.profile)return;
+  globalThis.FORGE_HERO_PROFILE_PAYLOAD=next;
+  const characters=characterRoster(next,next.statDefinitions||{});
+  const selected=String(host()?.querySelector('.guardian-character-card.is-selected')?.dataset?.characterId||initialCharacterId(characters));
+  render(characters,selected);
+});
 
 initForgeHeroCards();

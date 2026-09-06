@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../../shared/astrix-portal-loader.css?v=20260831-paradox-map-crimson-gold">
   <script>window.APX_LOGO='../../../img/logo.png';</script>
   <script src="../../shared/astrix-portal-loader.js?v=20260831-render-ready"></script>
-  <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css?v=20260904-mobile-crosscheck-1">
+  <link rel="stylesheet" href="../../shared/astrix-destination-ribbon.css?v=20260906-page-refresh-1">
   <link rel="stylesheet" href="../../shared/astrix-hero-cards.css?v=20260904-mobile-crosscheck-1">
   <link rel="stylesheet" href="../../shared/astrix-paradox-background.css?v=20260830-global-map-background">
   <link rel="stylesheet" href="./vault.css?v=20260902-forge-loader-split-1">
@@ -18,7 +18,7 @@
   <script src="../../shared/astrix-destination-ribbon.js?v=20260902-forge-loader-1" defer></script>
 </head>
 <body class="apx-destination-page forge-paradox-map-background">
-  <header class="apx-destination-header forge-command-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>VAULT</strong><small>BROWSE VERIFIED OWNED GEAR</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-forge-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><span class="apx-destination-header-state" id="vaultHeaderState">BUNGIE INVENTORY</span></header>
+  <header class="apx-destination-header forge-command-header"><a class="apx-destination-brand" href="../journey/"><img src="../../../img/logo.png" alt="ASTRIX PARADOX"><span><strong>ASTRIX <em>PARADOX</em></strong><small>AI GAMING INTELLIGENCE</small></span></a><div class="apx-destination-header-copy"><strong>VAULT</strong><small>BROWSE VERIFIED OWNED GEAR</small></div><div class="guardian-character-selector guardian-character-cards" id="guardianCharacterCards" data-forge-hero-cards aria-label="Bungie characters"><div class="guardian-character-cards__status is-pending" role="status">LOADING BUNGIE CHARACTERS</div></div><button class="apx-data-refresh" id="vaultRefreshButton" type="button" aria-busy="false" disabled hidden>Refresh</button><span class="apx-destination-header-state" id="vaultHeaderState">BUNGIE INVENTORY</span></header>
   <div data-forge-destination-ribbon data-active-destination="vault"></div>
   <main class="apx-page-shell">
     <span class="apx-visually-hidden" id="vaultConnectionState" aria-live="polite">RESOLVING</span>
@@ -73,7 +73,7 @@
     </section>
   </main>
   <aside class="vault-item-inspect" id="vaultItemInspect" hidden aria-hidden="true"></aside>
-  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260906-all-page-data-1"></script>
-  <script type="module" src="./vault.mjs?v=20260906-all-page-data-1"></script>
+  <script type="module" src="../../shared/astrix-hero-cards.mjs?v=20260906-page-refresh-1"></script>
+  <script type="module" src="./vault.mjs?v=20260906-page-refresh-1"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@ const allowed=new Set([
   'astrix-app/pages/guardian-workspace-v2/guardian-display-profile.mjs',
   'astrix-app/tools/build-backend-manifest.py',
   'astrix-app/tools/test-backend-data.mjs',
+  'astrix-app/tools/validate-prepared-page-refresh.mjs',
   'astrix-app/tools/validate-page-ready-performance.mjs',
   'forge-auth-worker/src/profile-sections.ts',
   'forge-auth-worker/src/profile-snapshot-cache.ts',

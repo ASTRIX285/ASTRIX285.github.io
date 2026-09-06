@@ -1,5 +1,5 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260906-tool-intro-1';
-import {cacheBungieProfile,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-all-page-data-1';
+import {cacheBungieProfile,markPreparedPageCheckSuccess,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs?v=20260906-page-refresh-1';
 import {assertPreparedPagePayload} from '../../core/page-ready-contract.mjs?v=20260906-complete-page-data-1';
 
 const PAGE_PATH='/astrix-app/pages/forge-loader/';
@@ -47,6 +47,7 @@ async function preloadForgeLoaderPayload(session,{force=false,sharedPayload=null
   pageRequest=(async()=>{
     const payload=await requestPreparedPayload();
     await cacheBungieProfile(session,payload,'loadout');
+    markPreparedPageCheckSuccess(session,'loadout');
     globalThis.FORGE_LOADER_PRELOAD_PAYLOAD=payload;
     return payload;
   })();
