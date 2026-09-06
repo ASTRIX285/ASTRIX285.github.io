@@ -1,5 +1,6 @@
 const AUTH_ORIGIN=globalThis.ASTRIX_AUTH_ORIGIN||'https://auth.astrixparadox.com';
 const JOURNEY_URL='../journey/';
+const SANDBOX_HOST='sandbox.astrixparadox.com';
 
 const message=document.getElementById('guardianAccessMessage');
 
@@ -11,7 +12,13 @@ function authReturnUrl(){
 }
 
 function authStartUrl(){
-  return `${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(authReturnUrl())}`;
+  const returnUrl=authReturnUrl();
+  if(location.hostname===SANDBOX_HOST){
+    const start=new URL('/__astrix/bungie/start',location.origin);
+    start.searchParams.set('return',returnUrl);
+    return start.toString();
+  }
+  return `${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(returnUrl)}`;
 }
 
 async function getBungieSession(){

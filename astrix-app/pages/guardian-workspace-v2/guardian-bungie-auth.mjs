@@ -4,6 +4,7 @@ const AUTH_ORIGIN = globalThis.ASTRIX_AUTH_ORIGIN || "https://auth.astrixparadox
 const CANONICAL_APP_ORIGIN = "https://astrixparadox.com";
 const JOURNEY_PATH = "/astrix-app/pages/journey/";
 const BUNGIE_ORIGIN = "https://www.bungie.net";
+const SANDBOX_HOST = "sandbox.astrixparadox.com";
 
 function authReturnUrl(){
   const current=new URL(location.href);
@@ -12,7 +13,30 @@ function authReturnUrl(){
 }
 
 function authStartUrl(){
-  return `${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(authReturnUrl().toString())}`;
+  const returnUrl=authReturnUrl().toString();
+  if(location.hostname===SANDBOX_HOST){
+    const start=new URL("/__astrix/bungie/start",location.origin);
+    start.searchParams.set("return",returnUrl);
+    return start.toString();
+  }
+  return `${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(returnUrl)}`;
+}
+
+async function requestAccessRecovery(){
+  if(location.hostname!==SANDBOX_HOST||new URLSearchParams(location.search).get("bungie")==="recovered")return null;
+  const recovery=new URL("/__astrix/bungie/recover",location.origin);
+  recovery.searchParams.set("return",authReturnUrl().toString());
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),12000);
+  try{
+    const response=await fetch(recovery,{credentials:"same-origin",headers:{Accept:"application/json"},signal:controller.signal});
+    const payload=await response.json().catch(()=>null);
+    if(!response.ok||!payload?.recoveryUrl)return null;
+    const recoveryUrl=new URL(payload.recoveryUrl);
+    if(recoveryUrl.origin!==AUTH_ORIGIN||recoveryUrl.pathname!=="/session/recover")return null;
+    return recoveryUrl.toString();
+  }catch{return null;}
+  finally{clearTimeout(timer);}
 }
 
 function installStyles(){
@@ -155,7 +179,14 @@ async function requestSession(){
       signal:controller.signal
     });
     const session=await response.json().catch(()=>({authenticated:false}));
-    if(response.status===401)return {authenticated:false};
+    if(response.status===401){
+      const recoveryUrl=await requestAccessRecovery();
+      if(recoveryUrl){
+        location.replace(recoveryUrl);
+        return {authenticated:false,recovering:true};
+      }
+      return {authenticated:false};
+    }
     if(!response.ok)throw new Error(session?.error||`session:${response.status}`);
     return session;
   }finally{
@@ -164,6 +195,10 @@ async function requestSession(){
 }
 
 function publishSession(session){
+  if(session?.recovering){
+    globalThis.ASTRIX_BUNGIE_SESSION=session;
+    return;
+  }
   if(session?.authenticated){
     cacheBungieSession(session);
     globalThis.AstrixLoader?.authResolved?.();
@@ -202,6 +237,7 @@ function getBungieSession({force=false}={}){
 
 async function refreshAuthState(control){
   const session=await getBungieSession();
+  if(session?.recovering)return;
   if(session?.authenticated){
     control.wrap.hidden=false;
     control.button.hidden=true;

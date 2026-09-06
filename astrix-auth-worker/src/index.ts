@@ -1,4 +1,12 @@
-import { AuthRecord, type OAuthTransaction, type SessionRecord, type Membership } from "./auth-record";
+import {
+  AuthRecord,
+  type AccessBindingRecord,
+  type AuthRecordValue,
+  type Membership,
+  type OAuthTransaction,
+  type RecoveryTransaction,
+  type SessionRecord
+} from "./auth-record";
 import { allowedOrigins, approvedReturnUrl, handlePreflight, json, withCors } from "./web";
 import { profileSections } from "./profile-sections";
 
@@ -12,7 +20,10 @@ const MANIFEST_METADATA_CACHE_KEY = "https://auth.astrixparadox.com/.cache/manif
 const MANIFEST_METADATA_TTL_SECONDS = 60 * 60;
 const SESSION_COOKIE = "astrix_session";
 const OAUTH_TTL_MS = 10 * 60 * 1000;
-const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const RECOVERY_TTL_MS = 2 * 60 * 1000;
+const SESSION_TTL_MS = 400 * 24 * 60 * 60 * 1000;
+const INTERNAL_ACCESS_HOST = "astrix-auth.internal";
+const ACCESS_IDENTITY_PATTERN = /^[a-f0-9]{64}$/;
 const DESTINY_ACTION_CAPABILITIES = Object.freeze({
   captureSnapshot: true,
   transferItems: true,
@@ -406,7 +417,7 @@ function recordStub(env: Env, key: string): DurableObjectStub {
   return env.AUTH_RECORDS.get(env.AUTH_RECORDS.idFromName(key));
 }
 
-async function putRecord(env: Env, key: string, record: OAuthTransaction | SessionRecord): Promise<void> {
+async function putRecord(env: Env, key: string, record: AuthRecordValue): Promise<void> {
   const response = await recordStub(env, key).fetch("https://auth-record/record", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -421,10 +432,38 @@ async function takeOAuth(env: Env, state: string): Promise<OAuthTransaction | nu
   return response.json<OAuthTransaction>();
 }
 
+async function takeRecovery(env: Env, ticket: string): Promise<RecoveryTransaction | null> {
+  const response = await recordStub(env, `recovery:${ticket}`).fetch("https://auth-record/take-recovery", { method: "POST" });
+  if (!response.ok) return null;
+  return response.json<RecoveryTransaction>();
+}
+
+async function getAccessBinding(env: Env, accessIdentityKey: string): Promise<AccessBindingRecord | null> {
+  const response = await recordStub(env, `access:${accessIdentityKey}`).fetch("https://auth-record/record");
+  if (!response.ok) return null;
+  const value = await response.json<AuthRecordValue>();
+  return value.kind === "access-binding" ? value : null;
+}
+
+async function putAccessBinding(env: Env, accessIdentityKey: string, sessionId: string, expiresAt: number): Promise<void> {
+  await putRecord(env, `access:${accessIdentityKey}`, {
+    kind: "access-binding",
+    sessionId,
+    createdAt: Date.now(),
+    expiresAt
+  });
+}
+
+async function deleteAccessBinding(env: Env, accessIdentityKey: string, sessionId: string): Promise<void> {
+  const binding = await getAccessBinding(env, accessIdentityKey);
+  if (binding?.sessionId !== sessionId) return;
+  await recordStub(env, `access:${accessIdentityKey}`).fetch("https://auth-record/record", { method: "DELETE" });
+}
+
 async function getSession(env: Env, sessionId: string): Promise<SessionRecord | null> {
   const response = await recordStub(env, `session:${sessionId}`).fetch("https://auth-record/record");
   if (!response.ok) return null;
-  const value = await response.json<OAuthTransaction | SessionRecord>();
+  const value = await response.json<AuthRecordValue>();
   return value.kind === "session" ? value : null;
 }
 
@@ -434,6 +473,25 @@ async function putSession(env: Env, sessionId: string, session: SessionRecord): 
 
 async function deleteSession(env: Env, sessionId: string): Promise<void> {
   await recordStub(env, `session:${sessionId}`).fetch("https://auth-record/record", { method: "DELETE" });
+}
+
+async function revokeSession(env: Env, sessionId: string, session: SessionRecord | null): Promise<void> {
+  await deleteSession(env, sessionId);
+  if (session?.accessIdentityKey) await deleteAccessBinding(env, session.accessIdentityKey, sessionId);
+}
+
+async function renewSession(env: Env, sessionId: string, session: SessionRecord): Promise<SessionRecord> {
+  const now = Date.now();
+  const renewed: SessionRecord = {
+    ...session,
+    lastUsedAt: now,
+    absoluteExpiresAt: now + SESSION_TTL_MS
+  };
+  await putSession(env, sessionId, renewed);
+  if (renewed.accessIdentityKey) {
+    await putAccessBinding(env, renewed.accessIdentityKey, sessionId, renewed.absoluteExpiresAt);
+  }
+  return renewed;
 }
 
 function cookieValue(request: Request, name: string): string | null {
@@ -453,7 +511,7 @@ function clearSessionCookie(): string {
   return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0`;
 }
 
-async function startOAuth(request: Request, env: Env): Promise<Response> {
+async function startOAuth(request: Request, env: Env, accessIdentityKey?: string): Promise<Response> {
   const url = new URL(request.url);
   const clientId = (env.BUNGIE_CLIENT_ID || "").trim();
   if (!clientId) {
@@ -467,7 +525,8 @@ async function startOAuth(request: Request, env: Env): Promise<Response> {
     state,
     createdAt: Date.now(),
     returnUrl,
-    used: false
+    used: false,
+    ...(accessIdentityKey ? { accessIdentityKey } : {})
   };
   await putRecord(env, `oauth:${state}`, tx);
 
@@ -524,9 +583,13 @@ async function refreshAccessToken(sessionId: string, session: SessionRecord, env
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body
   });
+  if (response.status === 400 || response.status === 401) throw new Error("bungie_reauthentication_required");
   if (!response.ok) throw new Error(`bungie_token_refresh_failed:${response.status}`);
 
   const token = await response.json<TokenResponse>();
+  if (!token.access_token || !Number.isFinite(token.expires_in) || token.expires_in <= 0) {
+    throw new Error("bungie_token_refresh_invalid");
+  }
   const now = Date.now();
   const refreshed: SessionRecord = {
     ...session,
@@ -538,6 +601,91 @@ async function refreshAccessToken(sessionId: string, session: SessionRecord, env
   };
   await putSession(env, sessionId, refreshed);
   return refreshed;
+}
+
+function internalAccessIdentity(url: URL): string | null {
+  const value = (url.searchParams.get("identity") || "").trim().toLowerCase();
+  return ACCESS_IDENTITY_PATTERN.test(value) ? value : null;
+}
+
+async function accessRecoveryTicketRoute(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const accessIdentityKey = internalAccessIdentity(url);
+  if (!accessIdentityKey) return json({ error: "invalid_access_identity" }, 400, { "Cache-Control": "no-store" });
+
+  const binding = await getAccessBinding(env, accessIdentityKey);
+  if (!binding || binding.expiresAt <= Date.now()) {
+    if (binding) await deleteAccessBinding(env, accessIdentityKey, binding.sessionId);
+    return json({ error: "bungie_session_not_bound" }, 404, { "Cache-Control": "no-store" });
+  }
+  const session = await getSession(env, binding.sessionId);
+  if (!session || session.absoluteExpiresAt <= Date.now() || session.accessIdentityKey !== accessIdentityKey) {
+    if (session) await revokeSession(env, binding.sessionId, session);
+    else await deleteAccessBinding(env, accessIdentityKey, binding.sessionId);
+    return json({ error: "bungie_session_not_bound" }, 404, { "Cache-Control": "no-store" });
+  }
+  if (!session.refreshToken || (session.refreshExpiresAt !== null && session.refreshExpiresAt <= Date.now())) {
+    await revokeSession(env, binding.sessionId, session);
+    return json({ error: "bungie_reauthentication_required" }, 401, { "Cache-Control": "no-store" });
+  }
+
+  const ticket = randomToken();
+  const tx: RecoveryTransaction = {
+    kind: "recovery-transaction",
+    ticket,
+    createdAt: Date.now(),
+    returnUrl: approvedReturnUrl(url.searchParams.get("return"), env),
+    sessionId: binding.sessionId,
+    accessIdentityKey,
+    used: false
+  };
+  await putRecord(env, `recovery:${ticket}`, tx);
+  const recoveryUrl = new URL("/session/recover", env.OAUTH_REDIRECT_URI);
+  recoveryUrl.searchParams.set("ticket", ticket);
+  return json({ recoveryUrl: recoveryUrl.toString() }, 200, { "Cache-Control": "no-store" });
+}
+
+async function sessionRecoveryRoute(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const ticket = (url.searchParams.get("ticket") || "").trim().toLowerCase();
+  if (!ACCESS_IDENTITY_PATTERN.test(ticket)) return json({ error: "invalid_recovery_ticket" }, 400, { "Cache-Control": "no-store" });
+  const tx = await takeRecovery(env, ticket);
+  if (!tx || tx.ticket !== ticket || Date.now() - tx.createdAt > RECOVERY_TTL_MS) {
+    return json({ error: "invalid_or_expired_recovery_ticket" }, 400, { "Cache-Control": "no-store" });
+  }
+
+  const binding = await getAccessBinding(env, tx.accessIdentityKey);
+  const storedSession = await getSession(env, tx.sessionId);
+  if (!binding || binding.sessionId !== tx.sessionId || binding.expiresAt <= Date.now() ||
+      !storedSession || storedSession.absoluteExpiresAt <= Date.now() ||
+      storedSession.accessIdentityKey !== tx.accessIdentityKey) {
+    if (storedSession) await revokeSession(env, tx.sessionId, storedSession);
+    else if (binding) await deleteAccessBinding(env, tx.accessIdentityKey, tx.sessionId);
+    return json({ error: "bungie_reauthentication_required" }, 401, { "Cache-Control": "no-store" });
+  }
+
+  let session: SessionRecord;
+  try {
+    session = await refreshAccessToken(tx.sessionId, storedSession, env);
+  } catch (error) {
+    if (error instanceof Error && error.message === "bungie_reauthentication_required") {
+      await revokeSession(env, tx.sessionId, storedSession);
+      return json({ error: "bungie_reauthentication_required" }, 401, { "Cache-Control": "no-store" });
+    }
+    throw error;
+  }
+  session = await renewSession(env, tx.sessionId, session);
+  const returnUrl = new URL(tx.returnUrl);
+  returnUrl.searchParams.set("bungie", "recovered");
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: returnUrl.toString(),
+      "Set-Cookie": sessionCookie(tx.sessionId, Math.floor(SESSION_TTL_MS / 1000)),
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer"
+    }
+  });
 }
 
 function equippedDefinitionHashes(profile: DestinyProfilePayload): number[] {
@@ -1107,9 +1255,13 @@ async function oauthCallback(request: Request, env: Env): Promise<Response> {
     destinyMemberships,
     primaryMembershipId,
     activeDestinyMembership,
-    csrfToken
+    csrfToken,
+    ...(tx.accessIdentityKey ? { accessIdentityKey: tx.accessIdentityKey } : {})
   };
   await putRecord(env, `session:${sessionId}`, session);
+  if (tx.accessIdentityKey) {
+    await putAccessBinding(env, tx.accessIdentityKey, sessionId, session.absoluteExpiresAt);
+  }
 
   const returnUrl = new URL(tx.returnUrl);
   returnUrl.searchParams.set("bungie", "connected");
@@ -1126,11 +1278,26 @@ async function oauthCallback(request: Request, env: Env): Promise<Response> {
 async function sessionRoute(request: Request, env: Env): Promise<Response> {
   const sessionId = cookieValue(request, SESSION_COOKIE);
   if (!sessionId) return withCors(request, env, json({ authenticated: false }, 401));
-  const session = await getSession(env, sessionId);
-  if (!session || session.absoluteExpiresAt <= Date.now()) {
-    if (session) await deleteSession(env, sessionId);
+  const storedSession = await getSession(env, sessionId);
+  if (!storedSession || storedSession.absoluteExpiresAt <= Date.now()) {
+    if (storedSession) await revokeSession(env, sessionId, storedSession);
     return withCors(request, env, json({ authenticated: false }, 401, { "Set-Cookie": clearSessionCookie() }));
   }
+  let session: SessionRecord;
+  try {
+    session = await refreshAccessToken(sessionId, storedSession, env);
+  } catch (error) {
+    if (error instanceof Error && error.message === "bungie_reauthentication_required") {
+      await revokeSession(env, sessionId, storedSession);
+      return withCors(request, env, json(
+        { authenticated: false, error: "bungie_reauthentication_required" },
+        401,
+        { "Set-Cookie": clearSessionCookie() }
+      ));
+    }
+    throw error;
+  }
+  session = await renewSession(env, sessionId, session);
   return withCors(request, env, json({
     authenticated: true,
     bungieMembershipId: session.bungieMembershipId,
@@ -1140,12 +1307,12 @@ async function sessionRoute(request: Request, env: Env): Promise<Response> {
     accessExpiresAt: session.accessExpiresAt,
     csrfToken: session.csrfToken,
     capabilities: { destinyActions: DESTINY_ACTION_CAPABILITIES }
-  }));
+  }, 200, { "Set-Cookie": sessionCookie(sessionId, Math.floor(SESSION_TTL_MS / 1000)) }));
 }
 
 async function logoutRoute(request: Request, env: Env): Promise<Response> {
   const sessionId = cookieValue(request, SESSION_COOKIE);
-  if (sessionId) await deleteSession(env, sessionId);
+  if (sessionId) await revokeSession(env, sessionId, await getSession(env, sessionId));
   return withCors(request, env, json({ ok: true }, 200, { "Set-Cookie": clearSessionCookie() }));
 }
 
@@ -1160,7 +1327,7 @@ async function authenticatedSession(
 
   const storedSession = await getSession(env, sessionId);
   if (!storedSession || storedSession.absoluteExpiresAt <= Date.now()) {
-    if (storedSession) await deleteSession(env, sessionId);
+    if (storedSession) await revokeSession(env, sessionId, storedSession);
     return withCors(request, env, json(
       { authenticated: false, error: "session_expired" },
       401,
@@ -1169,11 +1336,12 @@ async function authenticatedSession(
   }
 
   try {
-    const session = await refreshAccessToken(sessionId, storedSession, env);
+    const refreshed = await refreshAccessToken(sessionId, storedSession, env);
+    const session = await renewSession(env, sessionId, refreshed);
     return { sessionId, session };
   } catch (error) {
     if (error instanceof Error && error.message === "bungie_reauthentication_required") {
-      await deleteSession(env, sessionId);
+      await revokeSession(env, sessionId, storedSession);
       return withCors(request, env, json(
         { authenticated: false, error: "bungie_reauthentication_required" },
         401,
@@ -1464,6 +1632,18 @@ export default {
     const url = new URL(request.url);
 
     try {
+      if (url.hostname === INTERNAL_ACCESS_HOST) {
+        if (request.method === "GET" && url.pathname === "/internal/access/start") {
+          const accessIdentityKey = internalAccessIdentity(url);
+          return accessIdentityKey
+            ? startOAuth(request, env, accessIdentityKey)
+            : json({ error: "invalid_access_identity" }, 400, { "Cache-Control": "no-store" });
+        }
+        if (request.method === "GET" && url.pathname === "/internal/access/recovery-ticket") {
+          return accessRecoveryTicketRoute(request, env);
+        }
+        return json({ error: "not_found" }, 404, { "Cache-Control": "no-store" });
+      }
       if (request.method === "OPTIONS") return handlePreflight(request, env);
       if (request.method === "GET" && (url.pathname === "/health" || url.pathname === "/v1/health")) {
         return json({ service: "astrix-destiny-backend", status: "ready" });
@@ -1485,6 +1665,7 @@ export default {
       }
       if (request.method === "GET" && url.pathname === "/bungie/callback") return oauthCallback(request, env);
       if (request.method === "GET" && url.pathname === "/session") return sessionRoute(request, env);
+      if (request.method === "GET" && url.pathname === "/session/recover") return sessionRecoveryRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/account") return bungieAccountRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest") return manifestMetadataRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/component") return manifestComponentRoute(request, env);
