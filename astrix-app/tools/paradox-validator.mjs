@@ -25,6 +25,7 @@ const validators=[
   'test-forge-background.mjs',
   'validate-manifest-service.mjs',
   'test-manifest-service.mjs',
+  'test-backend-data.mjs',
   'test-forge-index-transport.mjs',
   'test-weapon-catalogue.mjs',
   'test-journey-collections.mjs',

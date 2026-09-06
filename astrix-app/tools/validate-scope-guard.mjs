@@ -4,6 +4,17 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const allowed=new Set([
+  'astrix-auth-worker/src/env.d.ts',
+  '.github/workflows/refresh-backend-manifest.yml',
+  'astrix-app/pages/guardian-workspace-v2/guardian-display-profile.mjs',
+  'astrix-app/tools/build-backend-manifest.py',
+  'astrix-app/tools/test-backend-data.mjs',
+  'astrix-auth-worker/src/profile-sections.ts',
+  'astrix-auth-worker/src/profile-snapshot-cache.ts',
+  'astrix-manifest-worker/.gitignore',
+  'astrix-manifest-worker/worker.mjs',
+  'astrix-manifest-worker/wrangler.toml',
+  'astrix-app/docs/backend-data-distribution.md',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-forge-sequence.mjs',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-forge-worker.mjs',
   'astrix-app/pages/guardian-workspace-v2/paradox-build-space/paradox-forge-preparation.mjs',

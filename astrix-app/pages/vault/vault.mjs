@@ -1,5 +1,6 @@
 import {AUTH_ORIGIN,authStartUrl,getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs';
-import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260905-weapon-audit-1';
+import {fetchDisplayProfile} from '../guardian-workspace-v2/guardian-display-profile.mjs';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-backend-1';
 import {cacheBungieProfile,markGuardianFastReturn,readCachedBungieProfile} from '../guardian-workspace-v2/guardian-session-cache.mjs';
 import {ARMOUR_BUCKETS,createVaultCatalogue,filterVaultArmour,itemKey,prepareArmourSelection} from './vault-inventory.mjs?v=20260905-weapon-audit-1';
 import {ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchArmourBuilds,statKey} from './vault-armour-matcher.mjs';
@@ -73,15 +74,13 @@ function resolveActiveCharacter(requestedId=''){
 async function fetchProfile(){
   const url=new URL('/bungie/profile',AUTH_ORIGIN);
   url.searchParams.set('scope','character');
+  url.searchParams.set('freshness','display');
   await guardianManifest.ready();
-  if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
+  if(['indexeddb','backend'].includes(guardianManifest.status().mode))url.searchParams.set('definitions','client-manifest');
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),60000);
   try{
-    const response=await fetch(url,{credentials:'include',headers:{Accept:'application/json'},signal:controller.signal});
-    const result=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(result?.error||`Bungie inventory request failed (${response.status}).`);
-    return result;
+    return await fetchDisplayProfile(url,{signal:controller.signal});
   }catch(error){
     if(error?.name==='AbortError')throw new Error('Bungie inventory request timed out. Refresh or reconnect Bungie.');
     throw error;

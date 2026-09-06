@@ -32,6 +32,10 @@ storage = "sqlite"
 enabled = true
 head_sampling_rate = 1.0
 
+[[services]]
+binding = "MANIFEST_DATA"
+service = "astrix-manifest-data"
+
 # Production custom domains are attached after the Worker is deployed and
 # astrixparadox.com is confirmed active in the owning Cloudflare account:
 # auth.astrixparadox.com

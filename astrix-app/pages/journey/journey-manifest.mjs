@@ -1,11 +1,11 @@
-import {GuardianManifestService} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260905-journey-repair-1';
+import {GuardianManifestService} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-backend-1';
 
 const BASE=new URL('../../data/journey-index/',import.meta.url);
 const validHash=value=>value!==null&&value!==undefined&&value!==''&&Number.isInteger(Number(value))&&Number(value)>0&&Number(value)<=0xffffffff;
 // Journey owns a small LRU of public definitions. Never load the equipment tables
 // or a cached Character payload into this service. Profile progress stays separate.
 export class JourneyManifestService{
-  constructor({fetchImpl=globalThis.fetch?.bind(globalThis),fallback=new GuardianManifestService({selective:true,maxFallbackDefinitions:768,storage:{available:false}}),maxShards=8,maxBytes=6*1024*1024}={}){
+  constructor({fetchImpl=globalThis.fetch?.bind(globalThis),fallback=new GuardianManifestService({backend:true,selective:true,maxFallbackDefinitions:768,storage:{available:false}}),maxShards=8,maxBytes=6*1024*1024}={}){
     this.fetchImpl=fetchImpl;this.fallback=fallback;this.maxShards=maxShards;this.maxBytes=maxBytes;
     this.cache=new Map();this.pending=new Map();this.indexPromise=null;this.retainedBytes=0;
   }

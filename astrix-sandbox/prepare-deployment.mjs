@@ -9,6 +9,7 @@ const skippedTopLevel=new Set([
   '.sandbox-dist',
   'ASTRIX285.github.io',
   'astrix-auth-worker',
+  'astrix-manifest-worker',
   'astrix-sandbox',
 ]);
 const streamedFiles=new Set([

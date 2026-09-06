@@ -1,5 +1,6 @@
 import { AuthRecord, type OAuthTransaction, type SessionRecord, type Membership } from "./auth-record";
 import { allowedOrigins, approvedReturnUrl, handlePreflight, json, withCors } from "./web";
+import { profileSections } from "./profile-sections";
 
 export { AuthRecord };
 
@@ -359,6 +360,38 @@ async function manifestDefinitionRoute(request: Request, env: Env): Promise<Resp
   const resolved = json({ type, hash: Number(hash), manifestVersion: manifest.version, definition: payload.Response }, 200, { "Cache-Control": requestedVersion ? "public, max-age=604800, immutable" : "public, max-age=300" });
   await defaultCache.put(cacheKey, resolved.clone()).catch(error => console.warn("manifest_definition_cache_write_failed", { type, hash, error: String(error) }));
   return withCors(request, env, resolved);
+}
+
+async function manifestDefinitionsRoute(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const type = url.searchParams.get("type") || "";
+  const hashes = [...new Set((url.searchParams.get("hashes") || "").split(","))];
+  if (!LIVE_DEFINITION_TYPES.has(type) || !hashes.length || hashes.length > 48 || hashes.some(hash => !/^\d+$/.test(hash) || Number(hash) <= 0 || Number(hash) > 0xffffffff)) {
+    return withCors(request, env, json({ error: "invalid_manifest_batch", maxHashes: 48 }, 400));
+  }
+  const manifest = await destinyManifest(env);
+  if (url.searchParams.get("version") !== manifest.version) return withCors(request, env, json({ error: "manifest_version_changed", currentVersion: manifest.version }, 409));
+  if (env.MANIFEST_DATA) {
+    const prepared = new URL(url); prepared.pathname = "/definitions";
+    const response = await env.MANIFEST_DATA.fetch(new Request(prepared)).catch(() => null);
+    if (response?.ok) return withCors(request, env, response);
+    // A new Bungie version can precede the next catalogue deployment. Resolve
+    // current hashes directly until its complete prepared generation is ready.
+  }
+  const definitions: Record<string, unknown> = {};
+  const unresolved: string[] = [];
+  // Bounded parallel reads reuse the existing version-isolated public cache.
+  for (let offset = 0; offset < hashes.length; offset += 6) {
+    await Promise.all(hashes.slice(offset, offset + 6).map(async hash => {
+      const single = new URL(url); single.pathname = "/bungie/manifest/definition";
+      single.searchParams.delete("hashes"); single.searchParams.set("hash", hash);
+      const response = await manifestDefinitionRoute(new Request(single, { headers: request.headers }), env);
+      const payload = await response.json<{ definition?: unknown; manifestVersion?: string }>();
+      if (response.ok && payload.manifestVersion === manifest.version && payload.definition) definitions[hash] = payload.definition;
+      else unresolved.push(hash);
+    }));
+  }
+  return withCors(request, env, json({ manifestVersion: manifest.version, type, definitions, unresolved }, 200, { "Cache-Control": unresolved.length ? "no-store" : "public, max-age=300" }));
 }
 
 function bindingInfo(value: unknown): { present: boolean; type: string; length: number | null } {
@@ -796,7 +829,11 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   );
   profileUrl.searchParams.set("components", requestedComponents.join(","));
 
-  const response = await fetch(profileUrl, {
+  const displaySnapshot = requestUrl.searchParams.get("freshness") === "display";
+  if (displaySnapshot) await putSession(env, sessionId, session);
+  const response = displaySnapshot
+    ? await recordStub(env, `session:${sessionId}`).fetch(new Request("https://internal/profile-snapshot", { method: "POST", body: JSON.stringify({ components: requestedComponents }) }))
+    : await fetch(profileUrl, {
     headers: {
       Authorization: `Bearer ${session.accessToken}`,
       "X-API-Key": env.BUNGIE_API_KEY,
@@ -821,16 +858,27 @@ async function profileRoute(request: Request, env: Env): Promise<Response> {
   const verifiedCharacterIds = Object.keys(payload.Response.characters?.data || {});
   if (requestUrl.searchParams.get("definitions") === "client-manifest") {
     await putSession(env, sessionId, { ...session, lastUsedAt: Date.now(), verifiedCharacterIds, verifiedCharactersAt: Date.now() });
+    let sections = null;
+    if (displaySnapshot && requestUrl.searchParams.get("delivery") === "sections") {
+      const raw = requestUrl.searchParams.get("since") || "{}";
+      if (raw.length > 8192) return withCors(request, env, json({ error: "section_revisions_too_large" }, 400));
+      let since: Record<string,string>;
+      try { since = JSON.parse(raw); } catch { return withCors(request, env, json({ error: "invalid_section_revisions" }, 400)); }
+      if (!since || Array.isArray(since) || typeof since !== "object") return withCors(request, env, json({ error: "invalid_section_revisions" }, 400));
+      sections = await profileSections(payload.Response, `${membership.membershipType}:${membership.membershipId}`, since);
+    }
     return withCors(request, env, json({
       authenticated: true,
       membership,
       components: requestedComponents,
-      profile: payload.Response,
+      profile: sections ? undefined : payload.Response,
+      profileSections: sections,
       definitions: {},
       damageDefinitions: {},
       breakerDefinitions: {},
       gearAssets: {},
-      manifestResolution: { mode: "client" }
+      manifestResolution: { mode: "client" },
+      displaySnapshot: displaySnapshot ? { source: response.headers.get("X-Astrix-Profile-Source"), fetchedAt: Number(response.headers.get("X-Astrix-Profile-Fetched-At")), maxAgeMs: 15000 } : null
     }));
   }
 
@@ -1429,12 +1477,19 @@ export default {
         }, 200, { "Cache-Control": "no-store" });
       }
       if (request.method === "GET" && url.pathname === "/bungie/start") return startOAuth(request, env);
+      if (request.method === "GET" && url.pathname === "/diagnostics/data") {
+        const response = await env.MANIFEST_DATA?.fetch(new Request("https://manifest/status")).catch(() => null);
+        const prepared = response?.ok ? await response.json<{ manifestVersion: string; tables: Record<string,unknown> }>() : null;
+        const manifest = await destinyManifest(env);
+        return withCors(request, env, json({ prepared: Boolean(prepared), manifestVersion: manifest.version, preparedVersion: prepared?.manifestVersion || null, tables: Object.keys(prepared?.tables || {}), current: prepared?.manifestVersion === manifest.version }, 200, { "Cache-Control": "no-store" }));
+      }
       if (request.method === "GET" && url.pathname === "/bungie/callback") return oauthCallback(request, env);
       if (request.method === "GET" && url.pathname === "/session") return sessionRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/account") return bungieAccountRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest") return manifestMetadataRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/component") return manifestComponentRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/manifest/definition") return manifestDefinitionRoute(request, env);
+      if (request.method === "GET" && url.pathname === "/bungie/manifest/definitions") return manifestDefinitionsRoute(request, env);
       if (request.method === "GET" && url.pathname === "/bungie/current-season") return currentSeasonRoute(request, env);
       if (request.method === "GET" && (url.pathname === "/bungie/profile" || url.pathname === "/v1/destiny/profile")) {
         return profileRoute(request, env);

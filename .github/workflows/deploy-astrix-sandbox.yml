@@ -67,14 +67,20 @@ jobs:
         run: |
           npm install
           npm run check --if-present
+      - name: Validate backend data boundaries
+        run: node astrix-app/tools/test-backend-data.mjs
+      - name: Prepare shared Bungie definitions
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+        run: python3 astrix-app/tools/build-backend-manifest.py
       - name: Prepare static sandbox
         run: node astrix-sandbox/prepare-deployment.mjs
-      - name: Deploy sandbox Worker
+      - name: Deploy shared manifest data
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: astrix-sandbox
+          workingDirectory: astrix-manifest-worker
           wranglerVersion: 4.114.0
           command: deploy
       - name: Deploy sandbox auth origin
@@ -83,6 +89,14 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: astrix-auth-worker
+          command: deploy
+      - name: Deploy sandbox Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: astrix-sandbox
+          wranglerVersion: 4.114.0
           command: deploy
       - name: Verify live sandbox
         run: |

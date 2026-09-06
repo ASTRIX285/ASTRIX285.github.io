@@ -1,4 +1,4 @@
-import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260905-weapon-audit-1";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260906-backend-1";
 import {PORTAL_TRANSITION_KEY} from "./guardian-session-cache.mjs";
 
 const loader=window.AstrixLoader;

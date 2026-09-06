@@ -2,7 +2,8 @@ import {getBungieSession} from "./guardian-bungie-auth.mjs?v=20260905-manual-edi
 import {createArtifactConfiguration,resolveArtifactByProvenance} from "./guardian-artifact-provenance.mjs";
 import {subclassPlugComponent} from "./guardian-subclass-plug-classifier.mjs";
 import {normaliseWeaponSemantics} from "./guardian-semantic-resolver.mjs?v=20260905-weapon-audit-1";
-import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260905-weapon-audit-1";
+import {guardianManifest} from "./guardian-manifest-service.mjs?v=20260906-backend-1";
+import {fetchDisplayProfile} from "./guardian-display-profile.mjs";
 import {createBuildState} from "./paradox-build-space/paradox-build-state.mjs";
 import {createHandoffEnvelope} from "./paradox-build-binding.mjs";
 import {mergeSubclassCatalog} from "./guardian-super-catalog.mjs?v=20260829-subclass-identity-1";
@@ -150,6 +151,7 @@ async function fetchJsonWithTimeout(url,timeoutMs=PROFILE_REQUEST_TIMEOUT_MS){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
+    if(new URL(url).pathname==='/bungie/profile')return await fetchDisplayProfile(url,{signal:controller.signal});
     const response=await fetch(url,{credentials:"include",headers:{Accept:"application/json"},signal:controller.signal});
     const payload=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(payload.error||`Bungie request failed (${response.status}).`);
@@ -177,10 +179,11 @@ async function manifestRequestUrl(path){
   await manifestReady;
   const url=new URL(path,AUTH_ORIGIN);
   if(path==="/bungie/profile"){
+    url.searchParams.set("freshness","display");
     if(location.pathname.includes("/pages/journey/"))url.searchParams.set("scope","journey");
     else if(location.pathname.includes("/guardian-workspace-v2/"))url.searchParams.set("scope","character");
   }
-  if(guardianManifest.status().mode==="indexeddb")url.searchParams.set("definitions","client-manifest");
+  if(["indexeddb","backend"].includes(guardianManifest.status().mode))url.searchParams.set("definitions","client-manifest");
   return url;
 }
 

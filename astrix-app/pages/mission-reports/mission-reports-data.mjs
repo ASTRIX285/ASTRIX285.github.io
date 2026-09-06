@@ -1,5 +1,5 @@
 import {AUTH_ORIGIN} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260902-shared-account-orbit-1';
-import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260905-weapon-audit-1';
+import {guardianManifest} from '../guardian-workspace-v2/guardian-manifest-service.mjs?v=20260906-backend-1';
 
 const REQUEST_TIMEOUT_MS=30_000;
 const BUNGIE_ORIGIN='https://www.bungie.net';
@@ -59,7 +59,7 @@ const completionValue=values=>{
 async function manifestRequestUrl(path){
   await manifestReady;
   const url=new URL(path,AUTH_ORIGIN);
-  if(guardianManifest.status().mode==='indexeddb')url.searchParams.set('definitions','client-manifest');
+  if(['indexeddb','backend'].includes(guardianManifest.status().mode))url.searchParams.set('definitions','client-manifest');
   return url;
 }
 
