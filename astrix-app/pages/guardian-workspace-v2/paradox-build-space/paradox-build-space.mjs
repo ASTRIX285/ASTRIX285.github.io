@@ -3,7 +3,7 @@ import {diffBuilds,createBuildState,createIntendedArtifactConfiguration,toggleIn
 import {mountForgeShell} from '../platform-forge-shell.mjs';
 import {armBuildTest,collectBuildTestResults,confirmCandidateActivity,captureMatchesCharacter,readCapture,readCaptureArchive} from '../guardian-shooting-range-capture.mjs?v=20260902-shared-account-orbit-1';
 import {analyzeLiveGuardian,renderLiveAnalysis} from '../guardian-paradox-live-adapter.mjs?v=20260905-background-forge-1';
-import {createLiveTransferPlan} from '../guardian-perk-change-plan.mjs?v=20260905-manual-editor-1';
+import {createLiveTransferPlan} from '../guardian-perk-change-plan.mjs?v=20260906-review-layout-1';
 import {liveActionCapabilities,stageLiveTransferPreflight,confirmLiveTransferPlan,executeLiveTransferPlan} from '../guardian-live-actions.mjs?v=20260905-worker-preflight-1';
 import {armourCard} from '../guardian-gear-layout.mjs?v=20260905-card-space-mods-1';
 import {openArmourDrawer} from '../guardian-beta-runtime.mjs?v=20260905-weapon-audit-1';

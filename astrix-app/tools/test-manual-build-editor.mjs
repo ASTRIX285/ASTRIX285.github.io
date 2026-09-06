@@ -90,6 +90,15 @@ const switchedPlan=createLiveTransferPlan({build:switchedSubclassBuild,originalB
 assert.ok(switchedPlan.equipment.targets.some(row=>row.kind==='subclass'&&row.itemInstanceId==='14101'),'A switched exact subclass instance must enter the equipment target set.');
 assert.ok(switchedPlan.socketChanges.some(row=>row.itemInstanceId==='14101'&&row.plugHash===switchedAbility.hash),'Manual sockets edited after a subclass switch must enter the exact Apply ledger.');
 
+const catalogueOnlySubclassBuild={...clone(baseBuild),subclass:'void',subclassName:'Nightstalker',subclassCatalog:[{hash:2328211300,name:'Arcstrider',element:'arc',definition:{itemType:16}},{hash:2453351420,name:'Nightstalker',element:'void',itemInstanceId:'14102',bucketHash:3284755031,classType:1,source:{kind:'carried',characterId:CHARACTER_ID},definition:{itemType:16,inventory:{bucketTypeHash:3284755031}}}],subclassBuild:{abilities:[],aspects:[],fragments:[]}};
+const catalogueOnlySubclassPlan=createLiveTransferPlan({build:catalogueOnlySubclassBuild,originalBuild:catalogueOnlySubclassBuild,capabilities:{captureSnapshot:true,transferItems:true,equipItems:true,verifyEquipment:true,insertSocketPlugFree:true,verifyFinalState:true}});
+assert.equal(catalogueOnlySubclassPlan.ready,true,catalogueOnlySubclassPlan.blockers.join(' | '));
+assert.ok(catalogueOnlySubclassPlan.equipment.targets.some(row=>row.kind==='subclass'&&row.itemInstanceId==='14102'),'Apply must resolve the selected exact subclass from the live catalogue when the compact snapshot lacks a top-level subclass instance field.');
+const placeholderSubclassBuild={...clone(baseBuild),subclass:'void',subclassName:'Nightstalker',subclassCatalog:[{hash:2328211300,name:'Arcstrider',element:'arc',definition:{itemType:16}},{hash:2453351420,name:'Nightstalker',element:'void',definition:{itemType:16}}],subclassBuild:{abilities:[],aspects:[],fragments:[]}};
+const placeholderSubclassPlan=createLiveTransferPlan({build:placeholderSubclassBuild,originalBuild:placeholderSubclassBuild,capabilities:{captureSnapshot:true,transferItems:true,equipItems:true,verifyEquipment:true,insertSocketPlugFree:true,verifyFinalState:true}});
+assert.equal(placeholderSubclassPlan.ready,true,placeholderSubclassPlan.blockers.join(' | '));
+assert.equal(placeholderSubclassPlan.equipment.targets.some(row=>row.kind==='subclass'),false,'A catalogue placeholder without an owned instance must not become a false subclass equipment target or block Apply.');
+
 const preflight=createLiveTransferPreflight(exactSocketBuild);
 assert.equal(preflight.ready,true,preflight.violations.join(' | '));
 assert.equal(preflight.mode,'manual-working-build','Manual Apply must not require a generated recommendation.');

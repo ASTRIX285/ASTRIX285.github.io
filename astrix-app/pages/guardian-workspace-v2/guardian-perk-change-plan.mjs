@@ -10,6 +10,26 @@ const itemName=item=>String(item?.name||item?.displayName||'Destiny item');
 const sourceOf=item=>item?.source&&typeof item.source==='object'?item.source:{};
 const exotic=item=>item?.isExotic===true||String(item?.tier||item?.rarity||'').toLowerCase().includes('exotic');
 const exactRemoteSocketEvidence=option=>option?.remoteInsertEvidence==='exact-item-reusable-plug'||option?.source==='bungie-item-reusable-plugs';
+const SUBCLASS_KEYS=['arc','solar','void','stasis','strand','prismatic'];
+
+function subclassKey(value={}){
+  const label=[value?.element,value?.subclass,value?.key,value?.name,value?.displayName,value?.definition?.displayProperties?.name].filter(Boolean).join(' ').toLowerCase();
+  return SUBCLASS_KEYS.find(key=>label.includes(key))||'';
+}
+
+function selectedSubclassItem(build={}){
+  const catalogue=Array.isArray(build.subclassCatalog)?build.subclassCatalog.filter(item=>itemIdOf(item)):[];
+  const embedded=build.subclassItem&&itemIdOf(build.subclassItem)?build.subclassItem:null;
+  const requestedId=String(build.subclassItemInstanceId||itemIdOf(embedded)||'');
+  if(requestedId)return catalogue.find(item=>itemIdOf(item)===requestedId)||embedded;
+  const requestedHash=hashOf(embedded);
+  if(Number.isInteger(requestedHash)){
+    const exactHash=catalogue.find(item=>hashOf(item)===requestedHash);
+    if(exactHash)return exactHash;
+  }
+  const requestedKey=subclassKey({element:build.subclass,subclass:build.subclass,name:build.subclassName});
+  return requestedKey?catalogue.find(item=>subclassKey(item)===requestedKey)||null:null;
+}
 
 function validChange(change){
   return /^\d+$/.test(String(change?.itemInstanceId||''))&&Number.isInteger(Number(change?.socketIndex))&&Number(change.socketIndex)>=0&&Number(change.socketIndex)<=99&&Number.isInteger(Number(change?.plugHash))&&Number(change.plugHash)>0;
@@ -82,8 +102,8 @@ function subclassSelections(build={}){
 }
 
 function inferredSubclassChanges(build={},originalBuild={}){
-  const itemInstanceId=String(build.subclassItemInstanceId||build.subclassItem?.itemInstanceId||'');
-  const originalItemInstanceId=String(originalBuild.subclassItemInstanceId||originalBuild.subclassItem?.itemInstanceId||'');
+  const subclassItem=selectedSubclassItem(build),originalSubclassItem=selectedSubclassItem(originalBuild);
+  const itemInstanceId=itemIdOf(subclassItem),originalItemInstanceId=itemIdOf(originalSubclassItem);
   // Equipping a different subclass instance carries that instance's existing
   // configuration; do not also replay its current sockets against the old item.
   if(itemInstanceId&&originalItemInstanceId&&itemInstanceId!==originalItemInstanceId)return {changes:[],manual:[]};
@@ -94,7 +114,7 @@ function inferredSubclassChanges(build={},originalBuild={}){
     if(!Number.isInteger(socketIndex)||!Number.isInteger(plugHash))continue;
     const before=beforeBySocket.get(socketIndex),currentPlugHash=hashOf(before);
     if(Number.isInteger(currentPlugHash)&&currentPlugHash===plugHash)continue;
-    const candidate=normalizedChange({itemInstanceId,itemHash:build.subclassItem?.itemHash,itemName:build.subclassName||'Subclass',socketIndex,plugHash,plugName:itemName(row),currentPlugHash:Number.isInteger(currentPlugHash)?currentPlugHash:null,component:`subclass-${row.componentType||'socket'}`,source:row.source||'bungie-reusable-plugs',remoteSupported:row.canInsert===true&&exactRemoteSocketEvidence(row)},'subclass');
+    const candidate=normalizedChange({itemInstanceId,itemHash:hashOf(subclassItem),itemName:build.subclassName||'Subclass',socketIndex,plugHash,plugName:itemName(row),currentPlugHash:Number.isInteger(currentPlugHash)?currentPlugHash:null,component:`subclass-${row.componentType||'socket'}`,source:row.source||'bungie-reusable-plugs',remoteSupported:row.canInsert===true&&exactRemoteSocketEvidence(row)},'subclass');
     if(candidate.itemInstanceId&&candidate.remoteSupported)changes.push(candidate);
     else manual.push(`Set ${itemName(row)} on ${build.subclassName||build.subclass||'the selected subclass'} in Destiny; a verified free socket mapping was not exposed.`);
   }
@@ -143,7 +163,7 @@ function createLiveTransferPlan({build={},originalBuild={},advice=null,capabilit
   const supported=booleanCapabilities(capabilities),characterId=String(build.characterId||''),membershipId=String(build.membershipId||build.bungieMembershipId||''),membershipType=String(build.membershipType??'');
   const weapons=(build.weapons||[]).filter(Boolean),armour=(build.armour||[]).filter(Boolean),expectedClass=CLASS_TYPES[String(build.characterClass||'').toLowerCase()];
   const targets=[...weapons.map((item,index)=>equipmentTarget(item,'weapon',index)),...armour.map((item,index)=>equipmentTarget(item,'armour',index))];
-  const subclassItem=(build.subclassCatalog||[]).find(row=>itemIdOf(row)===String(build.subclassItemInstanceId||''))||build.subclassItem||null;
+  const subclassItem=selectedSubclassItem(build);
   if(subclassItem&&itemIdOf(subclassItem))targets.push(equipmentTarget(subclassItem,'subclass',0));
   const blockers=[];
   if(!/^\d+$/.test(characterId)||!/^\d+$/.test(membershipId)||!/^\d+$/.test(membershipType))blockers.push('The Working Build is not bound to a Bungie Guardian and Destiny membership.');

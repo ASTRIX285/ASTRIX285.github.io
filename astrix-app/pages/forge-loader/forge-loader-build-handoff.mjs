@@ -60,6 +60,8 @@ function compactForgeLoaderProfileBuild(profileBuild={},binding={}){
     subclass:profileBuild.subclass||'',
     subclassName:profileBuild.subclassName||'',
     subclassIcon:profileBuild.subclassIcon||'',
+    subclassItemInstanceId:text(profileBuild.subclassItemInstanceId||profileBuild.subclassItem?.itemInstanceId),
+    subclassItem:compactValue(profileBuild.subclassItem||null),
     subclassCatalog:compactValue(profileBuild.subclassCatalog||[]),
     subclassBuild:compactValue(subclassBuild),
     super:compactValue(profileBuild.super??subclassBuild.super??null),

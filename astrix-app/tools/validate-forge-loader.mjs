@@ -170,7 +170,8 @@ assert.equal(sourceState.originalBuild.armour.every(item=>item===null),true,'The
 
 const equippedArmour=[item(0,2100,'equipped-helmet',3),item(1,2101,'equipped-gauntlets',4),item(2,2102,'equipped-chest',5),item(3,2103,'equipped-legs',6),item(4,2104,'equipped-class-item',7)];
 const equippedLoadouts=[{colorHash:4101,iconHash:4102,nameHash:4103,items:[{itemInstanceId:'equipped-helmet'},{itemInstanceId:'equipped-chest'}],subclassOverrides:[{itemInstanceId:'subclass-one',plugItemHashes:[4201,4202]}]}];
-const equippedProfileBuild={...binding,source:'bungie-live',characterClass:'hunter',subclassBuild:{},weapons:[],armour:equippedArmour,stats:[],loadoutsAvailable:true,loadouts:equippedLoadouts};
+const equippedSubclass={hash:2453351420,itemInstanceId:'equipped-subclass',name:'Nightstalker',bucketHash:3284755031,classType:1,source:{kind:'equipped',characterId:binding.characterId},definition:{inventory:{bucketTypeHash:3284755031},displayProperties:{name:'Nightstalker'}}};
+const equippedProfileBuild={...binding,source:'bungie-live',characterClass:'hunter',subclass:'void',subclassName:'Nightstalker',subclassItemInstanceId:equippedSubclass.itemInstanceId,subclassItem:equippedSubclass,subclassCatalog:[equippedSubclass],subclassBuild:{},weapons:[],armour:equippedArmour,stats:[],loadoutsAvailable:true,loadouts:equippedLoadouts};
 const snapshotEnvelope=createForgeLoaderBuildSnapshot(equippedProfileBuild,binding);
 const protectedSource=validateHandoffEnvelope(snapshotEnvelope,{expectedCharacterId:binding.characterId,expectedMembershipId:binding.membershipId,expectedMembershipType:binding.membershipType});
 assert.equal(protectedSource?.originalBuild,undefined,'Forge Loader must store one protected source build instead of duplicating it into Original and Working copies in Web Storage.');
@@ -178,6 +179,8 @@ const protectedSnapshot=createBuildState(protectedSource);
 assert.deepEqual(protectedSnapshot?.originalBuild?.armour?.map(row=>row.itemInstanceId),equippedArmour.map(row=>row.itemInstanceId),'Forge Loader must capture the exact equipped armour as the protected Original Build before navigation.');
 assert.equal(protectedSnapshot?.originalBuild?.loadoutsAvailable,true,'Forge Loader must retain the prepared Bungie in-game loadout component.');
 assert.deepEqual(protectedSnapshot?.originalBuild?.loadouts,equippedLoadouts,'Forge Loader must carry the compact in-game loadout slots into Build Forge.');
+assert.equal(protectedSnapshot?.originalBuild?.subclassItemInstanceId,equippedSubclass.itemInstanceId,'Forge Loader must retain the exact equipped subclass instance for Apply.');
+assert.equal(protectedSnapshot?.originalBuild?.subclassItem?.bucketHash,3284755031,'Forge Loader must retain the verified Destiny subclass equipment bucket.');
 const protectedApplied=applyVaultArmourSelection(protectedSnapshot,verifiedSelection);
 assert.equal(protectedApplied.applied,true,'A direct Forge Loader entry must provide enough protected state for Build Forge to apply the staged selection immediately.');
 assert.strictEqual(protectedApplied.state.originalBuild,protectedSnapshot.originalBuild,'Staging armour must retain the same immutable Original Build instead of cloning the complete inventory.');
@@ -324,9 +327,9 @@ assert.doesNotMatch(runtime,/if\(!baselineStored\)\{[^}]*?return;/,'A rejected b
 assert.match(runtime,/if\(!baselineStored&&!transferStored\)url\.searchParams\.set\('baseline','bungie-recovery'\)/,'The destination must request authenticated recovery only when the atomic baseline is unavailable.');
 assert.match(buildHandoff,/store\.removeItem\(BUILD_SPACE_KEY\);[\s\S]*?store\.removeItem\(BUILD_SNAPSHOT_KEY\);[\s\S]*?store\.setItem\(BUILD_SNAPSHOT_KEY,json\)/,'Stale Build Forge state must be cleared before writing the newly verified compact Guardian snapshot.');
 assert.doesNotMatch(buildHandoff,/createBuildState/,'Forge Loader must not expand the compact source into duplicate Original and Working builds before navigation.');
-assert.match(html,/forge-loader\.mjs\?v=20260906-complete-build-transfer-1/,'Forge Loader must load the complete prepared payload and protected Build Forge handoff without stale browser code.');
+assert.match(html,/forge-loader\.mjs\?v=20260906-review-layout-1/,'Forge Loader must load the exact subclass handoff without stale browser code.');
 assert.match(html,/forge-loader\.css\?v=20260904-open-armour-1/,'Forge Loader must refresh the stronger selected-Exotic state without stale page CSS.');
-assert.match(runtime,/forge-loader-build-handoff\.mjs\?v=20260906-complete-build-transfer-1/,'Forge Loader must refresh the protected baseline writer with the complete in-game loadout transfer.');
+assert.match(runtime,/forge-loader-build-handoff\.mjs\?v=20260906-review-layout-1/,'Forge Loader must refresh the protected baseline writer with exact subclass and in-game loadout transfer.');
 assert.match(runtime,/vault-selection-state\.mjs\?v=20260904-exotic-equip-rule-1/,'Forge Loader must refresh the legal one-Exotic armour selection writer.');
 assert.match(buildRuntime,/vault-selection-state\.mjs\?v=20260904-exotic-equip-rule-1/,'Build Forge must refresh the legal one-Exotic armour selection reader.');
 assert.match(selectionState,/const item=compactArmourSelectionItem\(row\?\.item\|\|null\)/,'Every staged armour item must be compacted before it crosses Web Storage.');
@@ -351,7 +354,7 @@ assert.match(artifactSelectionRuntime,/const next=\{\.\.\.state,workingBuild:\{\
 assert.match(artifactSelectionRuntime,/weapons:\(build\.weapons\|\|\[\]\)\.map\(weapon=>\(\{hash:hashOf\(weapon\),itemInstanceId:[\s\S]*?selectedPerks:/,'Artifact recommendation fingerprints must distinguish exact owned weapon rolls and their selected perks.');
 assert.match(buildRuntime,/shouldReplaceBuildState\(current,detail,\{vaultSelection:params\.get\('vault'\)==='selection',explicitlySelectedCharacterId\}\);[\s\S]*?if\(!replace\)\{const repaired=repairMissingBuildBinding\(current,detail\),hydrated=mergePreparedLoadoutContext\(repaired,detail\);[\s\S]*?return;\}/,'A background live-profile event may repair binding and loadout context but must not overwrite the validated Forge Loader Working Build.');
 assert.match(buildRuntime,/boundDetail=\{\.\.\.detail,membershipId:detail\.membershipId\|\|requested\.membershipId,membershipType:detail\.membershipType\?\?requested\.membershipType\}/,'Authenticated baseline recovery must retain the character-bound membership carried in the transfer URL.');
-assert.match(read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html'),/paradox-build-space\.mjs\?v=20260906-complete-build-transfer-2/,'Build Forge must load the complete protected build transfer without stale browser code.');
+assert.match(read('astrix-app/pages/guardian-workspace-v2/paradox-build-space/index.html'),/paradox-build-space\.mjs\?v=20260906-review-layout-1/,'Build Forge must load the complete protected build transfer without stale browser code.');
 assert.match(buildRuntime,/mergePreparedLoadoutContext\(repaired,detail\)/,'A prepared live profile must repair in-game loadouts on an existing Build Forge snapshot without replacing its staged build.');
 assert.match(buildRuntime,/emitLoad\('profile',LOAD_STAGES\.PROFILE[\s\S]*?try\{[\s\S]*?Build Forge retained the protected transfer after recovered subclass rendering failed[\s\S]*?emitLoad\('sockets',LOAD_STAGES\.SOCKETS/,'A recovered subclass presentation failure must not prevent verified armour, sockets and the remaining Build Forge surface from rendering.');
 assert.match(buildRuntime,/function render\(\)\{[\s\S]*?try\{return renderBuildSurface\(\);\}[\s\S]*?catch\(error\)[\s\S]*?completeBuildRender\(build\)/,'A synchronous recovered-profile presentation failure must release the loader with the protected Build Forge state.');

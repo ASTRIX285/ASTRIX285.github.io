@@ -217,7 +217,8 @@ assert.match(runtime,/review-artifact-synergy[\s\S]*?ARTIFACT SYNERGY/,'The revi
 assert.match(artifactSelectionRuntime,/recommendArtifactPerks\(build,effectiveArtifact,\{currentSeasonNumber:season,planFullBuild:true\}\)/,'Build Forge must produce a complete target Artifact plan when only the current CharacterProgressions tree is available.');
 assert.match(artifactSelectionRuntime,/artifactPlanVersion:3/,'The cross-system Artifact-plan release must invalidate previously cached recommendation fingerprints.');
 assert.match(runtime,/PARADOX FULL TARGET PLAN[\s\S]*?currently unlocked and equipped perks remain unchanged/,'The Artifact recommendation must distinguish the complete target plan from the live unlocked and equipped state.');
-assert.match(css,/\.recommended-build-dialog\{width:calc\(100vw - 20px\);max-width:none;border:0/,'The recommendation review must use the page width without the cramped red outer container.');
+assert.match(css,/\.recommended-build-dialog\{display:grid;grid-template-areas:"header" "safety" "status" "content" "actions";grid-template-rows:auto auto auto minmax\(0,1fr\) auto;width:calc\(100vw - 20px\);height:calc\(100dvh - 20px\);max-width:none;min-height:0;border:0/,'The recommendation review must fit the viewport and reserve an independently scrollable content row.');
+assert.match(css,/\.recommended-build-content\{[^}]*min-height:0[^}]*overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable/,'The recommendation body must scroll without pushing the Apply actions outside the viewport.');
 assert.match(css,/\.recommended-armour-summary \.gear-arm-anchor \.arm\{width:clamp\(88px,6vw,104px\)!important;height:clamp\(88px,6vw,104px\)!important\}/,'Recommended armour must retain the same visual scale as Character and Build Design.');
 assert.match(html,/id="continueToBuildTest">TEST THIS BUILD/,'The recommendation review must lead into the user-run Build Test.');
 assert.match(runtime,/function renderParadoxTestReview\(capture=readCapture\(\)\)[\s\S]*?Causal perk activation, DPS and uptime remain inference/,'Paradox must review confirmed post-test Bungie evidence without inventing causal telemetry.');
@@ -261,8 +262,10 @@ assert.match(advisorRuntime,/item\.weaponRollAdvice=advice/,'Weapon recommendati
 assert.match(runtime,/weaponPerkMatrixMarkup\(item,\{recommendedHashes\}\)/,'Recommended weapons must render the integrated tier-driven perk model.');
 assert.match(runtime,/weaponTraitHierarchyMarkup\(item,\{compact:true\}\)/,'Recommended Exotic weapon traits must remain directly beneath the intrinsic hierarchy.');
 assert.match(runtime,/TIER \$\{tier\}[\s\S]*?\$\{rowCount\} PERK ROW/,'Recommended weapons must identify the exact tier and modeled perk-row count.');
+assert.match(css,/\.recommended-weapons-summary\{--gear-weapon-art:clamp\(44px,4\.2cqi,56px\);--gear-weapon-socket:clamp\(20px,2\.25cqi,28px\)/,'Build review weapons must use the compact half-scale art and socket geometry.');
 assert.match(css,/\.review-weapon \.weapon-perk-row\{grid-template-columns:repeat\(var\(--weapon-perk-columns\),var\(--gear-weapon-socket\)\)/,'Build review must reuse the shared weapon socket size across every tier row.');
-assert.match(css,/body\.build-forge-page \.review-weapon small\{font-size:13px!important/,'Build review weapon copy must remain readable instead of reverting to the former tiny type.');
+assert.match(css,/\.review-weapon em\{[^}]*font:800 13px\/1\.25/,'Owned candidate eligibility must remain prominent inside the compact weapon cards.');
+assert.match(css,/body\.build-forge-page \.review-weapon small\{font-size:11px!important/,'Compact weapon supporting copy must remain readable.');
 assert.match(gearCss,/\.weapon-detail-drawer\{[^}]*width:min\(1120px,96vw\)[^}]*font-size:16px/,'The weapon detail drawer must use the enlarged readable layout.');
 assert.match(gearCss,/\.weapon-exotic-traits\{[^}]*border-left:2px/,'Exotic weapon traits must have a subordinate visual stack beneath the intrinsic.');
 assert.doesNotMatch(runtime,/armour-verification-line|decorateBuildArmour/,'Build Forge must not render the internal T5 or masterwork gate as repeated armour-card footer text.');
