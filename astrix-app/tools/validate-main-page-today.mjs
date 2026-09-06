@@ -19,7 +19,9 @@ assert.match(workspace,/astrix:guardian-render-complete/,'Main must publish rend
 assert.match(workspace,/Promise\.all\(images\.map\(settleImage\)\)/,'Main render completion must wait for visible images');
 assert.match(loader,/astrix:guardian-render-complete/,'Loader must finish from the render event');
 assert.doesNotMatch(loader,/window\.addEventListener\('load'[\s\S]*?finish/,'Loader must not finish on window load');
-assert.doesNotMatch(loader,/setTimeout\(finish/,'Loader must not finish from an arbitrary timeout');
+const finalPaintGate=loader.slice(loader.indexOf('const finishAfterPaint'),loader.indexOf('try{'));
+assert.doesNotMatch(finalPaintGate,/setTimeout/,'The real render-complete gate must not finish from an arbitrary timeout');
+assert.match(loader,/const BACKGROUND_DECODE_TIMEOUT_MS=5\*1000;[\s\S]*?const timeout=setTimeout\(finish,BACKGROUND_DECODE_TIMEOUT_MS\)/,'Only the decorative scene decode may use a bounded failure wait');
 assert.match(loader,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>\{if\(revision===finishRevision\)loader\?\.done\(\);\}\)\)/,'Main portal must clear only after the render-complete paint');
 assert.match(loader,/else set\(8,'Bungie authentication required'\)/,'An unauthenticated local session must remain behind the Bungie authentication gate');
 assert.match(loader,/currentSession=window\.ASTRIX_BUNGIE_SESSION[\s\S]*?guardianRenderComplete/,'Main portal must reconcile Guardian state if startup completed before listener registration');
@@ -198,7 +200,7 @@ assert.match(buildModule,/function stageWorkingBuild\(mutator\)[\s\S]*?createWor
 assert.match(buildModule,/for\(const key of \[BUILD_SPACE_KEY,BUILD_SNAPSHOT_KEY\]\)/,'Build must prefer the explicit post-enrichment Character handoff so resolved armour set bonuses survive');
 assert.match(buildModule,/import \{armourCard\} from '\.\.\/guardian-gear-layout\.mjs\?v=20260905-card-space-mods-1'/,'Build Armour must import the same current renderer as the locked Character section');
 assert.match(buildHtml,/paradox-build-space\.css\?v=20260905-manual-editor-1/,'Build must load the standardized equipment geometry plus manual editor layer without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260905-worker-preflight-1/,'Build must load the worker-safe generation and live-preflight correction without stale code');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260906-loader-58-fix-1/,'Build must load the worker-safe generation, live-preflight correction and bounded portal dependency without stale code');
 assert.match(buildModule,/function renderBuildGear\(build=\{\}\)[\s\S]*?renderWeapons/,'Build Weapons must route through the shared Main renderer');
 assert.match(buildModule,/document\.addEventListener\('astrix:guardian-loadout-context',event=>recoverMissingBuild\(event\.detail\|\|\{\}\)\)/,'Build must recover a missing handoff from the verified live Guardian context');
 assert.match(buildModule,/const artifactItems=resolvedOptions\(build,'artifact'\)/,'Build Artifact selector must expose the verified Artifact 2.0 catalogue for Forge ranking');

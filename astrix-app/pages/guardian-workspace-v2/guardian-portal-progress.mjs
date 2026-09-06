@@ -4,6 +4,7 @@ import {PORTAL_TRANSITION_KEY} from "./guardian-session-cache.mjs";
 const loader=window.AstrixLoader;
 const manifestReady=guardianManifest.ready();
 const isBuildSpace=Boolean(document.querySelector('.build-space'));
+const BACKGROUND_DECODE_TIMEOUT_MS=5*1000;
 let buildRenderStatus='',profileSettled=false,profileFailed=false,finishRevision=0;
 const buildHeaderSettled=()=>!document.querySelector('#guardianCharacterCards .is-pending');
 const maybeFinishBuild=()=>{
@@ -26,7 +27,14 @@ const sceneBackgroundUrls=()=>{
 };
 const decodeBackground=url=>new Promise(resolve=>{
   const image=new Image();
-  const finish=()=>resolve();
+  let settled=false;
+  const finish=()=>{
+    if(settled)return;
+    settled=true;
+    clearTimeout(timeout);
+    resolve();
+  };
+  const timeout=setTimeout(finish,BACKGROUND_DECODE_TIMEOUT_MS);
   image.decoding='async';
   image.addEventListener('load',async()=>{try{await image.decode();}catch{}finish();},{once:true});
   image.addEventListener('error',finish,{once:true});

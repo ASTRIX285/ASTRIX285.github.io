@@ -27,7 +27,7 @@ import {createVaultCatalogue,prepareArmourSelection} from '../../vault/vault-inv
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3&loader=2';
 import '../guardian-loadouts.mjs?v=20260905-loadout-actions-1';
 import {normaliseLiveProfile} from '../guardian-bungie-profile.mjs?v=20260905-worker-preflight-1';
-import '../guardian-portal-progress.mjs?v=20260905-weapon-audit-1&loader=2';
+import '../guardian-portal-progress.mjs?v=20260906-loader-58-fix-1&loader=2';
 import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
 mountForgeShell({rootSelector:'.build-space',gameId:'destiny-2',gameName:'Destiny 2',developerName:'Bungie'});
