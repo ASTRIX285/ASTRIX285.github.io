@@ -5,7 +5,7 @@ import {ARMOUR_BUCKETS,createVaultCatalogue,itemKey,prepareArmourSelection} from
 import {ARMOUR_STAT_CAP,ARMOUR_STAT_KEYS,ARMOUR_STAT_LABELS,armourStatVector,armourTargetMaximums,matchTopArmourBuilds} from '../vault/vault-armour-matcher.mjs?v=20260904-top-50-scan-1';
 import {createVaultArmourSelection,writeVaultArmourSelection} from '../vault/vault-selection-state.mjs?v=20260904-exotic-equip-rule-1';
 import {compatibleWithClass,createOpenProtocolTieBreaker,exoticCatalogueGroups,naturalSetProtocols,rankOpenProtocolCandidates,setBonusOptions,toggleSetSelection,unownedSetTargets} from './forge-loader-model.mjs?v=20260904-top-50-scan-1';
-import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260904-memory-safe-transfer-1';
+import {createForgeLoaderBuildSnapshot,writeForgeLoaderBuildSnapshot} from './forge-loader-build-handoff.mjs?v=20260906-complete-build-transfer-1';
 import {preloadForgeLoaderPayload} from './forge-loader-preload.mjs?v=20260906-page-data-recovery-1';
 
 const CLASS_NAMES=['titan','hunter','warlock'];

@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createBuildState,diffBuilds,createValidationRecord,VALIDATION_STATUS} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-state.mjs';
 import {BUILD_ELEMENTS,verifiedMasterworkState,validateTierFiveArmour} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-build-recommendation.mjs';
 import {composeForgeRecommendation,filterExoticCompatibleSubclasses} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-forge-intelligence.mjs';
-import {createLiveTransferPreflight,deriveLoadoutIntent,isExoticItem,recommendArmourMods,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateLoadoutCoherence} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-loadout-intelligence.mjs';
+import {createLiveTransferPreflight,deriveLoadoutIntent,isExoticItem,recommendArmourMods,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateWeaponModel,validateLoadoutCoherence} from '../pages/guardian-workspace-v2/paradox-build-space/paradox-loadout-intelligence.mjs';
 import {normaliseWeaponPerkModel} from '../pages/guardian-workspace-v2/guardian-semantic-resolver.mjs';
 const item=(hash,name)=>({hash,bungieHash:hash,name});
 const source={source:'bungie-loadout',characterId:'hunter-1',characterClass:'hunter',selectedLoadoutIndex:4,subclass:'stasis',subclassName:'Revenant',subclassBuild:{super:item(1,'Silence and Squall'),abilities:[item(2,'Dodge'),item(3,'Jump'),item(4,'Melee'),item(5,'Grenade')],aspects:[item(6,'Aspect A'),item(7,'Aspect B')],fragments:[item(8,'Fragment A'),item(9,'Fragment B')]},artifact:{hash:20,name:'Seasonal Artifact',activePerks:[item(21,'Perk A')]},weapons:[item(30,'Primary'),item(31,'Special'),item(32,'Heavy')],armour:[item(40,'Helmet'),item(41,'Arms'),item(42,'Chest'),item(43,'Legs'),item(44,'Class')]};
@@ -22,6 +22,8 @@ const [html,runtime,css,gearRuntime,advisorRuntime,intelligenceRuntime,liveAdapt
 ]);
 const artifactSelectionRuntime=await readFile(new URL('paradox-build-space/paradox-artifact-selection.mjs',root),'utf8');
 const sequenceRuntime=await readFile(new URL('paradox-build-space/paradox-forge-sequence.mjs',root),'utf8');
+const preparationRuntime=await readFile(new URL('paradox-build-space/paradox-forge-preparation.mjs',root),'utf8');
+const workerRuntime=await readFile(new URL('paradox-build-space/paradox-forge-worker.mjs',root),'utf8');
 const gearCss=await readFile(new URL('guardian-gear-layout.css',root),'utf8');
 
 const t5Armour=Array.from({length:5},(_,index)=>({itemInstanceId:`armour-${index}`,armourTier:5,masterwork:{semanticRole:'masterwork'}}));
@@ -117,12 +119,20 @@ const stackableMod=armourMod(508,'Stackable Grenade Mod','Grenade energy gains s
 assert.equal(stackableResult.recommendation.decisions.filter(row=>row.recommended?.hash===stackableMod.hash).length,2,'Mods without Bungie single-copy evidence must remain eligible to stack.');
 
 const exactWeapon=(hash,instance,name,description,bucketHash,extra={})=>{
-  const gearTier=Number(extra.gearTier)||5,capacities=gearTier>=5?[2,2,3,3,2]:gearTier>=3?[2,2,2,2,2]:[1,1,1,1,1];
+  const {perkColumnCounts,...weaponExtra}=extra,gearTier=Number(weaponExtra.gearTier)||5,capacities=Array.isArray(perkColumnCounts)?perkColumnCounts:gearTier>=5?[2,2,3,3,2]:gearTier>=3?[2,2,2,2,2]:[1,1,1,1,1];
   const alternativePerkColumns=capacities.map((count,columnIndex)=>({socketIndex:10+columnIndex,options:Array.from({length:count},(_,rowIndex)=>{const perkHash=hash*100+(columnIndex+1)*10+rowIndex+1,perkName=`${name} perk ${columnIndex+1}.${rowIndex+1}`;return {hash:perkHash,bungieHash:perkHash,name:perkName,socketIndex:10+columnIndex,definition:{displayProperties:{name:perkName,description:'Verified synthetic test perk.'},plug:{plugCategoryIdentifier:'weapon.perks'}}};})}));
   const selectedPerks=alternativePerkColumns.map(column=>column.options[0]),perkModel=normaliseWeaponPerkModel({gearTier,selectedPerks,alternativePerkColumns});
-  return {hash,bungieHash:hash,itemInstanceId:instance,name,description,bucketHash,gearTier,definition:{displayProperties:{name,description},traitIds:[],inventory:{tierType:extra.isExotic?6:5,tierTypeName:extra.isExotic?'Exotic':'Legendary'}},weaponSemantics:{gearTier,selectedPerks,alternativePerkColumns,perkModel},...extra};
+  return {hash,bungieHash:hash,itemInstanceId:instance,name,description,bucketHash,gearTier,definition:{displayProperties:{name,description},traitIds:[],inventory:{tierType:weaponExtra.isExotic?6:5,tierTypeName:weaponExtra.isExotic?'Exotic':'Legendary'}},weaponSemantics:{gearTier,selectedPerks,alternativePerkColumns,perkModel},...weaponExtra};
 };
 const currentPrimary=exactWeapon(601,'weapon-current','Plain Rifle','A reliable rifle.',1498876634),joltPrimary=exactWeapon(602,'weapon-jolt','Jolt Rifle','Final blows jolt nearby targets and grant grenade energy.',1498876634),energyWeapon=exactWeapon(603,'weapon-energy','Energy Weapon','Verified energy weapon.',2465295065),powerWeapon=exactWeapon(604,'weapon-power','Power Weapon','Verified power weapon.',953998645);
+const expandedTierFiveWeapon=exactWeapon(609,'weapon-expanded-tier-five','Expanded Tier Five Weapon','A verified crafted weapon with an additional perk choice.',1498876634,{perkColumnCounts:[2,3,3,3,2]});
+assert.equal(validateWeaponModel({weapons:[expandedTierFiveWeapon]}).ready,true,'Verified Tier 5 weapon columns may exceed the baseline row count without blocking Build Forge generation.');
+const incompleteTierFiveWeapon=structuredClone(currentPrimary);incompleteTierFiveWeapon.weaponSemantics.perkModel.columns[0].expectedRowCount=1;incompleteTierFiveWeapon.weaponSemantics.perkModel.columns[0].options=incompleteTierFiveWeapon.weaponSemantics.perkModel.columns[0].options.slice(0,1);
+assert.equal(validateWeaponModel({weapons:[incompleteTierFiveWeapon]}).ready,false,'Tier 5 weapon evidence below the Bungie baseline must still block Build Forge generation.');
+assert.match(runtime,/paradox-forge-preparation\.mjs\?v=20260906-complete-build-transfer-1/,'Build Forge must load the corrected background preparation graph.');
+assert.match(preparationRuntime,/paradox-forge-worker\.mjs\?v=20260906-complete-build-transfer-1/,'Background preparation must start the corrected Forge worker.');
+assert.match(workerRuntime,/paradox-forge-sequence\.mjs\?v=20260906-complete-build-transfer-1/,'The Forge worker must load the corrected generation sequence.');
+assert.match(sequenceRuntime,/paradox-loadout-intelligence\.mjs\?v=20260906-complete-build-transfer-1/,'The generation sequence must load the corrected weapon evidence validator.');
 const ownedWeaponCatalogue=[currentPrimary,joltPrimary,energyWeapon,powerWeapon];
 const weaponResult=selectOwnedWeapons({build:{...intelligenceSource,weapons:[currentPrimary,energyWeapon,powerWeapon],ownedWeapons:ownedWeaponCatalogue,vaultWeapons:ownedWeaponCatalogue},objective:'add-clear'});
 assert.equal(weaponResult.workingBuild.weapons[0].itemInstanceId,'weapon-jolt','Owned-weapon ranking must select the exact verified instance with stronger explicit armour-loop and objective evidence.');

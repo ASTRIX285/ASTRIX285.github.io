@@ -296,12 +296,12 @@ function validateWeaponModel(build={}){
   for(const weapon of (build.weapons||[]).filter(Boolean)){
     const semantics=weapon.weaponSemantics||{},model=semantics.perkModel||weapon.weaponPerkModel||{},tier=Number(model.weaponTier??semantics.gearTier??weapon.gearTier),name=itemName(weapon,'Weapon'),columns=model.columns||[];
     const expectedRows=weaponPerkRowCountForTier(tier);
-    if(!expectedRows||Number(model.expectedRowCount)!==expectedRows)violations.push(`${name}: the verified Tier ${Number.isInteger(tier)?tier:'unknown'} perk-row model is incomplete.`);
+    if(!expectedRows||!Number.isFinite(Number(model.expectedRowCount))||Number(model.expectedRowCount)<expectedRows)violations.push(`${name}: the verified Tier ${Number.isInteger(tier)?tier:'unknown'} perk-row model is incomplete.`);
     const ordered=columns.map(column=>Number(column.socketIndex));
     if(ordered.some((socketIndex,index)=>index>0&&socketIndex<ordered[index-1]))violations.push(`${name}: perk columns do not preserve Bungie's socket order.`);
     for(const [index,column] of columns.entries()){
       const columnNumber=index+1,required=weaponPerkColumnRowCountForTier(tier,columnNumber);
-      if(required&&Number(column.expectedRowCount)!==required)violations.push(`${name}: perk column ${columnNumber} must contain ${required} row${required===1?'':'s'} at Tier ${tier}.`);
+      if(required&&(!Number.isFinite(Number(column.expectedRowCount))||Number(column.expectedRowCount)<required))violations.push(`${name}: perk column ${columnNumber} must contain at least ${required} row${required===1?'':'s'} at Tier ${tier}.`);
       if(required&&(column.options||[]).length<required)violations.push(`${name}: Bungie evidence for perk column ${columnNumber} contains fewer than ${required} verified options.`);
       if((column.options||[]).some(option=>classifyWeaponPlug(option)!=='perk'))violations.push(`${name}: a non-perk socket was placed in perk column ${columnNumber}.`);
     }

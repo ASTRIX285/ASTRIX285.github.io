@@ -2,9 +2,9 @@
 import {protectBuildState,createBuildState} from './paradox-build-state.mjs?v=20260904-memory-safe-transfer-1';
 import {composeForgeRecommendation,hasVerifiedSubclassSockets,filterExoticCompatibleSubclasses} from './paradox-forge-intelligence.mjs?v=20260905-background-forge-1';
 import {analyzeLiveGuardian} from '../guardian-paradox-live-adapter.mjs?v=20260905-background-forge-1';
-import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs?v=20260904-cross-system-loop-1';
+import {applyForgeArtifactRecommendation} from './paradox-artifact-selection.mjs?v=20260906-complete-build-transfer-1';
 import {validateTierFiveArmour} from './paradox-build-recommendation.mjs';
-import {createLiveTransferPreflight,deriveLoadoutIntent,recommendArmourMods,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateLoadoutCoherence} from './paradox-loadout-intelligence.mjs?v=20260905-weapon-audit-1';
+import {createLiveTransferPreflight,deriveLoadoutIntent,recommendArmourMods,selectOwnedWeapons,validateArmourModLoadout,validateExoticLoadout,validateLoadoutCoherence} from './paradox-loadout-intelligence.mjs?v=20260906-complete-build-transfer-1';
 import {adviseLiveWeaponRolls} from '../guardian-weapon-roll-advisor.mjs?v=20260905-worker-preflight-1';
 const FORGE_COMPUTATION_FIELDS=Object.freeze(['version','source','characterId','membershipId','membershipType','characterClass','selectedLoadoutIndex','subclass','subclassName','subclassIcon','subclassBuild','super','superOptions','classAbility','movement','melee','grenade','abilities','aspects','fragments','artifact','artifactConfiguration','weapons','armour','mods','stats','hashCoverage','statModel','coverage','semanticCoverage','paradoxEvidence','forgeLoaderDecision','objective','activityContext','locks']);
 const FORGE_COMPOSED_FIELDS=Object.freeze(['subclass','subclassName','subclassIcon','subclassBuild','super','superOptions','classAbility','movement','melee','grenade','abilities','aspects','fragments']);
