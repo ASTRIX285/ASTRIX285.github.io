@@ -15,7 +15,7 @@ const WEAPON_BUCKETS=[1498876634,2465295065,953998645];
 const ARMOUR_BUCKETS=[3448274439,3551918588,14239492,20886954,1585787867];
 const VAULT_BUCKET=138197802;
 const clone=value=>structuredClone(value);
-const response=payload=>({ok:true,status:200,json:async()=>payload});
+const response=(payload,{ok=true,status=200}={})=>({ok,status,json:async()=>payload});
 const perk=(hash,name,{source='bungie-item-reusable-plugs',evidence='exact-item-reusable-plug'}={})=>({
   hash,itemHash:hash,bungieHash:hash,name,socketIndex:3,canInsert:true,enabled:true,source,remoteInsertEvidence:evidence,
   definition:{displayProperties:{name},plug:{plugCategoryIdentifier:'weapon.perks.traits'}}
@@ -133,16 +133,15 @@ await assert.rejects(()=>executeLiveTransferPlan(plan,{session,fetchImpl:async()
 assert.equal(prematureCalls,0,'An unconfirmed Apply plan must make zero requests.');
 
 const targetItems=plan.equipment.targets.map(target=>({itemInstanceId:target.itemInstanceId,itemHash:target.itemHash,bucketHash:target.bucketHash}));
-const initialEquipment=targetItems.filter(item=>item.itemInstanceId!==replacement.itemInstanceId);
 const socketsFor=applied=>({
   [weapons[0].itemInstanceId]:{sockets:Array.from({length:4},(_,index)=>index===3?{plugHash:applied?exactPerk.hash:currentPerk.hash}:{})},
   [armour[0].itemInstanceId]:{sockets:Array.from({length:3},(_,index)=>index===2?{plugHash:applied?exactArmourMod.hash:currentArmourMod.hash}:{})}
 });
-const profilePayload=({equipmentApplied=false,socketsApplied=false,compatible=true,activity='orbit'}={})=>({ErrorCode:1,profile:{
+const profilePayload=({equipmentApplied=false,transferred=equipmentApplied,socketsApplied=false,compatible=true,activity='orbit',vaultInstanceIds=[replacement.itemInstanceId]}={})=>{const vaultIds=new Set(vaultInstanceIds.map(String)),vaultTargets=targetItems.filter(item=>vaultIds.has(String(item.itemInstanceId))),stationaryEquipment=targetItems.filter(item=>!vaultIds.has(String(item.itemInstanceId))),carriedTargets=transferred&&!equipmentApplied?vaultTargets:[];return {ErrorCode:1,profile:{
   characters:{data:{[CHARACTER_ID]:{characterId:CHARACTER_ID}}},
-  profileInventory:{data:{items:equipmentApplied?[]:[{itemInstanceId:replacement.itemInstanceId,itemHash:replacement.itemHash,bucketHash:VAULT_BUCKET}]}},
-  characterInventories:{data:{[CHARACTER_ID]:{items:[]}}},
-  characterEquipment:{data:{[CHARACTER_ID]:{items:equipmentApplied?targetItems:initialEquipment}}},
+  profileInventory:{data:{items:transferred?[]:vaultTargets.map(item=>({...item,bucketHash:VAULT_BUCKET}))}},
+  characterInventories:{data:{[CHARACTER_ID]:{items:carriedTargets}}},
+  characterEquipment:{data:{[CHARACTER_ID]:{items:equipmentApplied?targetItems:stationaryEquipment}}},
   characterActivities:{data:{[CHARACTER_ID]:activity==='active'?{currentActivityHash:777777,currentActivityModeType:3}:activity==='social'?{currentActivityHash:888888,currentActivityModeType:null,currentActivityModeTypes:[40]}:{currentActivityHash:0,currentActivityModeType:0}}},
   itemComponents:{
     reusablePlugs:{data:{
@@ -151,7 +150,7 @@ const profilePayload=({equipmentApplied=false,socketsApplied=false,compatible=tr
     }},
     sockets:{data:socketsFor(socketsApplied)}
   }
-}});
+}}};
 assert.equal(characterActivityRestriction(plan,profilePayload({activity:'social'})).allowed,true,'Bungie Social mode 40 must remain an allowed Apply state even when exposed through currentActivityModeTypes.');
 
 const preflightRequests=[];
@@ -176,9 +175,11 @@ let waitCalls=0;
 const fetchImpl=async(url,init={})=>{
   const parsed=new URL(String(url));
   if(String(init.method||'GET').toUpperCase()==='POST'){
-    postPaths.push(parsed.pathname);postBodies.push(JSON.parse(init.body));return response({ErrorCode:1,Message:'Ok'});
+    postPaths.push(parsed.pathname);postBodies.push(JSON.parse(init.body));
+    if(parsed.pathname.endsWith('/equip-items'))return response({ErrorCode:1,Response:{equipResults:plan.equipment.targets.map(row=>({itemInstanceId:row.itemInstanceId,equipStatus:1}))}});
+    return response({ErrorCode:1,Message:'Ok'});
   }
-  profileReads+=1;return response(profilePayload({equipmentApplied:profileReads>1,socketsApplied:profileReads>2}));
+  profileReads+=1;return response(profilePayload({transferred:profileReads>1,equipmentApplied:profileReads>2,socketsApplied:profileReads>3}));
 };
 const applied=await executeLiveTransferPlan(confirmLiveTransferPlan(plan),{session,fetchImpl,authOrigin:'https://auth.test',waitImpl:async()=>{waitCalls+=1;}});
 assert.equal(applied.status,'applied');
@@ -188,9 +189,37 @@ assert.equal(postBodies[0].itemId,replacement.itemInstanceId);
 assert.deepEqual(postBodies[1].itemIds,plan.equipment.targets.map(row=>row.itemInstanceId));
 assert.deepEqual(postBodies[2].plug,{socketIndex:3,socketArrayType:0,plugItemHash:exactPerk.hash});
 assert.deepEqual(postBodies[3].plug,{socketIndex:2,socketArrayType:0,plugItemHash:exactArmourMod.hash});
-assert.deepEqual(applied.steps.map(row=>row.phase),['snapshot','transfer','equip','verify-equipment','weapon-sockets','armour-mods','readback'],'The execution trace must expose distinct post-equip verification, weapon/socket and armour-mod phases.');
-assert.equal(profileReads,3,'Apply must perform an initial read, a fresh post-equip verification read, and a final readback.');
-assert.equal(waitCalls,1,'Two socket phases must retain the inter-request throttle delay.');
+assert.deepEqual(applied.steps.map(row=>row.phase),['snapshot','transfer','verify-transfer','equip','verify-equipment','weapon-sockets','armour-mods','readback'],'The execution trace must confirm every transfer reached the Guardian before the exact equip request.');
+assert.equal(profileReads,4,'Apply must perform initial, post-transfer, post-equip and final profile reads.');
+assert.equal(waitCalls,4,'Transfer settlement and every subsequent Bungie mutation must retain an explicit throttle delay.');
+
+const twoVaultIds=[replacement.itemInstanceId,weapons[2].itemInstanceId];
+let pacedProfileReads=0,transferAttempts=0;
+const pacedPosts=[],pacedWaits=[],pacedProgress=[];
+const pacedApply=await executeLiveTransferPlan(confirmLiveTransferPlan(plan),{
+  session,authOrigin:'https://auth.test',waitImpl:async milliseconds=>{pacedWaits.push(milliseconds);},onProgress:row=>pacedProgress.push(row),
+  fetchImpl:async(url,init={})=>{
+    const parsed=new URL(String(url)),method=String(init.method||'GET').toUpperCase();
+    if(method!=='POST'){
+      pacedProfileReads+=1;
+      return response(profilePayload({vaultInstanceIds:twoVaultIds,transferred:pacedProfileReads>2,equipmentApplied:pacedProfileReads>3,socketsApplied:pacedProfileReads>4}));
+    }
+    pacedPosts.push(parsed.pathname);
+    if(parsed.pathname.endsWith('/transfer-item')){
+      transferAttempts+=1;
+      if(transferAttempts===2)return response({ErrorCode:36,ErrorStatus:'ThrottleLimitExceeded',Message:'Please slow down.',ThrottleSeconds:1},{ok:false,status:429});
+    }
+    if(parsed.pathname.endsWith('/equip-items'))return response({ErrorCode:1,Response:{equipResults:plan.equipment.targets.map(row=>({itemInstanceId:row.itemInstanceId,equipStatus:1}))}});
+    return response({ErrorCode:1,Message:'Ok'});
+  }
+});
+assert.equal(pacedApply.status,'applied','A second transfer throttled by Bungie must recover and still reach the exact bulk equip.');
+assert.deepEqual(pacedPosts.slice(0,4),['/bungie/actions/transfer-item','/bungie/actions/transfer-item','/bungie/actions/transfer-item','/bungie/actions/equip-items'],'The throttled transfer must be retried before one bulk equip request.');
+assert.deepEqual(pacedWaits,[250,1000,250,500,250,550,550],'The Apply sequence must pace actions, honour Bungie throttle seconds and wait for transferred inventory visibility.');
+assert.equal(pacedProgress.some(row=>row.phase==='throttle'&&row.status==='retrying'),true,'Visible progress must report an explicit Bungie throttle retry.');
+assert.equal(pacedApply.steps.filter(row=>row.phase==='transfer'&&row.status==='complete').length,2,'Both Vault items must complete transfer before equip.');
+assert.equal(pacedApply.steps.find(row=>row.phase==='verify-transfer')?.status,'complete','Fresh profile evidence must prove every item reached the target Guardian before equip.');
+assert.equal(pacedApply.steps.find(row=>row.phase==='equip')?.status,'complete','The exact bulk equip must complete after all transfers.');
 
 let partialProfileReads=0;
 const partialPosts=[];
@@ -198,7 +227,7 @@ const partialEquip=await executeLiveTransferPlan(confirmLiveTransferPlan(plan),{
   session,authOrigin:'https://auth.test',waitImpl:async()=>{},
   fetchImpl:async(url,init={})=>{
     const parsed=new URL(String(url));
-    if(String(init.method||'GET').toUpperCase()!=='POST'){partialProfileReads+=1;return response(profilePayload({final:false}));}
+    if(String(init.method||'GET').toUpperCase()!=='POST'){partialProfileReads+=1;return response(profilePayload({transferred:partialProfileReads>1}));}
     partialPosts.push(parsed.pathname);
     if(parsed.pathname.endsWith('/equip-items'))return response({ErrorCode:1,Response:{equipResults:plan.equipment.targets.map((row,index)=>({itemInstanceId:row.itemInstanceId,equipStatus:index===0?99:1}))}});
     return response({ErrorCode:1,Message:'Ok'});
@@ -206,7 +235,7 @@ const partialEquip=await executeLiveTransferPlan(confirmLiveTransferPlan(plan),{
 });
 assert.equal(partialEquip.status,'partial');
 assert.deepEqual(partialPosts,['/bungie/actions/transfer-item','/bungie/actions/equip-items'],'A per-item equip failure must skip every later socket mutation.');
-assert.equal(partialProfileReads,2,'A partial equip must still finish with a Bungie readback.');
+assert.equal(partialProfileReads,3,'A partial equip must still include transfer verification and a final Bungie readback.');
 
 let verificationProfileReads=0;
 const verificationPosts=[];
@@ -214,14 +243,14 @@ const unverifiedEquip=await executeLiveTransferPlan(confirmLiveTransferPlan(plan
   session,authOrigin:'https://auth.test',waitImpl:async()=>{},
   fetchImpl:async(url,init={})=>{
     const parsed=new URL(String(url));
-    if(String(init.method||'GET').toUpperCase()==='POST'){verificationPosts.push(parsed.pathname);return response({ErrorCode:1,Message:'Ok'});}
-    verificationProfileReads+=1;return response(profilePayload({equipmentApplied:false,socketsApplied:false}));
+    if(String(init.method||'GET').toUpperCase()==='POST'){verificationPosts.push(parsed.pathname);if(parsed.pathname.endsWith('/equip-items'))return response({ErrorCode:1,Response:{equipResults:plan.equipment.targets.map(row=>({itemInstanceId:row.itemInstanceId,equipStatus:1}))}});return response({ErrorCode:1,Message:'Ok'});}
+    verificationProfileReads+=1;return response(profilePayload({transferred:verificationProfileReads>1,equipmentApplied:false,socketsApplied:false}));
   }
 });
 assert.equal(unverifiedEquip.status,'partial');
 assert.deepEqual(verificationPosts,['/bungie/actions/transfer-item','/bungie/actions/equip-items'],'A successful equip response without matching fresh profile evidence must skip both socket phases.');
 assert.equal(unverifiedEquip.steps.find(row=>row.phase==='verify-equipment')?.status,'mismatch','Post-equip verification must use fresh profile state, not only the equip response.');
-assert.equal(verificationProfileReads,3);
+assert.equal(verificationProfileReads,4);
 
 let unsupportedCalls=0;
 await assert.rejects(()=>executeLiveTransferPlan(confirmLiveTransferPlan(plan),{session:{...session,capabilities:{destinyActions:{...session.capabilities.destinyActions,equipItems:false}}},fetchImpl:async()=>{unsupportedCalls+=1;return response({ErrorCode:1});},authOrigin:'https://auth.test'}),/no longer supports/);

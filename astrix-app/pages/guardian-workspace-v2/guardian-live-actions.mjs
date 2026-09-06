@@ -15,7 +15,10 @@ const EMPTY_LIVE_ACTION_CAPABILITIES=Object.freeze({
   updateLoadoutIdentifiers:false,
   clearLoadout:false
 });
+const ACTION_THROTTLE_MS=250;
 const SOCKET_THROTTLE_MS=550;
+const THROTTLE_RETRY_LIMIT=2;
+const TRANSFER_READBACK_DELAYS_MS=Object.freeze([250,500,1000]);
 
 const clone=value=>{try{return structuredClone(value);}catch{return JSON.parse(JSON.stringify(value??null));}};
 const decimal=value=>/^\d+$/.test(String(value??''));
@@ -63,6 +66,27 @@ async function requestAction(path,body,{session,fetchImpl=fetch,authOrigin=DEFAU
     method:'POST',credentials:'include',headers:{Accept:'application/json','Content-Type':'application/json','X-CSRF-Token':session.csrfToken},body:JSON.stringify(body)
   });
   return responsePayload(response);
+}
+
+function isExplicitThrottle(error){
+  const payload=error?.payload||{},status=String(payload?.ErrorStatus||payload?.error||'').toLowerCase();
+  return Number(error?.status)===429||Number(payload?.ThrottleSeconds)>0||status.includes('throttl');
+}
+
+function throttleDelay(error){
+  const advertised=Number(error?.payload?.ThrottleSeconds);
+  return Math.max(ACTION_THROTTLE_MS,Number.isFinite(advertised)&&advertised>0?Math.ceil(advertised*1000):ACTION_THROTTLE_MS);
+}
+
+async function requestActionWithThrottleRetry(path,body,{session,fetchImpl=fetch,authOrigin=DEFAULT_AUTH_ORIGIN,waitImpl=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds)),onRetry=()=>{}}={}){
+  for(let attempt=0;attempt<=THROTTLE_RETRY_LIMIT;attempt+=1){
+    try{return await requestAction(path,body,{session,fetchImpl,authOrigin});}
+    catch(error){
+      if(!isExplicitThrottle(error)||attempt===THROTTLE_RETRY_LIMIT)throw error;
+      const delay=throttleDelay(error);onRetry({attempt:attempt+1,delay,error});await waitImpl(delay);
+    }
+  }
+  throw new Error('Bungie action retry limit reached.');
 }
 
 async function requestFreshProfile({fetchImpl=fetch,authOrigin=DEFAULT_AUTH_ORIGIN}={}){
@@ -181,6 +205,26 @@ function verifyEquippedItems(plan,payload){
   return {verified:missingEquipment.length===0,missingEquipment,equippedInstanceIds:[...equippedIds]};
 }
 
+function verifyItemsReadyToEquip(plan,payload){
+  const {locations}=inventoryLocations(payload),characterId=String(plan.characterId||''),readyInstanceIds=[],missingEquipment=[];
+  for(const target of plan?.equipment?.targets||[]){
+    const location=locations.get(String(target.itemInstanceId||'')),onTarget=location&&['carried','equipped'].includes(location.source.kind)&&String(location.source.characterId||'')===characterId;
+    if(onTarget)readyInstanceIds.push(String(target.itemInstanceId));
+    else missingEquipment.push({itemInstanceId:target.itemInstanceId,name:target.name,kind:target.kind,location:location?.source||null});
+  }
+  return {verified:missingEquipment.length===0,missingEquipment,readyInstanceIds};
+}
+
+async function waitForItemsReadyToEquip(plan,{fetchImpl=fetch,authOrigin=DEFAULT_AUTH_ORIGIN,waitImpl=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds))}={}){
+  let verification={verified:false,missingEquipment:[],readyInstanceIds:[]};
+  for(const delay of TRANSFER_READBACK_DELAYS_MS){
+    await waitImpl(delay);
+    verification=verifyItemsReadyToEquip(plan,await requestFreshProfile({fetchImpl,authOrigin}));
+    if(verification.verified)return verification;
+  }
+  return verification;
+}
+
 function verifyReadback(plan,payload){
   const equipment=verifyEquippedItems(plan,payload),profile=payload.profile||payload.Response||{};
   const sockets=profile?.itemComponents?.sockets?.data||{},socketMismatches=(plan.socketChanges||[]).filter(change=>Number(sockets?.[change.itemInstanceId]?.sockets?.[change.socketIndex]?.plugHash)!==Number(change.plugHash)).map(change=>({itemInstanceId:change.itemInstanceId,itemName:change.itemName,socketIndex:change.socketIndex,expectedPlugHash:change.plugHash,actualPlugHash:Number(sockets?.[change.itemInstanceId]?.sockets?.[change.socketIndex]?.plugHash)||null}));
@@ -189,7 +233,7 @@ function verifyReadback(plan,payload){
 
 function equipResponseFailures(payload,itemIds=[]){
   const rows=payload?.Response?.equipResults;
-  if(!Array.isArray(rows))return [];
+  if(!Array.isArray(rows))return itemIds.map(value=>({itemInstanceId:String(value),equipStatus:null,reason:'missing-equip-results'}));
   const byId=new Map(rows.map(row=>[String(row?.itemInstanceId||''),row]));
   return itemIds.map(value=>String(value)).map(itemInstanceId=>{
     const row=byId.get(itemInstanceId),equipStatus=Number(row?.equipStatus);
@@ -209,6 +253,12 @@ async function executeLiveTransferPlan(plan,{session,fetchImpl=fetch,authOrigin=
   const result={schemaVersion:1,kind:'destiny-live-apply-result',status:'running',startedAt:new Date().toISOString(),characterId:plan.characterId,membershipId:binding.membershipId,steps:[],inGameSteps:clone(plan.inGameSteps||[]),readback:null};
   let fresh=null,equipmentApplied=false;
   const record=(phase,status,label,detail=null)=>{const row={phase,status,label,at:new Date().toISOString(),detail};result.steps.push(row);onProgress(row);return row;};
+  let mutationStarted=false;
+  const mutate=async(path,body,{gap=ACTION_THROTTLE_MS,label='Bungie action'}={})=>{
+    if(mutationStarted)await waitImpl(gap);
+    mutationStarted=true;
+    return requestActionWithThrottleRetry(path,body,{session,fetchImpl,authOrigin,waitImpl,onRetry:({attempt,delay})=>onProgress({phase:'throttle',status:'retrying',label:`${label} paused for ${delay} ms before retry ${attempt}.`})});
+  };
   try{
     onProgress({phase:'snapshot',status:'running',label:'Reading fresh Bungie ownership and equipment…'});
     fresh=await requestFreshProfile({fetchImpl,authOrigin});
@@ -219,15 +269,22 @@ async function executeLiveTransferPlan(plan,{session,fetchImpl=fetch,authOrigin=
     for(const step of resolved.steps){
       try{
         onProgress({phase:'transfer',status:'running',label:step.label});
-        const payload=await requestAction('/bungie/actions/transfer-item',{membershipType:Number(plan.membershipType),characterId:step.characterId,itemId:step.itemInstanceId,itemReferenceHash:step.itemHash,stackSize:1,transferToVault:step.transferToVault},{session,fetchImpl,authOrigin});
+        const payload=await mutate('/bungie/actions/transfer-item',{membershipType:Number(plan.membershipType),characterId:step.characterId,itemId:step.itemInstanceId,itemReferenceHash:step.itemHash,stackSize:1,transferToVault:step.transferToVault},{label:step.label});
         record('transfer','complete',step.label,{ErrorCode:payload?.ErrorCode??1});
       }catch(error){record('transfer','failed',step.label,{message:error.message,payload:error.payload||null});result.status='partial';result.finishedAt=new Date().toISOString();return result;}
+    }
+
+    if(resolved.steps.length){
+      onProgress({phase:'verify-transfer',status:'running',label:'Confirming every selected item is ready on the target Guardian…'});
+      const transferVerification=await waitForItemsReadyToEquip(plan,{fetchImpl,authOrigin,waitImpl});
+      if(!transferVerification.verified){record('verify-transfer','mismatch','Not every selected item reached the target Guardian, so equip was not started.',transferVerification);result.status='partial';result.finishedAt=new Date().toISOString();return result;}
+      record('verify-transfer','complete','Every selected item is ready on the target Guardian for the exact equip request.',transferVerification);
     }
 
     try{
       onProgress({phase:'equip',status:'running',label:'Equipping exact Working Build items…'});
       const itemIds=(plan.equipment.targets||[]).map(row=>row.itemInstanceId);
-      const payload=await requestAction('/bungie/actions/equip-items',{membershipType:Number(plan.membershipType),characterId:plan.characterId,itemIds},{session,fetchImpl,authOrigin});
+      const payload=await mutate('/bungie/actions/equip-items',{membershipType:Number(plan.membershipType),characterId:plan.characterId,itemIds},{label:'Equip exact Working Build items'});
       const failures=equipResponseFailures(payload,itemIds);
       if(failures.length)record('equip','failed','Bungie reported one or more exact equipment failures; socket changes were skipped.',{itemIds,failures,ErrorCode:payload?.ErrorCode??1});
       else{equipmentApplied=true;record('equip','complete','Exact Working Build equipment request completed.',{itemIds,ErrorCode:payload?.ErrorCode??1});}
@@ -243,18 +300,15 @@ async function executeLiveTransferPlan(plan,{session,fetchImpl=fetch,authOrigin=
     }
 
     if(equipmentApplied){
-      const weaponSocketChanges=resolvedSockets.changes.filter(change=>change.component!=='armour-mod'),armourModChanges=resolvedSockets.changes.filter(change=>change.component==='armour-mod'),totalSocketChanges=resolvedSockets.changes.length;
-      let completedSocketChanges=0;
+      const weaponSocketChanges=resolvedSockets.changes.filter(change=>change.component!=='armour-mod'),armourModChanges=resolvedSockets.changes.filter(change=>change.component==='armour-mod');
       const applySocketPhase=async(changes,phase,phaseLabel)=>{
         for(const change of changes){
           const label=`${phaseLabel}: set ${change.plugName||change.plugHash} on ${change.itemName||change.itemInstanceId}`;
           try{
             onProgress({phase,status:'running',label});
-            const payload=await requestAction('/bungie/actions/socket-plug-free',{membershipType:Number(plan.membershipType),characterId:plan.characterId,itemId:change.itemInstanceId,plug:{socketIndex:change.socketIndex,socketArrayType:change.socketArrayType??0,plugItemHash:change.plugHash}},{session,fetchImpl,authOrigin});
+            const payload=await mutate('/bungie/actions/socket-plug-free',{membershipType:Number(plan.membershipType),characterId:plan.characterId,itemId:change.itemInstanceId,plug:{socketIndex:change.socketIndex,socketArrayType:change.socketArrayType??0,plugItemHash:change.plugHash}},{gap:SOCKET_THROTTLE_MS,label});
             record(phase,'complete',label,{ErrorCode:payload?.ErrorCode??1});
           }catch(error){record(phase,'failed',label,{message:error.message,payload:error.payload||null});return false;}
-          completedSocketChanges+=1;
-          if(completedSocketChanges<totalSocketChanges)await waitImpl(SOCKET_THROTTLE_MS);
         }
         return true;
       };
@@ -297,4 +351,4 @@ async function executeBungieLoadoutAction(action,{characterId,index,session,conf
   return requestAction(path,body,{session,fetchImpl,authOrigin});
 }
 
-export {EMPTY_LIVE_ACTION_CAPABILITIES,SOCKET_THROTTLE_MS,SOCIAL_ACTIVITY_MODE_TYPE,LIVE_PREFLIGHT_ORDER,liveActionCapabilities,sessionBinding,assertAdvertisedPlanCapabilities,inventoryLocations,freshTransferSteps,freshSocketChanges,characterActivityRestriction,verifyEquippedItems,verifyReadback,equipResponseFailures,stageLiveTransferPreflight,confirmLiveTransferPlan,requestAction,requestFreshProfile,executeLiveTransferPlan,stageBungieLoadoutAction,confirmBungieLoadoutAction,executeBungieLoadoutAction};
+export {EMPTY_LIVE_ACTION_CAPABILITIES,ACTION_THROTTLE_MS,SOCKET_THROTTLE_MS,THROTTLE_RETRY_LIMIT,TRANSFER_READBACK_DELAYS_MS,SOCIAL_ACTIVITY_MODE_TYPE,LIVE_PREFLIGHT_ORDER,liveActionCapabilities,sessionBinding,assertAdvertisedPlanCapabilities,inventoryLocations,freshTransferSteps,freshSocketChanges,characterActivityRestriction,verifyItemsReadyToEquip,verifyEquippedItems,verifyReadback,equipResponseFailures,stageLiveTransferPreflight,confirmLiveTransferPlan,requestAction,requestFreshProfile,executeLiveTransferPlan,stageBungieLoadoutAction,confirmBungieLoadoutAction,executeBungieLoadoutAction};
