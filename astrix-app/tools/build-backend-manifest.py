@@ -22,6 +22,16 @@ JOURNEY_PUBLIC_ROOTS = (
     3741753466,  # Guardian Ranks
     1074663644,  # Metrics and Stat Trackers
 )
+JOURNEY_SOURCE_TYPES = {
+    'DestinyInventoryItemDefinition',
+    'DestinyPresentationNodeDefinition',
+    'DestinyRecordDefinition',
+    'DestinyObjectiveDefinition',
+    'DestinyCollectibleDefinition',
+    'DestinyMetricDefinition',
+    'DestinyGuardianRankDefinition',
+    'DestinyGuardianRankConstantsDefinition',
+}
 
 def fetch(url):
     headers = {'User-Agent': 'ASTRIX-PARADOX/Shared-Manifest'}
@@ -173,7 +183,7 @@ def main():
                 raise ValueError('Unexpected Bungie manifest path')
             rows = fetch('https://www.bungie.net' + path)
             index['tables'][table] = shard_table(rows, staging / table)
-            if table in ('DestinyActivityDefinition', 'DestinyDestinationDefinition', 'DestinyCollectibleDefinition', 'DestinySeasonDefinition', 'DestinySeasonPassDefinition'):
+            if table in JOURNEY_SOURCE_TYPES or table in ('DestinyActivityDefinition', 'DestinyDestinationDefinition', 'DestinySeasonDefinition', 'DestinySeasonPassDefinition'):
                 page_rows[table] = rows
             print(table, index['tables'][table], flush=True)
             if table not in page_rows:
