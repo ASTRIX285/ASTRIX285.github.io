@@ -38,6 +38,7 @@ const validators=[
   'test-journey-records.mjs',
   'validate-paradox-item-cards.mjs',
   'test-build-space-character-isolation.mjs',
+  'test-recommended-build-reveal.mjs',
   'validate-paradox-build-space.mjs',
   'test-manual-build-editor.mjs',
   'validate-live-actions-worker.mjs',

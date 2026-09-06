@@ -194,7 +194,7 @@ assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{\.element-recommendat
 assert.match(html,/id="generateMaxLoadout"[^>]*>[^<]+<\/button>[\s\S]*?id="forgeGenerationLoader"[^>]*hidden/,'The in-page Paradox loader must sit below the generation controls and begin hidden.');
 assert.match(css,/\.forge-generation-loader\{[^}]*background:transparent\}/,'Recommendation generation must reuse only the circular loader without a full-screen background.');
 assert.match(runtime,/await showForgeGenerationLoader\(selectedRecommendationElement\)[\s\S]*?forgePreparation\.get/,'The circular loader must paint before verified build generation begins.');
-assert.match(runtime,/writeState\(next\);render\(\);hideForgeGenerationLoader\(\);if\(!openRecommendedBuild\(\)\)throw new Error/,'The in-page loader must close before the generated result opens, and a failed review open must be reported.');
+assert.match(runtime,/writeState\(next\);render\(\);hideForgeGenerationLoader\(\);if\(!await openRecommendedBuild\(\)\)throw new Error/,'The in-page loader must close before the generated result opens, and a failed review open must be reported.');
 assert.match(html,/OWNED VAULT \+ CHARACTER INVENTORY/,'The recommendation review must identify its full verified weapon-inventory scope.');
 assert.match(sequenceRuntime,/initialWeaponResult=selectOwnedWeapons[\s\S]*?applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)[\s\S]*?artifactAwareWeaponResult=selectOwnedWeapons/,'Generation must rank owned weapons, select Artifact synergy, then re-rank weapons against that Artifact fit.');
 assert.match(sequenceRuntime,/provisionalModResult=recommendArmourMods[\s\S]*?applyForgeArtifactRecommendation\(next,\{currentSeasonNumber,force:true\}\)[\s\S]*?artifactAwareWeaponResult=selectOwnedWeapons/,'Generation must expose the grenade-orb-Super mod loop to Artifact ranking before re-ranking owned weapons.');
@@ -241,6 +241,8 @@ assert.match(advisorRuntime,/new URL\("\.\.\/\.\.\/data\/paradox-forge\/intellig
 assert.match(advisorRuntime,/if\(typeof document!=="undefined"\)document\.dispatchEvent/,'Weapon advice must remain safe inside the real background Web Worker where document is unavailable.');
 
 assert.match(html,/id="recommendedBuildReveal"[\s\S]*?aria-modal="true"[\s\S]*?hidden/,'The complete recommended build must open in a hidden review layer.');
+assert.match(html,/id="recommendedBuildRenderStatus" role="alert" hidden/,'The recommendation review must expose a visible render failure state.');
+assert.match(runtime,/revealRecommendedBuild\([\s\S]*?paint:\(\)=>new Promise[\s\S]*?onRenderError:/,'The review must become visible and paint before account specific sections render.');
 assert.match(html,/id="recommendedArmourSummary"[\s\S]*?id="recommendedWeaponsSummary"[\s\S]*?id="recommendedArtifactSummary"/,'The review must expose armour, weapon and Artifact sections.');
 assert.match(html,/id="recommendedModPlan"/,'The review must expose installed-versus-recommended armour-mod decisions.');
 assert.match(runtime,/RAW → CURRENT → RECOMMENDED/,'The review must distinguish mod-free raw stats from installed and recommended projections.');

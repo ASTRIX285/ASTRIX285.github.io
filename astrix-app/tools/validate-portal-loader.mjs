@@ -67,7 +67,7 @@ assert.doesNotMatch(mainProgress,/window\.addEventListener\('load'/,'Main progre
 assert.match(buildModule,/const ready=Boolean\(build\),status=ready\?'ready':'pending'/,'An empty initial Build render must remain pending while the live profile resolves');
 assert.match(buildModule,/emitLoad\('render',ready\?LOAD_STAGES\.READY:LOAD_STAGES\.SNAPSHOT,label,status\)/,'Only a populated Build render may report the ready milestone');
 assert.match(mainHtml,/guardian-portal-progress\.mjs\?v=20260906-all-page-data-1/,'Character must load the prepared page payload progress module without a stale cache');
-assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260906-page-data-recovery-1/,'Build Forge must refresh its parent module for prepared page payloads');
+assert.match(buildHtml,/paradox-build-space\.mjs\?v=20260906-max-loadout-popup-1/,'Build Forge must refresh its parent module for the protected max loadout review');
 assert.match(buildModule,/guardian-portal-progress\.mjs\?v=20260906-all-page-data-1/,'Build must load the prepared page payload progress module without a stale cache');
 assert.match(buildModule,/window\.ForgeLoader\?\.set\(percent\)/,'Build real milestones must update the shared portal');
 

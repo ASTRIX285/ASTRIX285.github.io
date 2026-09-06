@@ -27,6 +27,7 @@ import {createVaultCatalogue,prepareArmourSelection} from '../../vault/vault-inv
 import '../guardian-character-cards.mjs?v=20260824-bungie-icons-3&loader=2';
 import '../guardian-loadouts.mjs?v=20260905-loadout-actions-1';
 import {normaliseLiveProfile} from '../guardian-bungie-profile.mjs?v=20260906-page-data-recovery-1';
+import {revealRecommendedBuild} from './recommended-build-reveal.mjs?v=20260906-max-loadout-popup-1';
 import '../guardian-portal-progress.mjs?v=20260906-all-page-data-1&loader=2';
 import '../guardian-vault-access.mjs?v=20260902-forge-loader-1';
 
@@ -515,8 +516,21 @@ function renderRecommendedBuildReview(build={}){
   const pickOrder=new Map(sequence.map(row=>[String(row.artifactPerk?.hash),Number(row.order)]));byId('recommendedArtifactSummary').innerHTML=artifact?`<div class="review-artifact-identity">${reviewIcon(artifact,'Artifact')}<div><b>${esc(artifact.name||'VERIFIED ARTIFACT')}</b><span>${artifactReady?`${artifactPlanLabel} · ${Number(recommendation.selectionLimit||0)} LEGAL PICKS · ${Number(recommendation.totalScore||0)} SYNERGY SCORE`:'EVIDENCE LIMITED · CURRENT CONFIGURATION SHOWN'}</span><small>${artifactReady?'RECOMMENDED WORKING PLAN · APPLY PICKS IN NUMBERED ORDER':'No complete legal recommendation was resolved from the supplied Bungie evidence.'}</small></div></div><div class="review-artifact-perks">${perks.map((perk,index)=>`<span class="review-artifact-pick"><em>PICK ${pickOrder.get(String(perk?.hash??perk?.itemHash??perk?.bungieHash))||index+1}</em>${reviewIcon(perk,'Artifact perk')}</span>`).join('')||'<small>NO LEGAL VERIFIED PERK CHANGE RESOLVED</small>'}</div><div class="review-artifact-synergy"><b>ARTIFACT SYNERGY</b><ul>${artifactSynergyRows}</ul></div>`:'<small>ARTIFACT STATE UNAVAILABLE</small>';
   const transfer=byId('liveTransferStatus'),plan=renderApplyControls(build),canApply=plan.ready;if(transfer)transfer.textContent=canApply?`Apply is ready for ${plan.equipment.targets.length} exact items and ${plan.socketChanges.length} verified free socket change${plan.socketChanges.length===1?'':'s'}.${plan.inGameSteps.length?` ${plan.inGameSteps.length} unsupported change${plan.inGameSteps.length===1?' remains':'s remain'} as explicit in-game steps.`:''}`:`Apply blocked · ${plan.blockers?.[0]||'exact Working Build validation failed.'}`;
 }
-function openRecommendedBuild(){const build=currentBuild(),dialog=byId('recommendedBuildReveal');if(!build?.recommendationGeneratedAt||!dialog)return false;renderRecommendedBuildReview(build);dialog.hidden=false;document.body.classList.add('recommended-build-open');byId('closeRecommendedBuild')?.focus();return true;}
-function closeRecommendedBuild(){const dialog=byId('recommendedBuildReveal');if(dialog)dialog.hidden=true;document.body.classList.remove('recommended-build-open');byId('generateMaxLoadout')?.focus();}
+async function openRecommendedBuild(){
+  const build=currentBuild(),dialog=byId('recommendedBuildReveal'),status=byId('recommendedBuildRenderStatus');
+  if(status){status.hidden=true;status.textContent='';}
+  const result=await revealRecommendedBuild({
+    build,
+    dialog,
+    body:document.body,
+    renderReview:renderRecommendedBuildReview,
+    paint:()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))),
+    onRenderError:error=>{console.error('[Forge recommended build review]',error);if(status){status.textContent='The build was generated, but part of the review could not be displayed. Close this review and generate the loadout again.';status.hidden=false;}},
+    focusTarget:byId('closeRecommendedBuild')
+  });
+  return result.opened;
+}
+function closeRecommendedBuild(){const dialog=byId('recommendedBuildReveal');if(dialog){dialog.hidden=true;dialog.setAttribute('aria-hidden','true');}document.body.classList.remove('recommended-build-open');byId('generateMaxLoadout')?.focus();}
 function continueToBuildTest(){closeRecommendedBuild();const panel=document.querySelector('.validation-panel'),arm=byId('armRangeTest'),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;panel?.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});setRangeStatus('Recommendation ready. Choose PvE or PvP, select the activity, then arm this exact Working Build.','good');arm?.focus();}
 async function showForgeGenerationLoader(element){const loader=byId('forgeGenerationLoader'),panel=document.querySelector('.recommendation-panel'),status=byId('forgeGenerationStatus');if(!loader)return;loader.hidden=false;loader.dataset.element=element||'';if(panel)panel.setAttribute('aria-busy','true');if(status)status.textContent=`FORGING ${String(element||'VERIFIED').toUpperCase()} GUARDIAN BUILD…`;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));}
 function hideForgeGenerationLoader(){const loader=byId('forgeGenerationLoader'),panel=document.querySelector('.recommendation-panel');if(loader)loader.hidden=true;if(panel)panel.removeAttribute('aria-busy');}
@@ -555,7 +569,7 @@ async function generateMaxLoadout(){
     let next=protectBuildState({...state,workingBuild:working,recommendation:prepared.recommendation});
     await updateForgeGenerationPhase('PREPARING BUILD REVIEW…');
     if(readState()!==state)throw new Error('The source build changed. Generate again for the current selection.');
-    next=protectBuildState({...next,workingBuild:working});writeState(next);render();hideForgeGenerationLoader();if(!openRecommendedBuild())throw new Error('The recommendation was generated, but its protected review could not be opened. Reload this Build Forge page and try again.');
+    next=protectBuildState({...next,workingBuild:working});writeState(next);render();hideForgeGenerationLoader();if(!await openRecommendedBuild())throw new Error('The recommendation was generated, but its protected review could not be opened. Reload this Build Forge page and try again.');
   }catch(error){failureMessage=error?.message||'Unable to generate a verified recommendation.';recommendationFailure=failureMessage;console.error('Build Forge recommendation generation failed.',error);}
   finally{
     hideForgeGenerationLoader();recommendationBusy=false;renderRecommendationControls(currentBuild()||{});
