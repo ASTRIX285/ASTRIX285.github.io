@@ -30,7 +30,7 @@ assert.match(sessionCache,/DB_VERSION=2/,'Manifest store requires the IndexedDB 
 assert.match(sessionCache,/MANIFEST_STORE_NAME="manifest-data"/,'Manifest data must use a store beside the Guardian session cache');
 assert.match(service,/manifest:\$\{version\}:\$\{type\}/,'Manifest tables must be keyed by version and component type');
 assert.match(service,/current\?\.version===version[\s\S]*?readTable\(version,type\)/,'Matching versions must load all component tables from IndexedDB');
-assert.match(service,/versionMatched=true[\s\S]*?loaded from IndexedDB/,'Version-match skips must be observable');
+assert.match(service,/versionMatched=true[\s\S]*?Bungie manifest loaded from local cache/,'Version match skips must be observable without showing a manifest version');
 assert.match(service,/commitVersion\(version\)[\s\S]*?removeOtherVersions\(version\)/,'The current marker must commit only after all component writes');
 assert.doesNotMatch(service,/bungie\/manifest\/definition/,'Browser definition service must not retain a single definition route');
 assert.match(service,/const allowNetwork=!this\.backend&&options\.allowNetwork!==false/,'Prepared page payloads must disable browser definition network expansion by construction');

@@ -4,7 +4,7 @@
   const destinations=Object.freeze([
     Object.freeze({key:'journey',label:'Journey',href:'/astrix-app/pages/journey/'}),
     Object.freeze({key:'character',label:'Character',href:'/astrix-app/pages/guardian-workspace-v2/'}),
-    Object.freeze({key:'forge-loader',label:'Forge Loader',href:'/astrix-app/pages/tool-intro/?game=destiny-2'}),
+    Object.freeze({key:'forge-loader',label:'Forge Loader',href:'/astrix-app/pages/forge-loader/'}),
     Object.freeze({key:'build-forge',label:'Build Forge',href:'/astrix-app/pages/guardian-workspace-v2/paradox-build-space/'}),
     Object.freeze({key:'mission-reports',label:'Mission Reports',href:'/astrix-app/pages/mission-reports/'}),
     Object.freeze({key:'vault',label:'Vault',href:'/astrix-app/pages/vault/'}),

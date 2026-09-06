@@ -470,7 +470,7 @@ async function init(){
   try{
     session=await getBungieSession();
     if(session?.authenticated!==true){byId('forgeSignedOut').hidden=false;byId('forgeConnectionState').textContent='SIGNED OUT';byId('forgeHeaderState').textContent='CONNECT BUNGIE';globalThis.ForgeLoader?.authRequired?.(authStartUrl());return;}
-    byId('forgeConnectionState').textContent='BUNGIE CONNECTED';payload=await loadVerifiedPayload();
+    byId('forgeConnectionState').textContent='ARMOUR READY';payload=await loadVerifiedPayload();
     loaderProgress(78,'Building verified Forge Loader inventory…');catalogue=createVaultCatalogue(payload);resolveActiveCharacter(activeCharacterId);
     renderHero();renderExotics();renderSetBonuses();configureStats({reset:true});
     const groups=exoticGroups(),ownedCount=groups.filter(group=>group.owned).length;byId('forgeRuntimeStatus').textContent=ownedCount?`${ownedCount} owned of ${groups.length} verified ${classLabel()} Exotic definition${groups.length===1?'':'s'}. Select an owned piece to begin.`:`${groups.length} verified ${classLabel()} Exotic definition${groups.length===1?'':'s'} shown; no owned instance can be selected.`;

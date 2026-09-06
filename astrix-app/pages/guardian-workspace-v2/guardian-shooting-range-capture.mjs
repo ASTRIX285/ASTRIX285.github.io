@@ -207,7 +207,7 @@ function activityIdentity(activity){
 
 async function pullActivityHistory({session=null,characterId=null,count=25,page=0}={}){
   const liveSession=session||await getBungieSession();
-  if(!liveSession?.authenticated)throw new Error('Bungie session is not authenticated.');
+  if(!liveSession?.authenticated)throw new Error('Reconnect Bungie before collecting activity results.');
   const membership=membershipFromSession(liveSession);
   if(!membership)throw new Error('Active Destiny membership is unavailable from the session.');
   const cid=asString(characterId||selectedCharacterId());

@@ -128,7 +128,7 @@ function readState(){
       catch{activeLoadError='The protected Build Forge snapshot could not be read on this device.';}
     }
   }
-  activeLoadError=activeLoadError||(params.get('baseline')==='bungie-recovery'?'Recovering the protected Original Build from the authenticated Bungie profile.':'No current Build Forge snapshot was found. Return to the Guardian page and choose Improve My Guardian again.');
+  activeLoadError=activeLoadError||(params.get('baseline')==='bungie-recovery'?'Recovering the protected Original Build from the Bungie profile.':'No current Build Forge snapshot was found. Return to the Guardian page and choose Improve My Guardian again.');
   return null;
 }
 function emitLoad(stage,percent,label,status='loading',message=''){
@@ -243,7 +243,7 @@ function buildLivePlan(){
 function renderApplyControls(build={}, {preserveBanner=false}={}){
   const plan=buildLivePlan(),reason=plan.blockers?.[0]||'The exact Working Build is not ready for Apply.';
   for(const id of ['applyBuild','applyWorkingBuild']){const button=byId(id);if(button){button.disabled=!plan.ready||liveActionBusy||livePreflightBusy;button.title=plan.ready?'Run a non-mutating live preflight, then review the exact transfer, equip, socket and readback sequence.':reason;}}
-  const save=byId('saveParadoxBuild');if(save){save.disabled=!/^\d+$/.test(String(build.characterId||''));save.title=save.disabled?'Load an authenticated Guardian build first.':'Save a separate named PARADOX copy.';}
+  const save=byId('saveParadoxBuild');if(save){save.disabled=!/^\d+$/.test(String(build.characterId||''));save.title=save.disabled?'Load a Bungie Guardian build first.':'Save a separate named PARADOX copy.';}
   if(!liveActionBusy&&!preserveBanner&&byId('liveActionBanner'))setLiveActionBanner(plan.ready?`Apply ready · ${plan.equipment.targets.length} exact items · ${plan.socketChanges.length} verified socket change${plan.socketChanges.length===1?'':'s'}${plan.inGameSteps.length?` · ${plan.inGameSteps.length} in-game step${plan.inGameSteps.length===1?'':'s'}`:''}.`:`Apply blocked · ${reason}`,plan.ready?'':'warn');
   return plan;
 }
@@ -365,7 +365,7 @@ function completeBuildRender(build){
     if(sequence!==buildRenderSequence)return;
     guardianManifest.ready().finally(()=>{
       if(sequence!==buildRenderSequence)return;
-      const ready=Boolean(build),status=ready?'ready':'pending',label=ready?'Build Forge rendered':'Waiting for authenticated Guardian build';
+      const ready=Boolean(build),status=ready?'ready':'pending',label=ready?'Build Forge rendered':'Waiting for Guardian build';
       emitLoad('render',ready?LOAD_STAGES.READY:LOAD_STAGES.SNAPSHOT,label,status);
       document.dispatchEvent(new CustomEvent('forge:build-render-complete',{detail:{status,characterId:String(build?.characterId||''),selectedLoadoutIndex:Number.isInteger(build?.selectedLoadoutIndex)?build.selectedLoadoutIndex:null,renderedImages:images.filter(image=>image.complete&&image.naturalWidth>0).length}}));
     });
@@ -575,13 +575,13 @@ function renderBuildSurface(){
     const recovering=new URLSearchParams(location.search).get('baseline')==='bungie-recovery';
     byId('sourcePill').textContent=recovering?'BUILD SOURCE · RECOVERING BUNGIE':'BUILD SOURCE · ACTION REQUIRED';
     byId('sourceLabel').textContent=recovering?'RECOVERING VERIFIED GUARDIAN':'NO BUILD SNAPSHOT FOUND';byId('sourceDetail').textContent=recovering?'Rebuilding the protected Original Build before the staged armour is applied.':'Return to the Guardian page, load a Guardian or Bungie loadout, then press Improve My Guardian.';
-    byId('buildStateLabel').textContent=recovering?'PROTECTING ORIGINAL BUILD':'SNAPSHOT UNAVAILABLE';byId('buildStateDetail').textContent=recovering?'The Working Build will remain separate from the authenticated equipped baseline.':'No verified Original or Working Build has been loaded.';
+    byId('buildStateLabel').textContent=recovering?'PROTECTING ORIGINAL BUILD':'SNAPSHOT UNAVAILABLE';byId('buildStateDetail').textContent=recovering?'The Working Build will remain separate from the equipped Bungie baseline.':'No verified Original or Working Build has been loaded.';
     byId('artifactStatus').textContent='NOT CHECKED';byId('artifactStatusDetail').textContent='Artifact resolution starts only after a verified build snapshot is loaded.';
     const notice=byId('buildStateNotice');if(notice)notice.innerHTML='<b>Build snapshot unavailable.</b> The previously painted equipment is not an active Working Build.';
     if(!recovering)setLiveActionBanner(activeLoadError||'No protected Working Build is available. Return to Forge Loader and evaluate the armour build again.','warn');
     const armButton=byId('armRangeTest');if(armButton)armButton.disabled=true;
     renderRecommendationControls({});renderForgeDecision({});renderApplyControls({});
-    emitLoad('snapshot',LOAD_STAGES.SNAPSHOT,recovering?'Recovering authenticated Guardian…':'Build snapshot required',recovering?'loading':'error',activeLoadError);
+    emitLoad('snapshot',LOAD_STAGES.SNAPSHOT,recovering?'Recovering Bungie Guardian…':'Build snapshot required',recovering?'loading':'error',activeLoadError);
     completeBuildRender(null);
     return;
   }

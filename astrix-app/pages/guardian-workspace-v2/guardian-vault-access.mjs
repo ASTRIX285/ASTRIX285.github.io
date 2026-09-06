@@ -41,14 +41,11 @@ function forgeLoaderTargetUrl(slot=null){
 }
 
 function forgeLoaderUrl(slot=null){
-  const intro=new URL('/astrix-app/pages/tool-intro/',location.origin);
-  intro.searchParams.set('game','destiny-2');
-  intro.searchParams.set('return',forgeLoaderTargetUrl(slot).toString());
-  return intro;
+  return forgeLoaderTargetUrl(slot);
 }
 
 function updateRibbonLink(){
-  const link=[...document.querySelectorAll('.apx-destination-ribbon a')].find(anchor=>new URL(anchor.href,location.href).pathname==='/astrix-app/pages/tool-intro/');
+  const link=[...document.querySelectorAll('.apx-destination-ribbon a')].find(anchor=>new URL(anchor.href,location.href).pathname==='/astrix-app/pages/forge-loader/');
   if(link)link.href=forgeLoaderUrl();
 }
 
@@ -101,7 +98,7 @@ function preserveCharacterBuild(event){
   if(SOURCE!=='character')return;
   const link=event.target.closest('a');
   if(!link)return;
-  if(new URL(link.href,location.href).pathname!=='/astrix-app/pages/tool-intro/')return;
+  if(new URL(link.href,location.href).pathname!=='/astrix-app/pages/forge-loader/')return;
   document.dispatchEvent(new CustomEvent('forge:vault-open'));
 }
 

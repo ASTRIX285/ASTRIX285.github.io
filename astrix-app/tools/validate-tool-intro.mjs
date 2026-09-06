@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {existsSync,readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {TOOL_INTROS,toolIntroConfig} from '../pages/tool-intro/tool-intro-config.mjs';
 
@@ -8,8 +8,6 @@ const read=path=>readFileSync(new URL(path,root),'utf8');
 const html=read('astrix-app/pages/tool-intro/index.html');
 const css=read('astrix-app/pages/tool-intro/tool-intro.css');
 const runtime=read('astrix-app/pages/tool-intro/tool-intro.mjs');
-const preload=read('astrix-app/pages/forge-loader/forge-loader-preload.mjs');
-const forge=read('astrix-app/pages/forge-loader/forge-loader.mjs');
 const ribbon=read('astrix-app/shared/astrix-destination-ribbon.js');
 const access=read('astrix-app/pages/guardian-workspace-v2/guardian-vault-access.mjs');
 const provenance=read('ARTWORK_PROVENANCE.md');
@@ -22,7 +20,12 @@ assert.equal(toolIntroConfig('unregistered-game'),null,'Unregistered games must 
 assert.equal(destiny.keyArt,'/img/games/D2_JB.jpg');
 assert.equal(destiny.developerLogo,'/img/brands/bungie-logo.svg');
 assert.match(destiny.disclaimer,/not officially affiliated with Bungie/);
+assert.equal(destiny.title,'Guardian Journey');
+assert.equal(destiny.ctaLabel,'ENTER FORGE');
+assert.match(destiny.purpose,/understand your Guardian's journey so far in Destiny 2/);
+assert.match(destiny.loadingLabel,/preparing your Guardian data and opening Journey/);
 assert.doesNotMatch(Object.values(destiny).join(' '),/—|–/,'Tool intro copy must not contain em or en dashes');
+assert.doesNotMatch(Object.values(destiny).join(' '),/\b(?:alpha|beta|preview|authenticated|version)\b/i,'Tool intro copy must describe the finished Forge experience');
 
 assert.match(html,/id="toolIntroArt"[\s\S]*?id="toolIntroTitle"[\s\S]*?id="toolIntroPurpose"[\s\S]*?id="toolIntroLimitations"[\s\S]*?id="toolIntroCta"/,'Intro page must expose the data driven content slots');
 assert.match(html,/Game developed by[\s\S]*?img\/brands\/bungie-logo\.svg[\s\S]*?not officially affiliated with Bungie/,'Intro page must show Bungie attribution, the official wordmark and the affiliation disclaimer');
@@ -31,27 +34,27 @@ assert.doesNotMatch(css,/\.tool-intro-art[^}]*filter:|\.tool-intro-credit img[^}
 assert.match(css,/@media\(max-width:800px\)/,'Intro page must provide a mobile composition');
 
 assert.match(runtime,/const seenKey=`astrix_intro_seen_\$\{gameId\}`/,'Seen state must be namespaced per game');
-assert.match(runtime,/if\(!config\|\|hasSeenIntro\(\)\)location\.replace\(target\)/,'Seen intros must skip straight to Forge Loader');
-assert.match(runtime,/rememberIntro\(\)[\s\S]*?classList\.add\('is-transitioning'\)[\s\S]*?prepareForgeLoaderEntry\(target,await sessionPromise\)/,'CTA must store seen state, start the transition and enter the shared preload path');
-assert.match(runtime,/entry\.kind==='authentication'[\s\S]*?location\.assign\(entry\.authUrl\)/,'First connection must immediately enter the existing Bungie approval route');
-assert.match(runtime,/Promise\.race\(\[entry\.promise\.catch\(\(\)=>null\),timeout\]\)/,'Returning sessions must preload while the intro transition is visible');
-assert.match(runtime,/Preparing your verified data for a faster load|config\.loadingLabel/,'Loading copy must describe preparation without a speed guarantee');
+assert.match(runtime,/fetch\(`\$\{AUTH_ORIGIN\}\/session`,\{[\s\S]*?credentials:'include'[\s\S]*?headers:\{Accept:'application\/json'\}[\s\S]*?signal:controller\.signal/,'Intro must run the verified Bungie session request');
+assert.match(runtime,/setTimeout\(\(\)=>controller\.abort\(\),12000\)/,'Intro must retain the verified session timeout');
+assert.match(runtime,/response\.status===401[\s\S]*?response\.ok[\s\S]*?response\.json\(\)/,'Intro must retain the verified session response handling');
+assert.match(runtime,/location\.hostname===SANDBOX_HOST[\s\S]*?new URL\('\/__astrix\/bungie\/start',location\.origin\)[\s\S]*?start\.searchParams\.set\('return',returnUrl\)/,'Sandbox visitors must use the existing sandbox Bungie start route');
+assert.match(runtime,/function openJourney\(\)\{\s*location\.replace\(JOURNEY_URL\);\s*\}/,'Connected visitors must replace the intro with Journey');
+assert.match(runtime,/const session=await getBungieSession\(\);[\s\S]*?if\(session\?\.authenticated\)[\s\S]*?openJourney\(\)[\s\S]*?location\.assign\(authStartUrl\(\)\)/,'Intro must check the session before choosing Journey or Bungie approval');
+assert.match(runtime,/rememberIntro\(\)[\s\S]*?classList\.add\('is-transitioning'\)[\s\S]*?continueToGuardianJourney\(\)/,'CTA must remember the game, start the transition and run the real handoff');
+assert.match(runtime,/if\(hasSeenIntro\(\)\)void continueToGuardianJourney\(\)/,'Seen intros must immediately run the Journey handoff');
+assert.doesNotMatch(runtime,/prepareForgeLoaderEntry|preloadForgeLoaderPayload|forgeLoaderTargetUrl/,'The Journey intro must not fork Forge Loader preload behavior');
 
-assert.match(preload,/\/bungie\/page\/loadout/,'Shared preload must request the prepared Loadout page payload');
-assert.match(preload,/readCachedBungieProfile[\s\S]*?cacheBungieProfile/,'Shared preload must reuse and persist the existing profile cache');
-assert.match(preload,/payload\?\.pageReady\?\.page!=='loadout'/,'Shared preload must reject the wrong page payload');
-assert.match(preload,/prepareForgeLoaderEntry[\s\S]*?authStartUrl\(target\)[\s\S]*?preloadForgeLoaderPayload\(session,\{force:true\}\)/,'Shared preload must select OAuth or prepared profile data from the current session');
-assert.match(forge,/from '\.\/forge-loader-preload\.mjs\?v=20260906-tool-intro-1'/,'Forge Loader must consume the same preload module as the intro');
-assert.doesNotMatch(forge,/new URL\('\/bungie\/page\/loadout'/,'Forge Loader must not fork its own prepared payload request');
-assert.match(ribbon,/key:'forge-loader'[\s\S]*?href:'\/astrix-app\/pages\/tool-intro\/\?game=destiny-2'/,'Forge Loader ribbon entry must pass through the per game intro');
-assert.match(access,/\/astrix-app\/pages\/tool-intro\/[\s\S]*?intro\.searchParams\.set\('game','destiny-2'\)[\s\S]*?intro\.searchParams\.set\('return',forgeLoaderTargetUrl\(slot\)\.toString\(\)\)/,'Armour entry must preserve its Forge Loader target through the intro');
+assert.match(ribbon,/key:'forge-loader'[\s\S]*?href:'\/astrix-app\/pages\/forge-loader\/'/,'Internal Forge Loader navigation must remain direct');
+assert.match(access,/function forgeLoaderUrl\(slot=null\)\{\s*return forgeLoaderTargetUrl\(slot\);\s*\}/,'Armour entry must remain a direct Forge Loader route');
+assert.equal(existsSync(new URL('../pages/guardian-alpha/index.html',import.meta.url)),false,'Retired Guardian Alpha HTML must stay deleted');
+assert.equal(existsSync(new URL('../pages/guardian-alpha/guardian-alpha.mjs',import.meta.url)),false,'Retired Guardian Alpha runtime must stay deleted');
 
 assert.match(provenance,/bungie-logo\.svg[\s\S]*?bungie_logo_basic\.svg/,'Bungie logo provenance must name the official source asset');
 assert.match(logo,/<title>Bungie<\/title>/);
 assert.equal(createHash('sha256').update(logo).digest('hex'),'5ed902dcbedce8e87871144fcbcfb3fd6b62c8b105a2761dbbb78651deb4a4fa','Bungie logo must match the official source bytes apart from its final newline');
-assert.doesNotMatch([html,runtime,preload].join('\n'),/bungie\/manifest\/definition/,'Intro and preload must never issue live definition requests');
+assert.doesNotMatch([html,runtime].join('\n'),/bungie\/manifest\/definition/,'Intro must never issue live definition requests');
 
 console.log('TOOL_INTRO_DATA_DRIVEN_ROUTE=PASS');
 console.log('TOOL_INTRO_SEEN_ONCE=PASS');
-console.log('TOOL_INTRO_SHARED_PRELOAD=PASS');
+console.log('TOOL_INTRO_JOURNEY_HANDOFF=PASS');
 console.log('TOOL_INTRO_OFFICIAL_ARTWORK=PASS');

@@ -146,7 +146,7 @@ function createLiveTransferPlan({build={},originalBuild={},advice=null,capabilit
   const subclassItem=(build.subclassCatalog||[]).find(row=>itemIdOf(row)===String(build.subclassItemInstanceId||''))||build.subclassItem||null;
   if(subclassItem&&itemIdOf(subclassItem))targets.push(equipmentTarget(subclassItem,'subclass',0));
   const blockers=[];
-  if(!/^\d+$/.test(characterId)||!/^\d+$/.test(membershipId)||!/^\d+$/.test(membershipType))blockers.push('The Working Build is not bound to an authenticated Guardian and Destiny membership.');
+  if(!/^\d+$/.test(characterId)||!/^\d+$/.test(membershipId)||!/^\d+$/.test(membershipType))blockers.push('The Working Build is not bound to a Bungie Guardian and Destiny membership.');
   if(weapons.length!==3)blockers.push('Three exact owned weapon instances are required before Apply.');
   if(armour.length!==5)blockers.push('Five exact armour instances are required before Apply.');
   if(targets.some(row=>!/^\d+$/.test(row.itemInstanceId)))blockers.push('Every applied item must have an exact owned Bungie instance ID.');
@@ -189,7 +189,7 @@ function createLiveTransferPlan({build={},originalBuild={},advice=null,capabilit
     {key:'verifyFinalState',capability:'verifyFinalState',label:'Read back the final Bungie profile',changes:targets.length+socketChanges.length,required:true}
   ];
   const phases=requirements.map((phase,index)=>({...phase,order:index+1,status:!phase.required?'skipped':supported[phase.capability]?'supported':'blocked'}));
-  phases.filter(row=>row.required&&row.status==='blocked').forEach(row=>blockers.push(`${row.label} is not available through the authenticated live route.`));
+  phases.filter(row=>row.required&&row.status==='blocked').forEach(row=>blockers.push(`${row.label} is not available through the current Bungie route.`));
   return {
     schemaVersion:3,
     kind:'destiny-complete-loadout-transfer',
@@ -216,7 +216,7 @@ function createLiveTransferPlan({build={},originalBuild={},advice=null,capabilit
 
 function confirmPerkChangePlan(plan){
   if(!plan?.changes?.length)throw new Error('No verified perk changes are staged.');
-  if(!plan.remotePerkMutationSupported)throw new Error('The authenticated Bungie socket-action route is not enabled.');
+  if(!plan.remotePerkMutationSupported)throw new Error('The Bungie socket action route is not enabled.');
   return {...clone(plan),status:'confirmed',confirmedAt:new Date().toISOString()};
 }
 

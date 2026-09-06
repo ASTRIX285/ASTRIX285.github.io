@@ -70,11 +70,11 @@ document.addEventListener('forge:bungie-profile-loaded',event=>{
   else set(70,'Guardian profile resolved');
 });
 document.addEventListener('forge:guardian-selection-changed',()=>set(86,'Painting Guardian build'));
-document.addEventListener('forge:beta-fixture-loaded',()=>set(86,'Painting Guardian preview'));
+document.addEventListener('forge:beta-fixture-loaded',()=>set(86,'Painting Guardian profile'));
 document.addEventListener('forge:guardian-render-complete',()=>{if(!isBuildSpace)finishAfterPaint('Guardian build rendered');},{once:true});
 document.addEventListener('forge:build-render-complete',event=>{
   finishRevision++;buildRenderStatus=event.detail?.status||'';
-  if(buildRenderStatus==='pending')set(20,'Waiting for authenticated Guardian build');
+  if(buildRenderStatus==='pending')set(20,'Waiting for Guardian build');
   maybeFinishBuild();
 });
 document.addEventListener('forge:bungie-character-roster',()=>queueMicrotask(maybeFinishBuild));

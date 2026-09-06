@@ -330,7 +330,7 @@ function validateLoadoutCoherence(build={}){
 
 function createLiveTransferPreflight(build={}){
   const generated=Boolean(build.recommendationGeneratedAt),coherence=generated?validateLoadoutCoherence(build):{ready:true,reason:'',violations:[]},weapons=(build.weapons||[]).filter(Boolean),armour=(build.armour||[]).filter(Boolean),violations=generated?[...coherence.violations]:[],warnings=[];
-  if(!/^\d+$/.test(String(build.characterId||''))||!/^\d+$/.test(String(build.membershipId||build.bungieMembershipId||''))||!/^\d+$/.test(String(build.membershipType??'')))violations.push('Apply requires an authenticated Guardian and Destiny membership binding.');
+  if(!/^\d+$/.test(String(build.characterId||''))||!/^\d+$/.test(String(build.membershipId||build.bungieMembershipId||''))||!/^\d+$/.test(String(build.membershipType??'')))violations.push('Apply requires a Bungie Guardian and Destiny membership binding.');
   if(weapons.length!==3||weapons.some(item=>!/^\d+$/.test(String(item.itemInstanceId||''))))violations.push('Apply requires three exact owned weapon instance IDs.');
   if(armour.length!==5||armour.some(item=>!/^\d+$/.test(String(item.itemInstanceId||''))))violations.push('Apply requires five exact owned armour instance IDs.');
   const exotic=validateExoticLoadout(build,{requireArmourAnchor:false});if(!exotic.ready)violations.push(exotic.reason);

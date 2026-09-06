@@ -32,7 +32,7 @@ function modal(title,body){
   qs('#astrixClassArtifactModal')?.remove();
   const wrap=document.createElement('div');
   wrap.id='astrixClassArtifactModal';wrap.className='beta-modal-backdrop';
-  wrap.innerHTML=`<section class="beta-modal beta-selection-modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><div><small>GUARDIAN BUILD FORGE BETA</small><h2>${esc(title)}</h2></div><button type="button" data-close aria-label="Close">✕</button></header><div class="beta-modal-body">${body}</div></section>`;
+  wrap.innerHTML=`<section class="beta-modal beta-selection-modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><div><small>GUARDIAN BUILD FORGE</small><h2>${esc(title)}</h2></div><button type="button" data-close aria-label="Close">✕</button></header><div class="beta-modal-body">${body}</div></section>`;
   document.body.appendChild(wrap);
   wrap.addEventListener('click',e=>{if(e.target===wrap||e.target.closest('[data-close]'))wrap.remove()});
   return wrap;
@@ -99,18 +99,18 @@ function renderArtifactSelection(){
 function openArtifactPicker(){
   const tiers=allArtifactTiers();
   if(!tiers.length)return toast('Artifact catalogue is not available.');
-  const body=`<p class="beta-note">DIM does not preserve Artifact selections in the shared build. Choose perks here so Guardian Build Forge can evaluate the build with an Artifact configuration. Beta selection is limited to 12 perks.</p><div class="beta-artifact-summary"><b>${esc(artifactIdentity()?.name||'Seasonal Artifact')}</b><span id="betaArtifactCount">${selectedArtifactHashes.length}/12 selected</span></div><div class="beta-artifact-tiers">${tiers.map(t=>`<section><h3>TIER ${t.tier}</h3><div class="beta-artifact-grid">${t.perks.map(p=>`<button type="button" class="beta-artifact-choice ${selectedArtifactHashes.includes(p.hash)?'selected':''}" data-artifact-hash="${p.hash}" title="${esc(p.description)}"><span>${p.icon?`<img src="${esc(p.icon)}" alt="">`:'◆'}</span><b>${esc(p.name)}</b></button>`).join('')}</div></section>`).join('')}</div><div class="beta-artifact-actions"><button type="button" class="beta-menu-item" id="betaArtifactClear">CLEAR</button><button type="button" class="beta-primary" id="betaArtifactApply">APPLY ARTIFACT</button></div>`;
+  const body=`<p class="beta-note">DIM does not preserve Artifact selections in the shared build. Choose perks here so Guardian Build Forge can evaluate the build with an Artifact configuration. Selection is limited to 12 perks.</p><div class="beta-artifact-summary"><b>${esc(artifactIdentity()?.name||'Seasonal Artifact')}</b><span id="betaArtifactCount">${selectedArtifactHashes.length}/12 selected</span></div><div class="beta-artifact-tiers">${tiers.map(t=>`<section><h3>TIER ${t.tier}</h3><div class="beta-artifact-grid">${t.perks.map(p=>`<button type="button" class="beta-artifact-choice ${selectedArtifactHashes.includes(p.hash)?'selected':''}" data-artifact-hash="${p.hash}" title="${esc(p.description)}"><span>${p.icon?`<img src="${esc(p.icon)}" alt="">`:'◆'}</span><b>${esc(p.name)}</b></button>`).join('')}</div></section>`).join('')}</div><div class="beta-artifact-actions"><button type="button" class="beta-menu-item" id="betaArtifactClear">CLEAR</button><button type="button" class="beta-primary" id="betaArtifactApply">APPLY ARTIFACT</button></div>`;
   const wrap=modal('Artifact Loadout',body);
   qsa('[data-artifact-hash]',wrap).forEach(btn=>btn.addEventListener('click',()=>{
     const hash=Number(btn.dataset.artifactHash);
     const at=selectedArtifactHashes.indexOf(hash);
     if(at>=0){selectedArtifactHashes.splice(at,1);btn.classList.remove('selected')}
     else if(selectedArtifactHashes.length<12){selectedArtifactHashes.push(hash);btn.classList.add('selected')}
-    else return toast('Artifact beta selection supports 12 perks.');
+    else return toast('Artifact selection supports 12 perks.');
     const count=qs('#betaArtifactCount',wrap);if(count)count.textContent=`${selectedArtifactHashes.length}/12 selected`;
   }));
   qs('#betaArtifactClear',wrap)?.addEventListener('click',()=>{selectedArtifactHashes=[];qsa('.beta-artifact-choice',wrap).forEach(x=>x.classList.remove('selected'));const count=qs('#betaArtifactCount',wrap);if(count)count.textContent='0/12 selected'});
-  qs('#betaArtifactApply',wrap)?.addEventListener('click',()=>{sessionStorage.setItem(ARTIFACT_SELECTION_KEY,JSON.stringify(selectedArtifactHashes));renderArtifactSelection();wrap.remove();toast('Artifact loadout applied for beta analysis')});
+  qs('#betaArtifactApply',wrap)?.addEventListener('click',()=>{sessionStorage.setItem(ARTIFACT_SELECTION_KEY,JSON.stringify(selectedArtifactHashes));renderArtifactSelection();wrap.remove();toast('Artifact loadout applied for analysis')});
 }
 
 function groupFixturesByClass(){
@@ -128,7 +128,7 @@ function updateClassRender(className){
   render.onerror=()=>{
     render.style.display='none';
     const hero=qs('#guardianHero');
-    if(hero){hero.dataset.missingClassRender=currentClass;hero.setAttribute('aria-label',`${currentClass} Guardian beta render pending`)}
+    if(hero){hero.dataset.missingClassRender=currentClass;hero.setAttribute('aria-label',`${currentClass} Guardian render unavailable`)}
   };
   render.onload=()=>{render.style.display='block';qs('#guardianHero')?.removeAttribute('data-missing-class-render')};
   render.src=src;
@@ -137,11 +137,11 @@ function updateClassRender(className){
 function openGuardianPicker(){
   const grouped=groupFixturesByClass();
   const classes=['hunter','titan','warlock'];
-  const body=`<p class="beta-note">Choose a Guardian class, then load one of the beta builds available for that class.</p><div class="beta-class-tabs">${classes.map(c=>`<button type="button" data-guardian-class="${c}" class="${c===currentClass?'active':''}">${c.toUpperCase()} <small>${grouped[c].length} BUILDS</small></button>`).join('')}</div><div id="betaClassLoadouts" class="beta-class-loadouts"></div>`;
+  const body=`<p class="beta-note">Choose a Guardian class, then load one of the available builds for that class.</p><div class="beta-class-tabs">${classes.map(c=>`<button type="button" data-guardian-class="${c}" class="${c===currentClass?'active':''}">${c.toUpperCase()} <small>${grouped[c].length} BUILDS</small></button>`).join('')}</div><div id="betaClassLoadouts" class="beta-class-loadouts"></div>`;
   const wrap=modal('Choose Guardian',body);
   const renderList=cls=>{
     const host=qs('#betaClassLoadouts',wrap);if(!host)return;
-    host.innerHTML=grouped[cls].length?grouped[cls].map(f=>`<button type="button" class="beta-loadout-row ${f.fixtureId===currentFixture?'active':''}" data-class-fixture="${f.fixtureId}"><b>${esc(f.displayName)}</b><span>${esc(f.subclassName)} · ${esc(f.element)}</span><small>${esc(f.fixtureId)}</small></button>`).join(''):'<p class="beta-note">No beta fixtures are available for this class yet.</p>';
+    host.innerHTML=grouped[cls].length?grouped[cls].map(f=>`<button type="button" class="beta-loadout-row ${f.fixtureId===currentFixture?'active':''}" data-class-fixture="${f.fixtureId}"><b>${esc(f.displayName)}</b><span>${esc(f.subclassName)} · ${esc(f.element)}</span></button>`).join(''):'<p class="beta-note">No builds are available for this class yet.</p>';
     qsa('[data-class-fixture]',host).forEach(btn=>btn.addEventListener('click',async()=>{await globalThis.ForgeBetaFixtures.load(btn.dataset.classFixture);wrap.remove()}));
   };
   qsa('[data-guardian-class]',wrap).forEach(btn=>btn.addEventListener('click',()=>{
@@ -170,7 +170,7 @@ function syncBottomHeight(){
 function installInteractions(){
   const old=qs('#astrixBetaFixtureSelect');if(old)old.style.pointerEvents='none';
   const char=qs('.char-switch');if(char){char.style.cursor='pointer';char.addEventListener('click',e=>{if(e.target.closest('select'))return;openGuardianPicker()})}
-  const art=qs('.artifact-row');if(art){art.tabIndex=0;art.setAttribute('role','button');art.setAttribute('aria-label','Configure Artifact beta loadout');art.addEventListener('click',openArtifactPicker);art.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openArtifactPicker()}})}
+  const art=qs('.artifact-row');if(art){art.tabIndex=0;art.setAttribute('role','button');art.setAttribute('aria-label','Configure Artifact loadout');art.addEventListener('click',openArtifactPicker);art.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openArtifactPicker()}})}
   window.addEventListener('resize',syncBottomHeight);
   document.addEventListener('forge:guardian-selection-changed',e=>{
     currentFixture=e.detail?.fixtureId??currentFixture;

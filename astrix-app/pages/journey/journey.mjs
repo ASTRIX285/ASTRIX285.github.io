@@ -2346,7 +2346,7 @@ function showJourney(){
   resolving.hidden=true;
   signedOut.hidden=true;
   dashboard.hidden=false;
-  status.textContent='AUTHENTICATED JOURNEY';
+  status.textContent='JOURNEY READY';
   renderJourneyContext();
   bindJourneyCrossPageEvidence();
   if(!locationSelectorReady){
@@ -2403,7 +2403,7 @@ try{
     resolving.hidden=true;
     signedOut.hidden=true;
     dashboard.hidden=false;
-    status.textContent='AUTHENTICATED JOURNEY · LIVE REFRESH PENDING';
+    status.textContent='JOURNEY REFRESH PENDING';
     startJourneyBackgroundRefresh();
     void finishJourneyLoader(document);
   }else showSignedOut();

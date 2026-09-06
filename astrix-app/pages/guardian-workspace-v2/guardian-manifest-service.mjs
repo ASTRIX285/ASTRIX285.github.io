@@ -230,7 +230,7 @@ class GuardianManifestService{
       return this;
     }
     try{
-      emitProgress({status:"checking",percent:12,label:"Checking Bungie manifest version"});
+      emitProgress({status:"checking",percent:12,label:'Checking Bungie manifest'});
       const version=await this.checkVersion();
       const paths=this.manifestPaths;
       const downloadableTypes=COMPONENT_TYPES.filter(type=>paths[type]);
@@ -243,7 +243,7 @@ class GuardianManifestService{
           downloadableTypes.forEach((type,index)=>{this.tables.set(type,records[index].definitions);this.cachedTypes.add(type);});
           this.mode="indexeddb";
           this.versionMatched=true;
-          emitProgress({status:"ready",percent:58,label:`Bungie manifest ${version} loaded from IndexedDB`,version,versionMatched:true});
+          emitProgress({status:"ready",percent:58,label:'Bungie manifest loaded from local cache',version,versionMatched:true});
           return this;
         }
       }
@@ -273,10 +273,10 @@ class GuardianManifestService{
         }
       }
       if(this.cachedTypes.size===0)throw new Error("No manifest component tables could be cached.");
-      if(!await this.storage.commitVersion(version))throw new Error("Manifest version marker could not be stored.");
+      if(!await this.storage.commitVersion(version))throw new Error('Manifest cache could not be stored.');
       await this.storage.removeOtherVersions(version);
       this.mode="indexeddb";
-      emitProgress({status:"ready",percent:58,label:`Bungie manifest ${version} indexed`,version,versionMatched:false});
+      emitProgress({status:"ready",percent:58,label:'Bungie manifest indexed',version,versionMatched:false});
       return this;
     }catch(error){
       this.mode="live-fallback";
@@ -290,7 +290,7 @@ class GuardianManifestService{
       const metadata=await this.fetchJson(`${this.authOrigin}/bungie/manifest`);
       const paths=metadata?.jsonWorldComponentContentPaths?.en||metadata?.paths||{};
       const version=String(metadata?.version||"").trim();
-      if(!version)throw new Error("Bungie manifest version is missing.");
+      if(!version)throw new Error('Bungie manifest metadata is missing.');
       this.version=version;this.manifestPaths=paths;
       return version;
     })().catch(error=>{this.versionPromise=null;throw error;});
@@ -311,7 +311,7 @@ class GuardianManifestService{
         if(records.every(record=>record?.definitions&&typeof record.definitions==="object")){
           downloadableTypes.forEach((type,index)=>{this.tables.set(type,records[index].definitions);this.cachedTypes.add(type);});
           this.mode="indexeddb";this.versionMatched=true;
-          emitProgress({status:"ready",percent:58,label:`Bungie manifest ${version} loaded from IndexedDB`,version,versionMatched:true});
+          emitProgress({status:"ready",percent:58,label:'Bungie manifest loaded from local cache',version,versionMatched:true});
           return this;
         }
       }

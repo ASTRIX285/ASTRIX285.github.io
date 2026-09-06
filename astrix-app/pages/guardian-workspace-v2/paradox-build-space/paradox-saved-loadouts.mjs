@@ -51,7 +51,7 @@ function createParadoxLoadoutRecord({id=null,name,description='',build,createdAt
   const snapshot=compactBuild(build);
   const binding=bindingOf(snapshot);
   if(!decimal(binding.characterId)||!decimal(binding.membershipId)||!/^\d+$/.test(binding.membershipType)){
-    throw new TypeError('Saved PARADOX loadouts require an authenticated Guardian binding.');
+    throw new TypeError('Saved PARADOX loadouts require a Bungie Guardian binding.');
   }
   if(!Array.isArray(snapshot.weapons)||!Array.isArray(snapshot.armour))throw new TypeError('The Working Build equipment snapshot is incomplete.');
   const timestamp=nowIso();

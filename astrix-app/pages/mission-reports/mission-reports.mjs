@@ -102,7 +102,7 @@ function renderGuardianContext(context){
     renderGuardianCharacterCardStatus('BUNGIE CHARACTERS UNAVAILABLE','unavailable');
   }
 
-  accountPill.textContent=context?.displayName?`BUNGIE: ${context.displayName}`:'BUNGIE CONNECTED';
+  accountPill.textContent=context?.displayName?`BUNGIE: ${context.displayName}`:'BUNGIE ACCOUNT';
   $('missionGuardianClass').textContent=guardian?.className||'Guardian unavailable';
   $('missionGuardianSubclass').textContent=guardian?.subclassName||'Subclass unavailable';
   $('missionVerifiedGuardian').hidden=guardian?.verified!==true;

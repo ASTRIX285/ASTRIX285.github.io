@@ -19,7 +19,6 @@
     <h1>Guardian Build Forge · Shooting Range Capture</h1>
     <p>This diagnostic captures the selected Guardian before a Shooting Range run, then checks Bungie Activity History for new instance IDs and fetches any available PGCR. It does not assume that a candidate activity is the Shooting Range until Bungie data proves it.</p>
     <div class="meta">
-      <div class="pill"><small>Bungie</small><strong id="auth">Checking…</strong></div>
       <div class="pill"><small>Selected character</small><strong id="character">Checking…</strong></div>
       <div class="pill"><small>Capture</small><strong id="capture">Not armed</strong></div>
     </div>
@@ -52,10 +51,9 @@ async function init(){
   try{
     const session=await getBungieSession();
     ForgeLoader.set(72);ForgeLoader.status('Rendering capture state');
-    $('auth').textContent=session?.authenticated?(session.activeDestinyMembership?.displayName||'Connected'):'Not connected';
     refresh();
   }catch(error){
-    $('auth').textContent='Session unavailable';show({error:error.message,code:error.code||null},'bad');
+    show({error:error.message,code:error.code||null},'bad');
   }
   ForgeLoader.set(94);ForgeLoader.status('Capture console rendered');
   requestAnimationFrame(()=>requestAnimationFrame(()=>ForgeLoader.done()));

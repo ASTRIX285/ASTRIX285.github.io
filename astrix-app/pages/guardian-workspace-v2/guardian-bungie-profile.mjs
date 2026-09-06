@@ -126,7 +126,7 @@ function setSourceCaption(detail={},source="bungie-live"){
   const subclass=String(detail.subclassName||detail.subclass||"Subclass").toUpperCase();
   const caption=document.createElement("small");
   caption.style.color="#8e7bb0";
-  caption.textContent=source==="bungie-live"&&detail.loadoutSource==="currently-equipped"?"Currently equipped items · active Guardian default":source==="bungie-live"?"Live Bungie Guardian":"Telemetry synchronized from Paradox beta fixture";
+  caption.textContent=source==="bungie-live"&&detail.loadoutSource==="currently-equipped"?"Currently equipped items · active Guardian default":source==="bungie-live"?"Live Bungie Guardian":"Guardian data ready";
   message.replaceChildren(document.createTextNode(`${characterClass} · ${subclass}`),document.createElement("br"),caption);
 }
 
@@ -876,7 +876,7 @@ function selectLiveCharacter(characterId,expectedClass=""){
     const session=currentAuthenticatedSession();
     if(session){
       document.documentElement.dataset.guardianSource="bungie-live-loading";
-      setRenderStatus("LOADING CHARACTER PROFILE","Waiting for your live Bungie Guardian","Fixture selection is disabled while authenticated");
+      setRenderStatus("LOADING CHARACTER PROFILE","Waiting for your live Bungie Guardian","Local selection is unavailable while live Guardian data is active");
       ensureLiveProfile(session,{background:false,silent:false});
       return null;
     }

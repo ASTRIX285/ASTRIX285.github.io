@@ -384,7 +384,7 @@ async function init(){
       globalThis.ForgeLoader?.authRequired?.(authStartUrl());
       return;
     }
-    byId('vaultConnectionState').textContent='BUNGIE CONNECTED';
+    byId('vaultConnectionState').textContent='INVENTORY READY';
     payload=await loadVerifiedPayload();
     loaderProgress(78,'Building verified armour catalogue…');
     catalogue=createVaultCatalogue(payload);

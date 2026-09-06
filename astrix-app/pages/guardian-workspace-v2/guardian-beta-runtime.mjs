@@ -301,7 +301,7 @@ function applyGuardianSelection(detail) {
   if (next.stats) renderStats(next.stats);
   if (Array.isArray(next.weapons)) renderWeapons(next.weapons);
 
-  setStageState("GUARDIAN PROFILE ACTIVE", `${next.className ? next.className.toUpperCase() : "GUARDIAN"} · ${next.subclassName ? next.subclassName.toUpperCase() : "SUBCLASS"}<br><small style="color:#8e7bb0">Telemetry synchronized from Paradox beta fixture</small>`);
+  setStageState("GUARDIAN PROFILE ACTIVE", `${next.className ? next.className.toUpperCase() : "GUARDIAN"} · ${next.subclassName ? next.subclassName.toUpperCase() : "SUBCLASS"}`);
 }
 
 document.addEventListener("forge:guardian-selection-changed", (event) => {

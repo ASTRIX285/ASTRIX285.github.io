@@ -33,7 +33,7 @@ function liveActionCapabilities(session={}){
 function assertSessionBinding(plan,session){
   const binding=sessionBinding(session);
   if(!session?.authenticated||!session.csrfToken)throw new Error('Reconnect Bungie before applying live changes.');
-  if(binding.membershipId!==String(plan.membershipId||'')||binding.membershipType!==String(plan.membershipType??''))throw new Error('The authenticated Destiny membership does not match this Working Build.');
+  if(binding.membershipId!==String(plan.membershipId||'')||binding.membershipType!==String(plan.membershipType??''))throw new Error('The current Destiny membership does not match this Working Build.');
   if(!decimal(plan.characterId))throw new Error('The Working Build has no valid Guardian binding.');
   return binding;
 }
@@ -41,7 +41,7 @@ function assertSessionBinding(plan,session){
 function assertAdvertisedPlanCapabilities(plan,session){
   const advertised=liveActionCapabilities(session);
   const missing=(plan?.phases||[]).filter(phase=>phase?.required===true&&advertised[phase.capability]!==true).map(phase=>phase.label||phase.capability);
-  if(missing.length)throw new Error(`The authenticated live route no longer supports: ${missing.join(', ')}.`);
+  if(missing.length)throw new Error(`The Bungie route no longer supports: ${missing.join(', ')}.`);
   return advertised;
 }
 
@@ -86,7 +86,7 @@ function freshTransferSteps(plan,payload){
   const {locations}=inventoryLocations(payload),steps=[],blockers=[];
   for(const target of plan?.equipment?.targets||[]){
     const location=locations.get(String(target.itemInstanceId||''));
-    if(!location){blockers.push(`${target.name} is no longer present in the authenticated account inventory.`);continue;}
+    if(!location){blockers.push(`${target.name} is no longer present in the Bungie account inventory.`);continue;}
     if(Number.isInteger(Number(target.itemHash))&&Number(location.itemHash)!==Number(target.itemHash)){blockers.push(`${target.name} no longer matches its saved Bungie item identity.`);continue;}
     const source=location.source,sourceCharacterId=String(source.characterId||''),targetCharacterId=String(plan.characterId||'');
     if(['equipped','carried'].includes(source.kind)&&sourceCharacterId===targetCharacterId)continue;
@@ -130,19 +130,19 @@ function freshLivePlanInspection(plan,payload,advertised={}){
   const {profile,locations}=inventoryLocations(payload),targets=plan?.equipment?.targets||[],checks=[];
   const add=(key,label,blockers=[],detail={})=>checks.push({key,label,status:blockers.length?'blocked':'passed',blockers:[...new Set(blockers)],detail});
 
-  const characters=profile?.characters?.data||{},characterId=String(plan.characterId||''),guardianBlockers=Object.hasOwn(characters,characterId)?[]:[`Guardian ${characterId} is not present in the fresh authenticated profile.`];
+  const characters=profile?.characters?.data||{},characterId=String(plan.characterId||''),guardianBlockers=Object.hasOwn(characters,characterId)?[]:[`Guardian ${characterId} is not present in the latest Bungie profile.`];
   add('guardian','Guardian binding',guardianBlockers,{characterId});
 
   const ownershipBlockers=[];
   for(const target of targets){
     const location=locations.get(String(target.itemInstanceId||''));
-    if(!location)ownershipBlockers.push(`${target.name} is no longer present in the authenticated account inventory.`);
+    if(!location)ownershipBlockers.push(`${target.name} is no longer present in the Bungie account inventory.`);
     else if(Number.isInteger(Number(target.itemHash))&&Number(location.itemHash)!==Number(target.itemHash))ownershipBlockers.push(`${target.name} no longer matches its saved Bungie item identity.`);
   }
   add('ownership','Exact item ownership',ownershipBlockers,{targetCount:targets.length,ownedTargetCount:targets.length-ownershipBlockers.length});
 
   const resolved=freshTransferSteps(plan,payload),locationBlockers=[...resolved.blockers];
-  if(resolved.steps.length&&advertised.transferItems!==true)locationBlockers.push('Fresh inventory state requires item transfer, but the authenticated live route does not advertise that capability.');
+  if(resolved.steps.length&&advertised.transferItems!==true)locationBlockers.push('Fresh inventory state requires item transfer, but the Bungie route does not advertise that capability.');
   add('instance-location','Exact item locations',locationBlockers,{transferCount:resolved.steps.length});
 
   const compatibilityBlockers=[];
@@ -158,7 +158,7 @@ function freshLivePlanInspection(plan,payload,advertised={}){
   add('exotic','Destiny Exotic limits',exoticBlockers,{weaponExotics,armourExotics});
 
   const resolvedSockets=freshSocketChanges(plan,payload),socketBlockers=[...resolvedSockets.blockers];
-  if(resolvedSockets.changes.length&&advertised.insertSocketPlugFree!==true)socketBlockers.push('Fresh socket state requires a socket mutation, but the authenticated live route does not advertise that capability.');
+  if(resolvedSockets.changes.length&&advertised.insertSocketPlugFree!==true)socketBlockers.push('Fresh socket state requires a socket mutation, but the Bungie route does not advertise that capability.');
   add('socket-legality','Exact socket legality',socketBlockers,{changeCount:resolvedSockets.changes.length,alreadyAppliedCount:resolvedSockets.alreadyApplied.length});
 
   const activity=characterActivityRestriction(plan,payload),activityBlockers=activity.allowed?[]:[activity.reason];
@@ -291,7 +291,7 @@ async function executeBungieLoadoutAction(action,{characterId,index,session,conf
   if(confirmation?.kind!=='bungie-loadout-action-intent'||confirmation?.status!=='confirmed'||!confirmation?.confirmedAt||confirmation.action!==action||confirmation.characterId!==String(characterId)||confirmation.index!==Number(index))throw new Error('Final user confirmation is required before changing an in-game Bungie loadout slot.');
   const binding=sessionBinding(session);if(!session?.authenticated||!session.csrfToken||!decimal(binding.membershipType))throw new Error('Reconnect Bungie before changing an in-game loadout.');
   const capability={equip:'equipLoadout',snapshot:'snapshotLoadout',identifiers:'updateLoadoutIdentifiers',clear:'clearLoadout'}[action];
-  if(!liveActionCapabilities(session)[capability])throw new Error('The authenticated Bungie session has not advertised support for this in-game loadout action.');
+  if(!liveActionCapabilities(session)[capability])throw new Error('The Bungie session has not advertised support for this in game loadout action.');
   const body={membershipType:Number(binding.membershipType),characterId:String(characterId),loadoutIndex:Number(index)};
   for(const key of ['colorHash','iconHash','nameHash'])if(Number.isInteger(Number(identifiers[key])))body[key]=Number(identifiers[key]);
   return requestAction(path,body,{session,fetchImpl,authOrigin});

@@ -1,27 +1,72 @@
-import {getBungieSession} from '../guardian-workspace-v2/guardian-bungie-auth.mjs?v=20260906-tool-intro-1';
-import {forgeLoaderTargetUrl,prepareForgeLoaderEntry} from '../forge-loader/forge-loader-preload.mjs?v=20260906-tool-intro-1';
 import {toolIntroConfig} from './tool-intro-config.mjs?v=20260906-tool-intro-1';
 
+const AUTH_ORIGIN=globalThis.FORGE_AUTH_ORIGIN||'https://auth.astrixparadox.com';
+const JOURNEY_URL='../journey/';
+const SANDBOX_HOST='sandbox.astrixparadox.com';
 const params=new URLSearchParams(location.search);
 const gameId=params.get('game')||'destiny-2';
 const config=toolIntroConfig(gameId);
 const seenKey=`astrix_intro_seen_${gameId}`;
 
-function safeTarget(){
-  const fallback=forgeLoaderTargetUrl(location.href);
-  const requested=params.get('return');
-  if(!requested)return fallback;
+function authReturnUrl(){
+  const current=new URL(location.href);
+  current.searchParams.delete('bungie');
+  current.hash='';
+  return current.toString();
+}
+
+function authStartUrl(){
+  const returnUrl=authReturnUrl();
+  if(location.hostname===SANDBOX_HOST){
+    const start=new URL('/__astrix/bungie/start',location.origin);
+    start.searchParams.set('return',returnUrl);
+    return start.toString();
+  }
+  return `${AUTH_ORIGIN}/bungie/start?return=${encodeURIComponent(returnUrl)}`;
+}
+
+async function getBungieSession(){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),12000);
   try{
-    const target=new URL(requested,location.origin);
-    return target.origin===location.origin&&target.pathname==='/astrix-app/pages/forge-loader/'?target:fallback;
-  }catch{return fallback;}
+    const response=await fetch(`${AUTH_ORIGIN}/session`,{
+      credentials:'include',
+      headers:{Accept:'application/json'},
+      signal:controller.signal
+    });
+    if(response.status===401)return {authenticated:false};
+    if(!response.ok)return {authenticated:false};
+    return await response.json();
+  }catch{
+    return {authenticated:false};
+  }finally{
+    clearTimeout(timer);
+  }
 }
 
 function hasSeenIntro(){try{return localStorage.getItem(seenKey)==='1';}catch{return false;}}
 function rememberIntro(){try{localStorage.setItem(seenKey,'1');}catch{}}
 
-const target=safeTarget();
-if(!config||hasSeenIntro())location.replace(target);
+function openJourney(){
+  location.replace(JOURNEY_URL);
+}
+
+async function continueToGuardianJourney(){
+  const status=document.getElementById('toolIntroStatus');
+  if(status){
+    status.hidden=false;
+    status.textContent=config?.loadingLabel||'Forge is preparing your Guardian data and opening Journey.';
+  }
+  const session=await getBungieSession();
+  if(session?.authenticated){
+    openJourney();
+    return;
+  }
+  if(status)status.textContent='Opening Bungie account approval.';
+  location.assign(authStartUrl());
+}
+
+if(!config)location.replace('/tools/');
 else{
   const byId=id=>document.getElementById(id);
   byId('toolIntroEyebrow').textContent=config.eyebrow;
@@ -35,7 +80,6 @@ else{
   byId('toolIntroDeveloperLogo').alt=config.developerLogoAlt;
   byId('toolIntroDisclaimer').textContent=config.disclaimer;
 
-  const sessionPromise=getBungieSession();
   byId('toolIntroCta').addEventListener('click',async()=>{
     const button=byId('toolIntroCta'),status=byId('toolIntroStatus');
     rememberIntro();
@@ -43,14 +87,8 @@ else{
     document.body.classList.add('is-transitioning');
     status.hidden=false;
     status.textContent=config.loadingLabel;
-    const entry=await prepareForgeLoaderEntry(target,await sessionPromise);
-    if(entry.kind==='authentication'){
-      status.textContent='Opening Bungie account approval.';
-      location.assign(entry.authUrl);
-      return;
-    }
-    const timeout=new Promise(resolve=>setTimeout(resolve,2500));
-    await Promise.race([entry.promise.catch(()=>null),timeout]);
-    location.replace(target);
+    await continueToGuardianJourney();
   },{once:true});
+
+  if(hasSeenIntro())void continueToGuardianJourney();
 }

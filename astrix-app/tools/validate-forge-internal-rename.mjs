@@ -55,7 +55,7 @@ assert.match(authWrangler,/service = "astrix-manifest-data"/,'The auth service b
 
 const tracked=execFileSync('git',['ls-files','-z'],{cwd:root,encoding:'utf8'}).split('\0').filter(Boolean);
 const textExtensions=/\.(?:css|html|js|json|md|mjs|py|toml|ts|txt|ya?ml)$/i;
-const scanPaths=tracked.filter(path=>textExtensions.test(path)&&!path.startsWith('ASTRIX285.github.io/')&&path!=='astrix-app/tools/validate-forge-internal-rename.mjs');
+const scanPaths=tracked.filter(path=>textExtensions.test(path)&&existsSync(new URL(`../../${path}`,import.meta.url))&&!path.startsWith('ASTRIX285.github.io/')&&path!=='astrix-app/tools/validate-forge-internal-rename.mjs');
 const source=scanPaths.map(path=>`${path}\n${readFileSync(new URL(`../../${path}`,import.meta.url),'utf8')}`).join('\n');
 const forbidden=[
   ['AstrixLoader',/\bAstrixLoader\b/],
